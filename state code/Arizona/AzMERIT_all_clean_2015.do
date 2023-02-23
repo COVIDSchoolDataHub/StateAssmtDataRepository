@@ -76,23 +76,23 @@ keep if inlist(GradeLevel, "G03", "G04", "G05", "G06", "G07", "G08")
 
 ** Generating missing variables
 gen AssmtName="AzMERIT"
-gen Flag_AssmtNameChange="N"
+gen Flag_AssmtNameChange="Y"
 
-gen Flag_CutScoreChange_ELA="N"
-gen Flag_CutScoreChange_math="N"
+gen Flag_CutScoreChange_ELA="Y"
+gen Flag_CutScoreChange_math="Y"
 gen Flag_CutScoreChange_read="N"
 gen Flag_CutScoreChange_oth="N"
 
 gen DataLevel="School"
-gen Lev5_percent=.
-gen AvgScaleScore=.
+gen Lev5_percent=""
+gen AvgScaleScore=""
 
-gen ProficiencyCriteria=.
-gen ProficientOrAbove_count=.
-gen ParticipationRate=.
+gen ProficiencyCriteria=""
+gen ProficientOrAbove_count=""
+gen ParticipationRate=""
 
 foreach x of numlist 1/5 {
-    generate Lev`x'_count = .
+    generate Lev`x'_count =""
     label variable Lev`x'_count "Count of students within subgroup performing at Level `x'."
     label variable Lev`x'_percent "Percent of students within subgroup performing at Level `x'."
 }
@@ -118,6 +118,7 @@ rename SciencePercentApproaches Lev2_percent
 rename SciencePercentMeets Lev3_percent
 rename SciencePercentExceeds Lev4_percent
 rename SciencePercentPassing ProficientOrAbove_percent
+rename ScienceMeanScaleScore AvgScaleScore
 
 gen Subject="sci"
 
@@ -127,7 +128,6 @@ drop State CharterSchool
 tostring GradeLevel, replace
 replace GradeLevel = "G04" if GradeLevel=="4"
 replace GradeLevel = "G08" if GradeLevel=="8"
-replace GradeLevel = "G38" if strpos(GradeLevel, "All Assessments")>0
 
 keep if inlist(GradeLevel, "G03", "G04", "G05", "G06", "G07", "G08")
 
@@ -142,14 +142,14 @@ gen Flag_CutScoreChange_read="N"
 gen Flag_CutScoreChange_oth="N"
 
 gen DataLevel="School"
-gen Lev5_percent=.
+gen Lev5_percent=""
 
-gen ProficiencyCriteria=.
-gen ProficientOrAbove_count=.
-gen ParticipationRate=.
+gen ProficiencyCriteria=""
+gen ProficientOrAbove_count=""
+gen ParticipationRate=""
 
 foreach x of numlist 1/5 {
-    generate Lev`x'_count = .
+    generate Lev`x'_count =""
     label variable Lev`x'_count "Count of students within subgroup performing at Level `x'."
     label variable Lev`x'_percent "Percent of students within subgroup performing at Level `x'."
 }
@@ -160,6 +160,7 @@ tostring StateAssignedDistID, replace
 save "${output}/AZ_AssmtData_2015_school_sci.dta", replace
 
 use "${output}/AZ_AssmtData_school_2015.dta", clear
+
 append using "${output}/AZ_AssmtData_2015_school_sci.dta"
 
 merge m:1 StateAssignedSchlID using "${NCES}/NCES_2015_School.dta"
@@ -211,19 +212,19 @@ gen Flag_AssmtNameChange="Y"
 
 gen Flag_CutScoreChange_ELA="Y"
 gen Flag_CutScoreChange_math="Y"
-gen Flag_CutScoreChange_read="Y"
+gen Flag_CutScoreChange_read="N"
 gen Flag_CutScoreChange_oth="N"
 
 gen DataLevel="District"
-gen Lev5_percent=.
-gen AvgScaleScore=.
+gen Lev5_percent=""
+gen AvgScaleScore=""
 
-gen ProficiencyCriteria=.
-gen ProficientOrAbove_count=.
-gen ParticipationRate=.
+gen ProficiencyCriteria=""
+gen ProficientOrAbove_count=""
+gen ParticipationRate=""
 
 foreach x of numlist 1/5 {
-    generate Lev`x'_count = .
+    generate Lev`x'_count =""
     label variable Lev`x'_count "Count of students within subgroup performing at Level `x'."
     label variable Lev`x'_percent "Percent of students within subgroup performing at Level `x'."
 }
@@ -256,7 +257,6 @@ drop State
 tostring GradeLevel, replace
 replace GradeLevel = "G04" if GradeLevel=="4"
 replace GradeLevel = "G08" if GradeLevel=="8"
-replace GradeLevel = "G38" if strpos(GradeLevel, "All Assessments")>0
 
 keep if inlist(GradeLevel, "G03", "G04", "G05", "G06", "G07", "G08")
 
@@ -271,14 +271,14 @@ gen Flag_CutScoreChange_read="N"
 gen Flag_CutScoreChange_oth="N"
 
 gen DataLevel="District"
-gen Lev5_percent=.
+gen Lev5_percent=""
 
-gen ProficiencyCriteria=.
-gen ProficientOrAbove_count=.
-gen ParticipationRate=.
+gen ProficiencyCriteria=""
+gen ProficientOrAbove_count=""
+gen ParticipationRate=""
 
 foreach x of numlist 1/5 {
-    generate Lev`x'_count = .
+    generate Lev`x'_count =""
     label variable Lev`x'_count "Count of students within subgroup performing at Level `x'."
     label variable Lev`x'_percent "Percent of students within subgroup performing at Level `x'."
 }
@@ -289,8 +289,6 @@ tostring AvgScaleScore, replace
 save "${output}/AZ_AssmtData_2015_district_sci.dta", replace
 
 use "${output}/AZ_AssmtData_district_2015.dta", clear
-
-tostring AvgScaleScore, replace
 
 append using "${output}/AZ_AssmtData_2015_district_sci.dta"
 
@@ -315,8 +313,6 @@ rename PercentPerformanceLevel4 Lev4_percent
 rename PercentPassing ProficientOrAbove_percent
 
 rename ContentArea Subject
-
-drop SchoolType
 
 ** Replace subject observations
 replace Subject="ela" if Subject=="English Language Arts"
@@ -343,15 +339,15 @@ gen Flag_CutScoreChange_read="Y"
 gen Flag_CutScoreChange_oth="N"
 
 gen DataLevel="State"
-gen Lev5_percent=.
-gen AvgScaleScore=.
+gen Lev5_percent=""
+gen AvgScaleScore=""
 
-gen ProficiencyCriteria=.
-gen ProficientOrAbove_count=.
-gen ParticipationRate=.
+gen ProficiencyCriteria=""
+gen ProficientOrAbove_count=""
+gen ParticipationRate=""
 
 foreach x of numlist 1/5 {
-    generate Lev`x'_count = .
+    generate Lev`x'_count = ""
     label variable Lev`x'_count "Count of students within subgroup performing at Level `x'."
     label variable Lev`x'_percent "Percent of students within subgroup performing at Level `x'."
 }
@@ -394,11 +390,11 @@ gen Flag_CutScoreChange_read="N"
 gen Flag_CutScoreChange_oth="N"
 
 gen DataLevel="State"
-gen Lev5_percent=.
+gen Lev5_percent=""
 
-gen ProficiencyCriteria=.
-gen ProficientOrAbove_count=.
-gen ParticipationRate=.
+gen ProficiencyCriteria=""
+gen ProficientOrAbove_count=""
+gen ParticipationRate=""
 
 foreach x of numlist 1/5 {
 	tostring Lev`x'_percent, replace format("%1.0f")
@@ -420,6 +416,8 @@ tostring AvgScaleScore, replace
 
 append using "${output}/AZ_AssmtData_2015_state_sci.dta"
 
+keep if inlist(SchoolType, "All", "")
+drop SchoolType
 sort GradeLevel Subject
 
 save "${output}/AZ_AssmtData_state_2015.dta", replace
@@ -441,20 +439,28 @@ rename county_name CountyName
 
 gen AssmtType="Regular"
 
-gen fall_year=2015-1
-tostring fall_year, replace
 tostring SchYear, replace
-replace SchYear=fall_year+"-"+SchYear
-drop fall_year
+replace SchYear="2014-2015"
 
 gen StudentGroup=""
-gen State="ARIZONA"
+gen State="arizona"
+
+replace CountyName = lower(CountyName)
 
 order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchlID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
 
-drop SchoolCTDSNumber DistrictCharterHolderCTDSNum LocalEducationAgencyLEACTD ScienceMeanScaleScore year lea_name
+drop SchoolCTDSNumber DistrictCharterHolderCTDSNum LocalEducationAgencyLEACTD year lea_name _merge
 
 sort DataLevel StateAssignedDistID StateAssignedSchlID GradeLevel Subject
+
+replace StateAbbrev="AZ"
+replace StateFips=4
+
+replace Flag_AssmtNameChange="Y"
+replace Flag_CutScoreChange_ELA="Y" 
+replace Flag_CutScoreChange_math="Y" 
+replace Flag_CutScoreChange_read="N" 
+replace Flag_CutScoreChange_oth="N"
 
 save "${output}/AZ_AssmtData_2015.dta", replace
 

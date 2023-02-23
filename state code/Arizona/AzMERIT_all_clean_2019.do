@@ -55,15 +55,15 @@ gen Flag_CutScoreChange_read="N"
 gen Flag_CutScoreChange_oth="N"
 
 gen DataLevel="School"
-gen Lev5_percent=.
-gen AvgScaleScore=.
+gen Lev5_percent=""
+gen AvgScaleScore=""
 
-gen ProficiencyCriteria=.
-gen ProficientOrAbove_count=.
-gen ParticipationRate=.
+gen ProficiencyCriteria=""
+gen ProficientOrAbove_count=""
+gen ParticipationRate=""
 
 foreach x of numlist 1/5 {
-    generate Lev`x'_count = .
+    generate Lev`x'_count =""
     label variable Lev`x'_count "Count of students within subgroup performing at Level `x'."
     label variable Lev`x'_percent "Percent of students within subgroup performing at Level `x'."
 }
@@ -110,6 +110,7 @@ replace GradeLevel = "G08" if GradeLevel=="8"
 
 keep if inlist(GradeLevel, "G03", "G04", "G05", "G06", "G07", "G08", "G38")
 
+tostring AvgScaleScore, replace
 
 ** Generating missing variables
 gen AssmtName="AIMS Science"
@@ -121,14 +122,14 @@ gen Flag_CutScoreChange_read="N"
 gen Flag_CutScoreChange_oth="N"
 
 gen DataLevel="School"
-gen Lev5_percent=.
+gen Lev5_percent=""
 
-gen ProficiencyCriteria=.
-gen ProficientOrAbove_count=.
-gen ParticipationRate=.
+gen ProficiencyCriteria=""
+gen ProficientOrAbove_count=""
+gen ParticipationRate=""
 
 foreach x of numlist 1/5 {
-    generate Lev`x'_count = .
+    generate Lev`x'_count =""
     label variable Lev`x'_count "Count of students within subgroup performing at Level `x'."
     label variable Lev`x'_percent "Percent of students within subgroup performing at Level `x'."
 }
@@ -199,15 +200,15 @@ gen Flag_CutScoreChange_read="N"
 gen Flag_CutScoreChange_oth="N"
 
 gen DataLevel="District"
-gen Lev5_percent=.
-gen AvgScaleScore=.
+gen Lev5_percent=""
+gen AvgScaleScore=""
 
-gen ProficiencyCriteria=.
-gen ProficientOrAbove_count=.
-gen ParticipationRate=.
+gen ProficiencyCriteria=""
+gen ProficientOrAbove_count=""
+gen ParticipationRate=""
 
 foreach x of numlist 1/5 {
-    generate Lev`x'_count = .
+    generate Lev`x'_count =""
     label variable Lev`x'_count "Count of students within subgroup performing at Level `x'."
     label variable Lev`x'_percent "Percent of students within subgroup performing at Level `x'."
 }
@@ -243,6 +244,7 @@ replace GradeLevel = "G08" if GradeLevel=="8"
 
 keep if inlist(GradeLevel, "G03", "G04", "G05", "G06", "G07", "G08", "G38")
 
+tostring AvgScaleScore, replace
 
 ** Generating missing variables
 gen AssmtName="AIMS Science"
@@ -254,14 +256,14 @@ gen Flag_CutScoreChange_read="N"
 gen Flag_CutScoreChange_oth="N"
 
 gen DataLevel="District"
-gen Lev5_percent=.
+gen Lev5_percent=""
 
-gen ProficiencyCriteria=.
-gen ProficientOrAbove_count=.
-gen ParticipationRate=.
+gen ProficiencyCriteria=""
+gen ProficientOrAbove_count=""
+gen ParticipationRate=""
 
 foreach x of numlist 1/5 {
-    generate Lev`x'_count = .
+    generate Lev`x'_count =""
     label variable Lev`x'_count "Count of students within subgroup performing at Level `x'."
     label variable Lev`x'_percent "Percent of students within subgroup performing at Level `x'."
 }
@@ -329,15 +331,15 @@ gen Flag_CutScoreChange_read="N"
 gen Flag_CutScoreChange_oth="N"
 
 gen DataLevel="State"
-gen Lev5_percent=.
-gen AvgScaleScore=.
+gen Lev5_percent=""
+gen AvgScaleScore=""
 
-gen ProficiencyCriteria=.
-gen ProficientOrAbove_count=.
-gen ParticipationRate=.
+gen ProficiencyCriteria=""
+gen ProficientOrAbove_count=""
+gen ParticipationRate=""
 
 foreach x of numlist 1/5 {
-    generate Lev`x'_count = .
+    generate Lev`x'_count =""
     label variable Lev`x'_count "Count of students within subgroup performing at Level `x'."
     label variable Lev`x'_percent "Percent of students within subgroup performing at Level `x'."
 }
@@ -361,6 +363,8 @@ rename PercentPerformanceLevel4 Lev4_percent
 rename PercentPassing ProficientOrAbove_percent
 rename AverageAIMSScaleScore AvgScaleScore
 
+tostring AvgScaleScore, replace
+
 
 ** Replace subject observations
 replace Subject="sci" if Subject=="Science"
@@ -382,16 +386,16 @@ gen Flag_CutScoreChange_read="N"
 gen Flag_CutScoreChange_oth="N"
 
 gen DataLevel="State"
-gen Lev5_percent=.
+gen Lev5_percent=""
 
-gen ProficiencyCriteria=.
-gen ProficientOrAbove_count=.
-gen ParticipationRate=.
+gen ProficiencyCriteria=""
+gen ProficientOrAbove_count=""
+gen ParticipationRate=""
 
 rename DistrictType District
 
 foreach x of numlist 1/5 {
-    generate Lev`x'_count = .
+    generate Lev`x'_count =""
     label variable Lev`x'_count "Count of students within subgroup performing at Level `x'."
     label variable Lev`x'_percent "Percent of students within subgroup performing at Level `x'."
 }
@@ -428,20 +432,17 @@ rename County CountyName
 
 gen AssmtType="Regular"
 
-gen fall_year=2019-1
-tostring fall_year, replace
-tostring SchYear, replace
-replace SchYear=fall_year+"-"+SchYear
-drop fall_year
-
 order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchlID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
 
 drop SchoolCTDS DistrictCTDS year lea_name county_name
 
-replace State="ARIZONA"
+replace State="arizona"
 replace StateAbbrev="AZ"
 replace StateFips=4
 
+replace CountyName = lower(CountyName)
+
+tostring SchYear, replace
 replace SchYear="2018-2019"
 
 sort DataLevel StateAssignedDistID StateAssignedSchlID GradeLevel Subject
@@ -450,4 +451,3 @@ save "${output}/AZ_AssmtData_2019.dta", replace
 
 export delimited using"/Users/minnamgung/Desktop/Arizona/Output/AIMS/csv/AZ_AssmtData_2019.csv", replace
 
-}

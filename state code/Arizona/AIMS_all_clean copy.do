@@ -93,16 +93,16 @@ gen Flag_CutScoreChange_read="N"
 gen Flag_CutScoreChange_oth="N"
 
 gen DataLevel="School"
-gen Lev5_percent=.
+gen Lev5_percent=""
 
-gen ProficiencyCriteria=.
-gen ProficientOrAbove_count=.
-gen ParticipationRate=.
-gen StudentSubGroup=.
-gen StudentGroup_TotalTested=.
+gen ProficiencyCriteria=""
+gen ProficientOrAbove_count=""
+gen ParticipationRate=""
+gen StudentSubGroup=""
+gen StudentGroup_TotalTested=""
 
 foreach x of numlist 1/5 {
-    generate Lev`x'_count = .
+    generate Lev`x'_count =""
     label variable Lev`x'_count "Count of students within subgroup performing at Level `x'."
     label variable Lev`x'_percent "Percent of students within subgroup performing at Level `x'."
 }
@@ -195,16 +195,16 @@ gen Flag_CutScoreChange_read="N"
 gen Flag_CutScoreChange_oth="N"
 
 gen DataLevel="District"
-gen Lev5_percent=.
+gen Lev5_percent=""
 
-gen ProficiencyCriteria=.
-gen ProficientOrAbove_count=.
-gen ParticipationRate=.
-gen StudentSubGroup=.
-gen StudentGroup_TotalTested=.
+gen ProficiencyCriteria=""
+gen ProficientOrAbove_count=""
+gen ParticipationRate=""
+gen StudentSubGroup=""
+gen StudentGroup_TotalTested=""
 
 foreach x of numlist 1/5 {
-    generate Lev`x'_count = .
+    generate Lev`x'_count =""
     label variable Lev`x'_count "Count of students within subgroup performing at Level `x'."
     label variable Lev`x'_percent "Percent of students within subgroup performing at Level `x'."
 }
