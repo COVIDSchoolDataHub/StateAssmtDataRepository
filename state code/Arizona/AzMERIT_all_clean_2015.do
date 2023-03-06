@@ -1,6 +1,8 @@
 clear
 set more off
 
+//editing code
+
 cd "/Users/minnamgung/Desktop/Arizona"
 
 global raw "/Users/minnamgung/Desktop/Arizona/Original Data Files/AzM2-AzMERIT"
