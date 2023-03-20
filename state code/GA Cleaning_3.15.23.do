@@ -78,7 +78,7 @@ replace GradeLevel = "G08" if GradeLevel == "8"
 replace Subject = "ela" if Subject == "English Language Arts"
 replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "sci" if Subject == "Science"
-drop if Subject == "Social Studies"
+replace Subject = "socialstudies" if Subject == "Social Studies"
 
 save "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2011.dta"
 
@@ -219,7 +219,7 @@ replace GradeLevel = "G08" if GradeLevel == "8"
 replace Subject = "ela" if Subject == "English Language Arts"
 replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "sci" if Subject == "Science"
-drop if Subject == "Social Studies"
+replace Subject = "socialstudies" if Subject == "Social Studies"
 
 save "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2012.dta"
 
@@ -360,7 +360,7 @@ replace GradeLevel = "G08" if GradeLevel == "8"
 replace Subject = "ela" if Subject == "English Language Arts"
 replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "sci" if Subject == "Science"
-drop if Subject == "Social Studies"
+replace Subject = "socialstudies" if Subject == "Social Studies"
 
 save "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2013.dta"
 
@@ -501,7 +501,7 @@ replace GradeLevel = "G08" if GradeLevel == "8"
 replace Subject = "ela" if Subject == "English Language Arts"
 replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "sci" if Subject == "Science"
-drop if Subject == "Social Studies"
+replace Subject = "socialstudies" if Subject == "Social Studies"
 
 save "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2014.dta"
 
@@ -658,7 +658,7 @@ replace GradeLevel = "G08" if GradeLevel == "8"
 replace Subject = "ela" if Subject == "English Language Arts"
 replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "sci" if Subject == "Science"
-drop if Subject == "Social Studies"
+replace Subject = "socialstudies" if Subject == "Social Studies"
 
 save "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2015.dta"
 
@@ -805,7 +805,7 @@ replace GradeLevel = "G08" if GradeLevel == "8"
 replace Subject = "ela" if Subject == "English Language Arts"
 replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "sci" if Subject == "Science"
-drop if Subject == "Social Studies"
+replace Subject = "socialstudies" if Subject == "Social Studies"
 
 save "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2016.dta"
 
@@ -955,7 +955,7 @@ replace GradeLevel = "G08" if GradeLevel == "8"
 replace Subject = "ela" if Subject == "English Language Arts"
 replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "sci" if Subject == "Science"
-drop if Subject == "Social Studies"
+replace Subject = "socialstudies" if Subject == "Social Studies"
 
 save "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2017.dta"
 
@@ -1105,7 +1105,7 @@ replace GradeLevel = "G08" if GradeLevel == "8"
 replace Subject = "ela" if Subject == "English Language Arts"
 replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "sci" if Subject == "Science"
-drop if Subject == "Social Studies"
+replace Subject = "socialstudies" if Subject == "Social Studies"
 
 save "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2018.dta"
 
@@ -1265,7 +1265,7 @@ replace GradeLevel = "G08" if GradeLevel == "8"
 replace Subject = "ela" if Subject == "English Language Arts"
 replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "sci" if Subject == "Science"
-drop if Subject == "Social Studies"
+replace Subject = "socialstudies" if Subject == "Social Studies"
 
 save "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2019.dta"
 
@@ -1425,7 +1425,7 @@ replace GradeLevel = "G08" if GradeLevel == "8"
 replace Subject = "ela" if Subject == "English Language Arts"
 replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "sci" if Subject == "Science"
-drop if Subject == "Social Studies"
+replace Subject = "socialstudies" if Subject == "Social Studies"
 
 save "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2021.dta"
 clear
