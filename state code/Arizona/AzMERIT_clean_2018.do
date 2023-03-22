@@ -6,45 +6,49 @@ cd "/Users/minnamgung/Desktop/Arizona"
 global raw "/Users/minnamgung/Desktop/Arizona/Original Data Files/AzM2-AzMERIT"
 global output "/Users/minnamgung/Desktop/Arizona/Output/AzM2-AzMERIT"
 global NCES "/Users/minnamgung/Desktop/Arizona/NCES"
-
+global dta "/Users/minnamgung/Desktop/Arizona/dta"
 
 ** 2018 ELA and Math
 
 import excel "${raw}/AZ_OriginalData_2018_all.xlsx", sheet("Schools") firstrow clear
 
-save "${output}/AZ_AssmtData_school_2018.dta", replace
+save "${dta}/AZ_AssmtData_school_2018.dta", replace
 
-import excel "${raw}/AZ_OriginalData_2018_all.xlsx", sheet("Districts_Charter Holders") firstrow clear
-
-save "${output}/AZ_AssmtData_district_2018.dta", replace
+import excel "${raw}/AZ_OriginalData_2018_all.xlsx", sheet("Districts_Charter Holders") firstrow clear                       
+save "${dta}/AZ_AssmtData_district_2018.dta", replace
 
 import excel "${raw}/AZ_OriginalData_2018_all.xlsx", sheet("State") firstrow clear
 
-save "${output}/AZ_AssmtData_state_2018.dta", replace
+save "${dta}/AZ_AssmtData_state_2018.dta", replace
 
 ** 2018 Science
 
 import excel "${raw}/AZ_OriginalData_2018_sci.xls", sheet("School by Grade") firstrow clear
 
-save "${output}/AZ_AssmtData_school_sci_2018.dta", replace
+save "${dta}/AZ_AssmtData_school_sci_2018.dta", replace
 
 import excel "${raw}/AZ_OriginalData_2018_sci.xls", sheet("LEA by Grade") firstrow clear
 
-save "${output}/AZ_AssmtData_district_sci_2018.dta", replace
+save "${dta}/AZ_AssmtData_district_sci_2018.dta", replace
 
 import excel "${raw}/AZ_OriginalData_2018_sci.xls", sheet("State By Grade") firstrow clear
 
-save "${output}/AZ_AssmtData_state_sci_2018.dta", replace
+save "${dta}/AZ_AssmtData_state_sci_2018.dta", replace
 
 
 
-use "${output}/AZ_AssmtData_school_2018.dta", clear
+
+
+
+** 2018 School Cleaning 
+
+use "${dta}/AZ_AssmtData_school_2018.dta", clear
 
 ** Rename existing variables
 rename FiscalYear SchYear
 rename DistrictCharterHolderName DistName
 rename DistrictCharterHolderEntityI StateAssignedDistID
-rename SchoolEntityID StateAssignedSchlID
+rename SchoolEntityID StateAssignedSchID
 rename SchoolName SchName
 rename SubgroupEthnicity StudentSubGroup
 rename TestLevel GradeLevel
@@ -61,11 +65,6 @@ rename ContentArea Subject
 
 drop CharterSchool
 
-
-** Replace subject observations
-replace Subject="ela" if Subject=="English Language Arts"
-replace Subject="math" if Subject=="Math"
-
 ** Generate grade observations from TestLevel variable
 replace GradeLevel = "G03" if strpos(GradeLevel, "Grade 3")>0
 replace GradeLevel = "G04" if strpos(GradeLevel, "Grade 4")>0
@@ -78,42 +77,19 @@ replace GradeLevel = "G08" if GradeLevel=="Grade 8"
 
 keep if inlist(GradeLevel, "G03", "G04", "G05", "G06", "G07", "G08", "G38")
 
-
-** Generating missing variables
-gen AssmtName="AzMERIT"
-gen Flag_AssmtNameChange="N"
-
-gen Flag_CutScoreChange_ELA="N"
-gen Flag_CutScoreChange_math="N"
-gen Flag_CutScoreChange_read="N"
-gen Flag_CutScoreChange_oth="N"
-
-gen DataLevel="School"
-gen Lev5_percent=""
-gen AvgScaleScore=""
-
-gen ProficiencyCriteria=""
-gen ProficientOrAbove_count=""
-gen ParticipationRate=""
-
-foreach x of numlist 1/5 {
-    generate Lev`x'_count =""
-    label variable Lev`x'_count "Count of students within subgroup performing at Level `x'."
-    label variable Lev`x'_percent "Percent of students within subgroup performing at Level `x'."
-}
-
-tostring StateAssignedSchlID, replace
+tostring StateAssignedSchID, replace
 tostring StateAssignedDistID, replace
 
 save "${output}/AZ_AssmtData_school_2018.dta", replace
 
-use "${output}/AZ_AssmtData_school_sci_2018.dta", clear
+
+use "${dta}/AZ_AssmtData_school_sci_2018.dta", clear
 
 rename FiscalYear SchYear
 rename County CountyName
 rename LocalEducationAgencyLEANam DistName
 rename LocalEducationAgencyLEAEnt StateAssignedDistID
-rename SchoolEntityID StateAssignedSchlID
+rename SchoolEntityID StateAssignedSchID
 rename SchoolName SchName
 
 rename GradeCohortHighSchooldefine GradeLevel
@@ -130,6 +106,7 @@ drop CharterSchool
 
 gen Subject="sci"
 
+
 ** Generate grade observations from TestLevel variable
 tostring GradeLevel, replace
 replace GradeLevel = "G04" if GradeLevel=="4"
@@ -137,33 +114,8 @@ replace GradeLevel = "G08" if GradeLevel=="8"
 
 keep if inlist(GradeLevel, "G03", "G04", "G05", "G06", "G07", "G08")
 
-
-** Generating missing variables
-gen AssmtName="AIMS Science"
-gen Flag_AssmtNameChange="N"
-
-gen Flag_CutScoreChange_ELA="N"
-gen Flag_CutScoreChange_math="N"
-gen Flag_CutScoreChange_read="N"
-gen Flag_CutScoreChange_oth="N"
-
-gen DataLevel="School"
-gen Lev5_percent=""
-
-gen ProficiencyCriteria=""
-gen ProficientOrAbove_count=""
-gen ParticipationRate=""
-
-foreach x of numlist 1/5 {
-    generate Lev`x'_count =""
-    label variable Lev`x'_count "Count of students within subgroup performing at Level `x'."
-    label variable Lev`x'_percent "Percent of students within subgroup performing at Level `x'."
-}
-
-tostring StateAssignedSchlID, replace
+tostring StateAssignedSchID, replace
 tostring StateAssignedDistID, replace
-
-tostring AvgScaleScore, replace
 
 save "${output}/AZ_AssmtData_2018_school_sci.dta", replace
 
@@ -171,16 +123,19 @@ use "${output}/AZ_AssmtData_school_2018.dta", clear
 
 append using "${output}/AZ_AssmtData_2018_school_sci.dta"
 
-merge m:1 StateAssignedSchlID using "${NCES}/NCES_2018_School.dta"
+merge m:1 StateAssignedSchID using "${NCES}/NCES_2018_School.dta"
 
 rename school_type SchoolType
-
+gen DataLevel="School"
 sort NCESSchoolID GradeLevel Subject
 
 save "${output}/AZ_AssmtData_school_2018.dta", replace
 
 
-use "${output}/AZ_AssmtData_district_2018.dta", clear
+
+** 2018 Dist Cleaning 
+
+use "${dta}/AZ_AssmtData_district_2018.dta", clear
 
 ** Rename existing variables
 rename FiscalYear SchYear
@@ -200,10 +155,6 @@ rename PercentPassing ProficientOrAbove_percent
 rename County CountyName
 rename ContentArea Subject
 
-** Replace subject observations
-replace Subject="ela" if Subject=="English Language Arts"
-replace Subject="math" if Subject=="Math"
-
 ** Generate grade observations from TestLevel variable
 replace GradeLevel = "G03" if strpos(GradeLevel, "Grade 3")>0
 replace GradeLevel = "G04" if strpos(GradeLevel, "Grade 4")>0
@@ -215,44 +166,19 @@ replace GradeLevel = "G08" if strpos(GradeLevel, "Grade 8 Enrolled All Math Asse
 replace GradeLevel = "G08" if GradeLevel=="Grade 8"
 
 keep if inlist(GradeLevel, "G03", "G04", "G05", "G06", "G07", "G08", "G38")
-
-
-** Generating missing variables
-gen AssmtName="AzMERIT"
-gen Flag_AssmtNameChange="N"
-
-gen Flag_CutScoreChange_ELA="N"
-gen Flag_CutScoreChange_math="N"
-gen Flag_CutScoreChange_read="N"
-gen Flag_CutScoreChange_oth="N"
-
-gen DataLevel="District"
-gen Lev5_percent=""
-gen AvgScaleScore=""
-
-gen ProficiencyCriteria=""
-gen ProficientOrAbove_count=""
-gen ParticipationRate=""
-
-foreach x of numlist 1/5 {
-    generate Lev`x'_count =""
-    label variable Lev`x'_count "Count of students within subgroup performing at Level `x'."
-    label variable Lev`x'_percent "Percent of students within subgroup performing at Level `x'."
-}
-
 tostring StateAssignedDistID, replace
 
 save "${output}/AZ_AssmtData_district_2018.dta", replace
 
 
-use "${output}/AZ_AssmtData_district_sci_2018.dta", clear 
+use "${dta}/AZ_AssmtData_district_sci_2018.dta", clear 
 
 rename FiscalYear SchYear
 rename County CountyName
 rename LocalEducationAgencyLEANam DistName
 rename LocalEducationAgencyLEAEnt StateAssignedDistID
 
-rename GradeCohortHighSchooldefine GradeLevel
+rename GradeCohortHighSchooldefin GradeLevel
 
 rename NumberTested StudentGroup_TotalTested
 rename SciencePercentFallsFarBelow Lev1_percent
@@ -264,6 +190,7 @@ rename ScienceMeanScaleScore AvgScaleScore
 
 gen Subject="sci"
 
+
 ** Generate grade observations from TestLevel variable
 tostring GradeLevel, replace
 replace GradeLevel = "G04" if GradeLevel=="4"
@@ -271,34 +198,10 @@ replace GradeLevel = "G08" if GradeLevel=="8"
 
 keep if inlist(GradeLevel, "G03", "G04", "G05", "G06", "G07", "G08")
 
-
-** Generating missing variables
-gen AssmtName="AIMS Science"
-gen Flag_AssmtNameChange="N"
-
-gen Flag_CutScoreChange_ELA="N"
-gen Flag_CutScoreChange_math="N"
-gen Flag_CutScoreChange_read="N"
-gen Flag_CutScoreChange_oth="N"
-
-gen DataLevel="District"
-gen Lev5_percent=""
-
-gen ProficiencyCriteria=""
-gen ProficientOrAbove_count=""
-gen ParticipationRate=""
-
-foreach x of numlist 1/5 {
-    generate Lev`x'_count =""
-    label variable Lev`x'_count "Count of students within subgroup performing at Level `x'."
-    label variable Lev`x'_percent "Percent of students within subgroup performing at Level `x'."
-}
-
 tostring StateAssignedDistID, replace
 tostring AvgScaleScore, replace
 
 save "${output}/AZ_AssmtData_2018_district_sci.dta", replace
-
 
 use "${output}/AZ_AssmtData_district_2018.dta", clear
 
@@ -308,10 +211,14 @@ gen State_leaid=StateAssignedDistID
 merge m:1 State_leaid using "${NCES}/NCES_2018_District.dta"
 
 sort NCESDistrictID GradeLevel Subject
+gen DataLevel="District"
 
 save "${output}/AZ_AssmtData_district_2018.dta", replace
 
-use "${output}/AZ_AssmtData_state_2018.dta", clear
+
+** 2018 State cleaning 
+
+use "${dta}/AZ_AssmtData_state_2018.dta", clear
 
 rename FiscalYear SchYear
 rename SubgroupEthnicity StudentSubGroup
@@ -324,12 +231,9 @@ rename PercentPerformanceLevel3 Lev3_percent
 rename PercentPerformanceLevel4 Lev4_percent
 rename PercentPassing ProficientOrAbove_percent
 
+gen AvgScaleScore=""
+
 rename ContentArea Subject
-
-
-** Replace subject observations
-replace Subject="ela" if Subject=="English Language Arts"
-replace Subject="math" if Subject=="Math"
 
 ** Generate grade observations from TestLevel variable
 replace GradeLevel = "G03" if strpos(GradeLevel, "Grade 3")>0
@@ -343,35 +247,12 @@ replace GradeLevel = "G08" if GradeLevel=="Grade 8"
 
 keep if inlist(GradeLevel, "G03", "G04", "G05", "G06", "G07", "G08", "G38")
 
-** Generating missing variables
-gen AssmtName="AzMERIT"
-gen Flag_AssmtNameChange="Y"
-
-gen Flag_CutScoreChange_ELA="Y"
-gen Flag_CutScoreChange_math="Y"
-gen Flag_CutScoreChange_read="Y"
-gen Flag_CutScoreChange_oth="N"
-
-gen DataLevel="State"
-gen Lev5_percent=""
-gen AvgScaleScore=""
-
-gen ProficiencyCriteria=""
-gen ProficientOrAbove_count=""
-gen ParticipationRate=""
-
-foreach x of numlist 1/5 {
-    generate Lev`x'_count =""
-    label variable Lev`x'_count "Count of students within subgroup performing at Level `x'."
-    label variable Lev`x'_percent "Percent of students within subgroup performing at Level `x'."
-}
-
 save "${output}/AZ_AssmtData_state_2018.dta", replace
 
 
-use "${output}/AZ_AssmtData_state_sci_2018.dta", clear
+use "${dta}/AZ_AssmtData_state_sci_2018.dta", clear
 
-rename GradeCohortHighSchooldefine GradeLevel
+rename GradeCohortHighSchooldefin GradeLevel
 rename FiscalYear SchYear
 
 rename NumberTested StudentGroup_TotalTested
@@ -382,9 +263,6 @@ rename SciencePercentExceeds Lev4_percent
 rename SciencePercentPassing ProficientOrAbove_percent
 rename ScienceMeanScaleScore AvgScaleScore
 
-tostring Lev1_percent, replace force
-tostring StudentGroup_TotalTested, replace
-
 gen Subject="sci"
 
 ** Generate grade observations from TestLevel variable
@@ -394,31 +272,14 @@ replace GradeLevel = "G08" if GradeLevel=="8"
 
 keep if inlist(GradeLevel, "G03", "G04", "G05", "G06", "G07", "G08")
 
+tostring Lev1_percent, replace force
+tostring Lev2_percent, replace force
+tostring Lev3_percent, replace force
+tostring Lev4_percent, replace force
+tostring AvgScaleScore, replace force
 
-** Generating missing variables
-gen AssmtName="AIMS Science"
-gen Flag_AssmtNameChange="N"
+tostring StudentGroup_TotalTested, replace force
 
-gen Flag_CutScoreChange_ELA="N"
-gen Flag_CutScoreChange_math="N"
-gen Flag_CutScoreChange_read="N"
-gen Flag_CutScoreChange_oth="N"
-
-gen DataLevel="State"
-gen Lev5_percent=""
-
-gen ProficiencyCriteria=""
-gen ProficientOrAbove_count=""
-gen ParticipationRate=""
-
-foreach x of numlist 1/5 {
-	tostring Lev`x'_percent, replace format("%1.0f")
-    generate Lev`x'_count =""
-    ** label variable Lev`x'_count "Count of students within subgroup performing at Level `x'."
-    ** label variable Lev`x'_percent "Percent of students within subgroup performing at Level `x'."
-}
-
-tostring AvgScaleScore, replace
 tostring ProficientOrAbove_percent, replace force
 
 save "${output}/AZ_AssmtData_2018_state_sci.dta", replace
@@ -427,44 +288,103 @@ use "${output}/AZ_AssmtData_state_2018.dta", clear
 
 append using "${output}/AZ_AssmtData_2018_state_sci.dta"
 
-sort GradeLevel Subject
 keep if inlist(SchoolType, "All", "")
 drop SchoolType
 sort GradeLevel Subject
 
+gen DataLevel="State"
+
 save "${output}/AZ_AssmtData_state_2018.dta", replace
 
+
+** Append all files 
 use "${output}/AZ_AssmtData_school_2018.dta", clear
 
 append using "${output}/AZ_AssmtData_district_2018.dta"
 
 save "${output}/AZ_AssmtData_2018.dta", replace
 
-append using "${output}/AZ_AssmtData_state_2018.dta"
-
-save "${output}/AZ_AssmtData_2018.dta", replace
-
-drop CountyName 
-rename county_name CountyName
-
-gen AssmtType="Regular"
+append using "${output}/AZ_AssmtData_state_2018.dta", force
 
 tostring SchYear, replace
-replace SchYear="2017-2018"
+replace SchYear="2017-18"
 
 gen StudentGroup=""
 gen State="arizona"
 
+save "${output}/AZ_AssmtData_2018.dta", replace
+
+keep if _merge==1
+keep SchYear SchName DistName StateAssignedDistID StateAssignedSchID
+
+export delimited using "/Users/minnamgung/Desktop/Arizona/Output/Unmerged/AZ_AssmtData_unmerged_2018.csv", replace
+
+use "${output}/AZ_AssmtData_2018.dta", clear
+
+
+** Generating missing variables
+gen AssmtName="AzMERIT"
+gen Flag_AssmtNameChange="N"
+gen AssmtType="Regular"
+
+gen Flag_CutScoreChange_ELA="N"
+gen Flag_CutScoreChange_math="N"
+gen Flag_CutScoreChange_read="N"
+gen Flag_CutScoreChange_oth="N"
+
+gen Lev5_percent=""
+
+gen ProficiencyCriteria=""
+gen ProficientOrAbove_count=""
+gen ParticipationRate=""
+
+foreach x of numlist 1/5 {
+    generate Lev`x'_count = ""
+    label variable Lev`x'_count "Count of students within subgroup performing at Level `x'."
+    label variable Lev`x'_percent "Percent of students within subgroup performing at Level `x'."
+}
+
+drop CountyName
+rename county_name CountyName
+
+drop if _merge==2
+drop _merge
+
 replace CountyName = lower(CountyName)
 
-order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchlID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
+replace StudentGroup="All students" if StudentSubGroup=="All Students"
+replace StudentGroup="Race" if inlist(StudentSubGroup, "American Indian/Alaska Native","Asian", "Native Hawaiian/Other Pacific Islander", "Two or More Races", "White", "African American")
+replace StudentGroup="Ethnicity" if StudentSubGroup=="Hispanic/Latino"
+replace StudentGroup="EL status" if inlist(StudentSubGroup, "Limited English Proficient")
+replace StudentGroup="Economic status" if inlist(StudentSubGroup, "Economically Disadvantaged", "Homeless")
+replace StudentGroup="Gender" if inlist(StudentSubGroup, "Male", "Female")
 
-drop SchoolCTDSNumbers DistrictCharterHolderCTDSNum LocalEducationAgencyLEACTD SchoolCTDSNumber year lea_name _merge
+drop if inlist(StudentSubGroup, "Migrant", "Students with Disabilities")
 
-sort StateAssignedDistID StateAssignedSchlID GradeLevel Subject
+replace Subject="ela" if Subject=="English Language Arts"
+replace Subject="math" if Subject=="Math"
+replace Subject="sci" if Subject=="Science"
+
+replace ProficiencyCriteria="Levels 3 and 4"
+
+order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
+
+drop SchoolCTDSNumbers DistrictCharterHolderCTDSNum LocalEducationAgencyLEACTD SchoolCTDSNumber year lea_name
+
+sort DataLevel StateAssignedDistID StateAssignedSchID GradeLevel Subject
 
 save "${output}/AZ_AssmtData_2018.dta", replace
 
 export delimited using"/Users/minnamgung/Desktop/Arizona/Output/AIMS/csv/AZ_AssmtData_2018.csv", replace
+
+
+
+
+
+
+
+
+
+
 
 
