@@ -1,3 +1,11 @@
+clear
+set more off
+
+cd "/Users/minnamgung/Desktop/Arizona"
+
+global output "/Users/minnamgung/Desktop/Alaska/Output"
+
+import delimited "/Users/minnamgung/Desktop/Alaska/Output/AK_AssmtData_2017.csv"
 
 
 local variables "State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate"
@@ -78,15 +86,15 @@ tab StudentSubGroup
 **(5) NCESSchoolID and DistrictID
 
 tab NCESSchoolID if NCESSchoolID<99999999999 //this is 11 digits, NCESID should be 12. May need to be adjusted to 10 digits for states that have a fips/NCES id that starts with 0
-tab NCESDistrictID if NCESDistrictID<999999 //this is 6 digits, district id should be 7. May need to be adjusted to 5 digits as above
+tab ncesdistrictid if ncesdistrictid<999999 //this is 6 digits, district id should be 7. May need to be adjusted to 5 digits as above
 
 
-bysort NCESDistrictID (StateAssignedDistID) : gen flag1 = StateAssignedDistID[1] != StateAssignedDistID[_N]  
-bysort StateAssignedDistID (NCESDistrictID) : gen flag2 = NCESDistrictID[1] != NCESDistrictID[_N]
+bysort ncesdistrictid (stateassigneddistid) : gen flag1 = stateassigneddistid[1] != stateassigneddistid[_N]  
+bysort stateassigneddistid (ncesdistrictid) : gen flag2 = ncesdistrictid[1] != ncesdistrictid[_N]
 
 di as error "Below districts have mismatched NCESDistrictID and StateAssignedDistID"
-tab NCESDistrictID if flag1==1
-tab StateAssignedDistID if flag2==1
+tab ncesdistrictid if flag1==1
+tab stateassigneddistid if flag2==1
 drop flag1 flag2
 
 bysort NCESSchoolID (StateAssignedSchlID) : gen flag1 = StateAssignedSchlID[1] != StateAssignedSchlID[_N]  
@@ -101,7 +109,7 @@ drop flag1 flag2
 gen tempS=floor(NCESSchoolID/100000)
 tostring(NCESSchoolID), g(NCES_School) format(%14.0g)
 di as error "Below schools don't match NCESDistrictID"
-tab NCES_School if tempS != NCESDistrictID
+tab NCES_School if tempS != ncesdistrictid
 drop tempS 
 
 **(6)
