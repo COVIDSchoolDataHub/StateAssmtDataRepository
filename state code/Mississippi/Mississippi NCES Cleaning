@@ -6,7 +6,6 @@ cd "/Users/maggie/Desktop/Mississippi"
 global NCESSchool "/Users/maggie/Desktop/Mississippi/NCES/School"
 global NCESDistrict "/Users/maggie/Desktop/Mississippi/NCES/District"
 global Mississippi "/Users/maggie/Desktop/Mississippi/NCES/Cleaned"
-global MS "/Users/maggie/Desktop/Mississippi"
 
 global years 2013 2014 2015 2016 2017 2018 2020
 
