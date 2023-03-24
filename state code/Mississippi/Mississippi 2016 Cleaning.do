@@ -37,7 +37,7 @@ foreach a in $grade {
 			gen StudentSubGroup = "All students"
 			
 			gen DataLevel = "School"
-			replace DataLevel = "District" if (strpos(SchName, "District") | strpos(SchName, "Schools") | strpos(SchName, "district") | strpos(SchName, "Blind") | strpos(SchName, "Deaf") | strpos(SchName, "Reimagine Prep")) & SchName != "West Bolivar District Middle School" & SchName != "Republic Charter Schools" > 0
+			replace DataLevel = "District" if (strpos(SchName, "District") | strpos(SchName, "Schools") | strpos(SchName, "district") | strpos(SchName, "Ms Sch For The Blind") | strpos(SchName, "Ms School For The Deaf") | strpos(SchName, "Reimagine Prep")) & SchName != "West Bolivar District Middle School" & SchName != "Republic Charter Schools" > 0
 			replace DataLevel = "State" if strpos(SchName, "State of Mississippi") > 0
 			
 			gen DistName = ""
@@ -140,7 +140,7 @@ foreach a in $gradesci {
 				rename `var' SchName
 			}
 			gen DataLevel = "School"
-			replace DataLevel = "District" if (strpos(SchName, "District") | strpos(SchName, "Schools") | strpos(SchName, "district") | strpos(SchName, "Blind") | strpos(SchName, "Deaf") |strpos(SchName, "Reimagine Prep")) & SchName != "West Bolivar District Middle School" & SchName != "Republic Charter Schools" > 0
+			replace DataLevel = "District" if (strpos(SchName, "District") | strpos(SchName, "Schools") | strpos(SchName, "district") | strpos(SchName, "Ms Sch For The Blind") | strpos(SchName, "Ms School For The Deaf") | strpos(SchName, "Reimagine Prep")) & SchName != "West Bolivar District Middle School" & SchName != "Republic Charter Schools" > 0
 			replace DataLevel = "State" if strpos(SchName, "Grand Total") > 0
 			
 			gen DistName = ""
