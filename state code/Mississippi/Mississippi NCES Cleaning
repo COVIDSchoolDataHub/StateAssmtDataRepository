@@ -1,0 +1,47 @@
+clear
+set more off
+
+cd "/Users/maggie/Desktop/Mississippi"
+
+global NCESSchool "/Users/maggie/Desktop/Mississippi/NCES/School"
+global NCESDistrict "/Users/maggie/Desktop/Mississippi/NCES/District"
+global Mississippi "/Users/maggie/Desktop/Mississippi/NCES/Cleaned"
+global MS "/Users/maggie/Desktop/Mississippi"
+
+global years 2013 2014 2015 2016 2017 2018 2020
+
+foreach a in $years {
+	
+	use "${NCESDistrict}/NCES_`a'_District.dta", clear 
+	keep if state_fips == 28
+	
+	rename state_name State
+	rename state_location StateAbbrev
+	rename state_fips StateFips
+	rename ncesdistrictid NCESDistrictID
+	rename state_leaid State_leaid
+	rename district_agency_type DistrictType
+	rename county_name CountyName
+	rename county_code CountyCode
+	rename lea_name DistName
+	
+	save "${Mississippi}/NCES_`a'_District.dta", replace
+	
+	use "${NCESSchool}/NCES_`a'_School.dta", clear
+	keep if state_fips == 28
+	
+	rename state_name State
+	rename state_location StateAbbrev
+	rename state_fips StateFips
+	rename ncesdistrictid NCESDistrictID
+	rename state_leaid State_leaid
+	rename charter Charter
+	rename county_code CountyCode
+	rename ncesschoolid NCESSchoolID
+	rename school_type SchoolType
+	rename virtual Virtual 
+	rename school_level SchoolLevel
+	
+	save "${Mississippi}/NCES_`a'_School.dta", replace
+	
+}
