@@ -5,7 +5,8 @@ cd "/Users/maggie/Desktop/Mississippi"
 
 global NCESSchool "/Users/maggie/Desktop/Mississippi/NCES/School"
 global NCESDistrict "/Users/maggie/Desktop/Mississippi/NCES/District"
-global Mississippi "/Users/maggie/Desktop/Mississippi/NCES/Cleaned"
+global Cleaned "/Users/maggie/Desktop/Mississippi/NCES/Cleaned"
+global MS "/Users/maggie/Desktop/Mississippi/Missing Schools"
 
 global years 2013 2014 2015 2016 2017 2018 2020
 
@@ -24,7 +25,7 @@ foreach a in $years {
 	rename county_code CountyCode
 	rename lea_name DistName
 	
-	save "${Mississippi}/NCES_`a'_District.dta", replace
+	save "${Cleaned}/NCES_`a'_District.dta", replace
 	
 	use "${NCESSchool}/NCES_`a'_School.dta", clear
 	keep if state_fips == 28
@@ -41,6 +42,46 @@ foreach a in $years {
 	rename virtual Virtual 
 	rename school_level SchoolLevel
 	
-	save "${Mississippi}/NCES_`a'_School.dta", replace
+	save "${Cleaned}/NCES_`a'_School.dta", replace
 	
 }
+
+import delimited "${NCESDistrict}/NCES_2021_District.csv", clear
+	keep if statefips == 28
+	rename state State
+	rename stateabbrev StateAbbrev
+	rename statefips StateFips
+	rename ncesdistrictid NCESDistrictID
+	rename state_leaid State_leaid
+	rename districttype DistrictType
+	rename charter Charter
+	rename countyname CountyName
+	rename countycode CountyCode
+	rename schyear SchYear
+	rename distname DistName
+	drop if NCESDistrictID == 2800960
+save "${Cleaned}/NCES_2021_District.dta", replace
+
+import delimited "${NCESSchool}/NCES_2021_School.csv", clear
+	keep if statefips == 28
+	rename state State
+	rename stateabbrev StateAbbrev
+	rename statefips StateFips
+	rename ncesdistrictid NCESDistrictID
+	rename state_leaid State_leaid
+	rename charter Charter
+	rename countycode CountyCode
+	rename ncesschoolid NCESSchoolID
+	rename schooltype SchoolType
+	rename virtual Virtual 
+	rename schoollevel SchoolLevel
+save "${Cleaned}/NCES_2021_School.dta", replace
+
+import excel "${MS}/Missing Schools.xlsx", sheet("Missing Schools") firstrow clear
+	sort SchName DistName
+	quietly by SchName DistName:  gen dup = cond(_N==1,0,_n)
+	drop if dup > 1
+	drop dup
+	sort SchName
+	drop if SchName == ""
+save "${Cleaned}/NCES_Schools.dta", replace
