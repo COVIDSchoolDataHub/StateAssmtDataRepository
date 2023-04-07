@@ -1,8 +1,10 @@
 clear all
 log using georgia_cleaning.log, replace text
 
+cd "/Users/miramehta/Documents/GA State Testing Data"
+
 //2010-2011
-import delimited "/Users/miramehta/Documents/GA State Testing Data/GA_OriginalData_2011_all.csv"
+import delimited "GA_OriginalData_2011_all.csv"
 
 //Rename Variables
 rename long_school_year SchYear
@@ -80,10 +82,10 @@ replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "sci" if Subject == "Science"
 replace Subject = "socialstudies" if Subject == "Social Studies"
 
-save "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2011.dta"
+save "GA_AssmtData_2011.dta"
 
 //Clean NCES Data
-use "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2011_School.dta"
+use "NCES_2011_School.dta"
 drop if state_location != "GA"
 rename lea_name DistName
 rename state_leaid StateAssignedDistID
@@ -92,24 +94,24 @@ destring StateAssignedDistID, replace force
 drop if StateAssignedDistID==.
 destring StateAssignedSchID, replace force
 drop if StateAssignedSchID==.
-save "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2011_School_GA.dta"
+save "NCES_2011_School_GA.dta"
 
-use "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2011_District.dta"
+use "NCES Data Prior to 2020-21/NCES_2011_District.dta"
 drop if state_location != "GA"
 rename lea_name DistName
 rename state_leaid StateAssignedDistID
 destring StateAssignedDistID, replace force
 drop if StateAssignedDistID==.
-save "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2011_District_GA"
+save "NCES_2011_District_GA"
 
 //Merge Data
-use "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2011.dta"
+use "GA_AssmtData_2011.dta"
 destring StateAssignedSchID, replace force
 destring StateAssignedDistID, replace force
-merge m:1 StateAssignedSchID StateAssignedDistID using "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2011_School_GA.dta"
+merge m:1 StateAssignedSchID StateAssignedDistID using "NCES_2011_School_GA.dta"
 drop if _merge == 2
 
-merge m:1 StateAssignedDistID using "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2011_District_GA.dta", gen(merge2)
+merge m:1 StateAssignedDistID using "NCES_2011_District_GA.dta", gen(merge2)
 drop if merge2 == 2
 
 //Clean Merged Data
@@ -138,12 +140,12 @@ replace StateAssignedDistID = "ALL" if StateAssignedDistID == "."
 order State StateAbbrev StateFips NCESDistrictID DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
 sort StateAssignedDistID StateAssignedSchID GradeLevel Subject
 
-save "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2011", replace
-export delimited "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2011"
+save "GA_AssmtData_2011", replace
+export delimited "GA_AssmtData_2011"
 clear
 
 //2011-2012
-import delimited "/Users/miramehta/Documents/GA State Testing Data/GA_OriginalData_2012_all.csv"
+import delimited "GA_OriginalData_2012_all.csv"
 
 //Rename Variables
 rename long_school_year SchYear
@@ -221,10 +223,10 @@ replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "sci" if Subject == "Science"
 replace Subject = "socialstudies" if Subject == "Social Studies"
 
-save "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2012.dta"
+save "GA_AssmtData_2012.dta"
 
 //Clean NCES Data
-use "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2012_School.dta"
+use "NCES_2012_School.dta"
 drop if state_location != "GA"
 rename lea_name DistName
 rename state_leaid StateAssignedDistID
@@ -233,24 +235,24 @@ destring StateAssignedDistID, replace force
 drop if StateAssignedDistID==.
 destring StateAssignedSchID, replace force
 drop if StateAssignedSchID==.
-save "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2012_School_GA.dta"
+save "NCES_2012_School_GA.dta"
 
-use "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2012_District.dta"
+use "NCES_2012_District.dta"
 drop if state_location != "GA"
 rename lea_name DistName
 rename state_leaid StateAssignedDistID
 destring StateAssignedDistID, replace force
 drop if StateAssignedDistID==.
-save "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2012_District_GA"
+save "NCES_2012_District_GA"
 
 //Merge Data
-use "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2012.dta"
+use "GA_AssmtData_2012.dta"
 destring StateAssignedSchID, replace force
 destring StateAssignedDistID, replace force
-merge m:1 StateAssignedSchID StateAssignedDistID using "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2012_School_GA.dta"
+merge m:1 StateAssignedSchID StateAssignedDistID using "NCES_2012_School_GA.dta"
 drop if _merge == 2
 
-merge m:1 StateAssignedDistID using "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2012_District_GA.dta", gen(merge2)
+merge m:1 StateAssignedDistID using "NCES_2012_District_GA.dta", gen(merge2)
 drop if merge2 == 2
 
 //Clean Merged Data
@@ -279,12 +281,12 @@ replace StateAssignedDistID = "ALL" if StateAssignedDistID == "."
 order State StateAbbrev StateFips NCESDistrictID DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
 sort StateAssignedDistID StateAssignedSchID GradeLevel Subject
 
-save "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2012", replace
-export delimited "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2012"
+save "GA_AssmtData_2012", replace
+export delimited "GA_AssmtData_2012"
 clear
 
 //2012-2013
-import delimited "/Users/miramehta/Documents/GA State Testing Data/GA_OriginalData_2013_all.csv"
+import delimited "GA_OriginalData_2013_all.csv"
 
 //Rename Variables
 rename long_school_year SchYear
@@ -362,10 +364,10 @@ replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "sci" if Subject == "Science"
 replace Subject = "socialstudies" if Subject == "Social Studies"
 
-save "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2013.dta"
+save "GA_AssmtData_2013.dta"
 
 //Clean NCES Data
-use "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2013_School.dta"
+use "NCES_2013_School.dta"
 drop if state_location != "GA"
 rename lea_name DistName
 rename state_leaid StateAssignedDistID
@@ -374,24 +376,24 @@ destring StateAssignedDistID, replace force
 drop if StateAssignedDistID==.
 destring StateAssignedSchID, replace force
 drop if StateAssignedSchID==.
-save "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2013_School_GA.dta"
+save "NCES_2013_School_GA.dta"
 
-use "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2013_District.dta"
+use "NCES_2013_District.dta"
 drop if state_location != "GA"
 rename lea_name DistName
 rename state_leaid StateAssignedDistID
 destring StateAssignedDistID, replace force
 drop if StateAssignedDistID==.
-save "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2013_District_GA"
+save "NCES_2013_District_GA"
 
 //Merge Data
-use "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2013.dta"
+use "GA_AssmtData_2013.dta"
 destring StateAssignedSchID, replace force
 destring StateAssignedDistID, replace force
-merge m:1 StateAssignedSchID StateAssignedDistID using "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2013_School_GA.dta"
+merge m:1 StateAssignedSchID StateAssignedDistID using "NCES_2013_School_GA.dta"
 drop if _merge == 2
 
-merge m:1 StateAssignedDistID using "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2013_District_GA.dta", gen(merge2)
+merge m:1 StateAssignedDistID using "NCES_2013_District_GA.dta", gen(merge2)
 drop if merge2 == 2
 
 //Clean Merged Data
@@ -420,12 +422,12 @@ replace StateAssignedDistID = "ALL" if StateAssignedDistID == "."
 order State StateAbbrev StateFips NCESDistrictID DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
 sort StateAssignedDistID StateAssignedSchID GradeLevel Subject
 
-save "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2013", replace
-export delimited "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2013"
+save "GA_AssmtData_2013", replace
+export delimited "GA_AssmtData_2013"
 clear
 
 //2013-2014
-import delimited "/Users/miramehta/Documents/GA State Testing Data/GA_OriginalData_2014_all.csv"
+import delimited "GA_OriginalData_2014_all.csv"
 
 //Rename Variables
 rename long_school_year SchYear
@@ -503,10 +505,10 @@ replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "sci" if Subject == "Science"
 replace Subject = "socialstudies" if Subject == "Social Studies"
 
-save "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2014.dta"
+save "GA_AssmtData_2014.dta"
 
 //Clean NCES Data
-use "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2014_School.dta"
+use "NCES_2014_School.dta"
 drop if state_location != "GA"
 rename lea_name DistName
 rename state_leaid StateAssignedDistID
@@ -515,24 +517,24 @@ destring StateAssignedDistID, replace force
 drop if StateAssignedDistID==.
 destring StateAssignedSchID, replace force
 drop if StateAssignedSchID==.
-save "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2014_School_GA.dta"
+save "NCES_2014_School_GA.dta"
 
-use "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2014_District.dta"
+use "NCES_2014_District.dta"
 drop if state_location != "GA"
 rename lea_name DistName
 rename state_leaid StateAssignedDistID
 destring StateAssignedDistID, replace force
 drop if StateAssignedDistID==.
-save "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2014_District_GA"
+save "NCES_2014_District_GA"
 
 //Merge Data
-use "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2014.dta"
+use "GA_AssmtData_2014.dta"
 destring StateAssignedSchID, replace force
 destring StateAssignedDistID, replace force
-merge m:1 StateAssignedSchID StateAssignedDistID using "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2014_School_GA.dta"
+merge m:1 StateAssignedSchID StateAssignedDistID using "NCES_2014_School_GA.dta"
 drop if _merge == 2
 
-merge m:1 StateAssignedDistID using "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2014_District_GA.dta", gen(merge2)
+merge m:1 StateAssignedDistID using "NCES_2014_District_GA.dta", gen(merge2)
 drop if merge2 == 2
 
 //Clean Merged Data
@@ -561,12 +563,12 @@ replace StateAssignedDistID = "ALL" if StateAssignedDistID == "."
 order State StateAbbrev StateFips NCESDistrictID DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
 sort StateAssignedDistID StateAssignedSchID GradeLevel Subject
 
-save "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2014", replace
-export delimited "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2014"
+save "GA_AssmtData_2014", replace
+export delimited "GA_AssmtData_2014"
 clear
 
 //2014-2015
-import delimited "/Users/miramehta/Documents/GA State Testing Data/GA_OriginalData_2015_all.csv"
+import delimited "GA State Testing Data/GA_OriginalData_2015_all.csv"
 
 //Rename Variables
 rename long_school_year SchYear
@@ -660,10 +662,10 @@ replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "sci" if Subject == "Science"
 replace Subject = "socialstudies" if Subject == "Social Studies"
 
-save "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2015.dta"
+save "GA_AssmtData_2015.dta"
 
 //Clean NCES Data
-use "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2015_School.dta"
+use "NCES_2015_School.dta"
 drop if state_location != "GA"
 rename lea_name DistName
 rename state_leaid StateAssignedDistID
@@ -672,24 +674,24 @@ destring StateAssignedDistID, replace force
 drop if StateAssignedDistID==.
 destring StateAssignedSchID, replace force
 drop if StateAssignedSchID==.
-save "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2015_School_GA.dta"
+save "NCES_2015_School_GA.dta"
 
-use "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2015_District.dta"
+use "NCES_2015_District.dta"
 drop if state_location != "GA"
 rename lea_name DistName
 rename state_leaid StateAssignedDistID
 destring StateAssignedDistID, replace force
 drop if StateAssignedDistID==.
-save "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2015_District_GA"
+save "NCES_2015_District_GA"
 
 //Merge Data
-use "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2015.dta"
+use "GA_AssmtData_2015.dta"
 destring StateAssignedSchID, replace force
 destring StateAssignedDistID, replace force
-merge m:1 StateAssignedSchID StateAssignedDistID using "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2015_School_GA.dta"
+merge m:1 StateAssignedSchID StateAssignedDistID using "NCES_2015_School_GA.dta"
 drop if _merge == 2
 
-merge m:1 StateAssignedDistID using "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2015_District_GA.dta", gen(merge2)
+merge m:1 StateAssignedDistID using "NCES_2015_District_GA.dta", gen(merge2)
 drop if merge2 == 2
 
 //Clean Merged Data
@@ -718,12 +720,12 @@ replace StateAssignedDistID = "ALL" if StateAssignedDistID == "."
 order State StateAbbrev StateFips NCESDistrictID DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
 sort StateAssignedDistID StateAssignedSchID GradeLevel Subject
 
-save "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2015", replace
-export delimited "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2015"
+save "GA_AssmtData_2015", replace
+export delimited "GA_AssmtData_2015"
 clear
 
 //2015-2016
-import delimited "/Users/miramehta/Documents/GA State Testing Data/GA_OriginalData_2016_all.csv"
+import delimited "GA_OriginalData_2016_all.csv"
 
 //Rename Variables
 rename long_school_year SchYear
@@ -807,10 +809,10 @@ replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "sci" if Subject == "Science"
 replace Subject = "socialstudies" if Subject == "Social Studies"
 
-save "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2016.dta"
+save "GA_AssmtData_2016.dta"
 
 //Clean NCES Data
-use "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2016_School.dta"
+use "NCES_2016_School.dta"
 drop if state_location != "GA"
 rename lea_name DistName
 gen str StateAssignedDistID = substr(state_leaid, 4, 7)
@@ -821,25 +823,25 @@ destring StateAssignedDistID, replace force
 drop if StateAssignedDistID==.
 destring StateAssignedSchID, replace force
 drop if StateAssignedSchID==.
-save "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2016_School_GA.dta"
+save "NCES_2016_School_GA.dta"
 
-use "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2016_District.dta"
+use "NCES_2016_District.dta"
 drop if state_location != "GA"
 rename lea_name DistName
 gen str StateAssignedDistID = substr(state_leaid, 4, 7)
 drop state_leaid
 destring StateAssignedDistID, replace force
 drop if StateAssignedDistID==.
-save "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2016_District_GA"
+save "NCES_2016_District_GA"
 
 //Merge Data
-use "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2016.dta"
+use "GA_AssmtData_2016.dta"
 destring StateAssignedSchID, replace force
 destring StateAssignedDistID, replace force
-merge m:1 StateAssignedSchID StateAssignedDistID using "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2016_School_GA.dta"
+merge m:1 StateAssignedSchID StateAssignedDistID using "NCES_2016_School_GA.dta"
 drop if _merge == 2
 
-merge m:1 StateAssignedDistID using "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2016_District_GA.dta", gen(merge2)
+merge m:1 StateAssignedDistID using "NCES_2016_District_GA.dta", gen(merge2)
 drop if merge2 == 2
 
 //Clean Merged Data
@@ -868,12 +870,12 @@ replace StateAssignedDistID = "ALL" if StateAssignedDistID == "."
 order State StateAbbrev StateFips NCESDistrictID DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
 sort StateAssignedDistID StateAssignedSchID GradeLevel Subject
 
-save "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2016", replace
-export delimited "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2016"
+save "GA_AssmtData_2016", replace
+export delimited "GA_AssmtData_2016"
 clear
 
 //2016-2017
-import delimited "/Users/miramehta/Documents/GA State Testing Data/GA_OriginalData_2017_all.csv"
+import delimited "GA_OriginalData_2017_all.csv"
 
 //Rename Variables
 rename long_school_year SchYear
@@ -957,10 +959,10 @@ replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "sci" if Subject == "Science"
 replace Subject = "socialstudies" if Subject == "Social Studies"
 
-save "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2017.dta"
+save "GA_AssmtData_2017.dta"
 
 //Clean NCES Data
-use "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2017_School.dta"
+use "NCES_2017_School.dta"
 drop if state_location != "GA"
 rename lea_name DistName
 gen str StateAssignedDistID = substr(state_leaid, 4, 7)
@@ -971,25 +973,25 @@ destring StateAssignedDistID, replace force
 drop if StateAssignedDistID==.
 destring StateAssignedSchID, replace force
 drop if StateAssignedSchID==.
-save "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2017_School_GA.dta"
+save "NCES_2017_School_GA.dta"
 
-use "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2017_District.dta"
+use "NCES_2017_District.dta"
 drop if state_location != "GA"
 rename lea_name DistName
 gen str StateAssignedDistID = substr(state_leaid, 4, 7)
 drop state_leaid
 destring StateAssignedDistID, replace force
 drop if StateAssignedDistID==.
-save "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2017_District_GA"
+save "NCES Data Prior to 2020-21/NCES_2017_District_GA"
 
 //Merge Data
-use "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2017.dta"
+use "GA_AssmtData_2017.dta"
 destring StateAssignedSchID, replace force
 destring StateAssignedDistID, replace force
-merge m:1 StateAssignedSchID StateAssignedDistID using "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2017_School_GA.dta"
+merge m:1 StateAssignedSchID StateAssignedDistID using "NCES_2017_School_GA.dta"
 drop if _merge == 2
 
-merge m:1 StateAssignedDistID using "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2017_District_GA.dta", gen(merge2)
+merge m:1 StateAssignedDistID using "NCES_2017_District_GA.dta", gen(merge2)
 drop if merge2 == 2
 
 //Clean Merged Data
@@ -1018,12 +1020,12 @@ replace StateAssignedDistID = "ALL" if StateAssignedDistID == "."
 order State StateAbbrev StateFips NCESDistrictID DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
 sort StateAssignedDistID StateAssignedSchID GradeLevel Subject
 
-save "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2017", replace
-export delimited "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2017"
+save "GA_AssmtData_2017", replace
+export delimited "GA_AssmtData_2017"
 clear
 
 //2017-2018
-import delimited "/Users/miramehta/Documents/GA State Testing Data/GA_OriginalData_2018_all.csv"
+import delimited "GA_OriginalData_2018_all.csv"
 
 //Rename Variables
 rename long_school_year SchYear
@@ -1107,10 +1109,10 @@ replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "sci" if Subject == "Science"
 replace Subject = "socialstudies" if Subject == "Social Studies"
 
-save "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2018.dta"
+save "GA State Testing Data/GA_AssmtData_2018.dta"
 
 //Clean NCES Data
-use "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2018_School.dta"
+use "NCES_2018_School.dta"
 drop if state_location != "GA"
 rename lea_name DistName
 gen str StateAssignedDistID = substr(state_leaid, 4, 7)
@@ -1121,25 +1123,25 @@ destring StateAssignedDistID, replace force
 drop if StateAssignedDistID==.
 destring StateAssignedSchID, replace force
 drop if StateAssignedSchID==.
-save "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2018_School_GA.dta"
+save "NCES_2018_School_GA.dta"
 
-use "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2018_District.dta"
+use "NCES_2018_District.dta"
 drop if state_location != "GA"
 rename lea_name DistName
 gen str StateAssignedDistID = substr(state_leaid, 4, 7)
 drop state_leaid
 destring StateAssignedDistID, replace force
 drop if StateAssignedDistID==.
-save "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2018_District_GA"
+save "NCES_2018_District_GA"
 
 //Merge Data
-use "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2018.dta"
+use "GA_AssmtData_2018.dta"
 destring StateAssignedSchID, replace force
 destring StateAssignedDistID, replace force
-merge m:1 StateAssignedSchID StateAssignedDistID using "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2018_School_GA.dta"
+merge m:1 StateAssignedSchID StateAssignedDistID using "NCES_2018_School_GA.dta"
 drop if _merge == 2
 
-merge m:1 StateAssignedDistID using "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2018_District_GA.dta", gen(merge2)
+merge m:1 StateAssignedDistID using "NCES_2018_District_GA.dta", gen(merge2)
 drop if merge2 == 2
 
 //Clean Merged Data
@@ -1168,12 +1170,12 @@ replace StateAssignedDistID = "ALL" if StateAssignedDistID == "."
 order State StateAbbrev StateFips NCESDistrictID DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
 sort StateAssignedDistID StateAssignedSchID GradeLevel Subject
 
-save "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2018", replace
-export delimited "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2018"
+save "GA_AssmtData_2018", replace
+export delimited "GA_AssmtData_2018"
 clear
 
 //2018-2019
-import delimited "/Users/miramehta/Documents/GA State Testing Data/GA_OriginalData_2019_all.csv"
+import delimited "GA_OriginalData_2019_all.csv"
 
 //Rename Variables
 rename long_school_year SchYear
@@ -1267,10 +1269,10 @@ replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "sci" if Subject == "Science"
 replace Subject = "socialstudies" if Subject == "Social Studies"
 
-save "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2019.dta"
+save "GA_AssmtData_2019.dta"
 
 //Clean NCES Data
-use "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2018_School.dta"
+use "NCES_2018_School.dta"
 drop if state_location != "GA"
 rename lea_name DistName
 gen str StateAssignedDistID = substr(state_leaid, 4, 7)
@@ -1281,25 +1283,25 @@ destring StateAssignedDistID, replace force
 drop if StateAssignedDistID==.
 destring StateAssignedSchID, replace force
 drop if StateAssignedSchID==.
-save "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2019_School_GA.dta"
+save "NCES_2019_School_GA.dta"
 
-use "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2019_District.dta"
+use "NCES_2019_District.dta"
 drop if state_location != "GA"
 rename lea_name DistName
 gen str StateAssignedDistID = substr(state_leaid, 4, 7)
 drop state_leaid
 destring StateAssignedDistID, replace force
 drop if StateAssignedDistID==.
-save "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2019_District_GA"
+save "NCES_2019_District_GA"
 
 //Merge Data
-use "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2019.dta"
+use "GA_AssmtData_2019.dta"
 destring StateAssignedSchID, replace force
 destring StateAssignedDistID, replace force
-merge m:1 StateAssignedSchID StateAssignedDistID using "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2019_School_GA.dta"
+merge m:1 StateAssignedSchID StateAssignedDistID using "NCES_2019_School_GA.dta"
 drop if _merge == 2
 
-merge m:1 StateAssignedDistID using "/Users/miramehta/Documents/NCES District and School Demographics/NCES Data Prior to 2020-21/NCES_2019_District_GA.dta", gen(merge2)
+merge m:1 StateAssignedDistID using "NCES_2019_District_GA.dta", gen(merge2)
 drop if merge2 == 2
 
 //Clean Merged Data
@@ -1328,12 +1330,12 @@ replace StateAssignedDistID = "ALL" if StateAssignedDistID == "."
 order State StateAbbrev StateFips NCESDistrictID DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
 sort StateAssignedDistID StateAssignedSchID GradeLevel Subject
 
-save "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2019", replace
-export delimited "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2019"
+save "GA_AssmtData_2019", replace
+export delimited "GA_AssmtData_2019"
 clear
 
 //2020-2021
-import delimited "/Users/miramehta/Documents/GA State Testing Data/GA_OriginalData_2021_all.csv"
+import delimited "GA_OriginalData_2021_all.csv"
 
 //Rename Variables
 rename long_school_year SchYear
@@ -1427,11 +1429,11 @@ replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "sci" if Subject == "Science"
 replace Subject = "socialstudies" if Subject == "Social Studies"
 
-save "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2021.dta"
+save "GA_AssmtData_2021.dta"
 clear
 
 //Clean NCES Data
-import delimited "/Users/miramehta/Documents/NCES District and School Demographics/NCES_2020-2021_School_Demographics_opt.csv"
+import delimited "NCES District and School Demographics/NCES_2020-2021_School_Demographics_opt.csv"
 drop if state_location != "GA"
 rename lea_name DistName
 gen str StateAssignedDistID = substr(state_leaid, 4, 7)
@@ -1442,27 +1444,27 @@ destring StateAssignedDistID, replace force
 drop if StateAssignedDistID==.
 destring StateAssignedSchID, replace force
 drop if StateAssignedSchID==.
-save "/Users/miramehta/Documents/NCES District and School Demographics/NCES_2021_School_GA.dta"
+save "NCES_2021_School_GA.dta"
 clear
 
-import delimited "/Users/miramehta/Documents/NCES District and School Demographics/NCES_2020-2021_District_Demographics_opt.csv"
+import delimited "NCES_2020-2021_District_Demographics_opt.csv"
 drop if state_location != "GA"
 rename lea_name DistName
 gen str StateAssignedDistID = substr(state_leaid, 4, 7)
 drop state_leaid
 destring StateAssignedDistID, replace force
 drop if StateAssignedDistID==.
-save "/Users/miramehta/Documents/NCES District and School Demographics/NCES_2021_District_GA"
+save "NCES_2021_District_GA"
 clear
 
 //Merge Data
-use "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2021.dta"
+use "GA_AssmtData_2021.dta"
 destring StateAssignedSchID, replace force
 destring StateAssignedDistID, replace force
-merge m:1 StateAssignedSchID StateAssignedDistID using "/Users/miramehta/Documents/NCES District and School Demographics/NCES_2021_School_GA.dta"
+merge m:1 StateAssignedSchID StateAssignedDistID using "NCES_2021_School_GA.dta"
 drop if _merge == 2
 
-merge m:1 StateAssignedDistID using "/Users/miramehta/Documents/NCES District and School Demographics/NCES_2021_District_GA.dta", gen(merge2)
+merge m:1 StateAssignedDistID using "NCES_2021_District_GA.dta", gen(merge2)
 drop if merge2 == 2
 
 //Clean Merged Data
@@ -1491,8 +1493,8 @@ replace StateAssignedDistID = "ALL" if StateAssignedDistID == "."
 order State StateAbbrev StateFips NCESDistrictID DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
 sort StateAssignedDistID StateAssignedSchID GradeLevel Subject
 
-save "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2021", replace
-export delimited "/Users/miramehta/Documents/GA State Testing Data/GA_AssmtData_2021"
+save "GA_AssmtData_2021", replace
+export delimited "GA_AssmtData_2021"
 clear
 
 log close
