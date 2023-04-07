@@ -38,7 +38,9 @@ foreach a in $grade {
 			gen StudentSubGroup = "All students"
 			
 			gen DataLevel = "School"
-			replace DataLevel = "District" if (strpos(SchName, "District") | strpos(SchName, "Schools") | strpos(SchName, "district") | strpos(SchName, "Midtown Public Charter School") | strpos(SchName, "Joel E. Smilow Prep") | strpos(SchName, "Reimagine Prep")) & SchName != "West Bolivar District Middle School" & SchName != "Republic Charter Schools" > 0
+			
+			replace DataLevel = "District" if (strpos(SchName, "District") | strpos(SchName, "Schools") | strpos(SchName, "district") | strpos(SchName, "Midtown Public Charter School") | strpos(SchName, "Joel E. Smilow Prep") | strpos(SchName, "Reimagine Prep") | strpos(SchName, "Blind and Deaf") | strpos(SchName, "Oakley Youth Development Center") | strpos(SchName, "Dubard School for Language Disorders")) & SchName != "West Bolivar District Middle School" & SchName != "Republic Charter Schools" > 0
+
 			replace DataLevel = "State" if strpos(SchName, "Grand Total") > 0
 			
 			gen DistName = ""
@@ -99,6 +101,7 @@ foreach a in $grade {
 			replace DistName = "COVINGTON COUNTY SCHOOL DISTRICT" if DistName == "COVINGTON CO SCHOOLS"
 			replace DistName = "MS SCHS FOR THE BLIND AND DEAF" if DistName == "MS SCHOOLS FOR THE BLIND AND DEAF"
 			replace DistName = "WINONA-MONTGOMERY CONSOLIDATED" if DistName == "WINONA-MONTGOMERY CONSOLIDATED SCHOOL DIST"
+			replace DistName = "MDHS DIVISION OF YOUTH SERVICES" if DistName == "OAKLEY YOUTH DEVELOPMENT CENTER"
 			
 			merge m:1 DistName using "${NCES}/NCES_2018_District.dta"
 
@@ -132,6 +135,32 @@ foreach a in $grade {
 			gen Flag_CutScoreChange_read = ""
 			gen Flag_CutScoreChange_oth = "N"
 			
+			sort SchName DistName
+			quietly by SchName DistName:  gen dup = cond(_N==1,0,_n)
+			drop if dup > 1
+			drop dup
+			
+			replace SchName = strrtrim(SchName)
+			
+			merge m:1 SchName DistName using "${NCES}/NCES_Schools.dta"
+						
+			drop if _merge == 2
+			drop _merge
+			
+			generate stateid = State_leaid
+			replace stateid = subinstr(stateid,"MS-","",.)	
+			destring stateid, replace
+			replace StateAssignedDistID = stateid if StateAssignedDistID == .			
+			replace school_name = SchName if school_name == ""
+			replace county_name = CountyName if county_name == ""
+			replace county_code = CountyCode if county_code == .
+			drop stateid year lea_name SchName CountyCode CountyName school_status No_NCES_id noting_name_change district_agency_type ncesdistrictid
+			rename school_name SchName
+			rename county_name CountyName
+			rename county_code CountyCode
+			
+			order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
+			
 			save "${output}/MS_AssmtData_2019_G`a'`b'.dta", replace
 	}
 }
@@ -164,7 +193,8 @@ global gradesci 5 8
 			gen StudentSubGroup = "All students"
 			
 			gen DataLevel = "School"
-			replace DataLevel = "District" if (strpos(SchName, "District") | strpos(SchName, "Schools") | strpos(SchName, "Ms Sch For the Blind and Deaf") | strpos(SchName, "district") | strpos(SchName, "Midtown Public Charter School") | strpos(SchName, "Joel E. Smilow Prep") | strpos(SchName, "Reimagine Prep") |strpos(SchName, "Mdhs Division of Youth Services")) & SchName != "West Bolivar District Middle School" & SchName != "Republic Charter Schools" > 0
+			
+			replace DataLevel = "District" if (strpos(SchName, "District") | strpos(SchName, "Schools") | strpos(SchName, "Ms Sch For the Blind and Deaf") | strpos(SchName, "district") | strpos(SchName, "Midtown Public Charter School") | strpos(SchName, "Joel E. Smilow Prep") | strpos(SchName, "Reimagine Prep") | strpos(SchName, "Mdhs Division of Youth Services") | strpos(SchName, "Dubard School for Language Disorders") | strpos(SchName, "North Bolivar Cons Sch") | strpos(SchName, "Starkville- Oktibbeha Cons Sd") | strpos(SchName, "West Bolivar Cons Sch")) & SchName != "West Bolivar District Middle School" & SchName != "Republic Charter Schools" > 0
 			replace DataLevel = "State" if strpos(SchName, "Grand Total") > 0
 			
 			gen DistName = ""
@@ -208,8 +238,8 @@ global gradesci 5 8
 			replace DistName = "WEST TALLAHATCHIE SCHOOL DISTRICT" if DistName == "WEST TALLAHATCHIE SCHOOL DIST"
 			replace DistName = "WESTERN LINE SCHOOL DISTRICT" if DistName == "WESTERN LINE SCHOOL DIST"
 			replace DistName = "NORTH BOLIVAR CONS SCH" if DistName == "NORTH BOLIVAR CONSOLIDATED SCHOOL DIST"
-			replace DistName = "STARKVILLE- OKTIBBEHA CONS DIST" if DistName == "STARKVILLE-OKTIBBEHA CONSOLIDATED SCHOOL DIST"
-			replace DistName = "WEST BOLIVAR CONS SCHOOL DIST" if DistName == "WEST BOLIVAR CONSOLIDATED SCHOOL DIST"
+			replace DistName = "STARKVILLE- OKTIBBEHA CONS DIST" if DistName == "STARKVILLE- OKTIBBEHA CONS SD"
+			replace DistName = "WEST BOLIVAR CONS SCHOOL DIST" if DistName == "WEST BOLIVAR CONS SCH"
 			replace DistName = "HATTIESBURG PUBLIC SCHOOL DIST" if DistName == "HATTIESBURG PUBLIC SCHOOLDISTRICT"
 			replace DistName = "AMITE COUNTY SCHOOL DISTRICT" if DistName == "AMITE CO SCHOOL DIST"
 			replace DistName = "ITAWAMBA COUNTY SCHOOL DIST" if DistName == "ITAWAMBA CO SCHOOL DIST"
@@ -220,7 +250,7 @@ global gradesci 5 8
 			replace DistName = "PICAYUNE SCHOOL DISTRICT" if DistName == "PICAYUNE SCHOOL DIST"
 			replace DistName = "PEARL PUBLIC SCHOOL DISTRICT" if DistName == "PEARL PUBLIC SCHOOL DIST"
 			replace DistName = "COVINGTON COUNTY SCHOOL DISTRICT" if DistName == "COVINGTON CO SCHOOLS"
-			replace DistName = "MS SCHS FOR THE BLIND AND DEAF" if DistName == "MS SCHOOLS FOR THE BLIND AND DEAF"
+			replace DistName = "MS SCHS FOR THE BLIND AND DEAF" if DistName == "MS SCH FOR THE BLIND AND DEAF"
 			replace DistName = "CLINTON PUBLIC SCHOOL DIST" if DistName == "CLINTON PUBLIC SCHOOLS"
 			replace DistName = "HOLMES CO CONSOLIDATED SCHOOL DIST" if DistName == "HOLMES CONSOLIDATE SCHOOL DIST"
 			replace DistName = "JACKSON PUBLIC SCHOOL DISTRICT" if DistName == "JACKSON PUBLIC SCHOOLS"
@@ -232,9 +262,8 @@ global gradesci 5 8
 			replace DistName = "TUPELO PUBLIC SCHOOL DIST" if DistName == "TUPELO PUBLIC SCHOOLS"
 			replace DistName = "WINONA-MONTGOMERY CONSOLIDATED" if DistName == "WINONA-MONTGOMERY CONS DIST"
 
-
 			merge m:1 DistName using "${NCES}/NCES_2018_District.dta"
-			
+		
 			drop if _merge == 2
 			drop _merge
 			
@@ -265,10 +294,36 @@ global gradesci 5 8
 			gen Flag_CutScoreChange_read = ""
 			gen Flag_CutScoreChange_oth = "N"
 			
+			
+			sort SchName DistName
+			quietly by SchName DistName:  gen dup = cond(_N==1,0,_n)
+			drop if dup > 1
+			drop dup
+
+			replace SchName = strrtrim(SchName)
+			
+			merge m:1 SchName DistName using "${NCES}/NCES_Schools.dta"
+			
+			drop if _merge == 2
+			drop _merge
+			
+			generate stateid = State_leaid
+			replace stateid = subinstr(stateid,"MS-","",.)	
+			destring stateid, replace
+			replace StateAssignedDistID = stateid if StateAssignedDistID == .			
+			replace school_name = SchName if school_name == ""
+			replace county_name = CountyName if county_name == ""
+			replace county_code = CountyCode if county_code == .
+			drop stateid year lea_name SchName CountyCode CountyName school_status No_NCES_id noting_name_change district_agency_type ncesdistrictid
+			rename school_name SchName
+			rename county_name CountyName
+			rename county_code CountyCode
+			
+			order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate			
+			
 			save "${output}/MS_AssmtData_2019_G`a'sci.dta", replace
 
 			}
-			
 
 ** Appending subjects
 
@@ -289,11 +344,6 @@ global gradesci 5 8
 	append using "${output}/MS_AssmtData_2019_G6all.dta"
 	append using "${output}/MS_AssmtData_2019_G7all.dta"
 	append using "${output}/MS_AssmtData_2019_G8all.dta"
-	order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType CountyName CountyCode SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName SchName Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
-	drop year
+	order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
 	save "${output}/MS_AssmtData_2019.dta", replace
 	export delimited using "/Users/maggie/Desktop/Mississippi/Output/csv/MS_AssmtData_2019.csv", replace
-
-
-
-

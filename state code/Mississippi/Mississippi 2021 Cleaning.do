@@ -40,7 +40,7 @@ foreach a in $grade {
 			gen StudentSubGroup = "All students"
 			
 			gen DataLevel = "School"
-			replace DataLevel = "District" if (strpos(SchName, "District") | strpos(SchName, "Schools") | strpos(SchName, "district") | strpos(SchName, "Midtown Public Charter School") | strpos(SchName, "Joel E. Smilow Prep") | strpos(SchName, "Reimagine Prep") | strpos(SchName, "Consolidated") | strpos(SchName, "Division") | strpos(SchName, "Blind and Deaf")) & SchName != "West Bolivar District Middle School" & SchName != "Republic Charter Schools" > 0
+			replace DataLevel = "District" if (strpos(SchName, "District") | strpos(SchName, "Schools") | strpos(SchName, "district") | strpos(SchName, "Midtown Public Charter School") | strpos(SchName, "Joel E. Smilow Prep") | strpos(SchName, "Reimagine Prep") | strpos(SchName, "Consolidated") | strpos(SchName, "Division") | strpos(SchName, "Blind and Deaf") | strpos(SchName, "Dubard School For Language Disorders") | strpos(SchName, "Leflore Legacy Academy") | strpos(SchName, "Clarksdale Collegiate Public Charter")) & SchName != "West Bolivar District Middle School" & SchName != "Republic Charter Schools" > 0
 			replace DataLevel = "State" if strpos(SchName, "Grand Total") > 0
 			
 			gen DistName = ""
@@ -109,8 +109,11 @@ foreach a in $grade {
 			replace DistName = "TISHOMINGO CO SP MUN SCH DIST" if DistName == "TISHOMINGO CO SCHOOL DIST"
 			replace DistName = "TUNICA COUNTY SCHOOL DISTRICT" if DistName == "TUNICA CO SCHOOL DIST"
 			replace DistName = "MS SCHS FOR THE BLIND AND DEAF" if DistName == "MISSISSIPPI SCHOOL FOR THE BLIND AND DEAF"
+			replace DistName = "Leflore Legacy Academy" if DistName == "LEFLORE LEGACY ACADEMY"
+			replace DistName = "CLARKSDALE COLLEGIATE DISTRICT" if DistName == "CLARKSDALE COLLEGIATE PUBLIC CHARTER"
 			
 			merge m:1 DistName using "${NCES}/NCES_2020_District.dta"
+			
 			drop if _merge == 2
 			drop _merge
 			
@@ -140,6 +143,30 @@ foreach a in $grade {
 			gen Flag_CutScoreChange_math = "N"
 			gen Flag_CutScoreChange_read = ""
 			gen Flag_CutScoreChange_oth = "N"
+			
+			sort SchName DistName
+			quietly by SchName DistName:  gen dup = cond(_N==1,0,_n)
+			drop if dup > 1
+			drop dup
+			
+			merge m:1 SchName DistName using "${NCES}/NCES_Schools.dta"
+						
+			drop if _merge == 2
+			drop _merge
+			
+			generate stateid = State_leaid
+			replace stateid = subinstr(stateid,"MS-","",.)	
+			destring stateid, replace
+			replace StateAssignedDistID = stateid if StateAssignedDistID == .			
+			replace school_name = SchName if school_name == ""
+			replace county_name = CountyName if county_name == ""
+			replace county_code = CountyCode if county_code == .
+			drop stateid year lea_name SchName CountyCode CountyName school_status No_NCES_id noting_name_change district_agency_type ncesdistrictid
+			rename school_name SchName
+			rename county_name CountyName
+			rename county_code CountyCode
+			
+			order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
 
 			save "${output}/MS_AssmtData_2021_G`a'`b'.dta", replace			
 
@@ -176,7 +203,7 @@ global gradesci 5 8
 			gen StudentSubGroup = "All students"
 			
 			gen DataLevel = "School"
-			replace DataLevel = "District" if (strpos(SchName, "District") | strpos(SchName, "Schools") | strpos(SchName, "district") | strpos(SchName, "Midtown Public Charter School") | strpos(SchName, "Joel E. Smilow Prep") | strpos(SchName, "Reimagine Prep") | strpos(SchName, "Consolidated") | strpos(SchName, "Division") | strpos(SchName, "Blind and Deaf")) & SchName != "West Bolivar District Middle School" & SchName != "Republic Charter Schools" > 0
+			replace DataLevel = "District" if (strpos(SchName, "District") | strpos(SchName, "Schools") | strpos(SchName, "district") | strpos(SchName, "Dist") | strpos(SchName, "Midtown Public Charter School") | strpos(SchName, "Joel E. Smilow Prep") | strpos(SchName, "Reimagine Prep") | strpos(SchName, "Consolidated") | strpos(SchName, "Division") | strpos(SchName, "Blind and Deaf") | strpos(SchName, "Dubard School For Language Disorders") | strpos(SchName, "North Bolivar Cons") | strpos(SchName, "West Bolivar Cons")) & SchName != "West Bolivar District Middle School" & SchName != "Republic Charter Schools" > 0
 			replace DataLevel = "State" if strpos(SchName, "Grand Total") > 0
 			
 			gen DistName = ""
@@ -247,12 +274,14 @@ global gradesci 5 8
 			replace DistName = "LINCOLN COUNTY SCHOOL DISTRICT" if DistName == "LINCOLN CO SCHOOLS"
 			replace DistName = "MARION CO SCHOOL DIST" if DistName == "MARION CO SCHOOLS"
 			replace DistName = "NEW ALBANY PUBLIC SCHOOLS" if DistName == "NEW ALBANY SCHOOLS"
+			replace DistName = "NORTH BOLIVAR CONS SCHOOL DIST" if DistName == "NORTH BOLIVAR CONS SCH"
 			replace DistName = "NORTH BOLIVAR CONS SCHOOL DIST" if DistName == "NORTH BOLIVAR CONSOLIDATED SCHOOLS"
 			replace DistName = "SENATOBIA MUNICIPAL SCHOOL DIST" if DistName == "SENATOBIA CITY SCHOOLS"
 			replace DistName = "STARKVILLE- OKTIBBEHA CONS DIST" if DistName == "STARKVILLE- OKTIBBEHA CONS SCHOOL DIST"
 			replace DistName = "STARKVILLE- OKTIBBEHA CONS DIST" if DistName == "STARKVILLE- OKTIBBEHA CONSOLIDATED SCHOOL DIST"
 			replace DistName = "SUNFLOWER CTY CONS SCHOOL DISTRICT" if DistName == "SUNFLOWER CO CONSOLIDATED SCHOOL DIST"
 			replace DistName = "TUPELO PUBLIC SCHOOL DIST" if DistName == "TUPELO PUBLIC SCHOOLS"
+			replace DistName = "WEST BOLIVAR CONS SCHOOL DIST" if DistName == "WEST BOLIVAR CONS SCH"
 			replace DistName = "WEST BOLIVAR CONS SCHOOL DIST" if DistName == "WEST BOLIVAR CONSOLIDATED SCHOOLS"
 			replace DistName = "WINONA-MONTGOMERY CONSOLIDATED" if DistName == "WINONA-MONTGOMERY CONSOLIDATED DIST"
 			replace DistName = "SCOTT CO SCHOOL DIST" if DistName == "SCOUNTYTT CO SCHOOL DIST"
@@ -287,7 +316,33 @@ global gradesci 5 8
 			gen Flag_CutScoreChange_ELA = "N"
 			gen Flag_CutScoreChange_math = "N"
 			gen Flag_CutScoreChange_read = ""
-			gen Flag_CutScoreChange_oth = "N"		
+			gen Flag_CutScoreChange_oth = "N"
+			
+			sort SchName DistName
+			quietly by SchName DistName:  gen dup = cond(_N==1,0,_n)
+			drop if dup > 1
+			drop dup
+			
+			replace SchName = strrtrim(SchName)
+			
+			merge m:1 SchName DistName using "${NCES}/NCES_Schools.dta"
+			
+			drop if _merge == 2
+			drop _merge
+			
+			generate stateid = State_leaid
+			replace stateid = subinstr(stateid,"MS-","",.)	
+			destring stateid, replace
+			replace StateAssignedDistID = stateid if StateAssignedDistID == .			
+			replace school_name = SchName if school_name == ""
+			replace county_name = CountyName if county_name == ""
+			replace county_code = CountyCode if county_code == .
+			drop stateid year lea_name SchName CountyCode CountyName school_status No_NCES_id noting_name_change district_agency_type ncesdistrictid
+			rename school_name SchName
+			rename county_name CountyName
+			rename county_code CountyCode				
+			
+			order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate			
 			
 			save "${output}/MS_AssmtData_2021_G`a'sci.dta", replace
 
@@ -312,8 +367,6 @@ global gradesci 5 8
 	append using "${output}/MS_AssmtData_2021_G6all.dta"
 	append using "${output}/MS_AssmtData_2021_G7all.dta"
 	append using "${output}/MS_AssmtData_2021_G8all.dta"
-	order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType CountyName CountyCode SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName SchName Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
-	drop year
+	order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
 	save "${output}/MS_AssmtData_2021.dta", replace
 	export delimited using "/Users/maggie/Desktop/Mississippi/Output/csv/MS_AssmtData_2021.csv", replace
-	
