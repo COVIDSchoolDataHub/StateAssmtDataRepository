@@ -157,8 +157,9 @@ foreach a in $grade {
 			replace stateid = subinstr(stateid,"MS-","",.)	
 			destring stateid, replace
 			replace StateAssignedDistID = stateid if StateAssignedDistID == .
+			replace school_name = SchName if school_name == ""
 			drop stateid year lea_name SchName county_code county_name school_status No_NCES_id noting_name_change district_agency_type ncesdistrictid updated_status_text effective_date
-			rename school_name SchName
+			rename school_name SchName			
 			
 			order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
 			
@@ -310,6 +311,7 @@ global gradesci 5 8
 			replace stateid = subinstr(stateid,"MS-","",.)	
 			destring stateid, replace
 			replace StateAssignedDistID = stateid if StateAssignedDistID == .
+			replace school_name = SchName if school_name == ""
 			drop stateid year lea_name SchName county_code county_name school_status No_NCES_id noting_name_change district_agency_type ncesdistrictid updated_status_text effective_date
 			rename school_name SchName
 			
