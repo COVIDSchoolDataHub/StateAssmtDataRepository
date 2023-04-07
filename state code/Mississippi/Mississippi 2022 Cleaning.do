@@ -134,6 +134,10 @@ foreach a in $grade {
 			gen ProficientOrAbove_count = ""
 			gen ProficientOrAbove_percent = ""
 			gen ParticipationRate = ""
+			
+			replace State = 28
+			replace StateAbbrev = "MS"
+			replace StateFips = 28
 						
 			gen Flag_AssmtNameChange = "N"
 			gen Flag_CutScoreChange_ELA = "N"
@@ -141,17 +145,17 @@ foreach a in $grade {
 			gen Flag_CutScoreChange_read = ""
 			gen Flag_CutScoreChange_oth = "N"
 			
+			sort SchName DistName
+			quietly by SchName DistName:  gen dup = cond(_N==1,0,_n)
+			drop if dup > 1
+			drop dup
+			
 			replace SchName = strrtrim(SchName)
 			
 			merge m:1 SchName DistName using "${NCES}/NCES_Schools.dta"
 						
 			drop if _merge == 2
 			drop _merge
-
-			sort SchName DistName
-			quietly by SchName DistName: gen dup = cond(_N==1,0,_n)
-			drop if dup > 1
-			drop dup
 			
 			generate stateid = State_leaid
 			replace stateid = subinstr(stateid,"MS-","",.)	
@@ -290,6 +294,10 @@ global gradesci 5 8
 			gen ProficientOrAbove_count = ""
 			gen ProficientOrAbove_percent = ""
 			gen ParticipationRate = ""
+			
+			replace State = 28
+			replace StateAbbrev = "MS"
+			replace StateFips = 28			
 						
 			gen Flag_AssmtNameChange = "N"
 			gen Flag_CutScoreChange_ELA = "N"
@@ -297,15 +305,17 @@ global gradesci 5 8
 			gen Flag_CutScoreChange_read = ""
 			gen Flag_CutScoreChange_oth = "N"
 			
+			sort SchName DistName
+			quietly by SchName DistName:  gen dup = cond(_N==1,0,_n)
+			drop if dup > 1
+			drop dup
+			
+			replace SchName = strrtrim(SchName)
+			
 			merge m:1 SchName DistName using "${NCES}/NCES_Schools.dta"
 
 			drop if _merge == 2
 			drop _merge
-
-			sort SchName DistName
-			quietly by SchName DistName: gen dup = cond(_N==1,0,_n)
-			drop if dup > 1
-			drop dup
 			
 			generate stateid = State_leaid
 			replace stateid = subinstr(stateid,"MS-","",.)	
