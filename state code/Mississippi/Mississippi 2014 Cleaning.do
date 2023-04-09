@@ -72,6 +72,7 @@ gen Flag_CutScoreChange_oth = "N"
 gen AssmtType = "Regular"
 
 gen DataLevel = "School"
+replace SchName = subinstr(SchName, " (E)", "", .)
 replace DataLevel = "District" if SchName == "Districtwide Data"
 replace DataLevel = "State" if SchName == "Statewide Data"
 
@@ -100,14 +101,22 @@ gen SchYear = "2013-2014"
 ** Merging with NCES
 
 replace DISTSCH = "" if DataLevel == "District" | DataLevel == "State"
+replace StateAssignedSchID = "" if DataLevel == "District" | DataLevel == "State"
 rename DISTSCH seasch
 replace DistName = subinstr(DistName, " (E)", "", .)
+
 merge m:1 DistName using "${NCES}/NCES_2013_District.dta"
+
 drop if _merge == 2
 drop _merge
+
 merge m:1 seasch using "${NCES}/NCES_2013_School.dta"
+
+sort _merge DataLevel StateAssignedDistID StateAssignedSchID GradeLevel Subject
+
 drop if _merge == 2
 drop _merge year lea_name
+
 replace SchName = "" if DataLevel == "District" | DataLevel == "State"
 replace DistName = "" if DataLevel == "State"
 replace State = 28
@@ -116,7 +125,7 @@ replace StateFips = 28
 
 order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
 
-sort StateAssignedDistID StateAssignedSchID GradeLevel Subject
+sort DataLevel StateAssignedDistID StateAssignedSchID GradeLevel Subject
 
 save "${output}/MS_AssmtData_2014_ela_mat.dta", replace
 
@@ -168,6 +177,7 @@ gen Flag_CutScoreChange_oth = "N"
 gen AssmtType = "Regular"
 
 gen DataLevel = "School"
+replace SchName = subinstr(SchName, " ( E )", "", .)
 replace DataLevel = "District" if SchName == "Districtwide Data"
 replace DataLevel = "State" if SchName == "Statewide Data"
 
@@ -196,15 +206,23 @@ gen SchYear = "2013-2014"
 ** Merging with NCES
 
 replace DISTSCH = "" if DataLevel == "District" | DataLevel == "State"
+replace StateAssignedSchID = "" if DataLevel == "District" | DataLevel == "State"
 rename DISTSCH seasch
+replace DistName = subinstr(DistName, " ( E )", "", .)
+
 merge m:1 DistName using "${NCES}/NCES_2013_District.dta"
+
 drop if _merge == 2
 drop _merge
+
 merge m:1 seasch using "${NCES}/NCES_2013_School.dta"
+
 sort _merge SchName
 order _merge SchName
+
 drop if _merge == 2
 drop _merge year lea_name
+
 replace SchName = "" if DataLevel == "District" | DataLevel == "State"
 replace DistName = "" if DataLevel == "State"
 replace State = 28
@@ -213,7 +231,7 @@ replace StateFips = 28
 
 order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
 
-sort StateAssignedDistID StateAssignedSchID GradeLevel Subject
+sort DataLevel StateAssignedDistID StateAssignedSchID GradeLevel Subject
 
 save "${output}/MS_AssmtData_2014_sci.dta", replace
 
@@ -223,7 +241,7 @@ use "${output}/MS_AssmtData_2014_ela_mat.dta", clear
 
 append using "${output}/MS_AssmtData_2014_sci.dta"
 
-sort StateAssignedDistID StateAssignedSchID GradeLevel Subject
+sort DataLevel StateAssignedDistID StateAssignedSchID GradeLevel Subject
 
 save "${output}/MS_AssmtData_2014.dta", replace
 
