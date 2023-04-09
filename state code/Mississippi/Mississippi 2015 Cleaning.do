@@ -46,11 +46,10 @@ gen StudentSubGroup = "All students"
 replace DataType = "Z Aggregated by Levels 1-3 and 4-5" if DataType == "State Aggregated by Levels 1-3 and 4-5" | DataType == "Aggregated by Levels 1-3 and 4-5"
 
 sort DataLevel District SchName GradeLevel Subject DataType
-replace Levels13PCT = Levels13PCT[_n+1] if missing(Levels13PCT)
 replace Levels45PCT = Levels45PCT[_n+1] if missing(Levels45PCT)
 
 drop if DataType == "Z Aggregated by Levels 1-3 and 4-5"
-drop DataType
+drop DataType Levels13PCT
 
 ** Rename existing variables
 
@@ -75,21 +74,18 @@ gen SchYear = "2014-2015"
 
 ** Merging with NCES
 
-replace NCESDistrictID = "2801191" if District == "Mississippi Dept. of Human Services"
-replace NCESDistrictID = "2801191" if District == "Mississippi Dept. Of Human Services"
+replace NCESDistrictID = "2801191" if District == "Mississippi Dept. of Human Services" | District == "Mississippi Dept. Of Human Services"
+replace StateAssignedDistID = "2562" if District == "Mississippi Dept. Of Human Services" | District == "Mississippi Dept. Of Human Services"
 replace NCESSchoolID = "280119101197" if SchName == "Williams School"
+replace StateAssignedSchID = "2562008" if SchName == "Williams School"
 
 merge m:1 NCESDistrictID using "${NCES}/NCES_2014_District.dta"
 
 drop if _merge == 2
 drop _merge
 
-replace DistName = "MDHS DIVISION OF YOUTH SERVICES" if NCESDistrictID == "2801191"
-replace StateAssignedDistID = "2562" if NCESDistrictID == "2801191"
-replace StateAssignedSchID = "2562008" if SchName == "Williams School"
-replace DistName = "University Of Southern Mississippi" if District == "University Of Southern Mississippi" 
-
-drop District
+replace DistName = "MDHS DIVISION OF YOUTH SERVICES" if District == "Mississippi Dept. Of Human Services" | District == "Mississippi Dept. Of Human Services"
+replace DistName = "University Of Southern Mississippi" if District == "University Of Southern Mississippi"
 
 replace NCESSchoolID = "280018601404" if SchName == "Brooks Elementary School"
 replace NCESSchoolID = "280018601416" if SchName == "It Montgomery Elementary School"
@@ -115,7 +111,7 @@ gen seasch = StateAssignedSchID
 merge m:1 NCESSchoolID using "${NCES}/NCES_2014_School.dta"
 
 drop if _merge == 2
-drop _merge year lea_name county_name
+drop _merge year lea_name county_name District
 
 replace State = 28
 replace StateAbbrev = "MS"
