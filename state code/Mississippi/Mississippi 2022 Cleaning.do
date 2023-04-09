@@ -134,6 +134,10 @@ foreach a in $grade {
 			gen ProficientOrAbove_count = ""
 			gen ProficientOrAbove_percent = ""
 			gen ParticipationRate = ""
+			
+			replace State = "Mississippi"
+			replace StateAbbrev = "MS"
+			replace StateFips = 28
 						
 			gen Flag_AssmtNameChange = "N"
 			gen Flag_CutScoreChange_ELA = "N"
@@ -289,7 +293,12 @@ global gradesci 5 8
 			gen ProficiencyCriteria = "Levels 4-5"
 			gen ProficientOrAbove_count = ""
 			gen ProficientOrAbove_percent = ""
-			gen ParticipationRate = ""					
+			gen ParticipationRate = ""
+			
+			replace State = "Mississippi"
+			replace StateAbbrev = "MS"
+			replace StateFips = 28			
+			
 			gen Flag_AssmtNameChange = "N"
 			gen Flag_CutScoreChange_ELA = "N"
 			gen Flag_CutScoreChange_math = "N"
