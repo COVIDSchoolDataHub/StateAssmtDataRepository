@@ -43,6 +43,18 @@ replace schoolnumber = "00" + schoolnumber if schoolcodebig==0
 replace schoolnumber = "0" + schoolnumber if schoolcodebig==1
 replace schoolnumber = schoolnumber if schoolcodebig==2
 
+rename performancelevels Lev1_count
+rename i Lev1_percent
+rename j Lev2_count
+rename k Lev2_percent
+rename l Lev3_count
+rename m Lev3_percent
+rename n Lev4_count
+rename o Lev4_percent
+rename p ProficientOrAbove_count
+rename q ProficientOrAbove_percent
+
+
 
 save "${path}/CO_OriginalData_2014_sci.dta", replace
 
@@ -51,6 +63,21 @@ save "${path}/CO_OriginalData_2014_sci.dta", replace
 	
 
 import excel "${path}/CO_OriginalData_2014_soc.xlsx", sheet("Social Studies") firstrow case(lower) clear
+
+replace schoolcode = "0000" if schoolcode=="0"
+
+rename performancelevels Lev1_count
+rename i Lev1_percent
+rename j Lev2_count
+rename k Lev2_percent
+rename l Lev3_count
+rename m Lev3_percent
+rename n Lev4_count
+rename o Lev4_percent
+rename p ProficientOrAbove_count
+rename q ProficientOrAbove_percent
+rename schoolcode schoolnumber
+rename districtcode districtnumber
 
 
 save "${path}/CO_OriginalData_2014_soc.dta", replace
@@ -152,17 +179,6 @@ rename virtual Virtual
 rename school_level SchoolLevel
 
 
-//Rename proficiency levels
-rename performancelevels Lev1_count
-rename i Lev1_percent
-rename j Lev2_count
-rename k Lev2_percent
-rename l Lev3_count
-rename m Lev3_percent
-rename n Lev4_count
-rename o Lev4_percent
-rename p ProficientOrAbove_count
-rename q ProficientOrAbove_percent
 
 
 //	Create new variables
@@ -199,7 +215,7 @@ order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charte
 
 //	Drop unneccesary variables
 
-drop districtnumber_int schoolnumber_int districtcodebig schoolcodebig districtcode schoolcode state_leaidnumber seaschnumber
+drop districtnumber_int schoolnumber_int districtcodebig schoolcodebig state_leaidnumber seaschnumber
 
 
 // Relabel variable values
@@ -286,7 +302,7 @@ replace GradeLevel="G08" if GradeLevel=="08"
 
 tab GradeLevel
 	
-
+replace DistName="All districts" if DistName==""
 
 export delimited using "${path}/CO_2014_Data_Unmerged.csv", replace
 
@@ -300,5 +316,9 @@ drop if _merge==1
 drop _merge
 drop district_merge
 
-export delimited using "${path}/CO_2014_Data.csv", replace
+replace StudentGroup_TotalTested="" if StudentGroup_TotalTested=="< 16"
+replace StudentGroup_TotalTested="" if StudentGroup_TotalTested=="<16"
+destring StudentGroup_TotalTested, replace ignore(",* %NA<>=-")
+
+export delimited using "${path}/CO_AssmtData_2014.csv", replace
 
