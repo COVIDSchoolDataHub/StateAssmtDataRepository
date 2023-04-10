@@ -2,6 +2,7 @@
 
 global path "/Users/hayden/Desktop/Research/CO/2014"
 global nces "/Users/hayden/Desktop/Research/NCES"
+global output "/Users/hayden/Desktop/Research/CO/Output"
 
 
 ///////// Section 1: Appending Aggregate Data
@@ -320,5 +321,5 @@ replace StudentGroup_TotalTested="" if StudentGroup_TotalTested=="< 16"
 replace StudentGroup_TotalTested="" if StudentGroup_TotalTested=="<16"
 destring StudentGroup_TotalTested, replace ignore(",* %NA<>=-")
 
-export delimited using "${path}/CO_AssmtData_2014.csv", replace
+export delimited using "${output}/CO_AssmtData_2014.csv", replace
 
