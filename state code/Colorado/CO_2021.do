@@ -3,6 +3,8 @@
 global path "/Users/hayden/Desktop/Research/CO/2021"
 global nces "/Users/hayden/Desktop/Research/NCES"
 global disagg "/Users/hayden/Desktop/Research/CO/Disaggregate/2021"
+global output "/Users/hayden/Desktop/Research/CO/Output"
+
 
 ///////// Section 1: Appending Aggregate Data
 
