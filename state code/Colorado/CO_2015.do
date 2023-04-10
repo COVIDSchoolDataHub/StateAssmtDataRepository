@@ -2,6 +2,7 @@
 
 global path "/Users/hayden/Desktop/Research/CO/2015"
 global nces "/Users/hayden/Desktop/Research/NCES"
+global disagg "/Users/hayden/Desktop/Research/CO/Disaggregate/2015"
 
 
 ///////// Section 1: Appending Aggregate Data
@@ -148,7 +149,7 @@ save "${path}/CO_OriginalData_2015_all.dta", replace
 
 	//// ENGLISH/LANGUAGE ARTS
 
-import excel "${path}/Disaggregate/CO_2015_ELA_gender.xlsx", sheet("2015 CMAS ELA in Gender") cellrange(A3:H15765) firstrow case(lower) clear
+import excel "${disagg}/CO_2015_ELA_gender.xlsx", sheet("2015 CMAS ELA in Gender") cellrange(A3:H15765) firstrow case(lower) clear
 
 rename schoolnumber schoolnumber_int
 
@@ -187,7 +188,7 @@ save "${path}/CO_2015_ELA_gender.dta", replace
 
 
 
-import excel "${path}/Disaggregate/CO_2015_ELA_language.xlsx", sheet("2015 CMAS ELA in LEP") cellrange(A3:H15767) firstrow case(lower) clear
+import excel "${disagg}/CO_2015_ELA_language.xlsx", sheet("2015 CMAS ELA in LEP") cellrange(A3:H15767) firstrow case(lower) clear
 
 rename group StudentSubGroup
 gen StudentGroup = "EL status"
@@ -196,7 +197,7 @@ save "${path}/CO_2015_ELA_language.dta", replace
 
 
 
-import excel "${path}/Disaggregate/CO_2015_ELA_raceEthnicity.xlsx", sheet("2015 CMAS ELA in Ethnicity") cellrange(A3:H55165) firstrow case(lower) clear
+import excel "${disagg}/CO_2015_ELA_raceEthnicity.xlsx", sheet("2015 CMAS ELA in Ethnicity") cellrange(A3:H55165) firstrow case(lower) clear
 
 rename group StudentSubGroup
 gen StudentGroup = "Race"
@@ -209,7 +210,7 @@ save "${path}/CO_2015_ELA_raceEthnicity.dta", replace
 	//// MATH
 
 
-import excel "${path}/Disaggregate/CO_2015_.mat_genderxlsx.xlsx", sheet("2015 CMAS Math in Gender") cellrange(A3:H16817) firstrow case(lower) clear
+import excel "${disagg}/CO_2015_.mat_genderxlsx.xlsx", sheet("2015 CMAS Math in Gender") cellrange(A3:H16817) firstrow case(lower) clear
 
 rename group StudentSubGroup
 gen StudentGroup = "Gender"
@@ -218,7 +219,7 @@ save "${path}/CO_2015_mat_gender.dta", replace
 
 
 
-import excel "${path}/Disaggregate/CO_2015_mat_language.xlsx", sheet("2015 CMAS Math in LEP") cellrange(A3:H16819) firstrow case(lower) clear
+import excel "${disagg}/CO_2015_mat_language.xlsx", sheet("2015 CMAS Math in LEP") cellrange(A3:H16819) firstrow case(lower) clear
 
 rename group StudentSubGroup
 gen StudentGroup = "EL status"
@@ -227,7 +228,7 @@ save "${path}/CO_2015_mat_language.dta", replace
 
 
 
-import excel "${path}/Disaggregate/CO_2015_mat_raceEthnicity.xlsx", sheet("2015 CMAS Math in Ethnicity") cellrange(A3:H58847) firstrow case(lower) clear
+import excel "${disagg}/CO_2015_mat_raceEthnicity.xlsx", sheet("2015 CMAS Math in Ethnicity") cellrange(A3:H58847) firstrow case(lower) clear
 
 rename group StudentSubGroup
 gen StudentGroup = "Race"
@@ -263,9 +264,33 @@ drop if districtnumber=="** English Learners includes Non English Proficient (NE
 drop if districtnumber=="*** Non-English Learners includes student identified as Fluent English Proficient (FEP), Primary or Home Language Other Than English (PHLOTE), Former ELL (FELL), Not Applicable and Unreported."
 drop if districtnumber=="*** Non-English Learners include students identified as Fluent English Proficient (FEP), Primary or Home Language Other Than English (PHLOTE), Former ELL (FELL), Not Applicable and Unreported."
 
+replace grade="G03" if subjectarea=="ELA Grade 03  "
+replace grade="G04" if subjectarea=="ELA Grade 04  "
+replace grade="G05" if subjectarea=="ELA Grade 05  "
+replace grade="G06" if subjectarea=="ELA Grade 06  "
+replace grade="G07" if subjectarea=="ELA Grade 07  "
+replace grade="G08" if subjectarea=="ELA Grade 08  "
+replace grade="G09" if subjectarea=="ELA Grade 09  "
+replace grade="G10" if subjectarea=="ELA Grade 10  "
+replace grade="G11" if subjectarea=="ELA Grade 11  "
+replace grade="G03" if subjectarea=="Math Grade 03 "
+replace grade="G04" if subjectarea=="Math Grade 04 "
+replace grade="G05" if subjectarea=="Math Grade 05 "
+replace grade="G06" if subjectarea=="Math Grade 06 "
+replace grade="G07" if subjectarea=="Math Grade 07 "
+replace grade="G08" if subjectarea=="Math Grade 08 "
+replace grade="G10" if subjectarea=="Integrated II "
+replace grade="G10" if subjectarea=="Integrated I  "
+replace grade="G09" if subjectarea=="Algebra I     "
+replace grade="G11" if subjectarea=="Algebra II    "
+replace grade="G11" if subjectarea=="Integrated III"
+replace grade="G10" if subjectarea=="Geometry      "
+
+
+
+
 
 ///////// Section 4: Merging NCES Variables
-
 
 
 gen state_leaidnumber =.
@@ -330,7 +355,7 @@ rename schoolnumber StateAssignedSchID
 rename schoolname SchName
 rename subjectarea Subject
 rename grade GradeLevel
-rename numberoftotalrecords StudentGroup_TotalTested
+rename ofvalidscores StudentGroup_TotalTested
 rename participationrate ParticipationRate
 rename meanscalescore AvgScaleScore
 rename state_name State
@@ -365,6 +390,7 @@ rename metorexceededexpectati ProficientOrAbove_percent
 
 destring numberdidnotyetmeetexpectat percentdidnotyetmeetexpecta Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent, replace ignore(",* %NA<>=-")
 
+
 gen NewLev1_count=.
 gen NewLev1_percent=.
 replace NewLev1_count=numberdidnotyetmeetexpectat+Lev1_count
@@ -378,11 +404,7 @@ replace NewLev1_percent=Lev1_percent if percentdidnotyetmeetexpecta==.
 drop Lev1_count Lev1_percent numberdidnotyetmeetexpectat percentdidnotyetmeetexpecta
 rename NewLev1_count Lev1_count
 rename NewLev1_percent Lev1_percent
-
-replace Lev1_percent=Lev1_percent*100 if Lev1_percent<1
-replace Lev2_percent=Lev2_percent*100 if Lev2_percent<1
-replace Lev3_percent=Lev3_percent*100 if Lev3_percent<1
-replace Lev4_percent=Lev4_percent*100 if Lev4_percent<1
+ 
  
  
 tostring Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent, replace force
@@ -540,6 +562,21 @@ replace GradeLevel="G08" if GradeLevel=="08"
 replace GradeLevel="G10" if GradeLevel=="ELA Grade 10"
 replace GradeLevel="G11" if GradeLevel=="ELA Grade 11"
 
+replace DataLevel="District" if DataLevel=="DIST"
+replace DataLevel="School" if DataLevel=="SCH"
+
+replace SchName="All schools" if SchName=="ALL SCHOOLS"
+replace SchName="All schools" if SchName=="DISTRICT"
+drop if SchName=="PIKES PEAK BOCES"
+drop if SchName=="FAMILY EDUCATION NETWORK OF WELD CO"
+
+replace DataLevel="District" if StateAssignedDistID!="0000" & StateAssignedSchID=="0000"
+replace DataLevel="School" if StateAssignedDistID!="0000" & StateAssignedSchID!="0000"
+replace DataLevel="State" if StateAssignedDistID=="0000" & StateAssignedSchID=="0000"
+
+replace StudentSubGroup="English learner" if StudentSubGroup=="English Learner (Not English Proficient/Limited English Proficient)**"
+replace StudentSubGroup="English proficient" if StudentSubGroup=="Non-English Learner***    "
+
 tab GradeLevel
 	
 	
@@ -557,5 +594,11 @@ drop if _merge==2
 drop _merge
 drop district_merge
 
-export delimited using "${path}/CO_2015_Data.csv", replace
+drop numberoftotalrecords numberofnoscores lea_name
+
+replace StudentGroup_TotalTested="" if StudentGroup_TotalTested=="n < 16"
+replace StudentGroup_TotalTested="" if StudentGroup_TotalTested=="<16"
+destring StudentGroup_TotalTested, replace ignore(",* %NA<>=-")
+
+export delimited using "${output}/CO_AssmtData_2015.csv", replace
 

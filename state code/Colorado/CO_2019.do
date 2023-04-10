@@ -2,6 +2,7 @@
 
 global path "/Users/hayden/Desktop/Research/CO/2019"
 global nces "/Users/hayden/Desktop/Research/NCES"
+global disagg "/Users/hayden/Desktop/Research/CO/Disaggregate/2019"
 
 ///////// Section 1: Appending Aggregate Data
 
@@ -65,7 +66,7 @@ save "${path}/CO_OriginalData_2019_all.dta", replace
 
 	//// ENGLISH/LANGUAGE ARTS
 	
-import excel "${path}/disaggregate/2019 CMAS ELA Disaggregated District and School Achievement Results.xlsx", sheet("Gender") cellrange(A11:Y15743) firstrow case(lower) clear
+import excel "${disagg}/2019 CMAS ELA Disaggregated District and School Achievement Results.xlsx", sheet("Gender") cellrange(A11:Y15743) firstrow case(lower) clear
 
 
 rename numberdidnotyetmeetexpect didnotyetmeetexpectations
@@ -85,7 +86,7 @@ save "${path}/CO_2019_ELA_gender.dta", replace
 
 
 
-import excel "${path}/disaggregate/2019 CMAS ELA Disaggregated District and School Achievement Results.xlsx", sheet("Language Proficiency") cellrange(A11:Y36862) firstrow case(lower) clear
+import excel "${disagg}/2019 CMAS ELA Disaggregated District and School Achievement Results.xlsx", sheet("Language Proficiency") cellrange(A11:Y36862) firstrow case(lower) clear
 
 
 rename numberdidnotyetmeetexpect didnotyetmeetexpectations
@@ -104,7 +105,7 @@ gen StudentGroup = "EL status"
 save "${path}/CO_2019_ELA_language.dta", replace
 
 
-import excel "${path}/disaggregate/2019 CMAS ELA Disaggregated District and School Achievement Results.xlsx", sheet("Race Ethnicity") cellrange(A11:Y34836) firstrow case(lower) clear
+import excel "${disagg}/2019 CMAS ELA Disaggregated District and School Achievement Results.xlsx", sheet("Race Ethnicity") cellrange(A11:Y34836) firstrow case(lower) clear
 
 rename numberdidnotyetmeetexpect didnotyetmeetexpectations
 rename percentdidnotyetmeetexpec percentdidnotyetmeetexpectations
@@ -127,7 +128,7 @@ save "${path}/CO_2019_ELA_raceEthnicity.dta", replace
 	//// MATH
 
 
-import excel "${path}/disaggregate/2019 CMAS Math Disaggregated District and School Achievement Results.xlsx", sheet("Gender") cellrange(A11:Y15742) firstrow case(lower) clear
+import excel "${disagg}/2019 CMAS Math Disaggregated District and School Achievement Results.xlsx", sheet("Gender") cellrange(A11:Y15742) firstrow case(lower) clear
 
 rename numberdidnotyetmeetexpect didnotyetmeetexpectations
 rename percentdidnotyetmeetexpec percentdidnotyetmeetexpectations
@@ -146,7 +147,7 @@ save "${path}/CO_2019_mat_gender.dta", replace
 
 
 
-import excel "${path}/disaggregate/2019 CMAS Math Disaggregated District and School Achievement Results.xlsx", sheet("Language Proficiency") cellrange(A11:Y36923) firstrow case(lower) clear
+import excel "${disagg}/2019 CMAS Math Disaggregated District and School Achievement Results.xlsx", sheet("Language Proficiency") cellrange(A11:Y36923) firstrow case(lower) clear
 
 rename numberdidnotyetmeetexpect didnotyetmeetexpectations
 rename percentdidnotyetmeetexpec percentdidnotyetmeetexpectations
@@ -165,7 +166,7 @@ save "${path}/CO_2019_mat_language.dta", replace
 
 
 
-import excel "${path}/disaggregate/2019 CMAS Math Disaggregated District and School Achievement Results.xlsx", sheet("Race Ethnicity") cellrange(A11:Y34834) firstrow case(lower) clear
+import excel "${disagg}/2019 CMAS Math Disaggregated District and School Achievement Results.xlsx", sheet("Race Ethnicity") cellrange(A11:Y34834) firstrow case(lower) clear
 
 rename numberdidnotyetmeetexpect didnotyetmeetexpectations
 rename percentdidnotyetmeetexpec percentdidnotyetmeetexpectations
@@ -187,7 +188,7 @@ save "${path}/CO_2019_mat_raceEthnicity.dta", replace
 	//// SCIENCE
 	
 	
-import excel "${path}/disaggregate/2019 CMAS Science Disaggregated District and School Achievement Results.xlsx", sheet("Gender") cellrange(A11:W9344) firstrow case(lower) clear
+import excel "${disagg}/2019 CMAS Science Disaggregated District and School Achievement Results.xlsx", sheet("Gender") cellrange(A11:W9344) firstrow case(lower) clear
 	
 
 rename numberpartiallymetexpectation partiallymetexpectations
@@ -205,7 +206,7 @@ save "${path}/CO_2019_sci_gender.dta", replace
 
 
 
-import excel "${path}/disaggregate/2019 CMAS Science Disaggregated District and School Achievement Results.xlsx", sheet("Language Proficiency") cellrange(A11:W21614) firstrow case(lower) clear
+import excel "${disagg}/2019 CMAS Science Disaggregated District and School Achievement Results.xlsx", sheet("Language Proficiency") cellrange(A11:W21614) firstrow case(lower) clear
 
 
 rename numberpartiallymetexpectation partiallymetexpectations
@@ -223,7 +224,7 @@ save "${path}/CO_2019_sci_language.dta", replace
 
 
 
-import excel "${path}/disaggregate/2019 CMAS Science Disaggregated District and School Achievement Results.xlsx", sheet("Race Ethnicity") cellrange(A11:W20326) firstrow case(lower) clear
+import excel "${disagg}/2019 CMAS Science Disaggregated District and School Achievement Results.xlsx", sheet("Race Ethnicity") cellrange(A11:W20326) firstrow case(lower) clear
 
 
 
@@ -479,7 +480,12 @@ replace GradeLevel="G05" if GradeLevel=="Science Grade 05"
 replace GradeLevel="G08" if GradeLevel=="Science Grade 08"
 replace GradeLevel="G10" if GradeLevel=="Science HS"
 replace GradeLevel="G10" if GradeLevel=="HS"
-
+replace StudentSubGroup="English proficient" if StudentSubGroup=="Not English Learner (Not EL)"
+replace StudentSubGroup="English learner" if StudentSubGroup=="English Learner (EL)"
+drop if StudentSubGroup=="EL: LEP (Limited English Proficient)"
+drop if StudentSubGroup=="Not EL: FEP (Fluent English Proficient), FELL (Former English Language Learner)"
+drop if StudentSubGroup=="Not EL: PHLOTE, NA, Not Reported"
+drop if StudentSubGroup=="EL: NEP (Not English Proficient)"
 tab GradeLevel
 
 
@@ -498,5 +504,6 @@ drop if _merge==2
 drop _merge
 drop district_merge
 
-export delimited using "${path}/CO_2019_Data.csv", replace
+destring StudentGroup_TotalTested, replace ignore(",* %NA<>=-")
 
+export delimited using "${output}/CO_AssmtData_2019.csv", replace
