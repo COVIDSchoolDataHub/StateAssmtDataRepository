@@ -3,6 +3,7 @@ log using alaska_cleaning.log, replace
 
 cd "/Users/benjaminm/Documents/State_Repository_Research/Alaska"
 
+
 // 2016-17
 import excel "Alaska_test_scores_2017_original.xlsx", clear
 
@@ -96,18 +97,41 @@ rename DistrictType2 DistrictType
 gen Charter = "No" 
 replace Charter = "Yes" if DistrictType == "Charter agency"
 
-
-// Correct Order for Variables
-order State StateAbbrev StateFips NCESDistrictID State_leaid  DistrictType Charter CountyName CountyCode SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA	Flag_CutScoreChange_math Flag_CutScoreChange_read	Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID Subject GradeLevel StudentGroup  StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 
-
 drop _merge
 
 // Deletes unmerged districts
 keep if AssmtName == "PEAKS"
 
+gen NCESSchoolID =.
+gen SchoolType  =.
+gen Virtual  =.
+gen seasch  =.
+gen SchoolLevel  =.
+gen SchName  =.
+gen StateAssignedSchID  =.
+
+
+gen GradeLevel2 = ""
+replace GradeLevel2 = "G03" if GradeLevel == "3"
+replace GradeLevel2 = "G04" if GradeLevel == "4"
+replace GradeLevel2 = "G05" if GradeLevel == "5"
+replace GradeLevel2 = "G06" if GradeLevel == "6"
+replace GradeLevel2 = "G07" if GradeLevel == "7"
+replace GradeLevel2 = "G08" if GradeLevel == "8"
+
+drop GradeLevel
+rename GradeLevel2 GradeLevel
+
+drop NotProficient_count NotProficient_percent
+
+replace ProficiencyCriteria = "Levels 3 and 4"
+
+order State StateAbbrev StateFips NCESDistrictID State_leaid  DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual  seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA	Flag_CutScoreChange_math Flag_CutScoreChange_read	Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName Subject StateAssignedSchID GradeLevel StudentGroup  StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 
+
+
 
 save AK_AssmtData_2017_Stata, replace
-export delimited AK_AssmtData_2017_Stata_v3.csv, replace
+export delimited AK_AssmtData_2017.csv, replace
 
 // 2017-18
 import excel "Alaska_test_scores_2018_original.xlsx", clear
@@ -147,9 +171,9 @@ label var StudentGroup_TotalTested "Number of students in the designated Student
 label var ParticipationRate "Participation rate."
 
 // Generate Flags
-gen Flag_AssmtNameChange = "Y"
-gen Flag_CutScoreChange_ELA = "Y"
-gen Flag_CutScoreChange_math = "Y"
+gen Flag_AssmtNameChange = "N"
+gen Flag_CutScoreChange_ELA = "N"
+gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_read = ""
 gen Flag_CutScoreChange_oth = ""
 
@@ -202,9 +226,33 @@ rename DistrictType2 DistrictType
 gen Charter = "No" 
 replace Charter = "Yes" if DistrictType == "Charter agency"
 
+gen NCESSchoolID =.
+gen SchoolType  =.
+gen Virtual  =.
+gen seasch  =.
+gen SchoolLevel  =.
+gen SchName  =.
+gen StateAssignedSchID  =.
+
+
+gen GradeLevel2 = ""
+replace GradeLevel2 = "G03" if GradeLevel == "3"
+replace GradeLevel2 = "G04" if GradeLevel == "4"
+replace GradeLevel2 = "G05" if GradeLevel == "5"
+replace GradeLevel2 = "G06" if GradeLevel == "6"
+replace GradeLevel2 = "G07" if GradeLevel == "7"
+replace GradeLevel2 = "G08" if GradeLevel == "8"
+
+drop GradeLevel
+rename GradeLevel2 GradeLevel
+
+drop NotProficient_count NotProficient_percent
+
+replace ProficiencyCriteria = "Levels 3 and 4"
+
 
 // Correct Order for Variables
-order State StateAbbrev StateFips NCESDistrictID State_leaid  DistrictType Charter CountyName CountyCode SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA	Flag_CutScoreChange_math Flag_CutScoreChange_read	Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID Subject GradeLevel StudentGroup  StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 
+order State StateAbbrev StateFips NCESDistrictID State_leaid  DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual  seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA	Flag_CutScoreChange_math Flag_CutScoreChange_read	Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName Subject StateAssignedSchID GradeLevel StudentGroup  StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 
 
 drop _merge
 
@@ -213,7 +261,7 @@ keep if AssmtName == "PEAKS"
 
 
 save AK_AssmtData_2018_Stata, replace
-export delimited AK_AssmtData_2018_Stata_v3.csv, replace
+export delimited AK_AssmtData_2018.csv, replace
 
 // 2018-19
 import excel "Alaska_test_scores_2019_original.xlsx", clear
@@ -253,9 +301,9 @@ label var StudentGroup_TotalTested "Number of students in the designated Student
 label var ParticipationRate "Participation rate."
 
 // Generate Flags
-gen Flag_AssmtNameChange = "Y"
-gen Flag_CutScoreChange_ELA = "Y"
-gen Flag_CutScoreChange_math = "Y"
+gen Flag_AssmtNameChange = "N"
+gen Flag_CutScoreChange_ELA = "N"
+gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_read = ""
 gen Flag_CutScoreChange_oth = ""
 
@@ -309,8 +357,33 @@ gen Charter = "No"
 replace Charter = "Yes" if DistrictType == "Charter agency"
 
 
+gen NCESSchoolID =.
+gen SchoolType  =.
+gen Virtual  =.
+gen seasch  =.
+gen SchoolLevel  =.
+gen SchName  =.
+gen StateAssignedSchID  =.
+
+
+gen GradeLevel2 = ""
+replace GradeLevel2 = "G03" if GradeLevel == "3"
+replace GradeLevel2 = "G04" if GradeLevel == "4"
+replace GradeLevel2 = "G05" if GradeLevel == "5"
+replace GradeLevel2 = "G06" if GradeLevel == "6"
+replace GradeLevel2 = "G07" if GradeLevel == "7"
+replace GradeLevel2 = "G08" if GradeLevel == "8"
+
+drop GradeLevel
+rename GradeLevel2 GradeLevel
+
+drop NotProficient_count NotProficient_percent
+
+replace ProficiencyCriteria = "Levels 3 and 4"
+
+
 // Correct Order for Variables
-order State StateAbbrev StateFips NCESDistrictID State_leaid  DistrictType Charter CountyName CountyCode SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA	Flag_CutScoreChange_math Flag_CutScoreChange_read	Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID Subject GradeLevel StudentGroup  StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 
+order State StateAbbrev StateFips NCESDistrictID State_leaid  DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual  seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA	Flag_CutScoreChange_math Flag_CutScoreChange_read	Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName Subject StateAssignedSchID GradeLevel StudentGroup  StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 
 
 drop _merge
 
@@ -319,7 +392,7 @@ keep if AssmtName == "PEAKS"
 
 
 save AK_AssmtData_2019_Stata, replace
-export delimited AK_AssmtData_2019_Stata_v3.csv, replace
+export delimited AK_AssmtData_2019.csv, replace
 
 // 2020-21
 import excel "Alaska_test_scores_2021_original.xlsx", clear
@@ -359,9 +432,9 @@ label var StudentGroup_TotalTested "Number of students in the designated Student
 label var ParticipationRate "Participation rate."
 
 // Generate Flags
-gen Flag_AssmtNameChange = "Y"
-gen Flag_CutScoreChange_ELA = "Y"
-gen Flag_CutScoreChange_math = "Y"
+gen Flag_AssmtNameChange = "N"
+gen Flag_CutScoreChange_ELA = "N"
+gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_read = ""
 gen Flag_CutScoreChange_oth = ""
 
@@ -414,9 +487,32 @@ rename DistrictType2 DistrictType
 gen Charter = "No" 
 replace Charter = "Yes" if DistrictType == "Charter agency"
 
+gen NCESSchoolID =.
+gen SchoolType  =.
+gen Virtual  =.
+gen seasch  =.
+gen SchoolLevel  =.
+gen SchName  =.
+gen StateAssignedSchID  =.
+
+
+gen GradeLevel2 = ""
+replace GradeLevel2 = "G03" if GradeLevel == "3"
+replace GradeLevel2 = "G04" if GradeLevel == "4"
+replace GradeLevel2 = "G05" if GradeLevel == "5"
+replace GradeLevel2 = "G06" if GradeLevel == "6"
+replace GradeLevel2 = "G07" if GradeLevel == "7"
+replace GradeLevel2 = "G08" if GradeLevel == "8"
+
+drop GradeLevel
+rename GradeLevel2 GradeLevel
+
+drop NotProficient_count NotProficient_percent
+
+replace ProficiencyCriteria = "Levels 3 and 4"
 
 // Correct Order for Variables
-order State StateAbbrev StateFips NCESDistrictID State_leaid  DistrictType Charter CountyName CountyCode SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA	Flag_CutScoreChange_math Flag_CutScoreChange_read	Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID Subject GradeLevel StudentGroup  StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 
+order State StateAbbrev StateFips NCESDistrictID State_leaid  DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual  seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA	Flag_CutScoreChange_math Flag_CutScoreChange_read	Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName Subject StateAssignedSchID GradeLevel StudentGroup  StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 
 
 drop _merge
 
@@ -425,5 +521,5 @@ keep if AssmtName == "PEAKS"
 
 
 save AK_AssmtData_2021_Stata, replace
-export delimited AK_AssmtData_2021_Stata_v3.csv
+export delimited AK_AssmtData_2021.csv
 

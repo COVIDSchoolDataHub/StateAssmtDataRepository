@@ -3,6 +3,9 @@
 
 global path "/Users/hayden/Desktop/Research/CO/2018"
 global nces "/Users/hayden/Desktop/Research/NCES"
+global disagg "/Users/hayden/Desktop/Research/CO/Disaggregate/2018"
+global output "/Users/hayden/Desktop/Research/CO/Output"
+
 
 ///////// Section 1: Appending Aggregate Data
 
@@ -12,36 +15,34 @@ global nces "/Users/hayden/Desktop/Research/NCES"
 
 	//Imports and saves math/ela
 
-import delimited "${path}/CO_OriginalData_2018_ela&mat.csv", varnames(7) clear 
+import excel "${path}/CO_OriginalData_2018_ela&mat.xlsx", sheet("District and School Detail_1") cellrange(A7:AB16188) firstrow case(lower) clear
 
 
 	//some variables need to be renamed after importing because stata generates generic names for variables with the same name. 
 	
-rename v14 percentdidnotyetmeetexpectations
-rename v16 percentpartiallymetexpectations
-rename v18 percentapproachedexpectations
-rename v20 percentmetexpectations
-rename v22 percentexceededexpectations
-rename v24 percentmetorexceededexpectations
-rename v25 meanscalescorelastyear
-rename v26 numberproficientlastyear
-rename v27 percentproficientlastyear
+rename n percentdidnotyetmeetexpectations
+rename p percentpartiallymetexpectations
+rename r percentapproachedexpectations
+rename t percentmetexpectations
+rename v percentexceededexpectations
+rename x percentmetorexceededexpectations
+rename y meanscalescorelastyear
+rename aa percentproficientlastyear
 
 save "${path}/CO_OriginalData_2018_ela&mat.dta", replace
 
 
 	//imports and saves sci
-	
-import delimited "${path}/CO_OriginalData_2018_sci.csv", varnames(5) clear 
 
-rename v13 percentpartiallymetexpectations
-rename v15 percentapproachedexpectations
-rename v17 percentmetexpectations
-rename v19 percentexceededexpectations
-rename v21 percentmetorexceededexpectations
-rename v22 meanscalescorelastyear
-rename v23 numberproficientlastyear
-rename v24 percentproficientlastyear
+import excel "${path}/CO_OriginalData_2018_sci.xlsx", sheet("District and School Detail_1") cellrange(A5:Y4662) firstrow case(lower) clear
+
+rename m percentpartiallymetexpectations
+rename o percentapproachedexpectations
+rename q percentmetexpectations
+rename s percentexceededexpectations
+rename u percentmetorexceededexpectations
+rename v meanscalescorelastyear
+rename x percentproficientlastyear
 gen content = "sci"
 
 save "${path}/CO_OriginalData_2018_sci.dta", replace
@@ -65,7 +66,7 @@ save "${path}/CO_OriginalData_2018_all.dta", replace
 
 	//// ENGLISH/LANGUAGE ARTS
 	
-import excel "${path}/disaggregate/CO_2018_ELA_gender.xlsx", sheet("Sheet1_1") cellrange(A3:W15651) firstrow case(lower) clear
+import excel "${disagg}/CO_2018_ELA_gender.xlsx", sheet("Sheet1_1") cellrange(A3:W15651) firstrow case(lower) clear
 
 rename m percentdidnotyetmeetexpectations
 rename o percentpartiallymetexpectations
@@ -75,15 +76,15 @@ rename u percentexceededexpectations
 rename w percentmetorexceededexpectations
 rename gender StudentSubGroup
 gen StudentGroup = "Gender"
-rename districtnumber district_index
-rename schoolnumber school_index
+rename districtnumber districtcode
+rename schoolnumber schoolcode
 gen content = "ela"
 
 save "${path}/CO_2018_ELA_gender.dta", replace
 
 
 
-import excel "${path}/disaggregate/CO_2018_ELA_language.xlsx", sheet("Sheet1_1") cellrange(A3:W22802) firstrow case(lower) clear
+import excel "${disagg}/CO_2018_ELA_language.xlsx", sheet("Sheet1_1") cellrange(A3:W22802) firstrow case(lower) clear
 
 rename m percentdidnotyetmeetexpectations
 rename o percentpartiallymetexpectations
@@ -93,8 +94,8 @@ rename u percentexceededexpectations
 rename w percentmetorexceededexpectations
 rename languageproficiency StudentSubGroup
 gen StudentGroup = "EL status"
-rename districtnumber district_index
-rename schoolnumber school_index
+rename districtnumber districtcode
+rename schoolnumber schoolcode
 gen content = "ela"
 
 
@@ -102,7 +103,7 @@ save "${path}/CO_2018_ELA_language.dta", replace
 
 
 
-import excel "${path}/disaggregate/CO_2018_ELA_raceEthnicity.xlsx", sheet("Sheet1_1") cellrange(A3:W34711) firstrow case(lower) clear
+import excel "${disagg}/CO_2018_ELA_raceEthnicity.xlsx", sheet("Sheet1_1") cellrange(A3:W34711) firstrow case(lower) clear
 
 rename m percentdidnotyetmeetexpectations
 rename o percentpartiallymetexpectations
@@ -112,8 +113,8 @@ rename u percentexceededexpectations
 rename w percentmetorexceededexpectations
 rename ethnicity StudentSubGroup
 gen StudentGroup = "Race"
-rename districtnumber district_index
-rename schoolnumber school_index
+rename districtnumber districtcode
+rename schoolnumber schoolcode
 gen content = "ela"
 
 save "${path}/CO_2018_ELA_raceEthnicity.dta", replace
@@ -122,7 +123,7 @@ save "${path}/CO_2018_ELA_raceEthnicity.dta", replace
 	//// MATH
 
 
-import excel "${path}/disaggregate/CO_2018_mat_gender.xlsx", sheet("Sheet1_1") cellrange(A3:W16403) firstrow case(lower) clear
+import excel "${disagg}/CO_2018_mat_gender.xlsx", sheet("Sheet1_1") cellrange(A3:W16403) firstrow case(lower) clear
 
 rename m percentdidnotyetmeetexpectations
 rename o percentpartiallymetexpectations
@@ -132,14 +133,14 @@ rename u percentexceededexpectations
 rename w percentmetorexceededexpectations
 rename gender StudentSubGroup
 gen StudentGroup = "Gender"
-rename districtnumber district_index
-rename schoolnumber school_index
+rename districtnumber districtcode
+rename schoolnumber schoolcode
 gen content = "math"
 
 save "${path}/CO_2018_mat_gender.dta", replace
 
 
-import excel "${path}/disaggregate/CO_2018_mat_language.xlsx", sheet("Sheet1_1") cellrange(A3:W23483) firstrow case(lower) clear
+import excel "${disagg}/CO_2018_mat_language.xlsx", sheet("Sheet1_1") cellrange(A3:W23483) firstrow case(lower) clear
 
 rename m percentdidnotyetmeetexpectations
 rename o percentpartiallymetexpectations
@@ -149,14 +150,14 @@ rename u percentexceededexpectations
 rename w percentmetorexceededexpectations
 rename languageproficiency StudentSubGroup
 gen StudentGroup = "EL status"
-rename districtnumber district_index
-rename schoolnumber school_index
+rename districtnumber districtcode
+rename schoolnumber schoolcode
 gen content = "math"
 
 save "${path}/CO_2018_mat_language.dta", replace
 
 
-import excel "${path}/disaggregate/CO_2018_mat_raceEthnicity.xlsx", sheet("Sheet1_1") cellrange(A3:W35940) firstrow case(lower) clear
+import excel "${disagg}/CO_2018_mat_raceEthnicity.xlsx", sheet("Sheet1_1") cellrange(A3:W35940) firstrow case(lower) clear
 
 rename m percentdidnotyetmeetexpectations
 rename o percentpartiallymetexpectations
@@ -166,8 +167,8 @@ rename u percentexceededexpectations
 rename w percentmetorexceededexpectations
 rename ethnicity StudentSubGroup
 gen StudentGroup = "Race"
-rename districtnumber district_index
-rename schoolnumber school_index
+rename districtnumber districtcode
+rename schoolnumber schoolcode
 gen content = "math"
 
 save "${path}/CO_2018_mat_raceEthnicity.dta", replace
@@ -176,7 +177,7 @@ save "${path}/CO_2018_mat_raceEthnicity.dta", replace
 	//// SCIENCE
 	
 	
-import excel "${path}/disaggregate/CO_2018_sci_gender.xlsx", sheet("Sheet1_1") cellrange(A3:U9251) firstrow case(lower) clear
+import excel "${disagg}/CO_2018_sci_gender.xlsx", sheet("Sheet1_1") cellrange(A3:U9251) firstrow case(lower) clear
 	
 	
 rename m percentpartiallymetexpectations
@@ -186,14 +187,14 @@ rename s percentexceededexpectations
 rename u percentmetorexceededexpectations
 rename gender StudentSubGroup
 gen StudentGroup = "Gender"
-rename districtnumber district_index
-rename schoolnumber school_index
+rename districtnumber districtcode
+rename schoolnumber schoolcode
 gen content = "sci"
 
 save "${path}/CO_2018_sci_gender.dta", replace
 
 
-import excel "${path}/disaggregate/CO_2018_sci_language.xlsx", sheet("Sheet1_1") cellrange(A3:U13177) firstrow case(lower) clear
+import excel "${disagg}/CO_2018_sci_language.xlsx", sheet("Sheet1_1") cellrange(A3:U13177) firstrow case(lower) clear
 
 rename m percentpartiallymetexpectations
 rename o percentapproachedexpectations
@@ -202,13 +203,13 @@ rename s percentexceededexpectations
 rename u percentmetorexceededexpectations
 rename languageproficiency StudentSubGroup
 gen StudentGroup = "EL status"
-rename districtnumber district_index
-rename schoolnumber school_index
+rename districtnumber districtcode
+rename schoolnumber schoolcode
 gen content = "sci"
 
 save "${path}/CO_2018_sci_language.dta", replace
 
-import excel "${path}/disaggregate/CO_2018_sci_raceEthnicity.xlsx", sheet("Sheet1_1") cellrange(A3:U20330) firstrow case(lower) clear
+import excel "${disagg}/CO_2018_sci_raceEthnicity.xlsx", sheet("Sheet1_1") cellrange(A3:U20330) firstrow case(lower) clear
 
 rename m percentpartiallymetexpectations
 rename o percentapproachedexpectations
@@ -217,8 +218,8 @@ rename s percentexceededexpectations
 rename u percentmetorexceededexpectations
 rename ethnicity StudentSubGroup
 gen StudentGroup = "Race"
-rename districtnumber district_index
-rename schoolnumber school_index
+rename districtnumber districtcode
+rename schoolnumber schoolcode
 gen content = "sci"
 
 save "${path}/CO_2018_sci_raceEthnicity.dta", replace
@@ -226,51 +227,11 @@ save "${path}/CO_2018_sci_raceEthnicity.dta", replace
 
 
 
-
-///////// Section 3: Correcting state codes for school and district for merging
-
+///////// Section 3: Appending Disaggregate Data
 
 
 
 use "${path}/CO_OriginalData_2018_all.dta", clear
-
-
-	//// The following section reformats the district and school codes given by the state to match up with the district and school codes used by NCES, like rewriting 20 as 0020.
-
-
-gen districtcodebig = .
-replace districtcodebig=0 if districtcode<100
-replace districtcodebig=1 if districtcode>=100
-replace districtcodebig=2 if districtcode>=1000
-
-
-gen districtcode_str = string(districtcode)
-
-gen district_index_number =.
-gen district_index = string(district_index_number)
-replace district_index = "00" + districtcode_str if districtcodebig==0
-replace district_index = "0" + districtcode_str if districtcodebig==1
-replace district_index = districtcode_str if districtcodebig==2
-
-
-
-gen schoolcodebig = .
-replace schoolcodebig=0 if schoolcode<100
-replace schoolcodebig=1 if schoolcode>=100
-replace schoolcodebig=2 if schoolcode>=1000
-
-
-gen schoolcode_str = string(schoolcode)
-
-gen school_index_number =.
-gen school_index = string(school_index_number)
-replace school_index = "00" + schoolcode_str if schoolcodebig==0
-replace school_index = "0" + schoolcode_str if schoolcodebig==1
-replace school_index = schoolcode_str if schoolcodebig==2
-
-
-
-///////// Section 4: Appending Disaggregate Data
 
 
 	//Appends subgroups
@@ -286,16 +247,18 @@ drop if level=="* The value for this field is not displayed in order to protect 
 drop if level==""
 drop if level=="Aug 24, 2018"
 
-///////// Section 5: Merging NCES Variables
+
+
+///////// Section 4: Merging NCES Variables
 
 
 gen state_leaidnumber =.
 gen state_leaid = string(state_leaidnumber)
-replace state_leaid = "CO-" + district_index
+replace state_leaid = "CO-" + districtcode
 
 gen seaschnumber=.
 gen seasch = string(seaschnumber)
-replace seasch = district_index + "-" + school_index
+replace seasch = districtcode + "-" + schoolcode
 
 
 
@@ -317,15 +280,15 @@ drop if state_fips != 8
 
 
 
-///////// Section 6: Reformatting
+///////// Section 5: Reformatting
 
 
 	// Renames variables 
 	
 rename level DataLevel
-rename district_index StateAssignedDistID
+rename districtcode StateAssignedDistID
 rename districtname DistName
-rename school_index StateAssignedSchID
+rename schoolcode StateAssignedSchID
 rename schoolname SchName
 rename content Subject
 rename testgrade GradeLevel
@@ -402,7 +365,7 @@ order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charte
 
 //	Drop unneccesary variables
 
-drop districtcode schoolcode ofvalidscores ofnoscores meanscalescorelastyear numberproficientlastyear percentproficientlastyear changeinmetorexceededexpectation districtcodebig districtcode_str district_index_number schoolcodebig schoolcode_str school_index_number state_leaidnumber seaschnumber lea_name
+drop ofvalidscores ofnoscores meanscalescorelastyear metorexceededexpectati percentproficientlastyear changeinmetorexceededexpe state_leaidnumber seaschnumber lea_name
 
 
 // Relabel variable values
@@ -452,8 +415,13 @@ replace GradeLevel="G10" if GradeLevel=="Geometry"
 replace GradeLevel="G05" if GradeLevel=="Science Grade 05"
 replace GradeLevel="G08" if GradeLevel=="Science Grade 08"
 replace GradeLevel="G10" if GradeLevel=="Science HS"
+replace StudentSubGroup="English learner" if StudentSubGroup=="NEP - Non English Proficient"
+replace StudentSubGroup="English proficient" if StudentSubGroup=="FEP - Fluent English Proficient"
+replace StudentSubGroup="Other" if StudentSubGroup=="PHLOTE/FELL/NA"
+drop if StudentSubGroup=="LEP - Limited English Proficient"
 
 tab GradeLevel
+
 
 	// Drops observations that aren't grades 3 through 8
 	
@@ -468,7 +436,6 @@ drop if _merge==2
 drop _merge
 drop district_merge
 
-export delimited using "${path}/CO_2018_Data.csv", replace
+destring StudentGroup_TotalTested, replace ignore(",* %NA<>=-")
 
-
-
+export delimited using "${output}/CO_AssmtData_2018.csv", replace

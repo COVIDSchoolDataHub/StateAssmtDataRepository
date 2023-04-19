@@ -2,6 +2,9 @@
 
 global path "/Users/hayden/Desktop/Research/CO/2021"
 global nces "/Users/hayden/Desktop/Research/NCES"
+global disagg "/Users/hayden/Desktop/Research/CO/Disaggregate/2021"
+global output "/Users/hayden/Desktop/Research/CO/Output"
+
 
 ///////// Section 1: Appending Aggregate Data
 
@@ -12,7 +15,7 @@ global nces "/Users/hayden/Desktop/Research/NCES"
 	//Imports and saves math/ela
 
 	
-import excel "/Users/hayden/Desktop/Research/CO/2021/CO_OriginalData_2021_ela&mat.xlsx", sheet("CMAS ELA and Math") cellrange(A28:Y6477) firstrow case(lower) clear
+import excel "${path}/CO_OriginalData_2021_ela&mat.xlsx", sheet("CMAS ELA and Math") cellrange(A28:Y6477) firstrow case(lower) clear
 
 
 
@@ -20,7 +23,7 @@ save "${path}/CO_OriginalData_2021_ela&mat.dta", replace
 
 	//imports and saves sci
 	
-import excel "/Users/hayden/Desktop/Research/CO/2021/CO_OriginalData_2021_sci.xlsx", sheet("CMAS Science") cellrange(A28:V831) firstrow case(lower) clear
+import excel "${path}/CO_OriginalData_2021_sci.xlsx", sheet("CMAS Science") cellrange(A28:V831) firstrow case(lower) clear
 
 gen content="sci"
 
@@ -50,7 +53,7 @@ save "${path}/CO_OriginalData_2021_all.dta", replace
 	//// ENGLISH/LANGUAGE ARTS
 	
 	
-import excel "${path}/disaggregate/2021 CMAS ELA District and School Achievement Results Disaggregated by Subgroups - Required Tests.xlsx", sheet("Gender") cellrange(A28:Y6745) firstrow case(lower) clear
+import excel "${disagg}/2021 CMAS ELA District and School Achievement Results Disaggregated by Subgroups - Required Tests.xlsx", sheet("Gender") cellrange(A28:Y6745) firstrow case(lower) clear
 
 
 rename gender StudentSubGroup
@@ -61,7 +64,7 @@ save "${path}/CO_2021_ELA_gender.dta", replace
 
 
 
-import excel "${path}/disaggregate/2021 CMAS ELA District and School Achievement Results Disaggregated by Subgroups - Required Tests.xlsx", sheet("Language Proficiency") cellrange(A28:Y20176) firstrow case(lower) clear
+import excel "${disagg}/2021 CMAS ELA District and School Achievement Results Disaggregated by Subgroups - Required Tests.xlsx", sheet("Language Proficiency") cellrange(A28:Y20176) firstrow case(lower) clear
 
 
 rename languageproficiency StudentSubGroup
@@ -72,7 +75,7 @@ save "${path}/CO_2021_ELA_language.dta", replace
 
 
 
-import excel "${path}/disaggregate/2021 CMAS ELA District and School Achievement Results Disaggregated by Subgroups - Required Tests.xlsx", sheet("Race Ethnicity") cellrange(A28:Y23582) firstrow case(lower) clear
+import excel "${disagg}/2021 CMAS ELA District and School Achievement Results Disaggregated by Subgroups - Required Tests.xlsx", sheet("Race Ethnicity") cellrange(A28:Y23582) firstrow case(lower) clear
 
 
 rename raceethnicity StudentSubGroup
@@ -86,7 +89,7 @@ save "${path}/CO_2021_ELA_raceEthnicity.dta", replace
 	//// MATH
 
 
-import excel "${path}/disaggregate/2021 CMAS Math District and School Achievement Results Disaggregated by Subgroups - Required Tests.xlsx", sheet("Gender") cellrange(A28:Y5909) firstrow case(lower) clear
+import excel "${disagg}/2021 CMAS Math District and School Achievement Results Disaggregated by Subgroups - Required Tests.xlsx", sheet("Gender") cellrange(A28:Y5909) firstrow case(lower) clear
 
 
 rename gender StudentSubGroup
@@ -97,7 +100,7 @@ save "${path}/CO_2021_mat_gender.dta", replace
 
 
 
-import excel "${path}/disaggregate/2021 CMAS Math District and School Achievement Results Disaggregated by Subgroups - Required Tests.xlsx", sheet("Language Proficiency") cellrange(A28:Y17667) firstrow case(lower) clear
+import excel "${disagg}/2021 CMAS Math District and School Achievement Results Disaggregated by Subgroups - Required Tests.xlsx", sheet("Language Proficiency") cellrange(A28:Y17667) firstrow case(lower) clear
 
 
 rename languageproficiency StudentSubGroup
@@ -108,7 +111,7 @@ save "${path}/CO_2021_mat_language.dta", replace
 
 
 
-import excel "${path}/disaggregate/2021 CMAS Math District and School Achievement Results Disaggregated by Subgroups - Required Tests.xlsx", sheet("Race Ethnicity") cellrange(A28:Y20645) firstrow case(lower) clear
+import excel "${disagg}/2021 CMAS Math District and School Achievement Results Disaggregated by Subgroups - Required Tests.xlsx", sheet("Race Ethnicity") cellrange(A28:Y20645) firstrow case(lower) clear
 
 
 rename raceethnicity StudentSubGroup
@@ -122,7 +125,7 @@ save "${path}/CO_2021_mat_raceEthnicity.dta", replace
 	//// SCIENCE
 	
 	
-import excel "${path}/disaggregate/2021 CMAS Science District and School Achievement Results Disaggregated by Subgroups.xlsx", sheet("Gender") cellrange(A28:W1633) firstrow case(lower) clear
+import excel "${disagg}/2021 CMAS Science District and School Achievement Results Disaggregated by Subgroups.xlsx", sheet("Gender") cellrange(A28:W1633) firstrow case(lower) clear
 
 
 rename gender StudentSubGroup
@@ -133,7 +136,7 @@ save "${path}/CO_2021_sci_gender.dta", replace
 
 
 
-import excel "${path}/disaggregate/2021 CMAS Science District and School Achievement Results Disaggregated by Subgroups.xlsx", sheet("Language Proficiency") cellrange(A28:W4841) firstrow case(lower) clear
+import excel "${disagg}/2021 CMAS Science District and School Achievement Results Disaggregated by Subgroups.xlsx", sheet("Language Proficiency") cellrange(A28:W4841) firstrow case(lower) clear
 
 
 rename languageproficiency StudentSubGroup
@@ -144,7 +147,7 @@ save "${path}/CO_2021_sci_language.dta", replace
 
 
 
-import excel "${path}/disaggregate/2021 CMAS Science District and School Achievement Results Disaggregated by Subgroups.xlsx", sheet("Race Ethnicity") cellrange(A28:W5654) firstrow case(lower) clear
+import excel "${disagg}/2021 CMAS Science District and School Achievement Results Disaggregated by Subgroups.xlsx", sheet("Race Ethnicity") cellrange(A28:W5654) firstrow case(lower) clear
 
 
 rename raceethnicity StudentSubGroup
@@ -396,6 +399,12 @@ replace GradeLevel="G05" if GradeLevel=="Science Grade 05"
 replace GradeLevel="G08" if GradeLevel=="Science Grade 08"
 replace GradeLevel="G10" if GradeLevel=="Science HS"
 replace GradeLevel="G10" if GradeLevel=="HS"
+replace StudentSubGroup="English proficient" if StudentSubGroup=="Not English Learner (Not EL)"
+replace StudentSubGroup="English learner" if StudentSubGroup=="English Learner (EL)"
+drop if StudentSubGroup=="EL: LEP (Limited English Proficient)"
+drop if StudentSubGroup=="Not EL: FEP (Fluent English Proficient), FELL (Former English Language Learner)"
+drop if StudentSubGroup=="Not EL: PHLOTE, NA, Not Reported"
+drop if StudentSubGroup=="EL: NEP (Not English Proficient)"
 
 tab GradeLevel
 
@@ -416,5 +425,9 @@ drop if _merge==2
 drop _merge
 drop district_merge
 
-export delimited using "${path}/CO_2021_Data.csv", replace
+destring StudentGroup_TotalTested, replace ignore(",* %NA<>=-")
+
+export delimited using "${output}/CO_AssmtData_2021.csv", replace
+
+
 

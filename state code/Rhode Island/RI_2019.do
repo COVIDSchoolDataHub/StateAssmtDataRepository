@@ -1,3 +1,4 @@
+clear
 global path "/Users/willtolmie/Documents/State Repository Research/Rhode Island"
 
 ** 2018-19 NCES School Data
@@ -77,11 +78,11 @@ label var DistrictType "District type as defined by NCES"
 * Isolate Rhode Island Data
 
 drop if StateFips != 44
-save "${path}/Semi-Processed Data Files/2018_19_NCES_Cleaned_District.dta"
+save "${path}/Semi-Processed Data Files/2018_19_NCES_Cleaned_District.dta", replace
 
 ** 2018-19 ELA Data
 
-import excel "${path}/Original Data Files/RI_OriginalData_2019_ela.xlsx", sheet("By_School_AndGrade") firstrow
+import excel "${path}/Original Data Files/RI_OriginalData_2019_ela.xlsx", sheet("By_School_AndGrade") firstrow clear
 
 ** Standardize Proficiency Variables
 
@@ -91,7 +92,7 @@ rename PercentMeetingExpectations Lev3_percent
 rename PercentExceedingExpectations Lev4_percent
 rename PercentMeetingOrExceedingExp ProficientOrAbove_percent
 
-save "/Users/willtolmie/Desktop/2019_ela_unmerged.dta"
+save "${path}/Semi-Processed Data Files/2019_ela_unmerged.dta", replace
 
 ** 2018-19 Math Data
 
@@ -105,7 +106,7 @@ rename PercentMeetingExpectations Lev3_percent
 rename PercentExceedingExpectations Lev4_percent
 rename PercentMeetingOrExceedingExp ProficientOrAbove_percent
 
-save "/Users/willtolmie/Desktop/2019_math_unmerged.dta"
+save "${path}/Semi-Processed Data Files/2019_math_unmerged.dta", replace
 
 ** 2018-19 Science Data
 
@@ -119,7 +120,7 @@ rename PercentMeetingExpectations Lev3_percent
 rename PercentExceedsExpectations Lev4_percent
 rename PercentMeetingOrExceedingExp ProficientOrAbove_percent
 
-save "/Users/willtolmie/Desktop/2019_sci_unmerged.dta"
+save "${path}/Semi-Processed Data Files/2019_sci_unmerged.dta", replace
 
 ** Merge 2018-19 Assessments
 
@@ -144,8 +145,7 @@ replace Flag_AssmtNameChange = "Y" if AssmtName == "NGSA - Science"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_read = ""
-gen Flag_CutScoreChange_oth = ""
-replace Flag_CutScoreChange_oth = "Y" if AssmtName == "NGSA - Science"
+gen Flag_CutScoreChange_oth = "Y"
 
 ** Label Flags
 
@@ -164,6 +164,8 @@ gen AssmtType = "Regular"
 gen DataLevel = "School"
 gen StudentGroup = "All students"
 gen StudentSubGroup = "All students"
+gen StudentSubGroup_TotalTested = StudentGroup_TotalTested
+gen ProficiencyCriteria = "Levels 3 and 4"
 
 ** Generate Empty Variables
 
@@ -174,7 +176,6 @@ gen Lev3_count = .
 gen Lev4_count = .
 gen Lev5_percent = .
 gen Lev5_count = .
-gen ProficiencyCriteria = ""
 
 ** Label Variables
 
@@ -191,6 +192,7 @@ label var GradeLevel "Grade tested (Individual grade levels, Gr3-8, all grades)"
 label var StudentGroup "Student demographic group"
 label var StudentSubGroup "Student demographic subgroup"
 label var StudentGroup_TotalTested "Number of students in the designated StudentGroup who were tested."
+label var StudentSubGroup_TotalTested "Number of students in the designated Student Sub-Group who were tested."
 label var Lev1_count "Count of students within subgroup performing at Level 1."
 label var Lev1_percent "Percent of students within subgroup performing at Level 1."
 label var Lev2_count "Count of students within subgroup performing at Level 2."
@@ -231,18 +233,18 @@ merge m:1 seasch StateFips using "${path}/Semi-Processed Data Files/2018_19_NCES
 * Fix Variable Types
 
 decode State, gen(State2)
-rename State2 State
 decode DistrictType, gen(DistrictType2)
-rename DistrictType2 DistrictType
 decode Charter, gen(Charter2)
-rename Charter2 Charter
 decode SchoolLevel, gen(SchoolLevel2)
-rename SchoolLevel2 SchoolLevel 
 decode SchoolType, gen(SchoolType2)
-rename SchoolType2 SchoolType 
 decode Virtual, gen(Virtual2)
-rename Virtual2 Virtual
 drop state_leaidnumber seaschnumber _merge district_merge State DistrictType Charter SchoolLevel SchoolType Virtual
+rename State2 State
+rename DistrictType2 DistrictType
+rename Charter2 Charter
+rename SchoolLevel2 SchoolLevel 
+rename SchoolType2 SchoolType 
+rename Virtual2 Virtual
 
 ** Relabel GradeLevel Values
 
@@ -258,7 +260,7 @@ drop if SchoolLevel=="High"
 
 * Fix Variable Order 
 
-order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
+order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
 
 * Export 2018-19 Assessment Data
 

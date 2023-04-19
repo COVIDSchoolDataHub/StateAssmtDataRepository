@@ -1,6 +1,8 @@
 
 global path "/Users/hayden/Desktop/Research/CO/2017"
 global nces "/Users/hayden/Desktop/Research/NCES"
+global disagg "/Users/hayden/Desktop/Research/CO/Disaggregate/2017"
+global output "/Users/hayden/Desktop/Research/CO/Output"
 
 
 ///////// Section 1: Appending Aggregate Data
@@ -51,7 +53,7 @@ save "${path}/CO_OriginalData_2017_all.dta", replace
 
 	//// ENGLISH/LANGUAGE ARTS
 
-import excel "${path}/disaggregate/CO_2017_ELA_gender.xlsx", sheet("Sheet1_1") cellrange(A4:X13528) firstrow case(lower) clear
+import excel "${disagg}/CO_2017_ELA_gender.xlsx", sheet("Sheet1_1") cellrange(A4:X13528) firstrow case(lower) clear
 
 rename n percentdidnotyetmeetexpectations
 rename p percentpartiallymetexpectations
@@ -66,7 +68,7 @@ save "${path}/CO_2017_ELA_gender.dta", replace
 
 
 
-import excel "${path}/disaggregate/CO_2017_ELA_language.xlsx", sheet("Sheet1_1") cellrange(A4:X18814) firstrow case(lower) clear
+import excel "${disagg}/CO_2017_ELA_language.xlsx", sheet("Sheet1_1") cellrange(A4:X18814) firstrow case(lower) clear
 
 rename n percentdidnotyetmeetexpectations
 rename p percentpartiallymetexpectations
@@ -80,7 +82,7 @@ gen StudentGroup = "EL status"
 save "${path}/CO_2017_ELA_language.dta", replace
 
 
-import excel "${path}/disaggregate/CO_2017_ELA_raceEthnicity.xlsx", sheet("Sheet1_1") cellrange(A4:X28482) firstrow case(lower) clear
+import excel "${disagg}/CO_2017_ELA_raceEthnicity.xlsx", sheet("Sheet1_1") cellrange(A4:X28482) firstrow case(lower) clear
 
 rename n percentdidnotyetmeetexpectations
 rename p percentpartiallymetexpectations
@@ -99,7 +101,7 @@ save "${path}/CO_2017_ELA_raceEthnicity.dta", replace
 	//// MATH
 
 
-import excel "${path}/disaggregate/CO_2017_mat_gender.xlsx", sheet("Sheet1_1") cellrange(A4:X15544) firstrow case(lower) clear
+import excel "${disagg}/CO_2017_mat_gender.xlsx", sheet("Sheet1_1") cellrange(A4:X15544) firstrow case(lower) clear
 
 rename n percentdidnotyetmeetexpectations
 rename p percentpartiallymetexpectations
@@ -114,7 +116,7 @@ save "${path}/CO_2017_mat_gender.dta", replace
 
 
 
-import excel "${path}/disaggregate/CO_2017_mat_language.xlsx", sheet("Sheet1_1") cellrange(A4:X20788) firstrow case(lower) clear
+import excel "${disagg}/CO_2017_mat_language.xlsx", sheet("Sheet1_1") cellrange(A4:X20788) firstrow case(lower) clear
 
 rename n percentdidnotyetmeetexpectations
 rename p percentpartiallymetexpectations
@@ -129,7 +131,7 @@ save "${path}/CO_2017_mat_language.dta", replace
 
 
 
-import excel "${path}/disaggregate/CO_2017_mat_raceEthnicity.xlsx", sheet("Sheet1_1") cellrange(A4:X31642) firstrow case(lower) clear
+import excel "${disagg}/CO_2017_mat_raceEthnicity.xlsx", sheet("Sheet1_1") cellrange(A4:X31642) firstrow case(lower) clear
 
 rename n percentdidnotyetmeetexpectations
 rename p percentpartiallymetexpectations
@@ -147,7 +149,7 @@ save "${path}/CO_2017_mat_raceEthnicity.dta", replace
 	
 	
 
-import excel "${path}/disaggregate/CO_2017_sci_gender.xlsx", sheet("Sheet1_1") cellrange(A4:V5319) firstrow case(lower) clear
+import excel "${disagg}/CO_2017_sci_gender.xlsx", sheet("Sheet1_1") cellrange(A4:V5319) firstrow case(lower) clear
 	
 rename n percentpartiallymetexpectations
 rename p percentapproachedexpectations
@@ -161,7 +163,7 @@ save "${path}/CO_2017_sci_gender.dta", replace
 
 
 
-import excel "${path}/disaggregate/CO_2017_sci_language.xlsx", sheet("Sheet1_1") cellrange(A4:V7396) firstrow case(lower) clear
+import excel "${disagg}/CO_2017_sci_language.xlsx", sheet("Sheet1_1") cellrange(A4:V7396) firstrow case(lower) clear
 
 rename n percentpartiallymetexpectations
 rename p percentapproachedexpectations
@@ -175,7 +177,7 @@ save "${path}/CO_2017_sci_language.dta", replace
 
 
 
-import excel "${path}/disaggregate/CO_2017_sci_raceEthnicity.xlsx", sheet("Sheet1_1") cellrange(A4:V11185) firstrow case(lower) clear
+import excel "${disagg}/CO_2017_sci_raceEthnicity.xlsx", sheet("Sheet1_1") cellrange(A4:V11185) firstrow case(lower) clear
 
 rename n percentpartiallymetexpectations
 rename p percentapproachedexpectations
@@ -443,10 +445,16 @@ replace GradeLevel="G11" if GradeLevel=="Algebra II"
 replace GradeLevel="G05" if GradeLevel=="Science Grade 05"
 replace GradeLevel="G08" if GradeLevel=="Science Grade 08"
 replace GradeLevel="G10" if GradeLevel=="Science HS"
+replace StudentSubGroup="English learner" if StudentSubGroup=="NEP - Non English Proficient"
+replace StudentSubGroup="English proficient" if StudentSubGroup=="FEP - Fluent English Proficient"
+replace StudentSubGroup="Other" if StudentSubGroup=="PHLOTE/FELL/NA"
+drop if StudentSubGroup=="LEP - Limited English Proficient"
 
 tab GradeLevel
 
-
+replace DataLevel="District" if StateAssignedDistID!="0000" & StateAssignedSchID=="0000"
+replace DataLevel="School" if StateAssignedDistID!="0000" & StateAssignedSchID!="0000"
+replace DataLevel="State" if StateAssignedDistID=="0000" & StateAssignedSchID=="0000"
 
 	// Drops observations that aren't grades 3 through 8
 	
@@ -461,5 +469,9 @@ drop if _merge==2
 drop _merge
 drop district_merge
 
-export delimited using "${path}/CO_2017_Data.csv", replace
+destring StudentGroup_TotalTested, replace ignore(",* %NA<>=-")
+
+
+export delimited using "${output}/CO_AssmtData_2017.csv", replace
+
 
