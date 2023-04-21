@@ -176,10 +176,10 @@ gen StudentSubGroup_TotalTested = .
 ** Fix Variable Types
 
 replace Lev1_percent = subinstr(Lev1_percent, " ", "", .)
-replace Lev2_percent = subinstr(Lev1_percent, " ", "", .)
-replace Lev3_percent = subinstr(Lev1_percent, " ", "", .)
-replace Lev4_percent = subinstr(Lev1_percent, " ", "", .)
-replace Lev5_percent = subinstr(Lev1_percent, " ", "", .)
+replace Lev2_percent = subinstr(Lev2_percent, " ", "", .)
+replace Lev3_percent = subinstr(Lev3_percent, " ", "", .)
+replace Lev4_percent = subinstr(Lev4_percent, " ", "", .)
+replace Lev5_percent = subinstr(Lev5_percent, " ", "", .)
 destring GradeLevel, replace
 
 ** Generate Other Variables

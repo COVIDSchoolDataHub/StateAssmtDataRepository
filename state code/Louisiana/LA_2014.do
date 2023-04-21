@@ -187,7 +187,7 @@ clear
 use "${path}/Semi-Processed Data Files/LA_CleanedData_2014_3"
 append using "${path}/Semi-Processed Data Files/LA_CleanedData_2014_4.dta""/${path}/Semi-Processed Data Files/LA_CleanedData_2014_4.dta" "/${path}/Semi-Processed Data Files/LA_CleanedData_2014_5.dta" "${path}/Semi-Processed Data Files/LA_CleanedData_2014_6.dta""/${path}/Semi-Processed Data Files/LA_CleanedData_2014_7.dta" "/${path}/Semi-Processed Data Files/LA_CleanedData_2014_8.dta"
 gen StateAssignedDistID = substr(StateAssignedSchID,1,3)
-merge m:1 StateAssignedDistID using tmp
+merge m:1 StateAssignedDistID using "${path}/Semi-Processed Data Files/StateAssignedDistID_2014.dta"
 drop _merge
 
 ** Generate Flags
@@ -222,10 +222,10 @@ gen StudentSubGroup_TotalTested = .
 ** Fix Variable Types
 
 replace Lev1_percent = subinstr(Lev1_percent, " ", "", .)
-replace Lev2_percent = subinstr(Lev1_percent, " ", "", .)
-replace Lev3_percent = subinstr(Lev1_percent, " ", "", .)
-replace Lev4_percent = subinstr(Lev1_percent, " ", "", .)
-replace Lev5_percent = subinstr(Lev1_percent, " ", "", .)
+replace Lev2_percent = subinstr(Lev2_percent, " ", "", .)
+replace Lev3_percent = subinstr(Lev3_percent, " ", "", .)
+replace Lev4_percent = subinstr(Lev4_percent, " ", "", .)
+replace Lev5_percent = subinstr(Lev5_percent, " ", "", .)
 destring GradeLevel, replace
 
 ** Generate Other Variables

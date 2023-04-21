@@ -182,10 +182,10 @@ gen StudentSubGroup_TotalTested = .
 ** Fix Variable Types
 
 replace Lev1_percent = subinstr(Lev1_percent, " ", "", .)
-replace Lev2_percent = subinstr(Lev1_percent, " ", "", .)
-replace Lev3_percent = subinstr(Lev1_percent, " ", "", .)
-replace Lev4_percent = subinstr(Lev1_percent, " ", "", .)
-replace Lev5_percent = subinstr(Lev1_percent, " ", "", .)
+replace Lev2_percent = subinstr(Lev2_percent, " ", "", .)
+replace Lev3_percent = subinstr(Lev3_percent, " ", "", .)
+replace Lev4_percent = subinstr(Lev4_percent, " ", "", .)
+replace Lev5_percent = subinstr(Lev5_percent, " ", "", .)
 destring GradeLevel, replace
 
 ** Generate Other Variables
@@ -212,16 +212,16 @@ replace Lev5_percent = "*" if Lev5_percent=="NR"
 ** Generate Proficienct or Above Percent
 
 gen Lev4max = Lev4_percent
-replace Lev4max = "5" if Lev4_percent== "<5"
+replace Lev4max = "5" if Lev4_percent== "≤5"
 destring Lev4max, generate(Lev4maxnumber) force
 gen Lev4min = Lev4_percent
-replace Lev4min = "0" if Lev4_percent== "<5"
+replace Lev4min = "0" if Lev4_percent== "≤5"
 destring Lev4min, generate(Lev4minnumber) force
 gen Lev5max = Lev5_percent
-replace Lev5max = "5" if Lev5_percent== "<5"
+replace Lev5max = "5" if Lev5_percent== "≤5"
 destring Lev5max, generate(Lev5maxnumber) force
 gen Lev5min = Lev5_percent
-replace Lev5min = "0" if Lev5_percent== "<5"
+replace Lev5min = "0" if Lev5_percent== "≤5"
 destring Lev5min, generate(Lev5minnumber) force
 gen ProficientOrAbovemin = Lev4minnumber + Lev5minnumber
 gen ProficientOrAbovemax = Lev4maxnumber + Lev5maxnumber
