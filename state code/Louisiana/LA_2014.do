@@ -58,7 +58,7 @@ label var SchoolLevel "School level"
 
 ** Isolate Louisiana Data
 
-drop if StateFips != 22
+drop if StateAbbrev != "LA"
 drop if State_leaid == ""
 save "${path}/Semi-Processed Data Files/2013_14_NCES_Cleaned_School.dta", replace
 
@@ -103,7 +103,7 @@ label var DistrictType "District type as defined by NCES"
 
 ** Isolate Louisiana Data
 
-drop if StateFips != 22
+drop if StateAbbrev != "LA"
 save "${path}/Semi-Processed Data Files/2013_14_NCES_Cleaned_District.dta", replace
 
 ** 2013-14 Proficiency Data
@@ -308,9 +308,11 @@ label var State_leaid "State LEA ID"
 gen seaschnumber=.
 gen seasch = string(seaschnumber)
 replace seasch = StateAssignedDistID + "-" + StateAssignedSchID
+replace seasch = "311-311002" if SchName == "AMIKIDS BATON ROUGE"
+replace seasch = "311-311009" if SchName == "AMIKIDS ACADIANA"
 merge m:1 State_leaid using "${path}/Semi-Processed Data Files/2013_14_NCES_Cleaned_District.dta"
 rename _merge district_merge
-merge m:1 seasch StateFips using "${path}/Semi-Processed Data Files/2013_14_NCES_Cleaned_School.dta"
+merge m:1 seasch StateAbbrev using "${path}/Semi-Processed Data Files/2013_14_NCES_Cleaned_School.dta"
 keep if district_merge == 3 & _merge == 3
 drop state_leaidnumber seaschnumber _merge district_merge
 
