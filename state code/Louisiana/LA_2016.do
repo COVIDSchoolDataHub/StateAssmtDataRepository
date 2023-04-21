@@ -36,6 +36,8 @@ rename SchoolType2 SchoolType
 rename Virtual2 Virtual
 tostring seasch, replace
 replace seasch = State_leaid + "-" + seasch
+replace State_leaid = "LA-" + State_leaid
+replace State_leaid = "D50S09" if DistName == "Chitimacha Day School"
 
 ** Drop Excess Variables
 
@@ -58,7 +60,8 @@ label var SchoolLevel "School level"
 
 ** Isolate Louisiana Data
 
-drop if StateFips != 22
+keep if StateAbbrev == "LA" | DistName == "Chitimacha Day School"
+drop if DistName == ""
 save "${path}/Semi-Processed Data Files/2015_16_NCES_Cleaned_School.dta", replace
 
 ** 2015-16 NCES District Data
@@ -76,6 +79,11 @@ rename county_name CountyName
 rename district_agency_type DistrictType
 rename state_fips StateFips
 
+** Isolate Louisiana Data
+
+keep if StateAbbrev == "LA" | NCESDistrictID == "5900146"
+drop if State_leaid == ""
+
 ** Fix Variable Types
 
 decode State, gen(State2)
@@ -84,6 +92,7 @@ drop State DistrictType
 rename DistrictType2 DistrictType
 rename State2 State
 replace State_leaid = "LA-" + State_leaid
+replace State_leaid = "D50S09" if NCESDistrictID == "5900146"
 
 ** Drop Excess Variables
 
@@ -99,10 +108,6 @@ label var State "State name"
 label var StateAbbrev "State abbreviation"
 label var StateFips "State FIPS Id"
 label var DistrictType "District type as defined by NCES"
-
-** Isolate Louisiana Data
-
-drop if StateFips != 22
 save "${path}/Semi-Processed Data Files/2015_16_NCES_Cleaned_District.dta", replace
 
 ** 2015-16 Proficiency Data
@@ -272,9 +277,11 @@ label var State_leaid "State LEA ID"
 gen seaschnumber=.
 gen seasch = string(seaschnumber)
 replace seasch = StateAssignedDistID + "-" + StateAssignedSchID
+replace seasch = "D50S09-D50S09" if SchName == "Chitimacha Tribal School"
+replace State_leaid = "D50S09" if SchName == "Chitimacha Tribal School"
 merge m:1 State_leaid using "${path}/Semi-Processed Data Files/2015_16_NCES_Cleaned_District.dta"
 rename _merge district_merge
-merge m:1 seasch StateFips using "${path}/Semi-Processed Data Files/2015_16_NCES_Cleaned_School.dta"
+merge m:1 seasch using "${path}/Semi-Processed Data Files/2015_16_NCES_Cleaned_School.dta"
 keep if district_merge == 3 & _merge == 3
 drop state_leaidnumber seaschnumber _merge district_merge
 

@@ -36,6 +36,7 @@ rename SchoolType2 SchoolType
 rename Virtual2 Virtual
 tostring seasch, replace
 replace seasch = State_leaid + "-" + seasch
+replace State_leaid = "LA-" + State_leaid 
 
 ** Drop Excess Variables
 
@@ -58,8 +59,8 @@ label var SchoolLevel "School level"
 
 ** Isolate Louisiana Data
 
-drop if StateFips != 22
-drop if State_leaid == ""
+drop if StateAbbrev != "LA"
+drop if DistName == ""
 save "${path}/Semi-Processed Data Files/2014_15_NCES_Cleaned_School.dta", replace
 
 ** 2014-15 NCES District Data
@@ -76,6 +77,11 @@ rename county_code CountyCode
 rename county_name CountyName
 rename district_agency_type DistrictType
 rename state_fips StateFips
+
+** Isolate Louisiana Data
+
+drop if StateAbbrev != "LA"
+drop if State_leaid == ""
 
 ** Fix Variable Types
 
@@ -100,10 +106,6 @@ label var State "State name"
 label var StateAbbrev "State abbreviation"
 label var StateFips "State FIPS Id"
 label var DistrictType "District type as defined by NCES"
-
-** Isolate Louisiana Data
-
-drop if StateFips != 22
 save "${path}/Semi-Processed Data Files/2014_15_NCES_Cleaned_District.dta", replace
 
 ** 2014-15 Proficiency Data
@@ -278,9 +280,11 @@ label var State_leaid "State LEA ID"
 gen seaschnumber=.
 gen seasch = string(seaschnumber)
 replace seasch = StateAssignedDistID + "-" + StateAssignedSchID
+replace seasch = "D50S09-D50S09" if SchName == "Chitimacha Tribal School"
+replace State_leaid = "LA-D50S09" if SchName == "Chitimacha Tribal School"
 merge m:1 State_leaid using "${path}/Semi-Processed Data Files/2014_15_NCES_Cleaned_District.dta"
 rename _merge district_merge
-merge m:1 seasch StateFips using "${path}/Semi-Processed Data Files/2014_15_NCES_Cleaned_School.dta"
+merge m:1 seasch StateAbbrev using "${path}/Semi-Processed Data Files/2014_15_NCES_Cleaned_School.dta"
 keep if district_merge == 3 & _merge == 3
 drop state_leaidnumber seaschnumber _merge district_merge
 
