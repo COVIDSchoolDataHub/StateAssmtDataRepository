@@ -681,11 +681,59 @@ gen seasch = StateAssignedSchID
 tostring seasch, replace force
 tostring StateAssignedSchID, replace force
 
+//Label & Organize Variables
+label var State "State name"
+label var StateAbbrev "State abbreviation"
+label var StateFips "State FIPS Id"
+label var NCESDistrictID "NCES district ID"
+label var State_leaid "State LEA ID"
+label var DistrictType "District type as defined by NCES"
+label var Charter "Charter indicator"
+label var CountyName "County in which the district or school is located"
+label var CountyCode "County code in which the district or school is located, also referred to as the county-level FIPS code"
+label var NCESSchoolID "NCES school ID"
+label var SchoolType "School type as defined by NCES"
+label var Virtual "Virtual school indicator"
+label var SchoolLevel "School level"
+label var SchYear "School year in which the data were reported"
+label var AssmtName "Name of state assessment"
+label var Flag_AssmtNameChange "Flag denoting a change in the assessment's name from the prior year only"
+label var Flag_CutScoreChange_ELA "Flag denoting a change in scoring determinations in ELA from the prior year only"
+label var Flag_CutScoreChange_math "Flag denoting a change in scoring determinations in math from the prior year only"
+label var Flag_CutScoreChange_read "Flag denoting a change in scoring determinations in reading from the prior year only"
+label var AssmtType "Assessment type"
+label var DataLevel "Level at which the data are reported"
+label var DistName "District name"
+label var StateAssignedDistID "State-assigned district ID"
+label var SchName "School name"
+label var StateAssignedSchID "State-assigned school ID"
+label var Subject "Assessment subject area"
+label var GradeLevel "Grade tested"
+label var StudentGroup "Student demographic group"
+label var StudentGroup_TotalTested "Number of students in the designated StudentGroup who were tested"
+label var StudentSubGroup "Student demographic subgroup"
+label var StudentSubGroup_TotalTested "Number of students in the designated Student Sub-Group who were tested"
+label var Lev1_count "Count of students within subgroup performing at Level 1"
+label var Lev1_percent "Percent of students within subgroup performing at Level 1"
+label var Lev2_count "Count of students within subgroup performing at Level 2"
+label var Lev2_percent "Percent of students within subgroup performing at Level 2"
+label var Lev3_count "Count of students within subgroup performing at Level 3"
+label var Lev3_percent "Percent of students within subgroup performing at Level 3"
+label var Lev4_count "Count of students within subgroup performing at Level 4"
+label var Lev4_percent "Percent of students within subgroup performing at Level 4"
+label var Lev5_count "Count of students within subgroup performing at Level 5"
+label var Lev5_percent "Percent of students within subgroup performing at Level 5"
+label var AvgScaleScore "Avg scale score within subgroup"
+label var ProficiencyCriteria "Levels included in determining proficiency status"
+label var ProficientOrAbove_count "Count of students achieving proficiency or above on the state assessment"
+label var ProficientOrAbove_percent "Percent of students achieving proficiency or above on the state assessment"
+label var ParticipationRate "Participation rate"
+
 order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
 sort StateAssignedDistID StateAssignedSchID GradeLevel Subject
 
 save "${data}/NJ_AssmtData_2015", replace
-export delimited "${data}/NJ_AssmtData_2015"
+export delimited "${data}/NJ_AssmtData_2015", replace
 clear
 
 //2015-2016
@@ -1347,11 +1395,63 @@ replace CountyCode =. if DataLevel == "State"
 
 drop year lea_name _merge merge2
 
+replace NCESSchoolID = "Missing" if SchName == "John Greenleaf Whittier Family School" & NCESSchoolID == ""
+replace NCESSchoolID = "Missing" if SchName == "Single Gender Academy" & NCESSchoolID == ""
+replace NCESSchoolID = "340210003331" if SchName == "Smalley Elementary School" & NCESSchoolID == ""
+
+//Label & Organize Variables
+label var State "State name"
+label var StateAbbrev "State abbreviation"
+label var StateFips "State FIPS Id"
+label var NCESDistrictID "NCES district ID"
+label var State_leaid "State LEA ID"
+label var DistrictType "District type as defined by NCES"
+label var Charter "Charter indicator"
+label var CountyName "County in which the district or school is located"
+label var CountyCode "County code in which the district or school is located, also referred to as the county-level FIPS code"
+label var NCESSchoolID "NCES school ID"
+label var SchoolType "School type as defined by NCES"
+label var Virtual "Virtual school indicator"
+label var SchoolLevel "School level"
+label var SchYear "School year in which the data were reported"
+label var AssmtName "Name of state assessment"
+label var Flag_AssmtNameChange "Flag denoting a change in the assessment's name from the prior year only"
+label var Flag_CutScoreChange_ELA "Flag denoting a change in scoring determinations in ELA from the prior year only"
+label var Flag_CutScoreChange_math "Flag denoting a change in scoring determinations in math from the prior year only"
+label var Flag_CutScoreChange_read "Flag denoting a change in scoring determinations in reading from the prior year only"
+label var AssmtType "Assessment type"
+label var DataLevel "Level at which the data are reported"
+label var DistName "District name"
+label var StateAssignedDistID "State-assigned district ID"
+label var SchName "School name"
+label var StateAssignedSchID "State-assigned school ID"
+label var Subject "Assessment subject area"
+label var GradeLevel "Grade tested"
+label var StudentGroup "Student demographic group"
+label var StudentGroup_TotalTested "Number of students in the designated StudentGroup who were tested"
+label var StudentSubGroup "Student demographic subgroup"
+label var StudentSubGroup_TotalTested "Number of students in the designated Student Sub-Group who were tested"
+label var Lev1_count "Count of students within subgroup performing at Level 1"
+label var Lev1_percent "Percent of students within subgroup performing at Level 1"
+label var Lev2_count "Count of students within subgroup performing at Level 2"
+label var Lev2_percent "Percent of students within subgroup performing at Level 2"
+label var Lev3_count "Count of students within subgroup performing at Level 3"
+label var Lev3_percent "Percent of students within subgroup performing at Level 3"
+label var Lev4_count "Count of students within subgroup performing at Level 4"
+label var Lev4_percent "Percent of students within subgroup performing at Level 4"
+label var Lev5_count "Count of students within subgroup performing at Level 5"
+label var Lev5_percent "Percent of students within subgroup performing at Level 5"
+label var AvgScaleScore "Avg scale score within subgroup"
+label var ProficiencyCriteria "Levels included in determining proficiency status"
+label var ProficientOrAbove_count "Count of students achieving proficiency or above on the state assessment"
+label var ProficientOrAbove_percent "Percent of students achieving proficiency or above on the state assessment"
+label var ParticipationRate "Participation rate"
+
 order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
 sort StateAssignedDistID StateAssignedSchID GradeLevel Subject
 
 save "${data}/NJ_AssmtData_2016", replace
-export delimited "${data}/NJ_AssmtData_2016"
+export delimited "${data}/NJ_AssmtData_2016", replace
 clear
 
 //2016-2017
@@ -2010,11 +2110,59 @@ replace StateFips = 34 if StateFips ==.
 
 drop year lea_name _merge merge2
 
+//Label & Organize Variables
+label var State "State name"
+label var StateAbbrev "State abbreviation"
+label var StateFips "State FIPS Id"
+label var NCESDistrictID "NCES district ID"
+label var State_leaid "State LEA ID"
+label var DistrictType "District type as defined by NCES"
+label var Charter "Charter indicator"
+label var CountyName "County in which the district or school is located"
+label var CountyCode "County code in which the district or school is located, also referred to as the county-level FIPS code"
+label var NCESSchoolID "NCES school ID"
+label var SchoolType "School type as defined by NCES"
+label var Virtual "Virtual school indicator"
+label var SchoolLevel "School level"
+label var SchYear "School year in which the data were reported"
+label var AssmtName "Name of state assessment"
+label var Flag_AssmtNameChange "Flag denoting a change in the assessment's name from the prior year only"
+label var Flag_CutScoreChange_ELA "Flag denoting a change in scoring determinations in ELA from the prior year only"
+label var Flag_CutScoreChange_math "Flag denoting a change in scoring determinations in math from the prior year only"
+label var Flag_CutScoreChange_read "Flag denoting a change in scoring determinations in reading from the prior year only"
+label var AssmtType "Assessment type"
+label var DataLevel "Level at which the data are reported"
+label var DistName "District name"
+label var StateAssignedDistID "State-assigned district ID"
+label var SchName "School name"
+label var StateAssignedSchID "State-assigned school ID"
+label var Subject "Assessment subject area"
+label var GradeLevel "Grade tested"
+label var StudentGroup "Student demographic group"
+label var StudentGroup_TotalTested "Number of students in the designated StudentGroup who were tested"
+label var StudentSubGroup "Student demographic subgroup"
+label var StudentSubGroup_TotalTested "Number of students in the designated Student Sub-Group who were tested"
+label var Lev1_count "Count of students within subgroup performing at Level 1"
+label var Lev1_percent "Percent of students within subgroup performing at Level 1"
+label var Lev2_count "Count of students within subgroup performing at Level 2"
+label var Lev2_percent "Percent of students within subgroup performing at Level 2"
+label var Lev3_count "Count of students within subgroup performing at Level 3"
+label var Lev3_percent "Percent of students within subgroup performing at Level 3"
+label var Lev4_count "Count of students within subgroup performing at Level 4"
+label var Lev4_percent "Percent of students within subgroup performing at Level 4"
+label var Lev5_count "Count of students within subgroup performing at Level 5"
+label var Lev5_percent "Percent of students within subgroup performing at Level 5"
+label var AvgScaleScore "Avg scale score within subgroup"
+label var ProficiencyCriteria "Levels included in determining proficiency status"
+label var ProficientOrAbove_count "Count of students achieving proficiency or above on the state assessment"
+label var ProficientOrAbove_percent "Percent of students achieving proficiency or above on the state assessment"
+label var ParticipationRate "Participation rate"
+
 order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
 sort StateAssignedDistID StateAssignedSchID GradeLevel Subject
 
 save "${data}/NJ_AssmtData_2017", replace
-export delimited "${data}/NJ_AssmtData_2017"
+export delimited "${data}/NJ_AssmtData_2017", replace
 clear
 
 //2017-2018
@@ -2653,11 +2801,59 @@ replace StateFips = 34 if StateFips ==.
 
 drop year lea_name _merge merge2
 
+//Label & Organize Variables
+label var State "State name"
+label var StateAbbrev "State abbreviation"
+label var StateFips "State FIPS Id"
+label var NCESDistrictID "NCES district ID"
+label var State_leaid "State LEA ID"
+label var DistrictType "District type as defined by NCES"
+label var Charter "Charter indicator"
+label var CountyName "County in which the district or school is located"
+label var CountyCode "County code in which the district or school is located, also referred to as the county-level FIPS code"
+label var NCESSchoolID "NCES school ID"
+label var SchoolType "School type as defined by NCES"
+label var Virtual "Virtual school indicator"
+label var SchoolLevel "School level"
+label var SchYear "School year in which the data were reported"
+label var AssmtName "Name of state assessment"
+label var Flag_AssmtNameChange "Flag denoting a change in the assessment's name from the prior year only"
+label var Flag_CutScoreChange_ELA "Flag denoting a change in scoring determinations in ELA from the prior year only"
+label var Flag_CutScoreChange_math "Flag denoting a change in scoring determinations in math from the prior year only"
+label var Flag_CutScoreChange_read "Flag denoting a change in scoring determinations in reading from the prior year only"
+label var AssmtType "Assessment type"
+label var DataLevel "Level at which the data are reported"
+label var DistName "District name"
+label var StateAssignedDistID "State-assigned district ID"
+label var SchName "School name"
+label var StateAssignedSchID "State-assigned school ID"
+label var Subject "Assessment subject area"
+label var GradeLevel "Grade tested"
+label var StudentGroup "Student demographic group"
+label var StudentGroup_TotalTested "Number of students in the designated StudentGroup who were tested"
+label var StudentSubGroup "Student demographic subgroup"
+label var StudentSubGroup_TotalTested "Number of students in the designated Student Sub-Group who were tested"
+label var Lev1_count "Count of students within subgroup performing at Level 1"
+label var Lev1_percent "Percent of students within subgroup performing at Level 1"
+label var Lev2_count "Count of students within subgroup performing at Level 2"
+label var Lev2_percent "Percent of students within subgroup performing at Level 2"
+label var Lev3_count "Count of students within subgroup performing at Level 3"
+label var Lev3_percent "Percent of students within subgroup performing at Level 3"
+label var Lev4_count "Count of students within subgroup performing at Level 4"
+label var Lev4_percent "Percent of students within subgroup performing at Level 4"
+label var Lev5_count "Count of students within subgroup performing at Level 5"
+label var Lev5_percent "Percent of students within subgroup performing at Level 5"
+label var AvgScaleScore "Avg scale score within subgroup"
+label var ProficiencyCriteria "Levels included in determining proficiency status"
+label var ProficientOrAbove_count "Count of students achieving proficiency or above on the state assessment"
+label var ProficientOrAbove_percent "Percent of students achieving proficiency or above on the state assessment"
+label var ParticipationRate "Participation rate"
+
 order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
 sort StateAssignedDistID StateAssignedSchID GradeLevel Subject
 
 save "${data}/NJ_AssmtData_2018", replace
-export delimited "${data}/NJ_AssmtData_2018"
+export delimited "${data}/NJ_AssmtData_2018", replace
 clear
 
 //2018-2019
@@ -3390,11 +3586,59 @@ replace StateFips = 34 if StateFips ==.
 
 drop year lea_name _merge merge2
 
+//Label & Organize Variables
+label var State "State name"
+label var StateAbbrev "State abbreviation"
+label var StateFips "State FIPS Id"
+label var NCESDistrictID "NCES district ID"
+label var State_leaid "State LEA ID"
+label var DistrictType "District type as defined by NCES"
+label var Charter "Charter indicator"
+label var CountyName "County in which the district or school is located"
+label var CountyCode "County code in which the district or school is located, also referred to as the county-level FIPS code"
+label var NCESSchoolID "NCES school ID"
+label var SchoolType "School type as defined by NCES"
+label var Virtual "Virtual school indicator"
+label var SchoolLevel "School level"
+label var SchYear "School year in which the data were reported"
+label var AssmtName "Name of state assessment"
+label var Flag_AssmtNameChange "Flag denoting a change in the assessment's name from the prior year only"
+label var Flag_CutScoreChange_ELA "Flag denoting a change in scoring determinations in ELA from the prior year only"
+label var Flag_CutScoreChange_math "Flag denoting a change in scoring determinations in math from the prior year only"
+label var Flag_CutScoreChange_read "Flag denoting a change in scoring determinations in reading from the prior year only"
+label var AssmtType "Assessment type"
+label var DataLevel "Level at which the data are reported"
+label var DistName "District name"
+label var StateAssignedDistID "State-assigned district ID"
+label var SchName "School name"
+label var StateAssignedSchID "State-assigned school ID"
+label var Subject "Assessment subject area"
+label var GradeLevel "Grade tested"
+label var StudentGroup "Student demographic group"
+label var StudentGroup_TotalTested "Number of students in the designated StudentGroup who were tested"
+label var StudentSubGroup "Student demographic subgroup"
+label var StudentSubGroup_TotalTested "Number of students in the designated Student Sub-Group who were tested"
+label var Lev1_count "Count of students within subgroup performing at Level 1"
+label var Lev1_percent "Percent of students within subgroup performing at Level 1"
+label var Lev2_count "Count of students within subgroup performing at Level 2"
+label var Lev2_percent "Percent of students within subgroup performing at Level 2"
+label var Lev3_count "Count of students within subgroup performing at Level 3"
+label var Lev3_percent "Percent of students within subgroup performing at Level 3"
+label var Lev4_count "Count of students within subgroup performing at Level 4"
+label var Lev4_percent "Percent of students within subgroup performing at Level 4"
+label var Lev5_count "Count of students within subgroup performing at Level 5"
+label var Lev5_percent "Percent of students within subgroup performing at Level 5"
+label var AvgScaleScore "Avg scale score within subgroup"
+label var ProficiencyCriteria "Levels included in determining proficiency status"
+label var ProficientOrAbove_count "Count of students achieving proficiency or above on the state assessment"
+label var ProficientOrAbove_percent "Percent of students achieving proficiency or above on the state assessment"
+label var ParticipationRate "Participation rate"
+
 order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
 sort StateAssignedDistID StateAssignedSchID GradeLevel Subject
 
 save "${data}/NJ_AssmtData_2019", replace
-export delimited "${data}/NJ_AssmtData_2019"
+export delimited "${data}/NJ_AssmtData_2019", replace
 clear
 
 //2021-2022
@@ -4146,9 +4390,59 @@ replace StateFips = 34 if StateFips ==.
 
 drop year school_name lea_name urban_centric_locale school_status lowest_grade_offered highest_grade_offered bureau_indian_education charter_text lunch_program free_lunch reduced_price_lunch free_or_reduced_price_lunch enrollment schid state stateabbrev statefips countyname countycode schyear distname updated_status_text effective_date _merge merge2
 
+//Label & Organize Variables
+label var State "State name"
+label var StateAbbrev "State abbreviation"
+label var StateFips "State FIPS Id"
+label var NCESDistrictID "NCES district ID"
+label var State_leaid "State LEA ID"
+label var DistrictType "District type as defined by NCES"
+label var Charter "Charter indicator"
+label var CountyName "County in which the district or school is located"
+label var CountyCode "County code in which the district or school is located, also referred to as the county-level FIPS code"
+label var NCESSchoolID "NCES school ID"
+label var SchoolType "School type as defined by NCES"
+label var Virtual "Virtual school indicator"
+label var SchoolLevel "School level"
+label var SchYear "School year in which the data were reported"
+label var AssmtName "Name of state assessment"
+label var Flag_AssmtNameChange "Flag denoting a change in the assessment's name from the prior year only"
+label var Flag_CutScoreChange_ELA "Flag denoting a change in scoring determinations in ELA from the prior year only"
+label var Flag_CutScoreChange_math "Flag denoting a change in scoring determinations in math from the prior year only"
+label var Flag_CutScoreChange_read "Flag denoting a change in scoring determinations in reading from the prior year only"
+label var AssmtType "Assessment type"
+label var DataLevel "Level at which the data are reported"
+label var DistName "District name"
+label var StateAssignedDistID "State-assigned district ID"
+label var SchName "School name"
+label var StateAssignedSchID "State-assigned school ID"
+label var Subject "Assessment subject area"
+label var GradeLevel "Grade tested"
+label var StudentGroup "Student demographic group"
+label var StudentGroup_TotalTested "Number of students in the designated StudentGroup who were tested"
+label var StudentSubGroup "Student demographic subgroup"
+label var StudentSubGroup_TotalTested "Number of students in the designated Student Sub-Group who were tested"
+label var Lev1_count "Count of students within subgroup performing at Level 1"
+label var Lev1_percent "Percent of students within subgroup performing at Level 1"
+label var Lev2_count "Count of students within subgroup performing at Level 2"
+label var Lev2_percent "Percent of students within subgroup performing at Level 2"
+label var Lev3_count "Count of students within subgroup performing at Level 3"
+label var Lev3_percent "Percent of students within subgroup performing at Level 3"
+label var Lev4_count "Count of students within subgroup performing at Level 4"
+label var Lev4_percent "Percent of students within subgroup performing at Level 4"
+label var Lev5_count "Count of students within subgroup performing at Level 5"
+label var Lev5_percent "Percent of students within subgroup performing at Level 5"
+label var AvgScaleScore "Avg scale score within subgroup"
+label var ProficiencyCriteria "Levels included in determining proficiency status"
+label var ProficientOrAbove_count "Count of students achieving proficiency or above on the state assessment"
+label var ProficientOrAbove_percent "Percent of students achieving proficiency or above on the state assessment"
+label var ParticipationRate "Participation rate"
+
 order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
 sort StateAssignedDistID StateAssignedSchID GradeLevel Subject
 
 save "${data}/NJ_AssmtData_2022", replace
-export delimited "${data}/NJ_AssmtData_2022"
+export delimited "${data}/NJ_AssmtData_2022", replace
 clear
+
+log close
