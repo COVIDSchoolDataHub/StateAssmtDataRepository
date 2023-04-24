@@ -1,0 +1,270 @@
+cap log close
+log using massachusetts_cleaning.log, replace
+
+
+cd "/Users/benjaminm/Documents/State_Repository_Research/Massachusetts"
+
+//import excel "mass_districts_parcc", clear
+// save mass_districts_parcc
+use mass_districts_parcc, clear 
+
+
+split C, parse(" ")
+drop C C1 C4
+rename C2 GradeLevel
+rename C3 Subject
+
+drop A 	
+rename B SchYear 	
+
+rename D StudentGroup	
+rename E DistName
+rename F StateAssignedDistID
+drop G 	
+rename H ProficientOrAbove_count
+rename I ProficientOrAbove_percent	
+rename J Lev5_count	
+rename K Lev5_percent	
+rename L Lev4_count	
+rename M Lev4_percent	
+rename N Lev3_count
+rename O Lev3_percent	
+rename P Lev2_count		
+rename Q Lev2_percent
+rename R Lev1_count		
+rename S Lev1_percent								
+rename T AvgScaleScore
+rename U StudentGroup_TotalTested	
+rename V CPI
+rename W CPI_2	
+rename X Median_SGP	
+rename Y Median_SGP_2
+
+
+save mass_districts_parcc_titled, replace
+// use mass_districts_parcc_titled, clear
+
+// Creating file with unique districts and IDs
+duplicates drop DistName, force
+keep DistName StateAssignedDistID
+drop if DistName == "District Name"
+
+input 
+Wareham	03100000
+ end
+
+drop if DistName == "DistName"
+
+save mass_district_IDs_parcc, replace
+
+
+
+//import excel "mass_schools_parcc", clear
+// save mass_schools_parcc, replace
+use mass_schools_parcc, clear
+
+// import excel "mass_schools_old_mcas_2", clear
+// save mass_schools_old_mcas_2, replace
+
+
+split F, parse(" - ")
+
+rename F1 DistName 
+rename F2 SchName
+
+split C, parse(" ")
+drop C C1 C4
+rename C2 GradeLevel
+rename C3 Subject
+
+keep if E == "All"
+
+drop A 	
+rename B SchYear 	
+
+rename D StudentGroup	
+drop E 
+rename G StateAssignedSchID
+drop H	
+rename I ProficientOrAbove_count
+rename J ProficientOrAbove_percent	
+rename K Lev5_count	
+rename L Lev5_percent	
+rename M Lev4_count	
+rename N Lev4_percent	
+rename O Lev3_count
+rename P Lev3_percent	
+rename Q Lev2_count		
+rename R Lev2_percent
+rename S Lev1_count		
+rename T Lev1_percent								
+rename U AvgScaleScore
+rename V StudentGroup_TotalTested	
+rename W CPI
+rename X CPI_2	
+rename Y Median_SGP	
+rename Z Median_SGP_2 	
+
+
+append using mass_districts_parcc_titled
+drop StateAssignedDistID
+
+
+merge m:1 DistName using mass_district_IDs_parcc
+
+
+
+drop if DistName == "School Name"
+drop if DistName == "District Name"
+
+drop _merge
+
+
+// save mass_districts_parcc_in_progress, replace
+// use mass_districts_parcc_in_progress, clear
+
+global years3 2015 2016
+
+foreach a in $years3 {
+	
+local prevyear = `a' - 1
+	
+use mass_districts_parcc_in_progress, clear
+
+keep if SchYear == "`a'"
+
+
+replace StateAssignedDistID = subinstr(StateAssignedDistID, "0000", "", .)
+
+rename StateAssignedDistID State_leaid
+
+merge m:1 State_leaid using NCES_`prevyear'_District_Mass
+rename _merge DistMerge
+drop if DistMerge == 2 // dropping unmerge districts from NCES
+
+rename State_leaid StateAssignedDistID
+
+
+rename StateAssignedSchID seasch
+merge m:1 seasch using NCES_`prevyear'_School_Mass
+rename _merge SchoolMerge
+drop if SchoolMerge == 2 // dropping unmerge districts from NCES
+
+rename seasch StateAssignedSchID
+
+
+
+drop State
+drop StateAbbrev
+drop StateFips
+gen State = "Massachusetts"
+gen StateAbbrev = "MA"
+gen StateFips = "25"
+
+if `a' == 2016 {
+gen Flag_AssmtNameChange = "N"
+gen Flag_CutScoreChange_ELA = "N"
+gen Flag_CutScoreChange_math = "N"
+gen Flag_CutScoreChange_read = ""
+gen Flag_CutScoreChange_oth = "N"
+}
+
+
+if `a' == 2015 {
+// year specific 2016 
+gen Flag_AssmtNameChange = "Y"
+gen Flag_CutScoreChange_ELA = "Y"
+gen Flag_CutScoreChange_math = "Y"
+gen Flag_CutScoreChange_read = ""
+gen Flag_CutScoreChange_oth = "Y"
+
+}
+
+if `a' == 2015 {
+gen SchYear2 = "2014-15"
+
+} 
+
+if `a' == 2016 {
+gen SchYear2 = "2015-16"
+
+} 
+
+
+drop SchYear
+rename SchYear2 SchYear
+
+gen AssmtName = "PARCC"
+gen AssmtType = "Regular"
+gen DataLevel = "State, District, School"
+
+gen Subject2 = "" 
+replace Subject2 = "MTH" if Subject == "MATH"
+replace Subject2 = "ELA" if Subject == "ELA"
+replace Subject2 = "SCI" if Subject == "SCI"
+drop Subject
+rename Subject2 Subject
+
+
+gen GradeLevel2 = ""
+replace GradeLevel2 = "G03" if GradeLevel == "3"
+replace GradeLevel2 = "G04" if GradeLevel == "4"
+replace GradeLevel2 = "G05" if GradeLevel == "5"
+replace GradeLevel2 = "G06" if GradeLevel == "6"
+replace GradeLevel2 = "G07" if GradeLevel == "7"
+replace GradeLevel2 = "G08" if GradeLevel == "8"
+replace GradeLevel2 = "G09" if GradeLevel == "9"
+replace GradeLevel2 = "G10" if GradeLevel == "10"
+replace GradeLevel2 = "G11" if GradeLevel == "11"
+
+drop GradeLevel
+rename GradeLevel2 GradeLevel
+
+drop if GradeLevel == "G09"
+drop if GradeLevel == "G10"
+drop if GradeLevel == "G11"
+drop if GradeLevel == "HS SCI"
+
+drop if GradeLevel == ""
+
+gen ProficiencyCriteria = "Levels 4 and 5"
+gen seasch = . 
+gen StudentSubGroup = ""
+
+// Empty Count Vars 
+gen ParticipationRate = ""
+
+
+gen StudentSubGroup_TotalTested = StudentGroup_TotalTested
+destring StudentGroup_TotalTested, replace force
+replace StudentGroup_TotalTested = -1000000 if StudentGroup_TotalTested == .
+bys SchName StudentGroup: egen StudentGroup_TotalTested1 = total(StudentGroup_TotalTested)
+replace StudentGroup_TotalTested1 =. if StudentGroup_TotalTested1 < 0
+tostring StudentGroup_TotalTested1, replace
+replace StudentGroup_TotalTested1 = "*" if StudentGroup_TotalTested1 == "."
+drop StudentGroup_TotalTested
+rename StudentGroup_TotalTested1 StudentGroup_TotalTested
+
+
+order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual  seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA	Flag_CutScoreChange_math Flag_CutScoreChange_read	Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName Subject StateAssignedSchID GradeLevel StudentGroup  StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 
+
+keep State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual  seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA	Flag_CutScoreChange_math Flag_CutScoreChange_read	Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName Subject StateAssignedSchID GradeLevel StudentGroup  StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 
+
+destring Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate AvgScaleScore, replace force
+
+
+// converting to decimal form from percentage form 
+replace Lev1_percent = Lev1_percent/100 
+replace Lev2_percent = Lev2_percent/100 
+replace Lev3_percent = Lev3_percent/100 
+replace Lev4_percent = Lev4_percent/100 
+
+
+save MA_AssmtData_`a'_Stata, replace
+export delimited MA_AssmtData_`a'.csv, replace
+
+
+}
+
+
+
