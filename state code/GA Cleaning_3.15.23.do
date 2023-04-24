@@ -49,6 +49,10 @@ replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGro
 replace StudentSubGroup = "Two or More" if StudentSubGroup == "Two or More Races"
 replace StudentSubGroup = "English learner" if StudentSubGroup == "Limited English Proficient"
 replace StudentSubGroup = "English proficient" if StudentSubGroup == "Not Limited English Proficient"
+drop if StudentSubGroup == "Students with Disabilities"
+drop if StudentSubGroup == "Students without Disabilities"
+drop if StudentSubGroup == "Migrant"
+drop if StudentSubGroup == "Non-Migrant"
 
 gen StudentGroup = ""
 replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
@@ -65,10 +69,6 @@ replace StudentGroup = "EL Status" if StudentSubGroup == "English learner"
 replace StudentGroup = "EL Status" if StudentSubGroup == "English proficient"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Not Economically Disadvantaged"
-replace StudentGroup = "Disability Status" if StudentSubGroup == "Students with Disabilities"
-replace StudentGroup = "Disability Status" if StudentSubGroup == "Students without Disabilities"
-replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant"
-replace StudentGroup = "Migrant Status" if StudentSubGroup == "Non-Migrant"
 
 replace SchName = DistName + " District Total" if DataLevel == "District"
 
@@ -118,7 +118,7 @@ replace Subject = "ela" if Subject == "English Language Arts"
 replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "read" if Subject == "Reading"
 replace Subject = "sci" if Subject == "Science"
-replace Subject = "socialstudies" if Subject == "Social Studies"
+replace Subject = "soc" if Subject == "Social Studies"
 
 save "$GAdata/GA_AssmtData_2011.dta", replace
 
@@ -293,6 +293,10 @@ replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGro
 replace StudentSubGroup = "Two or More" if StudentSubGroup == "Two or More Races"
 replace StudentSubGroup = "English learner" if StudentSubGroup == "Limited English Proficient"
 replace StudentSubGroup = "English proficient" if StudentSubGroup == "Not Limited English Proficient"
+drop if StudentSubGroup == "Students with Disabilities"
+drop if StudentSubGroup == "Students without Disabilities"
+drop if StudentSubGroup == "Migrant"
+drop if StudentSubGroup == "Non-Migrant"
 
 gen StudentGroup = ""
 replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
@@ -309,10 +313,6 @@ replace StudentGroup = "EL Status" if StudentSubGroup == "English learner"
 replace StudentGroup = "EL Status" if StudentSubGroup == "English proficient"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Not Economically Disadvantaged"
-replace StudentGroup = "Disability Status" if StudentSubGroup == "Students with Disabilities"
-replace StudentGroup = "Disability Status" if StudentSubGroup == "Students without Disabilities"
-replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant"
-replace StudentGroup = "Migrant Status" if StudentSubGroup == "Non-Migrant"
 
 replace SchName = DistName + " District Total" if DataLevel == "District"
 
@@ -363,7 +363,7 @@ replace Subject = "ela" if Subject == "English Language Arts"
 replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "read" if Subject == "Reading"
 replace Subject = "sci" if Subject == "Science"
-replace Subject = "socialstudies" if Subject == "Social Studies"
+replace Subject = "soc" if Subject == "Social Studies"
 
 save "$GAdata/GA_AssmtData_2012.dta", replace
 
@@ -522,6 +522,10 @@ replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGro
 replace StudentSubGroup = "Two or More" if StudentSubGroup == "Two or More Races"
 replace StudentSubGroup = "English learner" if StudentSubGroup == "Limited English Proficient"
 replace StudentSubGroup = "English proficient" if StudentSubGroup == "Not Limited English Proficient"
+drop if StudentSubGroup == "Students with Disabilities"
+drop if StudentSubGroup == "Students without Disabilities"
+drop if StudentSubGroup == "Migrant"
+drop if StudentSubGroup == "Non-Migrant"
 
 gen StudentGroup = ""
 replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
@@ -538,10 +542,6 @@ replace StudentGroup = "EL Status" if StudentSubGroup == "English learner"
 replace StudentGroup = "EL Status" if StudentSubGroup == "English proficient"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Not Economically Disadvantaged"
-replace StudentGroup = "Disability Status" if StudentSubGroup == "Students with Disabilities"
-replace StudentGroup = "Disability Status" if StudentSubGroup == "Students without Disabilities"
-replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant"
-replace StudentGroup = "Migrant Status" if StudentSubGroup == "Non-Migrant"
 
 replace SchName = DistName + " District Total" if DataLevel == "District"
 
@@ -592,7 +592,7 @@ replace Subject = "ela" if Subject == "English Language Arts"
 replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "read" if Subject == "Reading"
 replace Subject = "sci" if Subject == "Science"
-replace Subject = "socialstudies" if Subject == "Social Studies"
+replace Subject = "soc" if Subject == "Social Studies"
 
 save "$GAdata/GA_AssmtData_2013.dta", replace
 
@@ -751,6 +751,10 @@ replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGro
 replace StudentSubGroup = "Two or More" if StudentSubGroup == "Two or More Races"
 replace StudentSubGroup = "English learner" if StudentSubGroup == "Limited English Proficient"
 replace StudentSubGroup = "English proficient" if StudentSubGroup == "Not Limited English Proficient"
+drop if StudentSubGroup == "Students with Disabilities"
+drop if StudentSubGroup == "Students without Disabilities"
+drop if StudentSubGroup == "Migrant"
+drop if StudentSubGroup == "Non-Migrant"
 
 gen StudentGroup = ""
 replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
@@ -767,10 +771,6 @@ replace StudentGroup = "EL Status" if StudentSubGroup == "English learner"
 replace StudentGroup = "EL Status" if StudentSubGroup == "English proficient"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Not Economically Disadvantaged"
-replace StudentGroup = "Disability Status" if StudentSubGroup == "Students with Disabilities"
-replace StudentGroup = "Disability Status" if StudentSubGroup == "Students without Disabilities"
-replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant"
-replace StudentGroup = "Migrant Status" if StudentSubGroup == "Non-Migrant"
 
 replace SchName = DistName + " District Total" if DataLevel == "District"
 
@@ -821,7 +821,7 @@ replace Subject = "ela" if Subject == "English Language Arts"
 replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "read" if Subject == "Reading"
 replace Subject = "sci" if Subject == "Science"
-replace Subject = "socialstudies" if Subject == "Social Studies"
+replace Subject = "soc" if Subject == "Social Studies"
 
 save "$GAdata/GA_AssmtData_2014.dta", replace
 
@@ -979,6 +979,10 @@ replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGro
 replace StudentSubGroup = "Two or More" if StudentSubGroup == "Two or More Races"
 replace StudentSubGroup = "English learner" if StudentSubGroup == "Limited English Proficient"
 replace StudentSubGroup = "English proficient" if StudentSubGroup == "Not Limited English Proficient"
+drop if StudentSubGroup == "Students with Disabilities"
+drop if StudentSubGroup == "Students without Disabilities"
+drop if StudentSubGroup == "Migrant"
+drop if StudentSubGroup == "Non-Migrant"
 
 gen StudentGroup = ""
 replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
@@ -995,10 +999,6 @@ replace StudentGroup = "EL Status" if StudentSubGroup == "English learner"
 replace StudentGroup = "EL Status" if StudentSubGroup == "English proficient"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Not Economically Disadvantaged"
-replace StudentGroup = "Disability Status" if StudentSubGroup == "Students with Disabilities"
-replace StudentGroup = "Disability Status" if StudentSubGroup == "Students without Disabilities"
-replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant"
-replace StudentGroup = "Migrant Status" if StudentSubGroup == "Non-Migrant"
 
 replace SchName = DistName + " District Total" if DataLevel == "District"
 
@@ -1071,7 +1071,7 @@ replace GradeLevel = "G08" if GradeLevel == "8"
 replace Subject = "ela" if Subject == "English Language Arts"
 replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "sci" if Subject == "Science"
-replace Subject = "socialstudies" if Subject == "Social Studies"
+replace Subject = "soc" if Subject == "Social Studies"
 
 save "$GAdata/GA_AssmtData_2015.dta", replace
 
@@ -1230,6 +1230,10 @@ replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGro
 replace StudentSubGroup = "Two or More" if StudentSubGroup == "Two or More Races"
 replace StudentSubGroup = "English learner" if StudentSubGroup == "Limited English Proficient"
 replace StudentSubGroup = "English proficient" if StudentSubGroup == "Not Limited English Proficient"
+drop if StudentSubGroup == "Students with Disabilities"
+drop if StudentSubGroup == "Students without Disabilities"
+drop if StudentSubGroup == "Migrant"
+drop if StudentSubGroup == "Non-Migrant"
 
 gen StudentGroup = ""
 replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
@@ -1246,10 +1250,6 @@ replace StudentGroup = "EL Status" if StudentSubGroup == "English learner"
 replace StudentGroup = "EL Status" if StudentSubGroup == "English proficient"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Not Economically Disadvantaged"
-replace StudentGroup = "Disability Status" if StudentSubGroup == "Students with Disabilities"
-replace StudentGroup = "Disability Status" if StudentSubGroup == "Students without Disabilities"
-replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant"
-replace StudentGroup = "Migrant Status" if StudentSubGroup == "Non-Migrant"
 
 replace SchName = DistName + " District Total" if DataLevel == "District"
 
@@ -1304,7 +1304,7 @@ replace GradeLevel = "G08" if GradeLevel == "8"
 replace Subject = "ela" if Subject == "English Language Arts"
 replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "sci" if Subject == "Science"
-replace Subject = "socialstudies" if Subject == "Social Studies"
+replace Subject = "soc" if Subject == "Social Studies"
 
 save "$GAdata/GA_AssmtData_2016.dta", replace
 
@@ -1463,6 +1463,10 @@ replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGro
 replace StudentSubGroup = "Two or More" if StudentSubGroup == "Two or More Races"
 replace StudentSubGroup = "English learner" if StudentSubGroup == "Limited English Proficient"
 replace StudentSubGroup = "English proficient" if StudentSubGroup == "Not Limited English Proficient"
+drop if StudentSubGroup == "Students with Disabilities"
+drop if StudentSubGroup == "Students without Disabilities"
+drop if StudentSubGroup == "Migrant"
+drop if StudentSubGroup == "Non-Migrant"
 
 gen StudentGroup = ""
 replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
@@ -1479,10 +1483,6 @@ replace StudentGroup = "EL Status" if StudentSubGroup == "English learner"
 replace StudentGroup = "EL Status" if StudentSubGroup == "English proficient"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Not Economically Disadvantaged"
-replace StudentGroup = "Disability Status" if StudentSubGroup == "Students with Disabilities"
-replace StudentGroup = "Disability Status" if StudentSubGroup == "Students without Disabilities"
-replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant"
-replace StudentGroup = "Migrant Status" if StudentSubGroup == "Non-Migrant"
 
 replace SchName = DistName + " District Total" if DataLevel == "District"
 
@@ -1537,7 +1537,7 @@ replace GradeLevel = "G08" if GradeLevel == "8"
 replace Subject = "ela" if Subject == "English Language Arts"
 replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "sci" if Subject == "Science"
-replace Subject = "socialstudies" if Subject == "Social Studies"
+replace Subject = "soc" if Subject == "Social Studies"
 
 save "$GAdata/GA_AssmtData_2017.dta", replace
 
@@ -1699,6 +1699,10 @@ replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGro
 replace StudentSubGroup = "Two or More" if StudentSubGroup == "Two or More Races"
 replace StudentSubGroup = "English learner" if StudentSubGroup == "Limited English Proficient"
 replace StudentSubGroup = "English proficient" if StudentSubGroup == "Not Limited English Proficient"
+drop if StudentSubGroup == "Students with Disabilities"
+drop if StudentSubGroup == "Students without Disabilities"
+drop if StudentSubGroup == "Migrant"
+drop if StudentSubGroup == "Non-Migrant"
 
 gen StudentGroup = ""
 replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
@@ -1715,10 +1719,6 @@ replace StudentGroup = "EL Status" if StudentSubGroup == "English learner"
 replace StudentGroup = "EL Status" if StudentSubGroup == "English proficient"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Not Economically Disadvantaged"
-replace StudentGroup = "Disability Status" if StudentSubGroup == "Students with Disabilities"
-replace StudentGroup = "Disability Status" if StudentSubGroup == "Students without Disabilities"
-replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant"
-replace StudentGroup = "Migrant Status" if StudentSubGroup == "Non-Migrant"
 
 replace SchName = DistName + " District Total" if DataLevel == "District"
 
@@ -1773,7 +1773,7 @@ replace GradeLevel = "G08" if GradeLevel == "8"
 replace Subject = "ela" if Subject == "English Language Arts"
 replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "sci" if Subject == "Science"
-replace Subject = "socialstudies" if Subject == "Social Studies"
+replace Subject = "soc" if Subject == "Social Studies"
 
 save "$GAdata/GA_AssmtData_2018.dta", replace
 
@@ -1934,6 +1934,10 @@ replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGro
 replace StudentSubGroup = "Two or More" if StudentSubGroup == "Two or More Races"
 replace StudentSubGroup = "English learner" if StudentSubGroup == "Limited English Proficient"
 replace StudentSubGroup = "English proficient" if StudentSubGroup == "Not Limited English Proficient"
+drop if StudentSubGroup == "Students with Disabilities"
+drop if StudentSubGroup == "Students without Disabilities"
+drop if StudentSubGroup == "Migrant"
+drop if StudentSubGroup == "Non-Migrant"
 
 gen StudentGroup = ""
 replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
@@ -1950,10 +1954,6 @@ replace StudentGroup = "EL Status" if StudentSubGroup == "English learner"
 replace StudentGroup = "EL Status" if StudentSubGroup == "English proficient"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Not Economically Disadvantaged"
-replace StudentGroup = "Disability Status" if StudentSubGroup == "Students with Disabilities"
-replace StudentGroup = "Disability Status" if StudentSubGroup == "Students without Disabilities"
-replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant"
-replace StudentGroup = "Migrant Status" if StudentSubGroup == "Non-Migrant"
 
 gen StudentSubGroup_TotalTested = num_tested_cnt
 destring num_tested_cnt, replace force
@@ -2024,7 +2024,7 @@ replace GradeLevel = "G08" if GradeLevel == "8"
 replace Subject = "ela" if Subject == "English Language Arts"
 replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "sci" if Subject == "Science"
-replace Subject = "socialstudies" if Subject == "Social Studies"
+replace Subject = "soc" if Subject == "Social Studies"
 
 save "$GAdata/GA_AssmtData_2019.dta", replace
 
@@ -2185,6 +2185,10 @@ replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGro
 replace StudentSubGroup = "Two or More" if StudentSubGroup == "Two or More Races"
 replace StudentSubGroup = "English learner" if StudentSubGroup == "Limited English Proficient"
 replace StudentSubGroup = "English proficient" if StudentSubGroup == "Not Limited English Proficient"
+drop if StudentSubGroup == "Students with Disabilities"
+drop if StudentSubGroup == "Students without Disabilities"
+drop if StudentSubGroup == "Migrant"
+drop if StudentSubGroup == "Non-Migrant"
 
 gen StudentGroup = ""
 replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
@@ -2201,10 +2205,6 @@ replace StudentGroup = "EL Status" if StudentSubGroup == "English learner"
 replace StudentGroup = "EL Status" if StudentSubGroup == "English proficient"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Not Economically Disadvantaged"
-replace StudentGroup = "Disability Status" if StudentSubGroup == "Students with Disabilities"
-replace StudentGroup = "Disability Status" if StudentSubGroup == "Students without Disabilities"
-replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant"
-replace StudentGroup = "Migrant Status" if StudentSubGroup == "Non-Migrant"
 
 replace SchName = DistName + " District Total" if DataLevel == "District"
 
@@ -2283,7 +2283,7 @@ replace GradeLevel = "G08" if GradeLevel == "8"
 replace Subject = "ela" if Subject == "English Language Arts"
 replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "sci" if Subject == "Science"
-replace Subject = "socialstudies" if Subject == "Social Studies"
+replace Subject = "soc" if Subject == "Social Studies"
 
 save "$GAdata/GA_AssmtData_2021.dta", replace
 
@@ -2444,6 +2444,10 @@ replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGro
 replace StudentSubGroup = "Two or More" if StudentSubGroup == "Two or More Races"
 replace StudentSubGroup = "English learner" if StudentSubGroup == "Limited English Proficient"
 replace StudentSubGroup = "English proficient" if StudentSubGroup == "Not Limited English Proficient"
+drop if StudentSubGroup == "Students with Disabilities"
+drop if StudentSubGroup == "Students without Disabilities"
+drop if StudentSubGroup == "Migrant"
+drop if StudentSubGroup == "Non-Migrant"
 
 gen StudentGroup = ""
 replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
@@ -2460,10 +2464,6 @@ replace StudentGroup = "EL Status" if StudentSubGroup == "English learner"
 replace StudentGroup = "EL Status" if StudentSubGroup == "English proficient"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Not Economically Disadvantaged"
-replace StudentGroup = "Disability Status" if StudentSubGroup == "Students with Disabilities"
-replace StudentGroup = "Disability Status" if StudentSubGroup == "Students without Disabilities"
-replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant"
-replace StudentGroup = "Migrant Status" if StudentSubGroup == "Non-Migrant"
 
 replace SchName = DistName + " District Total" if DataLevel == "District"
 
@@ -2542,7 +2542,7 @@ replace GradeLevel = "G08" if GradeLevel == "8"
 replace Subject = "ela" if Subject == "English Language Arts"
 replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "sci" if Subject == "Science"
-replace Subject = "socialstudies" if Subject == "Social Studies"
+replace Subject = "soc" if Subject == "Social Studies"
 
 save "$GAdata/GA_AssmtData_2022.dta", replace
 
