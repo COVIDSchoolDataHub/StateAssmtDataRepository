@@ -8,7 +8,7 @@ global output "/Users/minnamgung/Desktop/Alaska/Output"
 import delimited "/Users/minnamgung/Desktop/Alaska/Output/AK_AssmtData_2017.csv"
 
 
-local variables "State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate"
+local variables "State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate"
 
 
 **(1) Checks if variables exist and checks if capitalization matches
@@ -25,10 +25,10 @@ if !_rc {
 **(2) Checks for extra variables
 qui describe _all
 di r(k)
-if r(k) >47 {
+if r(k) >48 {
 	di as error "Too many variables"
 }
-if r(k)<47 {
+if r(k)<48 {
 di as error "Missing variables" 
 }
 
@@ -79,6 +79,12 @@ capture confirm numeric variable StudentGroup_TotalTested
 	if _rc {
 		di as error "StudentGroup_TotalTested is not numeric"
 	}
+
+capture confirm numeric variable StudentSubGroup_TotalTested
+	if _rc {
+		di as error "StudentSubGroup_TotalTested is not numeric"
+	}
+
 ********Check values are appropriate, Hispanic/Latino mapping ********
 tab StudentSubGroup
 
@@ -89,20 +95,20 @@ tab NCESSchoolID if NCESSchoolID<99999999999 //this is 11 digits, NCESID should 
 tab ncesdistrictid if ncesdistrictid<999999 //this is 6 digits, district id should be 7. May need to be adjusted to 5 digits as above
 
 
-bysort ncesdistrictid (stateassigneddistid) : gen flag1 = stateassigneddistid[1] != stateassigneddistid[_N]  
-bysort stateassigneddistid (ncesdistrictid) : gen flag2 = ncesdistrictid[1] != ncesdistrictid[_N]
+bysort NCESDistrictID (StateAssignedDistID) : gen flag1 = StateAssignedDistID[1] != StateAssignedDistID[_N]  
+bysort StateAssignedDistID (NCESDistrictID) : gen flag2 = NCESDistrictID[1] != NCESDistrictID[_N]
 
 di as error "Below districts have mismatched NCESDistrictID and StateAssignedDistID"
-tab ncesdistrictid if flag1==1
-tab stateassigneddistid if flag2==1
+tab NCESDistrictID if flag1==1
+tab StateAssignedDistID if flag2==1
 drop flag1 flag2
 
-bysort NCESSchoolID (StateAssignedSchlID) : gen flag1 = StateAssignedSchlID[1] != StateAssignedSchlID[_N]  
-bysort StateAssignedSchlID (NCESSchoolID) : gen flag2 = NCESSchoolID[1] != NCESSchoolID[_N]
+bysort NCESSchoolID (StateAssignedSchID) : gen flag1 = StateAssignedSchID[1] != StateAssignedSchID[_N]  
+bysort StateAssignedSchID (NCESSchoolID) : gen flag2 = NCESSchoolID[1] != NCESSchoolID[_N]
 
 di as error "Below schools have mismatched NCESSchoolID and StateAssignedSchlID"
 tab NCESSchoolID if flag1==1
-tab StateAssignedSchlID if flag2==1
+tab StateAssignedSchID if flag2==1
 drop flag1 flag2
 
 *****Check if digits of NCESSchoolID match NCESDistrictID
@@ -118,7 +124,7 @@ tab Charter
 
 capture confirm numeric variable CountyCode
 	if _rc {
-		di as error "StudentGroup_TotalTested is not numeric"
+		di as error "CountyCode is not numeric"
 	}
 	
 **(7) Levels 
@@ -134,7 +140,7 @@ list NCES_School NCESDistrictID if tot>101
 
 di as error "Below rows have percent total lower than 50"
 
-list NCES_School NCESDistrictID if tot>50
+list NCES_School NCESDistrictID if tot<50
 
 tab ProficiencyCriteria
 
