@@ -3,9 +3,6 @@ set more off
 
 cd "/Users/maggie/Desktop/Mississippi"
 
-global output "/Users/maggie/Desktop/Mississippi/Output"
-global NCES "/Users/maggie/Desktop/Mississippi/NCES/Cleaned"
-
 ** Cleaning 2014-2015 **
 
 use "${output}/MS_AssmtData_2015_all.dta", clear
@@ -58,7 +55,6 @@ rename Level2PCT Lev2_percent
 rename Level3PCT Lev3_percent
 rename Level4PCT Lev4_percent
 rename Level5PCT Lev5_percent
-rename Levels45PCT ProficientOrAbove_percent
 rename TestTakers StudentGroup_TotalTested
 
 gen Lev1_count = ""
@@ -70,12 +66,12 @@ gen AvgScaleScore = ""
 gen ProficiencyCriteria = "Levels 4-5"
 gen ProficientOrAbove_count = ""
 gen ParticipationRate = ""
-gen SchYear = "2014-2015"
+gen SchYear = "2014-15"
 
 ** Merging with NCES
 
 replace NCESDistrictID = "2801191" if District == "Mississippi Dept. of Human Services" | District == "Mississippi Dept. Of Human Services"
-replace StateAssignedDistID = "2562" if District == "Mississippi Dept. Of Human Services" | District == "Mississippi Dept. Of Human Services"
+replace StateAssignedDistID = "2562" if District == "Mississippi Dept. of Human Services" | District == "Mississippi Dept. Of Human Services"
 replace NCESSchoolID = "280119101197" if SchName == "Williams School"
 replace StateAssignedSchID = "2562008" if SchName == "Williams School"
 
@@ -84,7 +80,7 @@ merge m:1 NCESDistrictID using "${NCES}/NCES_2014_District.dta"
 drop if _merge == 2
 drop _merge
 
-replace DistName = "MDHS DIVISION OF YOUTH SERVICES" if District == "Mississippi Dept. Of Human Services" | District == "Mississippi Dept. Of Human Services"
+replace DistName = "MDHS DIVISION OF YOUTH SERVICES" if District == "Mississippi Dept. of Human Services" | District == "Mississippi Dept. Of Human Services"
 replace DistName = "University Of Southern Mississippi" if District == "University Of Southern Mississippi"
 
 replace NCESSchoolID = "280018601404" if SchName == "Brooks Elementary School"
@@ -106,6 +102,7 @@ replace NCESSchoolID = "280018601415" if SchName == "Shelby Middle School"
 replace NCESSchoolID = "280273000531" if SchName == "West Lowndes Hs"
 replace NCESSchoolID = "280162001361" if SchName == "Weston Sr H"
 replace NCESSchoolID = "280198001417" if SchName == "William Dean Jr. Elementary"
+replace NCESSchoolID = "missing" if SchName == "Dubard School For Language Disorders"
 
 gen seasch = StateAssignedSchID
 merge m:1 NCESSchoolID using "${NCES}/NCES_2014_School.dta"
@@ -117,10 +114,35 @@ replace State = 28
 replace StateAbbrev = "MS"
 replace StateFips = 28
 
+** Aggregating Proficient Data
+
+local level 1 2 3 4 5
+
+foreach a of local level {
+	replace Lev`a'_percent = "-100" if Lev`a'_percent == "*"
+	destring Lev`a'_percent, replace
+	replace Lev`a'_percent = Lev`a'_percent/100
+}
+
+generate ProficientOrAbove_percent = Lev4_percent + Lev5_percent
+
+foreach a of local level {
+	tostring Lev`a'_percent, replace force
+	replace Lev`a'_percent = "*" if Lev`a'_percent == "-1"
+}
+
+tostring ProficientOrAbove_percent, replace force format(%4.3f)
+replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "-2.000"
+
+replace ProficientOrAbove_percent = "*" if Levels45PCT == "*"
+drop Levels45PCT
+
+** Converting
+
 order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
 
 sort DataLevel StateAssignedDistID StateAssignedSchID GradeLevel Subject
 
 save "${output}/MS_AssmtData_2015.dta", replace
 
-export delimited using "/Users/maggie/Desktop/Mississippi/Output/csv/MS_AssmtData_2015.csv", replace
+export delimited using "${output}/csv/MS_AssmtData_2015.csv", replace
