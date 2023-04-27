@@ -3,17 +3,10 @@ set more off
 
 cd "/Users/maggie/Desktop/Mississippi"
 
-global output "/Users/maggie/Desktop/Mississippi/Output"
-global NCES "/Users/maggie/Desktop/Mississippi/NCES/Cleaned"
-global MS "/Users/maggie/Desktop/Mississippi"
-
 ** Cleaning ELA & Math **
 
-global grade 3 4 5 6 7 8
-global sub ELA MATH
-
 foreach a in $grade {
-	foreach b in $sub {
+	foreach b in $subject2 {
 		use "${output}/MS_AssmtData_2022_G`a'`b'.dta", clear
 			
 			quietly ds
@@ -116,7 +109,7 @@ foreach a in $grade {
 			merge m:1 DistName using "${NCES}/NCES_2021_District.dta"
 
 			drop if _merge == 2
-			drop _merge
+			drop _merge Charter
 			
 			rename Level1PCT Lev1_percent
 			rename Level2PCT Lev2_percent
@@ -294,7 +287,7 @@ global gradesci 5 8
 			merge m:1 DistName using "${NCES}/NCES_2021_District.dta"
 	
 			drop if _merge == 2
-			drop _merge
+			drop _merge Charter
 			
 			rename Level1PCT Lev1_percent
 			rename Level2PCT Lev2_percent
