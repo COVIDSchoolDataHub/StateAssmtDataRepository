@@ -121,7 +121,7 @@ foreach a of local level {
 }
 
 tostring ProficientOrAbove_count, replace
-replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "-200"
+replace ProficientOrAbove_count = "*" if Lev3_count == "*" | Lev4_count == "*"
 tostring ProficientOrAbove_percent, replace force
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "-2"
 
