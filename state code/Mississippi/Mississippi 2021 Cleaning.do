@@ -3,17 +3,10 @@ set more off
 
 cd "/Users/maggie/Desktop/Mississippi"
 
-global output "/Users/maggie/Desktop/Mississippi/Output"
-global NCES "/Users/maggie/Desktop/Mississippi/NCES/Cleaned"
-global MS "/Users/maggie/Desktop/Mississippi"
-
 ** Cleaning ELA & Math **
 
-global grade 3 4 5 6 7 8
-global sub ELA MATH
-
 foreach a in $grade {
-	foreach b in $sub {
+	foreach b in $subject2 {
 		use "${output}/MS_AssmtData_2021_G`a'`b'.dta", clear
 			
 			drop Sort
@@ -183,7 +176,6 @@ foreach a in $grade {
 			
 			tostring ProficientOrAbove_percent, replace force
 			replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "-2"						
-		
 		
 			order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
 
