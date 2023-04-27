@@ -283,7 +283,7 @@ global gradesci 5 8
 			gen Lev4_count = ""
 			gen Lev5_count = ""
 			
-			gen ProficiencyCriteria = "Levels 4-5"
+			gen ProficiencyCriteria = "Levels 3-4"
 			gen ProficientOrAbove_count = ""
 			gen ParticipationRate = ""
 			
