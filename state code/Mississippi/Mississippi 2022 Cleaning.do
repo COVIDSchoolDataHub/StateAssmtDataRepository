@@ -27,7 +27,7 @@ foreach a in $grade {
 			
 			drop if missing(SchName) & missing(StudentGroup_TotalTested)
 			
-			generate SchYear = "2021-2022"
+			generate SchYear = "2021-22"
 			
 			generate GradeLevel = "G0`a'"
 			generate Subject = "`b'"
@@ -132,7 +132,6 @@ foreach a in $grade {
 			
 			gen ProficiencyCriteria = "Levels 4-5"
 			gen ProficientOrAbove_count = ""
-			gen ProficientOrAbove_percent = ""
 			gen ParticipationRate = ""
 			
 			replace State = "Mississippi"
@@ -164,10 +163,29 @@ foreach a in $grade {
 			replace school_name = SchName if school_name == ""
 			drop stateid year lea_name SchName county_code county_name school_status No_NCES_id noting_name_change district_agency_type ncesdistrictid updated_status_text effective_date
 			rename school_name SchName			
+
+			** Aggregating Proficient Data
+
+			local level 1 2 3 4 5
+
+			foreach c of local level {
+				replace Lev`c'_percent = "-1" if Lev`c'_percent == "*"
+				destring Lev`c'_percent, replace
+			}
+
+			gen ProficientOrAbove_percent = Lev4_percent + Lev5_percent
+
+			foreach c of local level {
+				tostring Lev`c'_percent, replace force
+				replace Lev`c'_percent = "*" if Lev`c'_percent == "-1"
+			}
+			
+			tostring ProficientOrAbove_percent, replace force
+			replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "-2"			
 			
 			order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
 			
-			save "${output}/MS_AssmtData_2022_G`a'`b'.dta", replace
+			save "${output}/MS_AssmtData_2022_G`a'`b'_Cleaned.dta", replace
 	}
 }
 
@@ -189,7 +207,7 @@ global gradesci 5 8
 			
 			drop if missing(SchName) & missing(StudentGroup_TotalTested)
 			
-			generate SchYear = "2021-2022"
+			generate SchYear = "2021-22"
 			
 			generate GradeLevel = "G0`a'"
 			generate Subject = "sci"
@@ -292,7 +310,6 @@ global gradesci 5 8
 			
 			gen ProficiencyCriteria = "Levels 4-5"
 			gen ProficientOrAbove_count = ""
-			gen ProficientOrAbove_percent = ""
 			gen ParticipationRate = ""
 			
 			replace State = "Mississippi"
@@ -322,22 +339,41 @@ global gradesci 5 8
 			drop stateid year lea_name SchName county_code county_name school_status No_NCES_id noting_name_change district_agency_type ncesdistrictid updated_status_text effective_date
 			rename school_name SchName
 			
+			** Aggregating Proficient Data
+
+			local level 1 2 3 4 5
+
+			foreach c of local level {
+				replace Lev`c'_percent = "-1" if Lev`c'_percent == "*"
+				destring Lev`c'_percent, replace
+			}
+
+			gen ProficientOrAbove_percent = Lev4_percent + Lev5_percent
+
+			foreach c of local level {
+				tostring Lev`c'_percent, replace force
+				replace Lev`c'_percent = "*" if Lev`c'_percent == "-1"
+			}
+			
+			tostring ProficientOrAbove_percent, replace force
+			replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "-2"			
+			
 			order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate			
 
-			save "${output}/MS_AssmtData_2022_G`a'sci.dta", replace
+			save "${output}/MS_AssmtData_2022_G`a'sci_Cleaned.dta", replace
 
 			}	
 
 ** Appending subjects
 
 	foreach a in $grade {
-		use "${output}/MS_AssmtData_2022_G`a'ELA.dta", clear
-		append using "${output}/MS_AssmtData_2022_G`a'Math.dta"
+		use "${output}/MS_AssmtData_2022_G`a'ELA_Cleaned.dta", clear
+		append using "${output}/MS_AssmtData_2022_G`a'Math_Cleaned.dta"
 		save "${output}/MS_AssmtData_2022_G`a'all.dta", replace
 	}
 	foreach a in $gradesci {
 		use "${output}/MS_AssmtData_2022_G`a'all.dta", clear
-		append using "${output}/MS_AssmtData_2022_G`a'sci.dta"
+		append using "${output}/MS_AssmtData_2022_G`a'sci_Cleaned.dta"
 		save "${output}/MS_AssmtData_2022_G`a'all.dta", replace
 	}
 
@@ -348,5 +384,5 @@ global gradesci 5 8
 	append using "${output}/MS_AssmtData_2022_G7all.dta"
 	append using "${output}/MS_AssmtData_2022_G8all.dta"
 	order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate			
-	save "${output}/MS_AssmtData_2022.dta", replace
-	export delimited using "/Users/maggie/Desktop/Mississippi/Output/csv/MS_AssmtData_2022.csv", replace
+	save "${output}/MS_AssmtData_2022.dta", replace	
+	export delimited using "${output}/csv/MS_AssmtData_2022.csv", replace
