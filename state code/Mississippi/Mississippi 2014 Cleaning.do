@@ -3,8 +3,6 @@ set more off
 
 cd "/Users/maggie/Desktop/Mississippi"
 
-global NCES "/Users/maggie/Desktop/Mississippi/NCES/Cleaned"
-
 ** Cleaning 2013-2014 ELA & Math **
 
 use "${output}/MS_AssmtData_2014_ela_mat.dta", clear
