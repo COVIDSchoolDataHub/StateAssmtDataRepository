@@ -24,7 +24,7 @@ foreach a in $grade {
 			
 			rename TestTakers StudentGroup_TotalTested
 			
-			generate SchYear = "2016-2017"
+			generate SchYear = "2016-17"
 			
 			generate GradeLevel = "G0`a'"
 			generate Subject = "`b'"
@@ -110,7 +110,6 @@ foreach a in $grade {
 			
 			gen ProficiencyCriteria = "Levels 4-5"
 			gen ProficientOrAbove_count = ""
-			gen ProficientOrAbove_percent = ""
 			gen ParticipationRate = ""
 			
 			replace State = 28
@@ -145,9 +144,28 @@ foreach a in $grade {
 			rename county_name CountyName
 			rename county_code CountyCode
 			
+			** Aggregating Proficient Data
+
+			local level 1 2 3 4 5
+
+			foreach c of local level {
+				replace Lev`c'_percent = "-1" if Lev`c'_percent == "*"
+				destring Lev`c'_percent, replace
+			}
+
+			gen ProficientOrAbove_percent = Lev4_percent + Lev5_percent
+
+			foreach c of local level {
+				tostring Lev`c'_percent, replace force
+				replace Lev`c'_percent = "*" if Lev`c'_percent == "-1"
+			}
+			
+			tostring ProficientOrAbove_percent, replace force
+			replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "-2"			
+			
 			order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
 			
-			save "${output}/MS_AssmtData_2017_G`a'`b'.dta", replace
+			save "${output}/MS_AssmtData_2017_G`a'`b'_Cleaned.dta", replace
 	}
 }
 
@@ -229,7 +247,7 @@ foreach a in $gradesci {
 			drop if dup > 1
 			drop dup
 			
-			save "${output}/MS_AssmtData_2017_G`a'sciscale.dta", replace
+			save "${output}/MS_AssmtData_2017_G`a'sciscale_Cleaned.dta", replace
 
 }		
 
@@ -247,7 +265,7 @@ foreach a in $gradesci {
 					rename `var' StudentGroup_TotalTested
 			}	
 			
-			generate SchYear = "2016-2017"
+			generate SchYear = "2016-17"
 			
 			generate GradeLevel = "G0`a'"
 			generate Subject = "sci"
@@ -326,7 +344,7 @@ foreach a in $gradesci {
 			drop if dup > 1
 			drop dup
 			
-			merge 1:1 DistName SchName using "${output}/MS_AssmtData_2017_G`a'sciscale.dta", keepusing(AvgScaleScore)
+			merge 1:1 DistName SchName using "${output}/MS_AssmtData_2017_G`a'sciscale_Cleaned.dta", keepusing(AvgScaleScore)
 			
 			drop _merge
 			
@@ -344,7 +362,6 @@ foreach a in $gradesci {
 			
 			gen ProficiencyCriteria = "Levels 3-4"
 			gen ProficientOrAbove_count = ""
-			gen ProficientOrAbove_percent = ""
 			gen ParticipationRate = ""
 			
 			replace State = 28
@@ -373,23 +390,42 @@ foreach a in $gradesci {
 			rename school_name SchName
 			rename county_name CountyName
 			rename county_code CountyCode
+
+			** Aggregating Proficient Data
+
+			local level 1 2 3 4
+
+			foreach c of local level {
+				replace Lev`c'_percent = "-1" if Lev`c'_percent == "*"
+				destring Lev`c'_percent, replace
+			}
+
+			gen ProficientOrAbove_percent = Lev3_percent + Lev4_percent
+
+			foreach c of local level {
+				tostring Lev`c'_percent, replace force
+				replace Lev`c'_percent = "*" if Lev`c'_percent == "-1"
+			}
+
+			tostring ProficientOrAbove_percent, replace force
+			replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "-2"			
 			
 			order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate		
 			
-			save "${output}/MS_AssmtData_2017_G`a'sci.dta", replace
+			save "${output}/MS_AssmtData_2017_G`a'sci_Cleaned.dta", replace
 			}
 			
 
 ** Appending subjects
 
 	foreach a in $grade {
-		use "${output}/MS_AssmtData_2017_G`a'ELA.dta", clear
-		append using "${output}/MS_AssmtData_2017_G`a'Math.dta"
+		use "${output}/MS_AssmtData_2017_G`a'ELA_Cleaned.dta", clear
+		append using "${output}/MS_AssmtData_2017_G`a'Math_Cleaned.dta"
 		save "${output}/MS_AssmtData_2017_G`a'all.dta", replace
 	}
 	foreach a in $gradesci {
 		use "${output}/MS_AssmtData_2017_G`a'all.dta", clear
-		append using "${output}/MS_AssmtData_2017_G`a'sci.dta"
+		append using "${output}/MS_AssmtData_2017_G`a'sci_Cleaned.dta"
 		save "${output}/MS_AssmtData_2017_G`a'all.dta", replace
 	}
 
@@ -400,5 +436,5 @@ foreach a in $gradesci {
 	append using "${output}/MS_AssmtData_2017_G7all.dta"
 	append using "${output}/MS_AssmtData_2017_G8all.dta"
 	order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
-	save "${output}/MS_AssmtData_2017.dta", replace
-	export delimited using "/Users/maggie/Desktop/Mississippi/Output/csv/MS_AssmtData_2017.csv", replace
+	save "${output}/MS_AssmtData_2017.dta", replace	
+	export delimited using "${output}/csv/MS_AssmtData_2017.csv", replace
