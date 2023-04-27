@@ -3,17 +3,10 @@ set more off
 
 cd "/Users/maggie/Desktop/Mississippi"
 
-global output "/Users/maggie/Desktop/Mississippi/Output"
-global NCES "/Users/maggie/Desktop/Mississippi/NCES/Cleaned"
-global MS "/Users/maggie/Desktop/Mississippi"
-
 ** Cleaning ELA & Math **
 
-global grade 3 4 5 6 7 8
-global sub ELA Math
-
 foreach a in $grade {
-	foreach b in $sub {
+	foreach b in $subject1 {
 		use "${output}/MS_AssmtData_2017_G`a'`b'.dta", clear
 			
 			quietly ds
