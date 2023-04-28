@@ -120,6 +120,8 @@ foreach a in $grade {
 			drop if dup > 1
 			drop dup			
 			
+			replace SchName = "VIRGIL JONES, JR. ELEMENTARY SCHOOL" if SchName == "Wilson Elementary School"
+			
 			merge m:1 SchName DistName using "${NCES}/NCES_Schools.dta"
 			
 			drop if _merge == 2
@@ -336,6 +338,8 @@ foreach a in $gradesci {
 			quietly by SchName DistName:  gen dup = cond(_N==1,0,_n)
 			drop if dup > 1
 			drop dup
+			
+			replace SchName = "VIRGIL JONES, JR. ELEMENTARY SCHOOL" if SchName == "Wilson Elementary School"			
 			
 			merge 1:1 DistName SchName using "${output}/MS_AssmtData_2017_G`a'sciscale_Cleaned.dta", keepusing(AvgScaleScore)
 			
