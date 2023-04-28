@@ -124,6 +124,8 @@ foreach a in $grade {
 			
 			replace SchName = strrtrim(SchName)
 			
+			replace SchName = "Virgil Jones Jr. Elementary School" if SchName == "Wilson Elementary School"
+			
 			merge m:1 SchName DistName using "${NCES}/NCES_Schools.dta"
 			
 			drop if _merge == 2
@@ -376,6 +378,8 @@ foreach a in $gradesci {
 			gen Flag_CutScoreChange_read = ""
 			gen Flag_CutScoreChange_oth = "Y"
 
+			replace SchName = "Virgil Jones Jr. Elementary School" if SchName == "Wilson Elementary School"			
+			
 			merge m:1 SchName DistName using "${NCES}/NCES_Schools.dta"
 			
 			drop if _merge == 2
