@@ -129,6 +129,8 @@ foreach a in $grade {
 			drop if dup > 1
 			drop dup
 			
+			replace SchName = "Virgil Jones Jr. Elementary School" if SchName == "Wilson Elementary School"
+			
 			merge m:1 SchName DistName using "${NCES}/NCES_Schools.dta"
 						
 			drop if _merge == 2
@@ -294,7 +296,9 @@ global gradesci 5 8
 			quietly by SchName DistName:  gen dup = cond(_N==1,0,_n)
 			drop if dup > 1
 			drop dup			
-						
+			
+			replace SchName = "Virgil Jones Jr. Elementary School" if SchName == "Wilson Elementary School"			
+			
 			merge m:1 SchName DistName using "${NCES}/NCES_Schools.dta"
 			
 			drop if _merge == 2
