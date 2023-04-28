@@ -105,6 +105,14 @@ replace NCESSchoolID = "280198001417" if SchName == "William Dean Jr. Elementary
 replace NCESSchoolID = "missing" if SchName == "Dubard School For Language Disorders"
 
 gen seasch = StateAssignedSchID
+
+sort DataLevel DistName SchName GradeLevel Subject
+replace NCESSchoolID = "" if NCESSchoolID == "280018501432" & SchName != "West Bolivar Dist. Middle"
+replace NCESSchoolID = NCESSchoolID[_n+1] if missing(NCESSchoolID) & SchName == SchName[_n+1]
+replace NCESSchoolID = NCESSchoolID[_n+1] if missing(NCESSchoolID) & SchName == SchName[_n+1]
+** ran the above two times because sometimes the error ID occurred two observations in a row
+replace NCESSchoolID = NCESSchoolID[_n-1] if missing(NCESSchoolID) & SchName == SchName[_n-1]
+
 merge m:1 NCESSchoolID using "${NCES}/NCES_2014_School.dta"
 
 drop if _merge == 2
