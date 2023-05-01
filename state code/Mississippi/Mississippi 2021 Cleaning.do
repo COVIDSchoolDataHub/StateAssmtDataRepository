@@ -149,7 +149,7 @@ foreach a in $grade {
 			drop if _merge == 2
 			drop _merge
 			
-			replace NCESSchoolID = "missing" if SchName == "Dubard School for Language Disorders"
+			replace NCESSchoolID = "missing" if SchName == "Dubard School For Language Disorders"
 			
 			generate stateid = State_leaid
 			replace stateid = subinstr(stateid,"MS-","",.)	
@@ -348,7 +348,7 @@ global gradesci 5 8
 			drop if _merge == 2
 			drop _merge
 			
-			replace NCESSchoolID = "missing" if SchName == "Dubard School for Language Disorders"
+			replace NCESSchoolID = "missing" if SchName == "Dubard School For Language Disorders"
 			
 			generate stateid = State_leaid
 			replace stateid = subinstr(stateid,"MS-","",.)	
