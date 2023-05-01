@@ -74,6 +74,7 @@ replace NCESDistrictID = "2801191" if District == "Mississippi Dept. of Human Se
 replace StateAssignedDistID = "2562" if District == "Mississippi Dept. of Human Services" | District == "Mississippi Dept. Of Human Services"
 replace NCESSchoolID = "280119101197" if SchName == "Williams School"
 replace StateAssignedSchID = "2562008" if SchName == "Williams School"
+replace NCESDistrictID = "missing" if District == "University Of Southern Mississippi"
 
 merge m:1 NCESDistrictID using "${NCES}/NCES_2014_District.dta"
 
