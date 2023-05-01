@@ -394,7 +394,7 @@ foreach a in $gradesci {
 			drop if _merge == 2
 			drop _merge
 			
-			replace NCESSchoolID = "missing" if SchName == "DuBard School For Language Disorders"
+			replace NCESSchoolID = "missing" if SchName == "DuBard School for Language Disorders"
 			
 			generate stateid = State_leaid
 			replace stateid = subinstr(stateid,"MS-","",.)	
