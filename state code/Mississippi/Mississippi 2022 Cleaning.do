@@ -31,7 +31,7 @@ foreach a in $grade {
 			gen StudentSubGroup = "All students"
 			
 			gen DataLevel = "School"
-			replace DataLevel = "District" if (strpos(SchName, "District") | strpos(SchName, "Schools") | strpos(SchName, "district") | strpos(SchName, "Midtown Public Charter School") | strpos(SchName, "Joel E. Smilow Prep") | strpos(SchName, "Reimagine Prep") | strpos(SchName, "Consolidated") | strpos(SchName, "Blind and Deaf") | strpos(SchName, "Oakley Youth Development Center") | strpos(SchName, "Dubard School For Language Disorders") | strpos(SchName, "Smilow Collegiate") | strpos(SchName, "Ambition Preparatory")) & SchName != "West Bolivar District Middle School" & SchName != "Republic Charter Schools" & SchName != "Ambition Preparatory Charter School"> 0
+			replace DataLevel = "District" if (strpos(SchName, "District") | strpos(SchName, "Schools") | strpos(SchName, "district") | strpos(SchName, "Midtown Public Charter School") | strpos(SchName, "Joel E. Smilow Prep") | strpos(SchName, "Reimagine Prep") | strpos(SchName, "Consolidated") | strpos(SchName, "Blind and Deaf") | strpos(SchName, "Oakley Youth Development Center") | strpos(SchName, "Smilow Collegiate") | strpos(SchName, "Ambition Preparatory")) & SchName != "West Bolivar District Middle School" & SchName != "Republic Charter Schools" & SchName != "Ambition Preparatory Charter School"> 0
 
 			replace DataLevel = "State" if strpos(SchName, "Grand Total") > 0
 			
@@ -39,6 +39,7 @@ foreach a in $grade {
 			replace DistName = SchName if DataLevel == "District"
 			replace DistName = "Reimagine Prep" if SchName == "Republic Charter Schools"
 			replace DistName = "Joel E. Smillow Prep" if SchName == "Joel E. Smilow Prep"
+			replace DistName = "University Of Southern Mississippi" if SchName == "Dubard School For Language Disorders"
 			replace DistName = DistName[_n-1] if missing(DistName)
 			replace DistName = "" if DataLevel == "State"
 			
@@ -111,6 +112,9 @@ foreach a in $grade {
 			drop if _merge == 2
 			drop _merge Charter
 			
+			tostring NCESDistrictID, replace
+			replace NCESDistrictID = "missing" if DistName == "UNIVERSITY OF SOUTHERN MISSISSIPPI"			
+			
 			rename Level1PCT Lev1_percent
 			rename Level2PCT Lev2_percent
 			rename Level3PCT Lev3_percent
@@ -143,6 +147,8 @@ foreach a in $grade {
 						
 			drop if _merge == 2
 			drop _merge
+			
+			replace NCESSchoolID = "missing" if SchName == "Dubard School For Language Disorders"
 
 			sort SchName DistName
 			quietly by SchName DistName: gen dup = cond(_N==1,0,_n)
@@ -210,7 +216,7 @@ global gradesci 5 8
 			gen StudentSubGroup = "All students"
 			
 			gen DataLevel = "School"
-			replace DataLevel = "District" if (strpos(SchName, "District") | strpos(SchName, "Schools") | strpos(SchName, "district") | strpos(SchName, "Midtown Public Charter School") | strpos(SchName, "Joel E. Smilow Prep") | strpos(SchName, "Reimagine Prep") | strpos(SchName, "Consolidated") | strpos(SchName, "Division") | strpos(SchName, "Blind and Deaf") | strpos(SchName, "Oakley Youth Development Center") | strpos(SchName, "Dubard School For Language Disorders") | strpos(SchName, "Clarksdale Collegiate Public Charter")) & SchName != "West Bolivar District Middle School" & SchName != "Republic Charter Schools" > 0
+			replace DataLevel = "District" if (strpos(SchName, "District") | strpos(SchName, "Schools") | strpos(SchName, "district") | strpos(SchName, "Midtown Public Charter School") | strpos(SchName, "Joel E. Smilow Prep") | strpos(SchName, "Reimagine Prep") | strpos(SchName, "Consolidated") | strpos(SchName, "Division") | strpos(SchName, "Blind and Deaf") | strpos(SchName, "Oakley Youth Development Center") | strpos(SchName, "Clarksdale Collegiate Public Charter")) & SchName != "West Bolivar District Middle School" & SchName != "Republic Charter Schools" > 0
 			
 			replace DataLevel = "State" if strpos(SchName, "Grand Total") > 0
 			
@@ -218,6 +224,7 @@ global gradesci 5 8
 			replace DistName = SchName if DataLevel == "District"
 			replace DistName = "Reimagine Prep" if SchName == "Republic Charter Schools"
 			replace DistName = "Joel E. Smillow Prep" if SchName == "Joel E. Smilow Prep"
+			replace DistName = "University Of Southern Mississippi" if SchName == "Dubard School For Language Disorders"
 			replace DistName = DistName[_n-1] if missing(DistName)
 			replace DistName = "" if DataLevel == "State"
 			
@@ -288,6 +295,9 @@ global gradesci 5 8
 	
 			drop if _merge == 2
 			drop _merge Charter
+		
+			tostring NCESDistrictID, replace
+			replace NCESDistrictID = "missing" if DistName == "UNIVERSITY OF SOUTHERN MISSISSIPPI"						
 			
 			rename Level1PCT Lev1_percent
 			rename Level2PCT Lev2_percent
@@ -319,6 +329,8 @@ global gradesci 5 8
 
 			drop if _merge == 2
 			drop _merge
+			
+			replace NCESSchoolID = "missing" if SchName == "Dubard School For Language Disorders"			
 
 			sort SchName DistName
 			quietly by SchName DistName: gen dup = cond(_N==1,0,_n)
