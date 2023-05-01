@@ -384,6 +384,7 @@ foreach a in $gradesci {
 			
 			drop if _merge == 2
 			drop _merge
+			drop if SchName == "PICAYUNE ITINERATE CENTER"
 			
 			replace NCESSchoolID = "missing" if SchName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
 			
