@@ -1,0 +1,165 @@
+cap log close
+log using california_cleaning.log, replace
+
+cd "/Users/benjaminm/Documents/State_Repository_Research/California"
+
+
+// 2021
+use NCES_2021_District, clear
+use NCES_2020_District, clear
+rename ncesdistrictid NCESDistrictID
+
+import delimited "CA_Unmerged_Districts_2022_With_NCES.csv", case(preserve) clear
+
+
+gen State = "California"
+gen StateAbbrev = "CA"
+gen StateFips = 6 
+gen CountyName = .
+gen CountyCode = . 
+
+order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter DistName
+
+keep State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter DistName
+
+replace NCESDistrictID = "00" if NCESDistrictID == "missing"
+	
+destring NCESDistrictID, generate(NCESDistrictID1)
+drop NCESDistrictID
+rename NCESDistrictID1 NCESDistrictID
+
+save CA_Unmerged_Districts_2022_With_NCES, replace 
+
+
+use NCES_2021_District, clear
+append using CA_Unmerged_Districts_2022_With_NCES
+save NCES_2021_District_With_Extra_Districts, replace
+
+
+// All Others
+
+import excel using "CA_Unmerged_Districts_2017_v2.xlsx", firstrow case(preserve) clear
+
+global time 2018 2019 2021  
+
+foreach a in $time {
+
+local prevyear = `a' - 1
+
+import excel using "CA_Unmerged_Districts_`a'_With_NCES.xlsx", firstrow case(preserve) clear
+
+
+gen State = "California"
+gen StateAbbrev = "CA"
+gen StateFips = 6 
+gen CountyName = ""
+gen CountyCode = . 
+
+drop DistName 
+rename DistName1 DistName
+
+
+order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter DistName CountyName CountyCode
+
+keep State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter DistName CountyName CountyCode
+
+if `a' != 2018 {
+replace NCESDistrictID = 00 if NCESDistrictID == .
+}
+
+if `a' == 2018 {
+replace NCESDistrictID = "00" if NCESDistrictID == "missing"
+}
+
+if `a' != 2018 {
+tostring NCESDistrictID, generate(NCESDistrictID1)
+drop NCESDistrictID
+rename NCESDistrictID1 NCESDistrictID
+}
+
+save CA_Unmerged_Districts_`a'_With_NCES, replace 
+
+
+use NCES_`prevyear'_District, clear
+
+
+decode State, generate(State1)
+decode DistrictType, generate(DistrictType1)
+
+
+drop State DistrictType 
+rename State1 State
+rename DistrictType1 DistrictType
+
+append using CA_Unmerged_Districts_`a'_With_NCES
+save NCES_`prevyear'_District_With_Extra_Districts, replace
+
+}
+
+
+// Prior to 2018 
+
+global time1 2010 2011 2012 2013 2014 2015 2016 2017
+
+foreach a in $time1 {
+
+local prevyear = `a' - 1 
+
+use NCES_`prevyear'_District, clear
+
+
+decode State, generate(State1)
+decode DistrictType, generate(DistrictType1)
+
+
+drop State DistrictType 
+rename State1 State
+rename DistrictType1 DistrictType
+
+append using CA_Unmerged_Districts_2018_With_NCES
+save NCES_`prevyear'_District_With_Extra_Districts, replace
+
+}
+
+use NCES_2018_District_With_Extra_Districts, clear
+
+
+
+// Second Round of Unmerged Districts
+
+global time4 2010 2011 2012 2013 2015 2016 2017 
+
+foreach a in $time4 {
+
+local prevyear = `a' - 1
+
+import excel using "CA_Unmerged_Districts_`a'_v2.xlsx", firstrow case(preserve) clear
+
+
+gen State = "California"
+gen StateAbbrev = "CA"
+gen StateFips = 6 
+gen CountyName = ""
+gen CountyCode = . 
+
+
+drop DistName 
+rename DistName1 DistName
+
+
+order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter DistName CountyName CountyCode
+
+keep State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter DistName CountyName CountyCode
+
+replace NCESDistrictID = "00" if NCESDistrictID == "missing"
+
+save CA_Unmerged_Districts_`a'_With_NCES, replace 
+
+use NCES_`prevyear'_District_With_Extra_Districts, clear
+
+
+
+append using CA_Unmerged_Districts_`a'_With_NCES
+save NCES_`prevyear'_District_With_Extra_Districts_2, replace
+
+}
