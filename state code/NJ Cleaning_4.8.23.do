@@ -569,11 +569,11 @@ replace StudentSubGroup = "Black or African American" if StudentSubGroup == "AFR
 replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "NATIVE HAWAIIAN OR OTHER PACIFIC ISLANDER"
 replace StudentSubGroup = "White" if StudentSubGroup == "WHITE"
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "HISPANIC"
-replace StudentSubGroup = "Unkown" if StudentSubGroup == "OTHER" & StudentGroup == "Race/Ethnicity"
+replace StudentSubGroup = "Unknown" if StudentSubGroup == "OTHER" & StudentGroup == "Race/Ethnicity"
 replace StudentSubGroup = "Male" if StudentSubGroup == "MALE"
 replace StudentSubGroup = "Female" if StudentSubGroup == "FEMALE"
 replace StudentSubGroup = "Students with Disabilities" if StudentSubGroup == "STUDENTS WITH DISABLITIES"
-replace StudentSubGroup = "English Language Learners" if StudentSubGroup == "ENGLISH LANGUAGE LEARNERS"
+replace StudentSubGroup = "English Learner" if StudentSubGroup == "ENGLISH LANGUAGE LEARNERS"
 replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "ECONOMICALLY DISADVANTAGED"
 replace StudentSubGroup = "Non Econ. Disadvantaged" if StudentSubGroup == "NON ECON. DISADVANTAGED"
 
@@ -582,8 +582,8 @@ gen AssmtName = "PARCC"
 gen Flag_AssmtNameChange = "Y"
 gen Flag_CutScoreChange_ELA = "Y"
 gen Flag_CutScoreChange_math = "Y"
-gen Flag_CutScoreChange_read = "N"
-gen Flag_CutScoreChange_oth = "N"
+gen Flag_CutScoreChange_read = ""
+gen Flag_CutScoreChange_oth = ""
 gen AssmtType = "Regular"
 gen DataLevel = "School"
 replace DataLevel = "District" if StateAssignedSchID == ""
@@ -648,13 +648,14 @@ save "${NCES}/NCES_2015_District_NJ.dta", replace
 
 //Merge Data
 use "${data}/NJ_AssmtData_2015", clear
-destring StateAssignedSchID, replace force
-merge m:1 StateAssignedSchID StateAssignedDistID using "${NCES}/NCES_2015_School_NJ.dta"
+merge m:1 StateAssignedDistID using "${NCES}/NCES_2015_District_NJ.dta"
 drop if _merge == 2
-
-merge m:1 StateAssignedDistID using "${NCES}/NCES_2015_District_NJ.dta", gen(merge2)
-drop if merge2 == 2
 save "${data}/NJ_AssmtData_2015", replace
+
+destring StateAssignedSchID, replace force
+merge m:1 StateAssignedSchID StateAssignedDistID using "${NCES}/NCES_2015_School_NJ.dta", gen (merge2)
+drop if merge2 == 2
+
 
 //Clean Merged Data
 drop state_name
@@ -1298,11 +1299,11 @@ replace StudentSubGroup = "Black or African American" if StudentSubGroup == "AFR
 replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "NATIVE HAWAIIAN"
 replace StudentSubGroup = "White" if StudentSubGroup == "WHITE"
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "HISPANIC"
-replace StudentSubGroup = "Unkown" if StudentSubGroup == "OTHER" & StudentGroup == "Race/Ethnicity"
+replace StudentSubGroup = "Unknown" if StudentSubGroup == "OTHER" & StudentGroup == "Race/Ethnicity"
 replace StudentSubGroup = "Male" if StudentSubGroup == "MALE"
 replace StudentSubGroup = "Female" if StudentSubGroup == "FEMALE"
 replace StudentSubGroup = "Students with Disabilities" if StudentSubGroup == "STUDENTS WITH DISABILITIES"
-replace StudentSubGroup = "English Language Learners" if StudentSubGroup == "ENGLISH LANGUAGE LEARNERS"
+replace StudentSubGroup = "English Learner" if StudentSubGroup == "ENGLISH LANGUAGE LEARNERS"
 replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "ECONOMICALLY DISADVANTAGED"
 replace StudentSubGroup = "Non-Econ. Disadvantaged" if StudentSubGroup == "NON-ECON. DISADVANTAGED"
 
@@ -1311,8 +1312,8 @@ gen AssmtName = "PARCC"
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_read = "N"
-gen Flag_CutScoreChange_oth = "N"
+gen Flag_CutScoreChange_read = ""
+gen Flag_CutScoreChange_oth = ""
 gen AssmtType = "Regular"
 gen DataLevel = "School"
 replace DataLevel = "District" if StateAssignedSchID == ""
@@ -1375,10 +1376,10 @@ save "${NCES}/NCES_2016_District_NJ.dta", replace
 
 //Merge Data
 use "${data}/NJ_AssmtData_2016", clear
-merge m:1 StateAssignedSchID StateAssignedDistID using "${NCES}/NCES_2016_School_NJ.dta"
+merge m:1 StateAssignedDistID using "${NCES}/NCES_2016_District_NJ.dta"
 drop if _merge == 2
 
-merge m:1 StateAssignedDistID using "${NCES}/NCES_2016_District_NJ.dta", gen(merge2)
+merge m:1 StateAssignedSchID StateAssignedDistID using "${NCES}/NCES_2016_School_NJ.dta", gen (merge2)
 drop if merge2 == 2
 save "${data}/NJ_AssmtData_2016", replace
 
@@ -2030,11 +2031,11 @@ replace StudentSubGroup = "Black or African American" if StudentSubGroup == "AFR
 replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "NATIVE HAWAIIAN"
 replace StudentSubGroup = "White" if StudentSubGroup == "WHITE"
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "HISPANIC"
-replace StudentSubGroup = "Unkown" if StudentSubGroup == "OTHER" & StudentGroup == "Race/Ethnicity"
+replace StudentSubGroup = "Unknown" if StudentSubGroup == "OTHER" & StudentGroup == "Race/Ethnicity"
 replace StudentSubGroup = "Male" if StudentSubGroup == "MALE"
 replace StudentSubGroup = "Female" if StudentSubGroup == "FEMALE"
 replace StudentSubGroup = "Students with Disabilities" if StudentSubGroup == "STUDENTS WITH DISABILITIES"
-replace StudentSubGroup = "English Language Learners" if StudentSubGroup == "ENGLISH LANGUAGE LEARNERS"
+replace StudentSubGroup = "English Learner" if StudentSubGroup == "ENGLISH LANGUAGE LEARNERS"
 replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "ECONOMICALLY DISADVANTAGED"
 replace StudentSubGroup = "Non-Econ. Disadvantaged" if StudentSubGroup == "NON-ECON. DISADVANTAGED"
 
@@ -2043,8 +2044,8 @@ gen AssmtName = "PARCC"
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_read = "N"
-gen Flag_CutScoreChange_oth = "N"
+gen Flag_CutScoreChange_read = ""
+gen Flag_CutScoreChange_oth = ""
 gen AssmtType = "Regular"
 gen DataLevel = "School"
 replace DataLevel = "District" if StateAssignedSchID == ""
@@ -2106,10 +2107,10 @@ save "${NCES}/NCES_2017_District_NJ.dta", replace
 
 //Merge Data
 use "${data}/NJ_AssmtData_2017", clear
-merge m:1 StateAssignedSchID StateAssignedDistID using "${NCES}/NCES_2017_School_NJ.dta"
+merge m:1 StateAssignedDistID using "${NCES}/NCES_2017_District_NJ.dta"
 drop if _merge == 2
 
-merge m:1 StateAssignedDistID using "${NCES}/NCES_2017_District_NJ.dta", gen(merge2)
+merge m:1 StateAssignedSchID StateAssignedDistID using "${NCES}/NCES_2017_School_NJ.dta", gen (merge2)
 drop if merge2 == 2
 save "${data}/NJ_AssmtData_2017", replace
 
@@ -2737,15 +2738,16 @@ replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup 
 replace StudentSubGroup = "Black or African American" if StudentSubGroup == "African American"
 replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "Native Hawaiian"
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
-replace StudentSubGroup = "Unkown" if StudentSubGroup == "Other" & StudentGroup == "Race/Ethnicity"
+replace StudentSubGroup = "Unknown" if StudentSubGroup == "Other" & StudentGroup == "Race/Ethnicity"
+replace StudentSubGroup = "English Learner" if StudentSubGroup == "English Language Learners"
 
 gen SchYear = "2017-18"
 gen AssmtName = "PARCC"
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_read = "N"
-gen Flag_CutScoreChange_oth = "N"
+gen Flag_CutScoreChange_read = ""
+gen Flag_CutScoreChange_oth = ""
 gen AssmtType = "Regular"
 gen DataLevel = "School"
 replace DataLevel = "District" if StateAssignedSchID == ""
@@ -2810,10 +2812,10 @@ save "${NCES}/NCES_2018_District_NJ.dta", replace
 
 //Merge Data
 use "${data}/NJ_AssmtData_2018", clear
-merge m:1 StateAssignedSchID StateAssignedDistID using "${NCES}/NCES_2018_School_NJ.dta"
+merge m:1 StateAssignedDistID using "${NCES}/NCES_2018_District_NJ.dta"
 drop if _merge == 2
 
-merge m:1 StateAssignedDistID using "${NCES}/NCES_2018_District_NJ.dta", gen(merge2)
+merge m:1 StateAssignedSchID StateAssignedDistID using "${NCES}/NCES_2018_School_NJ.dta", gen(merge2)
 drop if merge2 == 2
 save "${data}/NJ_AssmtData_2018", replace
 
@@ -3535,14 +3537,15 @@ replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup 
 replace StudentSubGroup = "Black or African American" if StudentSubGroup == "African American"
 replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "Native Hawaiian"
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
-replace StudentSubGroup = "Unkown" if StudentSubGroup == "Other" & StudentGroup == "Race/Ethnicity"
+replace StudentSubGroup = "Unknown" if StudentSubGroup == "Other" & StudentGroup == "Race/Ethnicity"
+replace StudentSubGroup = "English Learner" if StudentSubGroup == "English Language Learners"
 
 gen SchYear = "2018-19"
 gen AssmtName = "NJSLA"
 gen Flag_AssmtNameChange = "Y"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_read = "N"
+gen Flag_CutScoreChange_read = ""
 gen Flag_CutScoreChange_oth = "N"
 gen AssmtType = "Regular"
 gen DataLevel = "School"
@@ -3590,6 +3593,7 @@ replace Lev2_percent = "*" if Lev2_percent == "."
 replace Lev3_percent = "*" if Lev3_percent == "."
 replace Lev4_percent = "*" if Lev4_percent == "."
 replace Lev5_percent = "*" if Lev5_percent == "."
+replace Lev5_percent = "" if Subject == "sci"
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
 gen ParticipationRate =.
 
@@ -3609,10 +3613,10 @@ save "${NCES}/NCES_2019_District_NJ.dta", replace
 
 //Merge Data
 use "${data}/NJ_AssmtData_2019", clear
-merge m:1 StateAssignedSchID StateAssignedDistID using "${NCES}/NCES_2019_School_NJ.dta"
+merge m:1 StateAssignedDistID using "${NCES}/NCES_2019_District_NJ.dta"
 drop if _merge == 2
 
-merge m:1 StateAssignedDistID using "${NCES}/NCES_2019_District_NJ.dta", gen(merge2)
+merge m:1 StateAssignedSchID StateAssignedDistID using "${NCES}/NCES_2019_School_NJ.dta", gen(merge2)
 drop if merge2 == 2
 save "${data}/NJ_AssmtData_2019", replace
 
@@ -4350,15 +4354,16 @@ replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup 
 replace StudentSubGroup = "Black or African American" if StudentSubGroup == "African American"
 replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "Native Hawaiian"
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
-replace StudentSubGroup = "Unkown" if StudentSubGroup == "Other" & StudentGroup == "Race/Ethnicity"
-replace StudentSubGroup = "Unkown" if StudentSubGroup == "Non-Binary/Undesignated" & StudentGroup == "Gender"
+replace StudentSubGroup = "Unknown" if StudentSubGroup == "Other" & StudentGroup == "Race/Ethnicity"
+replace StudentSubGroup = "Unknown" if StudentSubGroup == "Non-Binary/Undesignated" & StudentGroup == "Gender"
+replace StudentSubGroup = "English Learner" if StudentSubGroup == "English Language Learners"
 
 gen SchYear = "2021-22"
 gen AssmtName = "NJSLA"
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_read = "N"
+gen Flag_CutScoreChange_read = ""
 gen Flag_CutScoreChange_oth = "N"
 gen AssmtType = "Regular"
 gen DataLevel = "School"
@@ -4406,6 +4411,7 @@ replace Lev2_percent = "*" if Lev2_percent == "."
 replace Lev3_percent = "*" if Lev3_percent == "."
 replace Lev4_percent = "*" if Lev4_percent == "."
 replace Lev5_percent = "*" if Lev5_percent == "."
+replace Lev5_percent = "" if Subject == "sci"
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
 
 gen ParticipationRate =.
@@ -4417,19 +4423,20 @@ use "${NCES}/NCES_2021_School.dta", clear
 drop if state_location != "NJ"
 gen str StateAssignedDistID = substr(state_leaid, 6, 8)
 gen str StateAssignedSchID = substr(st_schid, 11, 13)
-save "${NCES}/NCES_2021_School_NJ.dta", replace
+save "${NCES}/NCES_2022_School_NJ.dta", replace
 
 import delimited "${NCES}/NCES_2021_District.csv", clear
 drop if stateabbrev != "NJ"
 gen str StateAssignedDistID = substr(state_leaid, 6, 8)
-save "${NCES}/NCES_2021_District_NJ.dta", replace
+save "${NCES}/NCES_2022_District_NJ.dta", replace
 
 //Merge Data
 use "${data}/NJ_AssmtData_2022", clear
-merge m:1 StateAssignedSchID StateAssignedDistID using "${NCES}/NCES_2021_School_NJ.dta"
+merge m:1 StateAssignedDistID using "${NCES}/NCES_2022_District_NJ.dta"
 drop if _merge == 2
+drop charter
 
-merge m:1 StateAssignedDistID using "${NCES}/NCES_2021_District_NJ.dta", gen(merge2)
+merge m:1 StateAssignedSchID StateAssignedDistID using "${NCES}/NCES_2022_School_NJ.dta", gen(merge2)
 drop if merge2 == 2
 save "${data}/NJ_AssmtData_2022", replace
 
@@ -4441,7 +4448,7 @@ rename state_fips StateFips
 rename ncesdistrictid NCESDistrictID
 rename state_leaid State_leaid
 rename districttype DistrictType
-rename charter Charter
+rename charter_text Charter
 rename county_name CountyName
 rename county_code CountyCode
 rename ncesschoolid NCESSchoolID
@@ -4453,7 +4460,7 @@ gen State = "New Jersey"
 replace StateAbbrev = "NJ" if StateAbbrev == ""
 replace StateFips = 34 if StateFips ==.
 
-drop year school_name lea_name urban_centric_locale school_status lowest_grade_offered highest_grade_offered bureau_indian_education charter_text lunch_program free_lunch reduced_price_lunch free_or_reduced_price_lunch enrollment schid state stateabbrev statefips countyname countycode schyear distname updated_status_text effective_date _merge merge2
+drop year school_name lea_name urban_centric_locale school_status lowest_grade_offered highest_grade_offered bureau_indian_education lunch_program free_lunch reduced_price_lunch free_or_reduced_price_lunch enrollment schid state stateabbrev statefips countyname countycode schyear distname updated_status_text effective_date _merge merge2
 
 //Label & Organize Variables
 label var State "State name"
