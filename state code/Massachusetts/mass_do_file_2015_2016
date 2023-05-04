@@ -14,7 +14,7 @@ drop C C1 C4
 rename C2 GradeLevel
 rename C3 Subject
 
-drop A 	
+rename A DataLevel	
 rename B SchYear 	
 
 rename D StudentGroup	
@@ -39,6 +39,9 @@ rename V CPI
 rename W CPI_2	
 rename X Median_SGP	
 rename Y Median_SGP_2
+
+replace DataLevel = "State" if DistName == "State Totals"
+replace DistName = "" if DistName == "State Totals"
 
 
 save mass_districts_parcc_titled, replace
@@ -66,6 +69,7 @@ use mass_schools_parcc, clear
 // import excel "mass_schools_old_mcas_2", clear
 // save mass_schools_old_mcas_2, replace
 
+drop if F == "State Totals - State Totals"
 
 split F, parse(" - ")
 
@@ -79,7 +83,8 @@ rename C3 Subject
 
 keep if E == "All"
 
-drop A 	
+
+rename A DataLevel	
 rename B SchYear 	
 
 rename D StudentGroup	
@@ -106,6 +111,7 @@ rename Y Median_SGP
 rename Z Median_SGP_2 	
 
 
+
 append using mass_districts_parcc_titled
 drop StateAssignedDistID
 
@@ -120,7 +126,7 @@ drop if DistName == "District Name"
 drop _merge
 
 
-// save mass_districts_parcc_in_progress, replace
+//save mass_districts_parcc_in_progress, replace
 // use mass_districts_parcc_in_progress, clear
 
 global years3 2015 2016
@@ -130,6 +136,7 @@ foreach a in $years3 {
 local prevyear = `a' - 1
 	
 use mass_districts_parcc_in_progress, clear
+
 
 keep if SchYear == "`a'"
 
@@ -196,14 +203,14 @@ rename SchYear2 SchYear
 
 gen AssmtName = "PARCC"
 gen AssmtType = "Regular"
-gen DataLevel = "State, District, School"
 
 gen Subject2 = "" 
-replace Subject2 = "MTH" if Subject == "MATH"
-replace Subject2 = "ELA" if Subject == "ELA"
-replace Subject2 = "SCI" if Subject == "SCI"
+replace Subject2 = "math" if Subject == "MATH"
+replace Subject2 = "ela" if Subject == "ELA/L"
 drop Subject
 rename Subject2 Subject
+
+drop if Subject == ""
 
 
 gen GradeLevel2 = ""
@@ -227,9 +234,38 @@ drop if GradeLevel == "HS SCI"
 
 drop if GradeLevel == ""
 
+
+
+gen StudentSubGroup = ""
+replace StudentSubGroup = "All students" if StudentGroup == "All Students"
+replace StudentSubGroup = "American Indian or Alaska Native" if StudentGroup == "Amer. Ind. or Alaska Nat."
+replace StudentSubGroup = "Asian" if StudentGroup == "Asian"
+replace StudentSubGroup = "Black or African American" if StudentGroup == "Afr. Amer./Black"
+replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentGroup == "Nat. Haw. or Pacif. Isl."
+replace StudentSubGroup = "Two or More" if StudentGroup == "Multi-race, Non-Hisp./Lat."
+replace StudentSubGroup = "Hispanic or Latino" if StudentGroup == "Hispanic/Latino"
+
+replace StudentSubGroup = "English learner" if StudentGroup == "EL"
+replace StudentSubGroup = "Male" if StudentGroup == "Male"
+replace StudentSubGroup = "Female" if StudentGroup == "Female"
+
+drop if StudentSubGroup == ""
+drop StudentGroup
+
+gen StudentGroup = ""
+replace StudentGroup = "All students" if StudentSubGroup == "All students"
+replace StudentGroup = "Race" if StudentSubGroup == "American Indian or Alaska Native"
+replace StudentGroup = "Race" if StudentSubGroup == "Asian"
+replace StudentGroup = "Race" if StudentSubGroup == "Black or African American"
+replace StudentGroup = "Race" if StudentSubGroup == "Native Hawaiian or Pacific Islander"
+replace StudentGroup = "Race" if StudentSubGroup == "Two or More"
+replace StudentGroup = "Race" if StudentSubGroup == "Hispanic or Latino"
+replace StudentGroup = "EL status" if StudentSubGroup == "English learner"
+replace StudentGroup = "Gender" if StudentSubGroup == "Male"
+replace StudentGroup = "Gender" if StudentSubGroup == "Female"
+
 gen ProficiencyCriteria = "Levels 4 and 5"
 gen seasch = . 
-gen StudentSubGroup = ""
 
 // Empty Count Vars 
 gen ParticipationRate = ""
@@ -238,7 +274,10 @@ gen ParticipationRate = ""
 gen StudentSubGroup_TotalTested = StudentGroup_TotalTested
 destring StudentGroup_TotalTested, replace force
 replace StudentGroup_TotalTested = -1000000 if StudentGroup_TotalTested == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested1 = total(StudentGroup_TotalTested)
+bys SchName StudentGroup: egen StudentGroup_TotalTested1 = total(StudentGroup_TotalTested) if SchName != ""
+bys DistName StudentGroup: egen StudentGroup_TotalTested2 = total(StudentGroup_TotalTested) if SchName == ""
+replace StudentGroup_TotalTested1 = StudentGroup_TotalTested2 if StudentGroup_TotalTested1  ==. 
+drop StudentGroup_TotalTested2
 replace StudentGroup_TotalTested1 =. if StudentGroup_TotalTested1 < 0
 tostring StudentGroup_TotalTested1, replace
 replace StudentGroup_TotalTested1 = "*" if StudentGroup_TotalTested1 == "."
@@ -246,18 +285,23 @@ drop StudentGroup_TotalTested
 rename StudentGroup_TotalTested1 StudentGroup_TotalTested
 
 
-order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual  seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA	Flag_CutScoreChange_math Flag_CutScoreChange_read	Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName Subject StateAssignedSchID GradeLevel StudentGroup  StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 
+order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual  seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA	Flag_CutScoreChange_math Flag_CutScoreChange_read	Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject  GradeLevel StudentGroup  StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 
 
 keep State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual  seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA	Flag_CutScoreChange_math Flag_CutScoreChange_read	Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName Subject StateAssignedSchID GradeLevel StudentGroup  StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 
 
 destring Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate AvgScaleScore, replace force
 
+decode Virtual, gen(Virtual1)
+drop Virtual
+rename Virtual1 Virtual 
 
 // converting to decimal form from percentage form 
 replace Lev1_percent = Lev1_percent/100 
 replace Lev2_percent = Lev2_percent/100 
 replace Lev3_percent = Lev3_percent/100 
 replace Lev4_percent = Lev4_percent/100 
+replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
+replace ParticipationRate = ParticipationRate/100
 
 
 save MA_AssmtData_`a'_Stata, replace

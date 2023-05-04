@@ -3,8 +3,6 @@ set more off
 
 cd "/Users/maggie/Desktop/Mississippi"
 
-global NCES "/Users/maggie/Desktop/Mississippi/NCES/Cleaned"
-
 ** Cleaning 2013-2014 ELA & Math **
 
 use "${output}/MS_AssmtData_2014_ela_mat.dta", clear
@@ -121,7 +119,7 @@ foreach a of local level {
 }
 
 tostring ProficientOrAbove_count, replace
-replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "-200"
+replace ProficientOrAbove_count = "*" if Lev3_count == "*" | Lev4_count == "*"
 tostring ProficientOrAbove_percent, replace force
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "-2"
 

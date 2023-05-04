@@ -5,7 +5,7 @@ cd "/Users/maggie/Desktop/Mississippi"
 
 global NCESSchool "/Users/maggie/Desktop/Mississippi/NCES/School"
 global NCESDistrict "/Users/maggie/Desktop/Mississippi/NCES/District"
-global Cleaned "/Users/maggie/Desktop/Mississippi/NCES/Cleaned"
+global NCES "/Users/maggie/Desktop/Mississippi/NCES/Cleaned"
 global MS "/Users/maggie/Desktop/Mississippi/Missing Schools"
 
 global years 2013 2014 2015 2016 2017 2018 2020
@@ -25,7 +25,7 @@ foreach a in $years {
 	rename county_code CountyCode
 	rename lea_name DistName
 	
-	save "${Cleaned}/NCES_`a'_District.dta", replace
+	save "${NCES}/NCES_`a'_District.dta", replace
 	
 	use "${NCESSchool}/NCES_`a'_School.dta", clear
 	keep if state_fips == 28
@@ -42,7 +42,7 @@ foreach a in $years {
 	rename virtual Virtual 
 	rename school_level SchoolLevel
 	
-	save "${Cleaned}/NCES_`a'_School.dta", replace
+	save "${NCES}/NCES_`a'_School.dta", replace
 	
 }
 
@@ -60,7 +60,7 @@ import delimited "${NCESDistrict}/NCES_2021_District.csv", clear
 	rename schyear SchYear
 	rename distname DistName
 	drop if NCESDistrictID == 2800960
-save "${Cleaned}/NCES_2021_District.dta", replace
+save "${NCES}/NCES_2021_District.dta", replace
 
 import delimited "${NCESSchool}/NCES_2021_School.csv", clear
 	keep if statefips == 28
@@ -75,7 +75,7 @@ import delimited "${NCESSchool}/NCES_2021_School.csv", clear
 	rename schooltype SchoolType
 	rename virtual Virtual 
 	rename schoollevel SchoolLevel
-save "${Cleaned}/NCES_2021_School.dta", replace
+save "${NCES}/NCES_2021_School.dta", replace
 
 import excel "${MS}/Missing Schools.xlsx", sheet("Missing Schools") firstrow clear
 	sort SchName DistName
@@ -84,4 +84,4 @@ import excel "${MS}/Missing Schools.xlsx", sheet("Missing Schools") firstrow cle
 	drop dup
 	sort SchName
 	drop if SchName == ""
-save "${Cleaned}/NCES_Schools.dta", replace
+save "${NCES}/NCES_Schools.dta", replace

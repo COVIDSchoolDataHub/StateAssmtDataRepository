@@ -1,0 +1,193 @@
+cap log close
+log using california_nces_cleaning.log, replace
+
+
+cd "/Users/benjaminm/Documents/State_Repository_Research/California"
+
+global NCESSchool "/Users/benjaminm/Documents/State_Repository_Research/California/NCES_School"
+global NCESDistrict "/Users/benjaminm/Documents/State_Repository_Research/California/NCES_District"
+global California "/Users/benjaminm/Documents/State_Repository_Research/California/NCES"
+
+use NCES_2012_School, clear
+
+
+global years 2009 2010 2011 2012 2013 2014 2015 2016 2017 2018 2019 2020 
+
+foreach a in $years {
+	
+	use "${NCESSchool}/NCES_`a'_School.dta", clear
+	keep if state_fips == 6
+	
+	rename state_name State
+	rename state_location StateAbbrev
+	rename state_fips StateFips
+	rename ncesdistrictid NCESDistrictID
+	rename state_leaid State_leaid
+	rename charter Charter
+	rename county_code CountyCode
+	rename ncesschoolid NCESSchoolID
+	rename school_type SchoolType
+	rename virtual Virtual  // Might not work for 2021
+	rename school_level SchoolLevel
+	
+	replace State_leaid = subinstr(State_leaid, "CA-", "", .)
+	split seasch, parse("-")
+
+	
+	save "${California}/NCES_`a'_School.dta", replace
+	
+	use "${NCESDistrict}/NCES_`a'_District.dta", clear 
+	keep if state_fips == 6
+	
+	rename state_name State
+	rename state_location StateAbbrev
+	rename state_fips StateFips
+	rename ncesdistrictid NCESDistrictID
+	rename state_leaid State_leaid
+	rename district_agency_type DistrictType
+	rename lea_name DistName
+	rename county_name CountyName
+	rename county_code CountyCode
+	
+	replace State_leaid = subinstr(State_leaid, "CA-", "", .)
+	replace DistName = subinstr(DistName, "District", "", .)
+	replace DistName = strrtrim(DistName)
+	
+	save "${California}/NCES_`a'_District.dta", replace
+	
+}
+// Just 2020
+
+use NCES_2020_School, clear
+
+keep if state_fips == 6
+	
+	rename state_name State
+	rename state_location StateAbbrev
+	rename state_fips StateFips
+	rename ncesdistrictid NCESDistrictID
+	rename state_leaid State_leaid
+	rename charter Charter
+	rename county_code CountyCode
+	rename ncesschoolid NCESSchoolID
+	rename school_type SchoolType
+	rename virtual Virtual 
+	rename school_level SchoolLevel
+	
+	replace State_leaid = subinstr(State_leaid, "CA-", "", .)
+	split seasch, parse("-")
+	
+}
+
+save NCES_2020_School, replace	
+
+// 2021 District
+import delimited NCES_2021_District, clear
+keep if statefips == 6
+	
+	rename state State
+	rename stateabbrev StateAbbrev
+	rename statefips StateFips
+	rename ncesdistrictid NCESDistrictID
+	rename districttype DistrictType
+	rename state_leaid State_leaid
+	rename charter Charter
+	rename countyname CountyName
+	rename countycode CountyCode
+	rename distname DistName
+	
+replace DistName = subinstr(DistName, "District", "", .)
+replace DistName = strrtrim(DistName)
+	
+save NCES_2021_District, replace
+
+
+// 2021 School 
+import delimited NCES_2021_School, clear
+keep if statefips == 6
+keep ncesschoolid schooltype virtual schoollevel schname st_schid schid sy_status_text 
+	
+	rename ncesschoolid NCESSchoolID
+	rename schooltype SchoolType
+	rename virtual Virtual  // Might not work for 2021
+	rename schoollevel SchoolLevel
+	rename schname SchoolName
+	rename st_schid State_School_ID
+	rename schid State_School_ID_Extra
+	rename sy_status_text School_Open_Status
+	
+replace State_School_ID = subinstr(State_School_ID, "CA-", "", .)
+	split State_School_ID, parse("-")
+	
+drop State_School_ID State_School_ID1
+rename State_School_ID2 State_School_ID
+	
+save NCES_2021_School, replace
+use NCES_2021_School, clear
+
+
+global years! 2009 2010 2011 2012 2013 
+
+foreach a in $years {
+	
+	use "NCES_`a'_School.dta", clear
+	keep if state_fips == 6
+	
+	rename state_name State
+	rename state_location StateAbbrev
+	rename state_fips StateFips
+	rename ncesdistrictid NCESDistrictID
+	rename state_leaid State_leaid
+	rename charter Charter
+	rename county_code CountyCode
+	rename ncesschoolid NCESSchoolID
+	rename school_type SchoolType
+	rename virtual Virtual  // Might not work for 2021
+	rename school_level SchoolLevel
+	
+	replace State_leaid = subinstr(State_leaid, "CA-", "", .)
+	split seasch, parse("-")
+
+	
+	save "${California}/NCES_`a'_School.dta", replace
+	
+	use "${NCESDistrict}/NCES_`a'_District.dta", clear 
+	keep if state_fips == 6
+	
+	rename state_name State
+	rename state_location StateAbbrev
+	rename state_fips StateFips
+	rename ncesdistrictid NCESDistrictID
+	rename state_leaid State_leaid
+	rename district_agency_type DistrictType
+	rename lea_name DistName
+	rename county_name CountyName
+	rename county_code CountyCode
+	
+	replace State_leaid = subinstr(State_leaid, "CA-", "", .)
+	replace DistName = subinstr(DistName, "District", "", .)
+	replace DistName = strrtrim(DistName)
+	
+	save "${California}/NCES_`a'_District.dta", replace
+	
+}
+
+use NCES_2012_District, clear
+replace DistName = ustrtitle(DistName)
+save NCES_2012_District, replace
+
+use NCES_2011_District, clear
+replace DistName = ustrtitle(DistName)
+save NCES_2011_District, replace
+
+use NCES_2010_District, clear
+replace DistName = ustrtitle(DistName)
+save NCES_2010_District, replace
+
+use NCES_2009_District, clear
+replace DistName = ustrtitle(DistName)
+save NCES_2009_District, replace
+
+ 
+
+
