@@ -145,6 +145,8 @@ use "${path}/CO_OriginalData_2014_all.dta", clear
 	
 	
 merge m:1 seasch state_fips using "${path}/CO_NCES_2013_School.dta"
+
+
 drop if state_fips != 8
 
 
@@ -186,9 +188,9 @@ rename school_level SchoolLevel
 
 gen AssmtName="Colorado Measures of Academic Success"
 gen Flag_AssmtNameChange="N"
-gen Flag_CutScoreChange_ELA="N"
-gen Flag_CutScoreChange_math="N"
-gen Flag_CutScoreChange_read="N"
+gen Flag_CutScoreChange_ELA=""
+gen Flag_CutScoreChange_math=""
+gen Flag_CutScoreChange_read=""
 gen Flag_CutScoreChange_oth="N"
 gen AssmtType = "Regular"
 gen ProficiencyCriteria = "Lev3 or Lev 4"
@@ -197,6 +199,8 @@ gen Lev5_percent="*"
 gen SchYear = string(year)
 replace SchYear="2013-14" if SchYear=="2014"
 drop year
+
+gen StudentSubGroup_TotalTested=StudentGroup_TotalTested
 
 replace Lev1_count="*" if Lev1_count=="-"
 replace Lev2_count="*" if Lev2_count=="-"
@@ -210,7 +214,7 @@ replace Lev4_percent="*" if Lev4_percent=="-"
 
 //	Reorder variables
 
-order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
+order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
 
 
 
@@ -307,19 +311,42 @@ replace DistName="All districts" if DistName==""
 
 export delimited using "${path}/CO_2014_Data_Unmerged.csv", replace
 
-replace district_merge=999 if DataLevel=="State"
-replace _merge=999 if DataLevel=="State"
-replace _merge=999 if district_merge==3
+
 drop if district_merge==2
 drop if _merge==2
-drop if district_merge==1
-drop if _merge==1
+
+// Drop school level entries that are not schools
+drop if SchName=="FAMILY EDUCATION NETWORK OF WELD CO"
+drop if SchName=="CHERRY CREEK EXPULSION SCHOOL"
+
+
 drop _merge
 drop district_merge
 
 replace StudentGroup_TotalTested="" if StudentGroup_TotalTested=="< 16"
 replace StudentGroup_TotalTested="" if StudentGroup_TotalTested=="<16"
-destring StudentGroup_TotalTested, replace ignore(",* %NA<>=-")
+destring StudentGroup_TotalTested StudentSubGroup_TotalTested, replace ignore(",* %NA<>=-")
+
+replace StudentSubGroup_TotalTested=StudentGroup_TotalTested
+
+
+destring Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent, replace ignore(",* %NA<>=-")
+
+replace Lev1_percent=Lev1_percent/100
+replace Lev2_percent=Lev2_percent/100
+replace Lev3_percent=Lev3_percent/100
+replace Lev4_percent=Lev4_percent/100
+replace ProficientOrAbove_percent=ProficientOrAbove_percent/100
+
+
+tostring Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent, replace force
+
+replace Lev1_percent="*" if Lev1_percent=="."
+replace Lev2_percent="*" if Lev2_percent=="."
+replace Lev3_percent="*" if Lev3_percent=="."
+replace Lev4_percent="*" if Lev4_percent=="."
+replace ProficientOrAbove_percent="*" if ProficientOrAbove_percent=="."
+
 
 export delimited using "${output}/CO_AssmtData_2014.csv", replace
 

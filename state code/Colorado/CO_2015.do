@@ -10,7 +10,7 @@ global output "/Users/hayden/Desktop/Research/CO/Output"
 
 
 	////Combines math/ela data with science and social studies data
-
+	
 
 	//Imports and saves math/ela
 
@@ -389,7 +389,37 @@ rename metorexceededexpectati ProficientOrAbove_percent
 
 //Combines ELA/Math proficiency levels 1 and 2 for consistancy with science assessments
 
+replace numberdidnotyetmeetexpectat="*" if strpos(numberdidnotyetmeetexpectat, ">")
+replace numberdidnotyetmeetexpectat="*" if strpos(numberdidnotyetmeetexpectat, "<")
+replace Lev1_count="*" if strpos(Lev1_count, ">")
+replace Lev1_count="*" if strpos(Lev1_count, "<")
+replace Lev2_count="*" if strpos(Lev1_count, ">")
+replace Lev2_count="*" if strpos(Lev1_count, "<")
+
+replace percentdidnotyetmeetexpecta="*" if strpos(percentdidnotyetmeetexpecta, ">")
+replace percentdidnotyetmeetexpecta="*" if strpos(percentdidnotyetmeetexpecta, "<")
+replace Lev1_percent="*" if strpos(Lev1_percent, ">")
+replace Lev1_percent="*" if strpos(Lev1_percent, "<")
+replace Lev2_percent="*" if strpos(Lev1_percent, ">")
+replace Lev2_percent="*" if strpos(Lev1_percent, "<")
+
+
+
 destring numberdidnotyetmeetexpectat percentdidnotyetmeetexpecta Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent, replace ignore(",* %NA<>=-")
+
+///ONE
+gen totalpercentone=Lev1_percent+Lev2_percent+Lev3_percent+Lev4_percent+percentdidnotyetmeetexpecta
+
+
+replace percentdidnotyetmeetexpecta=percentdidnotyetmeetexpecta/100 if percentdidnotyetmeetexpecta>=1
+replace Lev1_percent=Lev1_percent/100 if Lev1_percent>=1
+replace Lev2_percent=Lev2_percent/100 if Lev2_percent>=1
+replace Lev3_percent=Lev3_percent/100 if Lev3_percent>=1
+replace Lev4_percent=Lev4_percent/100 if Lev4_percent>=1
+
+///TWO
+gen totalpercenttwo=Lev1_percent+Lev2_percent+Lev3_percent+Lev4_percent+percentdidnotyetmeetexpecta
+
 
 
 gen NewLev1_count=.
@@ -398,13 +428,20 @@ replace NewLev1_count=numberdidnotyetmeetexpectat+Lev1_count
 replace NewLev1_percent=percentdidnotyetmeetexpecta+Lev1_percent
 replace NewLev1_count=numberdidnotyetmeetexpectat if Lev1_count==.
 replace NewLev1_percent=percentdidnotyetmeetexpecta if Lev1_percent==.
-replace NewLev1_count=Lev1_count if numberdidnotyetmeetexpectat==.
-replace NewLev1_percent=Lev1_percent if percentdidnotyetmeetexpecta==.
+replace NewLev1_count=. if numberdidnotyetmeetexpectat==.
+replace NewLev1_percent=. if percentdidnotyetmeetexpecta==.
+replace NewLev1_count=. if Lev1_count==.
+replace NewLev1_percent=. if Lev1_percent==.
 
 
 drop Lev1_count Lev1_percent numberdidnotyetmeetexpectat percentdidnotyetmeetexpecta
 rename NewLev1_count Lev1_count
 rename NewLev1_percent Lev1_percent
+ 
+ 
+ 
+ ////Three
+gen totalpercentthree=Lev1_percent+Lev2_percent+Lev3_percent+Lev4_percent
  
  
  
@@ -425,7 +462,7 @@ gen AssmtName="Colorado Measures of Academic Success"
 gen Flag_AssmtNameChange="N"
 gen Flag_CutScoreChange_ELA="N"
 gen Flag_CutScoreChange_math="N"
-gen Flag_CutScoreChange_read="N"
+gen Flag_CutScoreChange_read=""
 gen Flag_CutScoreChange_oth="N"
 gen AssmtType = "Regular"
 gen ProficiencyCriteria = "Lev3 or Lev 4"
@@ -580,12 +617,34 @@ replace StudentSubGroup="English proficient" if StudentSubGroup=="Non-English Le
 
 tab GradeLevel
 	
+replace StudentGroup=strrtrim(StudentGroup)
+replace StudentSubGroup=strrtrim(StudentSubGroup)
+replace SchName=strrtrim(SchName)
+replace DistName=strrtrim(DistName)
+replace AvgScaleScore=strrtrim(AvgScaleScore)
+replace ProficientOrAbove_count=strrtrim(ProficientOrAbove_count)
+replace ProficientOrAbove_percent=strrtrim(ProficientOrAbove_percent)
+replace ParticipationRate=strrtrim(ParticipationRate)
+replace AvgScaleScore="*" if AvgScaleScore==""
+replace ProficientOrAbove_count="*" if ProficientOrAbove_count==""
+replace ProficientOrAbove_percent="*" if ProficientOrAbove_percent==""
+replace ParticipationRate="*" if ParticipationRate==""
+	
+	
 	
 	// Drops observations that aren't grades 3 through 8	
 	
 drop if GradeLevel=="G09"
 drop if GradeLevel=="G10"
 drop if GradeLevel=="G11"
+
+	// Drops observations that aren't K-12 schools (none report test scores)
+	
+	//Colorado Virtual Academy
+drop if NCESSchoolID=="80270001944"
+
+	//Colorado Springs Youth Services Center
+drop if NCESSchoolID=="80453006342"
 
 
 export delimited using "${path}/CO_2015_Data_Unmerged.csv", replace
@@ -599,7 +658,104 @@ drop numberoftotalrecords numberofnoscores lea_name
 
 replace StudentGroup_TotalTested="" if StudentGroup_TotalTested=="n < 16"
 replace StudentGroup_TotalTested="" if StudentGroup_TotalTested=="<16"
-destring StudentGroup_TotalTested, replace ignore(",* %NA<>=-")
+destring StudentGroup_TotalTested ProficientOrAbove_percent, replace ignore(",* %NA<>=-")
+
+
+destring Lev1_percent Lev2_percent Lev3_percent Lev4_percent, replace ignore(",* %NA<>=-")
+
+replace ProficientOrAbove_percent=ProficientOrAbove_percent/100 if ProficientOrAbove_percent>=1
+
+tostring Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent, replace force
+
+
+replace Lev1_percent="*" if Lev1_percent=="."
+replace Lev2_percent="*" if Lev2_percent=="."
+replace Lev3_percent="*" if Lev3_percent=="."
+replace Lev4_percent="*" if Lev4_percent=="."
+replace ProficientOrAbove_percent="*" if ProficientOrAbove_percent=="."
+
+
+////Four
+gen totalpercentfour=Lev1_percent+Lev2_percent+Lev3_percent+Lev4_percent
+
+drop totalpercentfour totalpercentone totalpercentthree totalpercenttwo
+
+
+
+
+//// Generates SubGroup totals
+
+rename StudentGroup_TotalTested StudentSubGroup_TotalTested
+
+gen intGrade=.
+gen intStudentGroup=.
+gen intSubject=. 
+
+replace intGrade=3 if GradeLevel=="G03"
+replace intGrade=4 if GradeLevel=="G04"
+replace intGrade=5 if GradeLevel=="G05"
+replace intGrade=6 if GradeLevel=="G06"
+replace intGrade=7 if GradeLevel=="G07"
+replace intGrade=8 if GradeLevel=="G08"
+
+replace intSubject=1 if Subject=="math"
+replace intSubject=2 if Subject=="ela"
+replace intSubject=3 if Subject=="soc"
+replace intSubject=4 if Subject=="sci"
+
+replace intStudentGroup=1 if StudentGroup=="All students"
+replace intStudentGroup=2 if StudentGroup=="Gender"
+replace intStudentGroup=3 if StudentGroup=="Race"
+replace intStudentGroup=4 if StudentGroup=="EL status"
+
+
+replace StudentSubGroup_TotalTested=999999999 if StudentSubGroup_TotalTested==.
+
+
+// Flag
+
+save "${path}/CO_2015_base.dta", replace
+
+
+
+collapse (sum) StudentSubGroup_TotalTested, by(NCESDistrictID NCESSchoolID intGrade intStudentGroup intSubject)
+
+rename StudentSubGroup_TotalTested StudentGroup_TotalTested
+
+
+// Flag
+
+save "${path}/CO_2015_studentgrouptotals.dta", replace
+
+
+// Flag
+
+use "${path}/CO_2015_base.dta", replace
+
+
+// Flag
+
+merge m:1 NCESDistrictID NCESSchoolID intGrade intSubject intStudentGroup using "${path}/CO_2015_studentgrouptotals.dta"
+
+tostring StudentSubGroup_TotalTested, replace
+replace StudentSubGroup_TotalTested="*" if StudentSubGroup_TotalTested=="999999999"
+
+replace StudentGroup_TotalTested=999999999 if StudentGroup_TotalTested>=10000000
+tostring StudentGroup_TotalTested, replace
+replace StudentGroup_TotalTested="*" if StudentGroup_TotalTested=="999999999"
+
+
+order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
+
+drop intSubject intGrade intStudentGroup _merge
+
+replace AvgScaleScore="*" if AvgScaleScore=="NA"
+replace ProficientOrAbove_count="*" if ProficientOrAbove_count=="NA"
+
+
+
+////
 
 export delimited using "${output}/CO_AssmtData_2015.csv", replace
+
 
