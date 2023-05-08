@@ -336,11 +336,13 @@ replace State = "Louisiana"
 replace StateAbbrev = "LA"
 replace StateFips = 22
 replace StateAssignedDistID = "" if DataLevel == "State"
-replace SchName = "" if DataLevel == "District" | DataLevel == "State"
+replace SchName = "Statewide" if DataLevel == "State"
+replace DistName = "Statewide" if DataLevel == "State"
 
 ** Standardize District Data
 
 replace DistName = lea_name if DistName == ""
+replace SchName = "Districtwide" if DataLevel == "District"
 drop lea_name
 
 ** Fix Variable Order 

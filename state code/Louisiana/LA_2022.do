@@ -298,6 +298,12 @@ replace State = "Louisiana"
 replace StateAbbrev = "LA"
 replace StateFips = 22
 
+** Standardize Non-School Level Data
+
+replace SchName = "Statewide" if DataLevel == "State"
+replace SchName = "Districtwide" if DataLevel == "District"
+replace DistName = "Statewide" if DataLevel == "State"
+
 ** Relabel GradeLevel Values
 
 tostring GradeLevel, replace

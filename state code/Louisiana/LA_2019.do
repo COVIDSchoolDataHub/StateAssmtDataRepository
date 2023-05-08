@@ -296,6 +296,12 @@ replace State = "Rhode Island"
 replace StateAbbrev = "RI"
 replace StateFips = 44
 
+** Standardize Non-School Level Data
+
+replace SchName = "Statewide" if DataLevel == "State"
+replace SchName = "Districtwide" if DataLevel == "District"
+replace DistName = "Statewide" if DataLevel == "State"
+
 ** Relabel GradeLevel Values
 
 tostring GradeLevel, replace
