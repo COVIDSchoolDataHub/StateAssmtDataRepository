@@ -44,6 +44,7 @@ gen seasch = string(seaschnumber)
 replace seasch = subinstr(st_schid,"RI-", "", 1)
 
 ** Correct School Misspellings
+
 replace school_name = "Pleasant View Elementary School" if school_name=="Pleasant View Elementary Schoo"
 replace school_name = "Providence Preparatory Charter School" if school_name=="Providence Preparatory Charter"
 
@@ -52,12 +53,24 @@ replace school_name = "Providence Preparatory Charter School" if school_name=="P
 drop year urban_centric_locale bureau_indian_education lunch_program free_lunch reduced_price_lunch free_or_reduced_price_lunch enrollment school_status st_schid schid seaschnumber county_name county_code school_name
 save "${path}/Semi-Processed Data Files/2021_22_NCES_Cleaned_School.dta", replace
 
+** Isolate Highest and Lowest Grades Offered by Districts
+
+replace lowest_grade_offered = "0" if lowest_grade_offered == "KG"
+replace lowest_grade_offered = "-1" if lowest_grade_offered == "PK"
+replace highest_grade_offered = "0" if highest_grade_offered == "KG"
+replace highest_grade_offered = "-1" if highest_grade_offered == "PK"
+destring lowest_grade_offered, generate(lowest_grade_district) force
+destring highest_grade_offered, generate(highest_grade_district) force
+collapse (min) lowest_grade_district (max) highest_grade_district, by(State_leaid)
+save "${path}/Semi-Processed Data Files/2021_22_NCES_District_Grades.dta", replace
+
 ** Isolate New Districts from 2021-22 NCES District Data
 
-import delimited "/Users/willtolmie/Desktop/NCES_2021_District.csv", case(preserve) clear 
+import delimited "${path}/NCES/District/NCES_2021_District.csv", case(preserve) clear 
 drop if StateFips != 44
 drop if updated_status_text != "New"
 replace Charter = "Yes" if Charter == "LEA for federal programs"
+label var Charter "Charter indicator"
 drop CountyName CountyCode updated_status_text effective_date
 gen CountyName = "Providence County"
 gen CountyCode = 44007
@@ -104,196 +117,270 @@ rename State2 State
 rename DistrictType2 DistrictType
 destring NCESDistrictID, replace
 append using "${path}/Semi-Processed Data Files/2021_22_NCES_District_New.dta"
+merge m:1 State_leaid using "${path}/Semi-Processed Data Files/2021_22_NCES_District_Grades.dta"
+drop _merge
 save "${path}/Semi-Processed Data Files/2021_22_NCES_Cleaned_District.dta", replace
 
-** 2021-22 ELA Data
+** 2021-22 ELA State Data
+
+import excel "${path}/Original Data Files/RI_OriginalData_2022_ela_state.xlsx", sheet("By_State_AndGrade") firstrow clear
+drop AL AK AJ AI AH AG
+foreach v of var * {
+    local lbl : var label `v'
+    local lbl = strtoname("`lbl'")
+    rename `v' `lbl'
+}
+gen DataLevel = "State"
+save "${path}/Semi-Processed Data Files/2022_ela_state.dta", replace
+import excel "${path}/Original Data Files/RI_OriginalData_2022_ela_state.xlsx", sheet("By_State_Subgroups") firstrow clear
+drop AL AK AJ AI AH
+foreach v of var * {
+    local lbl : var label `v'
+    local lbl = strtoname("`lbl'")
+    rename `v' `lbl'
+}
+gen DataLevel = "State"
+gen StudentGroup_TotalTested = "59399"
+save "${path}/Semi-Processed Data Files/2022_ela_state_subgroups.dta", replace
+
+** 2021-22 ELA District Data
+
+import excel "${path}/Original Data Files/RI_OriginalData_2022_ela_district.xlsx", sheet("By_District_AndGrade") firstrow clear
+drop AL AK AJ AI
+foreach v of var * {
+    local lbl : var label `v'
+    local lbl = strtoname("`lbl'")
+    rename `v' `lbl'
+}
+gen DataLevel = "District"
+save "${path}/Semi-Processed Data Files/2022_ela_district.dta", replace
+
+** Generate Student Group District Data
+
+import excel "${path}/Original Data Files/RI_OriginalData_2022_ela_district.xlsx", sheet("By_District") firstrow clear
+destring E, generate(StudentGroup_TotalTested)
+collapse (sum) StudentGroup_TotalTested, by(AssessmentName DistrictCode)
+save "${path}/Semi-Processed Data Files/2022_ela_district_group.dta", replace
+import excel "${path}/Original Data Files/RI_OriginalData_2022_ela_district.xlsx", sheet("By_District_Subgroups") firstrow clear
+merge m:1 AssessmentName DistrictCode using "${path}/Semi-Processed Data Files/2022_ela_district_group.dta"
+drop _merge AL AK AJ
+foreach v of var * {
+    local lbl : var label `v'
+    local lbl = strtoname("`lbl'")
+    rename `v' `lbl'
+}
+gen DataLevel = "District"
+save "${path}/Semi-Processed Data Files/2022_ela_district_subgroups.dta", replace
+
+** 2021-22 ELA School Data
 
 import excel "${path}/Original Data Files/RI_OriginalData_2022_ela.xlsx", sheet("By_School_AndGrade") firstrow clear
+drop AL AK
+foreach v of var * {
+    local lbl : var label `v'
+    local lbl = strtoname("`lbl'")
+    rename `v' `lbl'
+}
+gen DataLevel = "School"
+save "${path}/Semi-Processed Data Files/2022_ela_school.dta", replace
 
-** Standardize Variable Names in Grade Data
+** Generate Student Group School Data
 
-rename H StudentSubGroup_TotalTested
-rename I ParticipationRate
-rename J Lev1_percent
-rename K Lev2_percent
-rename L Lev3_percent
-rename M Lev4_percent
-rename N ProficientOrAbove_percent
-rename O AvgScaleScore
-rename P AverageStudentGrowthPercentile
-rename Q PercentLowGrowth
-rename R PercentTypicalGrowth
-rename S PercentHighGrowth
-rename T StandardError
-
-** Drop Excess Variables
-
-drop U V W X Y Z AA AB AC AD AE AF AG
-save "${path}/Semi-Processed Data Files/2022_ela_grade_unmerged.dta", replace
+import excel "${path}/Original Data Files/RI_OriginalData_2022_ela.xlsx", sheet("By_School") firstrow clear
+destring G, generate(StudentGroup_TotalTested)
+collapse (sum) StudentGroup_TotalTested, by(AssessmentName SchoolCode)
+save "${path}/Semi-Processed Data Files/2022_ela_school_group.dta", replace
 import excel "${path}/Original Data Files/RI_OriginalData_2022_ela.xlsx", sheet("By_School_Subgroups") firstrow clear
+merge m:1 AssessmentName SchoolCode using "${path}/Semi-Processed Data Files/2022_ela_school_group.dta"
+drop _merge AL
+foreach v of var * {
+    local lbl : var label `v'
+    local lbl = strtoname("`lbl'")
+    rename `v' `lbl'
+}
+gen DataLevel = "School"
+append using "${path}/Semi-Processed Data Files/2022_ela_school.dta" "${path}/Semi-Processed Data Files/2022_ela_district.dta" "${path}/Semi-Processed Data Files/2022_ela_district_subgroups.dta" "${path}/Semi-Processed Data Files/2022_ela_state.dta" "${path}/Semi-Processed Data Files/2022_ela_state_subgroups.dta"
+rename _2021_22_Percent_Not_Meeting_Exp Lev1_percent
+rename _2021_22_Percent_Partially_Meeti Lev2_percent
+rename _2021_22_Percent_Meeting_Expecta Lev3_percent
+rename _2021_22_Percent_Exceeding_Expec Lev4_percent
+rename _2021_22_Percent_Meeting_Or_Exce ProficientOrAbove_percent
+save "${path}/Semi-Processed Data Files/2022_ela.dta", replace
 
-** Standardize Variable Names in Subgroup Data
+** 2021-22 Math State Data
 
-rename I StudentSubGroup_TotalTested
-rename J ParticipationRate
-rename K Lev1_percent
-rename L Lev2_percent
-rename M Lev3_percent
-rename N Lev4_percent
-rename O ProficientOrAbove_percent
-rename P AvgScaleScore
-rename Q AverageStudentGrowthPercentile
-rename R PercentLowGrowth
-rename S PercentTypicalGrowth
-rename T PercentHighGrowth
-rename U StandardError
+import excel "${path}/Original Data Files/RI_OriginalData_2022_mat_state.xlsx", sheet("By_State_AndGrade") firstrow clear
+drop AL AK AJ AI AH AG
+foreach v of var * {
+    local lbl : var label `v'
+    local lbl = strtoname("`lbl'")
+    rename `v' `lbl'
+}
+gen DataLevel = "State"
+save "${path}/Semi-Processed Data Files/2022_mat_state.dta", replace
+import excel "${path}/Original Data Files/RI_OriginalData_2022_mat_state.xlsx", sheet("By_State_Subgroups") firstrow clear
+drop AL AK AJ AI AH
+foreach v of var * {
+    local lbl : var label `v'
+    local lbl = strtoname("`lbl'")
+    rename `v' `lbl'
+}
+gen DataLevel = "State"
+gen StudentGroup_TotalTested = "59741"
+save "${path}/Semi-Processed Data Files/2022_mat_state_subgroups.dta", replace
 
-** Drop Excess Variables
+** 2021-22 Math District Data
 
-drop V W X Y Z AA AB AC AD AE AF AG AH
-save "${path}/Semi-Processed Data Files/2022_ela_subgroups.dta", replace
+import excel "${path}/Original Data Files/RI_OriginalData_2022_mat_district.xlsx", sheet("By_District_AndGrade") firstrow clear
+drop AL AK AJ AI
+foreach v of var * {
+    local lbl : var label `v'
+    local lbl = strtoname("`lbl'")
+    rename `v' `lbl'
+}
+gen DataLevel = "District"
+save "${path}/Semi-Processed Data Files/2022_mat_district.dta", replace
 
-** Generate Student Group Data
+** Generate Student Group District Data
 
-drop if Group != "Gender"
-destring StudentSubGroup_TotalTested, replace
-collapse (sum) StudentSubGroup_TotalTested, by(AssessmentName SchoolCode)
-rename StudentSubGroup_TotalTested StudentGroup_TotalTested
-save "${path}/Semi-Processed Data Files/2022_ela_groups.dta", replace
-clear
-use "${path}/Semi-Processed Data Files/2022_ela_subgroups.dta"
-merge m:1 AssessmentName SchoolCode using "/Users/willtolmie/Documents/State Repository Research/Rhode Island/Semi-Processed Data Files/2022_ela_groups.dta"
-drop if _merge != 3
-drop _merge
+import excel "${path}/Original Data Files/RI_OriginalData_2022_mat_district.xlsx", sheet("By_District") firstrow clear
+destring E, generate(StudentGroup_TotalTested)
+collapse (sum) StudentGroup_TotalTested, by(AssessmentName DistrictCode)
+save "${path}/Semi-Processed Data Files/2022_mat_district_group.dta", replace
+import excel "${path}/Original Data Files/RI_OriginalData_2022_mat_district.xlsx", sheet("By_District_Subgroups") firstrow clear
+merge m:1 AssessmentName DistrictCode using "${path}/Semi-Processed Data Files/2022_mat_district_group.dta"
+drop _merge AL AK AJ
+foreach v of var * {
+    local lbl : var label `v'
+    local lbl = strtoname("`lbl'")
+    rename `v' `lbl'
+}
+gen DataLevel = "District"
+save "${path}/Semi-Processed Data Files/2022_mat_district_subgroups.dta", replace
 
-** Merge Grade and Subgroup Data
-
-append using "${path}/Semi-Processed Data Files/2022_ela_grade_unmerged.dta"
-save "${path}/Semi-Processed Data Files/2022_ela_unmerged.dta", replace
-
-** 2021-22 Math Data
+** 2021-22 Math School Data
 
 import excel "${path}/Original Data Files/RI_OriginalData_2022_mat.xlsx", sheet("By_School_AndGrade") firstrow clear
+drop AL AK
+foreach v of var * {
+    local lbl : var label `v'
+    local lbl = strtoname("`lbl'")
+    rename `v' `lbl'
+}
+gen DataLevel = "School"
+save "${path}/Semi-Processed Data Files/2022_mat_school.dta", replace
 
-** Standardize Variable Names in Grade Data
+** Generate Student Group School Data
 
-rename H StudentSubGroup_TotalTested
-rename I ParticipationRate
-rename J Lev1_percent
-rename K Lev2_percent
-rename L Lev3_percent
-rename M Lev4_percent
-rename N ProficientOrAbove_percent
-rename O AvgScaleScore
-rename P AverageStudentGrowthPercentile
-rename Q PercentLowGrowth
-rename R PercentTypicalGrowth
-rename S PercentHighGrowth
-rename T StandardError
-
-** Drop Excess Variables
-
-drop U V W X Y Z AA AB AC AD AE AF AG
-save "${path}/Semi-Processed Data Files/2022_math_grade_unmerged.dta", replace
+import excel "${path}/Original Data Files/RI_OriginalData_2022_mat.xlsx", sheet("By_School") firstrow clear
+destring G, generate(StudentGroup_TotalTested)
+collapse (sum) StudentGroup_TotalTested, by(AssessmentName SchoolCode)
+save "${path}/Semi-Processed Data Files/2022_mat_school_group.dta", replace
 import excel "${path}/Original Data Files/RI_OriginalData_2022_mat.xlsx", sheet("By_School_Subgroups") firstrow clear
+merge m:1 AssessmentName SchoolCode using "${path}/Semi-Processed Data Files/2022_mat_school_group.dta"
+drop _merge AL
+foreach v of var * {
+    local lbl : var label `v'
+    local lbl = strtoname("`lbl'")
+    rename `v' `lbl'
+}
+gen DataLevel = "School"
+append using "${path}/Semi-Processed Data Files/2022_mat_school.dta" "${path}/Semi-Processed Data Files/2022_mat_district.dta" "${path}/Semi-Processed Data Files/2022_mat_district_subgroups.dta" "${path}/Semi-Processed Data Files/2022_mat_state.dta" "${path}/Semi-Processed Data Files/2022_mat_state_subgroups.dta"
+rename _2021_22_Percent_Not_Meeting_Exp Lev1_percent
+rename _2021_22_Percent_Partially_Meeti Lev2_percent
+rename _2021_22_Percent_Meeting_Expecta Lev3_percent
+rename _2021_22_Percent_Exceeding_Expec Lev4_percent
+rename _2021_22_Percent_Meeting_Or_Exce ProficientOrAbove_percent
+save "${path}/Semi-Processed Data Files/2022_mat.dta", replace
 
-** Standardize Variable Names in Subgroup Data
+** 2021-22 Science State Data
 
-rename I StudentSubGroup_TotalTested
-rename J ParticipationRate
-rename K Lev1_percent
-rename L Lev2_percent
-rename M Lev3_percent
-rename N Lev4_percent
-rename O ProficientOrAbove_percent
-rename P AvgScaleScore
-rename Q AverageStudentGrowthPercentile
-rename R PercentLowGrowth
-rename S PercentTypicalGrowth
-rename T PercentHighGrowth
-rename U StandardError
+import excel "${path}/Original Data Files/RI_OriginalData_2022_sci_state.xlsx", sheet("By_State_AndGrade") firstrow clear
+drop Y Z AA AB AC AD AE AF AG AH AI AJ AK AL
+foreach v of var * {
+    local lbl : var label `v'
+    local lbl = strtoname("`lbl'")
+    rename `v' `lbl'
+}
+gen DataLevel = "State"
+save "${path}/Semi-Processed Data Files/2022_sci_state.dta", replace
+import excel "${path}/Original Data Files/RI_OriginalData_2022_sci_state.xlsx", sheet("By_State_Subgroups") firstrow clear
+drop Z AA AB AC AD AE AF AG AH AI AJ AK AL
+foreach v of var * {
+    local lbl : var label `v'
+    local lbl = strtoname("`lbl'")
+    rename `v' `lbl'
+}
+gen DataLevel = "State"
+gen StudentGroup_TotalTested = "20253"
+save "${path}/Semi-Processed Data Files/2022_sci_state_subgroups.dta", replace
 
-** Drop Excess Variables
+** 2021-22 Science District Data
 
-drop V W X Y Z AA AB AC AD AE AF AG AH
-save "${path}/Semi-Processed Data Files/2022_math_subgroups.dta", replace
+import excel "${path}/Original Data Files/RI_OriginalData_2022_sci_district.xlsx", sheet("By_District_AndGrade") firstrow clear
+drop AA AB AC AD AE AF AG AH AI AJ AK AL
+foreach v of var * {
+    local lbl : var label `v'
+    local lbl = strtoname("`lbl'")
+    rename `v' `lbl'
+}
+gen DataLevel = "District"
+save "${path}/Semi-Processed Data Files/2022_sci_district.dta", replace
 
-** Generate Student Group Data
+** Generate Student Group District Data
 
-drop if Group != "Gender"
-destring StudentSubGroup_TotalTested, replace
-collapse (sum) StudentSubGroup_TotalTested, by(AssessmentName SchoolCode)
-rename StudentSubGroup_TotalTested StudentGroup_TotalTested
-save "${path}/Semi-Processed Data Files/2022_math_groups.dta", replace
-clear
-use "${path}/Semi-Processed Data Files/2022_math_subgroups.dta"
-merge m:1 AssessmentName SchoolCode using "/Users/willtolmie/Documents/State Repository Research/Rhode Island/Semi-Processed Data Files/2022_math_groups.dta"
-drop if _merge != 3
-drop _merge
+import excel "${path}/Original Data Files/RI_OriginalData_2022_sci_district.xlsx", sheet("By_District") firstrow clear
+destring E, generate(StudentGroup_TotalTested)
+collapse (sum) StudentGroup_TotalTested, by(AssessmentName DistrictCode)
+save "${path}/Semi-Processed Data Files/2022_sci_district_group.dta", replace
+import excel "${path}/Original Data Files/RI_OriginalData_2022_sci_district.xlsx", sheet("By_District_Subgroups") firstrow clear
+merge m:1 AssessmentName DistrictCode using "${path}/Semi-Processed Data Files/2022_sci_district_group.dta"
+drop _merge AB AC AD AE AF AG AH AI AJ AK AL
+foreach v of var * {
+    local lbl : var label `v'
+    local lbl = strtoname("`lbl'")
+    rename `v' `lbl'
+}
+gen DataLevel = "District"
+save "${path}/Semi-Processed Data Files/2022_sci_district_subgroups.dta", replace
 
-** Merge Grade and Subgroup Data
-
-append using "${path}/Semi-Processed Data Files/2022_math_grade_unmerged.dta"
-save "${path}/Semi-Processed Data Files/2022_math_unmerged.dta", replace
-
-** 2021-22 Science Data
+** 2021-22 Science School Data
 
 import excel "${path}/Original Data Files/RI_OriginalData_2022_sci.xlsx", sheet("By_School") firstrow clear
+drop AB AC AD AE AF AG AH AI AJ AK AL
+foreach v of var * {
+    local lbl : var label `v'
+    local lbl = strtoname("`lbl'")
+    rename `v' `lbl'
+}
+gen DataLevel = "School"
+save "${path}/Semi-Processed Data Files/2022_sci_school.dta", replace
 
-** Standardize Variable Names in All Students Data
+** Generate Student Group District Data
 
-rename G StudentSubGroup_TotalTested
-rename H ParticipationRate
-rename I Lev1_percent
-rename J Lev2_percent
-rename K Lev3_percent
-rename L Lev4_percent
-rename M ProficientOrAbove_percent
-rename N AvgScaleScore
-rename O StandardError
-
-** Drop Excess Variables
-
-drop P Q R S T U V W X
-save "${path}/Semi-Processed Data Files/2022_sci_all_unmerged.dta", replace
+destring _2021_22_Number_Tested, generate(StudentGroup_TotalTested)
+collapse (sum) StudentGroup_TotalTested, by(AssessmentName SchoolCode)
+save "${path}/Semi-Processed Data Files/2022_sci_school_group.dta", replace
 import excel "${path}/Original Data Files/RI_OriginalData_2022_sci.xlsx", sheet("By_School_Subgroups") firstrow clear
-
-** Standardize Variable Names in Subgroup Data
-
-rename I StudentSubGroup_TotalTested
-rename J ParticipationRate
-rename K Lev1_percent
-rename L Lev2_percent
-rename M Lev3_percent
-rename N Lev4_percent
-rename O ProficientOrAbove_percent
-rename P AvgScaleScore
-rename Q StandardError
-
-** Drop Excess Variables
-
-drop R S T U V W X Y Z
-save "${path}/Semi-Processed Data Files/2022_sci_subgroups.dta", replace
-
-** Generate Student Group Data
-drop if Group != "Gender"
-destring StudentSubGroup_TotalTested, replace
-collapse (sum) StudentSubGroup_TotalTested, by(AssessmentName SchoolCode)
-rename StudentSubGroup_TotalTested StudentGroup_TotalTested
-save "${path}/Semi-Processed Data Files/2022_sci_groups.dta", replace
-clear
-use "${path}/Semi-Processed Data Files/2022_sci_all_unmerged.dta"
-merge m:1 AssessmentName SchoolCode using "/Users/willtolmie/Documents/State Repository Research/Rhode Island/Semi-Processed Data Files/2022_sci_groups.dta"
-drop if _merge != 3
-drop _merge
-
-** Merge All Students and Subgroup Data
-
-append using "${path}/Semi-Processed Data Files/2022_sci_subgroups.dta"
+merge m:1 AssessmentName SchoolCode using "${path}/Semi-Processed Data Files/2022_sci_school_group.dta"
+drop _merge AD AE AF AG AH AI AJ AK AL
+foreach v of var * {
+    local lbl : var label `v'
+    local lbl = strtoname("`lbl'")
+    rename `v' `lbl'
+}
+gen DataLevel = "School"
+append using "${path}/Semi-Processed Data Files/2022_sci_school.dta" "${path}/Semi-Processed Data Files/2022_sci_district.dta" "${path}/Semi-Processed Data Files/2022_sci_district_subgroups.dta" "${path}/Semi-Processed Data Files/2022_sci_state.dta" "${path}/Semi-Processed Data Files/2022_sci_state_subgroups.dta"
+rename _2021_22_Percent_Beginning_To_Me Lev1_percent
+rename _2021_22_Percent_Approaching_Exp Lev2_percent
+rename _2021_22_Percent_Meeting_Expecta Lev3_percent
+rename _2021_22_Percent_Exceeds_Expecta Lev4_percent
+rename _2021_22_Percent_Meeting_Or_Exce ProficientOrAbove_percent
+save "${path}/Semi-Processed Data Files/2022_sci.dta", replace
 
 ** Merge 2021-22 Assessments
 
-append using "${path}/Semi-Processed Data Files/2022_ela_unmerged.dta" "${path}/Semi-Processed Data Files/2022_math_unmerged.dta"
+append using "${path}/Semi-Processed Data Files/2022_ela.dta" "${path}/Semi-Processed Data Files/2022_mat.dta"
 
 ** Rename Variables
 
@@ -305,13 +392,16 @@ rename SchoolName SchName
 rename Grade GradeLevel
 rename Group StudentGroup
 rename GroupName StudentSubGroup
+rename _2021_22_Number_Tested StudentSubGroup_TotalTested
+rename _2021_22_Average_Scale_Score AvgScaleScore
+rename _2021_22_Percent_Tested ParticipationRate
 
 ** Generate Flags
 
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_read = ""
+gen Flag_CutScoreChange_read = "N"
 gen Flag_CutScoreChange_oth = "N"
 
 ** Label Flags
@@ -327,19 +417,20 @@ label var Flag_CutScoreChange_oth "Flag denoting a change in scoring determinati
 gen Subject = "ela"
 replace Subject = "math" if AssmtName == "RICAS - Mathematics"
 replace Subject = "sci" if AssmtName == "NGSA - Science"
+tostring _sum__StudentGroup_TotalTested, replace
+replace StudentGroup_TotalTested = _sum__StudentGroup_TotalTested if StudentGroup_TotalTested == ""
 gen AssmtType = "Regular"
-gen DataLevel = "School"
 gen ProficiencyCriteria = "Levels 3 and 4"
 
 ** Generate Empty Variables
 
-gen ProficientOrAbove_count = .
-gen Lev1_count = .
-gen Lev2_count = .
-gen Lev3_count = .
-gen Lev4_count = .
-gen Lev5_percent = .
-gen Lev5_count = .
+gen ProficientOrAbove_count = "*"
+gen Lev1_count = "*"
+gen Lev2_count = "*"
+gen Lev3_count = "*"
+gen Lev4_count = "*"
+gen Lev5_percent = "*"
+gen Lev5_count = "*"
 
 ** Label Variables
 
@@ -375,19 +466,19 @@ label var ParticipationRate "Participation rate."
 
 ** Drop Excess Variables
 
-drop StandardError PercentTestedChange ChangeinPercentMeetingOrExc StatisticallySignificant AverageStudentGrowthPercentile PercentLowGrowth PercentTypicalGrowth PercentHighGrowth AB AC AD AE AF AG AH AI AJ AK AL
+drop _sum__StudentGroup_TotalTested _2021_22_Standard_Error _2021_22_Percent_Typical_Growth _2021_22_Percent_Low_Growth _2021_22_Percent_High_Growth _2021_22_Average_Student_Growth_ _2020_21_Standard_Error _2020_21_Percent_Typical_Growth _2020_21_Percent_Tested _2020_21_Percent_Partially_Meeti _2020_21_Percent_Not_Meeting_Exp _2020_21_Percent_Meeting_Or_Exce _2020_21_Percent_Meeting_Expecta _2020_21_Percent_Low_Growth _2020_21_Percent_High_Growth _2020_21_Percent_Exceeds_Expecta _2020_21_Percent_Exceeding_Expec _2020_21_Percent_Beginning_To_Me _2020_21_Percent_Approaching_Exp _2020_21_Number_Tested _2020_21_Average_Student_Growth_ _2020_21_Average_Scale_Score Change_in_Percent_Meeting_Or_Exc Percent_Tested_Change Statistically_Significant_
 
 ** Merge NCES District Data
 
 gen state_leaidnumber =.
 gen State_leaid = string(state_leaidnumber)
 drop state_leaidnumber
-replace State_leaid = "RI-" + StateAssignedDistID 
+replace State_leaid = "RI-" + StateAssignedDistID if DataLevel != "State"
 label var State_leaid "State LEA ID"
 gen seaschnumber=.
 gen seasch = string(seaschnumber)
 drop seaschnumber
-replace seasch = StateAssignedDistID + "-" + StateAssignedSchID
+replace seasch = StateAssignedDistID + "-" + StateAssignedSchID if DataLevel == "School"
 merge  m:1 State_leaid using "${path}/Semi-Processed Data Files/2021_22_NCES_Cleaned_District.dta"
 rename _merge district_merge
 
@@ -398,8 +489,9 @@ merge m:1 seasch StateFips using "${path}/Semi-Processed Data Files/2021_22_NCES
 
 ** Drop Unmerged NCES Observations
 
-drop if district_merge != 3
-drop district_merge _merge 
+drop if district_merge != 3 & _merge !=3 & DataLevel != "State"
+keep if SchYear == "2021-22"
+drop district_merge _merge
 
 ** Standardize Variable Types
 
@@ -423,48 +515,57 @@ destring NCESDistrictID, replace
 destring CountyCode, replace
 destring NCESSchoolID, replace
 
-** Relabel GradeLevel Values
+** Standardize State Data
 
-drop if SchoolLevel=="High"
+replace State = "Rhode Island"
+replace StateAbbrev = "RI"
+replace StateFips = 44
+
+** Relabel GradeLevel Values 
+
 replace GradeLevel="G03" if GradeLevel=="03"
 replace GradeLevel="G04" if GradeLevel=="04"
 replace GradeLevel="G05" if GradeLevel=="05"
 replace GradeLevel="G06" if GradeLevel=="06"
 replace GradeLevel="G07" if GradeLevel=="07"
 replace GradeLevel="G08" if GradeLevel=="08"
-replace GradeLevel="G08" if SchoolLevel=="Middle" & AssmtName=="NGSA - Science"
-replace GradeLevel="G05" if SchoolLevel=="Primary" & AssmtName=="NGSA - Science"
-replace lowest_grade_offered="03" if lowest_grade_offered=="PK"
-replace lowest_grade_offered="03" if lowest_grade_offered=="KG"
-replace lowest_grade_offered="03" if lowest_grade_offered=="01"
-replace lowest_grade_offered="03" if lowest_grade_offered=="02"
-replace highest_grade_offered="08" if highest_grade_offered=="09"
-replace highest_grade_offered="08" if highest_grade_offered=="10"
-replace highest_grade_offered="08" if highest_grade_offered=="11"
-replace highest_grade_offered="08" if highest_grade_offered=="12"
-gen graderangenumber=.
-gen graderange = string(graderangenumber)
-replace graderange = "G" + lowest_grade_offered + highest_grade_offered
-replace GradeLevel="G03" if graderange=="G0303"
-replace GradeLevel="G04" if graderange=="G0404"
-replace GradeLevel="G05" if graderange=="G0505"
-replace GradeLevel="G06" if graderange=="G0606"
-replace GradeLevel="G07" if graderange=="G0707"
-replace GradeLevel="G08" if graderange=="G0808"
-replace GradeLevel = subinstr(graderange,"0", "", 2) if GradeLevel=="" & Subject!="sci"
-replace GradeLevel="G05" if graderange=="G0305" & Subject=="sci"
-replace GradeLevel="G05" if graderange=="G0306" & Subject=="sci" 
-replace GradeLevel="G05" if graderange=="G0307" & Subject=="sci"
-replace GradeLevel="G05, G08" if graderange=="G0308" & Subject=="sci"
-replace GradeLevel="G05" if graderange=="G0405" & Subject=="sci"
-replace GradeLevel="G05" if graderange=="G0506" & Subject=="sci" 
-replace GradeLevel="G05" if graderange=="G0507" & Subject=="sci"
-replace GradeLevel="G05, G08" if graderange=="G0508" & Subject=="sci"
-replace GradeLevel="G08" if graderange=="G0608" & Subject=="sci"
-replace GradeLevel="G08" if graderange=="G0708" & Subject=="sci" 
-drop lowest_grade_offered highest_grade_offered graderangenumber graderange
+replace GradeLevel="G38" if DataLevel=="State" & GradeLevel==""
+replace GradeLevel="G38" if GradeLevel=="STATE"
+
+** Relabel GradeLevel Values for School Data
+
+replace GradeLevel="G08" if SchoolLevel=="Middle" & Subject=="sci"
+replace GradeLevel="G05" if SchoolLevel=="Primary" & Subject=="sci"
+replace lowest_grade_offered="03" if lowest_grade_offered=="PK" | lowest_grade_offered=="KG" | lowest_grade_offered=="01" | lowest_grade_offered=="02"
+gen lowgrade = lowest_grade_offered
+gen highgrade = highest_grade_offered
+replace highgrade="08" if highgrade=="09" | highgrade=="10" | highgrade=="11" | highgrade=="12"
+replace GradeLevel = "G" + lowgrade if lowgrade == highgrade & lowgrade !="" & highgrade !=""
+replace GradeLevel = "G" + subinstr(lowgrade,"0", "", 1) + subinstr(highgrade,"0", "", 2) if GradeLevel=="" & Subject!="sci" & lowgrade !="" & highgrade !=""
+replace GradeLevel= "G" + subinstr(lowest_grade_offered,"0", "", 1) + subinstr(highest_grade_offered,"0", "", 2) if GradeLevel=="" & lowest_grade_offered !="" & highest_grade_offered !=""
+drop lowest_grade_offered highest_grade_offered lowgrade highgrade
+
+** Relabel GradeLevel Values for District Data
+replace lowest_grade_district = 3 if lowest_grade_district <3
+tostring lowest_grade_district, generate(str_lowest_grade_district)
+tostring highest_grade_district, generate(str_highest_grade_district)
+replace GradeLevel="G" + str_lowest_grade_district + str_highest_grade_district if GradeLevel=="" & highest_grade_district < 9 | GradeLevel=="" & Subject == "sci"
+replace GradeLevel="G" + str_lowest_grade_district + "8" if GradeLevel=="" & highest_grade_district > 8 & highest_grade_district < 12 
+replace GradeLevel="G" + str_lowest_grade_district + "8" if GradeLevel=="" & highest_grade_district == 12 & Subject != "sci" & lowest_grade_district != 8
+replace GradeLevel="G08" if GradeLevel=="" & highest_grade_district == 12 & Subject != "sci" & lowest_grade_district == 8
+drop str_lowest_grade_district str_highest_grade_district lowest_grade_district highest_grade_district
+
+** Relabel GradeLevel Values for Science Assessment Data
+
+replace GradeLevel="G05" if GradeLevel=="G35" & Subject=="sci" | GradeLevel=="G36" & Subject=="sci" | GradeLevel=="G37" & Subject=="sci" | GradeLevel=="G38" & Subject=="sci" | GradeLevel=="G45" & Subject=="sci" | GradeLevel=="G56" & Subject=="sci"
+replace GradeLevel="G05, G08" if GradeLevel=="G39" 
+replace GradeLevel="G05, G08, G11" if GradeLevel=="G312" & Subject=="sci"
+replace GradeLevel="G08" if GradeLevel=="G78" & Subject=="sci"
+replace GradeLevel="G08, G11" if GradeLevel=="G612" | GradeLevel=="G712" | GradeLevel=="G812"
+replace GradeLevel="G11" if GradeLevel=="11" | GradeLevel=="G912"
 
 ** Relabel Charter Values
+
 replace Charter="Yes" if DistrictType=="Charter agency"
 replace Charter="No" if DistrictType !="Charter agency"
 
@@ -477,13 +578,13 @@ replace AssmtName="NGSA" if AssmtName=="NGSA - Science"
 
 replace StudentGroup="Race" if StudentGroup=="Race/Ethnicity"
 replace StudentGroup="EL status" if StudentGroup=="English Learner"
+replace StudentGroup="Economic status" if StudentGroup=="Economically Disadvantaged"
 drop if StudentGroup=="Homeless"
 drop if StudentGroup=="Special Education"
 drop if StudentGroup=="Accommodations"
 drop if StudentGroup=="Migrant"
 drop if StudentGroup=="Active Military Parent"
 drop if StudentGroup=="Foster Care"
-drop if StudentGroup=="Economically Disadvantaged"
 replace StudentGroup="All students" if StudentGroup==""
 replace StudentSubGroup="All students" if StudentGroup=="All students"
 replace StudentSubGroup="Two or More" if StudentSubGroup=="Two or More Races"
@@ -495,11 +596,49 @@ replace StudentSubGroup="Other" if StudentSubGroup=="Recently (3 yrs) Exited Eng
 replace StudentGroup="All students" if StudentGroup==""
 replace StudentSubGroup="All students" if StudentSubGroup==""
 replace StudentGroup_TotalTested=StudentSubGroup_TotalTested if StudentGroup=="All students"
-save "${path}/Semi-Processed Data Files/2022_missing_studentgroup_totaltested.dta", replace
 
-* Fix Variable Order 
+** Standardize Suppressed Proficiency Data
+
+replace Lev1_percent="*" if Lev1_percent=="**" | Lev1_percent=="***"
+replace Lev2_percent="*" if Lev2_percent=="**" | Lev2_percent=="***"
+replace Lev3_percent="*" if Lev3_percent=="**" | Lev3_percent=="***"
+replace Lev4_percent="*" if Lev4_percent=="**" | Lev4_percent=="***"
+
+** Convert Proficiency Data into Percentages
+
+foreach v of varlist Lev* {
+	destring `v', g(n`v') i(* -)
+	replace n`v' = n`v' / 100 if n`v' != .
+	tostring n`v', replace force
+	replace `v' = n`v' if `v' != "*"
+	drop n`v'
+}
+
+destring ProficientOrAbove_percent, generate(nProficientOrAbove_percent) force
+replace nProficientOrAbove_percent = nProficientOrAbove_percent / 100 if nProficientOrAbove_percent != .
+tostring nProficientOrAbove_percent, replace force
+replace ProficientOrAbove_percent = nProficientOrAbove_percent if ProficientOrAbove_percent != "*"
+drop nProficientOrAbove_percent
+
+destring ParticipationRate, generate(nParticipationRate) force
+replace nParticipationRate = nParticipationRate / 100 if nParticipationRate != .
+tostring nParticipationRate, replace force
+replace ParticipationRate = nParticipationRate if ParticipationRate != "*"
+drop nParticipationRate
+
+** Standardize Non-School Level Data
+
+replace SchName = "Statewide" if DataLevel == "State"
+replace SchName = "Districtwide" if DataLevel == "District"
+replace DistName = "Statewide" if DataLevel == "State"
+
+** Fix Variable Order 
 
 order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
+
+** Drop 11th Grade Science Assessment Data
+
+drop if GradeLevel == "G11"
 
 ** Export 2021-22 Assessment Data
 
