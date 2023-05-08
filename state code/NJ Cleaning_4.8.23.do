@@ -630,6 +630,12 @@ replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
 
 gen ParticipationRate =.
 
+replace SchName = "Statewide" if DataLevel == "State"
+replace DistName = "Statewide" if DataLevel == "State"
+replace StateAssignedDistID = "" if DataLevel == "State"
+replace SchName = "Districtwide" if DataLevel == "District"
+replace StateAssignedSchID = "" if DataLevel != "School"
+
 save "${data}/NJ_AssmtData_2015", replace
 
 //Clean NCES Data
@@ -1359,6 +1365,12 @@ replace Lev5_percent = "*" if Lev5_percent == "."
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
 
 gen ParticipationRate =.
+
+replace SchName = "Statewide" if DataLevel == "State"
+replace DistName = "Statewide" if DataLevel == "State"
+replace StateAssignedDistID = "" if DataLevel == "State"
+replace SchName = "Districtwide" if DataLevel == "District"
+replace StateAssignedSchID = "" if DataLevel != "School"
 
 save "${data}/NJ_AssmtData_2016", replace
 
@@ -2091,6 +2103,12 @@ replace Lev5_percent = "*" if Lev5_percent == "."
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
 gen ParticipationRate =.
 
+replace SchName = "Statewide" if DataLevel == "State"
+replace DistName = "Statewide" if DataLevel == "State"
+replace StateAssignedDistID = "" if DataLevel == "State"
+replace SchName = "Districtwide" if DataLevel == "District"
+replace StateAssignedSchID = "" if DataLevel != "School"
+
 save "${data}/NJ_AssmtData_2017", replace
 
 //Clean NCES Data
@@ -2795,6 +2813,12 @@ replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
 gen ParticipationRate =.
 
 drop S
+
+replace SchName = "Statewide" if DataLevel == "State"
+replace DistName = "Statewide" if DataLevel == "State"
+replace StateAssignedDistID = "" if DataLevel == "State"
+replace SchName = "Districtwide" if DataLevel == "District"
+replace StateAssignedSchID = "" if DataLevel != "School"
 
 save "${data}/NJ_AssmtData_2018", replace
 
@@ -3596,6 +3620,12 @@ replace Lev5_percent = "*" if Lev5_percent == "."
 replace Lev5_percent = "" if Subject == "sci"
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
 gen ParticipationRate =.
+
+replace SchName = "Statewide" if DataLevel == "State"
+replace DistName = "Statewide" if DataLevel == "State"
+replace StateAssignedDistID = "" if DataLevel == "State"
+replace SchName = "Districtwide" if DataLevel == "District"
+replace StateAssignedSchID = "" if DataLevel != "School"
 
 save "${data}/NJ_AssmtData_2019", replace
 
@@ -4415,6 +4445,12 @@ replace Lev5_percent = "" if Subject == "sci"
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
 
 gen ParticipationRate =.
+
+replace SchName = "Statewide" if DataLevel == "State"
+replace DistName = "Statewide" if DataLevel == "State"
+replace StateAssignedDistID = "" if DataLevel == "State"
+replace SchName = "Districtwide" if DataLevel == "District"
+replace StateAssignedSchID = "" if DataLevel != "School"
 
 save "${data}/NJ_AssmtData_2022", replace
 

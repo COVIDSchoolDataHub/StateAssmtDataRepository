@@ -120,9 +120,12 @@ replace Subject = "read" if Subject == "Reading"
 replace Subject = "sci" if Subject == "Science"
 replace Subject = "soc" if Subject == "Social Studies"
 
-//Statewide Data
+//State and District Data
 replace SchName = "Statewide" if DataLevel == "State"
 replace DistName = "Statewide" if DataLevel == "State"
+replace StateAssignedDistID = "" if DataLevel == "State"
+replace SchName = "Districtwide" if DataLevel == "District"
+replace StateAssignedSchID = "" if DataLevel != "School"
 
 save "$GAdata/GA_AssmtData_2011.dta", replace
 
@@ -393,6 +396,9 @@ replace Subject = "soc" if Subject == "Social Studies"
 //Statewide Data
 replace SchName = "Statewide" if DataLevel == "State"
 replace DistName = "Statewide" if DataLevel == "State"
+replace StateAssignedDistID = "" if DataLevel == "State"
+replace SchName = "Districtwide" if DataLevel == "District"
+replace StateAssignedSchID = "" if DataLevel != "School"
 
 save "$GAdata/GA_AssmtData_2012.dta", replace
 
@@ -626,6 +632,9 @@ replace Subject = "soc" if Subject == "Social Studies"
 //Statewide Data
 replace SchName = "Statewide" if DataLevel == "State"
 replace DistName = "Statewide" if DataLevel == "State"
+replace StateAssignedDistID = "" if DataLevel == "State"
+replace SchName = "Districtwide" if DataLevel == "District"
+replace StateAssignedSchID = "" if DataLevel != "School"
 
 save "$GAdata/GA_AssmtData_2013.dta", replace
 
@@ -859,6 +868,9 @@ replace Subject = "soc" if Subject == "Social Studies"
 //Statewide Data
 replace SchName = "Statewide" if DataLevel == "State"
 replace DistName = "Statewide" if DataLevel == "State"
+replace StateAssignedDistID = "" if DataLevel == "State"
+replace SchName = "Districtwide" if DataLevel == "District"
+replace StateAssignedSchID = "" if DataLevel != "School"
 
 save "$GAdata/GA_AssmtData_2014.dta", replace
 
@@ -1113,6 +1125,9 @@ replace Subject = "soc" if Subject == "Social Studies"
 //Statewide Data
 replace SchName = "Statewide" if DataLevel == "State"
 replace DistName = "Statewide" if DataLevel == "State"
+replace StateAssignedDistID = "" if DataLevel == "State"
+replace SchName = "Districtwide" if DataLevel == "District"
+replace StateAssignedSchID = "" if DataLevel != "School"
 
 save "$GAdata/GA_AssmtData_2015.dta", replace
 
@@ -1350,6 +1365,9 @@ replace Subject = "soc" if Subject == "Social Studies"
 //Statewide Data
 replace SchName = "Statewide" if DataLevel == "State"
 replace DistName = "Statewide" if DataLevel == "State"
+replace StateAssignedDistID = "" if DataLevel == "State"
+replace SchName = "Districtwide" if DataLevel == "District"
+replace StateAssignedSchID = "" if DataLevel != "School"
 
 save "$GAdata/GA_AssmtData_2016.dta", replace
 
@@ -1587,6 +1605,9 @@ replace Subject = "soc" if Subject == "Social Studies"
 //Statewide Data
 replace SchName = "Statewide" if DataLevel == "State"
 replace DistName = "Statewide" if DataLevel == "State"
+replace StateAssignedDistID = "" if DataLevel == "State"
+replace SchName = "Districtwide" if DataLevel == "District"
+replace StateAssignedSchID = "" if DataLevel != "School"
 
 save "$GAdata/GA_AssmtData_2017.dta", replace
 
@@ -1945,6 +1966,9 @@ replace Subject = "soc" if Subject == "Social Studies"
 //Statewide Data
 replace SchName = "Statewide" if DataLevel == "State"
 replace DistName = "Statewide" if DataLevel == "State"
+replace StateAssignedDistID = "" if DataLevel == "State"
+replace SchName = "Districtwide" if DataLevel == "District"
+replace StateAssignedSchID = "" if DataLevel != "School"
 
 save "$GAdata/GA_AssmtData_2018.dta", replace
 
@@ -2344,6 +2368,9 @@ replace Subject = "soc" if Subject == "Social Studies"
 //Statewide Data
 replace SchName = "Statewide" if DataLevel == "State"
 replace DistName = "Statewide" if DataLevel == "State"
+replace StateAssignedDistID = "" if DataLevel == "State"
+replace SchName = "Districtwide" if DataLevel == "District"
+replace StateAssignedSchID = "" if DataLevel != "School"
 
 save "$GAdata/GA_AssmtData_2019.dta", replace
 
@@ -2759,6 +2786,9 @@ replace Subject = "soc" if Subject == "Social Studies"
 //Statewide Data
 replace SchName = "Statewide" if DataLevel == "State"
 replace DistName = "Statewide" if DataLevel == "State"
+replace StateAssignedDistID = "" if DataLevel == "State"
+replace SchName = "Districtwide" if DataLevel == "District"
+replace StateAssignedSchID = "" if DataLevel != "School"
 
 save "$GAdata/GA_AssmtData_2021.dta", replace
 
@@ -3202,6 +3232,9 @@ replace Subject = "soc" if Subject == "Social Studies"
 //Statewide Data
 replace SchName = "Statewide" if DataLevel == "State"
 replace DistName = "Statewide" if DataLevel == "State"
+replace StateAssignedDistID = "" if DataLevel == "State"
+replace SchName = "Districtwide" if DataLevel == "District"
+replace StateAssignedSchID = "" if DataLevel != "School"
 
 save "$GAdata/GA_AssmtData_2022.dta", replace
 
