@@ -15,7 +15,7 @@ rename state_leaid State_leaid
 rename charter Charter
 rename county_code CountyCode
 rename ncesschoolid NCESSchoolID
-rename virtual Virtual 
+rename virtual Virtual
 rename school_level SchoolLevel
 rename lea_name DistName
 rename school_type SchoolType
@@ -27,19 +27,18 @@ decode State, gen(State2)
 decode Charter, gen(Charter2)
 decode SchoolLevel, gen(SchoolLevel2)
 decode SchoolType, gen(SchoolType2)
-decode Virtual, gen(Virtual2)
-drop State Charter SchoolLevel SchoolType Virtual
+drop State Charter SchoolLevel SchoolType
 rename State2 State
 rename Charter2 Charter
 rename SchoolLevel2 SchoolLevel 
-rename SchoolType2 SchoolType 
-rename Virtual2 Virtual
+rename SchoolType2 SchoolType
 tostring seasch, replace
+tostring Virtual, replace force
 replace seasch = State_leaid + "-" + seasch
 
 ** Drop Excess Variables
 
-drop year school_id school_name urban_centric_locale school_status lowest_grade_offered highest_grade_offered bureau_indian_education lunch_program free_lunch reduced_price_lunch free_or_reduced_price_lunch enrollment 
+drop year school_id school_name urban_centric_locale school_status lowest_grade_offered highest_grade_offered bureau_indian_education lunch_program free_lunch reduced_price_lunch free_or_reduced_price_lunch enrollment
 
 ** Label Variables
 
@@ -69,26 +68,23 @@ use "${path}/NCES/District/NCES_2013_District.dta"
 ** Rename Variables
 
 rename ncesdistrictid NCESDistrictID
-rename state_name State
 rename state_leaid State_leaid
 rename state_location StateAbbrev
 rename county_code CountyCode
 rename county_name CountyName
 rename district_agency_type DistrictType
-rename state_fips StateFips
-
-** Fix Variable Types
-
-decode State, gen(State2)
-decode DistrictType, gen(DistrictType2)
-drop State DistrictType
-rename DistrictType2 DistrictType
-rename State2 State
-replace State_leaid = "LA-" + State_leaid
+rename fips StateFips
 
 ** Drop Excess Variables
 
-drop year lea_name
+drop year urban_centric_locale teachers_total_fte supervisory_union_number staff_total_fte spec_ed_students other_staff_fte number_of_schools migrant_students lowest_grade_offered highest_grade_offered enrollment english_language_learners bureau_indian_education boundary_change_indicator agency_level agency_charter_indicator
+
+** Fix Variable Types
+
+decode DistrictType, gen(DistrictType2)
+drop DistrictType
+rename DistrictType2 DistrictType
+replace State_leaid = "LA-" + State_leaid
 
 ** Label Variables
 
@@ -96,7 +92,6 @@ label var NCESDistrictID "NCES district ID"
 label var State_leaid "State LEA ID"
 label var CountyName "County in which the district or school is located."
 label var CountyCode "County code in which the district or school is located, also referred to as the county-level FIPS code"
-label var State "State name"
 label var StateAbbrev "State abbreviation"
 label var StateFips "State FIPS Id"
 label var DistrictType "District type as defined by NCES"
@@ -149,10 +144,9 @@ foreach gr of local grades {
 	rename B SchName
 	rename C GradeLevel
 	
-	** Drop Excess Data and Variables
+	** Drop Excess Variables
 	
 	drop id
-	drop if SchName==""
 	
 	** Export Cleaned Data by Grade
 	
@@ -163,7 +157,7 @@ foreach gr of local grades {
 ** Merge Cleaned Data by Grade
 
 use "${path}/Semi-Processed Data Files/LA_CleanedData_2014_3"
-append using "${path}/Semi-Processed Data Files/LA_CleanedData_2014_4.dta""/${path}/Semi-Processed Data Files/LA_CleanedData_2014_4.dta" "/${path}/Semi-Processed Data Files/LA_CleanedData_2014_5.dta" "${path}/Semi-Processed Data Files/LA_CleanedData_2014_6.dta""/${path}/Semi-Processed Data Files/LA_CleanedData_2014_7.dta" "/${path}/Semi-Processed Data Files/LA_CleanedData_2014_8.dta"
+append using "${path}/Semi-Processed Data Files/LA_CleanedData_2014_4.dta" "/${path}/Semi-Processed Data Files/LA_CleanedData_2014_5.dta" "${path}/Semi-Processed Data Files/LA_CleanedData_2014_6.dta""/${path}/Semi-Processed Data Files/LA_CleanedData_2014_7.dta" "/${path}/Semi-Processed Data Files/LA_CleanedData_2014_8.dta"
 
 ** Generate StateAssignedDistID and DistName Variables
 
@@ -181,13 +175,15 @@ keep if firstStateAssignedDistID==1
 drop obs group firstStateAssignedDistID 
 save "${path}/Semi-Processed Data Files/StateAssignedDistID_2014.dta", replace
 
-** Merge StateAssignedDistID and DistName Variables with Cleaned DataLevel
+** Merge StateAssignedDistID and DistName Variables with Cleaned Data
 
 clear
 use "${path}/Semi-Processed Data Files/LA_CleanedData_2014_3"
 append using "${path}/Semi-Processed Data Files/LA_CleanedData_2014_4.dta""/${path}/Semi-Processed Data Files/LA_CleanedData_2014_4.dta" "/${path}/Semi-Processed Data Files/LA_CleanedData_2014_5.dta" "${path}/Semi-Processed Data Files/LA_CleanedData_2014_6.dta""/${path}/Semi-Processed Data Files/LA_CleanedData_2014_7.dta" "/${path}/Semi-Processed Data Files/LA_CleanedData_2014_8.dta"
 gen StateAssignedDistID = substr(StateAssignedSchID,1,3)
 merge m:1 StateAssignedDistID using "${path}/Semi-Processed Data Files/StateAssignedDistID_2014.dta"
+drop if SchName ==""
+replace DistName = "LOUISIANA STATEWIDE" if SchName == "LOUISIANA STATEWIDE" 
 drop _merge
 
 ** Generate Flags
@@ -208,16 +204,16 @@ label var Flag_CutScoreChange_oth "Flag denoting a change in scoring determinati
 
 ** Generate Empty Variables
 
-gen ProficientOrAbove_count = .
-gen Lev1_count = .
-gen Lev2_count = .
-gen Lev3_count = .
-gen Lev4_count = .
-gen Lev5_count = .
-gen AvgScaleScore = .
-gen ParticipationRate = .
-gen StudentGroup_TotalTested = .
-gen StudentSubGroup_TotalTested = .
+gen ProficientOrAbove_count = "*"
+gen Lev1_count = "*"
+gen Lev2_count = "*"
+gen Lev3_count = "*"
+gen Lev4_count = "*"
+gen Lev5_count = "*"
+gen AvgScaleScore = "*"
+gen ParticipationRate = "*"
+gen StudentGroup_TotalTested = "*"
+gen StudentSubGroup_TotalTested = "*"
 
 ** Fix Variable Types
 
@@ -233,35 +229,52 @@ destring GradeLevel, replace
 gen SchYear = "2013-14"
 gen AssmtName = "LEAP"
 gen AssmtType = "Regular"
+gen l1 = length(StateAssignedSchID)
 gen DataLevel = "School"
+replace DataLevel = "District" if l1==3
+replace DataLevel = "State" if l1==5
+drop l1
 gen StudentSubGroup = "All students"
 gen StudentGroup = "All students"
 gen ProficiencyCriteria = "Levels 4 and 5"
-drop if StateAssignedDistID == StateAssignedSchID | StateAssignedDistID == "Sit" | StateAssignedDistID == "STA"
 replace Lev1_percent = "*" if Lev1_percent=="NR"
 replace Lev2_percent = "*" if Lev2_percent=="NR"
 replace Lev3_percent = "*" if Lev3_percent=="NR"
 replace Lev4_percent = "*" if Lev4_percent=="NR"
 replace Lev5_percent = "*" if Lev5_percent=="NR"
 
-** Generate Proficienct or Above Percent
+** Convert Proficiency Data into Percentages
+
+foreach v of varlist Lev* {
+	generate lessthan`v'=0
+	replace lessthan`v'=1 if `v'=="≤1"
+	replace `v'="*" if `v'== "≤1"
+	destring `v', g(n`v') i(* -) force
+	replace n`v' = n`v' / 100 if n`v' != .
+	tostring n`v', replace force
+	replace `v' = n`v' if `v' != "*"
+	replace `v' = "≤.01" if lessthan==1
+	drop n`v' lessthan`v'
+}
+
+** Generate Proficient or Above Percent
 
 gen Lev4max = Lev4_percent
-replace Lev4max = "1" if Lev4_percent== "≤1"
+replace Lev4max = ".01" if Lev4_percent== "≤.01"
 destring Lev4max, generate(Lev4maxnumber) force
 gen Lev4min = Lev4_percent
-replace Lev4min = "0" if Lev4_percent== "≤1"
+replace Lev4min = "0" if Lev4_percent== "≤.01"
 destring Lev4min, generate(Lev4minnumber) force
 gen Lev5max = Lev5_percent
-replace Lev5max = "1" if Lev5_percent== "≤1"
+replace Lev5max = ".01" if Lev5_percent== "≤.01"
 destring Lev5max, generate(Lev5maxnumber) force
 gen Lev5min = Lev5_percent
-replace Lev5min = "0" if Lev5_percent== "≤1"
+replace Lev5min = "0" if Lev5_percent== "≤.01"
 destring Lev5min, generate(Lev5minnumber) force
 gen ProficientOrAbovemin = Lev4minnumber + Lev5minnumber
 gen ProficientOrAbovemax = Lev4maxnumber + Lev5maxnumber
-tostring ProficientOrAbovemin, replace
-tostring  ProficientOrAbovemax, replace
+tostring ProficientOrAbovemin, replace force
+tostring ProficientOrAbovemax, replace force
 gen ProficientOrAbove_percent = ProficientOrAbovemin + "-" + ProficientOrAbovemax
 replace ProficientOrAbove_percent = ProficientOrAbovemax if ProficientOrAbovemax == ProficientOrAbovemin
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent=="."
@@ -303,18 +316,32 @@ label var ParticipationRate "Participation rate."
 
 gen state_leaidnumber =.
 gen State_leaid = string(state_leaidnumber)
-replace State_leaid = "LA-" + StateAssignedDistID 
+replace State_leaid = "LA-" + StateAssignedDistID if DataLevel != "State"
+replace State_leaid = "LA-311" if SchName == "AMIKIDS BATON ROUGE" | SchName == "AMIKIDS ACADIANA"
 label var State_leaid "State LEA ID"
 gen seaschnumber=.
 gen seasch = string(seaschnumber)
-replace seasch = StateAssignedDistID + "-" + StateAssignedSchID
+replace seasch = StateAssignedDistID + "-" + StateAssignedSchID if DataLevel == "School"
 replace seasch = "311-311002" if SchName == "AMIKIDS BATON ROUGE"
 replace seasch = "311-311009" if SchName == "AMIKIDS ACADIANA"
 merge m:1 State_leaid using "${path}/Semi-Processed Data Files/2013_14_NCES_Cleaned_District.dta"
 rename _merge district_merge
 merge m:1 seasch StateAbbrev using "${path}/Semi-Processed Data Files/2013_14_NCES_Cleaned_School.dta"
-keep if district_merge == 3 & _merge == 3
+drop if district_merge != 3 & _merge !=3 & DataLevel != "State"
 drop state_leaidnumber seaschnumber _merge district_merge
+
+** Standardize State Data
+
+replace State = "Louisiana"
+replace StateAbbrev = "LA"
+replace StateFips = 22
+replace StateAssignedDistID = "" if DataLevel == "State"
+replace SchName = "" if DataLevel == "District" | DataLevel == "State"
+
+** Standardize District Data
+
+replace DistName = lea_name if DistName == ""
+drop lea_name
 
 ** Fix Variable Order 
 
