@@ -62,19 +62,19 @@ import delimited "${NCESDistrict}/NCES_2021_District.csv", clear
 	drop if NCESDistrictID == 2800960
 save "${NCES}/NCES_2021_District.dta", replace
 
-import delimited "${NCESSchool}/NCES_2021_School.csv", clear
-	keep if statefips == 28
-	rename state State
-	rename stateabbrev StateAbbrev
-	rename statefips StateFips
+use "${NCESSchool}/NCES_2021_School.dta", clear
+	keep if state_fips == 28
+	rename state_name State
+	rename state_location StateAbbrev
+	rename state_fips StateFips
 	rename ncesdistrictid NCESDistrictID
 	rename state_leaid State_leaid
-	rename charter Charter
-	rename countycode CountyCode
+	rename charter_text Charter
+	rename county_code CountyCode
 	rename ncesschoolid NCESSchoolID
-	rename schooltype SchoolType
+	rename school_type SchoolType
 	rename virtual Virtual 
-	rename schoollevel SchoolLevel
+	rename school_level SchoolLevel
 save "${NCES}/NCES_2021_School.dta", replace
 
 import excel "${MS}/Missing Schools.xlsx", sheet("Missing Schools") firstrow clear
@@ -84,4 +84,5 @@ import excel "${MS}/Missing Schools.xlsx", sheet("Missing Schools") firstrow cle
 	drop dup
 	sort SchName
 	drop if SchName == ""
+	tostring StateAssignedDistID, replace
 save "${NCES}/NCES_Schools.dta", replace
