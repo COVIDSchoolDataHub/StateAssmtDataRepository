@@ -60,6 +60,13 @@ import delimited "${NCESDistrict}/NCES_2021_District.csv", clear
 	rename schyear SchYear
 	rename distname DistName
 	drop if NCESDistrictID == 2800960
+	tostring NCESDistrictID, replace
+	drop CountyName CountyCode
+	merge 1:1 DistName using "${NCES}/NCES_2020_District.dta", keepusing(CountyCode CountyName)
+	drop if _merge == 2
+	drop _merge
+	replace CountyCode = 28049 if NCESDistrictID == "2801189"
+	replace CountyName = "Hinds County" if NCESDistrictID == "2801189"
 save "${NCES}/NCES_2021_District.dta", replace
 
 use "${NCESSchool}/NCES_2021_School.dta", clear
@@ -84,5 +91,4 @@ import excel "${MS}/Missing Schools.xlsx", sheet("Missing Schools") firstrow cle
 	drop dup
 	sort SchName
 	drop if SchName == ""
-	tostring StateAssignedDistID, replace
 save "${NCES}/NCES_Schools.dta", replace
