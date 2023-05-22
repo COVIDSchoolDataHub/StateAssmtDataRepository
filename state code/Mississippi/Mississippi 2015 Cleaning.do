@@ -35,8 +35,9 @@ gen Flag_CutScoreChange_math = "Y"
 gen Flag_CutScoreChange_read = ""
 gen Flag_CutScoreChange_oth = ""
 gen AssmtType = "Regular"
-gen StudentGroup = "All students"
-gen StudentSubGroup = "All students"
+gen StudentGroup = "All Students"
+gen StudentSubGroup = ""
+gen StudentSubGroup_TotalTested = ""
 
 ** Merging Rows
 
@@ -84,26 +85,43 @@ drop _merge
 replace DistName = "MDHS DIVISION OF YOUTH SERVICES" if District == "Mississippi Dept. of Human Services" | District == "Mississippi Dept. Of Human Services"
 replace DistName = "University Of Southern Mississippi" if District == "University Of Southern Mississippi"
 
+replace StateAssignedSchID = "1700092" if SchName == "Desoto Co Alternative Center"
+
 replace NCESSchoolID = "280018601404" if SchName == "Brooks Elementary School"
 replace NCESSchoolID = "280018601416" if SchName == "It Montgomery Elementary School"
 replace NCESSchoolID = "280018701408" if SchName == "James C. Rosser Elementary School"
 replace NCESSchoolID = "280018601405" if SchName == "John F Kennedy High School"
+
 replace NCESSchoolID = "280243001429" if SchName == "Lauderdale County Education Skills Center"
+replace StateAssignedSchID = "3800094" if SchName == "Lauderdale County Education Skills Center" 
+
 replace NCESSchoolID = "280383000712" if SchName == "Learning Center Alternative School"
+replace StateAssignedSchID = "6100092" if SchName == "Learning Center Alternative School"
+
 replace NCESSchoolID = "280279000939" if SchName == "Madison Co Alternati"
 replace NCESSchoolID = "280018501409" if SchName == "Mcevans School"
 replace NCESSchoolID = "280018701412" if SchName == "Moorhead Middle School"
+
 replace NCESSchoolID = "280303001423" if SchName == "Morgantown College Prep"
+replace StateAssignedSchID = "0130027" if SchName == "Morgantown College Prep"
+
 replace NCESSchoolID = "280303001406" if SchName == "Morgantown Leadership Academy"
+replace StateAssignedSchID = "0130026" if SchName == "Morgantown Leadership Academy"
+
 replace NCESSchoolID = "280303001397" if SchName == "Natchez Freshman Academy"
 replace NCESSchoolID = "280383001424" if SchName == "Puckett Elementary School"
 replace NCESSchoolID = "280018501402" if SchName == "Ray Brooks School"
 replace NCESSchoolID = "280018701421" if SchName == "Robert L Merritt Mid"
 replace NCESSchoolID = "280018601415" if SchName == "Shelby Middle School"
 replace NCESSchoolID = "280273000531" if SchName == "West Lowndes Hs"
+
 replace NCESSchoolID = "280162001361" if SchName == "Weston Sr H"
+replace StateAssignedSchID = "7620068" if SchName == "Weston Sr H"
+
 replace NCESSchoolID = "280198001417" if SchName == "William Dean Jr. Elementary"
+
 replace NCESSchoolID = "missing" if SchName == "Dubard School For Language Disorders"
+replace StateAssignedSchID = "missing" if SchName == "Dubard School For Language Disorders"
 
 gen seasch = StateAssignedSchID
 
@@ -148,7 +166,7 @@ drop Levels45PCT
 
 ** Converting
 
-order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
+order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
 
 sort DataLevel StateAssignedDistID StateAssignedSchID GradeLevel Subject
 
