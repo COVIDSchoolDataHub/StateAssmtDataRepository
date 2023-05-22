@@ -24,8 +24,9 @@ foreach a in $grade {
 			replace Subject = lower(Subject)
 			gen AssmtName = "MAAP"
 			gen AssmtType = "Regular"
-			gen StudentGroup = "All students"
-			gen StudentSubGroup = "All students"
+			gen StudentGroup = "All Students"
+			gen StudentSubGroup = ""
+			gen StudentSubGroup_TotalTested = ""
 			
 			gen DataLevel = "School"			
 			replace DataLevel = "District" if (strpos(SchName, "District") | strpos(SchName, "Schools") | strpos(SchName, "district") | strpos(SchName, "Ms Sch For The Blind") | strpos(SchName, "Midtown Public Charter School") | strpos(SchName, "Ms School For The Deaf") | strpos(SchName, "Joel E. Smilow Prep") | strpos(SchName, "Reimagine Prep") | strpos(SchName, "Oakley Youth Development Center")) & SchName != "West Bolivar District Middle School" & SchName != "Republic Charter Schools" > 0
@@ -124,6 +125,7 @@ foreach a in $grade {
 			drop dup			
 			
 			replace SchName = "VIRGIL JONES, JR. ELEMENTARY SCHOOL" if SchName == "Wilson Elementary School"
+			replace SchName = "LELAND SCHOOL PARK" if SchName == "Leland Middle School"
 			
 			merge m:1 SchName DistName using "${NCES}/NCES_Schools.dta"
 			
@@ -135,7 +137,9 @@ foreach a in $grade {
 			generate stateid = State_leaid
 			replace stateid = subinstr(stateid,"MS-","",.)	
 			destring stateid, replace
-			replace StateAssignedDistID = stateid if StateAssignedDistID == .			
+			replace StateAssignedDistID = stateid if StateAssignedDistID == .
+			tostring StateAssignedDistID, replace
+			replace StateAssignedDistID = "" if StateAssignedDistID == "."
 			replace school_name = SchName if school_name == ""
 			replace county_name = CountyName if county_name == ""
 			replace county_code = CountyCode if county_code == .
@@ -163,7 +167,7 @@ foreach a in $grade {
 			tostring ProficientOrAbove_percent, replace force
 			replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "-2"			
 			
-			order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
+			order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
 			
 			save "${output}/MS_AssmtData_2017_G`a'`b'_Cleaned.dta", replace
 	}
@@ -272,8 +276,9 @@ foreach a in $gradesci {
 			generate Subject = "sci"
 			gen AssmtName = "MST2"
 			gen AssmtType = "Regular"
-			gen StudentGroup = "All students"
-			gen StudentSubGroup = "All students"
+			gen StudentGroup = "All Students"
+			gen StudentSubGroup = ""
+			gen StudentSubGroup_TotalTested = ""
 			
 			gen DataLevel = "School"
 			
@@ -391,7 +396,9 @@ foreach a in $gradesci {
 			generate stateid = State_leaid
 			replace stateid = subinstr(stateid,"MS-","",.)	
 			destring stateid, replace
-			replace StateAssignedDistID = stateid if StateAssignedDistID == .			
+			replace StateAssignedDistID = stateid if StateAssignedDistID == .
+			tostring StateAssignedDistID, replace
+			replace StateAssignedDistID = "" if StateAssignedDistID == "."
 			replace school_name = SchName if school_name == ""
 			replace county_name = CountyName if county_name == ""
 			replace county_code = CountyCode if county_code == .
@@ -419,7 +426,7 @@ foreach a in $gradesci {
 			tostring ProficientOrAbove_percent, replace force
 			replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "-2"			
 			
-			order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate		
+			order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate		
 			
 			save "${output}/MS_AssmtData_2017_G`a'sci_Cleaned.dta", replace
 			}
@@ -444,6 +451,6 @@ foreach a in $gradesci {
 	append using "${output}/MS_AssmtData_2017_G6all.dta"
 	append using "${output}/MS_AssmtData_2017_G7all.dta"
 	append using "${output}/MS_AssmtData_2017_G8all.dta"
-	order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
+	order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
 	save "${output}/MS_AssmtData_2017.dta", replace	
 	export delimited using "${output}/csv/MS_AssmtData_2017.csv", replace
