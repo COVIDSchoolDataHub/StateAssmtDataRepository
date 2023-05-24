@@ -8,7 +8,7 @@ global NCESDistrict "/Users/maggie/Desktop/Mississippi/NCES/District"
 global NCES "/Users/maggie/Desktop/Mississippi/NCES/Cleaned"
 global MS "/Users/maggie/Desktop/Mississippi/Missing Schools"
 
-global years 2013 2014 2015 2016 2017 2018 2020
+global years 2013 2014 2015 2016 2017 2018 2020 2021
 
 foreach a in $years {
 	
@@ -20,11 +20,11 @@ foreach a in $years {
 	rename state_fips StateFips
 	rename ncesdistrictid NCESDistrictID
 	rename state_leaid State_leaid
-	rename district_agency_type DistrictType
+	rename district_agency_type DistType
 	rename county_name CountyName
 	rename county_code CountyCode
 	rename lea_name DistName
-	
+	drop district_agency_type_num urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte
 	save "${NCES}/NCES_`a'_District.dta", replace
 	
 	use "${NCESSchool}/NCES_`a'_School.dta", clear
@@ -35,54 +35,18 @@ foreach a in $years {
 	rename state_fips StateFips
 	rename ncesdistrictid NCESDistrictID
 	rename state_leaid State_leaid
-	rename charter Charter
-	rename county_code CountyCode
 	rename ncesschoolid NCESSchoolID
-	rename school_type SchoolType
-	rename virtual Virtual 
-	rename school_level SchoolLevel
+	rename school_type SchType
+	rename virtual SchVirtual 
+	rename school_level SchLevel
 	
 	save "${NCES}/NCES_`a'_School.dta", replace
 	
 }
 
-import delimited "${NCESDistrict}/NCES_2021_District.csv", clear
-	keep if statefips == 28
-	rename state State
-	rename stateabbrev StateAbbrev
-	rename statefips StateFips
-	rename ncesdistrictid NCESDistrictID
-	rename state_leaid State_leaid
-	rename districttype DistrictType
-	rename charter Charter
-	rename countyname CountyName
-	rename countycode CountyCode
-	rename schyear SchYear
-	rename distname DistName
-	drop if NCESDistrictID == 2800960
-	tostring NCESDistrictID, replace
-	drop CountyName CountyCode
-	merge 1:1 DistName using "${NCES}/NCES_2020_District.dta", keepusing(CountyCode CountyName)
-	drop if _merge == 2
-	drop _merge
-	replace CountyCode = 28049 if NCESDistrictID == "2801189"
-	replace CountyName = "Hinds County" if NCESDistrictID == "2801189"
+use "${NCES}/NCES_2021_District.dta", clear
+	drop if NCESDistrictID == "2800960"
 save "${NCES}/NCES_2021_District.dta", replace
-
-use "${NCESSchool}/NCES_2021_School.dta", clear
-	keep if state_fips == 28
-	rename state_name State
-	rename state_location StateAbbrev
-	rename state_fips StateFips
-	rename ncesdistrictid NCESDistrictID
-	rename state_leaid State_leaid
-	rename charter_text Charter
-	rename county_code CountyCode
-	rename ncesschoolid NCESSchoolID
-	rename school_type SchoolType
-	rename virtual Virtual 
-	rename school_level SchoolLevel
-save "${NCES}/NCES_2021_School.dta", replace
 
 import excel "${MS}/Missing Schools.xlsx", sheet("Missing Schools") firstrow clear
 	sort SchName DistName
@@ -90,5 +54,4 @@ import excel "${MS}/Missing Schools.xlsx", sheet("Missing Schools") firstrow cle
 	drop if dup > 1
 	drop dup
 	sort SchName
-	drop if SchName == ""
 save "${NCES}/NCES_Schools.dta", replace
