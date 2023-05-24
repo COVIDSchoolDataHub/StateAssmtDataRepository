@@ -13,12 +13,12 @@ rename state_location StateAbbrev
 rename state_fips StateFips
 rename ncesdistrictid NCESDistrictID
 rename state_leaid State_leaid
-rename charter_text Charter
+rename charter_text DistCharter
 rename ncesschoolid NCESSchoolID
-rename virtual Virtual 
-rename school_level SchoolLevel
+rename virtual SchVirtual 
+rename school_level SchLevel
 rename lea_name DistName
-rename school_type SchoolType
+rename school_type SchType
 
 ** Label Variables
 
@@ -27,11 +27,11 @@ label var StateAbbrev "State abbreviation"
 label var StateFips "State FIPS Id"
 label var NCESDistrictID "NCES district ID"
 label var State_leaid "State LEA ID"
-label var Charter "Charter indicator"
+label var DistCharter "Charter indicator"
 label var NCESSchoolID "NCES school ID"
-label var SchoolType "School type as defined by NCES"
-label var Virtual "Virtual school indicator"
-label var SchoolLevel "School level"
+label var SchType "School type as defined by NCES"
+label var SchVirtual "Virtual school indicator"
+label var SchLevel "School level"
 
 ** Isolate Rhode Island Data
 
@@ -69,8 +69,10 @@ save "${path}/Semi-Processed Data Files/2021_22_NCES_District_Grades.dta", repla
 import delimited "${path}/NCES/District/NCES_2021_District.csv", case(preserve) clear 
 drop if StateFips != 44
 drop if updated_status_text != "New"
-replace Charter = "Yes" if Charter == "LEA for federal programs"
-label var Charter "Charter indicator"
+rename Charter DistCharter
+rename DistrictType DistType
+replace DistCharter = "Yes" if DistCharter == "LEA for federal programs"
+label var DistCharter "Charter indicator"
 drop CountyName CountyCode updated_status_text effective_date
 gen CountyName = "Providence County"
 gen CountyCode = 44007
@@ -89,7 +91,7 @@ rename state_leaid State_leaid
 rename state_location StateAbbrev
 rename county_code CountyCode
 rename county_name CountyName
-rename district_agency_type DistrictType
+rename district_agency_type DistType
 rename state_fips StateFips
 
 ** Drop Excess Variables
@@ -105,16 +107,16 @@ label var CountyCode "County code in which the district or school is located, al
 label var State "State name"
 label var StateAbbrev "State abbreviation"
 label var StateFips "State FIPS Id"
-label var DistrictType "District type as defined by NCES"
+label var DistType "District type as defined by NCES"
 
 * Isolate Rhode Island Data and Combine 2020-21 and 2021-22 NCES District Data
 
 drop if StateFips != 44
 decode State, gen(State2)
-decode DistrictType, gen(DistrictType2)
-drop State DistrictType
+decode DistType, gen(DistType2)
+drop State DistType
 rename State2 State
-rename DistrictType2 DistrictType
+rename DistType2 DistType
 destring NCESDistrictID, replace
 append using "${path}/Semi-Processed Data Files/2021_22_NCES_District_New.dta"
 merge m:1 State_leaid using "${path}/Semi-Processed Data Files/2021_22_NCES_District_Grades.dta"
@@ -356,7 +358,7 @@ foreach v of var * {
 gen DataLevel = "School"
 save "${path}/Semi-Processed Data Files/2022_sci_school.dta", replace
 
-** Generate Student Group District Data
+** Generate Student Group School Data
 
 destring _2021_22_Number_Tested, generate(StudentGroup_TotalTested)
 collapse (sum) StudentGroup_TotalTested, by(AssessmentName SchoolCode)
@@ -401,7 +403,7 @@ rename _2021_22_Percent_Tested ParticipationRate
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_read = "N"
+gen Flag_CutScoreChange_read = ""
 gen Flag_CutScoreChange_oth = "N"
 
 ** Label Flags
@@ -410,7 +412,6 @@ label var Flag_AssmtNameChange "Flag denoting a change in the assessment's name 
 label var Flag_CutScoreChange_ELA "Flag denoting a change in scoring determinations in ELA from the prior year only."
 label var Flag_CutScoreChange_math "Flag denoting a change in scoring determinations in math from the prior year only."
 label var Flag_CutScoreChange_read "Flag denoting a change in scoring determinations in reading from the prior year only."
-label var Flag_CutScoreChange_oth "Flag denoting a change in scoring determinations in subjects other than ELA, math, or reading from the prior year only (e.g., writing, STEM)."
 
 ** Generate Other Variables
 
@@ -431,38 +432,6 @@ gen Lev3_count = "*"
 gen Lev4_count = "*"
 gen Lev5_percent = "*"
 gen Lev5_count = "*"
-
-** Label Variables
-
-label var SchYear "School year in which the data were reported. (e.g., 2021-22)"
-label var AssmtName "Name of state assessment"
-label var AssmtType "Assessment type"
-label var DataLevel "Level at which the data are reported"
-label var DistName "District name"
-label var StateAssignedDistID "State-assigned district ID"
-label var SchName "School name"
-label var StateAssignedSchID "State-assigned school ID"
-label var Subject "Assessment subject area"
-label var GradeLevel "Grade tested (Individual grade levels, Gr3-8, all grades)"
-label var StudentGroup "Student demographic group"
-label var StudentSubGroup "Student demographic subgroup"
-label var StudentGroup_TotalTested "Number of students in the designated StudentGroup who were tested."
-label var StudentSubGroup_TotalTested "Number of students in the designated Student Sub-Group who were tested."
-label var Lev1_count "Count of students within subgroup performing at Level 1."
-label var Lev1_percent "Percent of students within subgroup performing at Level 1."
-label var Lev2_count "Count of students within subgroup performing at Level 2."
-label var Lev2_percent "Percent of students within subgroup performing at Level 2."
-label var Lev3_count "Count of students within subgroup performing at Level 3."
-label var Lev3_percent "Percent of students within subgroup performing at Level 3 ."
-label var Lev4_count "Count of students within subgroup performing at Level 4."
-label var Lev4_percent "Percent of students within subgroup performing at Level 4."
-label var Lev5_count "Count of students within subgroup performing at Level 5."
-label var Lev5_percent "Percent of students within subgroup performing at Level 5."
-label var AvgScaleScore "Avg scale score within subgroup."
-label var ProficiencyCriteria "Levels included in determining proficiency status."
-label var ProficientOrAbove_count "Count of students achieving proficiency or above on the state assessment."
-label var ProficientOrAbove_percent "Percent of students achieving proficiency or above on the state assessment."
-label var ParticipationRate "Participation rate."
 
 ** Drop Excess Variables
 
@@ -493,27 +462,25 @@ drop if district_merge != 3 & _merge !=3 & DataLevel != "State"
 keep if SchYear == "2021-22"
 drop district_merge _merge
 
-** Standardize Variable Types
+** Standardize Non-School Level Data
 
-destring StudentGroup_TotalTested, replace
-destring StudentSubGroup_TotalTested, replace
-destring Lev1_count, replace
-destring Lev1_percent, replace
-destring Lev2_count, replace
-destring Lev2_percent, replace
-destring Lev3_count, replace
-destring Lev3_percent, replace
-destring Lev4_count, replace
-destring Lev4_percent, replace
-destring Lev5_count, replace
-destring Lev5_percent, replace
-destring AvgScaleScore, replace
-destring ProficientOrAbove_count, replace
-destring ProficientOrAbove_percent, replace
-destring ParticipationRate, replace
-destring NCESDistrictID, replace
-destring CountyCode, replace
-destring NCESSchoolID, replace
+replace SchName = "All Schools" if DataLevel == "State"
+replace SchName = "All Schools" if DataLevel == "District"
+replace DistName = "All Districts" if DataLevel == "State"
+
+** Fix Variable Types
+
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+sort DataLevel_n 
+drop DataLevel 
+rename DataLevel_n DataLevel 
+recast int CountyCode
+drop State StateAbbrev StateFips
+gen State = "Rhode Island"
+gen StateAbbrev = "RI"
+gen StateFips = 44
+recast int StateFips
 
 ** Standardize State Data
 
@@ -529,13 +496,13 @@ replace GradeLevel="G05" if GradeLevel=="05"
 replace GradeLevel="G06" if GradeLevel=="06"
 replace GradeLevel="G07" if GradeLevel=="07"
 replace GradeLevel="G08" if GradeLevel=="08"
-replace GradeLevel="G38" if DataLevel=="State" & GradeLevel==""
+replace GradeLevel="G38" if DistName=="All Districts" & GradeLevel==""
 replace GradeLevel="G38" if GradeLevel=="STATE"
 
 ** Relabel GradeLevel Values for School Data
 
-replace GradeLevel="G08" if SchoolLevel=="Middle" & Subject=="sci"
-replace GradeLevel="G05" if SchoolLevel=="Primary" & Subject=="sci"
+replace GradeLevel="G08" if SchLevel=="Middle" & Subject=="sci"
+replace GradeLevel="G05" if SchLevel=="Primary" & Subject=="sci"
 replace lowest_grade_offered="03" if lowest_grade_offered=="PK" | lowest_grade_offered=="KG" | lowest_grade_offered=="01" | lowest_grade_offered=="02"
 gen lowgrade = lowest_grade_offered
 gen highgrade = highest_grade_offered
@@ -546,6 +513,7 @@ replace GradeLevel= "G" + subinstr(lowest_grade_offered,"0", "", 1) + subinstr(h
 drop lowest_grade_offered highest_grade_offered lowgrade highgrade
 
 ** Relabel GradeLevel Values for District Data
+
 replace lowest_grade_district = 3 if lowest_grade_district <3
 tostring lowest_grade_district, generate(str_lowest_grade_district)
 tostring highest_grade_district, generate(str_highest_grade_district)
@@ -566,8 +534,8 @@ replace GradeLevel="G11" if GradeLevel=="11" | GradeLevel=="G912"
 
 ** Relabel Charter Values
 
-replace Charter="Yes" if DistrictType=="Charter agency"
-replace Charter="No" if DistrictType !="Charter agency"
+replace DistCharter="Yes" if DistType=="Charter agency"
+replace DistCharter="No" if DistType !="Charter agency"
 
 ** Standardize Assessment Names
 
@@ -576,26 +544,26 @@ replace AssmtName="NGSA" if AssmtName=="NGSA - Science"
 
 ** Standardize Subgroup Data
 
-replace StudentGroup="Race" if StudentGroup=="Race/Ethnicity"
-replace StudentGroup="EL status" if StudentGroup=="English Learner"
-replace StudentGroup="Economic status" if StudentGroup=="Economically Disadvantaged"
+replace StudentGroup="RaceEth" if StudentGroup=="Race/Ethnicity"
+replace StudentGroup="EL Status" if StudentGroup=="English Learner"
+replace StudentGroup="Economic Status" if StudentGroup=="Economically Disadvantaged"
 drop if StudentGroup=="Homeless"
 drop if StudentGroup=="Special Education"
 drop if StudentGroup=="Accommodations"
 drop if StudentGroup=="Migrant"
 drop if StudentGroup=="Active Military Parent"
 drop if StudentGroup=="Foster Care"
-replace StudentGroup="All students" if StudentGroup==""
-replace StudentSubGroup="All students" if StudentGroup=="All students"
+replace StudentGroup="All Students" if StudentGroup==""
+replace StudentSubGroup="All Students" if StudentGroup=="All Students"
 replace StudentSubGroup="Two or More" if StudentSubGroup=="Two or More Races"
 replace StudentSubGroup="Native Hawaiian or Pacific Islander" if StudentSubGroup=="Native Hawaiian or Other Pacific Islander"
 replace StudentSubGroup="Unknown" if StudentSubGroup=="Other"
-replace StudentSubGroup="English learner" if StudentSubGroup=="Current English Learners"
-replace StudentSubGroup="English proficient" if StudentSubGroup=="Not English Learners"
+replace StudentSubGroup="English Learner" if StudentSubGroup=="Current English Learners"
+replace StudentSubGroup="English Proficient" if StudentSubGroup=="Not English Learners"
 replace StudentSubGroup="Other" if StudentSubGroup=="Recently (3 yrs) Exited English Learners"
-replace StudentGroup="All students" if StudentGroup==""
-replace StudentSubGroup="All students" if StudentSubGroup==""
-replace StudentGroup_TotalTested=StudentSubGroup_TotalTested if StudentGroup=="All students"
+replace StudentGroup="All Students" if StudentGroup==""
+replace StudentSubGroup="All Students" if StudentSubGroup==""
+replace StudentGroup_TotalTested=StudentSubGroup_TotalTested if StudentGroup=="All Students"
 
 ** Standardize Suppressed Proficiency Data
 
@@ -626,15 +594,46 @@ tostring nParticipationRate, replace force
 replace ParticipationRate = nParticipationRate if ParticipationRate != "*"
 drop nParticipationRate
 
-** Standardize Non-School Level Data
+** Label Variables
 
-replace SchName = "Statewide" if DataLevel == "State"
-replace SchName = "Districtwide" if DataLevel == "District"
-replace DistName = "Statewide" if DataLevel == "State"
+rename State StateName
+label var StateName "State name"
+rename StateName State
+label var StateAbbrev "State abbreviation"
+label var StateFips "State FIPS Id"
+label var SchYear "School year in which the data were reported. (e.g., 2021-22)"
+label var AssmtName "Name of state assessment"
+label var AssmtType "Assessment type"
+label var DataLevel "Level at which the data are reported"
+label var DistName "District name"
+label var StateAssignedDistID "State-assigned district ID"
+label var SchName "School name"
+label var StateAssignedSchID "State-assigned school ID"
+label var Subject "Assessment subject area"
+label var GradeLevel "Grade tested (Individual grade levels, Gr3-8, all grades)"
+label var StudentGroup "Student demographic group"
+label var StudentSubGroup "Student demographic subgroup"
+label var StudentGroup_TotalTested "Number of students in the designated StudentGroup who were tested."
+label var StudentSubGroup_TotalTested "Number of students in the designated Student Sub-Group who were tested."
+label var Lev1_count "Count of students within subgroup performing at Level 1."
+label var Lev1_percent "Percent of students within subgroup performing at Level 1."
+label var Lev2_count "Count of students within subgroup performing at Level 2."
+label var Lev2_percent "Percent of students within subgroup performing at Level 2."
+label var Lev3_count "Count of students within subgroup performing at Level 3."
+label var Lev3_percent "Percent of students within subgroup performing at Level 3 ."
+label var Lev4_count "Count of students within subgroup performing at Level 4."
+label var Lev4_percent "Percent of students within subgroup performing at Level 4."
+label var Lev5_count "Count of students within subgroup performing at Level 5."
+label var Lev5_percent "Percent of students within subgroup performing at Level 5."
+label var AvgScaleScore "Avg scale score within subgroup."
+label var ProficiencyCriteria "Levels included in determining proficiency status."
+label var ProficientOrAbove_count "Count of students achieving proficiency or above on the state assessment."
+label var ProficientOrAbove_percent "Percent of students achieving proficiency or above on the state assessment."
+label var ParticipationRate "Participation rate."
 
 ** Fix Variable Order 
 
-order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
+order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 
 ** Drop 11th Grade Science Assessment Data
 
