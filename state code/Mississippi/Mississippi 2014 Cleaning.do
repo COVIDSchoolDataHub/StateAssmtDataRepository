@@ -140,7 +140,7 @@ drop _merge
 merge m:1 seasch using "${NCES}/NCES_2013_School.dta"
 
 drop if _merge == 2
-drop _merge year lea_name county_code charter
+drop _merge
 
 replace SchName = "All Schools" if DataLevel == "District" | DataLevel == "State"
 replace DistName = "All Districts" if DataLevel == "State"
@@ -279,7 +279,7 @@ drop _merge
 merge m:1 seasch using "${NCES}/NCES_2013_School.dta"
 
 drop if _merge == 2
-drop _merge year lea_name county_code charter
+drop _merge
 
 replace SchName = "All Schools" if DataLevel == "District" | DataLevel == "State"
 replace DistName = "All Districts" if DataLevel == "State"
