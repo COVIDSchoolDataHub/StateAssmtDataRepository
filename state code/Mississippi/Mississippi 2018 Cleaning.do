@@ -144,6 +144,7 @@ foreach a in $grade {
 						
 			replace NCESSchoolID = "280018501409" if NCESSchoolID == "280018501527"
 			replace NCESSchoolID = "280423001346" if NCESSchoolID == "280423001508"
+			replace NCESSchoolID = "280261001472" if NCESSchoolID == "280261001175"
 			
 			merge m:1 NCESSchoolID using "${NCES}/NCES_2017_School.dta"
 			
@@ -328,6 +329,7 @@ global gradesci 5 8
 						
 			replace NCESSchoolID = "280018501409" if NCESSchoolID == "280018501527"
 			replace NCESSchoolID = "280423001346" if NCESSchoolID == "280423001508"
+			replace NCESSchoolID = "280261001472" if NCESSchoolID == "280261001175"
 			
 			merge m:1 NCESSchoolID using "${NCES}/NCES_2017_School.dta"
 			
@@ -392,6 +394,7 @@ global gradesci 5 8
 	append using "${output}/MS_AssmtData_2018_G6all.dta"
 	append using "${output}/MS_AssmtData_2018_G7all.dta"
 	append using "${output}/MS_AssmtData_2018_G8all.dta"
+	
 	drop if SchName == "School 500"
 	
 	order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
