@@ -159,7 +159,7 @@ foreach a in $grade {
 			replace NCESSchoolID = "280018501409" if NCESSchoolID == "280018501527"
 			replace NCESSchoolID = "280423001346" if NCESSchoolID == "280423001508"
 			
-			merge m:1 NCESSchoolID using "${NCES}/NCES_2020_School.dta"
+			merge m:1 NCESSchoolID using "${NCES}/NCES_2021_School.dta"
 			
 			drop if _merge == 2
 			drop _merge			
@@ -355,7 +355,7 @@ global gradesci 5 8
 			replace NCESSchoolID = "280018501409" if NCESSchoolID == "280018501527"
 			replace NCESSchoolID = "280423001346" if NCESSchoolID == "280423001508"
 			
-			merge m:1 NCESSchoolID using "${NCES}/NCES_2020_School.dta"
+			merge m:1 NCESSchoolID using "${NCES}/NCES_2021_School.dta"
 			
 			drop if _merge == 2
 			drop _merge	
