@@ -1,9 +1,9 @@
 clear
 global path "/Users/willtolmie/Documents/State Repository Research/Louisiana"
 
-** 2020-21 NCES School Data
+** 2021-22 NCES School Data
 
-use "${path}/NCES/School/NCES_2020_School.dta"
+use "${path}/NCES/School/NCES_2021_School.dta"
 
 ** Rename Variables
 
@@ -12,33 +12,9 @@ rename state_location StateAbbrev
 rename state_fips StateFips
 rename ncesdistrictid NCESDistrictID
 rename state_leaid State_leaid
-rename charter DistCharter
-rename county_code CountyCode
 rename ncesschoolid NCESSchoolID
-rename virtual SchVirtual 
-rename school_level SchLevel
 rename lea_name DistName
 rename school_type SchType
-rename county_name CountyName
-
-** Drop Excess Variables
-
-drop year school_id school_name urban_centric_locale school_status lowest_grade_offered highest_grade_offered bureau_indian_education lunch_program free_lunch reduced_price_lunch free_or_reduced_price_lunch enrollment
-
-** Fix Variable Types
-
-decode State, gen(State2)
-decode DistCharter, gen(DistCharter2)
-decode SchLevel, gen(SchLevel2)
-decode SchType, gen(SchType2)
-decode SchVirtual, gen(SchVirtual2)
-drop State DistCharter SchLevel SchType SchVirtual
-rename State2 State
-rename DistCharter2 DistCharter
-rename SchLevel2 SchLevel 
-rename SchType2 SchType 
-rename SchVirtual2 SchVirtual
-tostring seasch, replace force
 
 ** Label Variables
 
@@ -48,21 +24,36 @@ label var StateFips "State FIPS Id"
 label var NCESDistrictID "NCES district ID"
 label var State_leaid "State LEA ID"
 label var DistCharter "Charter indicator"
-label var CountyName "County in which the district or school is located."
-label var CountyCode "County code in which the district or school is located, also referred to as the county-level FIPS code"
 label var NCESSchoolID "NCES school ID"
 label var SchType "School type as defined by NCES"
 label var SchVirtual "Virtual school indicator"
 label var SchLevel "School level"
 
+** Drop Excess Variables
+
+drop year district_agency_type district_agency_type_num county_code county_name school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch
+
+** Fix Variable Types
+
+decode State, gen(State2)
+decode SchLevel, gen(SchLevel2)
+decode SchType, gen(SchType2)
+decode SchVirtual, gen(SchVirtual2)
+drop State SchLevel SchType SchVirtual
+rename State2 State
+rename SchLevel2 SchLevel 
+rename SchType2 SchType 
+rename SchVirtual2 SchVirtual
+tostring seasch, replace force
+
 ** Isolate Louisiana Data
 
 drop if StateFips != 22
-save "${path}/Semi-Processed Data Files/2020_21_NCES_Cleaned_School.dta", replace
+save "${path}/Semi-Processed Data Files/2021_22_NCES_Cleaned_School.dta", replace
 
-** 2010-21 NCES District Data
+** 2021-22 NCES District Data
 
-use "${path}/NCES/District/NCES_2020_District.dta"
+use "${path}/NCES/District/NCES_2021_District.dta"
 
 ** Rename Variables
 
@@ -77,7 +68,7 @@ rename state_fips StateFips
 
 ** Drop Excess Variables
 
-drop year lea_name
+drop year lea_name urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type_num
 
 ** Fix Variable Types
 
@@ -101,7 +92,7 @@ label var DistType "District type as defined by NCES"
 * Isolate Louisiana Data
 
 drop if StateFips != 22
-save "${path}/Semi-Processed Data Files/2020_21_NCES_Cleaned_District.dta", replace
+save "${path}/Semi-Processed Data Files/2021_22_NCES_Cleaned_District.dta", replace
 
 ** 2021-22 Proficiency Data
 
@@ -260,6 +251,7 @@ merge m:1 State_leaid using "${path}/Semi-Processed Data Files/2020_21_NCES_Clea
 rename _merge district_merge
 merge m:1 seasch StateFips using "${path}/Semi-Processed Data Files/2020_21_NCES_Cleaned_School.dta"
 drop if district_merge != 3 & DataLevel != "State"| _merge !=3 & DataLevel != "State"
+drop state_leaidnumber seaschnumber district_merge _merge
 
 ** Standardize Non-School Level Data
 
