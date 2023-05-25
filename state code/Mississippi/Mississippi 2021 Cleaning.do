@@ -152,8 +152,10 @@ foreach a in $grade {
 			replace StateAssignedDistID = State_leaid if StateAssignedDistID == "."
 			tostring StateAssignedSchID, replace
 						
-			replace NCESSchoolID = "280018501409" if NCESSchoolID == "280018501527"
-			replace NCESSchoolID = "280423001346" if NCESSchoolID == "280423001508"
+			replace NCESSchoolID = "280019501491" if NCESSchoolID == "280198001341"
+			replace NCESSchoolID = "280261001472" if NCESSchoolID == "280261001175"
+			replace NCESSchoolID = "280019601485" if NCESSchoolID == "280474000882"
+			replace NCESSchoolID = "280019601493" if NCESSchoolID == "280474000881"
 			
 			merge m:1 NCESSchoolID using "${NCES}/NCES_2020_School.dta"
 			
@@ -362,8 +364,10 @@ global gradesci 5 8
 			replace StateAssignedDistID = State_leaid if StateAssignedDistID == "."
 			tostring StateAssignedSchID, replace
 						
-			replace NCESSchoolID = "280018501409" if NCESSchoolID == "280018501527"
-			replace NCESSchoolID = "280423001346" if NCESSchoolID == "280423001508"
+			replace NCESSchoolID = "280019501491" if NCESSchoolID == "280198001341"
+			replace NCESSchoolID = "280261001472" if NCESSchoolID == "280261001175"
+			replace NCESSchoolID = "280019601485" if NCESSchoolID == "280474000882"
+			replace NCESSchoolID = "280019601493" if NCESSchoolID == "280474000881"
 			
 			merge m:1 NCESSchoolID using "${NCES}/NCES_2020_School.dta"
 			
