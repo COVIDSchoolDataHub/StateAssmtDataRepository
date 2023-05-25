@@ -271,7 +271,7 @@ replace SchName = "All Schools" if DataLevel == "District"
 replace DistName = "All Districts" if DataLevel == "State"
 replace StateAssignedDistID = "" if DataLevel == "State"
 replace State_leaid = "" if DataLevel == "State"
-replace seasch = "" if DataLevel == "State"
+replace seasch = "" if DataLevel == "State" | DataLevel == "District"
 
 ** Fix Variable Types
 
@@ -288,15 +288,12 @@ gen StateFips = 44
 recast int StateFips
 decode DistType, gen(DistType2)
 drop state_leaidnumber seaschnumber _merge district_merge DistType
-rename DistType2 DistType
-generate SchType2 = strofreal(SchType)
-drop SchType
-rename SchType2 SchType
-generate SchLevel2 = strofreal(SchLevel)
-drop SchLevel
-rename SchLevel2 SchLevel
-generate SchVirtual2 = strofreal(SchVirtual)
-drop SchVirtual
+decode SchLevel, gen(SchLevel2)
+decode SchType, gen(SchType2)
+decode SchVirtual, gen(SchVirtual2)
+drop SchLevel SchType SchVirtual
+rename SchLevel2 SchLevel 
+rename SchType2 SchType 
 rename SchVirtual2 SchVirtual
 
 ** Relabel GradeLevel Values

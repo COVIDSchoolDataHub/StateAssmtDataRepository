@@ -460,7 +460,7 @@ replace SchName = "All Schools" if DataLevel == "District"
 replace DistName = "All Districts" if DataLevel == "State"
 replace StateAssignedDistID = "" if DataLevel == "State"
 replace State_leaid = "" if DataLevel == "State"
-replace seasch = "" if DataLevel == "State"
+replace seasch = "" if DataLevel == "State" | DataLevel == "District"
 
 ** Fix Variable Types
 
@@ -533,7 +533,7 @@ replace GradeLevel="G11" if GradeLevel=="11" | GradeLevel=="G912"
 ** Relabel Charter Values
 
 replace DistCharter="Yes" if DistType=="Charter agency"
-replace DistCharter="No" if DistType !="Charter agency"
+replace DistCharter="No" if DistType !="Charter agency" & DistType !=""
 
 ** Standardize Assessment Names
 
