@@ -13,10 +13,7 @@ rename state_location StateAbbrev
 rename state_fips StateFips
 rename ncesdistrictid NCESDistrictID
 rename state_leaid State_leaid
-rename charter_text DistCharter
 rename ncesschoolid NCESSchoolID
-rename virtual SchVirtual 
-rename school_level SchLevel
 rename lea_name DistName
 rename school_type SchType
 
@@ -37,12 +34,6 @@ label var SchLevel "School level"
 
 drop if StateFips != 44
 
-** Generate seasch Variable
-
-gen seaschnumber=. 
-gen seasch = string(seaschnumber)
-replace seasch = subinstr(st_schid,"RI-", "", 1)
-
 ** Correct School Misspellings
 
 replace school_name = "Pleasant View Elementary School" if school_name=="Pleasant View Elementary Schoo"
@@ -50,38 +41,35 @@ replace school_name = "Providence Preparatory Charter School" if school_name=="P
 
 ** Drop Excess Variables
 
-drop year urban_centric_locale bureau_indian_education lunch_program free_lunch reduced_price_lunch free_or_reduced_price_lunch enrollment school_status st_schid schid seaschnumber county_name county_code school_name
+drop year district_agency_type district_agency_type_num county_code county_name school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch
+
+** Fix Variable Types
+
+decode State, gen(State2)
+decode SchLevel, gen(SchLevel2)
+decode SchType, gen(SchType2)
+decode SchVirtual, gen(SchVirtual2)
+drop State SchLevel SchType SchVirtual
+rename State2 State
+rename SchLevel2 SchLevel 
+rename SchType2 SchType 
+rename SchVirtual2 SchVirtual
+
 save "${path}/Semi-Processed Data Files/2021_22_NCES_Cleaned_School.dta", replace
 
 ** Isolate Highest and Lowest Grades Offered by Districts
 
-replace lowest_grade_offered = "0" if lowest_grade_offered == "KG"
-replace lowest_grade_offered = "-1" if lowest_grade_offered == "PK"
-replace highest_grade_offered = "0" if highest_grade_offered == "KG"
-replace highest_grade_offered = "-1" if highest_grade_offered == "PK"
-destring lowest_grade_offered, generate(lowest_grade_district) force
-destring highest_grade_offered, generate(highest_grade_district) force
+tostring dist_lowest_grade_offered, generate(lowest_grade_district) force
+tostring dist_highest_grade_offered, generate(highest_grade_district) force
+destring lowest_grade_district, replace force
+destring highest_grade_district, replace force
 collapse (min) lowest_grade_district (max) highest_grade_district, by(State_leaid)
 save "${path}/Semi-Processed Data Files/2021_22_NCES_District_Grades.dta", replace
 
-** Isolate New Districts from 2021-22 NCES District Data
-
-import delimited "${path}/NCES/District/NCES_2021_District.csv", case(preserve) clear 
-drop if StateFips != 44
-drop if updated_status_text != "New"
-rename Charter DistCharter
-rename DistrictType DistType
-replace DistCharter = "Yes" if DistCharter == "LEA for federal programs"
-label var DistCharter "Charter indicator"
-drop CountyName CountyCode updated_status_text effective_date
-gen CountyName = "Providence County"
-gen CountyCode = 44007
-save "${path}/Semi-Processed Data Files/2021_22_NCES_District_New.dta", replace
-
-** 2020-21 NCES District Data
+** 2021-22 NCES District Data
 
 clear
-use "${path}/NCES/District/NCES_2020_District.dta"
+use "${path}/NCES/District/NCES_2021_District.dta"
 
 ** Rename Variables
 
@@ -93,23 +81,28 @@ rename county_code CountyCode
 rename county_name CountyName
 rename district_agency_type DistType
 rename state_fips StateFips
+tostring lowest_grade_offered, replace force
+tostring highest_grade_offered, replace force
+destring lowest_grade_offered, replace force
+destring highest_grade_offered, replace force
 
 ** Drop Excess Variables
 
-drop year lea_name
+drop year lea_name urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type_num
 
 ** Label Variables
 
 label var NCESDistrictID "NCES district ID"
 label var State_leaid "State LEA ID"
 label var CountyName "County in which the district or school is located."
+label var DistCharter "Charter indicator"
 label var CountyCode "County code in which the district or school is located, also referred to as the county-level FIPS code"
 label var State "State name"
 label var StateAbbrev "State abbreviation"
 label var StateFips "State FIPS Id"
 label var DistType "District type as defined by NCES"
 
-* Isolate Rhode Island Data and Combine 2020-21 and 2021-22 NCES District Data
+* Isolate Rhode Island Data
 
 drop if StateFips != 44
 decode State, gen(State2)
@@ -117,8 +110,6 @@ decode DistType, gen(DistType2)
 drop State DistType
 rename State2 State
 rename DistType2 DistType
-destring NCESDistrictID, replace
-append using "${path}/Semi-Processed Data Files/2021_22_NCES_District_New.dta"
 merge m:1 State_leaid using "${path}/Semi-Processed Data Files/2021_22_NCES_District_Grades.dta"
 drop _merge
 save "${path}/Semi-Processed Data Files/2021_22_NCES_Cleaned_District.dta", replace
@@ -425,13 +416,13 @@ gen ProficiencyCriteria = "Levels 3 and 4"
 
 ** Generate Empty Variables
 
-gen ProficientOrAbove_count = "*"
-gen Lev1_count = "*"
-gen Lev2_count = "*"
-gen Lev3_count = "*"
-gen Lev4_count = "*"
-gen Lev5_percent = "*"
-gen Lev5_count = "*"
+gen ProficientOrAbove_count = "--"
+gen Lev1_count = "--"
+gen Lev2_count = "--"
+gen Lev3_count = "--"
+gen Lev4_count = "--"
+gen Lev5_count = "--"
+gen Lev5_percent = "--"
 
 ** Drop Excess Variables
 
@@ -467,6 +458,9 @@ drop district_merge _merge
 replace SchName = "All Schools" if DataLevel == "State"
 replace SchName = "All Schools" if DataLevel == "District"
 replace DistName = "All Districts" if DataLevel == "State"
+replace StateAssignedDistID = "" if DataLevel == "State"
+replace State_leaid = "" if DataLevel == "State"
+replace seasch = "" if DataLevel == "State"
 
 ** Fix Variable Types
 
@@ -503,14 +497,18 @@ replace GradeLevel="G38" if GradeLevel=="STATE"
 
 replace GradeLevel="G08" if SchLevel=="Middle" & Subject=="sci"
 replace GradeLevel="G05" if SchLevel=="Primary" & Subject=="sci"
-replace lowest_grade_offered="03" if lowest_grade_offered=="PK" | lowest_grade_offered=="KG" | lowest_grade_offered=="01" | lowest_grade_offered=="02"
-gen lowgrade = lowest_grade_offered
-gen highgrade = highest_grade_offered
-replace highgrade="08" if highgrade=="09" | highgrade=="10" | highgrade=="11" | highgrade=="12"
+replace lowest_grade_offered=-1 if lowest_grade_offered==.
+replace highest_grade_offered=12 if highest_grade_offered==.
+replace lowest_grade_offered=3 if lowest_grade_offered==-1 | lowest_grade_offered==0 | lowest_grade_offered==1 | lowest_grade_offered==2
+tostring lowest_grade_offered, replace force
+tostring highest_grade_offered, replace force
+gen lowgrade = "0" + lowest_grade_offered
+gen highgrade = "0" + highest_grade_offered
+replace highgrade="08" if highgrade=="09" | highgrade=="010" | highgrade=="011" | highgrade=="012"
 replace GradeLevel = "G" + lowgrade if lowgrade == highgrade & lowgrade !="" & highgrade !=""
 replace GradeLevel = "G" + subinstr(lowgrade,"0", "", 1) + subinstr(highgrade,"0", "", 2) if GradeLevel=="" & Subject!="sci" & lowgrade !="" & highgrade !=""
-replace GradeLevel= "G" + subinstr(lowest_grade_offered,"0", "", 1) + subinstr(highest_grade_offered,"0", "", 2) if GradeLevel=="" & lowest_grade_offered !="" & highest_grade_offered !=""
-drop lowest_grade_offered highest_grade_offered lowgrade highgrade
+replace GradeLevel= "G" + subinstr(lowest_grade_offered,"0", "", 1) + subinstr(highest_grade_offered,"0", "", 2) if GradeLevel=="" & lowest_grade_offered !="0" & highest_grade_offered !=""
+drop dist_highest_grade_offered dist_lowest_grade_offered lowgrade highgrade
 
 ** Relabel GradeLevel Values for District Data
 
@@ -521,7 +519,7 @@ replace GradeLevel="G" + str_lowest_grade_district + str_highest_grade_district 
 replace GradeLevel="G" + str_lowest_grade_district + "8" if GradeLevel=="" & highest_grade_district > 8 & highest_grade_district < 12 
 replace GradeLevel="G" + str_lowest_grade_district + "8" if GradeLevel=="" & highest_grade_district == 12 & Subject != "sci" & lowest_grade_district != 8
 replace GradeLevel="G08" if GradeLevel=="" & highest_grade_district == 12 & Subject != "sci" & lowest_grade_district == 8
-drop str_lowest_grade_district str_highest_grade_district lowest_grade_district highest_grade_district
+drop str_lowest_grade_district str_highest_grade_district lowest_grade_district highest_grade_district lowest_grade_offered highest_grade_offered
 
 ** Relabel GradeLevel Values for Science Assessment Data
 
@@ -587,7 +585,6 @@ replace nProficientOrAbove_percent = nProficientOrAbove_percent / 100 if nProfic
 tostring nProficientOrAbove_percent, replace force
 replace ProficientOrAbove_percent = nProficientOrAbove_percent if ProficientOrAbove_percent != "*"
 drop nProficientOrAbove_percent
-
 destring ParticipationRate, generate(nParticipationRate) force
 replace nParticipationRate = nParticipationRate / 100 if nParticipationRate != .
 tostring nParticipationRate, replace force

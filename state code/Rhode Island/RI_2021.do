@@ -12,23 +12,20 @@ rename state_location StateAbbrev
 rename state_fips StateFips
 rename ncesdistrictid NCESDistrictID
 rename state_leaid State_leaid
-rename charter DistCharter
 rename ncesschoolid NCESSchoolID
-rename virtual SchVirtual 
-rename school_level SchLevel
 rename lea_name DistName
 rename school_type SchType
 
 ** Correct NCES Data Inaccuracies
 
-gen lowgrade = string(lowest_grade_offered)
-gen highgrade = string(highest_grade_offered)
+gen lowgrade = string(sch_lowest_grade_offered)
+gen highgrade = string(sch_highest_grade_offered)
 replace lowgrade = "-1" if NCESSchoolID == "440120000531"
 replace highgrade = "5" if NCESSchoolID == "440120000531"
 
 ** Drop Excess Variables
 
-drop year urban_centric_locale bureau_indian_education lunch_program free_lunch reduced_price_lunch free_or_reduced_price_lunch enrollment school_status county_name county_code school_name school_id
+drop year district_agency_type district_agency_type_num county_code county_name school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch dist_agency_charter_indicator dist_highest_grade_offered dist_lowest_grade_offered
 
 ** Label Variables
 
@@ -65,7 +62,7 @@ rename state_fips StateFips
 
 ** Drop Excess Variables
 
-drop year lea_name
+drop year lea_name urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type_num agency_charter_indicator highest_grade_offered lowest_grade_offered
 
 ** Label Variables
 
@@ -75,6 +72,7 @@ label var CountyName "County in which the district or school is located."
 label var CountyCode "County code in which the district or school is located, also referred to as the county-level FIPS code"
 label var State "State name"
 label var StateAbbrev "State abbreviation"
+label var DistCharter "Charter indicator"
 label var StateFips "State FIPS Id"
 label var DistType "District type as defined by NCES"
 
@@ -180,7 +178,6 @@ label var Flag_AssmtNameChange "Flag denoting a change in the assessment's name 
 label var Flag_CutScoreChange_ELA "Flag denoting a change in scoring determinations in ELA from the prior year only."
 label var Flag_CutScoreChange_math "Flag denoting a change in scoring determinations in math from the prior year only."
 label var Flag_CutScoreChange_read "Flag denoting a change in scoring determinations in reading from the prior year only."
-label var Flag_CutScoreChange_oth "Flag denoting a change in scoring determinations in subjects other than ELA, math, or reading from the prior year only (e.g., writing, STEM)."
 
 ** Generate Other Variables
 
@@ -218,13 +215,13 @@ replace StudentSubGroup="Other" if StudentSubGroup=="Recently (3 yrs) Exited Eng
 
 ** Generate Empty Variables
 
-gen ProficientOrAbove_count = "*"
-gen Lev1_count = "*"
-gen Lev2_count = "*"
-gen Lev3_count = "*"
-gen Lev4_count = "*"
-gen Lev5_percent = "*"
-gen Lev5_count = "*"
+gen ProficientOrAbove_count = "--"
+gen Lev1_count = "--"
+gen Lev2_count = "--"
+gen Lev3_count = "--"
+gen Lev4_count = "--"
+gen Lev5_count = "--"
+gen Lev5_percent = "--"
 
 ** Drop Excess Variables
 
@@ -242,12 +239,17 @@ replace seasch = StateAssignedDistID + "-" + StateAssignedSchID if DataLevel == 
 merge m:1 State_leaid using "${path}/Semi-Processed Data Files/2020_21_NCES_Cleaned_District.dta"
 rename _merge district_merge
 merge m:1 seasch StateFips using "${path}/Semi-Processed Data Files/2020_21_NCES_Cleaned_School.dta"
+drop if district_merge != 3 & DataLevel != "State"| _merge !=3 & DataLevel != "State"
+drop if SchYear != "2020-21"
 
 ** Standardize Non-School Level Data
 
 replace SchName = "All Schools" if DataLevel == "State"
 replace SchName = "All Schools" if DataLevel == "District"
 replace DistName = "All Districts" if DataLevel == "State"
+replace StateAssignedDistID = "" if DataLevel == "State"
+replace State_leaid = "" if DataLevel == "State"
+replace seasch = "" if DataLevel == "State"
 
 ** Fix Variable Types
 
@@ -263,13 +265,12 @@ gen StateAbbrev = "RI"
 gen StateFips = 44
 recast int StateFips
 decode DistType, gen(DistType2)
-decode DistCharter, gen(DistCharter2)
+drop state_leaidnumber seaschnumber _merge district_merge DistType
+rename DistType2 DistType
 decode SchLevel, gen(SchLevel2)
 decode SchType, gen(SchType2)
 decode SchVirtual, gen(SchVirtual2)
-drop state_leaidnumber seaschnumber _merge district_merge DistType DistCharter SchLevel SchType SchVirtual
-rename DistType2 DistType
-rename DistCharter2 DistCharter
+drop SchLevel SchType SchVirtual
 rename SchLevel2 SchLevel 
 rename SchType2 SchType 
 rename SchVirtual2 SchVirtual
@@ -294,7 +295,7 @@ replace lowgrade="3" if lowgrade=="-1" | lowgrade=="0"| lowgrade=="1" | lowgrade
 replace GradeLevel="G05, G08, G11" if lowgrade=="3" & GradeLevel=="" | GradeLevel=="G38" & Subject=="sci"
 replace GradeLevel="G08, G11" if lowgrade=="7" & GradeLevel==""| lowgrade=="8" & GradeLevel==""
 replace GradeLevel="G11" if lowgrade=="9" & GradeLevel==""
-drop lowest_grade_offered lowgrade highest_grade_offered highgrade
+drop sch_lowest_grade_offered lowgrade sch_highest_grade_offered highgrade
 
 ** Standardize Suppressed Proficiency Data
 
@@ -318,7 +319,6 @@ replace nProficientOrAbove_percent = nProficientOrAbove_percent / 100 if nProfic
 tostring nProficientOrAbove_percent, replace force
 replace ProficientOrAbove_percent = nProficientOrAbove_percent if ProficientOrAbove_percent != "*"
 drop nProficientOrAbove_percent
-
 destring ParticipationRate, generate(nParticipationRate) force
 replace nParticipationRate = nParticipationRate / 100 if nParticipationRate != .
 tostring nParticipationRate, replace force

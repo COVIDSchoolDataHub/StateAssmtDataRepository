@@ -12,16 +12,13 @@ rename state_location StateAbbrev
 rename state_fips StateFips
 rename ncesdistrictid NCESDistrictID
 rename state_leaid State_leaid
-rename charter DistCharter
 rename ncesschoolid NCESSchoolID
-rename virtual SchVirtual 
-rename school_level SchLevel
 rename lea_name DistName
 rename school_type SchType
 
 ** Drop Excess Variables
 
-drop year urban_centric_locale bureau_indian_education lunch_program free_lunch reduced_price_lunch free_or_reduced_price_lunch enrollment school_status county_name county_code school_name school_id lowest_grade_offered highest_grade_offered
+drop year district_agency_type district_agency_type_num county_code county_name school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch dist_lowest_grade_offered dist_highest_grade_offered dist_agency_charter_indicator
 
 ** Label Variables
 
@@ -58,7 +55,7 @@ rename state_fips StateFips
 
 ** Drop Excess Variables
 
-drop year lea_name
+drop year lea_name urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type_num agency_charter_indicator lowest_grade_offered highest_grade_offered
 
 ** Label Variables
 
@@ -69,6 +66,7 @@ label var CountyCode "County code in which the district or school is located, al
 label var State "State name"
 label var StateAbbrev "State abbreviation"
 label var StateFips "State FIPS Id"
+label var DistCharter "Charter indicator"
 label var DistType "District type as defined by NCES"
 
 ** Isolate Rhode Island Data
@@ -181,13 +179,13 @@ replace StudentSubGroup="Other" if StudentSubGroup=="Recently (3 yrs) Exited Eng
 
 ** Generate Empty Variables
 
-gen ProficientOrAbove_count = "*"
-gen Lev1_count = "*"
-gen Lev2_count = "*"
-gen Lev3_count = "*"
-gen Lev4_count = "*"
-gen Lev5_percent = "*"
-gen Lev5_count = "*"
+gen ProficientOrAbove_count = "--"
+gen Lev1_count = "--"
+gen Lev2_count = "--"
+gen Lev3_count = "--"
+gen Lev4_count = "--"
+gen Lev5_count = "--"
+gen Lev5_percent = "--"
 
 ** Drop Excess Variables
 
@@ -216,6 +214,9 @@ keep if SchYear == "2017-18"
 replace SchName = "All Schools" if DataLevel == "State"
 replace SchName = "All Schools" if DataLevel == "District"
 replace DistName = "All Districts" if DataLevel == "State"
+replace StateAssignedDistID = "" if DataLevel == "State"
+replace State_leaid = "" if DataLevel == "State"
+replace seasch = "" if DataLevel == "State"
 
 ** Fix Variable Types
 
@@ -231,15 +232,16 @@ gen StateAbbrev = "RI"
 gen StateFips = 44
 recast int StateFips
 decode DistType, gen(DistType2)
-decode DistCharter, gen(DistCharter2)
-decode SchLevel, gen(SchLevel2)
-decode SchType, gen(SchType2)
-decode SchVirtual, gen(SchVirtual2)
-drop state_leaidnumber seaschnumber _merge district_merge DistType DistCharter SchLevel SchType SchVirtual
+drop state_leaidnumber seaschnumber _merge district_merge DistType
 rename DistType2 DistType
-rename DistCharter2 DistCharter
-rename SchLevel2 SchLevel 
-rename SchType2 SchType 
+generate SchType2 = strofreal(SchType)
+drop SchType
+rename SchType2 SchType
+generate SchLevel2 = strofreal(SchLevel)
+drop SchLevel
+rename SchLevel2 SchLevel
+generate SchVirtual2 = strofreal(SchVirtual)
+drop SchVirtual
 rename SchVirtual2 SchVirtual
 
 ** Relabel GradeLevel Values
