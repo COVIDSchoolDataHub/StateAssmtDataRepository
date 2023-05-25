@@ -144,9 +144,7 @@ foreach a in $grade {
 			
 			drop if _merge == 2
 			drop _merge
-			
-			replace NCESSchoolID = "missing" if SchName == "Dubard School For Language Disorders"
-			
+						
 			** Aggregating Proficient Data
 
 			local level 1 2 3 4 5
@@ -417,9 +415,7 @@ foreach a in $gradesci {
 			
 			drop if _merge == 2
 			drop _merge
-			
-			replace NCESSchoolID = "missing" if SchName == "Dubard School For Language Disorders"			
-			
+						
 			** Aggregating Proficient Data
 
 			local level 1 2 3 4
