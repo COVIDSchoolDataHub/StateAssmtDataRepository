@@ -147,14 +147,12 @@ foreach a in $grade {
 			drop if dup > 1
 			drop dup
 			
-			merge 1:1 SchName DistName using "${NCES}/NCES_Schools.dta", keepusing(NCESSchoolID StateAssignedDistID StateAssignedSchID)
+			merge 1:1 SchName DistName using "${NCES}/NCES_Schools.dta", keepusing(NCESSchoolID StateAssignedSchID)
 						
 			drop if _merge == 2
 			drop _merge
 			
-			tostring StateAssignedDistID, replace
-			replace StateAssignedDistID = State_leaid if StateAssignedDistID == "."
-			tostring StateAssignedSchID, replace
+			generate StateAssignedDistID = State_leaid
 								
 			replace NCESSchoolID = "280018501526" if NCESSchoolID == "280018501401"
 			replace NCESSchoolID = "280019501491" if NCESSchoolID == "280198001341"
@@ -347,14 +345,12 @@ global gradesci 5 8
 			drop if dup > 1
 			drop dup
 			
-			merge 1:1 SchName DistName using "${NCES}/NCES_Schools.dta", keepusing(NCESSchoolID StateAssignedDistID StateAssignedSchID)
+			merge 1:1 SchName DistName using "${NCES}/NCES_Schools.dta", keepusing(NCESSchoolID StateAssignedSchID)
 
 			drop if _merge == 2
 			drop _merge
 						
-			tostring StateAssignedDistID, replace
-			replace StateAssignedDistID = State_leaid if StateAssignedDistID == "."
-			tostring StateAssignedSchID, replace
+			generate StateAssignedDistID = State_leaid
 						
 			replace NCESSchoolID = "280018501526" if NCESSchoolID == "280018501401"
 			replace NCESSchoolID = "280019501491" if NCESSchoolID == "280198001341"
