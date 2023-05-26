@@ -127,15 +127,15 @@ foreach a in $grade {
 			replace SchName = strrtrim(SchName)
 			
 			replace SchName = "Virgil Jones Jr. Elementary School" if SchName == "Wilson Elementary School"
+			replace SchName = "Coldwater Attendance Center" if SchName == "Coldwater High School"
 			
-			merge 1:1 SchName DistName using "${NCES}/NCES_Schools.dta", keepusing(NCESSchoolID StateAssignedDistID StateAssignedSchID)
+			merge 1:1 SchName DistName using "${NCES}/NCES_Schools.dta", keepusing(NCESSchoolID StateAssignedSchID)
 			
 			drop if _merge == 2
 			drop _merge
 			
-			tostring StateAssignedDistID, replace
-			replace StateAssignedDistID = State_leaid if StateAssignedDistID == "."
-			tostring StateAssignedSchID, replace
+			generate StateAssignedDistID = State_leaid
+			replace StateAssignedDistID = subinstr(StateAssignedDistID,"MS-","",.)
 						
 			replace NCESSchoolID = "280018501409" if NCESSchoolID == "280018501527"
 			replace NCESSchoolID = "280423001346" if NCESSchoolID == "280423001508"
@@ -399,14 +399,13 @@ foreach a in $gradesci {
 
 			replace SchName = "Virgil Jones Jr. Elementary School" if SchName == "Wilson Elementary School"			
 			
-			merge 1:1 SchName DistName using "${NCES}/NCES_Schools.dta", keepusing(NCESSchoolID StateAssignedDistID StateAssignedSchID)
+			merge 1:1 SchName DistName using "${NCES}/NCES_Schools.dta", keepusing(NCESSchoolID StateAssignedSchID)
 			
 			drop if _merge == 2
 			drop _merge
 						
-			tostring StateAssignedDistID, replace
-			replace StateAssignedDistID = State_leaid if StateAssignedDistID == "."
-			tostring StateAssignedSchID, replace
+			generate StateAssignedDistID = State_leaid
+			replace StateAssignedDistID = subinstr(StateAssignedDistID,"MS-","",.)
 						
 			replace NCESSchoolID = "280018501409" if NCESSchoolID == "280018501527"
 			replace NCESSchoolID = "280423001346" if NCESSchoolID == "280423001508"
