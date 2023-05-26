@@ -77,8 +77,6 @@ replace StateAssignedDistID = "" if DataLevel == "State"
 replace NCESDistrictID = "2801191" if District == "Mississippi Dept. of Human Services" | District == "Mississippi Dept. Of Human Services"
 replace StateAssignedDistID = "2562" if District == "Mississippi Dept. of Human Services" | District == "Mississippi Dept. Of Human Services"
 
-replace NCESDistrictID = "missing" if District == "University Of Southern Mississippi"
-
 merge m:1 NCESDistrictID using "${NCES}/NCES_2014_District.dta"
 
 drop if _merge == 2
@@ -123,9 +121,6 @@ replace NCESSchoolID = "280198001417" if SchName == "William Dean Jr. Elementary
 
 replace NCESSchoolID = "280119101197" if SchName == "Williams School"
 replace StateAssignedSchID = "2562008" if SchName == "Williams School"
-
-replace NCESSchoolID = "missing" if SchName == "Dubard School For Language Disorders"
-replace StateAssignedSchID = "missing" if SchName == "Dubard School For Language Disorders"
 
 gen seasch = StateAssignedSchID
 
