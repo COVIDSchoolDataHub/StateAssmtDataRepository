@@ -41,6 +41,7 @@ foreach a in $grade {
 			replace DistName = SchName if DataLevel == "District"
 			replace DistName = "Reimagine Prep" if SchName == "Republic Charter Schools"
 			replace DistName = "Joel E. Smillow Prep" if SchName == "Joel E. Smilow Prep"
+			replace DistName = "JOEL E SMILOW COLLEGIATE" if SchName == "Smilow Collegiate"
 			replace DistName = "University Of Southern Mississippi" if SchName == "Dubard School For Language Disorders"
 			replace DistName = DistName[_n-1] if missing(DistName)
 			replace DistName = "" if DataLevel == "State"
@@ -143,15 +144,14 @@ foreach a in $grade {
 			drop if dup > 1
 			drop dup
 			
-			merge 1:1 SchName DistName using "${NCES}/NCES_Schools.dta", keepusing(NCESSchoolID StateAssignedDistID StateAssignedSchID)
+			merge 1:1 SchName DistName using "${NCES}/NCES_Schools.dta", keepusing(NCESSchoolID StateAssignedSchID)
 						
 			drop if _merge == 2
 			drop _merge
 						
-			tostring StateAssignedDistID, replace
-			replace StateAssignedDistID = State_leaid if StateAssignedDistID == "."
-			tostring StateAssignedSchID, replace
-						
+			generate StateAssignedDistID = State_leaid
+			replace StateAssignedDistID = subinstr(StateAssignedDistID,"MS-","",.)
+									
 			replace NCESSchoolID = "280019501491" if NCESSchoolID == "280198001341"
 			replace NCESSchoolID = "280261001472" if NCESSchoolID == "280261001175"
 			replace NCESSchoolID = "280019601485" if NCESSchoolID == "280474000882"
@@ -241,6 +241,7 @@ global gradesci 5 8
 			replace DistName = "Reimagine Prep" if SchName == "Republic Charter Schools"
 			replace DistName = "Joel E. Smillow Prep" if SchName == "Joel E. Smilow Prep"
 			replace DistName = "Joel E. Smillow Prep" if SchName == "Smilow Prep"
+			replace DistName = "JOEL E SMILOW COLLEGIATE" if SchName == "Smilow Collegiate"
 			replace DistName = "University Of Southern Mississippi" if SchName == "Dubard School For Language Disorders"
 			replace DistName = DistName[_n-1] if missing(DistName)
 			replace DistName = "" if DataLevel == "State"
@@ -355,14 +356,13 @@ global gradesci 5 8
 			
 			replace SchName = strrtrim(SchName)
 			
-			merge 1:1 SchName DistName using "${NCES}/NCES_Schools.dta", keepusing(NCESSchoolID StateAssignedDistID StateAssignedSchID)
+			merge 1:1 SchName DistName using "${NCES}/NCES_Schools.dta", keepusing(NCESSchoolID StateAssignedSchID)
 			
 			drop if _merge == 2
 			drop _merge
 						
-			tostring StateAssignedDistID, replace
-			replace StateAssignedDistID = State_leaid if StateAssignedDistID == "."
-			tostring StateAssignedSchID, replace
+			generate StateAssignedDistID = State_leaid
+			replace StateAssignedDistID = subinstr(StateAssignedDistID,"MS-","",.)
 						
 			replace NCESSchoolID = "280019501491" if NCESSchoolID == "280198001341"
 			replace NCESSchoolID = "280261001472" if NCESSchoolID == "280261001175"
