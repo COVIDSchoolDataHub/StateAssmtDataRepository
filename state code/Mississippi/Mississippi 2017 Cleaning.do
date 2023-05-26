@@ -124,15 +124,15 @@ foreach a in $grade {
 			
 			replace SchName = "VIRGIL JONES, JR. ELEMENTARY SCHOOL" if SchName == "Wilson Elementary School"
 			replace SchName = "LELAND SCHOOL PARK" if SchName == "Leland Middle School"
+			replace SchName = "COLDWATER ATTENDANCE CENTER" if SchName == "Coldwater High School"
 			
-			merge 1:1 SchName DistName using "${NCES}/NCES_Schools.dta", keepusing(NCESSchoolID StateAssignedDistID StateAssignedSchID)
+			merge 1:1 SchName DistName using "${NCES}/NCES_Schools.dta", keepusing(NCESSchoolID StateAssignedSchID)
 			
 			drop if _merge == 2
 			drop _merge
 			
-			tostring StateAssignedDistID, replace
-			replace StateAssignedDistID = State_leaid if StateAssignedDistID == "."
-			tostring StateAssignedSchID, replace
+			generate StateAssignedDistID = State_leaid
+			replace StateAssignedDistID = subinstr(StateAssignedDistID,"MS-","",.)
 						
 			replace NCESSchoolID = "280018501409" if NCESSchoolID == "280018501527"
 			replace NCESSchoolID = "280423001346" if NCESSchoolID == "280423001508"
@@ -200,7 +200,7 @@ foreach a in $gradesci {
 			
 			gen DistName = ""
 			replace DistName = SchName if DataLevel == "District"
-			replace DistName = "JOEL E. SMILOW PREP" if SchName == "SMILLOW PREP"
+			replace DistName = "JOEL E. SMILOW PREP" if SchName == "SMILOW PREP"
 			replace DistName = "UNIVERSITY OF SOUTHERN MISSISSIPPI" if SchName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
 			replace DistName = DistName[_n-1] if missing(DistName)
 			replace DistName = "" if DataLevel == "State"
@@ -296,7 +296,7 @@ foreach a in $gradesci {
 			
 			gen DistName = ""
 			replace DistName = SchName if DataLevel == "District"
-			replace DistName = "JOEL E. SMILOW PREP" if SchName == "SMILLOW PREP"
+			replace DistName = "JOEL E. SMILOW PREP" if SchName == "SMILOW PREP"
 			replace DistName = "UNIVERSITY OF SOUTHERN MISSISSIPPI" if SchName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
 			replace DistName = DistName[_n-1] if missing(DistName)
 			replace DistName = "" if DataLevel == "State"
@@ -391,15 +391,14 @@ foreach a in $gradesci {
 			gen Flag_CutScoreChange_read = ""
 			gen Flag_CutScoreChange_oth = "N"
 			
-			merge 1:1 SchName DistName using "${NCES}/NCES_Schools.dta", keepusing(NCESSchoolID StateAssignedDistID StateAssignedSchID)
+			merge 1:1 SchName DistName using "${NCES}/NCES_Schools.dta", keepusing(NCESSchoolID StateAssignedSchID)
 			
 			drop if _merge == 2
 			drop _merge
 			drop if SchName == "PICAYUNE ITINERATE CENTER"
 						
-			tostring StateAssignedDistID, replace
-			replace StateAssignedDistID = State_leaid if StateAssignedDistID == "."
-			tostring StateAssignedSchID, replace
+			generate StateAssignedDistID = State_leaid
+			replace StateAssignedDistID = subinstr(StateAssignedDistID,"MS-","",.)
 						
 			replace NCESSchoolID = "280018501409" if NCESSchoolID == "280018501527"
 			replace NCESSchoolID = "280423001346" if NCESSchoolID == "280423001508"
