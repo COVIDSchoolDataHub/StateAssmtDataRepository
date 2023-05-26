@@ -130,6 +130,7 @@ replace DISTSCH = "" if DataLevel == "District" | DataLevel == "State"
 replace StateAssignedSchID = "" if DataLevel == "District" | DataLevel == "State"
 replace StateAssignedDistID = "" if DataLevel == "State"
 rename DISTSCH seasch
+replace StateAssignedSchID = seasch
 replace DistName = subinstr(DistName, " (E)", "", .)
 
 merge m:1 DistName using "${NCES}/NCES_2013_District.dta"
@@ -269,6 +270,7 @@ replace DISTSCH = "" if DataLevel == "District" | DataLevel == "State"
 replace StateAssignedSchID = "" if DataLevel == "District" | DataLevel == "State"
 replace StateAssignedDistID = "" if DataLevel == "State"
 rename DISTSCH seasch
+replace StateAssignedSchID = seasch
 replace DistName = subinstr(DistName, " ( E )", "", .)
 
 merge m:1 DistName using "${NCES}/NCES_2013_District.dta"
