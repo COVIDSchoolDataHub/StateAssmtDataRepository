@@ -153,6 +153,7 @@ foreach a in $grade {
 			drop _merge
 			
 			generate StateAssignedDistID = State_leaid
+			replace StateAssignedDistID = subinstr(StateAssignedDistID,"MS-","",.)
 								
 			replace NCESSchoolID = "280018501526" if NCESSchoolID == "280018501401"
 			replace NCESSchoolID = "280019501491" if NCESSchoolID == "280198001341"
@@ -160,6 +161,7 @@ foreach a in $grade {
 			replace NCESSchoolID = "280327001534" if NCESSchoolID == "280327000638"
 			replace NCESSchoolID = "280019601485" if NCESSchoolID == "280474000882"	
 			replace NCESSchoolID = "280019601493" if NCESSchoolID == "280474000881"
+			replace NCESSchoolID = "280020001539" if NCESSchoolID == "280096000108"
 			
 			merge m:1 NCESSchoolID using "${NCES}/NCES_2021_School.dta"
 						
@@ -351,6 +353,7 @@ global gradesci 5 8
 			drop _merge
 						
 			generate StateAssignedDistID = State_leaid
+			replace StateAssignedDistID = subinstr(StateAssignedDistID,"MS-","",.)
 						
 			replace NCESSchoolID = "280018501526" if NCESSchoolID == "280018501401"
 			replace NCESSchoolID = "280019501491" if NCESSchoolID == "280198001341"
@@ -358,6 +361,7 @@ global gradesci 5 8
 			replace NCESSchoolID = "280327001534" if NCESSchoolID == "280327000638"
 			replace NCESSchoolID = "280019601485" if NCESSchoolID == "280474000882"	
 			replace NCESSchoolID = "280019601493" if NCESSchoolID == "280474000881"
+			replace NCESSchoolID = "280020001539" if NCESSchoolID == "280096000108"
 			
 			merge m:1 NCESSchoolID using "${NCES}/NCES_2021_School.dta"
 			
