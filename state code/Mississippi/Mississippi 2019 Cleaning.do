@@ -28,8 +28,8 @@ foreach a in $grade {
 			gen AssmtName = "MAAP"
 			gen AssmtType = "Regular"
 			gen StudentGroup = "All Students"
-			gen StudentSubGroup = ""
-			gen StudentSubGroup_TotalTested = ""
+			gen StudentSubGroup = StudentGroup
+			gen StudentSubGroup_TotalTested = StudentGroup_TotalTested
 			
 			gen DataLevel = "School"
 			
@@ -217,8 +217,8 @@ global gradesci 5 8
 			gen AssmtName = "MAAP"
 			gen AssmtType = "Regular"
 			gen StudentGroup = "All Students"
-			gen StudentSubGroup = ""
-			gen StudentSubGroup_TotalTested = ""
+			gen StudentSubGroup = StudentGroup
+			gen StudentSubGroup_TotalTested = StudentGroup_TotalTested
 			
 			gen DataLevel = "School"
 			
