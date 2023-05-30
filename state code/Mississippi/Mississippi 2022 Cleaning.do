@@ -28,8 +28,8 @@ foreach a in $grade {
 			gen AssmtName = "MAAP"
 			gen AssmtType = "Regular"
 			gen StudentGroup = "All Students"
-			gen StudentSubGroup = ""
-			gen StudentSubGroup_TotalTested = ""
+			gen StudentSubGroup = StudentGroup
+			gen StudentSubGroup_TotalTested = StudentGroup_TotalTested
 			
 			gen DataLevel = "School"
 			replace DataLevel = "District" if (strpos(SchName, "District") | strpos(SchName, "Schools") | strpos(SchName, "district") | strpos(SchName, "Midtown Public Charter School") | strpos(SchName, "Joel E. Smilow Prep") | strpos(SchName, "Reimagine Prep") | strpos(SchName, "Consolidated") | strpos(SchName, "Blind and Deaf") | strpos(SchName, "Oakley Youth Development Center") | strpos(SchName, "Smilow Collegiate") | strpos(SchName, "Ambition Preparatory") | strpos(SchName, "Leflore Legacy Academy") | strpos(SchName, "Clarksdale Collegiate Public Charter")) & SchName != "West Bolivar District Middle School" & SchName != "Republic Charter Schools" & SchName != "Ambition Preparatory Charter School"> 0
@@ -232,8 +232,8 @@ global gradesci 5 8
 			gen AssmtName = "MAAP"
 			gen AssmtType = "Regular"
 			gen StudentGroup = "All Students"
-			gen StudentSubGroup = ""
-			gen StudentSubGroup_TotalTested = ""
+			gen StudentSubGroup = StudentGroup
+			gen StudentSubGroup_TotalTested = StudentGroup_TotalTested
 			
 			gen DataLevel = "School"
 			replace DataLevel = "District" if (strpos(SchName, "District") | strpos(SchName, "Schools") | strpos(SchName, "district") | strpos(SchName, "Midtown Public Charter School") | strpos(SchName, "Joel E. Smilow Prep") | strpos(SchName, "Reimagine Prep") | strpos(SchName, "Consolidated") | strpos(SchName, "Division") | strpos(SchName, "Blind and Deaf") | strpos(SchName, "Oakley Youth Development Center") | strpos(SchName, "Clarksdale Collegiate Public Charter") | strpos(SchName, "Leflore Legacy Academy")) & SchName != "West Bolivar District Middle School" & SchName != "Republic Charter Schools" > 0
