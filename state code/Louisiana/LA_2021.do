@@ -1,6 +1,56 @@
 clear
 global path "/Users/willtolmie/Documents/State Repository Research/Louisiana"
 
+** 2021-22 NCES School Data for Caneview K-8 School Data
+
+use "${path}/NCES/School/NCES_2021_School.dta"
+
+** Rename Variables
+
+rename state_name State
+rename state_location StateAbbrev
+rename state_fips StateFips
+rename ncesdistrictid NCESDistrictID
+rename state_leaid State_leaid
+rename ncesschoolid NCESSchoolID
+rename lea_name DistName
+rename school_type SchType
+
+** Label Variables
+
+label var State "State name"
+label var StateAbbrev "State abbreviation"
+label var StateFips "State FIPS Id"
+label var NCESDistrictID "NCES district ID"
+label var State_leaid "State LEA ID"
+label var DistCharter "Charter indicator"
+label var NCESSchoolID "NCES school ID"
+label var SchType "School type as defined by NCES"
+label var SchVirtual "Virtual school indicator"
+label var SchLevel "School level"
+
+** Drop Excess Variables
+
+drop year district_agency_type district_agency_type_num county_code county_name school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch dist_lowest_grade_offered dist_highest_grade_offered
+
+** Fix Variable Types
+
+decode State, gen(State2)
+decode SchLevel, gen(SchLevel2)
+decode SchType, gen(SchType2)
+decode SchVirtual, gen(SchVirtual2)
+drop State SchLevel SchType SchVirtual
+rename State2 State
+rename SchLevel2 SchLevel 
+rename SchType2 SchType 
+rename SchVirtual2 SchVirtual
+tostring seasch, replace force
+
+** Isolate Louisiana Data
+
+keep if NCESSchoolID == "220192002501"
+save "${path}/Semi-Processed Data Files/Caneview_K8_School_2022.dta", replace
+
 ** 2020-21 NCES School Data
 
 use "${path}/NCES/School/NCES_2020_School.dta"
@@ -53,6 +103,7 @@ label var SchLevel "School level"
 ** Isolate Louisiana Data
 
 drop if StateFips != 22
+append using "${path}/Semi-Processed Data Files/Caneview_K8_School_2022.dta"
 save "${path}/Semi-Processed Data Files/2020_21_NCES_Cleaned_School.dta", replace
 
 ** 2010-21 NCES District Data
@@ -244,7 +295,7 @@ drop Lev4max Lev4maxnumber Lev4min Lev4minnumber Lev5max Lev5maxnumber Lev5min L
 
 keep if StudentGroup != "StudentGroup"
 
-** Merging NCES Variables
+** Merging NCES District Variables
 
 gen state_leaidnumber =.
 gen State_leaid = string(state_leaidnumber)
@@ -255,8 +306,12 @@ gen seasch = string(seaschnumber)
 replace seasch = StateAssignedDistID + "-" + StateAssignedSchID if DataLevel == "School"
 merge m:1 State_leaid using "${path}/Semi-Processed Data Files/2020_21_NCES_Cleaned_District.dta"
 rename _merge district_merge
+drop if district_merge != 3 & DataLevel != "State"
+
+** Merging NCES School Variables
+
 merge m:1 seasch StateFips using "${path}/Semi-Processed Data Files/2020_21_NCES_Cleaned_School.dta"
-drop if district_merge != 3 & DataLevel != "State"| _merge !=3 & DataLevel != "State"
+drop if _merge !=3 & DataLevel == "School"
 drop state_leaidnumber seaschnumber _merge district_merge
 
 ** Standardize Non-School Level Data
@@ -266,7 +321,7 @@ replace SchName = "All Schools" if DataLevel == "District"
 replace DistName = "All Districts" if DataLevel == "State"
 replace StateAssignedDistID = "" if DataLevel == "State"
 replace State_leaid = "" if DataLevel == "State"
-replace seasch = "" if DataLevel == "State"
+replace seasch = "" if DataLevel == "State" | DataLevel == "District"
 
 ** Relabel GradeLevel Values
 
