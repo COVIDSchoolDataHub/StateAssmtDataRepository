@@ -36,8 +36,7 @@ gen Flag_CutScoreChange_read = ""
 gen Flag_CutScoreChange_oth = ""
 gen AssmtType = "Regular"
 gen StudentGroup = "All Students"
-gen StudentSubGroup = ""
-gen StudentSubGroup_TotalTested = ""
+gen StudentSubGroup = StudentGroup
 
 ** Merging Rows
 
@@ -57,6 +56,8 @@ rename Level3PCT Lev3_percent
 rename Level4PCT Lev4_percent
 rename Level5PCT Lev5_percent
 rename TestTakers StudentGroup_TotalTested
+
+gen StudentSubGroup_TotalTested = StudentGroup_TotalTested
 
 gen Lev1_count = ""
 gen Lev2_count = ""

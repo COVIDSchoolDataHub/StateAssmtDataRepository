@@ -25,8 +25,8 @@ foreach a in $grade {
 			gen AssmtName = "MAAP"
 			gen AssmtType = "Regular"
 			gen StudentGroup = "All Students"
-			gen StudentSubGroup = ""
-			gen StudentSubGroup_TotalTested = ""
+			gen StudentSubGroup = StudentGroup
+			gen StudentSubGroup_TotalTested = StudentGroup_TotalTested
 			
 			gen DataLevel = "School"			
 			replace DataLevel = "District" if (strpos(SchName, "District") | strpos(SchName, "Schools") | strpos(SchName, "district") | strpos(SchName, "Ms Sch For The Blind") | strpos(SchName, "Midtown Public Charter School") | strpos(SchName, "Ms School For The Deaf") | strpos(SchName, "Joel E. Smilow Prep") | strpos(SchName, "Reimagine Prep") | strpos(SchName, "Oakley Youth Development Center")) & SchName != "West Bolivar District Middle School" & SchName != "Republic Charter Schools" > 0
@@ -285,8 +285,8 @@ foreach a in $gradesci {
 			gen AssmtName = "MST2"
 			gen AssmtType = "Regular"
 			gen StudentGroup = "All Students"
-			gen StudentSubGroup = ""
-			gen StudentSubGroup_TotalTested = ""
+			gen StudentSubGroup = StudentGroup
+			gen StudentSubGroup_TotalTested = StudentGroup_TotalTested
 			
 			gen DataLevel = "School"
 			

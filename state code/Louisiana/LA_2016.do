@@ -45,6 +45,8 @@ rename SchVirtual2 SchVirtual
 
 keep if StateAbbrev == "LA" | DistName == "Chitimacha Day School"
 drop if DistName == ""
+replace seasch = State_leaid + "-" + seasch
+replace State_leaid = "LA-" + State_leaid
 save "${path}/Semi-Processed Data Files/2015_16_NCES_Cleaned_School.dta", replace
 
 ** 2015-16 NCES District Data
@@ -228,7 +230,7 @@ drop Lev4max Lev4maxnumber Lev4min Lev4minnumber Lev5max Lev5maxnumber Lev5min L
 
 drop if StudentSubGroup == "Students with Disability"
 
-** Merging NCES Variables
+** Merging NCES District Variables
 
 gen state_leaidnumber =.
 gen State_leaid = string(state_leaidnumber)
@@ -241,8 +243,149 @@ replace seasch = "D50S09-D50S09" if SchName == "Chitimacha Tribal School"
 replace State_leaid = "D50S09" if SchName == "Chitimacha Tribal School"
 merge m:1 State_leaid using "${path}/Semi-Processed Data Files/2015_16_NCES_Cleaned_District.dta"
 rename _merge district_merge
+drop if district_merge != 3 & DataLevel != "State"
+
+** Correct Inaccurate State_lead and seasch Values 
+
+replace seasch = "WI1-WI1001" if StateAssignedSchID == "381001"
+replace State_leaid = "LA-WI1" if StateAssignedSchID == "381001"
+
+replace seasch = "WV1-WV1001" if StateAssignedSchID == "373001"
+replace State_leaid = "LA-WV1" if StateAssignedSchID == "373001"
+
+replace seasch = "W92-W92001" if StateAssignedSchID == "399002"
+replace State_leaid = "LA-W92" if StateAssignedSchID == "399002"
+
+replace seasch = "W8B-W8B001" if StateAssignedSchID == "3AP002"
+replace State_leaid = "LA-W8B" if StateAssignedSchID == "3AP002"
+
+replace seasch = "WAO-WAO001" if StateAssignedSchID == "3AP003"
+replace State_leaid = "LA-WAO" if StateAssignedSchID == "3AP003"
+
+replace seasch = "WAP-WAP001" if StateAssignedSchID == "3AP001"
+replace State_leaid = "LA-WAP" if StateAssignedSchID == "3AP001"
+
+replace seasch = "WE2-WE2001" if StateAssignedSchID == "385002"
+replace State_leaid = "LA-WE2" if StateAssignedSchID == "385002"
+
+replace seasch = "WAI-WAI001" if StateAssignedSchID == "361001"
+replace State_leaid = "LA-WAI" if StateAssignedSchID == "361001"
+
+replace seasch = "W65-W65001" if StateAssignedSchID == "395002"
+replace State_leaid = "LA-W65" if StateAssignedSchID == "395002"
+
+replace seasch = "WAB-WAB001" if StateAssignedSchID == "367001"
+replace State_leaid = "LA-WAB" if StateAssignedSchID == "367001"
+
+replace seasch = "W52-W52001" if StateAssignedSchID == "393002"
+replace State_leaid = "LA-W52" if StateAssignedSchID == "393002"
+
+replace seasch = "WAE-WAE001" if StateAssignedSchID == "364001"
+replace State_leaid = "LA-WAE" if StateAssignedSchID == "364001"
+
+replace seasch = "W14-W14001" if StateAssignedSchID == "300004"
+replace State_leaid = "LA-W14" if StateAssignedSchID == "300004"
+
+replace seasch = "WAF-WAF001" if StateAssignedSchID == "363001"
+replace State_leaid = "LA-WAF" if StateAssignedSchID == "363001"
+
+replace seasch = "W21-W21001" if StateAssignedSchID == "390001"
+replace State_leaid = "LA-W21" if StateAssignedSchID == "390001"
+
+replace seasch = "W82-W82001" if StateAssignedSchID == "398001"
+replace State_leaid = "LA-W82" if StateAssignedSchID == "398001"
+
+replace seasch = "W83-W83001" if StateAssignedSchID == "398003"
+replace State_leaid = "LA-W83" if StateAssignedSchID == "398003"
+
+replace seasch = "WL1-WL1001" if StateAssignedSchID == "398004"
+replace State_leaid = "LA-WL1" if StateAssignedSchID == "398004"
+
+replace seasch = "W81-W81001" if StateAssignedSchID == "398002"
+replace State_leaid = "LA-W81" if StateAssignedSchID == "398002"
+
+replace seasch = "W85-W85001" if StateAssignedSchID == "398006"
+replace State_leaid = "LA-W85" if StateAssignedSchID == "398006"
+
+replace seasch = "WB2-WB2001" if StateAssignedSchID == "389002"
+replace State_leaid = "LA-WB2" if StateAssignedSchID == "389002"
+
+replace seasch = "W51-W51001" if StateAssignedSchID == "393001"
+replace State_leaid = "LA-W51" if StateAssignedSchID == "393001"
+
+replace seasch = "W95-W95001" if StateAssignedSchID == "399005"
+replace State_leaid = "LA-W95" if StateAssignedSchID == "399005"
+
+replace seasch = "WE3-WE3001" if StateAssignedSchID == "385003"
+replace State_leaid = "LA-WE3" if StateAssignedSchID == "385003"
+
+replace seasch = "WX1-WX1001" if StateAssignedSchID == "371001"
+replace State_leaid = "LA-WX1" if StateAssignedSchID == "371001"
+
+replace seasch = "W66-W66001" if StateAssignedSchID == "395001"
+replace State_leaid = "LA-W66" if StateAssignedSchID == "395001"
+
+replace seasch = "W5A-W5A001" if StateAssignedSchID == "3A5001"
+replace State_leaid = "LA-W5A" if StateAssignedSchID == "3A5001"
+
+replace seasch = "W63-W63001" if StateAssignedSchID == "395004"
+replace State_leaid = "LA-W63" if StateAssignedSchID == "395004"
+
+replace seasch = "W53-W53001" if StateAssignedSchID == "393003"
+replace State_leaid = "LA-W53" if StateAssignedSchID == "393003"
+
+replace seasch = "WV2-WV2001" if StateAssignedSchID == "373002"
+replace State_leaid = "LA-WV2" if StateAssignedSchID == "373002"
+
+replace seasch = "WAA-WAA001" if StateAssignedSchID == "368001"
+replace State_leaid = "LA-WAA" if StateAssignedSchID == "368001"
+
+replace seasch = "W11-W11001" if StateAssignedSchID == "300002"
+replace State_leaid = "LA-W11" if StateAssignedSchID == "300002"
+
+replace seasch = "WAM-WAM001" if StateAssignedSchID == "363002"
+replace State_leaid = "LA-WAM" if StateAssignedSchID == "363002"
+
+replace seasch = "W94-W94001" if StateAssignedSchID == "399004"
+replace State_leaid = "LA-W94" if StateAssignedSchID == "399004"
+
+replace seasch = "W12-W12001" if StateAssignedSchID == "300001"
+replace State_leaid = "LA-W12" if StateAssignedSchID == "300001"
+
+replace seasch = "WZ1-WZ1001" if StateAssignedSchID == "369001"
+replace State_leaid = "LA-WZ1" if StateAssignedSchID == "369001"
+
+replace seasch = "WZ3-WZ3001" if StateAssignedSchID == "369003"
+replace State_leaid = "LA-WZ3" if StateAssignedSchID == "369003"
+
+replace seasch = "WZ6-WZ6001" if StateAssignedSchID == "369006"
+replace State_leaid = "LA-WZ6" if StateAssignedSchID == "369006"
+
+replace seasch = "WZ2-WZ2001" if StateAssignedSchID == "369002"
+replace State_leaid = "LA-WZ2" if StateAssignedSchID == "369002"
+
+replace seasch = "WZ7-WZ7001" if StateAssignedSchID == "369007"
+replace State_leaid = "LA-WZ7" if StateAssignedSchID == "369007"
+
+replace seasch = "W91-W91001" if StateAssignedSchID == "399001"
+replace State_leaid = "LA-W91" if StateAssignedSchID == "399001"
+
+replace seasch = "W71-W71001" if StateAssignedSchID == "397001"
+replace State_leaid = "LA-W71" if StateAssignedSchID == "397001"
+
+replace seasch = "WU1-WU1001" if StateAssignedSchID == "374001"
+replace State_leaid = "LA-WU1" if StateAssignedSchID == "374001"
+
+replace seasch = "WE1-WE1001" if StateAssignedSchID == "385001"
+replace State_leaid = "LA-WE1" if StateAssignedSchID == "385001"
+
+replace seasch = "W64-W64001" if StateAssignedSchID == "395003"
+replace State_leaid = "LA-W64" if StateAssignedSchID == "395003"
+
+** Merging NCES School Variables
+
 merge m:1 seasch using "${path}/Semi-Processed Data Files/2015_16_NCES_Cleaned_School.dta"
-drop if district_merge != 3 & DataLevel != "State"| _merge !=3 & DataLevel != "State"
+drop if  _merge !=3 & DataLevel == "School"
 drop state_leaidnumber seaschnumber _merge district_merge
 
 ** Standardize Non-School Level Data
@@ -252,7 +395,7 @@ replace SchName = "All Schools" if DataLevel == "District"
 replace DistName = "All Districts" if DataLevel == "State"
 replace StateAssignedDistID = "" if DataLevel == "State"
 replace State_leaid = "" if DataLevel == "State"
-replace seasch = "" if DataLevel == "State"
+replace seasch = "" if DataLevel == "State" | DataLevel == "District"
 
 ** Standardize Charter Data
 

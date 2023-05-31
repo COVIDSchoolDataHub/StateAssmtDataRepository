@@ -238,7 +238,7 @@ replace seasch = StateAssignedDistID + "-" + StateAssignedSchID if DataLevel == 
 merge m:1 State_leaid using "${path}/Semi-Processed Data Files/2017_18_NCES_Cleaned_District.dta"
 rename _merge district_merge
 merge m:1 seasch StateFips using "${path}/Semi-Processed Data Files/2017_18_NCES_Cleaned_School.dta"
-drop if district_merge != 3 & DataLevel != "State"| _merge !=3 & DataLevel != "State"
+drop if district_merge != 3 & DataLevel != "State"| _merge !=3 & DataLevel == "School"
 drop state_leaidnumber seaschnumber _merge district_merge
 
 ** Standardize Non-School Level Data
@@ -248,7 +248,7 @@ replace SchName = "All Schools" if DataLevel == "District"
 replace DistName = "All Districts" if DataLevel == "State"
 replace StateAssignedDistID = "" if DataLevel == "State"
 replace State_leaid = "" if DataLevel == "State"
-replace seasch = "" if DataLevel == "State"
+replace seasch = "" if DataLevel == "State" | DataLevel == "District"
 
 ** Relabel GradeLevel Values
 

@@ -449,7 +449,7 @@ merge m:1 seasch StateFips using "${path}/Semi-Processed Data Files/2021_22_NCES
 
 ** Drop Unmerged NCES Observations
 
-drop if district_merge != 3 & _merge !=3 & DataLevel != "State"
+drop if district_merge != 3 & DataLevel != "State" | _merge !=3 & DataLevel == "School"
 keep if SchYear == "2021-22"
 drop district_merge _merge
 

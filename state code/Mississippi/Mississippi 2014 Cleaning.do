@@ -75,8 +75,8 @@ replace DataLevel = "District" if SchName == "Districtwide Data"
 replace DataLevel = "State" if SchName == "Statewide Data"
 
 gen StudentGroup = "All Students"
-gen StudentSubGroup = ""
-gen StudentSubGroup_TotalTested = ""
+gen StudentSubGroup = StudentGroup
+gen StudentSubGroup_TotalTested = StudentGroup_TotalTested
 
 ** Rename existing variables
 
@@ -217,8 +217,8 @@ replace DataLevel = "District" if SchName == "Districtwide Data"
 replace DataLevel = "State" if SchName == "Statewide Data"
 
 gen StudentGroup = "All Students"
-gen StudentSubGroup = ""
-gen StudentSubGroup_TotalTested = ""
+gen StudentSubGroup = StudentGroup
+gen StudentSubGroup_TotalTested = StudentGroup_TotalTested
 
 ** Rename existing variables
 
