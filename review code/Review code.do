@@ -1,14 +1,17 @@
 clear
 set more off
 
-cd "/Users/minnamgung/Desktop/Arizona"
+import delimited "/Users/sarahridley/Desktop/CSDH/Raw/Test Scores/Arizona/Output/AZ_AssmtData_2012.csv", varnames(1) delimit(",") case(preserve)
 
-global output "/Users/minnamgung/Desktop/Alaska/Output"
+/*
+rename SchoolType SchType
+rename SchoolLevel SchLevel
+rename Charter DistCharter
+rename Virtual SchVirtual
+rename DistrictType DistType
+*/
 
-import delimited "/Users/minnamgung/Desktop/Alaska/Output/AK_AssmtData_2017.csv"
-
-
-local variables "State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate"
+local variables "State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth"
 
 
 **(1) Checks if variables exist and checks if capitalization matches
@@ -88,12 +91,14 @@ capture confirm numeric variable StudentSubGroup_TotalTested
 ********Check values are appropriate, Hispanic/Latino mapping ********
 tab StudentSubGroup
 
+tab ProficiencyCriteria
 
+/*
 **(5) NCESSchoolID and DistrictID
 
 tab NCESSchoolID if NCESSchoolID<99999999999 //this is 11 digits, NCESID should be 12. May need to be adjusted to 10 digits for states that have a fips/NCES id that starts with 0
-tab ncesdistrictid if ncesdistrictid<999999 //this is 6 digits, district id should be 7. May need to be adjusted to 5 digits as above
-
+tab NCESDistrictID if NCESDistrictID<999999 //this is 6 digits, district id should be 7. May need to be adjusted to 5 digits as above
+*/
 
 bysort NCESDistrictID (StateAssignedDistID) : gen flag1 = StateAssignedDistID[1] != StateAssignedDistID[_N]  
 bysort StateAssignedDistID (NCESDistrictID) : gen flag2 = NCESDistrictID[1] != NCESDistrictID[_N]
@@ -115,35 +120,37 @@ drop flag1 flag2
 gen tempS=floor(NCESSchoolID/100000)
 tostring(NCESSchoolID), g(NCES_School) format(%14.0g)
 di as error "Below schools don't match NCESDistrictID"
-tab NCES_School if tempS != ncesdistrictid
+tab NCES_School if tempS != NCESDistrictID
 drop tempS 
+
 
 **(6)
 **Check Yes/No
-tab Charter
+tab DistCharter
 
 capture confirm numeric variable CountyCode
 	if _rc {
 		di as error "CountyCode is not numeric"
 	}
-	
+
 **(7) Levels 
 foreach v of varlist Lev* {
 	destring `v', g(n`v') i(* -)
 }
 
-egen tot=rowtotal(nLev*percent)
+egen tot = rowtotal(nLev*percent)
 
 di as error "Below rows have percent total greater than 101"
 
 list NCES_School NCESDistrictID if tot>101
 
+/*
 di as error "Below rows have percent total lower than 50"
 
 list NCES_School NCESDistrictID if tot<50
 
-tab ProficiencyCriteria
 
+/*
 ******************************************************
 *****NOTE: Needs to be edited to match ***************
 *****Proficiency Criteria before running check********
