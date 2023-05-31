@@ -20,6 +20,8 @@ foreach a in $years {
 	rename ncesschoolid NCESSchoolID
 	rename school_type SchType
 	
+	drop if NCESDistrictID == ""
+	
 	save "${Arizona}/NCES_`a'_School.dta", replace
 	
 	use "${NCES}/NCES_`a'_District.dta", clear 

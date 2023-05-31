@@ -221,7 +221,6 @@ save "${output}/AZ_AssmtData_state_2012.dta", replace
 
 append using "${output}/AZ_AssmtData_school_2012.dta" "${output}/AZ_AssmtData_district_2012.dta"
 
-
 save "${output}/AZ_AssmtData_2012.dta", replace
 
 rename county CountyName
