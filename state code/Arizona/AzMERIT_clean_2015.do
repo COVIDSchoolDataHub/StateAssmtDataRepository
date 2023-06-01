@@ -423,6 +423,3 @@ order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName Sc
 
 save "${output}/AZ_AssmtData_2015.dta", replace
 export delimited using "${output}/AZ_AssmtData_2015.csv", replace
-
-
-
