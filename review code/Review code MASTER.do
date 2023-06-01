@@ -204,12 +204,12 @@ tab StateAssignedDistID if flag2==1
 drop flag1 flag2
 
 if DataLevel == "School" {
-	bysort NCESSchoolID (StateAssignedSchlID) : gen flag1 = StateAssignedSchlID[1] != StateAssignedSchlID[_N]  
-	bysort StateAssignedSchlID (NCESSchoolID) : gen flag2 = NCESSchoolID[1] != NCESSchoolID[_N]
+	bysort NCESSchoolID (StateAssignedSchID) : gen flag1 = StateAssignedSchID[1] != StateAssignedSchID[_N]  
+	bysort StateAssignedSchID (NCESSchoolID) : gen flag2 = NCESSchoolID[1] != NCESSchoolID[_N]
 
-	di as error "Below schools have mismatched NCESSchoolID and StateAssignedSchlID"
+	di as error "Below schools have mismatched NCESSchoolID and StateAssignedSchID"
 	tab NCESSchoolID if flag1==1
-	tab StateAssignedSchlID if flag2==1
+	tab StateAssignedSchID if flag2==1
 	drop flag1 flag2
 
 	*****Check if digits of NCESSchoolID match NCESDistrictID
@@ -333,7 +333,7 @@ tab ProficiencyCriteria
 
 
 egen check_count=rowtotal(nLev3_count nLev4_count nLev5_count)
-egen check_perc==rowtotal(nLev3_percent nLev4_percent nLev5_percent)
+egen check_perc=rowtotal(nLev3_percent nLev4_percent nLev5_percent)
 
 list NCESSchoolID NCESDistrictID if check_count != ProficientOrAbove_count
 list NCESSchoolID NCESDistrictID if check_perc != ProficientOrAbove_percent
