@@ -1,7 +1,7 @@
 clear
 set more off
 
-import delimited "/Users/sarahridley/Desktop/CSDH/Raw/Test Scores/Arizona/Output/AZ_AssmtData_2012.csv", varnames(1) delimit(",") case(preserve)
+import delimited "/Users/sarahridley/Desktop/CSDH/Raw/Test Scores/Arizona/Output/AZ_AssmtData_2010.csv", varnames(1) delimit(",") case(preserve)
 
 /*
 rename SchoolType SchType
