@@ -407,6 +407,7 @@ replace StudentSubGroup = "English Learner" if StudentSubGroup == "Limited Engli
 replace Subject="ela" if Subject=="English Language Arts"
 replace Subject="math" if Subject=="Math"
 replace Subject="sci" if Subject=="Science"
+replace AssmtName = "AIMS Science" if Subject=="sci"
 
 //sort
 label def DataLevel 1 "State" 2 "District" 3 "School"

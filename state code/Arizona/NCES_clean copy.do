@@ -20,6 +20,15 @@ foreach a in $years {
 	rename ncesschoolid NCESSchoolID
 	rename school_type SchType
 	
+	if `a' == 2016 | `a' == 2017 | `a' == 2017 | `a' == 2018 | `a' == 2019 | `a' == 2020 {
+		split State_leaid, p(-)
+		drop State_leaid State_leaid1
+		rename State_leaid2 State_leaid
+		split seasch, p(-)
+		drop seasch seasch1
+		rename seasch2 seasch
+	}
+	
 	drop if NCESDistrictID == ""
 	
 	save "${Arizona}/NCES_`a'_School.dta", replace
@@ -34,6 +43,13 @@ foreach a in $years {
 	rename state_leaid State_leaid
 	rename *agency_type DistType
 	rename county_code CountyCode
+	
+	if `a' == 2016 | `a' == 2017 | `a' == 2017 | `a' == 2018 | `a' == 2019 | `a' == 2020 {
+		split State_leaid, p(-)
+		drop State_leaid State_leaid1
+		rename State_leaid2 State_leaid
+	}
+	
 	
 	save "${Arizona}/NCES_`a'_District.dta", replace
 	

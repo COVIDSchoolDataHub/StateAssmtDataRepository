@@ -399,6 +399,7 @@ replace StudentSubGroup = "English Learner" if StudentSubGroup == "Limited Engli
 replace Subject="ela" if Subject=="English Language Arts"
 replace Subject="math" if Subject=="Math"
 replace Subject="sci" if Subject=="Science"
+replace AssmtName = "AIMS Science" if Subject=="sci"
 
 //sort
 label def DataLevel 1 "State" 2 "District" 3 "School"
@@ -415,7 +416,4 @@ order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName Sc
 
 save "${output}/AZ_AssmtData_2017.dta", replace
 export delimited using "${output}/AZ_AssmtData_2017.csv", replace
-
-keep if NCESSchoolID == "" & DataLevel == 3
-
 
