@@ -1,0 +1,355 @@
+****ALL RED ERRORS RETURNED BY REVIEW CODE MUST BE RESOLVED OR CHECKED TO PASS REVIEW****
+****DO NOT SAVE OVER DATA FILE AFTER CODE IS RUN, MAINTAIN DATA FILE YOU INITIALLY IMPORTED****
+
+clear
+set more off
+
+****************************
+** Set working directory: **
+****************************
+cd ""
+
+********************************
+***** File to import here: *****
+* MUST INCLUDE "case(preserve)"*
+********************************
+import delimited "", case(preserve)
+
+
+local variables "State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth"
+
+
+**(1) Checks number of variables, if variables exist, and checks if capitalization matches
+
+qui describe _all
+di r(k)
+if r(k) >48 {
+	di as error "Too many variables"
+}
+if r(k)<48 {
+	di as error "Missing variables" 
+}
+
+foreach var of varlist _all {
+	if strpos("`variables'", "`var'")==0 {
+		di as error "`var' is an extra variable" 
+	}
+}
+
+foreach var of local variables {
+capture confirm variable `var', exact
+if !_rc {
+                       di as txt "`var' exists"
+               }
+               else {
+                       di as error "`var' does not exist or capitalization does not match. `var' must be added to dataset or capitalization fixed"
+               }
+}
+
+
+**(2) Checks order of variables
+ds
+local vars=r(varlist)
+
+if "`vars'"=="`variables'" {
+	di as txt "Variables are in correct order"
+}
+
+else {
+	di as error "Variables are not in correct order. Use the 'order' command with full list of variables above to reorder variables in file"
+}
+
+
+
+**(3) Checking for missing values for all variables
+
+local nomissing "State StateAbbrev StateFips SchYear DataLevel"
+
+foreach var of local nomissing {
+	count if missing(`var')
+	if r(N) !=0 {
+		di as error "`var' has missing values. There should be NO MISSING VALUES for `var'."
+	}
+}
+
+
+foreach var of varlist _all{
+	count if missing(`var')
+	if r(N)==0 {
+		di as txt "`var' has no missing values"
+	}
+	if (r(N)>0 & r(N)<15) {
+		di as error "`var' has a few missing values"
+		list `var' if missing(`var')
+	}
+	if r(N)>=15 {
+		di as error "`var' has many missing values, check by hand"
+	}
+}
+
+
+
+
+**(4) Check variable values
+******Check State names and abbreviations****
+tab State
+tab StateAbbrev
+tab StateFips
+
+******* "Check format of school years: YYYY-YY"************
+levelsof SchYear, local(SchYear)
+foreach year of local SchYear {
+	if strpos("`year'", "-") != 5 {
+		di as error "Check SchYear: `year' is in the wrong format."
+	}
+	if strlen("`year'") != 7 {
+		di as error "Check SchYear: `year' is in the wrong format"
+	}
+}
+
+
+*******"Check for only one AssmtName per SchYear"***********
+tab SchYear AssmtName
+********"Check that all rows list Regular as type"**********
+tab AssmtType
+********"Check number of districts and schools"**********
+tab DataLevel Subject
+********"Check for all subjects and reading->ELA"**********
+tab Subject
+********"Check grade level values"**********
+tab GradeLevel
+
+ if GradeLevel== "G38" {
+ 	di as error "Please confirm that this data includes only data for Grades 3-8 and NOT any high school grades."
+ }
+	
+	
+********"Check values of StudentGroup and StudentSubGroup are correct"********
+
+ count if !inlist(StudentGroup, "All Students", "RaceEth", "Ethnicity", "EL Status", "Gender")
+ if r(N)>0 {
+ 	di as error "Check StudentGroup values. StudentGroup should only contain the following values: 'All Students' 'RaceEth' 'Ethnicity' 'EL Status' 'Gender'"
+ 	tab StudentGroup
+ }
+
+ 
+count if StudentGroup=="All Students" & !inlist(StudentSubGroup, "All Students")
+	if r(N)>0 {
+		di as error "Check StudentSubGroup values. StudentSubGroup should only contain 'All Students' if StudentGroup=='All Students'"
+		tab StudentSubGroup if StudentGroup=="All Students"
+	}
+
+
+count if StudentGroup=="RaceEth" & !inlist(StudentSubGroup, "American Indian or Alaska Native", "Asian", "Black or African American", "Native Hawaiian or Pacific Islander", "Two or More", "White", "Hispanic or Latino", "Unknown")
+	if r(N)>0 {
+		di as error "Check StudentSubGroup values. StudentSubGroup should only contain 'American Indian or Alaska Native', 'Asian', 'Black or African American', 'Native Hawaiian or Pacific Islander', 'Two or More', 'White', 'Hispanic or Latino', 'Unknown' if StudentGroup=='RaceEth'"
+		tab StudentSubGroup if StudentGroup=="RaceEth"
+	}
+
+
+if StudentGroup=="Ethnicity" {
+	count if StudentGroup=="Ethnicity" & !inlist(StudentSubGroup, "Hispanic or Latino", "Not Hispanic or Latino")
+	if r(N)>0 {
+		di as error "Check StudentSubGroup values. StudentSubGroup should only contain 'Hispanic or Latino' or 'Not Hispanic or Latino' if StudentGroup=='Ethnicity'"
+		tab StudentSubGroup if StudentGroup=="Ethnicity"
+	}
+}
+
+count if StudentGroup=="EL Status" & !inlist(StudentSubGroup, "English Learner", "English Proficient", "Other")
+	if r(N)>0 {
+		di as error "Check StudentSubGroup values. StudentSubGroup should only contain 'English Learner', 'English Proficient', 'Other' if StudentGroup=='EL Status'"
+		tab StudentSubGroup if StudentGroup=="EL Status"
+	}
+
+
+count if StudentGroup=="Gender" & !inlist(StudentSubGroup, "Male", "Female", "Unknown") 
+	if r(N)>0 {
+		di as error "Check StudentSubGroup values. StudentSubGroup should only contain 'Male', 'Female', or 'Unknown' if StudentGroup=='Gender'"
+		tab StudentSubGroup if StudentGroup=="Gender"
+	}
+
+
+
+**(5) NCESSchoolID and DistrictID
+
+
+capture confirm str7 var NCESDistrictID 
+	if _rc {
+		di as error "NCESDistrictID is not a string variable or is the wrong length. Should be str7"
+}
+
+if DataLevel=="School" {
+	capture confirm str12 var NCESSchoolID 
+		if _rc {
+			di as error "NCESSchoolID is not a string variable or is the wrong length. Should be str12"
+	}
+}
+
+else {
+	count if !missing(NCESSchoolID)
+	if r(N)>0 {
+		di as error "This is not School level data, NCESSchoolID should be missing for all rows"
+	}
+}
+
+
+bysort NCESDistrictID (StateAssignedDistID) : gen flag1 = StateAssignedDistID[1] != StateAssignedDistID[_N]  
+bysort StateAssignedDistID (NCESDistrictID) : gen flag2 = NCESDistrictID[1] != NCESDistrictID[_N]
+
+di as error "Below districts have mismatched NCESDistrictID and StateAssignedDistID"
+tab NCESDistrictID if flag1==1
+tab StateAssignedDistID if flag2==1
+drop flag1 flag2
+
+if DataLevel == "School" {
+	bysort NCESSchoolID (StateAssignedSchlID) : gen flag1 = StateAssignedSchlID[1] != StateAssignedSchlID[_N]  
+	bysort StateAssignedSchlID (NCESSchoolID) : gen flag2 = NCESSchoolID[1] != NCESSchoolID[_N]
+
+	di as error "Below schools have mismatched NCESSchoolID and StateAssignedSchlID"
+	tab NCESSchoolID if flag1==1
+	tab StateAssignedSchlID if flag2==1
+	drop flag1 flag2
+
+	*****Check if digits of NCESSchoolID match NCESDistrictID
+	destring NCESSchoolID, g(tempS)
+	destring NCESDistrictID, g(tempD)
+	replace tempS=floor(tempS/100000)
+	di as error "Below schools don't match NCESDistrictID"
+	tab NCESSchoolID if tempS != tempD
+	drop temp*
+}
+
+**(6) DataLevel Checks
+gen row=_n
+if DataLevel=="State" {
+	count if DistName != "All Districts"
+	if r(N)>0 {
+		di as error "The following rows need DistName='All Districts'"
+		list row if DistName != "All Districts"
+	}
+	
+	count if SchName != "All Schools"
+	if r(N)>0 {
+		di as error "The following rows need SchName='All Schools'"
+		list row if SchName != "All Schools"
+	}
+	
+	local empty "DistType SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode"
+	
+	foreach var of local empty {
+		count if !missing(`var')
+		if r(N)!=0 {
+			di as error "State level file: `var' should be completely empty (no entries)"
+		}
+	}
+
+}
+
+if DataLevel=="District" {
+	
+	count if SchName != "All Schools"
+	if r(N)>0 {
+		di as error "The following rows need SchName='All Schools'"
+		list row if SchName != "All Schools"
+	}
+	
+	local nomiss "DistName DistType NCESDistrictID StateAssignedDistID State_leaid DistCharter CountyName CountyCode"
+	
+	foreach var of local nomiss {
+		count if missing(`var')
+		if r(N) != 0 {
+			di as error "District level file: `var' should have no missing values"
+		}
+	}
+}
+
+if DataLevel=="School" {
+	
+	local nomiss "DistName DistType NCESDistrictID StateAssignedDistID State_leaid seasch DistCharter SchName SchType NCESSchoolID StateAssignedSchID SchLevel"
+	
+	foreach var of local nomiss {
+		count if missing(`var')
+		if r(N) != 0 {
+			di as error "School level file: `var' should have no missing values"
+		}
+	}
+	
+	gen year=substr(SchYear,1,4)
+	destring year, replace
+	if year>2013 {
+		count if missing(SchVirtual)
+		if r(N) != 0 {
+			di as error "School level file: SchVirtual should have no missing values"
+		}
+	}
+	
+	drop year
+}
+
+drop row
+
+**(7)
+**Check Yes/No
+tab Charter
+
+capture confirm numeric variable CountyCode
+	if _rc {
+		di as error "CountyCode is not numeric"
+	}
+	
+**(8) Levels 
+
+foreach v of varlist Lev* ProficientOrAbove_percent ParticipationRate {
+	gen n`v'=`v'
+	destring n`v', replace i(* -) 
+}
+
+foreach v of varlist nLev*percent nProficientOrAbove_percent nParticipationRate {
+		if `v' >1  & !missing(`v') {
+		di as error "`v' is not a decimal"
+	}
+}
+* NOTE: If you get a "type mismatch" error, then check that all of the original Lev
+* ProficientOrAbove_percent and ParticipationRate variables are in the correct format
+
+egen tot=rowtotal(nLev*percent)
+
+di as error "Below rows have percent total greater than 101"
+
+list NCESSchoolID NCESDistrictID if tot>101
+
+di as error "Below rows have percent total lower than 50"
+
+list NCESSchoolID NCESDistrictID if tot>50
+
+tab ProficiencyCriteria
+
+******************************************************
+*****NOTE: Needs to be edited to match ***************
+*****Proficiency Criteria before running check********
+******************************************************
+
+
+egen check_count=rowtotal(nLev3_count nLev4_count nLev5_count)
+egen check_perc==rowtotal(nLev3_percent nLev4_percent nLev5_percent)
+
+list NCESSchoolID NCESDistrictID if check_count != ProficientOrAbove_count
+list NCESSchoolID NCESDistrictID if check_perc != ProficientOrAbove_percent
+
+drop tot nLev* check* nProficientOrAbove_percent nParticipationRate
+
+
+**(9) Check assessment flags
+tab AssmtName Flag_AssmtNameChange
+tab AssmtName Flag_CutScoreChange_ELA
+tab AssmtName Flag_CutScoreChange_math
+tab AssmtName Flag_CutScoreChange_read
+tab AssmtName Flag_CutScoreChange_oth
+
+
+
+	
+	
+	
+
+
