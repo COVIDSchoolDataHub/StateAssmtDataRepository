@@ -1,13 +1,17 @@
 cap log close
-log using mass_nces_cleaning.log, replace
+log using massachussets_nces_cleaning.log, replace
 
 
 
-cd "/Users/benjaminm/Documents/State_Repository_Research/Massachusetts"
+cd "/Users/benjaminm/Documents/State_Repository_Research/Massachusetts/NCES_New_Raw"
 
-use NCES_2016_School.dta, clear
+//use NCES_2016_School.dta, clear
+// use NCES_2015_School.dta, clear
 
-global years 2016 2017 2018 2019 2020 
+use 1_NCES_2013_School_Mass.dta, clear
+
+
+global years 2009 2010 2011 2012 2013 2014 2015 2016 2017 2018 2019 2020 2021
 
 foreach a in $years {
 	
@@ -19,19 +23,28 @@ foreach a in $years {
 	rename state_fips StateFips
 	rename ncesdistrictid NCESDistrictID
 	rename state_leaid State_leaid
-	rename charter Charter
+	rename district_agency_type DistType
+	// rename charter Charter
+	rename county_name CountyName
 	rename county_code CountyCode
 	rename ncesschoolid NCESSchoolID
-	rename school_type SchoolType
-	rename virtual Virtual  // Might not work for 2021
-	rename school_level SchoolLevel
-	
+	rename school_type SchType
+	// rename virtual Virtual  // Might not work for 2021
+	//rename school_level SchLevel
+
+	if `a' == 2016 | `a' == 2017 | `a' == 2018 | `a' == 2019 | `a' == 2020 | `a' == 2021 {
+
 	split seasch, parse("-")
 	drop seasch seasch1
 	rename seasch2 seasch
+	
+	}
+	
+keep State StateAbbrev StateFips SchType NCESDistrictID NCESSchoolID seasch DistCharter SchLevel SchVirtual CountyName CountyCode
+
 
 	
-	save "NCES_`a'_School_Mass.dta", replace
+save "1_NCES_`a'_School_Mass.dta", replace
 	
 	use "NCES_`a'_District.dta", clear 
 	keep if state_fips == 25
@@ -41,108 +54,34 @@ foreach a in $years {
 	rename state_fips StateFips
 	rename ncesdistrictid NCESDistrictID
 	rename state_leaid State_leaid
-	rename district_agency_type DistrictType
-	rename lea_name DistName
+	// rename district_agency_type DistType
 	rename county_name CountyName
 	rename county_code CountyCode
 	
 	replace State_leaid = subinstr(State_leaid, "MA-", "", .)
+
+	if `a' != 2010 { // | `a' == 2017 | `a' == 2018 | `a' == 2019 | `a' == 2020 | `a' == 2021 
 	
-	save "NCES_`a'_District_Mass.dta", replace
+	rename district_agency_type DistType
+	
+
+	}
+	
+	if `a' == 2010 {
+
+	rename agency_type DistType
+
+	}
+	
+keep State StateAbbrev StateFips DistType NCESDistrictID State_leaid DistCharter CountyName CountyCode
+	
+save "1_NCES_`a'_District_Mass.dta", replace
 	
 }
-
-global years 2009 2010 2011 2012 2013 2014 2015
-
-foreach a in $years {
-	
-	use "NCES_`a'_School.dta", clear
-	keep if state_fips == 25
-	
-	rename state_name State
-	rename state_location StateAbbrev
-	rename state_fips StateFips
-	rename ncesdistrictid NCESDistrictID
-	rename state_leaid State_leaid
-	rename charter Charter
-	rename county_code CountyCode
-	rename ncesschoolid NCESSchoolID
-	rename school_type SchoolType
-	rename virtual Virtual  // Might not work for 2021
-	rename school_level SchoolLevel
-
-	
-	save "NCES_`a'_School_Mass.dta", replace
-	
-	use "NCES_`a'_District.dta", clear 
-	keep if state_fips == 25
-	
-	rename state_name State
-	rename state_location StateAbbrev
-	rename state_fips StateFips
-	rename ncesdistrictid NCESDistrictID
-	rename state_leaid State_leaid
-	rename district_agency_type DistrictType
-	rename lea_name DistName
-	rename county_name CountyName
-	rename county_code CountyCode
-	
-	replace State_leaid = subinstr(State_leaid, "MA-", "", .)
-	
-	save "NCES_`a'_District_Mass.dta", replace
-	
-}
-
-// Just 2021 District
-
-import delimited NCES_2021_District, clear
-keep if statefips == 25
-	
-	rename state State
-	rename stateabbrev StateAbbrev
-	rename statefips StateFips
-	rename ncesdistrictid NCESDistrictID
-	rename districttype DistrictType
-	rename state_leaid State_leaid
-	rename charter Charter
-	rename countyname CountyName
-	rename countycode CountyCode
-	rename distname DistName
-	
-	replace State_leaid = subinstr(State_leaid, "MA-", "", .)
-	
-// replace DistName = subinstr(DistName, "District", "", .)
-// replace DistName = strrtrim(DistName)
-	
-save NCES_2021_District_Mass, replace
-
-// Just 2021 School 
-import delimited NCES_2021_School, clear
-keep if statefips == 25
-keep ncesschoolid schooltype virtual schoollevel schname st_schid schid sy_status_text 
-	
-	rename ncesschoolid NCESSchoolID
-	rename schooltype SchoolType
-	rename virtual Virtual  // Might not work for 2021
-	rename schoollevel SchoolLevel
-	rename schname SchoolName
-	rename st_schid State_School_ID
-	rename schid State_School_ID_Extra
-	rename sy_status_text School_Open_Status
-	
-replace State_School_ID = subinstr(State_School_ID, "MA-", "", .)
-	split State_School_ID, parse("-")
-	
-drop State_School_ID State_School_ID1
-rename State_School_ID2 State_School_ID
-	
-save NCES_2021_School_Mass, replace
-use NCES_2021_School_Mass, clear
-
 
 // fix to Mass 2013 NCES
 
-use NCES_2013_School_Mass, clear
+use 1_NCES_2013_School_Mass, clear
 duplicates drop seasch, force
 
-save NCES_2013_School_Mass, replace
+save 1_NCES_2013_School_Mass, replace
