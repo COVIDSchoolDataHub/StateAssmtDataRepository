@@ -403,6 +403,7 @@ sort DataLevel_n DistName SchName Subject GradeLevel StudentGroup StudentSubGrou
 drop DataLevel 
 rename DataLevel_n DataLevel 
 replace SchVirtual = "Missing/not reported" if SchVirtual == "" & DataLevel == 3
+replace SchLevel = "Missing/not reported" if SchLevel == "" & DataLevel == 3
 
 	
 //order

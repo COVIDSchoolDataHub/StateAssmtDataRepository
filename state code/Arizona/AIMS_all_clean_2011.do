@@ -289,7 +289,8 @@ decode SchType, generate(new)
 drop SchType
 rename new SchType
 recast int CountyCode
-	
+
+replace CountyName = strproper(CountyName)
 	
 //sort
 label def DataLevel 1 "State" 2 "District" 3 "School"
@@ -297,6 +298,8 @@ encode DataLevel, gen(DataLevel_n) label(DataLevel)
 sort DataLevel_n DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 drop DataLevel 
 rename DataLevel_n DataLevel 
+replace SchVirtual = "Missing/not reported" if SchVirtual == "" & DataLevel == 3
+replace SchLevel = "Missing/not reported" if SchLevel == "" & DataLevel == 3
 	
 //order
 keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth

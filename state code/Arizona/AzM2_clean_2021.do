@@ -280,6 +280,7 @@ sort DataLevel_n DistName SchName Subject GradeLevel StudentGroup StudentSubGrou
 drop DataLevel 
 rename DataLevel_n DataLevel 
 replace SchVirtual = "Missing/not reported" if SchVirtual == "" & DataLevel == 3
+replace SchLevel = "Missing/not reported" if SchLevel == "" & DataLevel == 3
 
 // Insert Robert J. C. Rice data from 2021 NCES School
 replace NCESSchoolID = "040187003766" if SchName == "Robert J.C. Rice Elementary School"
@@ -296,3 +297,4 @@ order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName Sc
 save "${output}/AZ_AssmtData_2021.dta", replace
 export delimited using "${output}/AZ_AssmtData_2021.csv", replace
 
+//keep if DataLevel == 3 & DistType == ""

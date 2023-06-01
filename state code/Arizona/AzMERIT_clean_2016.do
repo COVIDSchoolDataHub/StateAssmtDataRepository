@@ -398,12 +398,16 @@ replace Subject="math" if Subject=="Math"
 replace Subject="sci" if Subject=="Science"
 replace AssmtName = "AIMS Science" if Subject=="sci"
 
+replace CountyName = strproper(CountyName)
+
 //sort
 label def DataLevel 1 "State" 2 "District" 3 "School"
 encode DataLevel, gen(DataLevel_n) label(DataLevel)
 sort DataLevel_n DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 drop DataLevel 
 rename DataLevel_n DataLevel 
+replace SchVirtual = "Missing/not reported" if SchVirtual == "" & DataLevel == 3
+replace SchLevel = "Missing/not reported" if SchLevel == "" & DataLevel == 3
 
 	
 //order
