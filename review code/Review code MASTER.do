@@ -16,8 +16,8 @@ cd ""
 * MUST INCLUDE "case(preserve)"*
 ********************************
 ** to import csv file:
-import delimited "", case(preserve) stringcols(10 13)
-** NOTE: stringcols(10 13) keeps NCESDistrictID and NCESSchoolID as string
+import delimited "", case(preserve) 
+
 ** to import excel file: 
 ** import excel "FILE PATH HERE", firstrow case(preserve)
 
@@ -64,6 +64,7 @@ else {
 	di as error "Variables are not in correct order. Use the 'order' command with full list of variables above to reorder variables in file"
 }
 
+** Check that variables are sorted correctly: sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 
 **(3) Checking for missing values for all variables
@@ -131,9 +132,9 @@ tab GradeLevel
 	
 ********"Check values of StudentGroup and StudentSubGroup are correct"********
 
- count if !inlist(StudentGroup, "All Students", "RaceEth", "Ethnicity", "EL Status", "Gender")
+ count if !inlist(StudentGroup, "All Students", "RaceEth", "Ethnicity", "EL Status", "Gender", "Economic Status")
  if r(N)>0 {
- 	di as error "Check StudentGroup values. StudentGroup should only contain the following values: 'All Students' 'RaceEth' 'Ethnicity' 'EL Status' 'Gender'"
+ 	di as error "Check StudentGroup values. StudentGroup should only contain the following values: 'All Students' 'RaceEth' 'Ethnicity' 'EL Status' 'Gender' 'Economic Status'"
  	tab StudentGroup
  }
 
@@ -174,37 +175,56 @@ count if StudentGroup=="Gender" & !inlist(StudentSubGroup, "Male", "Female", "Un
 	}
 
 
-
-**(5) NCESSchoolID and DistrictID
-
-
-capture confirm str7 var NCESDistrictID 
-	if _rc {
-		di as error "NCESDistrictID is not a string variable or is the wrong length. Should be str7"
-}
-
-if DataLevel=="School" {
-	capture confirm str12 var NCESSchoolID 
-		if _rc {
-			di as error "NCESSchoolID is not a string variable or is the wrong length. Should be str12"
+count if StudentGroup=="Economic Status" & !inlist(StudentSubGroup, "Economically Disadvantaged", "Not Economically Disadvantaged", "Other")
+	if r(N)>0 {
+		di as error "Check StudentSubGroup values. StudentSubGroup should only contain 'Economically Disadvantaged', 'Not Economically Disadvantaged', or 'Other' if StudentGroup=='Economic Status'"
+		tab StudentSubGroup if StudentGroup=="Economic Status"
 	}
+
+**(5) NCESSchoolID (11 or 12 digits) and DistrictID (6 or 7 digits)
+*StateFips<10 for the following states: Alabama (1), Alaska (2), Arizona (4), Arkansas (5), Calif (6), Colorado (8), Connecticut (9)
+
+if StateFips<10 {
+	**Check the following NCESSchoolIDs and NCESDistrictIDs: current values are too short**
+	if DataLevel=="School" {
+		tab NCESSchoolID if NCESSchoolID<10000000000
+	}
+	tab NCESDistrictID if NCESDistrictID<100000
 }
 
-else {
+if StateFips>10 {
+	**Check the following NCESSchoolIDs and NCESDistrictIDs: current values are too short**
+	if DataLevel=="School" {
+		tab NCESSchoolID if NCESSchoolID<100000000000
+	}
+	tab NCESDistrictID if NCESDistrictID<1000000 
+
+}
+
+
+if DataLevel != "School" {
 	count if !missing(NCESSchoolID)
 	if r(N)>0 {
 		di as error "This is not School level data, NCESSchoolID should be missing for all rows"
 	}
 }
 
+bysort StateFips: gen flag = StateFips[1] != StateFips[_N]
+if flag==1 {
+	di as error "StateFips not the same throughout file"
+	tab StateFips
+}
 
 bysort NCESDistrictID (StateAssignedDistID) : gen flag1 = StateAssignedDistID[1] != StateAssignedDistID[_N]  
 bysort StateAssignedDistID (NCESDistrictID) : gen flag2 = NCESDistrictID[1] != NCESDistrictID[_N]
 
-di as error "Below districts have mismatched NCESDistrictID and StateAssignedDistID"
-tab NCESDistrictID if flag1==1
-tab StateAssignedDistID if flag2==1
-drop flag1 flag2
+if flag1>0 | flag2>0 {
+	di as error "Below districts have mismatched NCESDistrictID and StateAssignedDistID"
+	tab NCESDistrictID if flag1==1
+	tab StateAssignedDistID if flag2==1
+	
+}
+drop flag flag1 flag2
 
 if DataLevel == "School" {
 	bysort NCESSchoolID (StateAssignedSchID) : gen flag1 = StateAssignedSchID[1] != StateAssignedSchID[_N]  
@@ -216,10 +236,10 @@ if DataLevel == "School" {
 	drop flag1 flag2
 
 	*****Check if digits of NCESSchoolID match NCESDistrictID
-	destring NCESSchoolID, g(tempS)
-	destring NCESDistrictID, g(tempD)
-	replace tempS=floor(tempS/100000)
-	di as error "Below schools don't match NCESDistrictID"
+	
+	gen tempD= NCESDistrictID
+	gen tempS=floor(NCESSchoolID/100000)
+	di as error "First digits of NCESSchoolID for the below schools don't match NCESDistrictID"
 	tab NCESSchoolID if tempS != tempD
 	drop temp*
 }
@@ -270,7 +290,7 @@ if DataLevel=="District" {
 
 if DataLevel=="School" {
 	
-	local nomiss "DistName DistType NCESDistrictID StateAssignedDistID State_leaid seasch DistCharter SchName SchType NCESSchoolID StateAssignedSchID SchLevel"
+	local nomiss "DistName DistType NCESDistrictID StateAssignedDistID State_leaid seasch DistCharter SchName SchType NCESSchoolID StateAssignedSchID SchLevel CountyName CountyCode"
 	
 	foreach var of local nomiss {
 		count if missing(`var')
