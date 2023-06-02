@@ -295,7 +295,7 @@ drop row
 
 **(7)
 **Check Yes/No
-tab Charter
+tab DistCharter
 
 capture confirm numeric variable CountyCode
 	if _rc {
