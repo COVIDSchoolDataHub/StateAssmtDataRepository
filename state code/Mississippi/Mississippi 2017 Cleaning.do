@@ -101,7 +101,7 @@ foreach a in $grade {
 			gen Lev3_count = ""
 			gen Lev4_count = ""
 			gen Lev5_count = ""
-			gen AvgScaleScore = ""
+			gen AvgScaleScore = "--"
 			
 			gen ProficiencyCriteria = "Levels 4-5"
 			gen ProficientOrAbove_count = ""
