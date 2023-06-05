@@ -67,7 +67,7 @@ gen Lev5_count = ""
 gen AvgScaleScore = "--"
 gen ProficiencyCriteria = "Levels 4-5"
 gen ProficientOrAbove_count = ""
-gen ParticipationRate = ""
+gen ParticipationRate = "--"
 gen SchYear = "2014-15"
 
 ** Merging with NCES
