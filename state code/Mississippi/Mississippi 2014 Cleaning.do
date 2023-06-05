@@ -94,7 +94,7 @@ gen Lev5_percent = ""
 
 gen ProficiencyCriteria = "Levels 3-4"
 
-gen ParticipationRate = ""
+gen ParticipationRate = "--"
 gen SchYear = "2013-14"
 
 ** Aggregating Proficient Data
