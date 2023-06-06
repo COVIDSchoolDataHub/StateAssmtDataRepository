@@ -2,10 +2,10 @@ clear
 
 // Define file paths
 
-global original_files "/Users/meghancornacchia/Desktop/DataRepository/Original_Data_Files"
+global original_files "/Users/meghancornacchia/Desktop/DataRepository/Minnesota/Original_Data_Files"
 global NCES_files "/Users/meghancornacchia/Desktop/DataRepository/NCES_Data_Files"
-global output_files "/Users/meghancornacchia/Desktop/DataRepository/Output_Data_Files"
-global temp_files "/Users/meghancornacchia/Desktop/DataRepository/Temporary_Data_Files"
+global output_files "/Users/meghancornacchia/Desktop/DataRepository/Minnesota/Output_Data_Files"
+global temp_files "/Users/meghancornacchia/Desktop/DataRepository/Minnesota/Temporary_Data_Files"
 
 // 2021-2022
 
@@ -291,6 +291,13 @@ foreach var of varlist _all {
 	label var `var' ""
 }
 
+// Data Levels
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+sort DataLevel_n 
+drop DataLevel 
+rename DataLevel_n DataLevel 
+
 // Dropping extra categories of analysis
 
 drop if StudentGroup == "Homeless Status"
@@ -318,8 +325,8 @@ drop if GradeLevel == "10"
 drop if GradeLevel == "11"
 drop if GradeLevel == "HS"
 drop if GradeLevel == "0"
-replace StudentGroup = "All students" if StudentGroup == "All Categories"
-replace StudentGroup = "Race" if StudentGroup == "Federal Race/Ethnicity"
+replace StudentGroup = "All Students" if StudentGroup == "All Categories"
+replace StudentGroup = "RaceEth" if StudentGroup == "Race/Ethnicity"
 replace StudentGroup = "EL Status" if StudentGroup == "English Proficiency"
 replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "American Indian or Alaska Native students"
 replace StudentSubGroup = "Asian" if StudentSubGroup == "Asian students"
@@ -331,80 +338,93 @@ replace StudentSubGroup = "Two or More" if StudentSubGroup == "Students with two
 replace StudentSubGroup = "Male" if StudentSubGroup == "Male students"
 replace StudentSubGroup = "Female" if StudentSubGroup == "Female students"
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "English learners"
-replace StudentSubGroup = "English proficient" if StudentSubGroup == "Not English learners"
+replace StudentSubGroup = "English Proficient" if StudentSubGroup == "Not English learners"
+replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Students eligible for free/reduced-price meals"
+replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "Students not eligible for free/reduced-price meals"
+
+gen ProficientOrAbove_count = Lev3_count+Lev4_count
+
+foreach var of varlist Lev1_count Lev2_count Lev3_count Lev4_count Lev1_percent Lev2_percent Lev3_percent Lev4_percent AvgScaleScore ProficientOrAbove_count ProficientOrAbove_percent {
+	tostring `var', replace force
+	replace `var' = "*" if Filtered == "Y"
+}
+
+drop Filtered
 
 // Generating missing variables
 gen Lev5_count = ""
 gen Lev5_percent = ""
 replace AssmtName = "Minnesota Comprehensive Assessment III"
 gen Flag_AssmtNameChange = "N"
-gen Flag_CutScoreChange_ELA = "N"
+gen Flag_CutScoreChange_ELA = ""
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_read = "N"
 gen Flag_CutScoreChange_oth = "N"
 gen AssmtType = "Regular"
-gen ProficiencyCriteria = ""
-gen ProficientOrAbove_count = ""
+gen ProficiencyCriteria = "Levels 3 and 4"
 gen ParticipationRate = ""
 
 // Combined State School IDs
 // (School ID in format to match with NCES is combination of different IDs)
-gen st_schid = "MN-" + DistrictTypeCode + StateAssignedDistID + "-" + DistrictTypeCode + StateAssignedDistID + StateAssignedSchID
+gen seasch = DistrictTypeCode + StateAssignedDistID + "-" + DistrictTypeCode + StateAssignedDistID + StateAssignedSchID
 gen state_leaid = "MN-" + DistrictTypeCode + StateAssignedDistID 
 
 // Generating Student Group Counts
-bysort st_schid StudentGroup Grade Subject: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
+bysort seasch StudentGroup Grade Subject: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
 
 // Saving transformed data
 save "${output_files}/MN_AssmtData_2022.dta", replace
 
 // Merging with NCES School Data
 
-import delimited "$NCES_files/NCES_2021_School.csv", clear 
+use "$NCES_files/NCES_2021_School.dta", clear
 
-keep if state == "MINNESOTA"
+keep state_location state_fips district_agency_type school_type ncesdistrictid state_leaid ncesschoolid seasch DistCharter SchLevel SchVirtual county_name county_code
 
-merge 1:m st_schid using "${output_files}/MN_AssmtData_2022.dta", keep(match using) nogenerate
+keep if substr(ncesschoolid, 1, 2) == "27"
+
+merge 1:m seasch using "${output_files}/MN_AssmtData_2022.dta", keep(match using) nogenerate
 
 save "${output_files}/MN_AssmtData_2022.dta", replace
 
 // Merging with NCES District Data
 
-import delimited "$NCES_files/NCES_2021_District.csv", clear 
+use "$NCES_files/NCES_2021_District.dta", clear 
 
-keep if state == "MINNESOTA"
+keep state_location state_fips district_agency_type ncesdistrictid state_leaid DistCharter county_name county_code
+
+keep if substr(ncesdistrictid, 1, 2) == "27"
 
 merge 1:m state_leaid using "${output_files}/MN_AssmtData_2022.dta", keep(match using) nogenerate
 
+// Reformatting IDs
+replace StateAssignedDistID = StateAssignedDistID+"-"+DistrictTypeCode
+replace StateAssignedSchID = StateAssignedDistID+"-"+StateAssignedSchID
+
 // Removing extra variables and renaming NCES variables
 drop DistrictTypeCode
-rename districttype DistrictType
-drop schyear
+rename district_agency_type DistType
 rename ncesschoolid NCESSchoolID
 rename ncesdistrictid NCESDistrictID
 rename state_leaid State_leaid
-rename stateabbrev StateAbbrev
-rename state State
-replace State = "Minnesota" if State == "MINNESOTA"
-rename countycode CountyCode
-rename schoollevel SchoolLevel
-rename schooltype SchoolType
-rename charter Charter
-rename virtual Virtual
-rename statefips StateFips
-rename countyname CountyName
-drop updated_status_text
-drop effective_date
-drop distname
-drop schname
-drop st_schid
-drop schid
-drop sy_status_text
+rename state_location StateAbbrev
+generate State = "Minnesota"
+rename county_code CountyCode
+rename school_type SchType
+rename state_fips StateFips
+rename county_name CountyName
+
+// Fixing missing state data
+replace StateAbbrev = "MN" if DataLevel == 1
+replace StateFips = 27 if DataLevel == 1
+replace DistName = "All Districts" if DataLevel == 1
+replace SchName = "All Schools" if DataLevel == 1
+replace SchName = "All Schools" if DataLevel == 2
 
 // Reordering variables and sorting data
-order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
+order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 
-sort DataLevel StateAssignedDistID StateAssignedSchID GradeLevel Subject StudentGroup
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 // Saving and exporting transformed data
 
