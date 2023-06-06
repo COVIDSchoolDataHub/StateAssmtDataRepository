@@ -24,8 +24,9 @@ foreach a in $grade {
 			replace Subject = lower(Subject)
 			gen AssmtName = "MAAP"
 			gen AssmtType = "Regular"
-			gen StudentGroup = "All students"
-			gen StudentSubGroup = "All students"
+			gen StudentGroup = "All Students"
+			gen StudentSubGroup = StudentGroup
+			gen StudentSubGroup_TotalTested = StudentGroup_TotalTested
 			
 			gen DataLevel = "School"			
 			replace DataLevel = "District" if (strpos(SchName, "District") | strpos(SchName, "Schools") | strpos(SchName, "district") | strpos(SchName, "Ms Sch For The Blind") | strpos(SchName, "Midtown Public Charter School") | strpos(SchName, "Ms School For The Deaf") | strpos(SchName, "Joel E. Smilow Prep") | strpos(SchName, "Reimagine Prep") | strpos(SchName, "Oakley Youth Development Center")) & SchName != "West Bolivar District Middle School" & SchName != "Republic Charter Schools" > 0
@@ -88,8 +89,6 @@ foreach a in $grade {
 			
 			drop if _merge == 2
 			drop _merge
-
-			replace NCESDistrictID = "missing" if DistName == "UNIVERSITY OF SOUTHERN MISSISSIPPI"			
 			
 			rename Level1PCT Lev1_percent
 			rename Level2PCT Lev2_percent
@@ -102,11 +101,11 @@ foreach a in $grade {
 			gen Lev3_count = ""
 			gen Lev4_count = ""
 			gen Lev5_count = ""
-			gen AvgScaleScore = ""
+			gen AvgScaleScore = "--"
 			
 			gen ProficiencyCriteria = "Levels 4-5"
 			gen ProficientOrAbove_count = ""
-			gen ParticipationRate = ""
+			gen ParticipationRate = "--"
 			
 			replace State = 28
 			replace StateAbbrev = "MS"
@@ -124,26 +123,25 @@ foreach a in $grade {
 			drop dup			
 			
 			replace SchName = "VIRGIL JONES, JR. ELEMENTARY SCHOOL" if SchName == "Wilson Elementary School"
+			replace SchName = "LELAND SCHOOL PARK" if SchName == "Leland Middle School"
+			replace SchName = "COLDWATER ATTENDANCE CENTER" if SchName == "Coldwater High School"
 			
-			merge m:1 SchName DistName using "${NCES}/NCES_Schools.dta"
+			merge 1:1 SchName DistName using "${NCES}/NCES_Schools.dta", keepusing(NCESSchoolID StateAssignedSchID)
 			
 			drop if _merge == 2
 			drop _merge
 			
-			replace NCESSchoolID = "missing" if SchName == "Dubard School For Language Disorders"
+			generate StateAssignedDistID = State_leaid
+			replace StateAssignedDistID = subinstr(StateAssignedDistID,"MS-","",.)
+						
+			replace NCESSchoolID = "280018501409" if NCESSchoolID == "280018501527"
+			replace NCESSchoolID = "280423001346" if NCESSchoolID == "280423001508"
 			
-			generate stateid = State_leaid
-			replace stateid = subinstr(stateid,"MS-","",.)	
-			destring stateid, replace
-			replace StateAssignedDistID = stateid if StateAssignedDistID == .			
-			replace school_name = SchName if school_name == ""
-			replace county_name = CountyName if county_name == ""
-			replace county_code = CountyCode if county_code == .
-			drop stateid year lea_name SchName CountyCode CountyName school_status No_NCES_id noting_name_change district_agency_type ncesdistrictid
-			rename school_name SchName
-			rename county_name CountyName
-			rename county_code CountyCode
+			merge m:1 NCESSchoolID using "${NCES}/NCES_2016_School.dta"
 			
+			drop if _merge == 2
+			drop _merge
+						
 			** Aggregating Proficient Data
 
 			local level 1 2 3 4 5
@@ -163,7 +161,21 @@ foreach a in $grade {
 			tostring ProficientOrAbove_percent, replace force
 			replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "-2"			
 			
-			order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
+			replace SchName = "All Schools" if DataLevel == "District" | DataLevel == "State"
+			replace DistName = "All Districts" if DataLevel == "State"
+			replace State = 28
+			replace StateAbbrev = "MS"
+			replace StateFips = 28
+
+			label def DataLevel 1 "State" 2 "District" 3 "School"
+			encode DataLevel, gen(DataLevel_n) label(DataLevel)
+			sort DataLevel_n 
+			drop DataLevel 
+			rename DataLevel_n DataLevel
+
+			order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+
+			sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 			
 			save "${output}/MS_AssmtData_2017_G`a'`b'_Cleaned.dta", replace
 	}
@@ -188,7 +200,7 @@ foreach a in $gradesci {
 			
 			gen DistName = ""
 			replace DistName = SchName if DataLevel == "District"
-			replace DistName = "JOEL E. SMILOW PREP" if SchName == "SMILLOW PREP"
+			replace DistName = "JOEL E. SMILOW PREP" if SchName == "SMILOW PREP"
 			replace DistName = "UNIVERSITY OF SOUTHERN MISSISSIPPI" if SchName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
 			replace DistName = DistName[_n-1] if missing(DistName)
 			replace DistName = "" if DataLevel == "State"
@@ -272,8 +284,9 @@ foreach a in $gradesci {
 			generate Subject = "sci"
 			gen AssmtName = "MST2"
 			gen AssmtType = "Regular"
-			gen StudentGroup = "All students"
-			gen StudentSubGroup = "All students"
+			gen StudentGroup = "All Students"
+			gen StudentSubGroup = StudentGroup
+			gen StudentSubGroup_TotalTested = StudentGroup_TotalTested
 			
 			gen DataLevel = "School"
 			
@@ -283,7 +296,7 @@ foreach a in $gradesci {
 			
 			gen DistName = ""
 			replace DistName = SchName if DataLevel == "District"
-			replace DistName = "JOEL E. SMILOW PREP" if SchName == "SMILLOW PREP"
+			replace DistName = "JOEL E. SMILOW PREP" if SchName == "SMILOW PREP"
 			replace DistName = "UNIVERSITY OF SOUTHERN MISSISSIPPI" if SchName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
 			replace DistName = DistName[_n-1] if missing(DistName)
 			replace DistName = "" if DataLevel == "State"
@@ -340,9 +353,7 @@ foreach a in $gradesci {
 			
 			drop if _merge == 2
 			drop _merge
-			
-			replace NCESDistrictID = "missing" if DistName == "UNIVERSITY OF SOUTHERN MISSISSIPPI"
-			
+						
 			sort SchName DistName
 			quietly by SchName DistName:  gen dup = cond(_N==1,0,_n)
 			drop if dup > 1
@@ -368,7 +379,7 @@ foreach a in $gradesci {
 			
 			gen ProficiencyCriteria = "Levels 3-4"
 			gen ProficientOrAbove_count = ""
-			gen ParticipationRate = ""
+			gen ParticipationRate = "--"
 			
 			replace State = 28
 			replace StateAbbrev = "MS"
@@ -380,26 +391,23 @@ foreach a in $gradesci {
 			gen Flag_CutScoreChange_read = ""
 			gen Flag_CutScoreChange_oth = "N"
 			
-			merge m:1 SchName DistName using "${NCES}/NCES_Schools.dta"
+			merge 1:1 SchName DistName using "${NCES}/NCES_Schools.dta", keepusing(NCESSchoolID StateAssignedSchID)
 			
 			drop if _merge == 2
 			drop _merge
 			drop if SchName == "PICAYUNE ITINERATE CENTER"
+						
+			generate StateAssignedDistID = State_leaid
+			replace StateAssignedDistID = subinstr(StateAssignedDistID,"MS-","",.)
+						
+			replace NCESSchoolID = "280018501409" if NCESSchoolID == "280018501527"
+			replace NCESSchoolID = "280423001346" if NCESSchoolID == "280423001508"
 			
-			replace NCESSchoolID = "missing" if SchName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
+			merge m:1 NCESSchoolID using "${NCES}/NCES_2016_School.dta"
 			
-			generate stateid = State_leaid
-			replace stateid = subinstr(stateid,"MS-","",.)	
-			destring stateid, replace
-			replace StateAssignedDistID = stateid if StateAssignedDistID == .			
-			replace school_name = SchName if school_name == ""
-			replace county_name = CountyName if county_name == ""
-			replace county_code = CountyCode if county_code == .
-			drop stateid year lea_name SchName CountyCode CountyName school_status No_NCES_id noting_name_change district_agency_type ncesdistrictid
-			rename school_name SchName
-			rename county_name CountyName
-			rename county_code CountyCode
-
+			drop if _merge == 2
+			drop _merge
+			
 			** Aggregating Proficient Data
 
 			local level 1 2 3 4
@@ -419,7 +427,21 @@ foreach a in $gradesci {
 			tostring ProficientOrAbove_percent, replace force
 			replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "-2"			
 			
-			order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate		
+			replace SchName = "All Schools" if DataLevel == "District" | DataLevel == "State"
+			replace DistName = "All Districts" if DataLevel == "State"
+			replace State = 28
+			replace StateAbbrev = "MS"
+			replace StateFips = 28
+
+			label def DataLevel 1 "State" 2 "District" 3 "School"
+			encode DataLevel, gen(DataLevel_n) label(DataLevel)
+			sort DataLevel_n 
+			drop DataLevel 
+			rename DataLevel_n DataLevel
+
+			order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+
+			sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup		
 			
 			save "${output}/MS_AssmtData_2017_G`a'sci_Cleaned.dta", replace
 			}
@@ -444,6 +466,10 @@ foreach a in $gradesci {
 	append using "${output}/MS_AssmtData_2017_G6all.dta"
 	append using "${output}/MS_AssmtData_2017_G7all.dta"
 	append using "${output}/MS_AssmtData_2017_G8all.dta"
-	order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
+	
+	order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+
+	sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+	
 	save "${output}/MS_AssmtData_2017.dta", replace	
 	export delimited using "${output}/csv/MS_AssmtData_2017.csv", replace

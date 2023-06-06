@@ -12,55 +12,41 @@ rename state_location StateAbbrev
 rename state_fips StateFips
 rename ncesdistrictid NCESDistrictID
 rename state_leaid State_leaid
-rename charter Charter
-rename county_code CountyCode
 rename ncesschoolid NCESSchoolID
-rename virtual Virtual 
-rename school_level SchoolLevel
 rename lea_name DistName
-rename school_type SchoolType
-rename county_name CountyName
+rename school_type SchType
+
+** Drop Excess Variables
+
+drop year district_agency_type district_agency_type_num county_code county_name school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch dist_lowest_grade_offered dist_highest_grade_offered dist_agency_charter_indicator
+
+** Label Variables
+
+label var NCESDistrictID "NCES district ID"
+label var State_leaid "State LEA ID"
+label var DistCharter "Charter indicator"
+label var SchType "School type as defined by NCES"
+label var SchVirtual "Virtual school indicator"
+label var SchLevel "School level"
 
 ** Fix Variable Types
 
 decode State, gen(State2)
-decode Charter, gen(Charter2)
-decode SchoolLevel, gen(SchoolLevel2)
-decode SchoolType, gen(SchoolType2)
-drop State Charter SchoolLevel SchoolType
+decode SchLevel, gen(SchLevel2)
+decode SchType, gen(SchType2)
+decode SchVirtual, gen(SchVirtual2)
+drop State SchLevel SchType SchVirtual
 rename State2 State
-rename Charter2 Charter
-rename SchoolLevel2 SchoolLevel 
-rename SchoolType2 SchoolType 
-tostring seasch, replace
-tostring Virtual, replace force
-replace seasch = State_leaid + "-" + seasch
-replace State_leaid = "LA-" + State_leaid
-replace State_leaid = "D50S09" if DistName == "Chitimacha Day School"
-
-** Drop Excess Variables
-
-drop year school_id school_name urban_centric_locale school_status lowest_grade_offered highest_grade_offered bureau_indian_education lunch_program free_lunch reduced_price_lunch free_or_reduced_price_lunch enrollment 
-
-** Label Variables
-
-label var State "State name"
-label var StateAbbrev "State abbreviation"
-label var StateFips "State FIPS Id"
-label var NCESDistrictID "NCES district ID"
-label var State_leaid "State LEA ID"
-label var Charter "Charter indicator"
-label var CountyName "County in which the district or school is located."
-label var CountyCode "County code in which the district or school is located, also referred to as the county-level FIPS code"
-label var NCESSchoolID "NCES school ID"
-label var SchoolType "School type as defined by NCES"
-label var Virtual "Virtual school indicator"
-label var SchoolLevel "School level"
+rename SchLevel2 SchLevel 
+rename SchType2 SchType 
+rename SchVirtual2 SchVirtual
 
 ** Isolate Louisiana Data
 
 keep if StateAbbrev == "LA" | DistName == "Chitimacha Day School"
 drop if DistName == ""
+replace seasch = State_leaid + "-" + seasch
+replace State_leaid = "LA-" + State_leaid
 save "${path}/Semi-Processed Data Files/2015_16_NCES_Cleaned_School.dta", replace
 
 ** 2015-16 NCES District Data
@@ -75,8 +61,21 @@ rename state_leaid State_leaid
 rename state_location StateAbbrev
 rename county_code CountyCode
 rename county_name CountyName
-rename district_agency_type DistrictType
+rename district_agency_type DistType
 rename state_fips StateFips
+
+** Drop Excess Variables
+
+drop year lea_name urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type_num agency_charter_indicator lowest_grade_offered highest_grade_offered
+
+** Label Variables
+
+label var NCESDistrictID "NCES district ID"
+label var State_leaid "State LEA ID"
+label var CountyName "County in which the district or school is located."
+label var CountyCode "County code in which the district or school is located, also referred to as the county-level FIPS code"
+label var DistCharter "Charter indicator"
+label var DistType "District type as defined by NCES"
 
 ** Isolate Louisiana Data
 
@@ -86,27 +85,12 @@ drop if State_leaid == ""
 ** Fix Variable Types
 
 decode State, gen(State2)
-decode DistrictType, gen(DistrictType2)
-drop State DistrictType
-rename DistrictType2 DistrictType
+decode DistType, gen(DistType2)
+drop State DistType
+rename DistType2 DistType
 rename State2 State
 replace State_leaid = "LA-" + State_leaid
 replace State_leaid = "D50S09" if NCESDistrictID == "5900146"
-
-** Drop Excess Variables
-
-drop year lea_name
-
-** Label Variables
-
-label var NCESDistrictID "NCES district ID"
-label var State_leaid "State LEA ID"
-label var CountyName "County in which the district or school is located."
-label var CountyCode "County code in which the district or school is located, also referred to as the county-level FIPS code"
-label var State "State name"
-label var StateAbbrev "State abbreviation"
-label var StateFips "State FIPS Id"
-label var DistrictType "District type as defined by NCES"
 save "${path}/Semi-Processed Data Files/2015_16_NCES_Cleaned_District.dta", replace
 
 ** 2015-16 Proficiency Data
@@ -153,7 +137,7 @@ rename y2 StudentSubGroup
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_read = "N"
+gen Flag_CutScoreChange_read = ""
 gen Flag_CutScoreChange_oth = "N"
 
 ** Label Flags
@@ -162,20 +146,13 @@ label var Flag_AssmtNameChange "Flag denoting a change in the assessment's name 
 label var Flag_CutScoreChange_ELA "Flag denoting a change in scoring determinations in ELA from the prior year only."
 label var Flag_CutScoreChange_math "Flag denoting a change in scoring determinations in math from the prior year only."
 label var Flag_CutScoreChange_read "Flag denoting a change in scoring determinations in reading from the prior year only."
-label var Flag_CutScoreChange_oth "Flag denoting a change in scoring determinations in subjects other than ELA, math, or reading from the prior year only (e.g., writing, STEM)."
 
 ** Generate Empty Variables
 
-gen ProficientOrAbove_count = "*"
-gen Lev1_count = "*"
-gen Lev2_count = "*"
-gen Lev3_count = "*"
-gen Lev4_count = "*"
-gen Lev5_count = "*"
-gen AvgScaleScore = "*"
-gen ParticipationRate = "*"
-gen StudentGroup_TotalTested = "*"
-gen StudentSubGroup_TotalTested = "*"
+gen AvgScaleScore = "--"
+gen ParticipationRate = "--"
+gen StudentGroup_TotalTested = "--"
+gen StudentSubGroup_TotalTested = "--"
 
 ** Fix Variable Types
 
@@ -184,7 +161,6 @@ replace Lev2_percent = subinstr(Lev2_percent, " ", "", .)
 replace Lev3_percent = subinstr(Lev3_percent, " ", "", .)
 replace Lev4_percent = subinstr(Lev4_percent, " ", "", .)
 replace Lev5_percent = subinstr(Lev5_percent, " ", "", .)
-destring GradeLevel, replace
 
 ** Generate Other Variables
 
@@ -195,18 +171,12 @@ replace DataLevel = "District" if DataLevel == "School System"
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup=="Hispanic/Latino"
 replace StudentSubGroup = "Two or More" if StudentSubGroup=="Two or more races"
 replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup=="Native Hawaiian or Other Pacific Islander"
-replace StudentSubGroup = "English learner" if StudentSubGroup=="English Learner"
-replace StudentSubGroup = "All students" if StudentSubGroup=="Total Population"
-gen StudentGroup = "Race" if StudentSubGroup=="American Indian or Alaska Native" | StudentSubGroup=="Asian" | StudentSubGroup=="Black or African American" | StudentSubGroup=="Native Hawaiian or Pacific Islander" | StudentSubGroup=="Two or More" | StudentSubGroup=="White" | StudentSubGroup=="Hispanic or Latino"
-replace StudentGroup = "EL status" if StudentSubGroup=="English learner"
-replace StudentGroup = "All students" if StudentSubGroup=="All students"
-replace StudentGroup = "Economic status" if StudentSubGroup=="Economically Disadvantaged"
+replace StudentSubGroup = "All Students" if StudentSubGroup=="Total Population"
+gen StudentGroup = "RaceEth" if StudentSubGroup=="American Indian or Alaska Native" | StudentSubGroup=="Asian" | StudentSubGroup=="Black or African American" | StudentSubGroup=="Native Hawaiian or Pacific Islander" | StudentSubGroup=="Two or More" | StudentSubGroup=="White" | StudentSubGroup=="Hispanic or Latino"
+replace StudentGroup = "EL Status" if StudentSubGroup=="English Learner"
+replace StudentGroup = "All Students" if StudentSubGroup=="All Students"
+replace StudentGroup = "Economic Status" if StudentSubGroup=="Economically Disadvantaged"
 gen ProficiencyCriteria = "Levels 4 and 5"
-replace Lev1_percent = "*" if Lev1_percent=="NR"
-replace Lev2_percent = "*" if Lev2_percent=="NR"
-replace Lev3_percent = "*" if Lev3_percent=="NR"
-replace Lev4_percent = "*" if Lev4_percent=="NR"
-replace Lev5_percent = "*" if Lev5_percent=="NR"
 
 ** Convert Proficiency Data into Percentages
 
@@ -243,10 +213,220 @@ tostring ProficientOrAbovemax, replace force
 gen ProficientOrAbove_percent = ProficientOrAbovemin + "-" + ProficientOrAbovemax
 replace ProficientOrAbove_percent = ProficientOrAbovemax if ProficientOrAbovemax == ProficientOrAbovemin
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent=="."
+replace Lev1_percent = "*" if Lev1_percent=="."
+replace Lev2_percent = "*" if Lev2_percent=="."
+replace Lev3_percent = "*" if Lev3_percent=="."
+replace Lev4_percent = "*" if Lev4_percent=="."
+replace Lev5_percent = "*" if Lev5_percent=="."
+gen ProficientOrAbove_count = "--"
+gen Lev1_count = "--"
+gen Lev2_count = "--"
+gen Lev3_count = "--"
+gen Lev4_count = "--"
+gen Lev5_count = "--"
 drop Lev4max Lev4maxnumber Lev4min Lev4minnumber Lev5max Lev5maxnumber Lev5min Lev5minnumber ProficientOrAbovemin ProficientOrAbovemax
+
+** Drop Excess Data
+
+drop if StudentSubGroup == "Students with Disability"
+
+** Merging NCES District Variables
+
+gen state_leaidnumber =.
+gen State_leaid = string(state_leaidnumber)
+replace State_leaid = "LA-" + StateAssignedDistID if DataLevel != "State"
+label var State_leaid "State LEA ID"
+gen seaschnumber=.
+gen seasch = string(seaschnumber)
+replace seasch = StateAssignedDistID + "-" + StateAssignedSchID if DataLevel == "School"
+replace seasch = "D50S09-D50S09" if SchName == "Chitimacha Tribal School"
+replace State_leaid = "D50S09" if SchName == "Chitimacha Tribal School"
+merge m:1 State_leaid using "${path}/Semi-Processed Data Files/2015_16_NCES_Cleaned_District.dta"
+rename _merge district_merge
+drop if district_merge != 3 & DataLevel != "State"
+
+** Correct Inaccurate State_lead and seasch Values 
+
+replace seasch = "WI1-WI1001" if StateAssignedSchID == "381001"
+replace State_leaid = "LA-WI1" if StateAssignedSchID == "381001"
+
+replace seasch = "WV1-WV1001" if StateAssignedSchID == "373001"
+replace State_leaid = "LA-WV1" if StateAssignedSchID == "373001"
+
+replace seasch = "W92-W92001" if StateAssignedSchID == "399002"
+replace State_leaid = "LA-W92" if StateAssignedSchID == "399002"
+
+replace seasch = "W8B-W8B001" if StateAssignedSchID == "3AP002"
+replace State_leaid = "LA-W8B" if StateAssignedSchID == "3AP002"
+
+replace seasch = "WAO-WAO001" if StateAssignedSchID == "3AP003"
+replace State_leaid = "LA-WAO" if StateAssignedSchID == "3AP003"
+
+replace seasch = "WAP-WAP001" if StateAssignedSchID == "3AP001"
+replace State_leaid = "LA-WAP" if StateAssignedSchID == "3AP001"
+
+replace seasch = "WE2-WE2001" if StateAssignedSchID == "385002"
+replace State_leaid = "LA-WE2" if StateAssignedSchID == "385002"
+
+replace seasch = "WAI-WAI001" if StateAssignedSchID == "361001"
+replace State_leaid = "LA-WAI" if StateAssignedSchID == "361001"
+
+replace seasch = "W65-W65001" if StateAssignedSchID == "395002"
+replace State_leaid = "LA-W65" if StateAssignedSchID == "395002"
+
+replace seasch = "WAB-WAB001" if StateAssignedSchID == "367001"
+replace State_leaid = "LA-WAB" if StateAssignedSchID == "367001"
+
+replace seasch = "W52-W52001" if StateAssignedSchID == "393002"
+replace State_leaid = "LA-W52" if StateAssignedSchID == "393002"
+
+replace seasch = "WAE-WAE001" if StateAssignedSchID == "364001"
+replace State_leaid = "LA-WAE" if StateAssignedSchID == "364001"
+
+replace seasch = "W14-W14001" if StateAssignedSchID == "300004"
+replace State_leaid = "LA-W14" if StateAssignedSchID == "300004"
+
+replace seasch = "WAF-WAF001" if StateAssignedSchID == "363001"
+replace State_leaid = "LA-WAF" if StateAssignedSchID == "363001"
+
+replace seasch = "W21-W21001" if StateAssignedSchID == "390001"
+replace State_leaid = "LA-W21" if StateAssignedSchID == "390001"
+
+replace seasch = "W82-W82001" if StateAssignedSchID == "398001"
+replace State_leaid = "LA-W82" if StateAssignedSchID == "398001"
+
+replace seasch = "W83-W83001" if StateAssignedSchID == "398003"
+replace State_leaid = "LA-W83" if StateAssignedSchID == "398003"
+
+replace seasch = "WL1-WL1001" if StateAssignedSchID == "398004"
+replace State_leaid = "LA-WL1" if StateAssignedSchID == "398004"
+
+replace seasch = "W81-W81001" if StateAssignedSchID == "398002"
+replace State_leaid = "LA-W81" if StateAssignedSchID == "398002"
+
+replace seasch = "W85-W85001" if StateAssignedSchID == "398006"
+replace State_leaid = "LA-W85" if StateAssignedSchID == "398006"
+
+replace seasch = "WB2-WB2001" if StateAssignedSchID == "389002"
+replace State_leaid = "LA-WB2" if StateAssignedSchID == "389002"
+
+replace seasch = "W51-W51001" if StateAssignedSchID == "393001"
+replace State_leaid = "LA-W51" if StateAssignedSchID == "393001"
+
+replace seasch = "W95-W95001" if StateAssignedSchID == "399005"
+replace State_leaid = "LA-W95" if StateAssignedSchID == "399005"
+
+replace seasch = "WE3-WE3001" if StateAssignedSchID == "385003"
+replace State_leaid = "LA-WE3" if StateAssignedSchID == "385003"
+
+replace seasch = "WX1-WX1001" if StateAssignedSchID == "371001"
+replace State_leaid = "LA-WX1" if StateAssignedSchID == "371001"
+
+replace seasch = "W66-W66001" if StateAssignedSchID == "395001"
+replace State_leaid = "LA-W66" if StateAssignedSchID == "395001"
+
+replace seasch = "W5A-W5A001" if StateAssignedSchID == "3A5001"
+replace State_leaid = "LA-W5A" if StateAssignedSchID == "3A5001"
+
+replace seasch = "W63-W63001" if StateAssignedSchID == "395004"
+replace State_leaid = "LA-W63" if StateAssignedSchID == "395004"
+
+replace seasch = "W53-W53001" if StateAssignedSchID == "393003"
+replace State_leaid = "LA-W53" if StateAssignedSchID == "393003"
+
+replace seasch = "WV2-WV2001" if StateAssignedSchID == "373002"
+replace State_leaid = "LA-WV2" if StateAssignedSchID == "373002"
+
+replace seasch = "WAA-WAA001" if StateAssignedSchID == "368001"
+replace State_leaid = "LA-WAA" if StateAssignedSchID == "368001"
+
+replace seasch = "W11-W11001" if StateAssignedSchID == "300002"
+replace State_leaid = "LA-W11" if StateAssignedSchID == "300002"
+
+replace seasch = "WAM-WAM001" if StateAssignedSchID == "363002"
+replace State_leaid = "LA-WAM" if StateAssignedSchID == "363002"
+
+replace seasch = "W94-W94001" if StateAssignedSchID == "399004"
+replace State_leaid = "LA-W94" if StateAssignedSchID == "399004"
+
+replace seasch = "W12-W12001" if StateAssignedSchID == "300001"
+replace State_leaid = "LA-W12" if StateAssignedSchID == "300001"
+
+replace seasch = "WZ1-WZ1001" if StateAssignedSchID == "369001"
+replace State_leaid = "LA-WZ1" if StateAssignedSchID == "369001"
+
+replace seasch = "WZ3-WZ3001" if StateAssignedSchID == "369003"
+replace State_leaid = "LA-WZ3" if StateAssignedSchID == "369003"
+
+replace seasch = "WZ6-WZ6001" if StateAssignedSchID == "369006"
+replace State_leaid = "LA-WZ6" if StateAssignedSchID == "369006"
+
+replace seasch = "WZ2-WZ2001" if StateAssignedSchID == "369002"
+replace State_leaid = "LA-WZ2" if StateAssignedSchID == "369002"
+
+replace seasch = "WZ7-WZ7001" if StateAssignedSchID == "369007"
+replace State_leaid = "LA-WZ7" if StateAssignedSchID == "369007"
+
+replace seasch = "W91-W91001" if StateAssignedSchID == "399001"
+replace State_leaid = "LA-W91" if StateAssignedSchID == "399001"
+
+replace seasch = "W71-W71001" if StateAssignedSchID == "397001"
+replace State_leaid = "LA-W71" if StateAssignedSchID == "397001"
+
+replace seasch = "WU1-WU1001" if StateAssignedSchID == "374001"
+replace State_leaid = "LA-WU1" if StateAssignedSchID == "374001"
+
+replace seasch = "WE1-WE1001" if StateAssignedSchID == "385001"
+replace State_leaid = "LA-WE1" if StateAssignedSchID == "385001"
+
+replace seasch = "W64-W64001" if StateAssignedSchID == "395003"
+replace State_leaid = "LA-W64" if StateAssignedSchID == "395003"
+
+** Merging NCES School Variables
+
+merge m:1 seasch using "${path}/Semi-Processed Data Files/2015_16_NCES_Cleaned_School.dta"
+drop if  _merge !=3 & DataLevel == "School"
+drop state_leaidnumber seaschnumber _merge district_merge
+
+** Standardize Non-School Level Data
+
+replace SchName = "All Schools" if DataLevel == "State"
+replace SchName = "All Schools" if DataLevel == "District"
+replace DistName = "All Districts" if DataLevel == "State"
+replace StateAssignedDistID = "" if DataLevel == "State"
+replace State_leaid = "" if DataLevel == "State"
+replace seasch = "" if DataLevel == "State" | DataLevel == "District"
+
+** Standardize Charter Data
+
+replace DistCharter="No" if DistCharter=="Not applicable"
+
+** Relabel GradeLevel Values
+
+tostring GradeLevel, replace
+replace GradeLevel = "G0" + GradeLevel
+
+** Fix Variable Types
+
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+sort DataLevel_n 
+drop DataLevel 
+rename DataLevel_n DataLevel 
+recast int CountyCode
+drop State StateAbbrev StateFips
+gen State = "Louisiana"
+gen StateAbbrev = "LA"
+gen StateFips = 22
+recast int StateFips
 
 ** Label Variables
 
+rename State StateName
+label var StateName "State name"
+rename StateName State
+label var StateAbbrev "State abbreviation"
+label var StateFips "State FIPS Id"
 label var SchYear "School year in which the data were reported. (e.g., 2021-22)"
 label var AssmtName "Name of state assessment"
 label var AssmtType "Assessment type"
@@ -277,50 +457,9 @@ label var ProficientOrAbove_count "Count of students achieving proficiency or ab
 label var ProficientOrAbove_percent "Percent of students achieving proficiency or above on the state assessment."
 label var ParticipationRate "Participation rate."
 
-** Drop Excess Data
-
-drop if StudentSubGroup == "Students with Disability"
-
-** Merging NCES Variables
-
-gen state_leaidnumber =.
-gen State_leaid = string(state_leaidnumber)
-replace State_leaid = "LA-" + StateAssignedDistID if DataLevel != "State"
-label var State_leaid "State LEA ID"
-gen seaschnumber=.
-gen seasch = string(seaschnumber)
-replace seasch = StateAssignedDistID + "-" + StateAssignedSchID if DataLevel == "School"
-replace seasch = "D50S09-D50S09" if SchName == "Chitimacha Tribal School"
-replace State_leaid = "D50S09" if SchName == "Chitimacha Tribal School"
-merge m:1 State_leaid using "${path}/Semi-Processed Data Files/2015_16_NCES_Cleaned_District.dta"
-rename _merge district_merge
-merge m:1 seasch using "${path}/Semi-Processed Data Files/2015_16_NCES_Cleaned_School.dta"
-drop if district_merge != 3 & _merge !=3 & DataLevel != "State"
-drop state_leaidnumber seaschnumber _merge district_merge
-
-** Standardize State Data
-
-replace State = "Rhode Island"
-replace StateAbbrev = "RI"
-replace StateFips = 44
-
-** Standardize Charter Data
-
-replace Charter="No" if Charter=="Not applicable"
-
-** Relabel GradeLevel Values
-
-tostring GradeLevel, replace
-replace GradeLevel="G03" if GradeLevel=="3"
-replace GradeLevel="G04" if GradeLevel=="4"
-replace GradeLevel="G05" if GradeLevel=="5"
-replace GradeLevel="G06" if GradeLevel=="6"
-replace GradeLevel="G07" if GradeLevel=="7"
-replace GradeLevel="G08" if GradeLevel=="8"
-
 ** Fix Variable Order 
 
-order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
+order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 
 ** Export 2015-16 Assessment Data
 

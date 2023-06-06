@@ -12,46 +12,34 @@ rename state_location StateAbbrev
 rename state_fips StateFips
 rename ncesdistrictid NCESDistrictID
 rename state_leaid State_leaid
-rename charter Charter
-rename county_code CountyCode
 rename ncesschoolid NCESSchoolID
-rename virtual Virtual 
-rename school_level SchoolLevel
 rename lea_name DistName
-rename school_type SchoolType
-rename county_name CountyName
+rename school_type SchType
 
 ** Drop Excess Variables
 
-drop year urban_centric_locale school_status school_name school_id reduced_price_lunch lunch_program lowest_grade_offered highest_grade_offered free_or_reduced_price_lunch free_lunch enrollment bureau_indian_education
+drop year district_agency_type district_agency_type_num county_code county_name school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch dist_lowest_grade_offered dist_highest_grade_offered dist_agency_charter_indicator
+
+** Label Variables
+
+label var NCESDistrictID "NCES district ID"
+label var State_leaid "State LEA ID"
+label var DistCharter "Charter indicator"
+label var SchType "School type as defined by NCES"
+label var SchVirtual "Virtual school indicator"
+label var SchLevel "School level"
 
 ** Fix Variable Types
 
 decode State, gen(State2)
-decode Charter, gen(Charter2)
-decode SchoolLevel, gen(SchoolLevel2)
-decode SchoolType, gen(SchoolType2)
-drop State Charter SchoolLevel SchoolType
+decode SchLevel, gen(SchLevel2)
+decode SchType, gen(SchType2)
+decode SchVirtual, gen(SchVirtual2)
+drop State SchLevel SchType SchVirtual
 rename State2 State
-rename Charter2 Charter
-rename SchoolLevel2 SchoolLevel 
-rename SchoolType2 SchoolType
-tostring Virtual, replace force
-
-** Label Variables
-
-label var State "State name"
-label var StateAbbrev "State abbreviation"
-label var StateFips "State FIPS Id"
-label var NCESDistrictID "NCES district ID"
-label var State_leaid "State LEA ID"
-label var Charter "Charter indicator"
-label var CountyName "County in which the district or school is located."
-label var CountyCode "County code in which the district or school is located, also referred to as the county-level FIPS code"
-label var NCESSchoolID "NCES school ID"
-label var SchoolType "School type as defined by NCES"
-label var Virtual "Virtual school indicator"
-label var SchoolLevel "School level"
+rename SchLevel2 SchLevel 
+rename SchType2 SchType 
+rename SchVirtual2 SchVirtual
 
 ** Isolate Louisiana Data
 
@@ -70,20 +58,12 @@ rename state_leaid State_leaid
 rename state_location StateAbbrev
 rename county_code CountyCode
 rename county_name CountyName
-rename district_agency_type DistrictType
+rename district_agency_type DistType
 rename state_fips StateFips
 
 ** Drop Excess Variables
 
-drop year lea_name
-
-** Fix Variable Types
-
-decode State, gen(State2)
-decode DistrictType, gen(DistrictType2)
-drop State DistrictType
-rename DistrictType2 DistrictType
-rename State2 State
+drop year lea_name urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type_num agency_charter_indicator lowest_grade_offered highest_grade_offered
 
 ** Label Variables
 
@@ -91,14 +71,17 @@ label var NCESDistrictID "NCES district ID"
 label var State_leaid "State LEA ID"
 label var CountyName "County in which the district or school is located."
 label var CountyCode "County code in which the district or school is located, also referred to as the county-level FIPS code"
-label var State "State name"
-label var StateAbbrev "State abbreviation"
-label var StateFips "State FIPS Id"
-label var DistrictType "District type as defined by NCES"
+label var DistCharter "Charter indicator"
+label var DistType "District type as defined by NCES"
 
 ** Isolate Louisiana Data
 
 drop if StateFips != 22
+decode State, gen(State2)
+decode DistType, gen(DistType2)
+drop State DistType
+rename State2 State
+rename DistType2 DistType
 save "${path}/Semi-Processed Data Files/2018_19_NCES_Cleaned_District.dta", replace
 
 ** 2018-19 Proficiency Data
@@ -145,8 +128,8 @@ rename y2 StudentSubGroup
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_read = "N"
-gen Flag_CutScoreChange_oth = "Y"
+gen Flag_CutScoreChange_read = ""
+gen Flag_CutScoreChange_oth = "N"
 
 ** Label Flags
 
@@ -154,20 +137,13 @@ label var Flag_AssmtNameChange "Flag denoting a change in the assessment's name 
 label var Flag_CutScoreChange_ELA "Flag denoting a change in scoring determinations in ELA from the prior year only."
 label var Flag_CutScoreChange_math "Flag denoting a change in scoring determinations in math from the prior year only."
 label var Flag_CutScoreChange_read "Flag denoting a change in scoring determinations in reading from the prior year only."
-label var Flag_CutScoreChange_oth "Flag denoting a change in scoring determinations in subjects other than ELA, math, or reading from the prior year only (e.g., writing, STEM)."
 
 ** Generate Empty Variables
 
-gen ProficientOrAbove_count = "*"
-gen Lev1_count = "*"
-gen Lev2_count = "*"
-gen Lev3_count = "*"
-gen Lev4_count = "*"
-gen Lev5_count = "*"
-gen AvgScaleScore = "*"
-gen ParticipationRate = "*"
-gen StudentGroup_TotalTested = "*"
-gen StudentSubGroup_TotalTested = "*"
+gen AvgScaleScore = "--"
+gen ParticipationRate = "--"
+gen StudentGroup_TotalTested = "--"
+gen StudentSubGroup_TotalTested = "--"
 
 ** Fix Variable Types
 
@@ -184,23 +160,16 @@ gen SchYear = "2018-19"
 gen AssmtName = "LEAP 2025"
 gen AssmtType = "Regular"
 replace DataLevel = "District" if DataLevel == "School System"
-gen StudentGroup = "StudentGroup"
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup=="Hispanic/Latino"
 replace StudentSubGroup = "Two or More" if StudentSubGroup=="Two or more races"
 replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup=="Native Hawaiian or Other Pacific Islander"
-replace StudentSubGroup = "English learner" if StudentSubGroup=="English Learner"
-replace StudentSubGroup = "All students" if StudentSubGroup=="Total Population"
-replace StudentGroup = "Race" if StudentSubGroup=="American Indian or Alaska Native" | StudentSubGroup=="Asian" | StudentSubGroup=="Black or African American" | StudentSubGroup=="Native Hawaiian or Pacific Islander" | StudentSubGroup=="Two or More" | StudentSubGroup=="White" | StudentSubGroup=="Hispanic or Latino"
-replace StudentGroup = "Gender" if StudentSubGroup=="Male" | StudentSubGroup=="Female"
-replace StudentGroup = "EL status" if StudentSubGroup=="English learner"
-replace StudentGroup = "All students" if StudentSubGroup=="All students"
-replace StudentGroup = "Economic status" if StudentSubGroup=="Economically Disadvantaged"
+replace StudentSubGroup = "All Students" if StudentSubGroup=="Total Population"
+gen StudentGroup = "RaceEth" if StudentSubGroup=="American Indian or Alaska Native" | StudentSubGroup=="Asian" | StudentSubGroup=="Black or African American" | StudentSubGroup=="Native Hawaiian or Pacific Islander" | StudentSubGroup=="Two or More" | StudentSubGroup=="White" | StudentSubGroup=="Hispanic or Latino"
+replace StudentGroup = "EL Status" if StudentSubGroup=="English Learner"
+replace StudentGroup = "Gender" if StudentSubGroup=="Female" | StudentSubGroup=="Male"
+replace StudentGroup = "All Students" if StudentSubGroup=="All Students"
+replace StudentGroup = "Economic Status" if StudentSubGroup=="Economically Disadvantaged" | StudentSubGroup=="Not Economically Disadvantaged"
 gen ProficiencyCriteria = "Levels 4 and 5"
-replace Lev1_percent = "*" if Lev1_percent=="NR"
-replace Lev2_percent = "*" if Lev2_percent=="NR"
-replace Lev3_percent = "*" if Lev3_percent=="NR"
-replace Lev4_percent = "*" if Lev4_percent=="NR"
-replace Lev5_percent = "*" if Lev5_percent=="NR"
 
 ** Convert Proficiency Data into Percentages
 
@@ -237,10 +206,73 @@ tostring ProficientOrAbovemax, replace force
 gen ProficientOrAbove_percent = ProficientOrAbovemin + "-" + ProficientOrAbovemax
 replace ProficientOrAbove_percent = ProficientOrAbovemax if ProficientOrAbovemax == ProficientOrAbovemin
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent=="."
+replace Lev1_percent = "*" if Lev1_percent=="."
+replace Lev2_percent = "*" if Lev2_percent=="."
+replace Lev3_percent = "*" if Lev3_percent=="."
+replace Lev4_percent = "*" if Lev4_percent=="."
+replace Lev5_percent = "*" if Lev5_percent=="."
+gen ProficientOrAbove_count = "--"
+gen Lev1_count = "--"
+gen Lev2_count = "--"
+gen Lev3_count = "--"
+gen Lev4_count = "--"
+gen Lev5_count = "--"
 drop Lev4max Lev4maxnumber Lev4min Lev4minnumber Lev5max Lev5maxnumber Lev5min Lev5minnumber ProficientOrAbovemin ProficientOrAbovemax
+
+** Drop Excess Data
+
+keep if StudentGroup != ""
+
+** Merging NCES Variables
+
+gen state_leaidnumber =.
+gen State_leaid = string(state_leaidnumber)
+replace State_leaid = "LA-" + StateAssignedDistID if DataLevel != "State"
+label var State_leaid "State LEA ID"
+gen seaschnumber=.
+gen seasch = string(seaschnumber)
+replace seasch = StateAssignedDistID + "-" + StateAssignedSchID if DataLevel == "School"
+merge m:1 State_leaid using "${path}/Semi-Processed Data Files/2018_19_NCES_Cleaned_District.dta"
+rename _merge district_merge
+merge m:1 seasch StateFips using "${path}/Semi-Processed Data Files/2018_19_NCES_Cleaned_School.dta"
+drop if district_merge != 3 & DataLevel != "State"| _merge !=3 & DataLevel == "School"
+drop state_leaidnumber seaschnumber _merge district_merge
+
+** Standardize Non-School Level Data
+
+replace SchName = "All Schools" if DataLevel == "State"
+replace SchName = "All Schools" if DataLevel == "District"
+replace DistName = "All Districts" if DataLevel == "State"
+replace StateAssignedDistID = "" if DataLevel == "State"
+replace State_leaid = "" if DataLevel == "State"
+replace seasch = "" if DataLevel == "State" | DataLevel == "District"
+
+** Relabel GradeLevel Values
+
+tostring GradeLevel, replace
+replace GradeLevel = "G0" + GradeLevel
+
+** Fix Variable Types
+
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+sort DataLevel_n 
+drop DataLevel 
+rename DataLevel_n DataLevel 
+recast int CountyCode
+drop State StateAbbrev StateFips
+gen State = "Louisiana"
+gen StateAbbrev = "LA"
+gen StateFips = 22
+recast int StateFips
 
 ** Label Variables
 
+rename State StateName
+label var StateName "State name"
+rename StateName State
+label var StateAbbrev "State abbreviation"
+label var StateFips "State FIPS Id"
 label var SchYear "School year in which the data were reported. (e.g., 2021-22)"
 label var AssmtName "Name of state assessment"
 label var AssmtType "Assessment type"
@@ -271,44 +303,9 @@ label var ProficientOrAbove_count "Count of students achieving proficiency or ab
 label var ProficientOrAbove_percent "Percent of students achieving proficiency or above on the state assessment."
 label var ParticipationRate "Participation rate."
 
-** Drop Excess Data
-
-keep if StudentGroup != "StudentGroup"
-
-** Merging NCES Variables
-
-gen state_leaidnumber =.
-gen State_leaid = string(state_leaidnumber)
-replace State_leaid = "LA-" + StateAssignedDistID if DataLevel != "State"
-label var State_leaid "State LEA ID"
-gen seaschnumber=.
-gen seasch = string(seaschnumber)
-replace seasch = StateAssignedDistID + "-" + StateAssignedSchID if DataLevel == "School"
-merge m:1 State_leaid using "${path}/Semi-Processed Data Files/2018_19_NCES_Cleaned_District.dta"
-rename _merge district_merge
-merge m:1 seasch StateFips using "${path}/Semi-Processed Data Files/2018_19_NCES_Cleaned_School.dta"
-drop if district_merge != 3 & _merge !=3 & DataLevel != "State"
-drop state_leaidnumber seaschnumber _merge district_merge
-
-** Standardize State Data
-
-replace State = "Rhode Island"
-replace StateAbbrev = "RI"
-replace StateFips = 44
-
-** Relabel GradeLevel Values
-
-tostring GradeLevel, replace
-replace GradeLevel="G03" if GradeLevel=="3"
-replace GradeLevel="G04" if GradeLevel=="4"
-replace GradeLevel="G05" if GradeLevel=="5"
-replace GradeLevel="G06" if GradeLevel=="6"
-replace GradeLevel="G07" if GradeLevel=="7"
-replace GradeLevel="G08" if GradeLevel=="8"
-
 ** Fix Variable Order 
 
-order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
+order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 
 ** Export 2018-19 Assessment Data
 
