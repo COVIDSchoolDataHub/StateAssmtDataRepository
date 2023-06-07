@@ -134,7 +134,10 @@ foreach var of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent Lev5_
 	replace `var' = `var'/100
 }
 
-foreach var of varlist Lev1_count Lev2_count Lev3_count Lev4_count Lev5_count Lev1_percent Lev2_percent Lev3_percent Lev4_percent Lev5_percent AvgScaleScore {
+gen ProficientOrAbove_count = Lev3_count + Lev4_count + Lev5_count
+gen ProficientOrAbove_percent = Lev3_percent + Lev4_percent + Lev5_percent
+
+foreach var of varlist Lev1_count Lev2_count Lev3_count Lev4_count Lev5_count Lev1_percent Lev2_percent Lev3_percent Lev4_percent Lev5_percent AvgScaleScore ProficientOrAbove_count ProficientOrAbove_percent {
 	tostring `var', replace force
 	replace `var' = "*" if filtered == "Y"
 }
@@ -150,9 +153,7 @@ gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_read = "N"
 gen Flag_CutScoreChange_oth = "N"
 gen AssmtType = "Regular"
-gen ProficiencyCriteria = ""
-gen ProficientOrAbove_count = ""
-gen ProficientOrAbove_percent = ""
+gen ProficiencyCriteria = "Levels 3, 4, 5"
 gen ParticipationRate = ""
 
 // Data Levels

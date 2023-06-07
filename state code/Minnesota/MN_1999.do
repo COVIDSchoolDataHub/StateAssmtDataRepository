@@ -56,12 +56,31 @@ replace Subject = "wri" if Subject == "W"
 replace GradeLevel = "G03" if GradeLevel == "03"
 replace GradeLevel = "G05" if GradeLevel == "05"
 
-foreach var of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent Lev5_percent {
+
+foreach var of varlist Lev1_percent Lev2_percent Lev3_percent Lev3_count Lev4_percent Lev4_count Lev5_percent Lev5_count {
 	destring `var', generate(num`var') force
-	replace num`var' = num`var'/100
+}
+
+foreach var of varlist numLev1_percent numLev2_percent numLev3_percent numLev4_percent numLev5_percent {
+	replace `var' = `var'/100
+}
+
+gen ProficientOrAbove_count = numLev3_count + numLev4_count + numLev5_count
+gen ProficientOrAbove_percent = numLev3_percent + numLev4_percent + numLev5_percent
+
+drop numLev3_count
+drop numLev4_count
+drop numLev5_count
+
+foreach var of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent Lev5_percent {
 	tostring num`var', replace force
 	replace `var' = num`var' if `var' != "--"
 	drop num`var'
+}
+
+foreach var of varlist ProficientOrAbove_count ProficientOrAbove_percent {
+	tostring `var', replace force
+	replace `var' = "--" if `var' == "."
 }
 
 replace AvgScaleScore = "--" if Subject == "wri"
@@ -77,9 +96,7 @@ gen Flag_CutScoreChange_oth = "N"
 gen AssmtType = "Regular"
 gen StudentGroup = "All students"
 gen StudentSubGroup = "All students"
-gen ProficiencyCriteria = ""
-gen ProficientOrAbove_count = ""
-gen ProficientOrAbove_percent = ""
+gen ProficiencyCriteria = "Levels 3, 4, 5"
 gen ParticipationRate = ""
 
 // Data Levels
