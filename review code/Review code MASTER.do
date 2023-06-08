@@ -346,7 +346,7 @@ di as error "Below rows have percent total lower than 50%"
 list row NCESSchoolID NCESDistrictID if tot<.50
 
 tab ProficiencyCriteria
-drop row
+
 ******************************************************
 *****NOTE: Needs to be edited to match ***************
 *****Proficiency Criteria before running check********
@@ -356,10 +356,10 @@ drop row
 egen check_count=rowtotal(nLev3_count nLev4_count nLev5_count)
 egen check_perc=rowtotal(nLev3_percent nLev4_percent nLev5_percent)
 
-list NCESSchoolID NCESDistrictID if check_count != ProficientOrAbove_count
-list NCESSchoolID NCESDistrictID if check_perc != ProficientOrAbove_percent
+list row NCESSchoolID NCESDistrictID if check_count != ProficientOrAbove_count
+list row NCESSchoolID NCESDistrictID if check_perc != ProficientOrAbove_percent
 
-drop tot nLev* check* nProficientOrAbove_percent nParticipationRate
+drop tot nLev* check* nProficientOrAbove_percent nParticipationRate row
 
 
 **(9) Check assessment flags
@@ -368,11 +368,4 @@ tab AssmtName Flag_CutScoreChange_ELA
 tab AssmtName Flag_CutScoreChange_math
 tab AssmtName Flag_CutScoreChange_read
 tab AssmtName Flag_CutScoreChange_oth
-
-
-
-	
-	
-	
-
 
