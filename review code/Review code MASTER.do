@@ -335,17 +335,18 @@ foreach v of varlist nLev*percent nProficientOrAbove_percent nParticipationRate 
 * ProficientOrAbove_percent and ParticipationRate variables are in the correct format
 
 egen tot=rowtotal(nLev*percent)
+gen row=_n
 
-di as error "Below rows have percent total greater than 101"
+di as error "Below rows have percent total greater than 101%"
 
-list NCESSchoolID NCESDistrictID if tot>101
+list row NCESSchoolID NCESDistrictID if tot>1.01
 
-di as error "Below rows have percent total lower than 50"
+di as error "Below rows have percent total lower than 50%"
 
-list NCESSchoolID NCESDistrictID if tot>50
+list row NCESSchoolID NCESDistrictID if tot<.50
 
 tab ProficiencyCriteria
-
+drop row
 ******************************************************
 *****NOTE: Needs to be edited to match ***************
 *****Proficiency Criteria before running check********
