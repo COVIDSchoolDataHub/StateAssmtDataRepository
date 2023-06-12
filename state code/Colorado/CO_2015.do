@@ -21,11 +21,18 @@ import excel "${path}/CO_OriginalData_2015_ela_mat.xlsx", sheet("Achievement Res
 
 rename contentarea subject
 rename test grade
-rename numberpartiallymetexpectation numberpartiallymetexpectations
-rename percentpartiallymetexpectatio percentpartiallymetexpectations
-rename percentexceededexpecations percentexceededexpectations
-rename numbermetorexceededexpectati numbermetorexceededexpectations
-rename percentmetorexceededexpectat percentmetorexceededexpectations
+rename numberdidnotyetmeetexpectat Lev1_count
+rename percentdidnotyetmeetexpecta Lev1_percent
+rename numberpartiallymetexpectation Lev2_count
+rename percentpartiallymetexpectatio Lev2_percent
+rename numberapproachedexpectations Lev3_count
+rename percentapproachedexpectations Lev3_percent
+rename numbermetexpectations Lev4_count
+rename percentmetexpectations Lev4_percent
+rename numberexceededexpectations Lev5_count
+rename percentexceededexpecations Lev5_percent
+rename numbermetorexceededexpectati ProficientOrAbove_count
+rename percentmetorexceededexpectat ProficientOrAbove_percent
 
 
 save "${path}/CO_OriginalData_2015_ela&mat.dta", replace
@@ -45,16 +52,16 @@ drop spring2014 h i j k l m n o p q r s t u w x changeinstrongdistinguished
 rename spring2015 numberofvalidscores 
 rename y participationrate
 rename z meanscalescore
-rename aa numberpartiallymetexpectations
-rename ab percentpartiallymetexpectations
-rename ac numberapproachedexpectations
-rename ad percentapproachedexpectations
-rename ae numbermetexpectations
-rename af percentmetexpectations
-rename ag numberexceededexpectations
-rename ah percentexceededexpectations
-rename ai numbermetorexceededexpectations
-rename aj percentmetorexceededexpectations
+rename aa Lev1_count
+rename ab Lev1_percent
+rename ac Lev2_count
+rename ad Lev2_percent
+rename ae Lev3_count
+rename af Lev3_percent
+rename ag Lev4_count
+rename ah Lev4_percent
+rename ai ProficientOrAbove_count
+rename aj ProficientOrAbove_percent
 
 drop if subject!="SCI"
 
@@ -78,16 +85,16 @@ drop spring2014 h i j k l m n o p q r s t u w x changeinstronganddistinguish
 rename spring2015 numberofvalidscores 
 rename y participationrate
 rename z meanscalescore
-rename aa numberpartiallymetexpectations
-rename ab percentpartiallymetexpectations
-rename ac numberapproachedexpectations
-rename ad percentapproachedexpectations
-rename ae numbermetexpectations
-rename af percentmetexpectations
-rename ag numberexceededexpectations
-rename ah percentexceededexpectations
-rename ai numbermetorexceededexpectations
-rename aj percentmetorexceededexpectations
+rename aa Lev1_count
+rename ab Lev1_percent
+rename ac Lev2_count
+rename ad Lev2_percent
+rename ae Lev3_count
+rename af Lev3_percent
+rename ag Lev4_count
+rename ah Lev4_percent
+rename ai ProficientOrAbove_count
+rename aj ProficientOrAbove_percent
 
 drop if subject!="SS"
 
@@ -110,7 +117,6 @@ gen StudentSubGroup = "All students"
 rename districtcode districtnumber_int
 rename schoolcode schoolnumber_int
 rename numberofvalidscores ofvalidscores
-rename percentmetorexceededexpectations metorexceededexpectati
 rename subject subjectarea
 
 gen districtcodebig = .
@@ -153,6 +159,7 @@ save "${path}/CO_OriginalData_2015_all.dta", replace
 import excel "${disagg}/CO_2015_ELA_gender.xlsx", sheet("2015 CMAS ELA in Gender") cellrange(A3:H15765) firstrow case(lower) clear
 
 rename schoolnumber schoolnumber_int
+rename metorexceededexpectati ProficientOrAbove_percent
 
 destring districtnumber, gen(districtnumber_int) ignore(",* Tabcdefghijklmnopqrstuvwxyz.")
 
@@ -192,6 +199,7 @@ save "${path}/CO_2015_ELA_gender.dta", replace
 import excel "${disagg}/CO_2015_ELA_language.xlsx", sheet("2015 CMAS ELA in LEP") cellrange(A3:H15767) firstrow case(lower) clear
 
 rename group StudentSubGroup
+rename metorexceededexpectati ProficientOrAbove_percent
 gen StudentGroup = "EL status"
 
 save "${path}/CO_2015_ELA_language.dta", replace
@@ -201,10 +209,19 @@ save "${path}/CO_2015_ELA_language.dta", replace
 import excel "${disagg}/CO_2015_ELA_raceEthnicity.xlsx", sheet("2015 CMAS ELA in Ethnicity") cellrange(A3:H55165) firstrow case(lower) clear
 
 rename group StudentSubGroup
+rename metorexceededexpectati ProficientOrAbove_percent
 gen StudentGroup = "Race"
 
 save "${path}/CO_2015_ELA_raceEthnicity.dta", replace
 
+
+import excel "${disagg}/CO_2015_ELA_freeReducedLunch.xlsx", sheet("2015 CMAS ELA in FRL") cellrange(A3:H15765) firstrow case(lower) clear
+
+rename group StudentSubGroup
+rename metorexceededexpectati ProficientOrAbove_percent
+gen StudentGroup = "Economic Status"
+
+save "${path}/CO_2015_ELA_econstatus.dta", replace
 
 
 
@@ -214,6 +231,7 @@ save "${path}/CO_2015_ELA_raceEthnicity.dta", replace
 import excel "${disagg}/CO_2015_.mat_genderxlsx.xlsx", sheet("2015 CMAS Math in Gender") cellrange(A3:H16817) firstrow case(lower) clear
 
 rename group StudentSubGroup
+rename metorexceededexpectati ProficientOrAbove_percent
 gen StudentGroup = "Gender"
 
 save "${path}/CO_2015_mat_gender.dta", replace
@@ -223,6 +241,7 @@ save "${path}/CO_2015_mat_gender.dta", replace
 import excel "${disagg}/CO_2015_mat_language.xlsx", sheet("2015 CMAS Math in LEP") cellrange(A3:H16819) firstrow case(lower) clear
 
 rename group StudentSubGroup
+rename metorexceededexpectati ProficientOrAbove_percent
 gen StudentGroup = "EL status"
 
 save "${path}/CO_2015_mat_language.dta", replace
@@ -232,11 +251,19 @@ save "${path}/CO_2015_mat_language.dta", replace
 import excel "${disagg}/CO_2015_mat_raceEthnicity.xlsx", sheet("2015 CMAS Math in Ethnicity") cellrange(A3:H58847) firstrow case(lower) clear
 
 rename group StudentSubGroup
+rename metorexceededexpectati ProficientOrAbove_percent
 gen StudentGroup = "Race"
 
 save "${path}/CO_2015_mat_raceEthnicity.dta", replace
 
 
+import excel "${disagg}/CO_2015_mat_freeReducedLunch.xlsx", sheet("2015 CMAS Math in FRL") cellrange(A3:H16817) firstrow case(lower) clear
+
+rename group StudentSubGroup
+rename metorexceededexpectati ProficientOrAbove_percent
+gen StudentGroup = "Economic Status"
+
+save "${path}/CO_2015_mat_econstatus.dta", replace
 
 
 ///////// Section 3: Appending Disaggregate Data
@@ -256,6 +283,8 @@ append using "${path}/CO_2015_ELA_language.dta"
 append using "${path}/CO_2015_mat_language.dta"
 append using "${path}/CO_2015_ELA_raceEthnicity.dta"
 append using "${path}/CO_2015_mat_raceEthnicity.dta"
+append using "${path}/CO_2015_ELA_econstatus.dta"
+append using "${path}/CO_2015_mat_econstatus.dta"
 
 drop if districtnumber=="* The value for this field is not displayed in order to ensure student privacy."
 drop if districtnumber=="** English Learners include Non English Proficient (NEP) and Limited English Proficient (LEP) students."
@@ -286,8 +315,6 @@ replace grade="G09" if subjectarea=="Algebra I     "
 replace grade="G11" if subjectarea=="Algebra II    "
 replace grade="G11" if subjectarea=="Integrated III"
 replace grade="G10" if subjectarea=="Geometry      "
-
-
 
 
 
@@ -364,96 +391,58 @@ rename state_fips StateFips
 rename ncesschoolid NCESSchoolID
 rename ncesdistrictid NCESDistrictID
 rename state_leaid State_leaid
-rename district_agency_type DistrictType
-rename charter Charter
+rename district_agency_type DistType
 rename state_location StateAbbrev
 rename county_name CountyName
 rename county_code CountyCode
-rename school_type SchoolType
-rename virtual Virtual
-rename school_level SchoolLevel
+rename school_type SchType
+
+replace Lev1_count = "*" if strpos(Lev1_count, "<")>0
+replace Lev1_count = "*" if strpos(Lev1_count, ">")>0
+replace Lev2_count = "*" if strpos(Lev2_count, "<")>0
+replace Lev2_count = "*" if strpos(Lev2_count, ">")>0
+replace Lev3_count = "*" if strpos(Lev3_count, "<")>0
+replace Lev3_count = "*" if strpos(Lev3_count, ">")>0
+replace Lev4_count = "*" if strpos(Lev4_count, "<")>0
+replace Lev4_count = "*" if strpos(Lev4_count, ">")>0
+replace Lev5_count = "*" if strpos(Lev5_count, "<")>0
+replace Lev5_count = "*" if strpos(Lev5_count, ">")>0
+replace ProficientOrAbove_count = "*" if strpos(ProficientOrAbove_count, "<")>0
+replace ProficientOrAbove_count = "*" if strpos(ProficientOrAbove_count, ">")>0
+replace Lev1_percent = "*" if strpos(Lev1_percent, "<")>0
+replace Lev1_percent = "*" if strpos(Lev1_percent, ">")>0
+replace Lev2_percent = "*" if strpos(Lev2_percent, "<")>0
+replace Lev2_percent = "*" if strpos(Lev2_percent, ">")>0
+replace Lev3_percent = "*" if strpos(Lev3_percent, "<")>0
+replace Lev3_percent = "*" if strpos(Lev3_percent, ">")>0
+replace Lev4_percent = "*" if strpos(Lev4_percent, "<")>0
+replace Lev4_percent = "*" if strpos(Lev4_percent, ">")>0
+replace Lev5_percent = "*" if strpos(Lev5_percent, "<")>0
+replace Lev5_percent = "*" if strpos(Lev5_percent, ">")>0
+replace ProficientOrAbove_percent = "*" if strpos(ProficientOrAbove_percent, "<")>0
+replace ProficientOrAbove_percent = "*" if strpos(ProficientOrAbove_percent, ">")>0
+
+destring Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent, replace ignore(",* %NA<>=-")
 
 
-//Rename proficiency levels
-rename numberpartiallymetexpectations Lev1_count
-rename percentpartiallymetexpectations Lev1_percent
-rename numberapproachedexpectations Lev2_count
-rename percentapproachedexpectations Lev2_percent
-rename numbermetexpectations Lev3_count
-rename percentmetexpectations Lev3_percent
-rename numberexceededexpectations Lev4_count
-rename percentexceededexpectations Lev4_percent
-rename numbermetorexceededexpectations ProficientOrAbove_count
-rename metorexceededexpectati ProficientOrAbove_percent
+replace Lev5_percent=Lev5_percent/100
+replace Lev1_percent=Lev1_percent/100
+replace Lev2_percent=Lev2_percent/100
+replace Lev3_percent=Lev3_percent/100
+replace Lev4_percent=Lev4_percent/100
 
-
-//Combines ELA/Math proficiency levels 1 and 2 for consistancy with science assessments
-
-replace numberdidnotyetmeetexpectat="*" if strpos(numberdidnotyetmeetexpectat, ">")
-replace numberdidnotyetmeetexpectat="*" if strpos(numberdidnotyetmeetexpectat, "<")
-replace Lev1_count="*" if strpos(Lev1_count, ">")
-replace Lev1_count="*" if strpos(Lev1_count, "<")
-replace Lev2_count="*" if strpos(Lev1_count, ">")
-replace Lev2_count="*" if strpos(Lev1_count, "<")
-
-replace percentdidnotyetmeetexpecta="*" if strpos(percentdidnotyetmeetexpecta, ">")
-replace percentdidnotyetmeetexpecta="*" if strpos(percentdidnotyetmeetexpecta, "<")
-replace Lev1_percent="*" if strpos(Lev1_percent, ">")
-replace Lev1_percent="*" if strpos(Lev1_percent, "<")
-replace Lev2_percent="*" if strpos(Lev1_percent, ">")
-replace Lev2_percent="*" if strpos(Lev1_percent, "<")
-
-
-
-destring numberdidnotyetmeetexpectat percentdidnotyetmeetexpecta Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent, replace ignore(",* %NA<>=-")
-
-///ONE
-gen totalpercentone=Lev1_percent+Lev2_percent+Lev3_percent+Lev4_percent+percentdidnotyetmeetexpecta
-
-
-replace percentdidnotyetmeetexpecta=percentdidnotyetmeetexpecta/100 if percentdidnotyetmeetexpecta>=1
-replace Lev1_percent=Lev1_percent/100 if Lev1_percent>=1
-replace Lev2_percent=Lev2_percent/100 if Lev2_percent>=1
-replace Lev3_percent=Lev3_percent/100 if Lev3_percent>=1
-replace Lev4_percent=Lev4_percent/100 if Lev4_percent>=1
-
-///TWO
-gen totalpercenttwo=Lev1_percent+Lev2_percent+Lev3_percent+Lev4_percent+percentdidnotyetmeetexpecta
-
-
-
-gen NewLev1_count=.
-gen NewLev1_percent=.
-replace NewLev1_count=numberdidnotyetmeetexpectat+Lev1_count
-replace NewLev1_percent=percentdidnotyetmeetexpecta+Lev1_percent
-replace NewLev1_count=numberdidnotyetmeetexpectat if Lev1_count==.
-replace NewLev1_percent=percentdidnotyetmeetexpecta if Lev1_percent==.
-replace NewLev1_count=. if numberdidnotyetmeetexpectat==.
-replace NewLev1_percent=. if percentdidnotyetmeetexpecta==.
-replace NewLev1_count=. if Lev1_count==.
-replace NewLev1_percent=. if Lev1_percent==.
-
-
-drop Lev1_count Lev1_percent numberdidnotyetmeetexpectat percentdidnotyetmeetexpecta
-rename NewLev1_count Lev1_count
-rename NewLev1_percent Lev1_percent
  
- 
- 
- ////Three
-gen totalpercentthree=Lev1_percent+Lev2_percent+Lev3_percent+Lev4_percent
- 
- 
- 
-tostring Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent, replace force
+tostring Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent, replace force
 replace Lev1_count="*" if Lev1_count=="."
 replace Lev2_count="*" if Lev2_count=="."
 replace Lev3_count="*" if Lev3_count=="."
 replace Lev4_count="*" if Lev4_count=="."
+replace Lev5_count="*" if Lev5_count=="."
 replace Lev1_percent="*" if Lev1_percent=="."
 replace Lev2_percent="*" if Lev2_percent=="."
 replace Lev3_percent="*" if Lev3_percent=="."
 replace Lev4_percent="*" if Lev4_percent=="."
+replace Lev5_percent="*" if Lev5_percent=="."
 
 //	Create new variables
 
@@ -465,22 +454,10 @@ gen Flag_CutScoreChange_math="N"
 gen Flag_CutScoreChange_read=""
 gen Flag_CutScoreChange_oth="N"
 gen AssmtType = "Regular"
-gen ProficiencyCriteria = "Lev3 or Lev 4"
-gen Lev5_count ="*" 
-gen Lev5_percent="*"
+gen ProficiencyCriteria = "Lev3 or Lev4"
 rename year SchYear
 replace SchYear="2014-15" if SchYear=="2015"
 
-
-//	Reorder variables
-
-order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
-
-
-
-//	Drop unneccesary variables
-
-drop districtnumber_int schoolnumber_int districtcodebig schoolcodebig state_leaidnumber seaschnumber year_int
 
 
 // Relabel variable values
@@ -661,25 +638,19 @@ replace StudentGroup_TotalTested="" if StudentGroup_TotalTested=="<16"
 destring StudentGroup_TotalTested ProficientOrAbove_percent, replace ignore(",* %NA<>=-")
 
 
-destring Lev1_percent Lev2_percent Lev3_percent Lev4_percent, replace ignore(",* %NA<>=-")
+destring Lev1_percent Lev2_percent Lev3_percent Lev4_percent Lev5_percent, replace ignore(",* %NA<>=-")
 
 replace ProficientOrAbove_percent=ProficientOrAbove_percent/100 if ProficientOrAbove_percent>=1
 
-tostring Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent, replace force
+tostring Lev1_percent Lev2_percent Lev3_percent Lev4_percent Lev5_percent ProficientOrAbove_percent, replace force
 
 
 replace Lev1_percent="*" if Lev1_percent=="."
 replace Lev2_percent="*" if Lev2_percent=="."
 replace Lev3_percent="*" if Lev3_percent=="."
 replace Lev4_percent="*" if Lev4_percent=="."
+replace Lev5_percent="*" if Lev5_percent=="."
 replace ProficientOrAbove_percent="*" if ProficientOrAbove_percent=="."
-
-
-////Four
-gen totalpercentfour=Lev1_percent+Lev2_percent+Lev3_percent+Lev4_percent
-
-drop totalpercentfour totalpercentone totalpercentthree totalpercenttwo
-
 
 
 
@@ -745,16 +716,92 @@ tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested="*" if StudentGroup_TotalTested=="999999999"
 
 
-order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
-
-drop intSubject intGrade intStudentGroup _merge
-
 replace AvgScaleScore="*" if AvgScaleScore=="NA"
 replace ProficientOrAbove_count="*" if ProficientOrAbove_count=="NA"
 
+replace ProficiencyCriteria="Lev4 or Lev5" if Subject=="math"
+replace ProficiencyCriteria="Lev4 or Lev5" if Subject=="ela"
 
 
 ////
+
+replace DistName="All Districts" if DistName=="ALL DISTRICTS"
+replace DistName="All Districts" if DistName=="STATE"
+replace DistName="All Districts" if DistName=="STATE TOTALS"
+replace StateAssignedDistID="" if StateAssignedDistID=="0000"
+replace StateAssignedSchID="" if StateAssignedSchID=="0000"
+replace seasch="" if seasch=="0000"
+replace State_leaid="" if State_leaid=="0000"
+
+drop if NCESSchoolID=="80453006342"
+drop if NCESSchoolID=="80270001944"
+
+replace StudentSubGroup="All Students" if StudentSubGroup=="All students"
+replace StudentSubGroup="Black or African American" if StudentSubGroup=="Black"
+replace StudentSubGroup="Native Hawaiian or Pacific Islander" if StudentSubGroup=="Hawaiian/Pacific Islander"
+replace StudentSubGroup="Hispanic or Latino" if StudentSubGroup=="Hispanic"
+replace StudentSubGroup="English Learner" if StudentSubGroup=="English learner"
+replace StudentSubGroup="English Proficient" if StudentSubGroup=="English proficient"
+replace StudentSubGroup="Two or More" if StudentSubGroup=="Two or More Races"
+replace StudentSubGroup="Unknown" if StudentSubGroup=="Unreported"
+replace StudentSubGroup="Unknown" if StudentSubGroup=="Unreported/ Not Applicable"
+
+replace StudentGroup="All Students" if StudentGroup=="All students"
+replace StudentGroup="EL Status" if StudentGroup=="EL status"
+replace StudentGroup="RaceEth" if StudentGroup=="Race"
+
+keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+
+order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+
+replace SchName="All Schools" if DataLevel=="State"
+replace SchName="All Schools" if DataLevel=="District"
+
+
+replace DataLevel="0" if DataLevel=="State"
+replace DataLevel="1" if DataLevel=="District"
+replace DataLevel="2" if DataLevel=="School"
+
+destring DataLevel, replace force
+
+label define LevelIndicator 0 "State" 1 "District" 2 "School"
+label values DataLevel LevelIndicator
+
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
+tostring NCESDistrictID, replace force
+tostring NCESSchoolID, replace force
+
+replace StudentSubGroup="Economically Disadvantaged" if StudentSubGroup=="Free/Reduced Lunch Eligible"
+replace StudentSubGroup="Not Economically Disadvantaged" if StudentSubGroup=="Non-Free/Reduced Lunch Eligible"
+
+replace Lev1_count="*" if Lev1_count=="-"
+replace Lev2_count="*" if Lev2_count=="-"
+replace Lev3_count="*" if Lev3_count=="-"
+replace Lev4_count="*" if Lev4_count=="-"
+replace Lev5_count="*" if Lev5_count=="-"
+replace Lev1_percent="*" if Lev1_percent=="-"
+replace Lev2_percent="*" if Lev2_percent=="-"
+replace Lev3_percent="*" if Lev3_percent=="-"
+replace Lev4_percent="*" if Lev4_percent=="-"
+replace Lev5_percent="*" if Lev5_percent=="-"
+replace AvgScaleScore="*" if AvgScaleScore=="-"
+replace ProficientOrAbove_count="*" if ProficientOrAbove_count=="-"
+replace ProficientOrAbove_percent="*" if ProficientOrAbove_percent=="-"
+replace ParticipationRate="*" if ParticipationRate=="-"
+replace ParticipationRate="*" if ParticipationRate=="NA"
+replace ParticipationRate="*" if ParticipationRate=="--"
+replace AvgScaleScore="*" if AvgScaleScore=="--"
+replace ProficientOrAbove_count="*" if ProficientOrAbove_count=="--"
+replace ProficientOrAbove_percent="*" if ProficientOrAbove_percent=="--"
+replace ProficientOrAbove_percent="*" if ProficientOrAbove_percent=="NA"
+replace ProficientOrAbove_count="*" if ProficientOrAbove_count=="NA"
+
+drop if StateAssignedDistID=="* The values for this field is not displayed in order to ensure student privacy."
+
+drop if SchName=="COLORADO VIRTUAL ACADEMY (COVA)"
+drop if SchName=="SPRING CREEK YOUTH SERVICES CENTER"
+
 
 export delimited using "${output}/CO_AssmtData_2015.csv", replace
 

@@ -116,6 +116,7 @@ replace seasch = schoolnumber
 
 save "${path}/CO_OriginalData_2014_all.dta", replace
 
+
 	// Merges district variables from NCES
 
 use "${nces}/NCES_2013_District.dta"
@@ -172,14 +173,11 @@ rename state_fips StateFips
 rename ncesschoolid NCESSchoolID
 rename ncesdistrictid NCESDistrictID
 rename state_leaid State_leaid
-rename district_agency_type DistrictType
-rename charter Charter
+rename district_agency_type DistType
 rename state_location StateAbbrev
 rename county_name CountyName
 rename county_code CountyCode
-rename school_type SchoolType
-rename virtual Virtual
-rename school_level SchoolLevel
+rename school_type SchType
 
 
 
@@ -212,15 +210,6 @@ replace Lev3_percent="*" if Lev3_percent=="-"
 replace Lev4_percent="*" if Lev4_percent=="-"
 
 
-//	Reorder variables
-
-order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
-
-
-
-//	Drop unneccesary variables
-
-drop districtnumber_int schoolnumber_int districtcodebig schoolcodebig state_leaidnumber seaschnumber
 
 
 // Relabel variable values
@@ -346,6 +335,69 @@ replace Lev2_percent="*" if Lev2_percent=="."
 replace Lev3_percent="*" if Lev3_percent=="."
 replace Lev4_percent="*" if Lev4_percent=="."
 replace ProficientOrAbove_percent="*" if ProficientOrAbove_percent=="."
+
+replace StudentSubGroup="All Students" if StudentSubGroup=="All students"
+replace StudentSubGroup="Black or African American" if StudentSubGroup=="Black"
+replace StudentSubGroup="Native Hawaiian or Pacific Islander" if StudentSubGroup=="Hawaiian/Pacific Islander"
+replace StudentSubGroup="Hispanic or Latino" if StudentSubGroup=="Hispanic"
+replace StudentSubGroup="English Learner" if StudentSubGroup=="English learner"
+replace StudentSubGroup="English Proficient" if StudentSubGroup=="English proficient"
+replace StudentSubGroup="Two or More" if StudentSubGroup=="Two or More Races"
+replace StudentSubGroup="Unknown" if StudentSubGroup=="Unreported"
+replace StudentSubGroup="Unknown" if StudentSubGroup=="Unreported/ Not Applicable"
+
+replace StudentGroup="All Students" if StudentGroup=="All students"
+replace StudentGroup="EL Status" if StudentGroup=="EL status"
+replace StudentGroup="RaceEth" if StudentGroup=="Race"
+replace DistName="All Districts" if DistName=="All districts"
+replace StateAssignedSchID="" if StateAssignedSchID=="0000"
+
+//// Reorder and drop variables
+
+keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+
+order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+
+replace SchName="All Schools" if DataLevel=="State"
+replace SchName="All Schools" if DataLevel=="District"
+
+
+replace DataLevel="0" if DataLevel=="State"
+replace DataLevel="1" if DataLevel=="District"
+replace DataLevel="2" if DataLevel=="School"
+
+destring DataLevel, replace force
+
+label define LevelIndicator 0 "State" 1 "District" 2 "School"
+label values DataLevel LevelIndicator
+
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
+tostring NCESDistrictID, replace force
+tostring NCESSchoolID, replace force
+
+replace Lev1_count="*" if Lev1_count=="-"
+replace Lev2_count="*" if Lev2_count=="-"
+replace Lev3_count="*" if Lev3_count=="-"
+replace Lev4_count="*" if Lev4_count=="-"
+replace Lev5_count="*" if Lev5_count=="-"
+replace Lev1_percent="*" if Lev1_percent=="-"
+replace Lev2_percent="*" if Lev2_percent=="-"
+replace Lev3_percent="*" if Lev3_percent=="-"
+replace Lev4_percent="*" if Lev4_percent=="-"
+replace Lev5_percent="*" if Lev5_percent=="-"
+replace AvgScaleScore="*" if AvgScaleScore=="-"
+replace ProficientOrAbove_count="*" if ProficientOrAbove_count=="-"
+replace ProficientOrAbove_percent="*" if ProficientOrAbove_percent=="-"
+replace ParticipationRate="*" if ParticipationRate=="-"
+
+tostring StudentGroup_TotalTested StudentSubGroup_TotalTested, replace force
+replace StudentGroup_TotalTested="*" if StudentGroup_TotalTested=="."
+replace StudentSubGroup_TotalTested="*" if StudentSubGroup_TotalTested=="."
+
+replace seasch="" if DataLevel==0
+replace State_leaid="" if DataLevel==0
+replace StateAssignedDistID="" if DataLevel==0
 
 
 export delimited using "${output}/CO_AssmtData_2014.csv", replace
