@@ -52,41 +52,40 @@ gen GradeLevel2=.
 tostring GradeLevel2, replace
 
 //data aggregated into elementary and middle school, reflected below
-replace GradeLevel2="G35" if GradeLevel=="Elementary"
-replace GradeLevel2="G68" if GradeLevel=="Middle"
+replace GradeLevel2="--" if GradeLevel=="Elementary"
+replace GradeLevel2="--" if GradeLevel=="Middle"
 drop GradeLevel
 rename GradeLevel2 GradeLevel
 drop if GradeLevel=="."
 gen AssmtName = "Hawaii State Assessment"
 gen AssmtType = "Regular"
 gen StudentGroup = "All Students"
-gen StudentGroup_TotalTested=.
+gen StudentGroup_TotalTested="--"
 gen StudentSubGroup= "All Students"
-gen StudentSubGroup_TotalTested=.
-gen StateAssignedDistID="N/A"
-gen Lev1_count =.
-gen Lev1_percent=.
-gen Lev2_count=.
-gen Lev2_percent=.
-gen Lev3_count=.
-gen Lev3_percent=.
-gen Lev4_count=.
-gen Lev4_percent=.
-gen Lev5_count=.
-gen Lev5_percent=.
-gen AvgScaleScore=.
-gen ProficiencyCriteria=.
-gen ProficientOrAbove_count=.
-gen ParticipationRate=.
+gen StudentSubGroup_TotalTested="--"
+gen StateAssignedDistID="HI-001"
+gen Lev1_count ="--"
+gen Lev1_percent="--"
+gen Lev2_count="--"
+gen Lev2_percent="--"
+gen Lev3_count="--"
+gen Lev3_percent="--"
+gen Lev4_count="--"
+gen Lev4_percent="--"
+gen Lev5_count="--"
+gen Lev5_percent="--"
+gen AvgScaleScore="--"
+gen ProficiencyCriteria="Level 3 or 4"
+gen ProficientOrAbove_count="--"
+gen ParticipationRate="--"
 gen Flag_AssmtNameChange ="N"
-gen Flag_CutScoreChange_ELA=.
-gen Flag_CutScoreChange_math=.
-gen Flag_CutScoreChange_read=.
-gen Flag_CutScoreChange_oth=.
+gen Flag_CutScoreChange_ELA="N"
+gen Flag_CutScoreChange_math="N"
+gen Flag_CutScoreChange_read="N"
+gen Flag_CutScoreChange_oth="N"
 
 //reformatting
 
-recast int StateFips StudentGroup_TotalTested StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ParticipationRate Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 
 //formatting ProficientOrAbove_percent as decimal
 gen temp_var = real(ProficientOrAbove_percent) if regexm(ProficientOrAbove_percent, "^[0-9\.]+$") & ProficientOrAbove_percent != ""

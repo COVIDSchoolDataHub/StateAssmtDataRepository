@@ -21,7 +21,7 @@ import excel "${original}/HI_OriginalData_`year'_all", sheet ("`sheet_name'") ce
 //for 2022 ONLY to include Sci test data
 
 if `year'==2022 {
-	drop in 1/7
+	drop in 1/5
 	replace C = C[_n-1] if missing(C)
 	save "${original}/HI_OriginalData_2022_all", replace 
 	clear
@@ -95,24 +95,24 @@ sort DataLevel_n
 drop DataLevel 
 rename DataLevel_n DataLevel 
 gen SchYear = "`prevyear'"+ "-" + substr("`year'",-2,2)
-gen DistName =.
-gen StateAssignedDistID="N/A"
+gen DistName = "All Schools"
+gen StateAssignedDistID="HI-001"
 gen AssmtName = "Smarter Balanced Assessment"
 gen AssmtType = "Regular"
 gen StudentGroup = "All Students"
 gen StudentSubGroup= "All Students"
-gen StudentSubGroup_TotalTested=.
-gen Lev1_count =.
-gen Lev1_percent=.
-gen Lev2_count=.
-gen Lev2_percent=.
-gen Lev3_count=.
-gen Lev3_percent=.
-gen Lev4_count=.
-gen Lev4_percent=.
-gen Lev5_count=.
-gen Lev5_percent=.
-gen AvgScaleScore=.
+gen StudentSubGroup_TotalTested=""
+gen Lev1_count ="--"
+gen Lev1_percent="--"
+gen Lev2_count="--"
+gen Lev2_percent="--"
+gen Lev3_count="--"
+gen Lev3_percent="--"
+gen Lev4_count="--"
+gen Lev4_percent="--"
+gen Lev5_count="--"
+gen Lev5_percent="--"
+gen AvgScaleScore="--"
 gen ProficiencyCriteria= "Level 3 or 4"
 gen ProficientOrAbove_count_ela=.
 gen ProficientOrAbove_percent_ela1= real(ProficientOrAbove_percent_ela)
@@ -128,11 +128,14 @@ drop ProficientOrAbove_percent_math1 math_number_tested1
 //more variables
 gen Flag_AssmtNameChange ="N" 
 replace Flag_AssmtNameChange = "Y" if `year'==2015
-gen Flag_CutScoreChange_ELA=.
-gen Flag_CutScoreChange_math=.
+gen Flag_CutScoreChange_ELA= "N"
+replace Flag_CutScoreChange_ELA = "Y" if `year'==2015
+gen Flag_CutScoreChange_math= "N"
+replace Flag_CutScoreChange_math = "Y" if `year'==2015
 gen Flag_CutScoreChange_read=.
-gen Flag_CutScoreChange_oth=.
-gen ParticipationRate=.
+gen Flag_CutScoreChange_oth= "N"
+replace Flag_CutScoreChange_oth = "Y" if `year'==2015
+gen ParticipationRate= "--"
 //Merge NCES School File
 merge m:1 StateAssignedSchID using "G:\Test Score Repository Project\Hawaii\NCES\NCESCLEANED/NCES_`prevyear'_School.dta", force
 drop _merge
@@ -150,6 +153,7 @@ reshape long ProficientOrAbove_percent_ ProficientOrAbove_count_ number_tested_,
 rename ProficientOrAbove_percent_ ProficientOrAbove_percent
 rename ProficientOrAbove_count_ ProficientOrAbove_count
 rename number_tested_ StudentGroup_TotalTested
+replace StudentSubGroup_TotalTested = StudentGroup_TotalTested
 
 
 
@@ -157,6 +161,7 @@ rename number_tested_ StudentGroup_TotalTested
 if `year'==2022 {
 	replace SchName= "Aina Haina Elementary" if StateAssignedSchID=="100"
 }
+tostring ProficientOrAbove_count, replace
 
 //ordering and dropping extra variables
 drop if GradeLevel=="11" //still obs from grade 11 left idk why but dropping here
@@ -226,26 +231,30 @@ gen AssmtName="Smarter Balanced Assessment"
 gen AssmtType="Regular"
 gen StudentGroup = "All Students"
 gen StudentSubGroup= "All Students"
-gen StudentSubGroup_TotalTested=.
-gen Lev1_count =.
-gen Lev1_percent=.
-gen Lev2_count=.
-gen Lev2_percent=.
-gen Lev3_count=.
-gen Lev3_percent=.
-gen Lev4_count=.
-gen Lev4_percent=.
-gen Lev5_count=.
-gen Lev5_percent=.
-gen AvgScaleScore=.
+gen StudentSubGroup_TotalTested= StudentGroup_TotalTested
+gen Lev1_count ="--"
+gen Lev1_percent="--"
+gen Lev2_count="--"
+gen Lev2_percent="--"
+gen Lev3_count="--"
+gen Lev3_percent="--"
+gen Lev4_count="--"
+gen Lev4_percent="--"
+gen Lev5_count="--"
+gen Lev5_percent="--"
+gen AvgScaleScore="--"
 gen ProficiencyCriteria= "Level 3 or 4"
 gen Flag_AssmtNameChange ="N" 
 replace Flag_AssmtNameChange = "Y" if `year'==2015
-gen Flag_CutScoreChange_ELA=.
-gen Flag_CutScoreChange_math=.
+gen Flag_CutScoreChange_ELA= "N"
+replace Flag_CutScoreChange_ELA = "Y" if `year'==2015
+gen Flag_CutScoreChange_math= "N"
+replace Flag_CutScoreChange_math = "Y" if `year'==2015
 gen Flag_CutScoreChange_read=.
-gen Flag_CutScoreChange_oth=.
-gen ParticipationRate=.
+gen Flag_CutScoreChange_oth= "N"
+gen ParticipationRate= "--"
+gen DistName = "All Districts"
+gen SchName = "All Schools"
 
 //for 2022 science data only
 if `year'==2022 {
@@ -269,7 +278,7 @@ if `year'==2022 {
 	replace Flag_AssmtNameChange = "N" in 19
 	replace GradeLevel = "G08" in 20
 	replace Subject = "sci" in 20
-	replace StudentGroup_TotalTested = "11281" in 20
+	replace StudentGroup_TotalTested = "12062" in 20
 	replace ProficientOrAbove_count = "4720" in 20
 	replace ProficientOrAbove_percent = ".39" in 20
 	replace DataLevel = 1 in 20
@@ -308,7 +317,7 @@ decode DistType, gen (Disttype1)
 drop DistType
 rename Disttype1 DistType
 tostring StateAssignedDistID Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_oth Flag_CutScoreChange_read ParticipationRate StudentGroup_TotalTested StudentSubGroup_TotalTested ProficientOrAbove_count, replace
-recast int StateFips CountyCode Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore 
+
 
 order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
