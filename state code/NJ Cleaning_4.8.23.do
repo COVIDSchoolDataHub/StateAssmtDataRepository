@@ -699,6 +699,12 @@ decode DistType, gen (DistType_s)
 drop DistType
 rename DistType_s DistType
 
+//Unmerged School
+replace NCESSchoolID = "340077203313" if SchName == "MASTERY SCHOOLS OF CAMDEN"
+replace SchVirtual = "No" if SchName == "MASTERY SCHOOLS OF CAMDEN"
+replace SchType = "Regular school" if SchName == "MASTERY SCHOOLS OF CAMDEN"
+replace SchLevel = "Other" if SchName == "MASTERY SCHOOLS OF CAMDEN"
+
 //Label & Organize Variables
 label var State "State name"
 label var StateAbbrev "State abbreviation"
