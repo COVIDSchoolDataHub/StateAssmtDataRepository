@@ -11,9 +11,9 @@ foreach year in 2015 2016 2017 2018 2019 2021 2022 { //2020 data would be empty,
 
 import excel "${original}/DE_OriginalData_`year'_all.xlsx", sheet("Sheet1") firstrow
 
-//DROPPING SUPPRESSED DATA
+//DROPPING SUPPRESSED DATA 
 
-drop if RowStatus== "REDACTED"
+*drop if RowStatus== "REDACTED"
 
 //Defining DataLevel
 gen DataLevel =""
