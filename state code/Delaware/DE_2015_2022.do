@@ -122,7 +122,7 @@ drop DistName
 rename District DistName
 rename Organization SchName
 replace DistName= "All Districts" if DataLevel==1
-replace SchName = "All Districts" if DataLevel==1
+replace SchName = "All Schools" if DataLevel==1
 replace SchName= "All Schools" if DataLevel==2
 rename AssessmentName AssmtName
 gen AssmtType= "Regular"
