@@ -39,7 +39,7 @@ replace SchName = DistName + " DISTRICT TOTAL" if SchName == "" & DistName != ""
 replace StudentGroup = "EL Status" if StudentSubGroup == "ENGLISH LANGUAGE LEARNERS"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "ECONOMICALLY DISADVANTAGED"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "NON ECON. DISADVANTAGED"
-replace StudentGroup = "Race/Ethnicity" if StudentGroup == "RACE/ETHNICITY"
+replace StudentGroup = "RaceEth" if StudentGroup == "RACE/ETHNICITY"
 replace StudentGroup = "Gender" if StudentGroup == "GENDER"
 replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 
@@ -84,7 +84,7 @@ replace SchName = DistName + " DISTRICT TOTAL" if SchName == "" & DistName != ""
 replace StudentGroup = "EL Status" if StudentSubGroup == "ENGLISH LANGUAGE LEARNERS"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "ECONOMICALLY DISADVANTAGED"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "NON ECON. DISADVANTAGED"
-replace StudentGroup = "Race/Ethnicity" if StudentGroup == "RACE/ETHNICITY"
+replace StudentGroup = "RaceEth" if StudentGroup == "RACE/ETHNICITY"
 replace StudentGroup = "Gender" if StudentGroup == "GENDER"
 replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 
@@ -129,7 +129,7 @@ replace SchName = DistName + " DISTRICT TOTAL" if SchName == "" & DistName != ""
 replace StudentGroup = "EL Status" if StudentSubGroup == "ENGLISH LANGUAGE LEARNERS"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "ECONOMICALLY DISADVANTAGED"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "NON ECON. DISADVANTAGED"
-replace StudentGroup = "Race/Ethnicity" if StudentGroup == "RACE/ETHNICITY"
+replace StudentGroup = "RaceEth" if StudentGroup == "RACE/ETHNICITY"
 replace StudentGroup = "Gender" if StudentGroup == "GENDER"
 replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 
@@ -174,7 +174,7 @@ replace SchName = DistName + " DISTRICT TOTAL" if SchName == "" & DistName != ""
 replace StudentGroup = "EL Status" if StudentSubGroup == "ENGLISH LANGUAGE LEARNERS"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "ECONOMICALLY DISADVANTAGED"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "NON ECON. DISADVANTAGED"
-replace StudentGroup = "Race/Ethnicity" if StudentGroup == "RACE/ETHNICITY"
+replace StudentGroup = "RaceEth" if StudentGroup == "RACE/ETHNICITY"
 replace StudentGroup = "Gender" if StudentGroup == "GENDER"
 replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 
@@ -219,7 +219,7 @@ replace SchName = DistName + " DISTRICT TOTAL" if SchName == "" & DistName != ""
 replace StudentGroup = "EL Status" if StudentSubGroup == "ENGLISH LANGUAGE LEARNERS"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "ECONOMICALLY DISADVANTAGED"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "NON ECON. DISADVANTAGED"
-replace StudentGroup = "Race/Ethnicity" if StudentGroup == "RACE/ETHNICITY"
+replace StudentGroup = "RaceEth" if StudentGroup == "RACE/ETHNICITY"
 replace StudentGroup = "Gender" if StudentGroup == "GENDER"
 replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 
@@ -264,7 +264,7 @@ replace SchName = DistName + " DISTRICT TOTAL" if SchName == "" & DistName != ""
 replace StudentGroup = "EL Status" if StudentSubGroup == "ENGLISH LANGUAGE LEARNERS"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "ECONOMICALLY DISADVANTAGED"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "NON ECON. DISADVANTAGED"
-replace StudentGroup = "Race/Ethnicity" if StudentGroup == "RACE/ETHNICITY"
+replace StudentGroup = "RaceEth" if StudentGroup == "RACE/ETHNICITY"
 replace StudentGroup = "Gender" if StudentGroup == "GENDER"
 replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 
@@ -314,7 +314,7 @@ replace SchName = DistName + " DISTRICT TOTAL" if SchName == "" & DistName != ""
 replace StudentGroup = "EL Status" if StudentSubGroup == "ENGLISH LANGUAGE LEARNERS"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "ECONOMICALLY DISADVANTAGED"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "NON ECON. DISADVANTAGED"
-replace StudentGroup = "Race/Ethnicity" if StudentGroup == "RACE/ETHNICITY"
+replace StudentGroup = "RaceEth" if StudentGroup == "RACE/ETHNICITY"
 replace StudentGroup = "Gender" if StudentGroup == "GENDER"
 replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 
@@ -359,7 +359,7 @@ replace SchName = DistName + " DISTRICT TOTAL" if SchName == "" & DistName != ""
 replace StudentGroup = "EL Status" if StudentSubGroup == "ENGLISH LANGUAGE LEARNERS"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "ECONOMICALLY DISADVANTAGED"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "NON ECON. DISADVANTAGED"
-replace StudentGroup = "Race/Ethnicity" if StudentGroup == "RACE/ETHNICITY"
+replace StudentGroup = "RaceEth" if StudentGroup == "RACE/ETHNICITY"
 replace StudentGroup = "Gender" if StudentGroup == "GENDER"
 replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 
@@ -404,7 +404,7 @@ replace SchName = DistName + " DISTRICT TOTAL" if SchName == "" & DistName != ""
 replace StudentGroup = "EL Status" if StudentSubGroup == "ENGLISH LANGUAGE LEARNERS"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "ECONOMICALLY DISADVANTAGED"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "NON ECON. DISADVANTAGED"
-replace StudentGroup = "Race/Ethnicity" if StudentGroup == "RACE/ETHNICITY"
+replace StudentGroup = "RaceEth" if StudentGroup == "RACE/ETHNICITY"
 replace StudentGroup = "Gender" if StudentGroup == "GENDER"
 replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 
@@ -449,7 +449,7 @@ replace SchName = DistName + " DISTRICT TOTAL" if SchName == "" & DistName != ""
 replace StudentGroup = "EL Status" if StudentSubGroup == "ENGLISH LANGUAGE LEARNERS"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "ECONOMICALLY DISADVANTAGED"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "NON ECON. DISADVANTAGED"
-replace StudentGroup = "Race/Ethnicity" if StudentGroup == "RACE/ETHNICITY"
+replace StudentGroup = "RaceEth" if StudentGroup == "RACE/ETHNICITY"
 replace StudentGroup = "Gender" if StudentGroup == "GENDER"
 replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 
@@ -494,7 +494,7 @@ replace SchName = DistName + " DISTRICT TOTAL" if SchName == "" & DistName != ""
 replace StudentGroup = "EL Status" if StudentSubGroup == "ENGLISH LANGUAGE LEARNERS"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "ECONOMICALLY DISADVANTAGED"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "NON ECON. DISADVANTAGED"
-replace StudentGroup = "Race/Ethnicity" if StudentGroup == "RACE/ETHNICITY"
+replace StudentGroup = "RaceEth" if StudentGroup == "RACE/ETHNICITY"
 replace StudentGroup = "Gender" if StudentGroup == "GENDER"
 replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 
@@ -539,7 +539,7 @@ replace SchName = DistName + " DISTRICT TOTAL" if SchName == "" & DistName != ""
 replace StudentGroup = "EL Status" if StudentSubGroup == "ENGLISH LANGUAGE LEARNERS"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "ECONOMICALLY DISADVANTAGED"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "NON ECON. DISADVANTAGED"
-replace StudentGroup = "Race/Ethnicity" if StudentGroup == "RACE/ETHNICITY"
+replace StudentGroup = "RaceEth" if StudentGroup == "RACE/ETHNICITY"
 replace StudentGroup = "Gender" if StudentGroup == "GENDER"
 replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 
@@ -569,21 +569,21 @@ replace StudentSubGroup = "Black or African American" if StudentSubGroup == "AFR
 replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "NATIVE HAWAIIAN OR OTHER PACIFIC ISLANDER"
 replace StudentSubGroup = "White" if StudentSubGroup == "WHITE"
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "HISPANIC"
-replace StudentSubGroup = "Unknown" if StudentSubGroup == "OTHER" & StudentGroup == "Race/Ethnicity"
+replace StudentSubGroup = "Unknown" if StudentSubGroup == "OTHER" & StudentGroup == "RaceEth"
 replace StudentSubGroup = "Male" if StudentSubGroup == "MALE"
 replace StudentSubGroup = "Female" if StudentSubGroup == "FEMALE"
 replace StudentSubGroup = "Students with Disabilities" if StudentSubGroup == "STUDENTS WITH DISABLITIES"
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "ENGLISH LANGUAGE LEARNERS"
 replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "ECONOMICALLY DISADVANTAGED"
-replace StudentSubGroup = "Non Econ. Disadvantaged" if StudentSubGroup == "NON ECON. DISADVANTAGED"
+replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "NON ECON. DISADVANTAGED"
 
 gen SchYear = "2014-15"
 gen AssmtName = "PARCC"
 gen Flag_AssmtNameChange = "Y"
 gen Flag_CutScoreChange_ELA = "Y"
 gen Flag_CutScoreChange_math = "Y"
-gen Flag_CutScoreChange_read = "N"
-gen Flag_CutScoreChange_oth = "N"
+gen Flag_CutScoreChange_read = ""
+gen Flag_CutScoreChange_oth = ""
 gen AssmtType = "Regular"
 gen DataLevel = "School"
 replace DataLevel = "District" if StateAssignedSchID == ""
@@ -630,63 +630,74 @@ replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
 
 gen ParticipationRate =.
 
-replace SchName = "Statewide" if DataLevel == "State"
-replace DistName = "Statewide" if DataLevel == "State"
-replace StateAssignedDistID = "" if DataLevel == "State"
-replace SchName = "Districtwide" if DataLevel == "District"
+replace SchName = "All Schools" if DataLevel != "School"
 replace StateAssignedSchID = "" if DataLevel != "School"
+replace DistName = "All Districts" if DataLevel == "State"
+replace StateAssignedDistID = "" if DataLevel == "State"
 
 save "${data}/NJ_AssmtData_2015", replace
 
 //Clean NCES Data
-use "${NCES}/NCES Data Prior to 2020-21/NCES_2014_School.dta", clear
+use "${NCES}/NCES School Files, Fall 1997-Fall 2021/NCES_2014_School.dta", clear
 drop if state_location != "NJ"
 gen str StateAssignedDistID = substr(state_leaid, 3, 6)
 rename seasch StateAssignedSchID
 destring StateAssignedSchID, replace force
 drop if StateAssignedSchID==.
-save "${NCES}/NCES_2015_School_NJ.dta", replace
+save "${NCES}/Cleaned NCES Data/NCES_2015_School_NJ.dta", replace
 
-use "${NCES}/NCES Data Prior to 2020-21/NCES_2014_District.dta", clear
+use "${NCES}/NCES District Files, Fall 1997-Fall 2021/NCES_2014_District.dta", clear
 drop if state_name != 34
 gen str StateAssignedDistID = substr(state_leaid, 3, 6)
-save "${NCES}/NCES_2015_District_NJ.dta", replace
+save "${NCES}/Cleaned NCES Data/NCES_2015_District_NJ.dta", replace
 
 //Merge Data
 use "${data}/NJ_AssmtData_2015", clear
-merge m:1 StateAssignedDistID using "${NCES}/NCES_2015_District_NJ.dta"
+merge m:1 StateAssignedDistID using "${NCES}/Cleaned NCES Data/NCES_2015_District_NJ.dta"
 drop if _merge == 2
-save "${data}/NJ_AssmtData_2015", replace
 
 destring StateAssignedSchID, replace force
-merge m:1 StateAssignedSchID StateAssignedDistID using "${NCES}/NCES_2015_School_NJ.dta", gen (merge2)
+merge m:1 StateAssignedSchID StateAssignedDistID using "${NCES}/Cleaned NCES Data/NCES_2015_School_NJ.dta", gen (merge2)
 drop if merge2 == 2
 
 
 //Clean Merged Data
-drop state_name
 rename state_location StateAbbrev
 rename state_fips StateFips
 rename ncesdistrictid NCESDistrictID
-rename state_leaid State_leaid
-rename district_agency_type DistrictType
-rename charter Charter
+rename district_agency_type DistType
 rename county_name CountyName
 rename county_code CountyCode
 rename ncesschoolid NCESSchoolID
-rename school_type SchoolType
-rename virtual Virtual
-rename school_level SchoolLevel
+rename school_type SchType
+rename state_leaid State_leaid
+
+drop state_name year _merge merge2 district_agency_type_num urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type district_agency_type_num school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_lowest_grade_offered dist_highest_grade_offered dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch lea_name agency_charter_indicator dist_agency_charter_indicator
 
 gen State = "New Jersey"
-replace StateAbbrev = "NJ" if StateAbbrev == ""
-replace StateFips = 34 if StateFips ==.
-
-drop year lea_name _merge merge2
+replace StateAbbrev = "NJ"
+replace StateFips = 34
 
 gen seasch = StateAssignedSchID
 tostring seasch, replace force
 tostring StateAssignedSchID, replace force
+
+//Variable Types
+decode SchVirtual, gen(SchVirtual_s)
+drop SchVirtual
+rename SchVirtual_s SchVirtual
+
+decode SchLevel, gen(SchLevel_s)
+drop SchLevel
+rename SchLevel_s SchLevel
+
+decode SchType, gen (SchType_s)
+drop SchType
+rename SchType_s SchType
+
+decode DistType, gen (DistType_s)
+drop DistType
+rename DistType_s DistType
 
 //Label & Organize Variables
 label var State "State name"
@@ -694,14 +705,14 @@ label var StateAbbrev "State abbreviation"
 label var StateFips "State FIPS Id"
 label var NCESDistrictID "NCES district ID"
 label var State_leaid "State LEA ID"
-label var DistrictType "District type as defined by NCES"
-label var Charter "Charter indicator"
+label var DistType "District type as defined by NCES"
+label var DistCharter "Charter indicator"
 label var CountyName "County in which the district or school is located"
 label var CountyCode "County code in which the district or school is located, also referred to as the county-level FIPS code"
 label var NCESSchoolID "NCES school ID"
-label var SchoolType "School type as defined by NCES"
-label var Virtual "Virtual school indicator"
-label var SchoolLevel "School level"
+label var SchType "School type as defined by NCES"
+label var SchVirtual "Virtual school indicator"
+label var SchLevel "School level"
 label var SchYear "School year in which the data were reported"
 label var AssmtName "Name of state assessment"
 label var Flag_AssmtNameChange "Flag denoting a change in the assessment's name from the prior year only"
@@ -736,8 +747,14 @@ label var ProficientOrAbove_count "Count of students achieving proficiency or ab
 label var ProficientOrAbove_percent "Percent of students achieving proficiency or above on the state assessment"
 label var ParticipationRate "Participation rate"
 
-order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
-sort StateAssignedDistID StateAssignedSchID GradeLevel Subject
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+sort DataLevel_n 
+drop DataLevel 
+rename DataLevel_n DataLevel
+
+order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType  Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${data}/NJ_AssmtData_2015", replace
 export delimited "${data}/NJ_AssmtData_2015", replace
@@ -775,7 +792,7 @@ replace SchName = DistName + " DISTRICT TOTAL" if SchName == "" & DistName != ""
 replace StudentGroup = "EL Status" if StudentSubGroup == "ENGLISH LANGUAGE LEARNERS"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "ECONOMICALLY DISADVANTAGED"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "NON-ECON. DISADVANTAGED"
-replace StudentGroup = "Race/Ethnicity" if StudentGroup == "RACE/ETHNICITY"
+replace StudentGroup = "RaceEth" if StudentGroup == "RACE/ETHNICITY"
 replace StudentGroup = "Gender" if StudentGroup == "GENDER"
 replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 
@@ -820,7 +837,7 @@ replace SchName = DistName + " DISTRICT TOTAL" if SchName == "" & DistName != ""
 replace StudentGroup = "EL Status" if StudentSubGroup == "ENGLISH LANGUAGE LEARNERS"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "ECONOMICALLY DISADVANTAGED"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "NON-ECON. DISADVANTAGED"
-replace StudentGroup = "Race/Ethnicity" if StudentGroup == "RACE/ETHNICITY"
+replace StudentGroup = "RaceEth" if StudentGroup == "RACE/ETHNICITY"
 replace StudentGroup = "Gender" if StudentGroup == "GENDER"
 replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 
@@ -865,7 +882,7 @@ replace SchName = DistName + " DISTRICT TOTAL" if SchName == "" & DistName != ""
 replace StudentGroup = "EL Status" if StudentSubGroup == "ENGLISH LANGUAGE LEARNERS"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "ECONOMICALLY DISADVANTAGED"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "NON-ECON. DISADVANTAGED"
-replace StudentGroup = "Race/Ethnicity" if StudentGroup == "RACE/ETHNICITY"
+replace StudentGroup = "RaceEth" if StudentGroup == "RACE/ETHNICITY"
 replace StudentGroup = "Gender" if StudentGroup == "GENDER"
 replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 
@@ -910,7 +927,7 @@ replace SchName = DistName + " DISTRICT TOTAL" if SchName == "" & DistName != ""
 replace StudentGroup = "EL Status" if StudentSubGroup == "ENGLISH LANGUAGE LEARNERS"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "ECONOMICALLY DISADVANTAGED"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "NON-ECON. DISADVANTAGED"
-replace StudentGroup = "Race/Ethnicity" if StudentGroup == "RACE/ETHNICITY"
+replace StudentGroup = "RaceEth" if StudentGroup == "RACE/ETHNICITY"
 replace StudentGroup = "Gender" if StudentGroup == "GENDER"
 replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 
@@ -955,7 +972,7 @@ replace SchName = DistName + " DISTRICT TOTAL" if SchName == "" & DistName != ""
 replace StudentGroup = "EL Status" if StudentSubGroup == "ENGLISH LANGUAGE LEARNERS"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "ECONOMICALLY DISADVANTAGED"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "NON-ECON. DISADVANTAGED"
-replace StudentGroup = "Race/Ethnicity" if StudentGroup == "RACE/ETHNICITY"
+replace StudentGroup = "RaceEth" if StudentGroup == "RACE/ETHNICITY"
 replace StudentGroup = "Gender" if StudentGroup == "GENDER"
 replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 
@@ -1000,7 +1017,7 @@ replace SchName = DistName + " DISTRICT TOTAL" if SchName == "" & DistName != ""
 replace StudentGroup = "EL Status" if StudentSubGroup == "ENGLISH LANGUAGE LEARNERS"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "ECONOMICALLY DISADVANTAGED"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "NON-ECON. DISADVANTAGED"
-replace StudentGroup = "Race/Ethnicity" if StudentGroup == "RACE/ETHNICITY"
+replace StudentGroup = "RaceEth" if StudentGroup == "RACE/ETHNICITY"
 replace StudentGroup = "Gender" if StudentGroup == "GENDER"
 replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 
@@ -1050,7 +1067,7 @@ replace SchName = DistName + " DISTRICT TOTAL" if SchName == "" & DistName != ""
 replace StudentGroup = "EL Status" if StudentSubGroup == "ENGLISH LANGUAGE LEARNERS"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "ECONOMICALLY DISADVANTAGED"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "NON-ECON. DISADVANTAGED"
-replace StudentGroup = "Race/Ethnicity" if StudentGroup == "RACE/ETHNICITY"
+replace StudentGroup = "RaceEth" if StudentGroup == "RACE/ETHNICITY"
 replace StudentGroup = "Gender" if StudentGroup == "GENDER"
 replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 
@@ -1095,7 +1112,7 @@ replace SchName = DistName + " DISTRICT TOTAL" if SchName == "" & DistName != ""
 replace StudentGroup = "EL Status" if StudentSubGroup == "ENGLISH LANGUAGE LEARNERS"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "ECONOMICALLY DISADVANTAGED"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "NON-ECON. DISADVANTAGED"
-replace StudentGroup = "Race/Ethnicity" if StudentGroup == "RACE/ETHNICITY"
+replace StudentGroup = "RaceEth" if StudentGroup == "RACE/ETHNICITY"
 replace StudentGroup = "Gender" if StudentGroup == "GENDER"
 replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 
@@ -1140,7 +1157,7 @@ replace SchName = DistName + " DISTRICT TOTAL" if SchName == "" & DistName != ""
 replace StudentGroup = "EL Status" if StudentSubGroup == "ENGLISH LANGUAGE LEARNERS"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "ECONOMICALLY DISADVANTAGED"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "NON-ECON. DISADVANTAGED"
-replace StudentGroup = "Race/Ethnicity" if StudentGroup == "RACE/ETHNICITY"
+replace StudentGroup = "RaceEth" if StudentGroup == "RACE/ETHNICITY"
 replace StudentGroup = "Gender" if StudentGroup == "GENDER"
 replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 
@@ -1185,7 +1202,7 @@ replace SchName = DistName + " DISTRICT TOTAL" if SchName == "" & DistName != ""
 replace StudentGroup = "EL Status" if StudentSubGroup == "ENGLISH LANGUAGE LEARNERS"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "ECONOMICALLY DISADVANTAGED"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "NON-ECON. DISADVANTAGED"
-replace StudentGroup = "Race/Ethnicity" if StudentGroup == "RACE/ETHNICITY"
+replace StudentGroup = "RaceEth" if StudentGroup == "RACE/ETHNICITY"
 replace StudentGroup = "Gender" if StudentGroup == "GENDER"
 replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 
@@ -1230,7 +1247,7 @@ replace SchName = DistName + " DISTRICT TOTAL" if SchName == "" & DistName != ""
 replace StudentGroup = "EL Status" if StudentSubGroup == "ENGLISH LANGUAGE LEARNERS"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "ECONOMICALLY DISADVANTAGED"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "NON-ECON. DISADVANTAGED"
-replace StudentGroup = "Race/Ethnicity" if StudentGroup == "RACE/ETHNICITY"
+replace StudentGroup = "RaceEth" if StudentGroup == "RACE/ETHNICITY"
 replace StudentGroup = "Gender" if StudentGroup == "GENDER"
 replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 
@@ -1275,7 +1292,7 @@ replace SchName = DistName + " DISTRICT TOTAL" if SchName == "" & DistName != ""
 replace StudentGroup = "EL Status" if StudentSubGroup == "ENGLISH LANGUAGE LEARNERS"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "ECONOMICALLY DISADVANTAGED"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "NON-ECON. DISADVANTAGED"
-replace StudentGroup = "Race/Ethnicity" if StudentGroup == "RACE/ETHNICITY"
+replace StudentGroup = "RaceEth" if StudentGroup == "RACE/ETHNICITY"
 replace StudentGroup = "Gender" if StudentGroup == "GENDER"
 replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 
@@ -1305,21 +1322,21 @@ replace StudentSubGroup = "Black or African American" if StudentSubGroup == "AFR
 replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "NATIVE HAWAIIAN"
 replace StudentSubGroup = "White" if StudentSubGroup == "WHITE"
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "HISPANIC"
-replace StudentSubGroup = "Unknown" if StudentSubGroup == "OTHER" & StudentGroup == "Race/Ethnicity"
+replace StudentSubGroup = "Unknown" if StudentSubGroup == "OTHER" & StudentGroup == "RaceEth"
 replace StudentSubGroup = "Male" if StudentSubGroup == "MALE"
 replace StudentSubGroup = "Female" if StudentSubGroup == "FEMALE"
 replace StudentSubGroup = "Students with Disabilities" if StudentSubGroup == "STUDENTS WITH DISABILITIES"
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "ENGLISH LANGUAGE LEARNERS"
 replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "ECONOMICALLY DISADVANTAGED"
-replace StudentSubGroup = "Non-Econ. Disadvantaged" if StudentSubGroup == "NON-ECON. DISADVANTAGED"
+replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "NON-ECON. DISADVANTAGED"
 
 gen SchYear = "2015-16"
 gen AssmtName = "PARCC"
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_read = "N"
-gen Flag_CutScoreChange_oth = "N"
+gen Flag_CutScoreChange_read = ""
+gen Flag_CutScoreChange_oth = ""
 gen AssmtType = "Regular"
 gen DataLevel = "School"
 replace DataLevel = "District" if StateAssignedSchID == ""
@@ -1366,63 +1383,69 @@ replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
 
 gen ParticipationRate =.
 
-replace SchName = "Statewide" if DataLevel == "State"
-replace DistName = "Statewide" if DataLevel == "State"
-replace StateAssignedDistID = "" if DataLevel == "State"
-replace SchName = "Districtwide" if DataLevel == "District"
+replace SchName = "All Schools" if DataLevel != "School"
 replace StateAssignedSchID = "" if DataLevel != "School"
+replace DistName = "All Districts" if DataLevel == "State"
+replace StateAssignedDistID = "" if DataLevel == "State"
 
 save "${data}/NJ_AssmtData_2016", replace
 
 //Clean NCES Data
-use "${NCES}/NCES Data Prior to 2020-21/NCES_2015_School.dta", clear
+use "${NCES}/NCES School Files, Fall 1997-Fall 2021/NCES_2015_School.dta", clear
 drop if state_location != "NJ"
 gen str StateAssignedDistID = substr(state_leaid, 3, 6)
 gen StateAssignedSchID = seasch
-save "${NCES}/NCES_2016_School_NJ.dta", replace
+save "${NCES}/Cleaned NCES Data/NCES_2016_School_NJ.dta", replace
 
-use "${NCES}/NCES Data Prior to 2020-21/NCES_2015_District.dta", clear
+use "${NCES}/NCES District Files, Fall 1997-Fall 2021/NCES_2015_District.dta", clear
 drop if state_location != "NJ"
 gen str StateAssignedDistID = substr(state_leaid, 3, 6)
-save "${NCES}/NCES_2016_District_NJ.dta", replace
+save "${NCES}/Cleaned NCES Data/NCES_2016_District_NJ.dta", replace
 
 //Merge Data
 use "${data}/NJ_AssmtData_2016", clear
-merge m:1 StateAssignedDistID using "${NCES}/NCES_2016_District_NJ.dta"
+merge m:1 StateAssignedDistID using "${NCES}/Cleaned NCES Data/NCES_2016_District_NJ.dta"
 drop if _merge == 2
 
-merge m:1 StateAssignedSchID StateAssignedDistID using "${NCES}/NCES_2016_School_NJ.dta", gen (merge2)
+merge m:1 StateAssignedSchID StateAssignedDistID using "${NCES}/Cleaned NCES Data/NCES_2016_School_NJ.dta", gen (merge2)
 drop if merge2 == 2
 save "${data}/NJ_AssmtData_2016", replace
 
 //Clean Merged Data
-drop state_name
 rename state_location StateAbbrev
 rename state_fips StateFips
 rename ncesdistrictid NCESDistrictID
-rename state_leaid State_leaid
-rename district_agency_type DistrictType
-rename charter Charter
+rename district_agency_type DistType
 rename county_name CountyName
 rename county_code CountyCode
 rename ncesschoolid NCESSchoolID
-rename school_type SchoolType
-rename virtual Virtual
-rename school_level SchoolLevel
+rename school_type SchType
+rename state_leaid State_leaid
+
+drop state_name year _merge merge2 district_agency_type_num urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type district_agency_type_num school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_lowest_grade_offered dist_highest_grade_offered dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch lea_name agency_charter_indicator dist_agency_charter_indicator
 
 gen State = "New Jersey"
-replace StateAbbrev = "NJ" if StateAbbrev == ""
-replace StateFips = 34 if StateFips ==.
+replace StateAbbrev = "NJ"
+replace StateFips = 34
 
-replace NCESSchoolID = "" if DataLevel == "State"
-replace CountyName = "" if DataLevel == "State"
-replace CountyCode =. if DataLevel == "State"
+replace NCESSchoolID = "Missing" if SchName == "SINGLE GENDER ACADEMY" & NCESSchoolID == ""
 
-drop year lea_name _merge merge2
+//Variable Types
+decode SchVirtual, gen(SchVirtual_s)
+drop SchVirtual
+rename SchVirtual_s SchVirtual
 
-replace NCESSchoolID = "Missing" if SchName == "John Greenleaf Whittier Family School" & NCESSchoolID == ""
-replace NCESSchoolID = "Missing" if SchName == "Single Gender Academy" & NCESSchoolID == ""
-replace NCESSchoolID = "340210003331" if SchName == "Smalley Elementary School" & NCESSchoolID == ""
+decode SchLevel, gen(SchLevel_s)
+drop SchLevel
+rename SchLevel_s SchLevel
+
+decode SchType, gen (SchType_s)
+drop SchType
+rename SchType_s SchType
+
+decode DistType, gen (DistType_s)
+drop DistType
+rename DistType_s DistType
 
 //Label & Organize Variables
 label var State "State name"
@@ -1430,14 +1453,14 @@ label var StateAbbrev "State abbreviation"
 label var StateFips "State FIPS Id"
 label var NCESDistrictID "NCES district ID"
 label var State_leaid "State LEA ID"
-label var DistrictType "District type as defined by NCES"
-label var Charter "Charter indicator"
+label var DistType "District type as defined by NCES"
+label var DistCharter "Charter indicator"
 label var CountyName "County in which the district or school is located"
 label var CountyCode "County code in which the district or school is located, also referred to as the county-level FIPS code"
 label var NCESSchoolID "NCES school ID"
-label var SchoolType "School type as defined by NCES"
-label var Virtual "Virtual school indicator"
-label var SchoolLevel "School level"
+label var SchType "School type as defined by NCES"
+label var SchVirtual "Virtual school indicator"
+label var SchLevel "School level"
 label var SchYear "School year in which the data were reported"
 label var AssmtName "Name of state assessment"
 label var Flag_AssmtNameChange "Flag denoting a change in the assessment's name from the prior year only"
@@ -1472,8 +1495,14 @@ label var ProficientOrAbove_count "Count of students achieving proficiency or ab
 label var ProficientOrAbove_percent "Percent of students achieving proficiency or above on the state assessment"
 label var ParticipationRate "Participation rate"
 
-order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
-sort StateAssignedDistID StateAssignedSchID GradeLevel Subject
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+sort DataLevel_n 
+drop DataLevel 
+rename DataLevel_n DataLevel
+
+order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType  Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${data}/NJ_AssmtData_2016", replace
 export delimited "${data}/NJ_AssmtData_2016", replace
@@ -1511,7 +1540,7 @@ replace SchName = DistName + " DISTRICT TOTAL" if SchName == "" & DistName != ""
 replace StudentGroup = "EL Status" if StudentSubGroup == "ENGLISH LANGUAGE LEARNERS"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "ECONOMICALLY DISADVANTAGED"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "NON-ECON. DISADVANTAGED"
-replace StudentGroup = "Race/Ethnicity" if StudentGroup == "RACE/ETHNICITY"
+replace StudentGroup = "RaceEth" if StudentGroup == "RACE/ETHNICITY"
 replace StudentGroup = "Gender" if StudentGroup == "GENDER"
 replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 
@@ -1556,7 +1585,7 @@ replace SchName = DistName + " DISTRICT TOTAL" if SchName == "" & DistName != ""
 replace StudentGroup = "EL Status" if StudentSubGroup == "ENGLISH LANGUAGE LEARNERS"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "ECONOMICALLY DISADVANTAGED"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "NON-ECON. DISADVANTAGED"
-replace StudentGroup = "Race/Ethnicity" if StudentGroup == "RACE/ETHNICITY"
+replace StudentGroup = "RaceEth" if StudentGroup == "RACE/ETHNICITY"
 replace StudentGroup = "Gender" if StudentGroup == "GENDER"
 replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 
@@ -1601,7 +1630,7 @@ replace SchName = DistName + " DISTRICT TOTAL" if SchName == "" & DistName != ""
 replace StudentGroup = "EL Status" if StudentSubGroup == "ENGLISH LANGUAGE LEARNERS"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "ECONOMICALLY DISADVANTAGED"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "NON-ECON. DISADVANTAGED"
-replace StudentGroup = "Race/Ethnicity" if StudentGroup == "RACE/ETHNICITY"
+replace StudentGroup = "RaceEth" if StudentGroup == "RACE/ETHNICITY"
 replace StudentGroup = "Gender" if StudentGroup == "GENDER"
 replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 
@@ -1646,7 +1675,7 @@ replace SchName = DistName + " DISTRICT TOTAL" if SchName == "" & DistName != ""
 replace StudentGroup = "EL Status" if StudentSubGroup == "ENGLISH LANGUAGE LEARNERS"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "ECONOMICALLY DISADVANTAGED"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "NON-ECON. DISADVANTAGED"
-replace StudentGroup = "Race/Ethnicity" if StudentGroup == "RACE/ETHNICITY"
+replace StudentGroup = "RaceEth" if StudentGroup == "RACE/ETHNICITY"
 replace StudentGroup = "Gender" if StudentGroup == "GENDER"
 replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 
@@ -1691,7 +1720,7 @@ replace SchName = DistName + " DISTRICT TOTAL" if SchName == "" & DistName != ""
 replace StudentGroup = "EL Status" if StudentSubGroup == "ENGLISH LANGUAGE LEARNERS"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "ECONOMICALLY DISADVANTAGED"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "NON-ECON. DISADVANTAGED"
-replace StudentGroup = "Race/Ethnicity" if StudentGroup == "RACE/ETHNICITY"
+replace StudentGroup = "RaceEth" if StudentGroup == "RACE/ETHNICITY"
 replace StudentGroup = "Gender" if StudentGroup == "GENDER"
 replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 
@@ -1736,7 +1765,7 @@ replace SchName = DistName + " DISTRICT TOTAL" if SchName == "" & DistName != ""
 replace StudentGroup = "EL Status" if StudentSubGroup == "ENGLISH LANGUAGE LEARNERS"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "ECONOMICALLY DISADVANTAGED"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "NON-ECON. DISADVANTAGED"
-replace StudentGroup = "Race/Ethnicity" if StudentGroup == "RACE/ETHNICITY"
+replace StudentGroup = "RaceEth" if StudentGroup == "RACE/ETHNICITY"
 replace StudentGroup = "Gender" if StudentGroup == "GENDER"
 replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 
@@ -1786,7 +1815,7 @@ replace SchName = DistName + " DISTRICT TOTAL" if SchName == "" & DistName != ""
 replace StudentGroup = "EL Status" if StudentSubGroup == "ENGLISH LANGUAGE LEARNERS"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "ECONOMICALLY DISADVANTAGED"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "NON-ECON. DISADVANTAGED"
-replace StudentGroup = "Race/Ethnicity" if StudentGroup == "RACE/ETHNICITY"
+replace StudentGroup = "RaceEth" if StudentGroup == "RACE/ETHNICITY"
 replace StudentGroup = "Gender" if StudentGroup == "GENDER"
 replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 
@@ -1831,7 +1860,7 @@ replace SchName = DistName + " DISTRICT TOTAL" if SchName == "" & DistName != ""
 replace StudentGroup = "EL Status" if StudentSubGroup == "ENGLISH LANGUAGE LEARNERS"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "ECONOMICALLY DISADVANTAGED"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "NON-ECON. DISADVANTAGED"
-replace StudentGroup = "Race/Ethnicity" if StudentGroup == "RACE/ETHNICITY"
+replace StudentGroup = "RaceEth" if StudentGroup == "RACE/ETHNICITY"
 replace StudentGroup = "Gender" if StudentGroup == "GENDER"
 replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 
@@ -1876,7 +1905,7 @@ replace SchName = DistName + " DISTRICT TOTAL" if SchName == "" & DistName != ""
 replace StudentGroup = "EL Status" if StudentSubGroup == "ENGLISH LANGUAGE LEARNERS"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "ECONOMICALLY DISADVANTAGED"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "NON-ECON. DISADVANTAGED"
-replace StudentGroup = "Race/Ethnicity" if StudentGroup == "RACE/ETHNICITY"
+replace StudentGroup = "RaceEth" if StudentGroup == "RACE/ETHNICITY"
 replace StudentGroup = "Gender" if StudentGroup == "GENDER"
 replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 
@@ -1921,7 +1950,7 @@ replace SchName = DistName + " DISTRICT TOTAL" if SchName == "" & DistName != ""
 replace StudentGroup = "EL Status" if StudentSubGroup == "ENGLISH LANGUAGE LEARNERS"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "ECONOMICALLY DISADVANTAGED"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "NON-ECON. DISADVANTAGED"
-replace StudentGroup = "Race/Ethnicity" if StudentGroup == "RACE/ETHNICITY"
+replace StudentGroup = "RaceEth" if StudentGroup == "RACE/ETHNICITY"
 replace StudentGroup = "Gender" if StudentGroup == "GENDER"
 replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 
@@ -1966,7 +1995,7 @@ replace SchName = DistName + " DISTRICT TOTAL" if SchName == "" & DistName != ""
 replace StudentGroup = "EL Status" if StudentSubGroup == "ENGLISH LANGUAGE LEARNERS"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "ECONOMICALLY DISADVANTAGED"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "NON-ECON. DISADVANTAGED"
-replace StudentGroup = "Race/Ethnicity" if StudentGroup == "RACE/ETHNICITY"
+replace StudentGroup = "RaceEth" if StudentGroup == "RACE/ETHNICITY"
 replace StudentGroup = "Gender" if StudentGroup == "GENDER"
 replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 
@@ -2011,7 +2040,7 @@ replace SchName = DistName + " DISTRICT TOTAL" if SchName == "" & DistName != ""
 replace StudentGroup = "EL Status" if StudentSubGroup == "ENGLISH LANGUAGE LEARNERS"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "ECONOMICALLY DISADVANTAGED"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "NON-ECON. DISADVANTAGED"
-replace StudentGroup = "Race/Ethnicity" if StudentGroup == "RACE/ETHNICITY"
+replace StudentGroup = "RaceEth" if StudentGroup == "RACE/ETHNICITY"
 replace StudentGroup = "Gender" if StudentGroup == "GENDER"
 replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 
@@ -2043,21 +2072,21 @@ replace StudentSubGroup = "Black or African American" if StudentSubGroup == "AFR
 replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "NATIVE HAWAIIAN"
 replace StudentSubGroup = "White" if StudentSubGroup == "WHITE"
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "HISPANIC"
-replace StudentSubGroup = "Unknown" if StudentSubGroup == "OTHER" & StudentGroup == "Race/Ethnicity"
+replace StudentSubGroup = "Unknown" if StudentSubGroup == "OTHER" & StudentGroup == "RaceEth"
 replace StudentSubGroup = "Male" if StudentSubGroup == "MALE"
 replace StudentSubGroup = "Female" if StudentSubGroup == "FEMALE"
 replace StudentSubGroup = "Students with Disabilities" if StudentSubGroup == "STUDENTS WITH DISABILITIES"
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "ENGLISH LANGUAGE LEARNERS"
 replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "ECONOMICALLY DISADVANTAGED"
-replace StudentSubGroup = "Non-Econ. Disadvantaged" if StudentSubGroup == "NON-ECON. DISADVANTAGED"
+replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "NON-ECON. DISADVANTAGED"
 
 gen SchYear = "2016-17"
 gen AssmtName = "PARCC"
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_read = "N"
-gen Flag_CutScoreChange_oth = "N"
+gen Flag_CutScoreChange_read = ""
+gen Flag_CutScoreChange_oth = ""
 gen AssmtType = "Regular"
 gen DataLevel = "School"
 replace DataLevel = "District" if StateAssignedSchID == ""
@@ -2103,55 +2132,66 @@ replace Lev5_percent = "*" if Lev5_percent == "."
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
 gen ParticipationRate =.
 
-replace SchName = "Statewide" if DataLevel == "State"
-replace DistName = "Statewide" if DataLevel == "State"
-replace StateAssignedDistID = "" if DataLevel == "State"
-replace SchName = "Districtwide" if DataLevel == "District"
+replace SchName = "All Schools" if DataLevel != "School"
 replace StateAssignedSchID = "" if DataLevel != "School"
+replace DistName = "All Districts" if DataLevel == "State"
+replace StateAssignedDistID = "" if DataLevel == "State"
 
 save "${data}/NJ_AssmtData_2017", replace
 
 //Clean NCES Data
-use "${NCES}/NCES Data Prior to 2020-21/NCES_2016_School.dta", clear
+use "${NCES}/NCES School Files, Fall 1997-Fall 2021/NCES_2016_School.dta", clear
 drop if state_location != "NJ"
 gen str StateAssignedDistID = substr(state_leaid, 6, 8)
 gen str StateAssignedSchID = substr(seasch, 8, 10)
-save "${NCES}/NCES_2017_School_NJ.dta", replace
+save "${NCES}/Cleaned NCES Data/NCES_2017_School_NJ.dta", replace
 
-use "${NCES}/NCES Data Prior to 2020-21/NCES_2016_District.dta", clear
+use "${NCES}/NCES District Files, Fall 1997-Fall 2021/NCES_2016_District.dta", clear
 drop if state_location != "NJ"
 gen str StateAssignedDistID = substr(state_leaid, 6, 8)
-save "${NCES}/NCES_2017_District_NJ.dta", replace
+save "${NCES}/Cleaned NCES Data/NCES_2017_District_NJ.dta", replace
 
 //Merge Data
 use "${data}/NJ_AssmtData_2017", clear
-merge m:1 StateAssignedDistID using "${NCES}/NCES_2017_District_NJ.dta"
+merge m:1 StateAssignedDistID using "${NCES}/Cleaned NCES Data/NCES_2017_District_NJ.dta"
 drop if _merge == 2
 
-merge m:1 StateAssignedSchID StateAssignedDistID using "${NCES}/NCES_2017_School_NJ.dta", gen (merge2)
+merge m:1 StateAssignedSchID StateAssignedDistID using "${NCES}/Cleaned NCES Data/NCES_2017_School_NJ.dta", gen (merge2)
 drop if merge2 == 2
-save "${data}/NJ_AssmtData_2017", replace
 
 //Clean Merged Data
-drop state_name
 rename state_location StateAbbrev
 rename state_fips StateFips
 rename ncesdistrictid NCESDistrictID
-rename state_leaid State_leaid
-rename district_agency_type DistrictType
-rename charter Charter
+rename district_agency_type DistType
 rename county_name CountyName
 rename county_code CountyCode
 rename ncesschoolid NCESSchoolID
-rename school_type SchoolType
-rename virtual Virtual
-rename school_level SchoolLevel
+rename school_type SchType
+rename state_leaid State_leaid
+
+drop state_name year _merge merge2 district_agency_type_num urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type district_agency_type_num school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_lowest_grade_offered dist_highest_grade_offered dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch lea_name agency_charter_indicator dist_agency_charter_indicator
 
 gen State = "New Jersey"
 replace StateAbbrev = "NJ" if StateAbbrev == ""
 replace StateFips = 34 if StateFips ==.
 
-drop year lea_name _merge merge2
+//Variable Types
+decode SchVirtual, gen(SchVirtual_s)
+drop SchVirtual
+rename SchVirtual_s SchVirtual
+
+decode SchLevel, gen(SchLevel_s)
+drop SchLevel
+rename SchLevel_s SchLevel
+
+decode SchType, gen (SchType_s)
+drop SchType
+rename SchType_s SchType
+
+decode DistType, gen (DistType_s)
+drop DistType
+rename DistType_s DistType
 
 //Label & Organize Variables
 label var State "State name"
@@ -2159,14 +2199,14 @@ label var StateAbbrev "State abbreviation"
 label var StateFips "State FIPS Id"
 label var NCESDistrictID "NCES district ID"
 label var State_leaid "State LEA ID"
-label var DistrictType "District type as defined by NCES"
-label var Charter "Charter indicator"
+label var DistType "District type as defined by NCES"
+label var DistCharter "Charter indicator"
 label var CountyName "County in which the district or school is located"
 label var CountyCode "County code in which the district or school is located, also referred to as the county-level FIPS code"
 label var NCESSchoolID "NCES school ID"
-label var SchoolType "School type as defined by NCES"
-label var Virtual "Virtual school indicator"
-label var SchoolLevel "School level"
+label var SchType "School type as defined by NCES"
+label var SchVirtual "Virtual school indicator"
+label var SchLevel "School level"
 label var SchYear "School year in which the data were reported"
 label var AssmtName "Name of state assessment"
 label var Flag_AssmtNameChange "Flag denoting a change in the assessment's name from the prior year only"
@@ -2201,8 +2241,14 @@ label var ProficientOrAbove_count "Count of students achieving proficiency or ab
 label var ProficientOrAbove_percent "Percent of students achieving proficiency or above on the state assessment"
 label var ParticipationRate "Participation rate"
 
-order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
-sort StateAssignedDistID StateAssignedSchID GradeLevel Subject
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+sort DataLevel_n 
+drop DataLevel 
+rename DataLevel_n DataLevel
+
+order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType  Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${data}/NJ_AssmtData_2017", replace
 export delimited "${data}/NJ_AssmtData_2017", replace
@@ -2752,20 +2798,22 @@ save "${data}/NJ_OriginalData_2018_mat", replace
 use "${data}/NJ_AssmtData_2018", clear
 append using "${data}/NJ_OriginalData_2018_mat"
 
+replace StudentGroup = "RaceEth" if StudentGroup == "Race/Ethnicity"
 replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "American Indian"
 replace StudentSubGroup = "Black or African American" if StudentSubGroup == "African American"
 replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "Native Hawaiian"
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
-replace StudentSubGroup = "Unknown" if StudentSubGroup == "Other" & StudentGroup == "Race/Ethnicity"
+replace StudentSubGroup = "Unknown" if StudentSubGroup == "Other" & StudentGroup == "RaceEth"
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "English Language Learners"
+replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "Non-Econ. Disadvantaged"
 
 gen SchYear = "2017-18"
 gen AssmtName = "PARCC"
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_read = "N"
-gen Flag_CutScoreChange_oth = "N"
+gen Flag_CutScoreChange_read = ""
+gen Flag_CutScoreChange_oth = ""
 gen AssmtType = "Regular"
 gen DataLevel = "School"
 replace DataLevel = "District" if StateAssignedSchID == ""
@@ -2814,55 +2862,66 @@ gen ParticipationRate =.
 
 drop S
 
-replace SchName = "Statewide" if DataLevel == "State"
-replace DistName = "Statewide" if DataLevel == "State"
-replace StateAssignedDistID = "" if DataLevel == "State"
-replace SchName = "Districtwide" if DataLevel == "District"
+replace SchName = "All Schools" if DataLevel != "School"
 replace StateAssignedSchID = "" if DataLevel != "School"
+replace DistName = "All Districts" if DataLevel == "State"
+replace StateAssignedDistID = "" if DataLevel == "State"
 
 save "${data}/NJ_AssmtData_2018", replace
 
 //Clean NCES Data
-use "${NCES}/NCES Data Prior to 2020-21/NCES_2017_School.dta", clear
+use "${NCES}/NCES School Files, Fall 1997-Fall 2021/NCES_2017_School.dta", clear
 drop if state_location != "NJ"
 gen str StateAssignedDistID = substr(state_leaid, 6, 8)
 gen str StateAssignedSchID = substr(seasch, 8, 10)
-save "${NCES}/NCES_2018_School_NJ.dta", replace
+save "${NCES}/Cleaned NCES Data/NCES_2018_School_NJ.dta", replace
 
-use "${NCES}/NCES Data Prior to 2020-21/NCES_2017_District.dta", clear
+use "${NCES}/NCES District Files, Fall 1997-Fall 2021/NCES_2017_District.dta", clear
 drop if state_location != "NJ"
 gen str StateAssignedDistID = substr(state_leaid, 6, 8)
-save "${NCES}/NCES_2018_District_NJ.dta", replace
+save "${NCES}/Cleaned NCES Data/NCES_2018_District_NJ.dta", replace
 
 //Merge Data
 use "${data}/NJ_AssmtData_2018", clear
-merge m:1 StateAssignedDistID using "${NCES}/NCES_2018_District_NJ.dta"
+merge m:1 StateAssignedDistID using "${NCES}/Cleaned NCES Data/NCES_2018_District_NJ.dta"
 drop if _merge == 2
 
-merge m:1 StateAssignedSchID StateAssignedDistID using "${NCES}/NCES_2018_School_NJ.dta", gen(merge2)
+merge m:1 StateAssignedSchID StateAssignedDistID using "${NCES}/Cleaned NCES Data/NCES_2018_School_NJ.dta", gen(merge2)
 drop if merge2 == 2
-save "${data}/NJ_AssmtData_2018", replace
 
 //Clean Merged Data
-drop state_name
 rename state_location StateAbbrev
 rename state_fips StateFips
 rename ncesdistrictid NCESDistrictID
-rename state_leaid State_leaid
-rename district_agency_type DistrictType
-rename charter Charter
+rename district_agency_type DistType
 rename county_name CountyName
 rename county_code CountyCode
 rename ncesschoolid NCESSchoolID
-rename school_type SchoolType
-rename virtual Virtual
-rename school_level SchoolLevel
+rename school_type SchType
+rename state_leaid State_leaid
+
+drop state_name year _merge merge2 district_agency_type_num urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type district_agency_type_num school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_lowest_grade_offered dist_highest_grade_offered dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch lea_name agency_charter_indicator dist_agency_charter_indicator
 
 gen State = "New Jersey"
 replace StateAbbrev = "NJ" if StateAbbrev == ""
 replace StateFips = 34 if StateFips ==.
 
-drop year lea_name _merge merge2
+//Variable Types
+decode SchVirtual, gen(SchVirtual_s)
+drop SchVirtual
+rename SchVirtual_s SchVirtual
+
+decode SchLevel, gen(SchLevel_s)
+drop SchLevel
+rename SchLevel_s SchLevel
+
+decode SchType, gen (SchType_s)
+drop SchType
+rename SchType_s SchType
+
+decode DistType, gen (DistType_s)
+drop DistType
+rename DistType_s DistType
 
 //Label & Organize Variables
 label var State "State name"
@@ -2870,14 +2929,14 @@ label var StateAbbrev "State abbreviation"
 label var StateFips "State FIPS Id"
 label var NCESDistrictID "NCES district ID"
 label var State_leaid "State LEA ID"
-label var DistrictType "District type as defined by NCES"
-label var Charter "Charter indicator"
+label var DistType "District type as defined by NCES"
+label var DistCharter "Charter indicator"
 label var CountyName "County in which the district or school is located"
 label var CountyCode "County code in which the district or school is located, also referred to as the county-level FIPS code"
 label var NCESSchoolID "NCES school ID"
-label var SchoolType "School type as defined by NCES"
-label var Virtual "Virtual school indicator"
-label var SchoolLevel "School level"
+label var SchType "School type as defined by NCES"
+label var SchVirtual "Virtual school indicator"
+label var SchLevel "School level"
 label var SchYear "School year in which the data were reported"
 label var AssmtName "Name of state assessment"
 label var Flag_AssmtNameChange "Flag denoting a change in the assessment's name from the prior year only"
@@ -2912,8 +2971,14 @@ label var ProficientOrAbove_count "Count of students achieving proficiency or ab
 label var ProficientOrAbove_percent "Percent of students achieving proficiency or above on the state assessment"
 label var ParticipationRate "Participation rate"
 
-order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
-sort StateAssignedDistID StateAssignedSchID GradeLevel Subject
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+sort DataLevel_n 
+drop DataLevel 
+rename DataLevel_n DataLevel
+
+order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType  Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${data}/NJ_AssmtData_2018", replace
 export delimited "${data}/NJ_AssmtData_2018", replace
@@ -3557,19 +3622,21 @@ save "${data}/NJ_OriginalData_2019_sci", replace
 use "${data}/NJ_AssmtData_2019", clear
 append using "${data}/NJ_OriginalData_2019_mat" "${data}/NJ_OriginalData_2019_sci"
 
+replace StudentGroup = "RaceEth" if StudentGroup == "Race/Ethnicity"
 replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "American Indian"
 replace StudentSubGroup = "Black or African American" if StudentSubGroup == "African American"
 replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "Native Hawaiian"
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
-replace StudentSubGroup = "Unknown" if StudentSubGroup == "Other" & StudentGroup == "Race/Ethnicity"
+replace StudentSubGroup = "Unknown" if StudentSubGroup == "Other" & StudentGroup == "RaceEth"
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "English Language Learners"
+replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "Non-Econ. Disadvantaged"
 
 gen SchYear = "2018-19"
 gen AssmtName = "NJSLA"
 gen Flag_AssmtNameChange = "Y"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_read = "N"
+gen Flag_CutScoreChange_read = ""
 gen Flag_CutScoreChange_oth = "N"
 gen AssmtType = "Regular"
 gen DataLevel = "School"
@@ -3621,55 +3688,66 @@ replace Lev5_percent = "" if Subject == "sci"
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
 gen ParticipationRate =.
 
-replace SchName = "Statewide" if DataLevel == "State"
-replace DistName = "Statewide" if DataLevel == "State"
-replace StateAssignedDistID = "" if DataLevel == "State"
-replace SchName = "Districtwide" if DataLevel == "District"
+replace SchName = "All Schools" if DataLevel != "School"
 replace StateAssignedSchID = "" if DataLevel != "School"
+replace DistName = "All Districts" if DataLevel == "State"
+replace StateAssignedDistID = "" if DataLevel == "State"
 
 save "${data}/NJ_AssmtData_2019", replace
 
 //Clean NCES Data
-use "${NCES}/NCES Data Prior to 2020-21/NCES_2018_School.dta", clear
+use "${NCES}/NCES School Files, Fall 1997-Fall 2021/NCES_2018_School.dta", clear
 drop if state_location != "NJ"
 gen str StateAssignedDistID = substr(state_leaid, 6, 8)
 gen str StateAssignedSchID = substr(seasch, 8, 10)
-save "${NCES}/NCES_2019_School_NJ.dta", replace
+save "${NCES}/Cleaned NCES Data/NCES_2019_School_NJ.dta", replace
 
-use "${NCES}/NCES Data Prior to 2020-21/NCES_2018_District.dta", clear
+use "${NCES}/NCES District Files, Fall 1997-Fall 2021/NCES_2018_District.dta", clear
 drop if state_location != "NJ"
 gen str StateAssignedDistID = substr(state_leaid, 6, 8)
-save "${NCES}/NCES_2019_District_NJ.dta", replace
+save "${NCES}/Cleaned NCES Data/NCES_2019_District_NJ.dta", replace
 
 //Merge Data
 use "${data}/NJ_AssmtData_2019", clear
-merge m:1 StateAssignedDistID using "${NCES}/NCES_2019_District_NJ.dta"
+merge m:1 StateAssignedDistID using "${NCES}/Cleaned NCES Data/NCES_2019_District_NJ.dta"
 drop if _merge == 2
 
-merge m:1 StateAssignedSchID StateAssignedDistID using "${NCES}/NCES_2019_School_NJ.dta", gen(merge2)
+merge m:1 StateAssignedSchID StateAssignedDistID using "${NCES}/Cleaned NCES Data/NCES_2019_School_NJ.dta", gen(merge2)
 drop if merge2 == 2
-save "${data}/NJ_AssmtData_2019", replace
 
 //Clean Merged Data
-drop state_name
 rename state_location StateAbbrev
 rename state_fips StateFips
 rename ncesdistrictid NCESDistrictID
-rename state_leaid State_leaid
-rename district_agency_type DistrictType
-rename charter Charter
+rename district_agency_type DistType
 rename county_name CountyName
 rename county_code CountyCode
 rename ncesschoolid NCESSchoolID
-rename school_type SchoolType
-rename virtual Virtual
-rename school_level SchoolLevel
+rename school_type SchType
+rename state_leaid State_leaid
+
+drop state_name year _merge merge2 district_agency_type_num urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type district_agency_type_num school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_lowest_grade_offered dist_highest_grade_offered dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch lea_name agency_charter_indicator dist_agency_charter_indicator
 
 gen State = "New Jersey"
 replace StateAbbrev = "NJ" if StateAbbrev == ""
 replace StateFips = 34 if StateFips ==.
 
-drop year lea_name _merge merge2
+//Variable Types
+decode SchVirtual, gen(SchVirtual_s)
+drop SchVirtual
+rename SchVirtual_s SchVirtual
+
+decode SchLevel, gen(SchLevel_s)
+drop SchLevel
+rename SchLevel_s SchLevel
+
+decode SchType, gen (SchType_s)
+drop SchType
+rename SchType_s SchType
+
+decode DistType, gen (DistType_s)
+drop DistType
+rename DistType_s DistType
 
 //Label & Organize Variables
 label var State "State name"
@@ -3677,14 +3755,14 @@ label var StateAbbrev "State abbreviation"
 label var StateFips "State FIPS Id"
 label var NCESDistrictID "NCES district ID"
 label var State_leaid "State LEA ID"
-label var DistrictType "District type as defined by NCES"
-label var Charter "Charter indicator"
+label var DistType "District type as defined by NCES"
+label var DistCharter "Charter indicator"
 label var CountyName "County in which the district or school is located"
 label var CountyCode "County code in which the district or school is located, also referred to as the county-level FIPS code"
 label var NCESSchoolID "NCES school ID"
-label var SchoolType "School type as defined by NCES"
-label var Virtual "Virtual school indicator"
-label var SchoolLevel "School level"
+label var SchType "School type as defined by NCES"
+label var SchVirtual "Virtual school indicator"
+label var SchLevel "School level"
 label var SchYear "School year in which the data were reported"
 label var AssmtName "Name of state assessment"
 label var Flag_AssmtNameChange "Flag denoting a change in the assessment's name from the prior year only"
@@ -3719,8 +3797,14 @@ label var ProficientOrAbove_count "Count of students achieving proficiency or ab
 label var ProficientOrAbove_percent "Percent of students achieving proficiency or above on the state assessment"
 label var ParticipationRate "Participation rate"
 
-order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
-sort StateAssignedDistID StateAssignedSchID GradeLevel Subject
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+sort DataLevel_n 
+drop DataLevel 
+rename DataLevel_n DataLevel
+
+order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType  Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${data}/NJ_AssmtData_2019", replace
 export delimited "${data}/NJ_AssmtData_2019", replace
@@ -4380,20 +4464,21 @@ save "${data}/NJ_OriginalData_2022_sci", replace
 use "${data}/NJ_AssmtData_2022", clear
 append using "${data}/NJ_OriginalData_2022_mat" "${data}/NJ_OriginalData_2022_sci"
 
+replace StudentGroup = "RaceEth" if StudentGroup == "Race/Ethnicity"
 replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "American Indian"
 replace StudentSubGroup = "Black or African American" if StudentSubGroup == "African American"
 replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "Native Hawaiian"
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
-replace StudentSubGroup = "Unknown" if StudentSubGroup == "Other" & StudentGroup == "Race/Ethnicity"
-replace StudentSubGroup = "Unknown" if StudentSubGroup == "Non-Binary/Undesignated" & StudentGroup == "Gender"
+replace StudentSubGroup = "Unknown" if StudentSubGroup == "Other" & StudentGroup == "RaceEth"
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "English Language Learners"
+replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "Non-Econ. Disadvantaged"
 
 gen SchYear = "2021-22"
 gen AssmtName = "NJSLA"
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_read = "N"
+gen Flag_CutScoreChange_read = ""
 gen Flag_CutScoreChange_oth = "N"
 gen AssmtType = "Regular"
 gen DataLevel = "School"
@@ -4446,57 +4531,66 @@ replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
 
 gen ParticipationRate =.
 
-replace SchName = "Statewide" if DataLevel == "State"
-replace DistName = "Statewide" if DataLevel == "State"
-replace StateAssignedDistID = "" if DataLevel == "State"
-replace SchName = "Districtwide" if DataLevel == "District"
+replace SchName = "All Schools" if DataLevel != "School"
 replace StateAssignedSchID = "" if DataLevel != "School"
+replace DistName = "All Districts" if DataLevel == "State"
+replace StateAssignedDistID = "" if DataLevel == "State"
 
 save "${data}/NJ_AssmtData_2022", replace
 
 //Clean NCES Data
-use "${NCES}/NCES_2021_School.dta", clear
+use "${NCES}/NCES School Files, Fall 1997-Fall 2021/NCES_2021_School.dta", clear
+drop if state_location != "NJ"
+gen str StateAssignedDistID = substr(state_leaid, 6, 10)
+gen str StateAssignedSchID = substr(seasch, 8, 11)
+save "${NCES}/Cleaned NCES Data/NCES_2022_School_NJ.dta", replace
+
+use "${NCES}/NCES District Files, Fall 1997-Fall 2021/NCES_2021_District.dta", clear
 drop if state_location != "NJ"
 gen str StateAssignedDistID = substr(state_leaid, 6, 8)
-gen str StateAssignedSchID = substr(st_schid, 11, 13)
-save "${NCES}/NCES_2022_School_NJ.dta", replace
-
-import delimited "${NCES}/NCES_2021_District.csv", clear
-drop if stateabbrev != "NJ"
-gen str StateAssignedDistID = substr(state_leaid, 6, 8)
-save "${NCES}/NCES_2022_District_NJ.dta", replace
+save "${NCES}/Cleaned NCES Data/NCES_2022_District_NJ.dta", replace
 
 //Merge Data
 use "${data}/NJ_AssmtData_2022", clear
-merge m:1 StateAssignedDistID using "${NCES}/NCES_2022_District_NJ.dta"
+merge m:1 StateAssignedDistID using "${NCES}/Cleaned NCES Data/NCES_2022_District_NJ.dta"
 drop if _merge == 2
-drop charter
 
-merge m:1 StateAssignedSchID StateAssignedDistID using "${NCES}/NCES_2022_School_NJ.dta", gen(merge2)
+merge m:1 StateAssignedSchID StateAssignedDistID using "${NCES}/Cleaned NCES Data/NCES_2022_School_NJ.dta", gen(merge2)
 drop if merge2 == 2
-save "${data}/NJ_AssmtData_2022", replace
 
 //Clean Merged Data
-drop state_name
 rename state_location StateAbbrev
-rename st_schid seasch
 rename state_fips StateFips
 rename ncesdistrictid NCESDistrictID
-rename state_leaid State_leaid
-rename districttype DistrictType
-rename charter_text Charter
+rename district_agency_type DistType
 rename county_name CountyName
 rename county_code CountyCode
 rename ncesschoolid NCESSchoolID
-rename school_type SchoolType
-rename virtual Virtual
-rename school_level SchoolLevel
+rename school_type SchType
+rename state_leaid State_leaid
+
+drop state_name year _merge merge2 district_agency_type_num urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type district_agency_type_num school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_lowest_grade_offered dist_highest_grade_offered dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch lea_name
 
 gen State = "New Jersey"
 replace StateAbbrev = "NJ" if StateAbbrev == ""
 replace StateFips = 34 if StateFips ==.
 
-drop year school_name lea_name urban_centric_locale school_status lowest_grade_offered highest_grade_offered bureau_indian_education lunch_program free_lunch reduced_price_lunch free_or_reduced_price_lunch enrollment schid state stateabbrev statefips countyname countycode schyear distname updated_status_text effective_date _merge merge2
+//Variable Types
+decode SchVirtual, gen(SchVirtual_s)
+drop SchVirtual
+rename SchVirtual_s SchVirtual
+
+decode SchLevel, gen(SchLevel_s)
+drop SchLevel
+rename SchLevel_s SchLevel
+
+decode SchType, gen (SchType_s)
+drop SchType
+rename SchType_s SchType
+
+decode DistType, gen (DistType_s)
+drop DistType
+rename DistType_s DistType
 
 //Label & Organize Variables
 label var State "State name"
@@ -4504,14 +4598,14 @@ label var StateAbbrev "State abbreviation"
 label var StateFips "State FIPS Id"
 label var NCESDistrictID "NCES district ID"
 label var State_leaid "State LEA ID"
-label var DistrictType "District type as defined by NCES"
-label var Charter "Charter indicator"
+label var DistType "District type as defined by NCES"
+label var DistCharter "Charter indicator"
 label var CountyName "County in which the district or school is located"
 label var CountyCode "County code in which the district or school is located, also referred to as the county-level FIPS code"
 label var NCESSchoolID "NCES school ID"
-label var SchoolType "School type as defined by NCES"
-label var Virtual "Virtual school indicator"
-label var SchoolLevel "School level"
+label var SchType "School type as defined by NCES"
+label var SchVirtual "Virtual school indicator"
+label var SchLevel "School level"
 label var SchYear "School year in which the data were reported"
 label var AssmtName "Name of state assessment"
 label var Flag_AssmtNameChange "Flag denoting a change in the assessment's name from the prior year only"
@@ -4546,8 +4640,14 @@ label var ProficientOrAbove_count "Count of students achieving proficiency or ab
 label var ProficientOrAbove_percent "Percent of students achieving proficiency or above on the state assessment"
 label var ParticipationRate "Participation rate"
 
-order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
-sort StateAssignedDistID StateAssignedSchID GradeLevel Subject
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+sort DataLevel_n 
+drop DataLevel 
+rename DataLevel_n DataLevel
+
+order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType  Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${data}/NJ_AssmtData_2022", replace
 export delimited "${data}/NJ_AssmtData_2022", replace
