@@ -139,17 +139,17 @@ replace Subject = "math" if Subject== "mat"
 keep if inlist(Subject, "ela", "math", "sci", "soc" )
 
 //Creating Variables
-gen Lev1_count=.
-gen Lev1_percent=.
-gen Lev2_count=.
-gen Lev2_percent=.
-gen Lev3_count=.
-gen Lev3_percent=.
-gen Lev4_count=.
-gen Lev4_percent=.
-gen Lev5_count=.
-gen Lev5_percent=.
-gen ParticipationRate=.
+gen Lev1_count= "--"
+gen Lev1_percent= "--"
+gen Lev2_count= "--"
+gen Lev2_percent= "--"
+gen Lev3_count= "--"
+gen Lev3_percent= "--"
+gen Lev4_count= "--"
+gen Lev4_percent= "--"
+gen Lev5_count= "--"
+gen Lev5_percent= "--"
+gen ParticipationRate= "--"
 gen Flag_AssmtNameChange="N"
 gen Flag_CutScoreChange_ELA="N"
 gen Flag_CutScoreChange_math="N"
@@ -166,17 +166,19 @@ tostring ProficientOrAbove_percent, replace force
 drop PctProficient
 replace ProficientOrAbove_percent = substr(ProficientOrAbove_percent,1,4)
 recast str4 ProficientOrAbove_percent
+replace SchVirtual = "Missing/not reported" if SchVirtual == ""
 
 //Proficiency Criteria
 gen ProficiencyCriteria = "Level 3 or 4"
 
 
-//Ordering and Sorting
-
-
+//Ordering, Sorting, Dropping Alternative Assessment for ELA and Math
+drop if AssmtName != "Smarter Balanced Summative Assessment" & (Subject== "ela" | Subject == "math")
 order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
+//Exporting
 save "${output}/DE_AssmtData_`year'.dta", replace
 export delimited using "${output}/DE_AssmtData_`year'.csv", replace
 
