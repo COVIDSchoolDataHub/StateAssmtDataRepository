@@ -186,28 +186,27 @@ count if StudentGroup=="Economic Status" & !inlist(StudentSubGroup, "Economicall
 
 if StateFips<10 {
 	**Check the following NCESSchoolIDs and NCESDistrictIDs: current values are too short**
-	if DataLevel=="School" {
-		tab NCESSchoolID if NCESSchoolID<10000000000
-	}
+	tab NCESSchoolID if NCESSchoolID<10000000000 & DataLevel=="School"
+	
 	tab NCESDistrictID if NCESDistrictID<100000
 }
 
 if StateFips>10 {
 	**Check the following NCESSchoolIDs and NCESDistrictIDs: current values are too short**
-	if DataLevel=="School" {
-		tab NCESSchoolID if NCESSchoolID<100000000000
-	}
+	
+	tab NCESSchoolID if NCESSchoolID<100000000000 & DataLevel=="School"
+	
 	tab NCESDistrictID if NCESDistrictID<1000000 
 
 }
 
 
-if DataLevel != "School" {
-	count if !missing(NCESSchoolID)
+
+	count if !missing(NCESSchoolID) & DataLevel != "School"
 	if r(N)>0 {
-		di as error "This is not School level data, NCESSchoolID should be missing for all rows"
+		di as error "NCESSchoolID should be missing for all rows of School level data"
 	}
-}
+
 
 bysort StateFips: gen flag = StateFips[1] != StateFips[_N]
 if flag==1 {
@@ -226,7 +225,7 @@ if flag1>0 | flag2>0 {
 }
 drop flag flag1 flag2
 
-if DataLevel == "School" {
+
 	bysort NCESSchoolID (StateAssignedSchID) : gen flag1 = StateAssignedSchID[1] != StateAssignedSchID[_N]  
 	bysort StateAssignedSchID (NCESSchoolID) : gen flag2 = NCESSchoolID[1] != NCESSchoolID[_N]
 
@@ -240,20 +239,20 @@ if DataLevel == "School" {
 	gen tempD= NCESDistrictID
 	gen tempS=floor(NCESSchoolID/100000)
 	di as error "First digits of NCESSchoolID for the below schools don't match NCESDistrictID"
-	tab NCESSchoolID if tempS != tempD
+	tab NCESSchoolID if tempS != tempD & DataLevel=="School"
 	drop temp*
-}
+
 
 **(6) DataLevel Checks
 gen row=_n
-if DataLevel=="State" {
-	count if DistName != "All Districts"
+* State Level Checks
+	count if DistName != "All Districts" & DataLevel=="State"
 	if r(N)>0 {
 		di as error "The following rows need DistName='All Districts'"
 		list row if DistName != "All Districts"
 	}
 	
-	count if SchName != "All Schools"
+	count if SchName != "All Schools" & DataLevel=="State"
 	if r(N)>0 {
 		di as error "The following rows need SchName='All Schools'"
 		list row if SchName != "All Schools"
@@ -262,17 +261,15 @@ if DataLevel=="State" {
 	local empty "DistType SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode"
 	
 	foreach var of local empty {
-		count if !missing(`var')
+		count if !missing(`var') & DataLevel=="State"
 		if r(N)!=0 {
-			di as error "State level file: `var' should be completely empty (no entries)"
+			di as error "State level data: `var' should be completely empty (no entries)"
 		}
 	}
 
-}
 
-if DataLevel=="District" {
-	
-	count if SchName != "All Schools"
+* District Level Checks	
+	count if SchName != "All Schools" & DataLevel=="District"
 	if r(N)>0 {
 		di as error "The following rows need SchName='All Schools'"
 		list row if SchName != "All Schools"
@@ -281,35 +278,35 @@ if DataLevel=="District" {
 	local nomiss "DistName DistType NCESDistrictID StateAssignedDistID State_leaid DistCharter CountyName CountyCode"
 	
 	foreach var of local nomiss {
-		count if missing(`var')
+		count if missing(`var') & DataLevel=="District"
 		if r(N) != 0 {
-			di as error "District level file: `var' should have no missing values"
+			di as error "District level data: `var' should have no missing values"
 		}
 	}
-}
 
-if DataLevel=="School" {
-	
+
+
+* School Level Checks	
 	local nomiss "DistName DistType NCESDistrictID StateAssignedDistID State_leaid seasch DistCharter SchName SchType NCESSchoolID StateAssignedSchID SchLevel CountyName CountyCode"
 	
 	foreach var of local nomiss {
-		count if missing(`var')
+		count if missing(`var') & DataLevel=="School"
 		if r(N) != 0 {
-			di as error "School level file: `var' should have no missing values"
+			di as error "School level data: `var' should have no missing values"
 		}
 	}
 	
 	gen year=substr(SchYear,1,4)
 	destring year, replace
 	if year>2013 {
-		count if missing(SchVirtual)
+		count if missing(SchVirtual) & DataLevel=="School"
 		if r(N) != 0 {
-			di as error "School level file: SchVirtual should have no missing values"
+			di as error "School level data: SchVirtual should have no missing values for years 2014 and later"
 		}
 	}
 	
 	drop year
-}
+
 
 drop row
 
@@ -338,14 +335,15 @@ foreach v of varlist nLev*percent nProficientOrAbove_percent nParticipationRate 
 * ProficientOrAbove_percent and ParticipationRate variables are in the correct format
 
 egen tot=rowtotal(nLev*percent)
+gen row=_n
 
-di as error "Below rows have percent total greater than 101"
+di as error "Below rows have percent total greater than 101%"
 
-list NCESSchoolID NCESDistrictID if tot>101
+list row NCESSchoolID NCESDistrictID if tot>1.01
 
-di as error "Below rows have percent total lower than 50"
+di as error "Below rows have percent total lower than 50%"
 
-list NCESSchoolID NCESDistrictID if tot>50
+list row NCESSchoolID NCESDistrictID if tot<.50
 
 tab ProficiencyCriteria
 
@@ -358,10 +356,10 @@ tab ProficiencyCriteria
 egen check_count=rowtotal(nLev3_count nLev4_count nLev5_count)
 egen check_perc=rowtotal(nLev3_percent nLev4_percent nLev5_percent)
 
-list NCESSchoolID NCESDistrictID if check_count != ProficientOrAbove_count
-list NCESSchoolID NCESDistrictID if check_perc != ProficientOrAbove_percent
+list row NCESSchoolID NCESDistrictID if check_count != ProficientOrAbove_count
+list row NCESSchoolID NCESDistrictID if check_perc != ProficientOrAbove_percent
 
-drop tot nLev* check* nProficientOrAbove_percent nParticipationRate
+drop tot nLev* check* nProficientOrAbove_percent nParticipationRate row
 
 
 **(9) Check assessment flags
@@ -370,11 +368,4 @@ tab AssmtName Flag_CutScoreChange_ELA
 tab AssmtName Flag_CutScoreChange_math
 tab AssmtName Flag_CutScoreChange_read
 tab AssmtName Flag_CutScoreChange_oth
-
-
-
-	
-	
-	
-
 

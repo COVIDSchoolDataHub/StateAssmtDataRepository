@@ -2,32 +2,36 @@ clear
 
 // Define file paths
 
-global original_files "/Users/meghancornacchia/Desktop/DataRepository/Original_Data_Files"
+global original_files "/Users/meghancornacchia/Desktop/DataRepository/Minnesota/Original_Data_Files"
 global NCES_files "/Users/meghancornacchia/Desktop/DataRepository/NCES_Data_Files"
-global output_files "/Users/meghancornacchia/Desktop/DataRepository/Output_Data_Files"
-global temp_files "/Users/meghancornacchia/Desktop/DataRepository/Temporary_Data_Files"
+global output_files "/Users/meghancornacchia/Desktop/DataRepository/Minnesota/Output_Data_Files"
+global temp_files "/Users/meghancornacchia/Desktop/DataRepository/Minnesota/Temporary_Data_Files"
 
 // 2010-2011
 
 // Converting subject tab files to dta and appending
 
-import delimited "$original_files/MN_OriginalData_2011_mat_rea.tab", clear
-
+import delimited "$original_files/MN_OriginalData_2011_mat.tab", clear
 tostring grade, replace
 replace grade = "0" + grade
 drop schoolcountynumber
 drop districtcountynumber
+save "${temp_files}/MN_AssmtData_2011_mat.dta", replace
 
-save "${temp_files}/MN_AssmtData_2011_mat_rea.dta", replace
+import delimited "$original_files/MN_OriginalData_2011_rea.tab", clear
+tostring grade, replace
+replace grade = "0" + grade
+drop schoolcountynumber
+drop districtcountynumber
+save "${temp_files}/MN_AssmtData_2011_rea.dta", replace
 
 import delimited "$original_files/MN_OriginalData_2011_sci.tab", clear
-
 drop schoolcountynumber
 drop districtcountynumber
 
 save "${temp_files}/MN_AssmtData_2011_sci.dta", replace
 
-append using "${temp_files}/MN_AssmtData_2011_sci.dta" "${temp_files}/MN_AssmtData_2011_mat_rea.dta"
+append using "${temp_files}/MN_AssmtData_2011_mat.dta" "${temp_files}/MN_AssmtData_2011_rea.dta" "${temp_files}/MN_AssmtData_2011_sci.dta"
 
 // Dropping extra variables
 
@@ -35,7 +39,6 @@ drop testdate
 drop districtcountyname
 drop ecsunumber
 drop ecodevrgn
-drop testname
 drop reportorder
 drop pfasaveragescore
 drop dspsaveragescore
@@ -64,6 +67,11 @@ drop k12enrollment
 drop filterthreshold
 drop publicschool
 drop schoolcountyname
+drop nopsaveragescore
+drop algsaveragescore
+drop gmsaveragescore
+drop dapsaveragescore
+drop vssaveragescore
 
 // Reformatting IDs to standard length strings
 
@@ -115,6 +123,7 @@ drop schoolnumber
 
 // Relabeling variables
 
+rename testname AssmtName
 rename newdistricttype DistrictTypeCode
 rename datayear SchYear
 rename districtname DistName
@@ -145,6 +154,8 @@ drop if StateAssignedDistID == "8888"
 
 // Transforming Variable Values
 
+replace AssmtName = "Minnesota Comprehensive Assessment II" if AssmtName == "MCA-II"
+replace AssmtName = "Minnesota Comprehensive Assessment III" if AssmtName == "MCA-III"
 replace SchYear = "2010-11" if SchYear == "10-11"
 replace Subject = "math" if Subject == "M"
 replace Subject = "read" if Subject == "R"
@@ -158,36 +169,61 @@ replace GradeLevel = "G08" if GradeLevel == "08"
 drop if GradeLevel == "010"
 drop if GradeLevel == "011"
 drop if GradeLevel == "HS"
-replace StudentGroup = "All students" if StudentGroup == "All Categories"
-replace StudentGroup = "Race" if StudentGroup == "Race/Ethnicity"
-replace StudentGroup = "EL Status" if StudentGroup == "English Proficiency"
+replace StudentGroup = "All Students" if StudentGroup == "All Categories"
+replace StudentGroup = "RaceEth" if StudentGroup == "Race/Ethnicity"
+replace StudentGroup = "EL Status" if StudentGroup == "Limited English Proficient"
 replace StudentGroup = "Economic Status" if StudentGroup == "EconomicStatus"
-replace StudentSubGroup = "All students" if StudentSubGroup == "All Students"
+replace StudentSubGroup = "All Students" if StudentSubGroup == "All Students"
 replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "1-American Indian"
 replace StudentSubGroup = "Asian" if StudentSubGroup == "2-Asian / Pacific Islander"
 replace StudentSubGroup = "Black or African American" if StudentSubGroup == "4-Black"
 replace StudentSubGroup = "White" if StudentSubGroup == "5-White"
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "3-Hispanic"
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "Eligible for LEP Services"
-replace StudentSubGroup = "English proficient" if StudentSubGroup == "Not eligible for LEP Services"
+replace StudentSubGroup = "English Proficient" if StudentSubGroup == "Not eligible for LEP Services"
+replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Eligible for Free/Reduced Priced Meals"
+replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "Not eligible for Free/Reduced Priced Meals"
+
+gen ProficientOrAbove_count = Lev3_count+Lev4_count
+
+foreach var of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent {
+	replace `var' = `var'/100
+}
+
+gen ProficientOrAbove_percent = Lev3_percent+Lev4_percent
+
+foreach var of varlist Lev1_count Lev2_count Lev3_count Lev4_count Lev1_percent Lev2_percent Lev3_percent Lev4_percent AvgScaleScore ProficientOrAbove_count ProficientOrAbove_percent {
+	tostring `var', replace force
+	replace `var' = "*" if filtered == "Y"
+}
+
+drop filtered
+
+// Fixing Justification issues
+replace DistName = trim(DistName)
+replace SchName = trim(SchName)
 
 // Generating missing variables
 gen Lev5_count = ""
 gen Lev5_percent = ""
-gen AssmtName = "Minnesota Comprehensive Assessment II"
-gen Flag_AssmtNameChange = "N"
-gen Flag_CutScoreChange_ELA = "N"
-gen Flag_CutScoreChange_math = "N"
+gen Flag_AssmtNameChange = "Y"
+gen Flag_CutScoreChange_ELA = ""
+gen Flag_CutScoreChange_math = "Y"
 gen Flag_CutScoreChange_read = "N"
 gen Flag_CutScoreChange_oth = "N"
 gen AssmtType = "Regular"
+gen ProficiencyCriteria = "Levels 3 and 4"
+gen ParticipationRate = ""
+
+// Data Levels
 gen DataLevel = "School"
 replace DataLevel = "District" if StateAssignedSchID == "000"
 replace DataLevel = "State" if StateAssignedDistID == "9999"
-gen ProficiencyCriteria = ""
-gen ProficientOrAbove_count = ""
-gen ProficientOrAbove_percent = ""
-gen ParticipationRate = ""
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+sort DataLevel_n 
+drop DataLevel 
+rename DataLevel_n DataLevel 
 
 // Combined State School IDs
 // (School ID in format to match with NCES is combination of different IDs)
@@ -204,6 +240,8 @@ save "${output_files}/MN_AssmtData_2011.dta", replace
 
 use "$NCES_files/NCES_2010_School.dta", clear 
 
+keep state_location state_fips district_agency_type school_type ncesdistrictid state_leaid ncesschoolid seasch DistCharter SchLevel SchVirtual county_name county_code
+
 keep if substr(ncesschoolid, 1, 2) == "27"
 
 merge 1:m seasch using "${output_files}/MN_AssmtData_2011.dta", keep(match using) nogenerate
@@ -214,33 +252,42 @@ save "${output_files}/MN_AssmtData_2011.dta", replace
 
 use "$NCES_files/NCES_2010_District.dta", clear 
 
+rename agency_type district_agency_type
+
+keep state_location state_fips district_agency_type ncesdistrictid state_leaid DistCharter county_name county_code
+
 keep if substr(ncesdistrictid, 1, 2) == "27"
 
 merge 1:m state_leaid using "${output_files}/MN_AssmtData_2011.dta", keep(match using) nogenerate
 
+// Reformatting IDs
+replace StateAssignedDistID = StateAssignedDistID+"-"+DistrictTypeCode
+replace StateAssignedSchID = StateAssignedDistID+"-"+StateAssignedSchID
+
 // Removing extra variables and renaming NCES variables
 drop DistrictTypeCode
-rename district_agency_type DistrictType
-drop year
+rename district_agency_type DistType
 rename ncesschoolid NCESSchoolID
 rename ncesdistrictid NCESDistrictID
-drop lea_name
 rename state_leaid State_leaid
 rename state_location StateAbbrev
 generate State = "Minnesota"
-drop state_name
 rename county_code CountyCode
-rename school_level SchoolLevel
-rename school_type SchoolType
-rename charter Charter
-rename virtual Virtual
+rename school_type SchType
 rename state_fips StateFips
 rename county_name CountyName
 
-// Reordering variables and sorting data
-order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
+// Fixing missing state data
+replace StateAbbrev = "MN" if DataLevel == 1
+replace StateFips = 27 if DataLevel == 1
+replace DistName = "All Districts" if DataLevel == 1
+replace SchName = "All Schools" if DataLevel == 1
+replace SchName = "All Schools" if DataLevel == 2
 
-sort DataLevel StateAssignedDistID StateAssignedSchID GradeLevel Subject StudentGroup
+// Reordering variables and sorting data
+order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 // Saving and exporting transformed data
 

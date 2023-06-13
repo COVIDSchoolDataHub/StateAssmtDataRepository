@@ -9,36 +9,63 @@ use NCES_2021_District, clear
 use NCES_2020_District, clear
 rename ncesdistrictid NCESDistrictID
 
+
+
+
+
 import delimited "CA_Unmerged_Districts_2022_With_NCES.csv", case(preserve) clear
 
 
 gen State = "California"
 gen StateAbbrev = "CA"
 gen StateFips = 6 
-gen CountyName = .
+gen CountyName = ""
 gen CountyCode = . 
 
-order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter DistName
+rename Charter DistCharter
+rename DistrictType DistType
 
-keep State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter DistName
+
+// keep State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter DistName
 
 replace NCESDistrictID = "00" if NCESDistrictID == "missing"
 	
-destring NCESDistrictID, generate(NCESDistrictID1)
-drop NCESDistrictID
-rename NCESDistrictID1 NCESDistrictID
+//destring NCESDistrictID, generate(NCESDistrictID1)
+//drop NCESDistrictID
+//rename NCESDistrictID1 NCESDistrictID
 
-save CA_Unmerged_Districts_2022_With_NCES, replace 
+replace DistCharter = "Yes" if DistCharter == "LEA for federal programs"
+replace DistCharter = "No" if DistCharter == "Not a charter district"
+
+replace State_leaid = subinstr(State_leaid, "CA-", "", .)
+
+replace DistType = "Regular local school district" if DistType == "Regular public school district that is not a component of a supervisory union"
+replace DistType = "Charter agency" if DistType == "Independent charter district"
+// replace DistType = "Supervisory union" if DistType == "Local school district that is a component of a supervisory union"
+replace DistType = "Regional education service agency" if DistType == "Service agency"
+replace DistType = "State-operated agency" if DistType == "State agency"
+// replace DistType = "Other education agency" if DistType == "Specialized public school district"
+
+replace DistCharter = "Yes" if DistType == "Charter agency"
+replace DistCharter = "No" if DistType == "Regular local school district"
 
 
-use NCES_2021_District, clear
-append using CA_Unmerged_Districts_2022_With_NCES
-save NCES_2021_District_With_Extra_Districts, replace
+order State StateAbbrev StateFips DistType NCESDistrictID State_leaid DistCharter CountyName CountyCode DistName
+keep State StateAbbrev StateFips DistType NCESDistrictID State_leaid DistCharter CountyName CountyCode DistName
+
+// 
+save 1_CA_Unmerged_Districts_2022_With_NCES, replace 
+
+
+use 1_NCES_2021_District, clear
+append using 1_CA_Unmerged_Districts_2022_With_NCES
+save 1_NCES_2021_District_With_Extra_Districts, replace
+
 
 
 // All Others
+// import excel using "CA_Unmerged_Districts_2017_v2.xlsx", firstrow case(preserve) clear
 
-import excel using "CA_Unmerged_Districts_2017_v2.xlsx", firstrow case(preserve) clear
 
 global time 2018 2019 2021  
 
@@ -58,10 +85,10 @@ gen CountyCode = .
 drop DistName 
 rename DistName1 DistName
 
-
-order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter DistName CountyName CountyCode
-
-keep State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter DistName CountyName CountyCode
+// NEW ADDED
+rename Charter DistCharter
+rename DistrictType DistType
+// NEW ADDED
 
 if `a' != 2018 {
 replace NCESDistrictID = 00 if NCESDistrictID == .
@@ -77,24 +104,54 @@ drop NCESDistrictID
 rename NCESDistrictID1 NCESDistrictID
 }
 
-save CA_Unmerged_Districts_`a'_With_NCES, replace 
+// NEW ADDED
+replace DistCharter = "Yes" if DistCharter == "LEA for federal programs"
+replace DistCharter = "No" if DistCharter == "Not a charter district"
+
+replace DistCharter = "Yes" if DistType == "Charter agency"
+replace DistCharter = "No" if DistType == "Regular local school district"
 
 
-use NCES_`prevyear'_District, clear
+replace State_leaid = subinstr(State_leaid, "CA-", "", .)
+
+replace DistType = "Regular local school district" if DistType == "Regular public school district that is not a component of a supervisory union"
+replace DistType = "Charter agency" if DistType == "Independent charter district"
+
+replace DistType = "Regular local school district" if DistType == "Regular public school district that is not a component of a supervisory union"
+replace DistType = "Charter agency" if DistType == "Independent charter district"
+// replace DistType = "Supervisory union" if DistType == "Local school district that is a component of a supervisory union"
+replace DistType = "Regional education service agency" if DistType == "Service agency"
+replace DistType = "State-operated agency" if DistType == "State agency"
+// replace DistType = "Other education agency" if DistType == "Specialized public school district"
 
 
-decode State, generate(State1)
-decode DistrictType, generate(DistrictType1)
+
+order State StateAbbrev StateFips DistType NCESDistrictID State_leaid DistCharter CountyName CountyCode DistName
+keep State StateAbbrev StateFips DistType NCESDistrictID State_leaid DistCharter CountyName CountyCode DistName
+
+// NEW ADDED
+
+save 1_CA_Unmerged_Districts_`a'_With_NCES, replace 
 
 
-drop State DistrictType 
-rename State1 State
-rename DistrictType1 DistrictType
+use 1_NCES_`prevyear'_District, clear
 
-append using CA_Unmerged_Districts_`a'_With_NCES
-save NCES_`prevyear'_District_With_Extra_Districts, replace
+
+//decode State, generate(State1)
+//decode DistrictType, generate(DistrictType1)
+
+
+//drop State DistrictType 
+//rename State1 State
+// rename DistrictType1 DistrictType
+
+append using 1_CA_Unmerged_Districts_`a'_With_NCES
+save 1_NCES_`prevyear'_District_With_Extra_Districts, replace
 
 }
+
+
+
 
 
 // Prior to 2018 
@@ -105,25 +162,28 @@ foreach a in $time1 {
 
 local prevyear = `a' - 1 
 
-use NCES_`prevyear'_District, clear
+use 1_NCES_`prevyear'_District, clear
 
 
-decode State, generate(State1)
-decode DistrictType, generate(DistrictType1)
+//decode State, generate(State1)
+//decode DistrictType, generate(DistrictType1)
 
 
-drop State DistrictType 
-rename State1 State
-rename DistrictType1 DistrictType
+//drop State DistrictType 
+//rename State1 State
+//rename DistrictType1 DistrictType
 
-append using CA_Unmerged_Districts_2018_With_NCES
-save NCES_`prevyear'_District_With_Extra_Districts, replace
+append using 1_CA_Unmerged_Districts_2018_With_NCES
+
+save 1_NCES_`prevyear'_District_With_Extra_Districts, replace
 
 }
 
-use NCES_2018_District_With_Extra_Districts, clear
 
 
+
+
+//import excel using "CA_Unmerged_Districts_2016_v2.xlsx", firstrow case(preserve) clear
 
 // Second Round of Unmerged Districts
 
@@ -146,20 +206,77 @@ gen CountyCode = .
 drop DistName 
 rename DistName1 DistName
 
+// NEW ADDED
+rename Charter DistCharter
+rename DistrictType DistType
+// NEW ADDED
 
-order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter DistName CountyName CountyCode
+// NEW ADDED
+replace DistCharter = "Yes" if DistCharter == "LEA for federal programs"
+replace DistCharter = "No" if DistCharter == "Not a charter district"
 
-keep State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter DistName CountyName CountyCode
+replace DistCharter = "Yes" if DistType == "Charter agency"
+replace DistCharter = "No" if DistType == "Regular local school district"
+
+
+replace State_leaid = subinstr(State_leaid, "CA-", "", .)
+
+replace DistType = "Regular local school district" if DistType == "Regular public school district that is not a component of a supervisory union"
+replace DistType = "Charter agency" if DistType == "Independent charter district"
+
+replace DistType = "Regular local school district" if DistType == "Regular public school district that is not a component of a supervisory union"
+replace DistType = "Charter agency" if DistType == "Independent charter district"
+// replace DistType = "Supervisory union" if DistType == "Local school district that is a component of a supervisory union"
+replace DistType = "Regional education service agency" if DistType == "Service agency"
+replace DistType = "State-operated agency" if DistType == "State agency"
+// replace DistType = "Other education agency" if DistType == "Specialized public school district"
+
+
+
+order State StateAbbrev StateFips DistType NCESDistrictID State_leaid DistCharter CountyName CountyCode DistName
+keep State StateAbbrev StateFips DistType NCESDistrictID State_leaid DistCharter CountyName CountyCode DistName
+
+// NEW ADDED
 
 replace NCESDistrictID = "00" if NCESDistrictID == "missing"
 
-save CA_Unmerged_Districts_`a'_With_NCES, replace 
-
-use NCES_`prevyear'_District_With_Extra_Districts, clear
 
 
 
-append using CA_Unmerged_Districts_`a'_With_NCES
-save NCES_`prevyear'_District_With_Extra_Districts_2, replace
+save 1_CA_Unmerged_Districts_`a'_With_NCES, replace 
+
+use 1_NCES_`prevyear'_District_With_Extra_Districts, clear
+
+
+
+append using 1_CA_Unmerged_Districts_`a'_With_NCES
+
+
+
+save 1_NCES_`prevyear'_District_With_Extra_Districts_2, replace
 
 }
+
+
+
+
+use 1_NCES_2012_District_With_Extra_Districts_2, clear
+replace DistName = ustrtitle(DistName)
+save 1_NCES_2012_District_With_Extra_Districts_2, replace
+
+use 1_NCES_2011_District_With_Extra_Districts_2, clear
+replace DistName = ustrtitle(DistName)
+save 1_NCES_2011_District_With_Extra_Districts_2, replace
+
+use 1_NCES_2010_District_With_Extra_Districts_2, clear
+replace DistName = ustrtitle(DistName)
+save 1_NCES_2010_District_With_Extra_Districts_2, replace
+
+use 1_NCES_2009_District_With_Extra_Districts_2, clear
+replace DistName = ustrtitle(DistName)
+save 1_NCES_2009_District_With_Extra_Districts_2, replace
+
+
+use 1_NCES_2012_District_With_Extra_Districts_2, clear
+
+

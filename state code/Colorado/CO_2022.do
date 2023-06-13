@@ -1,5 +1,4 @@
 
-
 global path "/Users/hayden/Desktop/Research/CO/2022"
 global nces "/Users/hayden/Desktop/Research/NCES"
 global disagg "/Users/hayden/Desktop/Research/CO/Disaggregate/2022"
@@ -24,7 +23,6 @@ gen StudentSubGroup = "All students"
 save "${path}/CO_OriginalData_2022_all.dta", replace
 
 
-
 ///////// Section 2: Preparing Disaggregate Data
 
 
@@ -32,7 +30,6 @@ save "${path}/CO_OriginalData_2022_all.dta", replace
 	
 	
 import excel "${disagg}/2022 CMAS ELA School and District Achievement Results - Disaggregated by Group.xlsx", sheet("Gender") cellrange(A13:Y16170) firstrow case(lower) clear
-
 
 rename gender StudentSubGroup
 gen StudentGroup = "Gender"
@@ -61,6 +58,16 @@ gen StudentGroup = "Race"
 gen subject="ela"
 
 save "${path}/CO_2022_ELA_raceEthnicity.dta", replace
+
+
+
+import excel "${disagg}/2022 CMAS ELA School and District Achievement Results - Disaggregated by Group.xlsx", sheet("Free Reduced Lunch") cellrange(A13:Y16170) firstrow case(lower) clear
+
+rename freereducedlunchstatus StudentSubGroup
+gen StudentGroup = "Economic Status"
+gen subject="ela"
+
+save "${path}/CO_2022_ELA_econstatus.dta", replace
 
 
 
@@ -97,6 +104,15 @@ gen subject="math"
 save "${path}/CO_2022_mat_raceEthnicity.dta", replace
 
 
+import excel "${disagg}/2022 CMAS Math School and District Achievement Results - Disaggregated by Group.xlsx", sheet("Free Reduced Lunch") cellrange(A13:Y16166) firstrow case(lower) clear
+
+rename freereducedlunchstatus StudentSubGroup
+gen StudentGroup = "Economic Status"
+gen subject="math"
+
+save "${path}/CO_2022_mat_econstatus.dta", replace
+
+
 
 
 ///////// Section 3: Appending Disaggregate Data
@@ -120,6 +136,8 @@ append using "${path}/CO_2022_ELA_language.dta"
 append using "${path}/CO_2022_mat_language.dta"
 append using "${path}/CO_2022_ELA_raceEthnicity.dta"
 append using "${path}/CO_2022_mat_raceEthnicity.dta"
+append using "${path}/CO_2022_mat_econstatus.dta"
+append using "${path}/CO_2022_ELA_econstatus.dta"
 
 
 drop if level=="* The value for this field is not displayed in order to protect student privacy."
@@ -134,24 +152,21 @@ gen state_leaidnumber =.
 gen state_leaid = string(state_leaidnumber)
 replace state_leaid = "CO-" + districtcode
 
-gen seaschnumber=.
-gen st_schid = string(seaschnumber)
-replace st_schid = "CO-" + districtcode + "-" + schoolcode
+gen seasch=""
+replace seasch = districtcode + "-" + schoolcode
 
 
 save "${path}/CO_OriginalData_2022_all.dta", replace
 
-	// Merges district variables from NCES
-
-import delimited "${nces}/NCES_2020-2021_District_Demographics_opt.csv", clear 
+		// Merges district variables from NCES
+	
+use "${nces}/NCES_2021_District.dta"
 drop if state_fips != 8
 save "${path}/CO_NCES_2021_District.dta", replace
 
 
-use "${path}/CO_OriginalData_2022_all.dta", clear
-
+use "${path}/CO_OriginalData_2022_all.dta"
 merge m:1 state_leaid using "${path}/CO_NCES_2021_District.dta"
-
 
 rename _merge district_merge
 
@@ -162,15 +177,17 @@ save "${path}/CO_OriginalData_2022_all.dta", replace
 
 
 	// Merges school variables from NCES
-use "${nces}/NCES_2021_School.dta", clear 
+	
+use "${nces}/NCES_2021_School.dta"
 drop if state_fips != 8
 save "${path}/CO_NCES_2021_School.dta", replace
 
-use "${path}/CO_OriginalData_2022_all.dta", clear
 
-tostring year, replace
-merge m:1 st_schid state_fips using "${path}/CO_NCES_2021_School.dta"
+use "${path}/CO_OriginalData_2022_all.dta"
+	
+merge m:1 seasch state_fips using "${path}/CO_NCES_2021_School.dta"
 drop if state_fips != 8
+
 
 
 ///////// Section 5: Reformatting
@@ -193,60 +210,27 @@ rename state_fips StateFips
 rename ncesschoolid NCESSchoolID
 rename ncesdistrictid NCESDistrictID
 rename state_leaid State_leaid
-rename district_agency_type DistrictType
-rename charter Charter
+rename district_agency_type DistType
 rename state_location StateAbbrev
 rename county_name CountyName
 rename county_code CountyCode
-rename school_type SchoolType
-rename virtual Virtual
-rename school_level SchoolLevel
-rename st_schid seasch
+rename school_type SchType
 
 
 //Rename proficiency levels
-rename numberpartiallymetexpectation Lev1_count
-rename percentpartiallymetexpectatio Lev1_percent
-rename numberapproachedexpectations Lev2_count
-rename percentapproachedexpectations Lev2_percent
-rename numbermetexpectations Lev3_count
-rename percentmetexpectations Lev3_percent
-rename numberexceededexpectations Lev4_count
-rename percentexceededexpectations Lev4_percent
+rename numberdidnotyetmeetexpectat Lev1_count
+rename percentdidnotyetmeetexpecta Lev1_percent
+rename numberpartiallymetexpectation Lev2_count
+rename percentpartiallymetexpectatio Lev2_percent
+rename numberapproachedexpectations Lev3_count
+rename percentapproachedexpectations Lev3_percent
+rename numbermetexpectations Lev4_count
+rename percentmetexpectations Lev4_percent
+rename numberexceededexpectations Lev5_count
+rename percentexceededexpectations Lev5_percent
 rename numbermetorexceededexpectati ProficientOrAbove_count
 rename percentmetorexceededexpectat ProficientOrAbove_percent
 
-
-//Combines ELA/Math proficiency levels 1 and 2 for consistancy with science assessments
-
-destring numberdidnotyetmeetexpectat percentdidnotyetmeetexpecta Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent ProficientOrAbove_count, replace ignore(",*-")
-
-gen NewLev1_count=.
-gen NewLev1_percent=.
-replace NewLev1_count=numberdidnotyetmeetexpectat+Lev1_count
-replace NewLev1_percent=percentdidnotyetmeetexpecta+Lev1_percent
-replace NewLev1_count=numberdidnotyetmeetexpectat if Lev1_count==.
-replace NewLev1_percent=percentdidnotyetmeetexpecta if Lev1_percent==.
-replace NewLev1_count=Lev1_count if numberdidnotyetmeetexpectat==.
-replace NewLev1_percent=Lev1_percent if percentdidnotyetmeetexpecta==.
-
-replace ProficientOrAbove_count=Lev3_count+Lev4_count if StudentSubGroup=="All students"
-
-drop Lev1_count Lev1_percent numberdidnotyetmeetexpectat percentdidnotyetmeetexpecta
-rename NewLev1_count Lev1_count
-rename NewLev1_percent Lev1_percent
-
-
-
-tostring Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent, replace force
-replace Lev1_count="*" if Lev1_count=="."
-replace Lev2_count="*" if Lev2_count=="."
-replace Lev3_count="*" if Lev3_count=="."
-replace Lev4_count="*" if Lev4_count=="."
-replace Lev1_percent="*" if Lev1_percent=="."
-replace Lev2_percent="*" if Lev2_percent=="."
-replace Lev3_percent="*" if Lev3_percent=="."
-replace Lev4_percent="*" if Lev4_percent=="."
 
 //	Create new variables
 
@@ -255,26 +239,10 @@ gen Flag_AssmtNameChange="N"
 gen Flag_CutScoreChange_ELA="N"
 gen Flag_CutScoreChange_math="N"
 gen Flag_CutScoreChange_read=""
-gen Flag_CutScoreChange_oth="N"
+gen Flag_CutScoreChange_oth=""
 gen AssmtType = "Regular"
-gen ProficiencyCriteria = "Lev3 or Lev 4"
-gen Lev5_count ="*"
-gen Lev5_percent="*"
-rename year SchYear
-replace SchYear="2021-22" if SchYear=="2022"
-
-
-
-
-//	Reorder variables
-
-order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
-
-
-
-//	Drop unneccesary variables
-
-drop numberofvalidscores numberofnoscores standarddeviation state_leaidnumber seaschnumber lea_name participationrate2021 participationrate2019
+gen ProficiencyCriteria = "Lev4 or Lev5"
+gen SchYear="2021-22"
 
 
 // Relabel variable values
@@ -306,7 +274,7 @@ replace StateAbbrev="CO" if StateAbbrev==""
 
 replace SchYear="2021-22"
 
-replace State="Colorado" if State==""
+replace State=8 if State==.
 
 tab GradeLevel
 
@@ -389,23 +357,24 @@ replace ParticipationRate="*" if ParticipationRate=="."
 
 //// ADJUST PERCENTS
 
-destring Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent, replace ignore(",* %NA<>=-")
+destring Lev1_percent Lev2_percent Lev3_percent Lev4_percent Lev5_percent ProficientOrAbove_percent, replace ignore(",* %NA<>=-")
 
 replace Lev1_percent=Lev1_percent/100
 replace Lev2_percent=Lev2_percent/100
 replace Lev3_percent=Lev3_percent/100
 replace Lev4_percent=Lev4_percent/100
+replace Lev5_percent=Lev5_percent/100
 replace ProficientOrAbove_percent=ProficientOrAbove_percent/100
 
 
-tostring Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent, replace force
+tostring Lev1_percent Lev2_percent Lev3_percent Lev4_percent Lev5_percent ProficientOrAbove_percent, replace force
 
 replace Lev1_percent="*" if Lev1_percent=="."
 replace Lev2_percent="*" if Lev2_percent=="."
 replace Lev3_percent="*" if Lev3_percent=="."
 replace Lev4_percent="*" if Lev4_percent=="."
+replace Lev5_percent="*" if Lev5_percent=="."
 replace ProficientOrAbove_percent="*" if ProficientOrAbove_percent=="."
-
 
 
 
@@ -472,11 +441,79 @@ tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested="*" if StudentGroup_TotalTested=="999999999"
 
 
-order State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
+////
 
-drop intSubject intGrade intStudentGroup _merge 
+replace StateAbbrev="CO" if StateAbbrev==""
+replace StateAssignedSchID="" if StateAssignedSchID=="0000"
 
-keep State StateAbbrev StateFips NCESDistrictID State_leaid DistrictType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
+drop if GradeLevel=="G38" & Subject=="math"
+
+replace StateAssignedSchID="" if StateAssignedSchID=="0000"
+replace StudentSubGroup="All Students" if StudentSubGroup=="All students"
+replace StudentSubGroup="Black or African American" if StudentSubGroup=="Black"
+replace StudentSubGroup="Native Hawaiian or Pacific Islander" if StudentSubGroup=="Hawaiian/Pacific Islander"
+replace StudentSubGroup="Hispanic or Latino" if StudentSubGroup=="Hispanic"
+replace StudentSubGroup="English Learner" if StudentSubGroup=="English learner"
+replace StudentSubGroup="English Proficient" if StudentSubGroup=="English proficient"
+replace StudentSubGroup="Two or More" if StudentSubGroup=="Two or More Races"
+replace StudentSubGroup="Unknown" if StudentSubGroup=="Unreported"
+replace StudentSubGroup="Unknown" if StudentSubGroup=="Unreported/ Not Applicable"
+
+replace StudentGroup="All Students" if StudentGroup=="All students"
+replace StudentGroup="EL Status" if StudentGroup=="EL status"
+replace StudentGroup="RaceEth" if StudentGroup=="Race"
+
+
+keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+
+order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+
+replace SchName="All Schools" if DataLevel=="State"
+replace SchName="All Schools" if DataLevel=="District"
+
+
+replace DataLevel="0" if DataLevel=="State"
+replace DataLevel="1" if DataLevel=="District"
+replace DataLevel="2" if DataLevel=="School"
+
+destring DataLevel, replace force
+
+label define LevelIndicator 0 "State" 1 "District" 2 "School"
+label values DataLevel LevelIndicator
+
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
+tostring NCESDistrictID, replace force
+tostring NCESSchoolID, replace force
+
+replace StudentSubGroup="Economically Disadvantaged" if StudentSubGroup=="Free/Reduced Lunch Eligible"
+replace StudentSubGroup="Not Economically Disadvantaged" if StudentSubGroup=="Not Free/Reduced Lunch Eligible"
+
+replace Lev1_count="*" if Lev1_count=="- -"
+replace Lev2_count="*" if Lev2_count=="- -"
+replace Lev3_count="*" if Lev3_count=="- -"
+replace Lev4_count="*" if Lev4_count=="- -"
+replace Lev5_count="*" if Lev5_count=="- -"
+replace Lev1_percent="*" if Lev1_percent=="- -"
+replace Lev2_percent="*" if Lev2_percent=="- -"
+replace Lev3_percent="*" if Lev3_percent=="- -"
+replace Lev4_percent="*" if Lev4_percent=="- -"
+replace Lev5_percent="*" if Lev5_percent=="- -"
+replace AvgScaleScore="*" if AvgScaleScore=="- -"
+replace ProficientOrAbove_count="*" if ProficientOrAbove_count=="- -"
+replace ProficientOrAbove_percent="*" if ProficientOrAbove_percent=="- -"
+replace ParticipationRate="*" if ParticipationRate=="- -"
+
+replace StudentSubGroup="Other" if StudentGroup=="EL Status" & StudentSubGroup=="Unknown"
+
+
+replace seasch="" if DataLevel==0
+replace State_leaid="" if DataLevel==0
+replace StateAssignedDistID="" if DataLevel==0
+
+replace Lev5_count="*" if Lev5_count==""
+replace ProficientOrAbove_count="*" if ProficientOrAbove_count==""
+replace AvgScaleScore="*" if AvgScaleScore==""
 
 
 export delimited using "${output}/CO_AssmtData_2022.csv", replace

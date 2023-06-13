@@ -16,19 +16,6 @@ rename ncesschoolid NCESSchoolID
 rename lea_name DistName
 rename school_type SchType
 
-** Label Variables
-
-label var State "State name"
-label var StateAbbrev "State abbreviation"
-label var StateFips "State FIPS Id"
-label var NCESDistrictID "NCES district ID"
-label var State_leaid "State LEA ID"
-label var DistCharter "Charter indicator"
-label var NCESSchoolID "NCES school ID"
-label var SchType "School type as defined by NCES"
-label var SchVirtual "Virtual school indicator"
-label var SchLevel "School level"
-
 ** Drop Excess Variables
 
 drop year district_agency_type district_agency_type_num county_code county_name school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch dist_lowest_grade_offered dist_highest_grade_offered
@@ -85,28 +72,13 @@ rename SchType2 SchType
 rename SchVirtual2 SchVirtual
 tostring seasch, replace force
 
-** Label Variables
-
-label var State "State name"
-label var StateAbbrev "State abbreviation"
-label var StateFips "State FIPS Id"
-label var NCESDistrictID "NCES district ID"
-label var State_leaid "State LEA ID"
-label var DistCharter "Charter indicator"
-label var CountyName "County in which the district or school is located."
-label var CountyCode "County code in which the district or school is located, also referred to as the county-level FIPS code"
-label var NCESSchoolID "NCES school ID"
-label var SchType "School type as defined by NCES"
-label var SchVirtual "Virtual school indicator"
-label var SchLevel "School level"
-
 ** Isolate Louisiana Data
 
 drop if StateFips != 22
 append using "${path}/Semi-Processed Data Files/Caneview_K8_School_2022.dta"
 save "${path}/Semi-Processed Data Files/2020_21_NCES_Cleaned_School.dta", replace
 
-** 2010-21 NCES District Data
+** 2020-21 NCES District Data
 
 use "${path}/NCES/District/NCES_2020_District.dta"
 
@@ -133,22 +105,19 @@ drop State DistType
 rename DistType2 DistType
 rename State2 State
 
-** Label Variables
-
-label var NCESDistrictID "NCES district ID"
-label var State_leaid "State LEA ID"
-label var CountyName "County in which the district or school is located."
-label var CountyCode "County code in which the district or school is located, also referred to as the county-level FIPS code"
-label var State "State name"
-label var StateAbbrev "State abbreviation"
-label var StateFips "State FIPS Id"
-label var DistCharter "Charter indicator"
-label var DistType "District type as defined by NCES"
-
 * Isolate Louisiana Data
 
 drop if StateFips != 22
 save "${path}/Semi-Processed Data Files/2020_21_NCES_Cleaned_District.dta", replace
+
+** 2020-21 Participation Data by District
+
+import excel "${path}/Original Data Files/LEAP Participation by District_Grade 3-8.xlsx", sheet("Sheet1") firstrow allstring clear
+drop C D E F G I J L M O P K N Q SiteName
+rename H ParticipationRate
+rename SiteCode StateAssignedDistID
+drop if StateAssignedDistID == "" | ParticipationRate == ""
+save "${path}/Semi-Processed Data Files/ParticipationbyDistrict2021.dta", replace
 
 ** 2020-21 Proficiency Data
 
@@ -202,17 +171,9 @@ gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_read = ""
 gen Flag_CutScoreChange_oth = "Y"
 
-** Label Flags
-
-label var Flag_AssmtNameChange "Flag denoting a change in the assessment's name from the prior year only."
-label var Flag_CutScoreChange_ELA "Flag denoting a change in scoring determinations in ELA from the prior year only."
-label var Flag_CutScoreChange_math "Flag denoting a change in scoring determinations in math from the prior year only."
-label var Flag_CutScoreChange_read "Flag denoting a change in scoring determinations in reading from the prior year only."
-
 ** Generate Empty Variables
 
 gen AvgScaleScore = "--"
-gen ParticipationRate = "--"
 gen StudentGroup_TotalTested = "--"
 gen StudentSubGroup_TotalTested = "--"
 
@@ -242,6 +203,20 @@ replace StudentGroup = "EL Status" if StudentSubGroup=="English Learner"
 replace StudentGroup = "All Students" if StudentSubGroup=="All Students"
 replace StudentGroup = "Economic Status" if StudentSubGroup=="Economically Disadvantaged"
 gen ProficiencyCriteria = "Levels 4 and 5"
+
+** Merge Participation Data by District
+
+merge m:1 StateAssignedDistID using "${path}/Semi-Processed Data Files/ParticipationbyDistrict2021.dta"
+replace ParticipationRate = "--" if DataLevel == "School"
+replace ParticipationRate = "--" if ParticipationRate == ""
+generate greaterthan99 = 1 if ParticipationRate == ">=99%"
+generate str id = cond(substr(ParticipationRate,-1,.)=="%",subinstr(ParticipationRate,"%","",.),ParticipationRate) if ParticipationRate != "--"
+destring id, replace force
+replace id = id / 100 if id != .
+tostring(id), replace force
+replace ParticipationRate = id if id !="."
+replace ParticipationRate = "≥.99" if greaterthan99 == 1
+drop _merge id greaterthan99
 
 ** Convert Proficiency Data into Percentages
 
@@ -300,7 +275,6 @@ keep if StudentGroup != "StudentGroup"
 gen state_leaidnumber =.
 gen State_leaid = string(state_leaidnumber)
 replace State_leaid = "LA-" + StateAssignedDistID if DataLevel != "State"
-label var State_leaid "State LEA ID"
 gen seaschnumber=.
 gen seasch = string(seaschnumber)
 replace seasch = StateAssignedDistID + "-" + StateAssignedSchID if DataLevel == "School"
@@ -344,9 +318,6 @@ recast int StateFips
 
 ** Label Variables
 
-rename State StateName
-label var StateName "State name"
-rename StateName State
 label var StateAbbrev "State abbreviation"
 label var StateFips "State FIPS Id"
 label var SchYear "School year in which the data were reported. (e.g., 2021-22)"
@@ -354,6 +325,7 @@ label var AssmtName "Name of state assessment"
 label var AssmtType "Assessment type"
 label var DataLevel "Level at which the data are reported"
 label var DistName "District name"
+label var DistCharter "Charter indicator - district"
 label var StateAssignedDistID "State-assigned district ID"
 label var SchName "School name"
 label var StateAssignedSchID "State-assigned school ID"
@@ -378,10 +350,29 @@ label var ProficiencyCriteria "Levels included in determining proficiency status
 label var ProficientOrAbove_count "Count of students achieving proficiency or above on the state assessment."
 label var ProficientOrAbove_percent "Percent of students achieving proficiency or above on the state assessment."
 label var ParticipationRate "Participation rate."
+label var NCESDistrictID "NCES district ID"
+label var State_leaid "State LEA ID"
+label var CountyName "County in which the district or school is located."
+label var CountyCode "County code in which the district or school is located, also referred to as the county-level FIPS code"
+label var State "State name"
+label var StateAbbrev "State abbreviation"
+label var StateFips "State FIPS Id"
+label var DistType "District type as defined by NCES"
+label var NCESDistrictID "NCES district ID"
+label var NCESSchoolID "NCES school ID"
+label var SchType "School type as defined by NCES"
+label var SchVirtual "Virtual school indicator"
+label var SchLevel "School level"
+label var Flag_AssmtNameChange "Flag denoting a change in the assessment's name from the prior year only."
+label var Flag_CutScoreChange_ELA "Flag denoting a change in scoring determinations in ELA from the prior year only."
+label var Flag_CutScoreChange_math "Flag denoting a change in scoring determinations in math from the prior year only."
+label var Flag_CutScoreChange_read "Flag denoting a change in scoring determinations in reading from the prior year only."
 
 ** Fix Variable Order 
 
 order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 ** Export 2020-21 Assessment Data
 
