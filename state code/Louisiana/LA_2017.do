@@ -248,7 +248,12 @@ replace SchName = "All Schools" if DataLevel == "State"
 replace SchName = "All Schools" if DataLevel == "District"
 replace DistName = "All Districts" if DataLevel == "State"
 replace StateAssignedDistID = "" if DataLevel == "State"
+replace StateAssignedSchID = "" if DataLevel == "State" | DataLevel == "District"
 replace State_leaid = "" if DataLevel == "State"
+replace SchLevel = ""  if DataLevel == "State" | DataLevel == "District"
+replace SchVirtual = ""  if DataLevel == "State" | DataLevel == "District"
+replace DistType = "" if DataLevel == "State"
+replace DistCharter = "" if DataLevel == "State"
 replace seasch = "" if DataLevel == "State" | DataLevel == "District"
 
 ** Relabel GradeLevel Values

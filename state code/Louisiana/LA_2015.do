@@ -227,15 +227,6 @@ merge m:1 seasch StateAbbrev using "${path}/Semi-Processed Data Files/2014_15_NC
 drop if district_merge != 3 & DataLevel != "State"| _merge !=3 & DataLevel == "School"
 drop state_leaidnumber seaschnumber _merge district_merge
 
-** Standardize Non-School Level Data
-
-replace SchName = "All Schools" if DataLevel == "State"
-replace SchName = "All Schools" if DataLevel == "District"
-replace DistName = "All Districts" if DataLevel == "State"
-replace StateAssignedDistID = "" if DataLevel == "State"
-replace State_leaid = "" if DataLevel == "State"
-replace seasch = "" if DataLevel == "State" | DataLevel == "District"
-
 ** Standardize Charter Data
 
 replace DistCharter="No" if DistCharter=="Not applicable"
@@ -247,11 +238,6 @@ replace GradeLevel = "G0" + GradeLevel
 
 ** Fix Variable Types
 
-label def DataLevel 1 "State" 2 "District" 3 "School"
-encode DataLevel, gen(DataLevel_n) label(DataLevel)
-sort DataLevel_n 
-drop DataLevel 
-rename DataLevel_n DataLevel 
 recast int CountyCode
 drop State StateAbbrev StateFips
 gen State = "Louisiana"
@@ -259,6 +245,28 @@ gen StateAbbrev = "LA"
 gen StateFips = 22
 recast int StateFips
 replace SchVirtual = "Missing/not reported"
+
+** Standardize Non-School Level Data
+
+replace SchName = "All Schools" if DataLevel == "State"
+replace SchName = "All Schools" if DataLevel == "District"
+replace DistName = "All Districts" if DataLevel == "State"
+replace StateAssignedDistID = "" if DataLevel == "State"
+replace StateAssignedSchID = "" if DataLevel == "State" | DataLevel == "District"
+replace State_leaid = "" if DataLevel == "State"
+replace SchLevel = ""  if DataLevel == "State" | DataLevel == "District"
+replace SchVirtual = ""  if DataLevel == "State" | DataLevel == "District"
+replace DistType = "" if DataLevel == "State"
+replace DistCharter = "" if DataLevel == "State"
+replace seasch = "" if DataLevel == "State" | DataLevel == "District"
+
+** Fix DataLevel Format
+
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+sort DataLevel_n 
+drop DataLevel 
+rename DataLevel_n DataLevel
 
 ** Label Variables
 

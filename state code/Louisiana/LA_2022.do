@@ -158,9 +158,9 @@ replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGro
 replace StudentSubGroup = "All Students" if StudentSubGroup=="Total Population"
 replace StudentGroup = "RaceEth" if StudentSubGroup=="American Indian or Alaska Native" | StudentSubGroup=="Asian" | StudentSubGroup=="Black or African American" | StudentSubGroup=="Native Hawaiian or Pacific Islander" | StudentSubGroup=="Two or More" | StudentSubGroup=="White" | StudentSubGroup=="Hispanic or Latino"
 replace StudentGroup = "Gender" if StudentSubGroup=="Male" | StudentSubGroup=="Female"
-replace StudentGroup = "EL Status" if StudentSubGroup=="English learner"
+replace StudentGroup = "EL Status" if StudentSubGroup=="English Learner"
 replace StudentGroup = "All Students" if StudentSubGroup=="All Students"
-replace StudentGroup = "Economic Status" if StudentSubGroup=="Economically Disadvantaged"
+replace StudentGroup = "Economic Status" if StudentSubGroup=="Economically Disadvantaged" | StudentSubGroup=="Not Economically Disadvantaged"
 gen ProficiencyCriteria = "Levels 4 and 5"
 
 ** Merge Participation Data by District
@@ -245,6 +245,7 @@ drop if district_merge != 3 & DataLevel != "State"
 
 merge m:1 seasch StateFips using "${path}/Semi-Processed Data Files/2021_22_NCES_Cleaned_School.dta"
 drop if _merge !=3 & DataLevel == "School"
+drop if SchYear == ""
 drop state_leaidnumber seaschnumber district_merge _merge
 
 ** Standardize Non-School Level Data
@@ -253,13 +254,18 @@ replace SchName = "All Schools" if DataLevel == "State"
 replace SchName = "All Schools" if DataLevel == "District"
 replace DistName = "All Districts" if DataLevel == "State"
 replace StateAssignedDistID = "" if DataLevel == "State"
+replace StateAssignedSchID = "" if DataLevel == "State" | DataLevel == "District"
 replace State_leaid = "" if DataLevel == "State"
+replace SchLevel = ""  if DataLevel == "State" | DataLevel == "District"
+replace SchVirtual = ""  if DataLevel == "State" | DataLevel == "District"
+replace DistType = "" if DataLevel == "State"
+replace DistCharter = "" if DataLevel == "State"
 replace seasch = "" if DataLevel == "State" | DataLevel == "District"
 
 ** Relabel GradeLevel Values
 
 tostring GradeLevel, replace
-replace GradeLevel = "G0" + GradeLevel
+replace GradeLevel = "G" + GradeLevel
 
 ** Fix Variable Types
 
