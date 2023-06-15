@@ -157,7 +157,7 @@ gen Flag_CutScoreChange_math="N"
 gen Flag_CutScoreChange_read=""
 gen Flag_CutScoreChange_oth="N"
 replace Flag_CutScoreChange_oth = "Y" if `year'==2019 & Subject== "sci"
-
+replace Flag_AssmtNameChange = "Y" if `year' == 2018 & Subject== "sci"
 
 
 
