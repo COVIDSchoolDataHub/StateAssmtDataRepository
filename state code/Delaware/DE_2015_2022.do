@@ -11,9 +11,8 @@ foreach year in 2015 2016 2017 2018 2019 2021 2022 { //2020 data would be empty,
 
 import excel "${original}/DE_OriginalData_`year'_all.xlsx", sheet("Sheet1") firstrow
 
-//DROPPING SUPPRESSED DATA [CODE HIDDEN]
 
-*drop if RowStatus== "REDACTED"
+
 
 //Defining DataLevel
 gen DataLevel =""
@@ -170,6 +169,18 @@ drop PctProficient
 replace ProficientOrAbove_percent = substr(ProficientOrAbove_percent,1,4)
 recast str4 ProficientOrAbove_percent
 replace SchVirtual = "Missing/not reported" if SchVirtual == ""
+
+//SUPPRESSED DATA 
+tostring StudentGroup_TotalTested, replace
+tostring StudentSubGroup_TotalTested, replace 
+
+
+replace StudentGroup_TotalTested = "*" if RowStatus== "REDACTED"
+replace StudentSubGroup_TotalTested = "*" if RowStatus== "REDACTED"
+replace AvgScaleScore = "*" if RowStatus== "REDACTED"
+replace ProficientOrAbove_count = "*" if RowStatus== "REDACTED"
+replace ProficientOrAbove_percent = "*" if RowStatus== "REDACTED"
+
 
 
 //Proficiency Criteria
