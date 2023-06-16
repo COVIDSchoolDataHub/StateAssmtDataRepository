@@ -100,7 +100,7 @@ replace StudentSubGroup = "All Students" if StudentGroup == "All Students"
 
 rename Tested StudentSubGroup_TotalTested
 destring StudentSubGroup_TotalTested, ignore (",") replace
-egen StudentGroup_TotalTested = total(StudentSubGroup_TotalTested), by(AssessmentName ContentArea DataLevel StudentGroup GradeLevel)
+egen StudentGroup_TotalTested = total(StudentSubGroup_TotalTested), by(StateAssignedSchID StateAssignedDistID AssessmentName ContentArea DataLevel StudentGroup GradeLevel)
 
 
 
