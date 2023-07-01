@@ -1,3 +1,5 @@
+cd "/Users/joshuasilverman/Documents/State Test Project/New York/Originaltext"
+
 local subjects "ELA MATH SCIENCE"
 
 foreach year in 2018 2019 2021 2022 {
@@ -10,7 +12,7 @@ foreach year in 2018 2019 2021 2022 {
         if _rc == 0 {
             di "`filename' exists, opening file"
             import delimited using "`filename'", clear
-            gen subject = "`subject'"
+            
             
             // Loop over each variable in the dataset
             foreach var of varlist _all {
