@@ -7,7 +7,7 @@ local nces_school "/Users/joshuasilverman/Documents/State Test Project/NCES/Scho
 local nces_district "/Users/joshuasilverman/Documents/State Test Project/NCES/District"
 
 
-foreach year in 2007 2008 2009 2010 2011 2012 2013 2014 2015 2016 2017 {
+foreach year in 2006 2007 2008 2009 2010 2011 2012 2013 2014 2015 2016 2017{
 local prevyear =`=`year'-1'
 use "`original'/Combined_`year'"
 
@@ -41,19 +41,21 @@ order ENTITY_CD
 drop if strlen(ENTITY_CD)<12
 drop if substr(ENTITY_CD,3,10)== "0000000000"
 gen DataLevel= "State" if ENTITY_CD== "111111111111"
-replace DataLevel= "District" if substr(ENTITY_CD,9,4)=="0000"
-replace DataLevel= "School" if substr(ENTITY_CD,9,4) !="0000"
+replace DataLevel= "District" if substr(ENTITY_CD,9,4)=="0000" & substr(ENTITY_CD,7,2) !="86"
+replace DataLevel= "School" if substr(ENTITY_CD,9,4) !="0000" & substr(ENTITY_CD,7,2) !="86"
+replace DataLevel= "School" if substr(ENTITY_CD,7,2) =="86" //All Charter schools are their own district
 replace DataLevel = "State" if ENTITY_CD== "111111111111"
 gen StateAssignedSchID = ENTITY_CD if DataLevel== "School"
 gen StateAssignedDistID = ENTITY_CD if DataLevel== "District"
-replace StateAssignedDistID = substr(ENTITY_CD,1,8) + "0000" if DataLevel=="School"
+replace StateAssignedDistID = substr(ENTITY_CD,1,8) + "0000" if DataLevel=="School" & strpos(ENTITY_NAME, "CHARTER") ==0
+replace StateAssignedDistID = ENTITY_CD if strpos(ENTITY_NAME, "CHARTER") !=0 & DataLevel == "School"
 
 //Merging and cleaning NCES Data
 tempfile temp1
 save "`temp1'"
 clear
 use "`nces_school'/NCES_`prevyear'_School.dta"
-drop if state_location != "NY"
+drop if state_location != "NY" & state_fips !=36
 drop if seasch == ""
 
 if `year' == 2017 {
@@ -66,23 +68,36 @@ rename SchVirtual1 SchVirtual
 else {
 	gen StateAssignedSchID = seasch
 }
+//Correcting StateAssignedSchID and StateAssignedDistID for certain schools
+replace StateAssignedSchID = "310300860871" if school_name == "OPPORTUNITY CHARTER SCHOOL" & `year' ==2006
+replace StateAssignedSchID = "310500860848" if school_name == "HARLEM VILLAGE ACADEMY CHARTER SCHOOL EHVACS" & `year' == 2006
+replace StateAssignedSchID = "331700860841" if school_name == "EXPLORE CHARTER SCHOOL" & `year'==2007 & school_name == lea_name
+replace StateAssignedSchID = "331300011527" if strpos(school_name, "URBAN ASSEMBLY INSTITUTE OF MATH") !=0 & `year' == 2009 //NCES cuts full name off
+replace StateAssignedSchID = "581004020001" if school_name == "FISHERS ISLAND SCHOOL" & `year' == 2010
+replace StateAssignedSchID = "331400860930" if school_name == "THE ETHICAL COMMUNITY CHARTER SCHOOL" & `year' == 2012
 merge 1:m StateAssignedSchID using "`temp1'"
-drop if _merge !=3 & DataLevel == "School"
+
+*drop if _merge !=3 & DataLevel == "School"
 rename _merge _merge1 
 tempfile temp2
 save "`temp2'"
 clear
 use "`nces_district'/NCES_`prevyear'_District.dta"
-drop if state_location != "NY"
+drop if state_location != "NY" & state_fips !=36
 if `year' == 2017 {
 gen StateAssignedDistID = substr(state_leaid, strpos(state_leaid, "-")+1, 12)
 }
 else {
 gen StateAssignedDistID = state_leaid
 }
+//Correcting StateAssignedDistID for certain Districts
+replace StateAssignedDistID = "331700860841" if lea_name == "EXPLORE CHARTER SCHOOL" & `year' ==2007
+replace StateAssignedDistID = "581004020001" if lea_name == " FISHERS ISLAND UNION FREE SCHOOL DISTRICT" & `year' == 2010 //This school and district had state_location = CT but state_name = "New York" & state_fips = 36 ????
+replace StateAssignedDistID = "331400860930" if strpos(lea_name,"ETHICAL COMMUNITY CHARTER") !=0 & `year' == 2012
+
 merge 1:m StateAssignedDistID using "`temp2'"
-drop if _merge1 !=3 & DataLevel== "School"
-drop if _merge !=3 & DataLevel == "District"
+*drop if _merge1 !=3 & DataLevel== "School"
+*drop if _merge !=3 & DataLevel == "District"
 drop if DataLevel==""
 rename state_location StateAbbrev
 rename state_name State
@@ -107,6 +122,15 @@ replace year = `prevyear'
 tostring year YEAR, replace force
 gen SchYear = year + "-" + substr(YEAR,-2,2)
 
+//Fixing NCES School ID's for select schools that were broken by manually fixing StateAssignedSchID or StateAssignedDistID (broken because NCES does not classify charter schools as their own district, whereas NY does)
+/*
+destring NCESSchoolID, gen(tempS)
+replace tempS = floor(tempS/100000)
+destring NCESDistrictID, gen(tempD)
+edit if tempS !=tempD
+*/
+
+
 //DistName
 drop _merge
 gen DistName =""
@@ -124,6 +148,16 @@ drop _merge
 replace DistName = "All Districts" if DataLevel== "State"
 replace DistName = lea_name if DistCharter == "Yes"
 
+//DistType for 2011 (idk why it didn't work for only 2011 but this should fix it)
+if `year' == 2011 {
+	tempfile temp4
+	save "`temp4'"
+	keep NCESDistrictID DistType
+	drop if DistType == ""
+	duplicates drop
+	merge 1:m NCESDistrictID using "`temp4'"
+	drop _merge
+}
 //DataLevel
 label def DataLevel 1 "State" 2 "District" 3 "School"
 encode DataLevel, gen(DataLevel_n) label(DataLevel)
@@ -152,7 +186,7 @@ replace StudentSubGroup = "Asian" if StudentSubGroup == "Asian or Pacific Island
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "Limited English Proficient"
 replace StudentSubGroup = "Two or More" if StudentSubGroup ==  "Multiracial"
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "English Language Learner" | StudentSubGroup == "English Language Learners"
-replace StudentSubGroup = "English Proficient" if StudentSubGroup == "Non-English Language Learners"
+replace StudentSubGroup = "English Proficient" if StudentSubGroup == "Non-English Language Learners" | StudentSubGroup == "Non-English Language Learner"
 
 keep if StudentSubGroup == "All Students" | StudentSubGroup == "American Indian or Alaska Native" | StudentSubGroup == "Asian" | StudentSubGroup == "Black or African American" | StudentSubGroup == "Native Hawaiian or Pacific Islander" | StudentSubGroup == "White" | StudentSubGroup == "Hispanic or Latino" | StudentSubGroup == "English Learner" | StudentSubGroup == "English Proficient" | StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged" | StudentSubGroup == "Male" | StudentSubGroup == "Female"
 
@@ -211,12 +245,36 @@ replace Lev5_percent = ""
 //Fixing Charter Schools (In NY, Charter Schools are classified as their own district)
 replace DistName = SchName if DistName == "" & (DistCharter== "Yes" | strpos(SchName, "CHARTER") !=0)
 replace DistType = "Charter Agency" if DistType == "" & strpos(SchName, "CHARTER") !=0
+replace StateAssignedDistID = StateAssignedSchID if DistCharter == "Yes" | strpos(SchName, "CHARTER") !=0
+//"ACADEMY FOR PERSONAL LEADERSHIP AND EXCELLENCE" Has no nces data for 2011, fixing what I can below based on future NCES data
+capture replace NCESSchoolID = "360008706297" if SchName == "ACADEMY FOR PERSONAL LEADERSHIP AND EXCELLENCE" & `year' == 2011
+capture replace NCESDistrictID = "3600087" if SchName == "ACADEMY FOR PERSONAL LEADERSHIP AND EXCELLENCE" & `year' == 2011
+capture replace seasch = StateAssignedSchID if SchName == "ACADEMY FOR PERSONAL LEADERSHIP AND EXCELLENCE" & `year' == 2011
+capture replace State_leaid = StateAssignedDistID if SchName == "ACADEMY FOR PERSONAL LEADERSHIP AND EXCELLENCE" & `year' ==2011
+capture replace DistCharter = "No" if SchName == "ACADEMY FOR PERSONAL LEADERSHIP AND EXCELLENCE" & `year' == 2011
+capture replace SchLevel = "Missing/not reported" if SchName == "ACADEMY FOR PERSONAL LEADERSHIP AND EXCELLENCE" & `year' == 2011
+capture replace SchVirtual = "Missing/not reported" if SchName == "ACADEMY FOR PERSONAL LEADERSHIP AND EXCELLENCE" & `year' == 2011
+capture replace SchType = "Regular school" if SchName == "ACADEMY FOR PERSONAL LEADERSHIP AND EXCELLENCE" & `year' == 2011
+capture replace CountyName = "BRONX COUNTY" if SchName == "ACADEMY FOR PERSONAL LEADERSHIP AND EXCELLENCE" & `year' == 2011
+capture replace CountyCode = 36005 if SchName == "ACADEMY FOR PERSONAL LEADERSHIP AND EXCELLENCE" & `year' == 2011
 
+//"THE ETHICAL COMMUNITY CHARTER SCHOOL" Closed in 2011-2012 SchYear but still took test, NCES school level does not have data so replacing manually with nces 2010 data.
+capture replace NCESSchoolID = "360098506136" if StateAssignedSchID == "331400860930" & `year' == 2012
+capture replace NCESDistrictID = "3600985" if StateAssignedSchID == "331400860930" & `year' == 2012
+capture replace seasch = StateAssignedSchID if StateAssignedSchID == "331400860930" & `year' == 2012
+capture replace State_leaid = StateAssignedDistID if StateAssignedSchID == "331400860930" & `year' == 2012
+capture replace DistCharter = "Yes" if StateAssignedSchID == "331400860930" & `year' == 2012
+capture replace SchLevel = "Not applicable" if StateAssignedSchID == "331400860930" & `year' == 2012
+capture replace SchVirtual = "Missing/not reported" if StateAssignedSchID == "331400860930" & `year' == 2012
+capture replace SchType = "Regular school" if StateAssignedSchID == "331400860930" & `year' == 2012
+capture replace CountyName = "KINGS COUNTY" if StateAssignedSchID == "331400860930" & `year' == 2012
+capture replace CountyCode = 36047 if StateAssignedSchID == "331400860930" & `year' == 2012
 
 //Final Sorting and dropping extra variables
 
 order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+duplicates drop State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentSubGroup, force
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "`output'/NY_AssmtData_`year'", replace

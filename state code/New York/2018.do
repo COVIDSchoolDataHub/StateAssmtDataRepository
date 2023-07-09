@@ -43,12 +43,14 @@ order ENTITY_CD
 drop if strlen(ENTITY_CD)<12
 drop if substr(ENTITY_CD,3,10)== "0000000000"
 gen DataLevel= "State" if ENTITY_CD== "111111111111"
-replace DataLevel= "District" if substr(ENTITY_CD,9,4)=="0000"
-replace DataLevel= "School" if substr(ENTITY_CD,9,4) !="0000"
+replace DataLevel= "District" if substr(ENTITY_CD,9,4)=="0000" & substr(ENTITY_CD,7,2) !="86"
+replace DataLevel= "School" if substr(ENTITY_CD,9,4) !="0000" & substr(ENTITY_CD,7,2) !="86"
+replace DataLevel= "School" if substr(ENTITY_CD,7,2) =="86" //All Charter schools are their own district
 replace DataLevel = "State" if ENTITY_CD== "111111111111"
 gen StateAssignedSchID = ENTITY_CD if DataLevel== "School"
 gen StateAssignedDistID = ENTITY_CD if DataLevel== "District"
-replace StateAssignedDistID = substr(ENTITY_CD,1,8) + "0000" if DataLevel=="School"
+replace StateAssignedDistID = substr(ENTITY_CD,1,8) + "0000" if DataLevel=="School" & strpos(ENTITY_NAME, "CHARTER") ==0
+replace StateAssignedDistID = ENTITY_CD if strpos(ENTITY_NAME, "CHARTER") !=0 & DataLevel == "School"
 
 //GradeLevel
 drop if strpos(ASSESSMENT, "Regents") !=0 | strpos(ASSESSMENT, "Combined") !=0 | strpos(ASSESSMENT, "_") !=0
@@ -63,7 +65,7 @@ drop if state_location != "NY"
 drop if seasch == ""
 gen StateAssignedSchID = substr(seasch, strpos(seasch, "-")+1, 12)
 merge 1:m StateAssignedSchID using "`temp1'"
-drop if _merge !=3 & DataLevel == "School"
+*drop if _merge !=3 & DataLevel == "School"
 rename _merge _merge1 
 tempfile temp2
 save "`temp2'"
@@ -72,8 +74,8 @@ use "`nces_district'/NCES_2017_District.dta"
 drop if state_location != "NY"
 gen StateAssignedDistID = substr(state_leaid, strpos(state_leaid, "-")+1, 12)
 merge 1:m StateAssignedDistID using "`temp2'"
-drop if _merge1 !=3 & DataLevel== "School"
-drop if _merge !=3 & DataLevel == "District"
+*drop if _merge1 !=3 & DataLevel== "School"
+*drop if _merge !=3 & DataLevel == "District"
 drop if DataLevel==""
 rename state_location StateAbbrev
 rename state_name State
@@ -143,7 +145,7 @@ replace StudentSubGroup = "Asian" if strpos(StudentSubGroup, "Asian") !=0
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "Limited English Proficient"
 replace StudentSubGroup = "Two or More" if StudentSubGroup ==  "Multiracial"
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "English Language Learner" | StudentSubGroup == "English Language Learners"
-replace StudentSubGroup = "English Proficient" if StudentSubGroup == "Non-English Language Learners"
+replace StudentSubGroup = "English Proficient" if StudentSubGroup == "Non-English Language Learners" | StudentSubGroup == "Non-English Language Learner"
 
 keep if StudentSubGroup == "All Students" | StudentSubGroup == "American Indian or Alaska Native" | StudentSubGroup == "Asian" | StudentSubGroup == "Black or African American" | StudentSubGroup == "Native Hawaiian or Pacific Islander" | StudentSubGroup == "White" | StudentSubGroup == "Hispanic or Latino" | StudentSubGroup == "English Learner" | StudentSubGroup == "English Proficient" | StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged" | StudentSubGroup == "Male" | StudentSubGroup == "Female"
 
@@ -199,11 +201,12 @@ replace AvgScaleScore = "*" if SUP=="s"
 //Fixing Charter Schools (In NY, Charter Schools are classified as their own district)
 replace DistName = SchName if DistName == "" & (DistCharter== "Yes" | strpos(SchName, "CHARTER") !=0)
 replace DistType = "Charter Agency" if DistType == "" & strpos(SchName, "CHARTER") !=0
-
+replace StateAssignedDistID = StateAssignedSchID if DistCharter == "Yes" | strpos(SchName, "CHARTER") !=0
 //Final Sorting and Dropping extra variables
 
 order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+duplicates drop State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentSubGroup, force
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "`output'/NY_AssmtData_2018", replace
