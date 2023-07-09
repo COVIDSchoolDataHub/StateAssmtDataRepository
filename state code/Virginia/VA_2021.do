@@ -80,8 +80,7 @@ save "${yrfiles}/VA_2021_base.dta", replace
 	// District merge
 	
 
-import delimited "/${nces}/NCES_2020-2021_District_Demographics_opt.csv", clear 	
-
+use "${nces}/NCES_2020_District.dta", clear
 
 keep if state_fips==51
 
@@ -118,7 +117,8 @@ save "${yrfiles}/VA_2021_base.dta", replace
 
 	// School merge
 
-import delimited "/${nces}/NCES_2020-2021_School_Demographics_opt.csv", clear
+	
+use "${nces}/NCES_2020_School.dta", clear
 
 keep if state_fips==51
 
@@ -153,6 +153,9 @@ merge m:1 seasch using "/${yrfiles}/VA_2020_nces_schools.dta"
 
 drop if _merge==2
 
+replace DistCharter="Yes" if seasch=="123-1233119"
+replace DistCharter="Yes" if seasch=="002-0020890"
+replace DistCharter="Yes" if seasch=="053-0531200"
 
 
 ////  Rename, reorganize, standardize data
@@ -163,13 +166,10 @@ rename state_fips StateFips
 rename ncesdistrictid NCESDistrictID
 rename state_leaid State_leaid
 rename district_agency_type DistricType
-rename charter Charter
 rename county_name CountyName
 rename county_code CountyCode
 rename ncesschoolid NCESSchoolID
 rename school_type SchoolType
-rename virtual Virtual
-rename school_level SchoolLevel
 rename year SchYear
 rename testsource AssmtName
 
@@ -205,10 +205,8 @@ rename passcount ProficientOrAbove_count
 rename passrate ProficientOrAbove_percent
 gen ParticipationRate="*"
 
-order State StateAbbrev StateFips NCESDistrictID State_leaid DistricType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentSubGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
 
-
-replace State="VIRGINIA"
+replace State=51
 replace StateAbbrev="VA"
 replace StateFips=51
 
@@ -218,7 +216,7 @@ replace seasch="" if DataLevel=="State"
 replace seasch="" if DataLevel=="District"
 
 //Important
-tostring SchYear, replace
+tostring SchYear, replace force
 replace SchYear="2020-21"
 
 replace Subject="math" if Subject=="Mathematics"
@@ -265,12 +263,6 @@ replace Lev3_percent="*" if Lev3_percent=="."
 replace AvgScaleScore="*" if AvgScaleScore==" "
 
 drop schoolyear divisionname districtcodebig districtmerge schoolcodebig _merge
-
-
-
-
-
-
 
 
 
@@ -333,10 +325,64 @@ tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested="*" if StudentGroup_TotalTested=="999999999"
 
 
-order State StateAbbrev StateFips NCESDistrictID State_leaid DistricType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
-
 drop intSubject intGrade intStudentGroup _merge
 
+
+
+//	Review one
+
+rename DistricType DistrictType
+
+replace StudentSubGroup="Native Hawaiian or Pacific Islander" if StudentSubGroup=="Native Hawaiian  or Pacific Islander"
+
+replace StudentSubGroup="Unknown" if StudentSubGroup=="Unknown - Race/Ethnicity not provided"
+
+replace ProficientOrAbove_count="*" if ProficientOrAbove_count=="<"
+
+replace ProficientOrAbove_percent="-1" if ProficientOrAbove_percent=="<50"
+replace ProficientOrAbove_percent="-2" if ProficientOrAbove_percent==">50"
+
+destring ProficientOrAbove_percent, replace
+replace ProficientOrAbove_percent=ProficientOrAbove_percent/100
+tostring ProficientOrAbove_percent, replace force
+
+replace ProficientOrAbove_percent="<50" if ProficientOrAbove_percent=="-.01"
+replace ProficientOrAbove_percent=">50" if ProficientOrAbove_percent=="-.02"
+
+//
+
+
+
+rename DistrictType DistType
+rename SchoolType SchType
+
+keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+
+order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+
+replace DistName="All Districts" if DataLevel=="State"
+replace SchName="All Schools" if DataLevel=="State"
+replace SchName="All Schools" if DataLevel=="District"
+
+replace AssmtName="Standards of Learning"
+
+replace DataLevel="0" if DataLevel=="State"
+replace DataLevel="1" if DataLevel=="District"
+replace DataLevel="2" if DataLevel=="School"
+
+destring DataLevel, replace force
+
+label define LevelIndicator 0 "State" 1 "District" 2 "School"
+label values DataLevel LevelIndicator
+
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
+tostring NCESDistrictID, replace force
+tostring NCESSchoolID, replace force
+
+replace seasch="" if DataLevel==0
+replace State_leaid="" if DataLevel==0
+replace StateAssignedDistID="" if DataLevel==0
 
 // Flag
 
