@@ -261,8 +261,8 @@ tostring Lev*_percent, replace force
 foreach n in 1 2 3 4 {
 replace Lev`n'_percent = "*" if SUP=="s"
 replace Lev`n'_count = "*" if SUP=="s"
-replace Lev`n'_percent = "--" if Lev`n'_percent=="" | Lev`n'_percent== "."
-replace Lev`n'_count = "--" if Lev`n'_percent=="" | Lev`n'_count== "."
+replace Lev`n'_percent = "0" if Lev`n'_percent=="" | Lev`n'_percent== "."
+replace Lev`n'_count = "0" if Lev`n'_count == "" | Lev`n'_count== "."
 }
 replace ProficientOrAbove_count = "*" if SUP== "s"
 rename PER_PROF ProficientOrAbove_percent
@@ -272,10 +272,10 @@ tostring ProficientOrAbove_percent, replace force
 replace ProficientOrAbove_percent = "*" if SUP== "s"
 replace Lev5_percent = ""
 gen AvgScaleScore = "--" //Missing for 2021
-replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent=="" | ProficientOrAbove_percent == "."
+replace ProficientOrAbove_percent = "0" if ProficientOrAbove_percent=="" | ProficientOrAbove_percent == "."
 replace ParticipationRate = ParticipationRate/100
 tostring ParticipationRate, replace force
-replace ParticipationRate = "--" if ParticipationRate== "."
+replace ParticipationRate = "0" if ParticipationRate== "."
 
 //Fixing Charter Schools (In NY, Charter Schools are classified as their own district)
 replace DistName = SchName if DistName == "" & (DistCharter== "Yes" | strpos(SchName, "CHARTER") !=0)
