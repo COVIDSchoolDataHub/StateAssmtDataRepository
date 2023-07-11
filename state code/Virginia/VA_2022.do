@@ -79,12 +79,11 @@ save "${yrfiles}/VA_2022_base.dta", replace
 
 
 	// District merge
-	
 
-	
-import delimited "${nces}/NCES_2021_District.csv", clear 
 
-keep if statefips==51
+use "${nces}/NCES_2021_District.dta", clear
+
+keep if state_fips==51
 
 save "${yrfiles}/VA_2021_nces_districts.dta", replace
 
@@ -119,6 +118,7 @@ save "${yrfiles}/VA_2022_base.dta", replace
 
 	// School merge
 
+	
 use "${nces}/NCES_2021_School.dta", clear
 
 keep if state_fips==51
@@ -144,13 +144,13 @@ replace schoolnumber="000" + schoolnumber if schoolcodebig==0
 replace schoolnumber="00" + schoolnumber if schoolcodebig==1
 replace schoolnumber="0" + schoolnumber if schoolcodebig==2
 
-gen st_schid=""
+gen seasch=""
 
-	replace st_schid=state_leaid + "-" + divisionnumber + schoolnumber
+	replace seasch = divisionnumber + "-" + divisionnumber + schoolnumber
 	
 rename _merge districtmerge
 
-merge m:1 st_schid using "/${yrfiles}/VA_2022_nces_schools.dta"
+merge m:1 seasch using "/${yrfiles}/VA_2021_nces_schools.dta"
 
 drop if _merge==2
 
@@ -163,15 +163,11 @@ rename state_location StateAbbrev
 rename state_fips StateFips
 rename ncesdistrictid NCESDistrictID
 rename state_leaid State_leaid
-rename districttype DistricType
-rename charter Charter
-rename countyname CountyName
-rename countycode CountyCode
+rename district_agency_type DistricType
+rename county_name CountyName
+rename county_code CountyCode
 rename ncesschoolid NCESSchoolID
 rename school_type SchoolType
-rename virtual Virtual
-rename st_schid seasch
-rename school_level SchoolLevel
 rename schoolyear SchYear
 rename testsource AssmtName
 
@@ -183,7 +179,7 @@ gen Flag_CutScoreChange_oth = "N"
 gen AssmtType="Regular"
 
 rename level DataLevel
-rename distname DistName
+rename lea_name DistName
 rename divisionnumber StateAssignedDistID
 rename school_name SchName
 rename schoolnumber StateAssignedSchID
@@ -207,10 +203,8 @@ rename passcount ProficientOrAbove_count
 rename passrate ProficientOrAbove_percent
 gen ParticipationRate="*"
 
-order State StateAbbrev StateFips NCESDistrictID State_leaid DistricType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentSubGroup_TotalTested StudentSubGroup Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
 
-
-replace State="VIRGINIA"
+replace State=51
 replace StateAbbrev="VA"
 replace StateFips=51
 
@@ -263,9 +257,7 @@ replace Lev3_percent="*" if Lev3_percent=="."
 
 replace AvgScaleScore="*" if AvgScaleScore==" "
 
-drop divisionname schoolname districtcodebig state stateabbrev statefips schyear updated_status_text effective_date districtmerge schoolcodebig year lea_name urban_centric_locale county_name county_code school_status lowest_grade_offered highest_grade_offered bureau_indian_education charter_text lunch_program free_lunch reduced_price_lunch free_or_reduced_price_lunch enrollment schid _merge
-
-
+drop _merge
 
 
 
@@ -328,9 +320,64 @@ tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested="*" if StudentGroup_TotalTested=="999999999"
 
 
-order State StateAbbrev StateFips NCESDistrictID State_leaid DistricType Charter CountyName CountyCode NCESSchoolID SchoolType Virtual seasch SchoolLevel SchYear AssmtName Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth AssmtType DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
 
 drop intSubject intGrade intStudentGroup _merge
+
+
+
+//	Review one
+
+rename DistricType DistrictType
+
+replace StudentSubGroup="Native Hawaiian or Pacific Islander" if StudentSubGroup=="Native Hawaiian  or Pacific Islander"
+
+replace StudentSubGroup="Unknown" if StudentSubGroup=="Unknown - Race/Ethnicity not provided"
+
+replace ProficientOrAbove_count="*" if ProficientOrAbove_count=="<"
+
+replace ProficientOrAbove_percent="-1" if ProficientOrAbove_percent=="<50"
+replace ProficientOrAbove_percent="-2" if ProficientOrAbove_percent==">50"
+
+destring ProficientOrAbove_percent, replace
+replace ProficientOrAbove_percent=ProficientOrAbove_percent/100
+tostring ProficientOrAbove_percent, replace force
+
+replace ProficientOrAbove_percent="<50" if ProficientOrAbove_percent=="-.01"
+replace ProficientOrAbove_percent=">50" if ProficientOrAbove_percent=="-.02"
+
+//
+
+
+rename DistrictType DistType
+rename SchoolType SchType
+
+keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+
+order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+
+replace DistName="All Districts" if DataLevel=="State"
+replace SchName="All Schools" if DataLevel=="State"
+replace SchName="All Schools" if DataLevel=="District"
+
+replace AssmtName="Standards of Learning"
+
+replace DataLevel="0" if DataLevel=="State"
+replace DataLevel="1" if DataLevel=="District"
+replace DataLevel="2" if DataLevel=="School"
+
+destring DataLevel, replace force
+
+label define LevelIndicator 0 "State" 1 "District" 2 "School"
+label values DataLevel LevelIndicator
+
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
+tostring NCESDistrictID, replace force
+tostring NCESSchoolID, replace force
+
+replace seasch="" if DataLevel==0
+replace State_leaid="" if DataLevel==0
+replace StateAssignedDistID="" if DataLevel==0
 
 
 // Flag

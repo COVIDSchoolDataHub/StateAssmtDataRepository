@@ -205,7 +205,7 @@ drop Lev4max Lev4maxnumber Lev4min Lev4minnumber Lev5max Lev5maxnumber Lev5min L
 
 drop if StudentSubGroup == "Students with Disability"
 
-** Merging NCES District Variables
+** Correct Inaccurate State_lead and seasch Values 
 
 gen state_leaidnumber =.
 gen State_leaid = string(state_leaidnumber)
@@ -213,13 +213,9 @@ replace State_leaid = "LA-" + StateAssignedDistID if DataLevel != "State"
 gen seaschnumber=.
 gen seasch = string(seaschnumber)
 replace seasch = StateAssignedDistID + "-" + StateAssignedSchID if DataLevel == "School"
+
 replace seasch = "D50S09-D50S09" if SchName == "Chitimacha Tribal School"
 replace State_leaid = "D50S09" if SchName == "Chitimacha Tribal School"
-merge m:1 State_leaid using "${path}/Semi-Processed Data Files/2015_16_NCES_Cleaned_District.dta"
-rename _merge district_merge
-drop if district_merge != 3 & DataLevel != "State"
-
-** Correct Inaccurate State_lead and seasch Values 
 
 replace seasch = "WI1-WI1001" if StateAssignedSchID == "381001"
 replace State_leaid = "LA-WI1" if StateAssignedSchID == "381001"
@@ -356,10 +352,17 @@ replace State_leaid = "LA-WE1" if StateAssignedSchID == "385001"
 replace seasch = "W64-W64001" if StateAssignedSchID == "395003"
 replace State_leaid = "LA-W64" if StateAssignedSchID == "395003"
 
+** Merging NCES District Variables
+
+merge m:1 State_leaid using "${path}/Semi-Processed Data Files/2015_16_NCES_Cleaned_District.dta"
+rename _merge district_merge
+drop if district_merge != 3 & DataLevel != "State"
+
 ** Merging NCES School Variables
 
 merge m:1 seasch using "${path}/Semi-Processed Data Files/2015_16_NCES_Cleaned_School.dta"
 drop if  _merge !=3 & DataLevel == "School"
+drop if SchYear == ""
 drop state_leaidnumber seaschnumber _merge district_merge
 
 ** Standardize Non-School Level Data
@@ -368,7 +371,12 @@ replace SchName = "All Schools" if DataLevel == "State"
 replace SchName = "All Schools" if DataLevel == "District"
 replace DistName = "All Districts" if DataLevel == "State"
 replace StateAssignedDistID = "" if DataLevel == "State"
+replace StateAssignedSchID = "" if DataLevel == "State" | DataLevel == "District"
 replace State_leaid = "" if DataLevel == "State"
+replace SchLevel = ""  if DataLevel == "State" | DataLevel == "District"
+replace SchVirtual = ""  if DataLevel == "State" | DataLevel == "District"
+replace DistType = "" if DataLevel == "State"
+replace DistCharter = "" if DataLevel == "State"
 replace seasch = "" if DataLevel == "State" | DataLevel == "District"
 
 ** Standardize Charter Data
