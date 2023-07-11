@@ -1,0 +1,294 @@
+clear
+set more off
+
+cd "/Users/miramehta/Documents"
+
+global raw "/Users/miramehta/Documents/OH State Testing Data"
+global output "/Users/miramehta/Documents/OH State Testing Data/Output"
+global NCES "/Users/miramehta/Documents/NCES District and School Demographics/NCES District Files, Fall 1997-Fall 2021"
+global NCES_clean "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+global dta "/Users/miramehta/Documents/OH State Testing Data/dta"
+global csv "/Users/miramehta/Documents/OH State Testing Data/CSV"
+
+
+import excel "${raw}/OH_OriginalData_2018_all.xlsx", sheet("Performance_Indicators") firstrow clear
+
+drop rdGradeReading201516ato rdGradeMath201516atora thGradeReading201516ato thGradeMath201516atora thGradeSocialStudies201516 DP DQ thGradeScience201516 DS DT DU DV DW DX DY DZ Reading201516atorabovePr Math201516atoraboveProfi Science201516atorabovePr SocialStudies201516atora Writing201516atorabovePr HSBiology201516atorabove HSEnglishI201516atorabo HSEnglishII201516atorab HSMathI201516atorabove HSMathII201516atorabove HSAlgebraI201516atorabo HSGeometry201516atorabov HSPhysicalScience201516at HSGovernment201516atorab HSHistory201516atorabove rdGradeReading201617ato rdGradeMath201617atora thGradeReading201617ato thGradeMath201617atora thGradeSocialStudies201617 CP CQ thGradeScience201617 CS CT CU CV CW CX CY CZ HSEnglishI201617atorabo HSEnglishII201617atorab HSMathI201617atorabove HSMathII201617atorabove HSAlgebraI201617atorabo HSGeometry201617atorabov HSPhysicalScience201617at HSGovernment201617atorab HSHistory201617atorabove HSBiology201617atorabove
+
+drop Watermark Region Address CityandZip Phone Superintendent NumberofStandardsMet NumberofStandardsPossible PercentofStandardsMet LetterGradeofStandardsMet GiftedIndicator ChronicAbsenteeismRate201718 ChronicAbsenteeismRate201617 ChronicAbsenteeismIndicator
+
+drop HSEnglishI201718atorabo BK BL HSEnglishII201718atorab BN BO HSMathI201718atorabove BQ BR HSMathII201718atorabove BT BU HSAlgebraI201718atorabo BW BX HSGeometry201718atorabov BZ CA HSBiology201718atorabove CC CD CF CG HSGovernment201718atorab CI CJ HSHistory201718atorabove BH BI HSEOCImprovementIndicator201
+
+drop R U X AA AD AG AJ AM AP AS AV AY BB BE
+
+rename DistrictIRN StateAssignedDistID
+rename DistrictName DistName
+
+rename *201718ato *
+rename *201718atora *
+
+drop S V Y AB AE AH AK AN AQ AT AW AZ BC BF
+
+rename rdGradeReading Reading3rdGrade
+rename rdGradeMath Math3rdGrade
+rename thGradeReading Reading4thGrade
+rename thGradeMath Math4thGrade
+rename AC Reading5thGrade
+rename AF Math5thGrade
+rename thGradeScience Science5thGrade
+rename AL Reading6thGrade
+rename AO Math6thGrade
+rename AR Reading7thGrade
+rename AU Math7thGrade
+rename AX Reading8thGrade
+rename BA Math8thGrade
+rename BD Science8thGrade
+
+rename *Grade *Proficient
+
+rename *rd* *th*
+
+foreach i of numlist 3/8 {
+	rename *`i'th* *G`i'*
+}
+
+foreach i of numlist 3/8 {
+	foreach v of varlist ReadingG`i'Proficient {
+		local new = substr("`v'", 8, .)+"Reading"
+		rename `v' `new'
+	}
+}
+
+foreach i of numlist 3/8 {
+	foreach v of varlist MathG`i'Proficient {
+		local new = substr("`v'", 5, .)+"Math"
+		rename `v' `new'
+	}
+}
+
+rename ScienceG5Proficient G5ProficientScience
+rename ScienceG8Proficient G8ProficientScience
+
+drop if StateAssignedDistID==""
+
+reshape long G3Proficient G4Proficient G5Proficient G6Proficient G7Proficient G8Proficient, i(StateAssignedDistID) j(Subject) string 
+
+rename *Proficient Proficient*
+
+reshape long Proficient, i(StateAssignedDistID Subject) j(GradeLevel) string 
+
+replace Subject="math" if Subject=="Math"
+replace Subject="read" if Subject=="Reading"
+replace Subject="sci" if Subject=="Science"
+
+rename Proficient ProficientOrAbove_percent
+
+replace ProficientOrAbove_percent= "--" if ProficientOrAbove_percent==""
+replace ProficientOrAbove_percent= "*" if ProficientOrAbove_percent=="NC"
+	
+gen ProficiencyCriteria="Level 3,4,5"
+gen DataLevel="District"
+
+save "${dta}/OH_AssmtData_2018.dta", replace
+
+* Cleaning NCES Data
+use "${NCES}/NCES_2017_District.dta", clear
+drop if state_location != "OH"
+rename lea_name DistName
+gen str StateAssignedDistID = substr(state_leaid, 4, 9)
+save "$NCES_clean/NCES_2018_District_OH.dta", replace
+
+* Merge Data
+use "$dta/OH_AssmtData_2018.dta", clear
+merge m:1 StateAssignedDistID using "$NCES_clean/NCES_2018_District_OH.dta"
+drop if _merge == 2
+
+save "${dta}/OH_AssmtData_2018.dta", replace
+
+* Extracting and cleaning 2017 State Data
+
+import excel "${raw}/OH_OriginalData_2018_all.xlsx", sheet("Performance_Indicators") firstrow clear
+
+keep S V Y AB AE AH AK AN AQ AT AW AZ BC BF
+
+rename S G3Proficientreading
+rename V G3Proficientmath
+rename Y G4Proficientreading
+rename AB G4Proficientmath
+rename AE G5Proficientreading
+rename AH G5Proficientmath
+rename AK G5Proficientsci
+rename AN G6Proficientreading
+rename AQ G6Proficientmath
+rename AT G7Proficientreading
+rename AW G7Proficientmath
+rename AZ G8Proficientreading
+rename BC G8Proficientmath
+rename BF G8Proficientsci
+
+keep if _n==1
+gen DataLevel="State" 
+
+foreach v of varlist G3Proficientreading G3Proficientmath G4Proficientreading G4Proficientmath G5Proficientreading G5Proficientmath G5Proficientsci G6Proficientreading G6Proficientmath G7Proficientreading G7Proficientmath G8Proficientreading G8Proficientmath G8Proficientsci {
+   tostring `v', replace
+}
+
+
+reshape long G3Proficient G4Proficient G5Proficient G6Proficient G7Proficient G8Proficient, i(DataLevel) j(Subject) string 
+
+rename *Proficient Proficient*
+
+
+reshape long Proficient, i(Subject) j(GradeLevel) string 
+
+rename Proficient ProficientOrAbove_percent
+
+tostring ProficientOrAbove_percent, replace
+replace ProficientOrAbove_percent="--" if ProficientOrAbove_percent==""
+replace ProficientOrAbove_percent="*" if ProficientOrAbove_percent=="NC"
+
+save "${dta}/OH_AssmtData_state_2018.dta", replace
+
+* Append and clean 
+
+use "${dta}/OH_AssmtData_2018.dta", clear
+
+append using "${dta}/OH_AssmtData_state_2018.dta"
+
+gen SchYear="2017-18"
+drop year
+
+gen State="Ohio"
+rename state_location StateAbbrev
+rename state_fips StateFips
+rename county_name CountyName
+rename county_code CountyCode
+rename ncesdistrictid NCESDistrictID
+gen NCESSchoolID=""
+rename district_agency_type DistType
+gen SchType=""
+gen SchVirtual="" 
+gen seasch=""
+rename state_leaid State_leaid
+gen SchLevel="" 
+gen AssmtName="Ohio's State Tests (OST)" 
+gen Flag_AssmtNameChange="N" 
+gen Flag_CutScoreChange_ELA="N"  
+gen Flag_CutScoreChange_math="N"  
+gen Flag_CutScoreChange_read="N"  
+gen Flag_CutScoreChange_oth="N"  
+gen AssmtType="Regular"  
+gen SchName="" 
+gen StateAssignedSchID="" 
+gen StudentGroup="All Students" 
+gen StudentGroup_TotalTested="--" 
+gen StudentSubGroup="All Students"
+gen StudentSubGroup_TotalTested="--" 
+gen Lev1_count="--" 
+gen Lev1_percent="--" 
+gen Lev2_count="--" 
+gen Lev2_percent="--" 
+gen Lev3_count="--" 
+gen Lev3_percent="--" 
+gen Lev4_count="--" 
+gen Lev4_percent="--"  
+gen Lev5_count="--"  
+gen Lev5_percent="--" 
+gen AvgScaleScore="--"  
+gen ProficientOrAbove_count="--" 
+gen ParticipationRate="--"
+
+replace ProficiencyCriteria= "Levels 3, 4, 5"
+
+replace State = "Ohio"
+replace StateAbbrev="OH"
+replace StateFips=39
+
+replace GradeLevel = "G03" if GradeLevel == "G3"
+replace GradeLevel = "G04" if GradeLevel == "G4"
+replace GradeLevel = "G05" if GradeLevel == "G5"
+replace GradeLevel = "G06" if GradeLevel == "G6"
+replace GradeLevel = "G07" if GradeLevel == "G7"
+replace GradeLevel = "G08" if GradeLevel == "G8"
+
+replace Subject = "read" if Subject == "reading"
+
+gen Prof_percent = ProficientOrAbove_percent
+destring ProficientOrAbove_percent, replace force
+replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
+tostring ProficientOrAbove_percent, replace force
+replace ProficientOrAbove_percent = "*" if Prof_percent == "*"
+replace ProficientOrAbove_percent = "--" if Prof_percent == "-"
+replace ProficientOrAbove_percent = "--" if Prof_percent == "--"
+drop Prof_percent
+
+replace DistName = "All Districts" if DataLevel == "State"
+replace SchName = "All Schools"
+
+decode DistType, gen(DistType_s)
+drop DistType
+rename DistType_s DistType
+
+//Label & Organize Variables
+label var State "State name"
+label var StateAbbrev "State abbreviation"
+label var StateFips "State FIPS Id"
+label var NCESDistrictID "NCES district ID"
+label var State_leaid "State LEA ID"
+label var DistType "District type as defined by NCES"
+label var DistCharter "Charter indicator"
+label var CountyName "County in which the district or school is located"
+label var CountyCode "County code in which the district or school is located, also referred to as the county-level FIPS code"
+label var NCESSchoolID "NCES school ID"
+label var SchType "School type as defined by NCES"
+label var SchVirtual "Virtual school indicator"
+label var SchLevel "School level"
+label var SchYear "School year in which the data were reported"
+label var AssmtName "Name of state assessment"
+label var Flag_AssmtNameChange "Flag denoting a change in the assessment's name from the prior year only"
+label var Flag_CutScoreChange_ELA "Flag denoting a change in scoring determinations in ELA from the prior year only"
+label var Flag_CutScoreChange_math "Flag denoting a change in scoring determinations in math from the prior year only"
+label var Flag_CutScoreChange_read "Flag denoting a change in scoring determinations in reading from the prior year only"
+label var AssmtType "Assessment type"
+label var DataLevel "Level at which the data are reported"
+label var DistName "District name"
+label var StateAssignedDistID "State-assigned district ID"
+label var SchName "School name"
+label var StateAssignedSchID "State-assigned school ID"
+label var Subject "Assessment subject area"
+label var GradeLevel "Grade tested"
+label var StudentGroup "Student demographic group"
+label var StudentGroup_TotalTested "Number of students in the designated StudentGroup who were tested"
+label var StudentSubGroup "Student demographic subgroup"
+label var StudentSubGroup_TotalTested "Number of students in the designated Student Sub-Group who were tested"
+label var Lev1_count "Count of students within subgroup performing at Level 1"
+label var Lev1_percent "Percent of students within subgroup performing at Level 1"
+label var Lev2_count "Count of students within subgroup performing at Level 2"
+label var Lev2_percent "Percent of students within subgroup performing at Level 2"
+label var Lev3_count "Count of students within subgroup performing at Level 3"
+label var Lev3_percent "Percent of students within subgroup performing at Level 3"
+label var Lev4_count "Count of students within subgroup performing at Level 4"
+label var Lev4_percent "Percent of students within subgroup performing at Level 4"
+label var Lev5_count "Count of students within subgroup performing at Level 5"
+label var Lev5_percent "Percent of students within subgroup performing at Level 5"
+label var AvgScaleScore "Avg scale score within subgroup"
+label var ProficiencyCriteria "Levels included in determining proficiency status"
+label var ProficientOrAbove_count "Count of students achieving proficiency or above on the state assessment"
+label var ProficientOrAbove_percent "Percent of students achieving proficiency or above on the state assessment"
+label var ParticipationRate "Participation rate"
+
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+sort DataLevel_n 
+drop DataLevel 
+rename DataLevel_n DataLevel
+
+drop County state_name district_agency_type_num urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte agency_charter_indicator _merge
+
+
+order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType  Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
+save "${output}/OH_AssmtData_2018.dta", replace
+
+export delimited "${output}/OH_AssmtData_2018.csv", replace
