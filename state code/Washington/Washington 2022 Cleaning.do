@@ -52,8 +52,8 @@ rename DataLevel_n DataLevel
 
 ** Replacing variables
 
-replace StateAssignedDistID == "" if DataLevel == 1
-replace StateAssignedSchID == "" if DataLevel != 3
+replace StateAssignedDistID = "" if DataLevel == 1
+replace StateAssignedSchID = "" if DataLevel != 3
 
 replace SchName = "All Schools" if DataLevel != 3
 replace DistName = "All Districts" if DataLevel == 1
