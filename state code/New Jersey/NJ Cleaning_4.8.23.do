@@ -1,8 +1,6 @@
 clear all
 set more off
 
-log using nj_cleaning.log, replace text
-
 cd "/Users/miramehta/Documents/"
 global data "/Users/miramehta/Documents/NJ State Testing Data"
 global NCES "/Users/miramehta/Documents/NCES District and School Demographics"
@@ -12,7 +10,7 @@ global NCES "/Users/miramehta/Documents/NCES District and School Demographics"
 import excel "${data}/NJ_OriginalData_2015_ela_G03", clear
 gen Subject = "ela"
 gen GradeLevel = "G03"
-
+drop if A == "DFG"
 drop A B G J K S T U V W
 rename C StateAssignedDistID
 rename D DistName
@@ -57,7 +55,7 @@ save "${data}/NJ_OriginalData_2015_ela", replace
 import excel "${data}/NJ_OriginalData_2015_ela_G04", clear
 gen Subject = "ela"
 gen GradeLevel = "G04"
-
+drop if A == "DFG"
 drop A B G J K S T U V W
 rename C StateAssignedDistID
 rename D DistName
@@ -102,7 +100,7 @@ save "${data}/NJ_OriginalData_2015_ela_G04", replace
 import excel "${data}/NJ_OriginalData_2015_ela_G05", clear
 gen Subject = "ela"
 gen GradeLevel = "G05"
-
+drop if A == "DFG"
 drop A B G J K S T U V W
 rename C StateAssignedDistID
 rename D DistName
@@ -147,7 +145,7 @@ save "${data}/NJ_OriginalData_2015_ela_G05", replace
 import excel "${data}/NJ_OriginalData_2015_ela_G06", clear
 gen Subject = "ela"
 gen GradeLevel = "G06"
-
+drop if A == "DFG"
 drop A B G J K S T U V W
 rename C StateAssignedDistID
 rename D DistName
@@ -192,7 +190,7 @@ save "${data}/NJ_OriginalData_2015_ela_G06", replace
 import excel "${data}/NJ_OriginalData_2015_ela_G07", clear
 gen Subject = "ela"
 gen GradeLevel = "G07"
-
+drop if A == "DFG"
 drop A B G J K S T U V W
 rename C StateAssignedDistID
 rename D DistName
@@ -237,7 +235,7 @@ save "${data}/NJ_OriginalData_2015_ela_G07", replace
 import excel "${data}/NJ_OriginalData_2015_ela_G08", clear
 gen Subject = "ela"
 gen GradeLevel = "G08"
-
+drop if A == "DFG"
 drop A B G J K S T U V W
 rename C StateAssignedDistID
 rename D DistName
@@ -287,7 +285,7 @@ save "${data}/NJ_AssmtData_2015", replace
 import excel "${data}/NJ_OriginalData_2015_mat_G03", clear
 gen Subject = "math"
 gen GradeLevel = "G03"
-
+drop if A == "DFG"
 drop A B G J K S T U V W
 rename C StateAssignedDistID
 rename D DistName
@@ -332,7 +330,7 @@ save "${data}/NJ_OriginalData_2015_mat", replace
 import excel "${data}/NJ_OriginalData_2015_mat_G04", clear
 gen Subject = "math"
 gen GradeLevel = "G04"
-
+drop if A == "DFG"
 drop A B G J K S T U V W
 rename C StateAssignedDistID
 rename D DistName
@@ -377,7 +375,7 @@ save "${data}/NJ_OriginalData_2015_mat_G04", replace
 import excel "${data}/NJ_OriginalData_2015_mat_G05", clear
 gen Subject = "math"
 gen GradeLevel = "G05"
-
+drop if A == "DFG"
 drop A B G J K S T U V W
 rename C StateAssignedDistID
 rename D DistName
@@ -422,7 +420,7 @@ save "${data}/NJ_OriginalData_2015_mat_G05", replace
 import excel "${data}/NJ_OriginalData_2015_mat_G06", clear
 gen Subject = "math"
 gen GradeLevel = "G06"
-
+drop if A == "DFG"
 drop A B G J K S T U V W
 rename C StateAssignedDistID
 rename D DistName
@@ -467,7 +465,7 @@ save "${data}/NJ_OriginalData_2015_mat_G06", replace
 import excel "${data}/NJ_OriginalData_2015_mat_G07", clear
 gen Subject = "math"
 gen GradeLevel = "G07"
-
+drop if A == "DFG"
 drop A B G J K S T U V W
 rename C StateAssignedDistID
 rename D DistName
@@ -512,7 +510,7 @@ save "${data}/NJ_OriginalData_2015_mat_G07", replace
 import excel "${data}/NJ_OriginalData_2015_mat_G08", clear
 gen Subject = "math"
 gen GradeLevel = "G08"
-
+drop if A == "DFG"
 drop A B G J K S T U V W
 rename C StateAssignedDistID
 rename D DistName
@@ -587,7 +585,7 @@ gen Flag_CutScoreChange_oth = ""
 gen AssmtType = "Regular"
 gen DataLevel = "School"
 replace DataLevel = "District" if StateAssignedSchID == ""
-replace DataLevel = "State" if StateAssignedDistID == ""
+replace DataLevel = "School" if StateAssignedDistID == ""
 gen Lev1_count =.
 gen Lev2_count =.
 gen Lev3_count =.
@@ -771,6 +769,9 @@ clear
 import excel "${data}/NJ_OriginalData_2016_ela_G03", clear
 gen Subject = "ela"
 gen GradeLevel = "G03"
+
+drop if A == "DFG"
+
 drop A B G J K
 rename C StateAssignedDistID
 rename D DistName
@@ -816,6 +817,7 @@ save "${data}/NJ_OriginalData_2016_ela", replace
 import excel "${data}/NJ_OriginalData_2016_ela_G04", clear
 gen Subject = "ela"
 gen GradeLevel = "G04"
+drop if A == "DFG"
 drop A B G J K
 rename C StateAssignedDistID
 rename D DistName
@@ -861,6 +863,7 @@ save "${data}/NJ_OriginalData_2016_ela_G04", replace
 import excel "${data}/NJ_OriginalData_2016_ela_G05", clear
 gen Subject = "ela"
 gen GradeLevel = "G05"
+drop if A == "DFG"
 drop A B G J K
 rename C StateAssignedDistID
 rename D DistName
@@ -906,6 +909,7 @@ save "${data}/NJ_OriginalData_2016_ela_G05", replace
 import excel "${data}/NJ_OriginalData_2016_ela_G06", clear
 gen Subject = "ela"
 gen GradeLevel = "G06"
+drop if A == "DFG"
 drop A B G J K
 rename C StateAssignedDistID
 rename D DistName
@@ -951,6 +955,7 @@ save "${data}/NJ_OriginalData_2016_ela_G06", replace
 import excel "${data}/NJ_OriginalData_2016_ela_G07", clear
 gen Subject = "ela"
 gen GradeLevel = "G07"
+drop if A == "DFG"
 drop A B G J K
 rename C StateAssignedDistID
 rename D DistName
@@ -996,6 +1001,7 @@ save "${data}/NJ_OriginalData_2016_ela_G07", replace
 import excel "${data}/NJ_OriginalData_2016_ela_G08", clear
 gen Subject = "ela"
 gen GradeLevel = "G08"
+drop if A == "DFG"
 drop A B G J K
 rename C StateAssignedDistID
 rename D DistName
@@ -1046,6 +1052,7 @@ save "${data}/NJ_AssmtData_2016", replace
 import excel "${data}/NJ_OriginalData_2016_mat_G03", clear
 gen Subject = "math"
 gen GradeLevel = "G03"
+drop if A == "DFG"
 drop A B G J K
 rename C StateAssignedDistID
 rename D DistName
@@ -1091,6 +1098,7 @@ save "${data}/NJ_OriginalData_2016_mat", replace
 import excel "${data}/NJ_OriginalData_2016_mat_G04", clear
 gen Subject = "math"
 gen GradeLevel = "G04"
+drop if A == "DFG"
 drop A B G J K
 rename C StateAssignedDistID
 rename D DistName
@@ -1136,6 +1144,7 @@ save "${data}/NJ_OriginalData_2016_mat_G04", replace
 import excel "${data}/NJ_OriginalData_2016_mat_G05", clear
 gen Subject = "math"
 gen GradeLevel = "G05"
+drop if A == "DFG"
 drop A B G J K
 rename C StateAssignedDistID
 rename D DistName
@@ -1181,6 +1190,7 @@ save "${data}/NJ_OriginalData_2016_mat_G05", replace
 import excel "${data}/NJ_OriginalData_2016_mat_G06", clear
 gen Subject = "math"
 gen GradeLevel = "G06"
+drop if A == "DFG"
 drop A B G J K
 rename C StateAssignedDistID
 rename D DistName
@@ -1226,6 +1236,7 @@ save "${data}/NJ_OriginalData_2016_mat_G06", replace
 import excel "${data}/NJ_OriginalData_2016_mat_G07", clear
 gen Subject = "math"
 gen GradeLevel = "G07"
+drop if A == "DFG"
 drop A B G J K
 rename C StateAssignedDistID
 rename D DistName
@@ -1271,6 +1282,7 @@ save "${data}/NJ_OriginalData_2016_mat_G07", replace
 import excel "${data}/NJ_OriginalData_2016_mat_G08", clear
 gen Subject = "math"
 gen GradeLevel = "G08"
+drop if A == "DFG"
 drop A B G J K
 rename C StateAssignedDistID
 rename D DistName
@@ -1519,6 +1531,7 @@ clear
 import excel "${data}/NJ_OriginalData_2017_ela_G03", clear
 gen Subject = "ela"
 gen GradeLevel = "G03"
+drop if A == "DFG"
 drop A B G J K
 rename C StateAssignedDistID
 rename D DistName
@@ -1564,6 +1577,7 @@ save "${data}/NJ_OriginalData_2017_ela", replace
 import excel "${data}/NJ_OriginalData_2017_ela_G04", clear
 gen Subject = "ela"
 gen GradeLevel = "G04"
+drop if A == "DFG"
 drop A B G J K
 rename C StateAssignedDistID
 rename D DistName
@@ -1609,6 +1623,7 @@ save "${data}/NJ_OriginalData_2017_ela_G04", replace
 import excel "${data}/NJ_OriginalData_2017_ela_G05", clear
 gen Subject = "ela"
 gen GradeLevel = "G05"
+drop if A == "DFG"
 drop A B G J K
 rename C StateAssignedDistID
 rename D DistName
@@ -1654,6 +1669,7 @@ save "${data}/NJ_OriginalData_2017_ela_G05", replace
 import excel "${data}/NJ_OriginalData_2017_ela_G06", clear
 gen Subject = "ela"
 gen GradeLevel = "G06"
+drop if A == "DFG"
 drop A B G J K
 rename C StateAssignedDistID
 rename D DistName
@@ -1699,6 +1715,7 @@ save "${data}/NJ_OriginalData_2017_ela_G06", replace
 import excel "${data}/NJ_OriginalData_2017_ela_G07", clear
 gen Subject = "ela"
 gen GradeLevel = "G07"
+drop if A == "DFG"
 drop A B G J K
 rename C StateAssignedDistID
 rename D DistName
@@ -1744,6 +1761,7 @@ save "${data}/NJ_OriginalData_2017_ela_G07", replace
 import excel "${data}/NJ_OriginalData_2017_ela_G08", clear
 gen Subject = "ela"
 gen GradeLevel = "G08"
+drop if A == "DFG"
 drop A B G J K
 rename C StateAssignedDistID
 rename D DistName
@@ -1794,6 +1812,7 @@ save "${data}/NJ_AssmtData_2017", replace
 import excel "${data}/NJ_OriginalData_2017_mat_G03", clear
 gen Subject = "math"
 gen GradeLevel = "G03"
+drop if A == "DFG"
 drop A B G J K
 rename C StateAssignedDistID
 rename D DistName
@@ -1839,6 +1858,7 @@ save "${data}/NJ_OriginalData_2017_mat", replace
 import excel "${data}/NJ_OriginalData_2017_mat_G04", clear
 gen Subject = "math"
 gen GradeLevel = "G04"
+drop if A == "DFG"
 drop A B G J K
 rename C StateAssignedDistID
 rename D DistName
@@ -1884,6 +1904,7 @@ save "${data}/NJ_OriginalData_2017_mat_G04", replace
 import excel "${data}/NJ_OriginalData_2017_mat_G05", clear
 gen Subject = "math"
 gen GradeLevel = "G05"
+drop if A == "DFG"
 drop A B G J K
 rename C StateAssignedDistID
 rename D DistName
@@ -1929,6 +1950,7 @@ save "${data}/NJ_OriginalData_2017_mat_G05", replace
 import excel "${data}/NJ_OriginalData_2017_mat_G06", clear
 gen Subject = "math"
 gen GradeLevel = "G06"
+drop if A == "DFG"
 drop A B G J K
 rename C StateAssignedDistID
 rename D DistName
@@ -1974,6 +1996,7 @@ save "${data}/NJ_OriginalData_2017_mat_G06", replace
 import excel "${data}/NJ_OriginalData_2017_mat_G07", clear
 gen Subject = "math"
 gen GradeLevel = "G07"
+drop if A == "DFG"
 drop A B G J K
 rename C StateAssignedDistID
 rename D DistName
@@ -2019,6 +2042,7 @@ save "${data}/NJ_OriginalData_2017_mat_G07", replace
 import excel "${data}/NJ_OriginalData_2017_mat_G08", clear
 gen Subject = "math"
 gen GradeLevel = "G08"
+drop if A == "DFG"
 drop A B G J K
 rename C StateAssignedDistID
 rename D DistName
@@ -2265,7 +2289,7 @@ clear
 import excel "${data}/NJ_OriginalData_2018_ela_G03", clear
 gen Subject = "ela"
 gen GradeLevel = "G03"
-
+drop if A == "DFG"
 drop A B G J K
 rename C StateAssignedDistID
 rename D DistName
@@ -2310,7 +2334,7 @@ save "${data}/NJ_OriginalData_2018_ela", replace
 import excel "${data}/NJ_OriginalData_2018_ela_G04", clear
 gen Subject = "ela"
 gen GradeLevel = "G04"
-
+drop if A == "DFG"
 drop A B G J K
 rename C StateAssignedDistID
 rename D DistName
@@ -2354,7 +2378,7 @@ save "${data}/NJ_OriginalData_2018_ela_G04", replace
 import excel "${data}/NJ_OriginalData_2018_ela_G05", clear
 gen Subject = "ela"
 gen GradeLevel = "G05"
-
+drop if A == "DFG"
 drop A B G J K
 rename C StateAssignedDistID
 rename D DistName
@@ -2398,7 +2422,7 @@ save "${data}/NJ_OriginalData_2018_ela_G05", replace
 import excel "${data}/NJ_OriginalData_2018_ela_G06", clear
 gen Subject = "ela"
 gen GradeLevel = "G06"
-
+drop if A == "DFG"
 drop A B G J K
 rename C StateAssignedDistID
 rename D DistName
@@ -2442,7 +2466,7 @@ save "${data}/NJ_OriginalData_2018_ela_G06", replace
 import excel "${data}/NJ_OriginalData_2018_ela_G07", clear
 gen Subject = "ela"
 gen GradeLevel = "G07"
-
+drop if A == "DFG"
 drop A B G J K
 rename C StateAssignedDistID
 rename D DistName
@@ -2486,7 +2510,7 @@ save "${data}/NJ_OriginalData_2018_ela_G07", replace
 import excel "${data}/NJ_OriginalData_2018_ela_G08", clear
 gen Subject = "ela"
 gen GradeLevel = "G08"
-
+drop if A == "DFG"
 drop A B G J K
 rename C StateAssignedDistID
 rename D DistName
@@ -2535,7 +2559,7 @@ save "${data}/NJ_AssmtData_2018", replace
 import excel "${data}/NJ_OriginalData_2018_mat_G03", clear
 gen Subject = "math"
 gen GradeLevel = "G03"
-
+drop if A == "DFG"
 drop A B G J K
 rename C StateAssignedDistID
 rename D DistName
@@ -2579,7 +2603,7 @@ save "${data}/NJ_OriginalData_2018_mat", replace
 import excel "${data}/NJ_OriginalData_2018_mat_G04", clear
 gen Subject = "math"
 gen GradeLevel = "G04"
-
+drop if A == "DFG"
 drop A B G J K
 rename C StateAssignedDistID
 rename D DistName
@@ -2623,7 +2647,7 @@ save "${data}/NJ_OriginalData_2018_mat_G04", replace
 import excel "${data}/NJ_OriginalData_2018_mat_G05", clear
 gen Subject = "math"
 gen GradeLevel = "G05"
-
+drop if A == "DFG"
 drop A B G J K
 rename C StateAssignedDistID
 rename D DistName
@@ -2667,7 +2691,7 @@ save "${data}/NJ_OriginalData_2018_mat_G05", replace
 import excel "${data}/NJ_OriginalData_2018_mat_G06", clear
 gen Subject = "math"
 gen GradeLevel = "G06"
-
+drop if A == "DFG"
 drop A B G J K
 rename C StateAssignedDistID
 rename D DistName
@@ -2711,7 +2735,7 @@ save "${data}/NJ_OriginalData_2018_mat_G06", replace
 import excel "${data}/NJ_OriginalData_2018_mat_G07", clear
 gen Subject = "math"
 gen GradeLevel = "G07"
-
+drop if A == "DFG"
 drop A B G J K
 rename C StateAssignedDistID
 rename D DistName
@@ -2755,7 +2779,7 @@ save "${data}/NJ_OriginalData_2018_mat_G07", replace
 import excel "${data}/NJ_OriginalData_2018_mat_G08", clear
 gen Subject = "math"
 gen GradeLevel = "G08"
-
+drop if A == "DFG"
 drop A B G J K
 rename C StateAssignedDistID
 rename D DistName
@@ -3635,6 +3659,7 @@ replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGro
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
 replace StudentSubGroup = "Unknown" if StudentSubGroup == "Other" & StudentGroup == "RaceEth"
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "English Language Learners"
+replace StudentSubGroup = "English Learner" if StudentSubGroup == "English Learners"
 replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "Non-Econ. Disadvantaged"
 
 gen SchYear = "2018-19"
@@ -4477,7 +4502,9 @@ replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGro
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
 replace StudentSubGroup = "Unknown" if StudentSubGroup == "Other" & StudentGroup == "RaceEth"
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "English Language Learners"
+replace StudentSubGroup = "English Learner" if StudentSubGroup == "English Learners"
 replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "Non-Econ. Disadvantaged"
+replace StudentSubGroup = "Unknown" if StudentSubGroup == "Non-Binary/Undesignated"
 
 gen SchYear = "2021-22"
 gen AssmtName = "NJSLA"

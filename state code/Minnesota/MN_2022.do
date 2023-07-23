@@ -65,6 +65,8 @@ foreach var of varlist CountLevelD CountLevelE CountLevelM CountLevelP PercentLe
 gen DataLevel = "School"
 save "${temp_files}/MN_AssmtData_2022_mat_school.dta", replace
 
+clear
+
 
 append using "${temp_files}/MN_AssmtData_2022_mat_state.dta" "${temp_files}/MN_AssmtData_2022_mat_district.dta" "${temp_files}/MN_AssmtData_2022_mat_school.dta"
 tostring Grade, replace
@@ -139,6 +141,8 @@ foreach var of varlist CountLevelD CountLevelE CountLevelM CountLevelP PercentLe
 gen DataLevel = "School"
 save "${temp_files}/MN_AssmtData_2022_rea_school.dta", replace
 
+clear
+
 append using "${temp_files}/MN_AssmtData_2022_rea_state.dta" "${temp_files}/MN_AssmtData_2022_rea_district.dta" "${temp_files}/MN_AssmtData_2022_rea_school.dta"
 save "${temp_files}/MN_AssmtData_2022_rea_all.dta", replace
 
@@ -199,9 +203,12 @@ foreach var of varlist CountLevelD CountLevelE CountLevelM CountLevelP PercentLe
 gen DataLevel = "School"
 save "${temp_files}/MN_AssmtData_2022_sci_school.dta", replace
 
+clear
+
 append using "${temp_files}/MN_AssmtData_2022_sci_state.dta" "${temp_files}/MN_AssmtData_2022_sci_district.dta" "${temp_files}/MN_AssmtData_2022_sci_school.dta"
 save "${temp_files}/MN_AssmtData_2022_sci_all.dta", replace
 
+clear
 
 // Combining all subjects
 
@@ -326,8 +333,9 @@ drop if GradeLevel == "11"
 drop if GradeLevel == "HS"
 drop if GradeLevel == "0"
 replace StudentGroup = "All Students" if StudentGroup == "All Categories"
-replace StudentGroup = "RaceEth" if StudentGroup == "Race/Ethnicity"
+replace StudentGroup = "RaceEth" if StudentGroup == "Federal Race/Ethnicity"
 replace StudentGroup = "EL Status" if StudentGroup == "English Proficiency"
+replace StudentSubGroup = "All Students" if StudentSubGroup == "All students"
 replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "American Indian or Alaska Native students"
 replace StudentSubGroup = "Asian" if StudentSubGroup == "Asian students"
 replace StudentSubGroup = "Black or African American" if StudentSubGroup == "Black or African American students"
@@ -420,6 +428,10 @@ replace StateFips = 27 if DataLevel == 1
 replace DistName = "All Districts" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel == 2
+replace StateAssignedDistID = "" if DataLevel == 1
+replace StateAssignedSchID = "" if DataLevel != 3
+replace seasch = "" if DataLevel != 3
+replace State_leaid = "" if DataLevel == 1
 
 // Reordering variables and sorting data
 order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth

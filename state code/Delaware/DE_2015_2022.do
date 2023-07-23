@@ -2,10 +2,10 @@ clear
 set more off
 set trace off
 
-global original "G:\Test Score Repository Project\Delaware\Original"
-global output "G:\Test Score Repository Project\Delaware\Cleaned"
-global nces_school "G:\Test Score Repository Project\Delaware\NCESNew\School"
-global nces_dist "G:\Test Score Repository Project\Delaware\NCESNew\District"
+global original "/Volumes/T7 1/State Test Project/Delaware/Original"
+global output "/Volumes/T7 1/State Test Project/Delaware/Cleaned"
+global nces_school "/Volumes/T7 1/State Test Project/Delaware/NCESNew/School"
+global nces_dist "/Volumes/T7 1/State Test Project/Delaware/NCESNew/District"
 
 foreach year in 2015 2016 2017 2018 2019 2021 2022 { //2020 data would be empty, is thus not included
 
@@ -146,17 +146,18 @@ gen Lev3_count= "--"
 gen Lev3_percent= "--"
 gen Lev4_count= "--"
 gen Lev4_percent= "--"
-gen Lev5_count= "--"
-gen Lev5_percent= "--"
+gen Lev5_count= ""
+gen Lev5_percent= ""
 gen ParticipationRate= "--"
 gen Flag_AssmtNameChange="N"
-replace Flag_AssmtNameChange = "Y" if `year'==2019 & (Subject== "sci" | Subject == "soc")
+*replace Flag_AssmtNameChange = "Y" if `year'==2019 & (Subject== "sci" | Subject == "soc")
 gen Flag_CutScoreChange_ELA="N"
 gen Flag_CutScoreChange_math="N"
 gen Flag_CutScoreChange_read=""
 gen Flag_CutScoreChange_oth="N"
-replace Flag_CutScoreChange_oth = "Y" if `year'==2019 & Subject== "sci"
-replace Flag_AssmtNameChange = "Y" if `year' == 2018 & Subject== "sci"
+replace Flag_CutScoreChange_oth = "" if `year' == 2018
+*replace Flag_CutScoreChange_oth = "Y" if `year'==2019 & Subject== "sci"
+*replace Flag_AssmtNameChange = "Y" if `year' == 2018 & Subject== "sci"
 
 
 
@@ -175,8 +176,8 @@ tostring StudentGroup_TotalTested, replace
 tostring StudentSubGroup_TotalTested, replace 
 
 
-replace StudentGroup_TotalTested = "*" if RowStatus== "REDACTED"
-replace StudentSubGroup_TotalTested = "*" if RowStatus== "REDACTED"
+replace StudentGroup_TotalTested = "*" if RowStatus== "REDACTED" & (StudentGroup_TotalTested == "0" | StudentGroup_TotalTested== "." )
+replace StudentSubGroup_TotalTested = "*" if RowStatus== "REDACTED" & (StudentSubGroup_TotalTested == "0" | StudentSubGroup_TotalTested == "." )
 replace AvgScaleScore = "*" if RowStatus== "REDACTED"
 replace ProficientOrAbove_count = "*" if RowStatus== "REDACTED"
 replace ProficientOrAbove_percent = "*" if RowStatus== "REDACTED"
@@ -193,15 +194,50 @@ if `year' == 2019 | `year' == 2021 | `year' == 2022 {
 	drop if AssmtName== "DeSSA Alternate Assessment"
 }
 
+//Response to R1
+replace DistType = "Regular local school district" if SchName == "Meadowood Program" & `year' == 2015
+replace NCESDistrictID = "1001300" if SchName == "Meadowood Program" & `year' == 2015
+replace State_leaid = "32" if SchName == "Meadowood Program" & `year' == 2015
+replace DistCharter = "No" if SchName == "Meadowood Program" & `year' == 2015
+replace CountyName = "NEW CASTLE COUNTY" if SchName == "Meadowood Program" & `year' == 2015
+replace CountyCode = 10003 if SchName == "Meadowood Program" & `year' == 2015
+replace SchType = "MISSING" if SchName == "Meadowood Program" & `year' == 2015
+replace seasch = "MISSING" if SchName == "Meadowood Program" & `year' == 2015
+replace SchLevel = "MISSING" if SchName == "Meadowood Program" & `year' == 2015
+
+replace DistType = "State-operated agency" if DistName == "Dept. of Svs. for Children Youth & Their Families" & DataLevel == 3
+replace NCESDistrictID = "1000022" if DistName == "Dept. of Svs. for Children Youth & Their Families" & DataLevel == 3
+replace State_leaid = "97" if DistName == "Dept. of Svs. for Children Youth & Their Families" & DataLevel == 3
+replace StateAssignedDistID = "97" if DistName == "Dept. of Svs. for Children Youth & Their Families" & DataLevel == 3
+replace CountyName = "NEW CASTLE COUNTY" if DistName == "Dept. of Svs. for Children Youth & Their Families" & DataLevel == 3
+replace CountyCode = 10003 if DistName == "Dept. of Svs. for Children Youth & Their Families" & DataLevel == 3
+replace SchType = "MISSING" if DistName == "Dept. of Svs. for Children Youth & Their Families" & DataLevel == 3
+replace seasch = "MISSING" if DistName == "Dept. of Svs. for Children Youth & Their Families" & DataLevel == 3
+replace SchLevel = "MISSING" if DistName == "Dept. of Svs. for Children Youth & Their Families" & DataLevel == 3
+replace NCESSchoolID = "MISSING" if DistName == "Dept. of Svs. for Children Youth & Their Families" & DataLevel == 3
+replace DistCharter = "No" if DistName == "Dept. of Svs. for Children Youth & Their Families" & DataLevel == 3
+
+replace SchVirtual = "" if DataLevel !=3
+replace StateAssignedDistID = "" if DataLevel ==1
+replace StateAssignedSchID = "" if DataLevel !=3
+replace StudentSubGroup = "English Learner" if StudentSubGroup == "English Learners"
+
+if `year' == 2018 {
+	drop if AssmtName != "Smarter Balanced Summative Assessment"
+}
+
 order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 //Exporting
 save "${output}/DE_AssmtData_`year'.dta", replace
+if `year' != 2015 & `year' != 2016 & `year' != 2017 {
 export delimited using "${output}/DE_AssmtData_`year'.csv", replace
+}
 
 clear
 
 
 }
+do "/Volumes/T7 1/State Test Project/Delaware/DE_2015_2022_PART2.do"

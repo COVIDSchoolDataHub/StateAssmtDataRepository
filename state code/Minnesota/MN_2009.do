@@ -25,6 +25,8 @@ drop schoolcountynumber
 
 save "${temp_files}/MN_AssmtData_2009_sci.dta", replace
 
+clear
+
 append using "${temp_files}/MN_AssmtData_2009_sci.dta" "${temp_files}/MN_AssmtData_2009_mat_rea.dta"
 
 // Dropping extra variables
@@ -157,7 +159,7 @@ drop if GradeLevel == "011"
 drop if GradeLevel == "HS"
 replace StudentGroup = "All Students" if StudentGroup == "All Categories"
 replace StudentGroup = "RaceEth" if StudentGroup == "Race/Ethnicity"
-replace StudentGroup = "EL Status" if StudentGroup == "Limited English Proficient"
+replace StudentGroup = "EL Status" if StudentGroup == "English Proficiency"
 replace StudentGroup = "Economic Status" if StudentGroup == "EconomicStatus"
 replace StudentSubGroup = "All Students" if StudentSubGroup == "All Students"
 replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "1-American Indian"
@@ -243,7 +245,7 @@ save "${output_files}/MN_AssmtData_2009.dta", replace
 
 use "$NCES_files/NCES_2008_District.dta", clear 
 
-keep state_location state_fips district_agency_type ncesdistrictid state_leaid DistCharter county_name county_code
+keep state_location state_fips district_agency_type ncesdistrictid state_leaid DistCharter county_name county_code boundary_change_indicator
 
 keep if substr(ncesdistrictid, 1, 2) == "27"
 
@@ -272,6 +274,24 @@ replace StateFips = 27 if DataLevel == 1
 replace DistName = "All Districts" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel == 2
+replace StateAssignedDistID = "" if DataLevel == 1
+replace StateAssignedSchID = "" if DataLevel != 3
+replace seasch = "" if DataLevel != 3
+replace State_leaid = "" if DataLevel == 1
+
+// Fixing Missing DistType
+save "${output_files}/MN_AssmtData_2009.dta", replace
+keep if StateFips == .
+keep NCESDistrictID
+rename NCESDistrictID ncesdistrictid
+duplicates drop
+merge 1:1 ncesdistrictid using "$NCES_files/NCES_2009_District.dta", keep(match) nogenerate
+rename ncesdistrictid NCESDistrictID
+rename state_fips StateFips
+rename district_agency_type DistType
+keep NCESDistrictID StateFips DistType
+
+merge 1:m NCESDistrictID using "${output_files}/MN_AssmtData_2009.dta", nogenerate
 
 // Reordering variables and sorting data
 order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
