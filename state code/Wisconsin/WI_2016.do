@@ -123,6 +123,8 @@ gen Flag_CutScoreChange_math = "Y"
 gen Flag_CutScoreChange_read = ""
 gen Flag_CutScoreChange_oth = "Y"
 
+// Fixing Waupaca County Charter
+replace StateAssignedDistID = "6384" if SchName == "Waupaca County Charter"
 
 // NCES district data
 gen state_leaid = StateAssignedDistID
@@ -320,6 +322,12 @@ save "$temporary/WI_2016_only_suppressed.dta", replace
 clear
 
 append using "$temporary/WI_2016_only_suppressed.dta" "$temporary/WI_2016_wo_suppressed.dta"
+
+// Dealing with Multi-District Schools
+drop if SchName == "Manitowoc County Comprehensive Charter School" & NCESDistrictID != "5508610"
+drop if SchName == "JEDI Virtual K-12" & NCESDistrictID != "5516680"
+replace StateAssignedDistID = "6195" if SchName == "Waupaca County Charter"
+replace State_leaid = "6195" if SchName == "Waupaca County Charter"
 
 // Sorting and Exporting final
 

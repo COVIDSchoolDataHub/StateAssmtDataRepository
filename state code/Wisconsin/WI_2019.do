@@ -329,6 +329,11 @@ clear
 
 append using "$temporary/WI_2019_only_suppressed.dta" "$temporary/WI_2019_wo_suppressed.dta"
 
+// Dealing with Multi-District Schools
+drop if SchName == "Rural Virtual Academy" & NCESDistrictID != "5508940"
+drop if SchName == "JEDI Virtual K-12" & NCESSchoolID == ""
+replace NCESSchoolID = "Missing" if SchName == "JEDI Virtual K-12 - Jefferson and Eastern Dane County Interactive" & NCESSchoolID == ""
+
 // Sorting and Exporting final
 
 drop Suppressed
