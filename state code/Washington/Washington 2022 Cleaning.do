@@ -57,6 +57,7 @@ replace StateAssignedSchID = "" if DataLevel != 3
 
 replace SchName = "All Schools" if DataLevel != 3
 replace DistName = "All Districts" if DataLevel == 1
+replace CountyName = "" if DataLevel == 1
 
 replace Subject = "ela" if Subject == "ELA" 
 replace Subject = "math" if Subject == "Math"
@@ -69,7 +70,7 @@ replace StudentGroup = "EL Status" if StudentGroup == "ELL"
 replace StudentGroup = "Economic Status" if StudentGroup == "FRL"
 replace StudentGroup = "RaceEth" if StudentGroup == "Race"
 
-replace StudentSubGroup = "American Indian or Alaskan Native" if StudentSubGroup == "American Indian/ Alaskan Native"
+replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "American Indian/ Alaskan Native"
 replace StudentSubGroup = "Black or African American" if StudentSubGroup == "Black/ African American"
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "English Language Learners"
 replace StudentSubGroup = "Unknown" if StudentSubGroup == "Gender X"
