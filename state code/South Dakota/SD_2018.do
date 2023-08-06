@@ -8,11 +8,11 @@ local Original "/Volumes/T7/State Test Project/South Dakota/Original Data"
 local Output "/Volumes/T7/State Test Project/South Dakota/Output"
 local NCES_District "/Volumes/T7/State Test Project/NCES/District"
 local NCES_School "/Volumes/T7/State Test Project/NCES/School"
-local years 2014 2015 2016 2017
+local years 2018
 local subjects ela math sci
 local DataLevels State District School
 local Stata_versions "/Volumes/T7/State Test Project/South Dakota/Stata .dta versions"
-**Prepping Files**
+*Prepping Files**
 //For this code to work, the first time it runs must be to convert all excel files to .dta format. Simply unhide the import and save commands and hide the use command.
 foreach year of local years {
 	local prevyear =`=`year'-1'
@@ -20,16 +20,14 @@ foreach year of local years {
 	clear
 	save "`temp_`year''", emptyok
 	foreach subject of local subjects {
-		 if ("`subject'" == "ela"| "`subject'" == "math") & (`year' == 2014) {
-		 	continue
-		 }
 		foreach DataLevel of local DataLevels {
-			*import excel "`Original'/`subject'_`prevyear'-`year'.xlsx", case(preserve) sheet("`DataLevel'")
-			*save "`Stata_versions'/`year'_`subject'_`DataLevel'", replace
-			use "`Stata_versions'/`year'_`subject'_`DataLevel'"
+			import excel "`Original'/`subject'_`prevyear'-`year'.xlsx", case(preserve) sheet("`DataLevel'")
+			save "`Stata_versions'/`year'_`subject'_`DataLevel'", replace
+			*use "`Stata_versions'/`year'_`subject'_`DataLevel'"
+
+			
+			
 ** Cleaning **
-//Varnames in prep for reshape
-drop in 1/6
 if "`DataLevel'" == "State" {
 drop A
 rename B GradeLevel
@@ -82,7 +80,7 @@ rename AV Lev4_percentFemale
 rename AW Lev3_percentFemale
 rename AX Lev2_percentFemale
 rename AY Lev1_percentFemale
-drop AZ BA BB BC BD BE BF BG BH BI BJ BK BL BM BN BO
+drop AZ BA BB BC BD BE BF BG BH BI BJ BK BL BM BN BO //More subgroups all dropped later.
 drop in 1/2
 }
 if "`DataLevel'" == "District" {
@@ -138,68 +136,70 @@ rename AW Lev4_percentFemale
 rename AX Lev3_percentFemale
 rename AY Lev2_percentFemale
 rename AZ Lev1_percentFemale
-drop BA BB BC BD
+drop BA BB BC BD //More subgroups, dropped later
 drop in 1/2
 }
 if "`DataLevel'" == "School" {
 rename A StateAssignedDistID
 rename B DistName
-rename C SchName
-rename D StateAssignedSchID
-rename E GradeLevel
-rename F Total_Tested
-rename G Lev4_percentAll_Students
-rename H Lev3_percentAll_Students
-rename I Lev2_percentAll_Students
-rename J Lev1_percentAll_Students
-rename K Lev4_percentWhite
-rename L Lev3_percentWhite
-rename M Lev2_percentWhite
-rename N Lev1_percentWhite
-rename O Lev4_percentBlack
-rename P Lev3_percentBlack
-rename Q Lev2_percentBlack
-rename R Lev1_percentBlack
-rename S Lev4_percentAsian
-rename T Lev3_percentAsian
-rename U Lev2_percentAsian
-rename V Lev1_percentAsian
-rename W Lev4_percentNative_American
-rename X Lev3_percentNative_American
-rename Y Lev2_percentNative_American
-rename Z Lev1_percentNative_American
-rename AA Lev4_percentHispanic
-rename AB Lev3_percentHispanic
-rename AC Lev2_percentHispanic
-rename AD Lev1_percentHispanic
-rename AE Lev4_percentPacific_Islander
-rename AF Lev3_percentPacific_Islander
-rename AG Lev2_percentPacific_Islander
-rename AH Lev1_percentPacific_Islander
-rename AI Lev4_percentTwo_Or_More
-rename AJ Lev3_percentTwo_Or_More
-rename AK Lev2_percentTwo_Or_More
-rename AL Lev1_percentTwo_Or_More
-rename AM Lev4_percentDisadv
-rename AN Lev3_percentDisadv
-rename AO Lev2_percentDisadv
-rename AP Lev1_percentDisadv
-rename AQ Lev4_percentEnglish_Learner
-rename AR Lev3_percentEnglish_Learner
-rename AS Lev2_percentEnglish_Learner
-rename AT Lev1_percentEnglish_Learner
-rename AU Lev4_percentMale
-rename AV Lev3_percentMale
-rename AW Lev2_percentMale
-rename AX Lev1_percentMale
-rename AY Lev4_percentFemale
-rename AZ Lev3_percentFemale
-rename BA Lev2_percentFemale
-rename BB Lev1_percentFemale
-cap drop BC BD BE BF BG BH BI BJ BK BL BM BN BO BP BQ BR
+drop C //Only for 2018
+rename D StateAssignedSchID //Unique schoolid, no need to gen
+rename E SchName
+rename F GradeLevel
+rename G Total_Tested
+rename H Lev4_percentAll_Students
+rename I Lev3_percentAll_Students
+rename J Lev2_percentAll_Students
+rename K Lev1_percentAll_Students
+rename L Lev4_percentWhite
+rename M Lev3_percentWhite
+rename N Lev2_percentWhite
+rename O Lev1_percentWhite
+rename P Lev4_percentBlack
+rename Q Lev3_percentBlack
+rename R Lev2_percentBlack
+rename S Lev1_percentBlack
+rename T Lev4_percentAsian
+rename U Lev3_percentAsian
+rename V Lev2_percentAsian
+rename W Lev1_percentAsian
+rename X Lev4_percentNative_American
+rename Y Lev3_percentNative_American
+rename Z Lev2_percentNative_American
+rename AA Lev1_percentNative_American
+rename AB Lev4_percentHispanic
+rename AC Lev3_percentHispanic
+rename AD Lev2_percentHispanic
+rename AE Lev1_percentHispanic
+rename AF Lev4_percentPacific_Islander
+rename AG Lev3_percentPacific_Islander
+rename AH Lev2_percentPacific_Islander
+rename AI Lev1_percentPacific_Islander
+rename AJ Lev4_percentTwo_Or_More
+rename AK Lev3_percentTwo_Or_More
+rename AL Lev2_percentTwo_Or_More
+rename AM Lev1_percentTwo_Or_More
+rename AN Lev4_percentDisadv
+rename AO Lev3_percentDisadv
+rename AP Lev2_percentDisadv
+rename AQ Lev1_percentDisadv
+rename AR Lev4_percentEnglish_Learner
+rename AS Lev3_percentEnglish_Learner
+rename AT Lev2_percentEnglish_Learner
+rename AU Lev1_percentEnglish_Learner
+rename AV Lev4_percentMale
+rename AW Lev3_percentMale
+rename AX Lev2_percentMale
+rename AY Lev1_percentMale
+rename AZ Lev4_percentFemale
+rename BA Lev3_percentFemale
+rename BB Lev2_percentFemale
+rename BC Lev1_percentFemale
+drop BD BE BF BG //More subgroups, dropped later
 drop in 1/2
 }
 //Reshaping from Wide to Long
+drop if GradeLevel == "All"
 keep if GradeLevel == "3" | GradeLevel == "4" | GradeLevel == "5" | GradeLevel == "6" | GradeLevel == "7" | GradeLevel == "8"		
 
 if "`DataLevel'" == "State" {
@@ -214,10 +214,12 @@ gen StateAssignedSchID = ""
 }
 
 if "`DataLevel'" == "School" {
+//Yankton Middle School - Checked ELA and Math data, Math has two entries for the same grade. One of them is the Ela results. Dropping Extra obs.
+drop if "`subject'" == "math" & SchName == "Yankton Middle School - 02" & Lev4_percentAll_Students == ".2"
 reshape long Lev1_percent Lev2_percent Lev3_percent Lev4_percent, i(DistName SchName GradeLevel) j(StudentSubGroup, string)
 }		
 *save "/Volumes/T7/State Test Project/South Dakota/test/`year'_`DataLevel'_`subject'", replace
-
+			
 //Merging NCES Data
 gen UniqueDistID = ""
 replace UniqueDistID = StateAssignedDistID if strlen(StateAssignedDistID) == 5
@@ -228,12 +230,7 @@ save "`temp1'"
 clear
 use "`NCES_District'/NCES_`prevyear'_District.dta"
 keep if state_fips == 46
-if `year' != 2017 {
-gen UniqueDistID = state_leaid
-}
-if `year' == 2017 {
 gen UniqueDistID = substr(state_leaid, strpos(state_leaid, "-")+1, 6)
-}
 merge 1:m UniqueDistID using "`temp1'"
 drop if _merge==1
 count if _merge == 2
@@ -243,33 +240,14 @@ di as error "Problem with DistID, check `year'_`subject'_`DataLevel'"
 
 }
 if "`DataLevel'" == "School" {
-gen StateAssignedSchID1 = ""
-replace StateAssignedSchID1 = "0" + StateAssignedSchID if strlen(StateAssignedSchID) == 1
-replace StateAssignedSchID1 = StateAssignedSchID if strlen(StateAssignedSchID) ==2
-gen UniqueSchID = UniqueDistID + "-" + StateAssignedSchID1
-drop UniqueDistID StateAssignedSchID1
+gen UniqueSchID = StateAssignedSchID
+drop UniqueDistID
 tempfile temp1
 save "`temp1'"
 clear
 use "`NCES_School'/NCES_`prevyear'_School.dta"
 keep if state_fips == 46
-if `year' != 2017 {
-gen UniqueDistID = state_leaid
-}
-if `year' == 2017 {
-gen UniqueDistID = substr(state_leaid, strpos(state_leaid, "-")+1, 5)
-}
-gen StateAssignedSchID1 = ""
-replace StateAssignedSchID1 = "0" + seasch if strlen(seasch) == 1
-replace StateAssignedSchID1 = seasch if strlen(seasch) ==2
-if `year' != 2017 {
-gen UniqueSchID = UniqueDistID + "-" + StateAssignedSchID1
-}
-if `year' == 2017 { 
 gen UniqueSchID = seasch
-}
-drop UniqueDistID StateAssignedSchID1
-
 merge 1:m UniqueSchID using "`temp1'"
 drop if _merge==1
 count if _merge == 2
@@ -278,7 +256,7 @@ di as error "Problem with SchID, check `year'_`subject'_`DataLevel'"
 }
 }
 *save "/Volumes/T7/State Test Project/South Dakota/test/`year'_`DataLevel'_`subject'", replace
-
+		
 //Combining DataLevel and subject
 gen Subject = "`subject'"
 gen DataLevel = "`DataLevel'"
@@ -289,12 +267,13 @@ use "``subject'_`DataLevel''"
 append using "`temp_`year''"
 save "`temp_`year''", replace
 *save "/Volumes/T7/State Test Project/South Dakota/test/`year'", replace
-clear
+clear			
 
-			
-			
 		}
 	}
+
+	
+	
 use "`temp_`year''"
 //Correcting Variables
 rename state_name State
@@ -313,9 +292,7 @@ rename state_leaid State_leaid
 rename ncesschoolid NCESSchoolID
 rename county_name CountyName
 rename county_code CountyCode
-gen AssmtName = ""
-replace AssmtName = "SBAC" if Subject != "sci"
-replace AssmtName = "DSTEP" if Subject == "sci"
+gen AssmtName = "DSTEP"
 gen AssmtType = "Regular"
 
 //StudentSubGroup
@@ -343,11 +320,10 @@ replace StudentSubGroup_TotalTested = Total_Tested if StudentSubGroup == "All St
 replace StudentSubGroup_TotalTested = "--" if missing(StudentSubGroup_TotalTested)
 //StudentGroup_TotalTested
 gen StudentGroup_TotalTested = StudentSubGroup_TotalTested
-//Level Counts and Percents
+//Level Counts
 foreach n in 1 2 3 4 {
 	gen Lev`n'_count = "--"
-	destring Lev`n'_percent, replace i(".")
-	replace Lev`n'_percent = Lev`n'_percent/100
+	destring Lev`n'_percent, replace i(*)
 	format Lev`n'_percent %9.2f
 }
 //Proficiency
@@ -357,7 +333,7 @@ gen ProficientOrAbove_percent = Lev3_percent + Lev4_percent
 //Final Variables
 gen ParticipationRate = "--"
 gen Flag_AssmtNameChange = "N"
-gen Flag_CutScoreChange_ELA = "N"
+gen Flag_CutScoreChange_ELA = ""
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_oth = ""
 replace Flag_CutScoreChange_oth = "N" if `year' >= 2007
@@ -368,13 +344,13 @@ foreach n in 1 2 3 4 {
 gen Lev`n'_string = string(Lev`n'_percent, "%9.2f")
 drop Lev`n'_percent
 rename Lev`n'_string Lev`n'_percent
-replace Lev`n'_percent = "--" if missing(Lev`n'_percent) | Lev`n'_percent == "."	
+replace Lev`n'_percent = "*" if missing(Lev`n'_percent) | Lev`n'_percent == "."	
 }
 gen ProficientOrAbove_string = string(ProficientOrAbove_percent, "%9.2f")
 drop ProficientOrAbove_percent
 rename ProficientOrAbove_string ProficientOrAbove_percent
-replace ProficientOrAbove_percent = "--" if missing(ProficientOrAbove_percent) | ProficientOrAbove_percent == "."
-*save "/Volumes/T7/State Test Project/South Dakota/test/`year'", replace
+replace ProficientOrAbove_percent = "*" if missing(ProficientOrAbove_percent) | ProficientOrAbove_percent == "."
+
 //Empty Variables
 gen Lev5_count = ""
 gen Lev5_percent = ""
