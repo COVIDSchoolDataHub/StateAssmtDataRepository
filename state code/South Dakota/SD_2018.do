@@ -292,7 +292,9 @@ rename state_leaid State_leaid
 rename ncesschoolid NCESSchoolID
 rename county_name CountyName
 rename county_code CountyCode
-gen AssmtName = "DSTEP"
+gen AssmtName = ""
+replace AssmtName = "SBAC" if Subject != "sci"
+replace AssmtName = "SDSA" if Subject == "sci"
 gen AssmtType = "Regular"
 
 //StudentSubGroup
@@ -333,7 +335,7 @@ gen ProficientOrAbove_percent = Lev3_percent + Lev4_percent
 //Final Variables
 gen ParticipationRate = "--"
 gen Flag_AssmtNameChange = "N"
-gen Flag_CutScoreChange_ELA = ""
+gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_oth = ""
 replace Flag_CutScoreChange_oth = "N" if `year' >= 2007
@@ -376,7 +378,6 @@ duplicates drop State StateAbbrev StateFips SchYear DataLevel DistName DistType 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 //Saving
 save "`Output'/SD_AssmtData_`year'", replace
-export delimited "`Output'/SD_AssmtData_`year'", replace
 clear
 erase "`temp_`year''"
 }

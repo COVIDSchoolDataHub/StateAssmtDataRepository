@@ -400,7 +400,6 @@ duplicates drop State StateAbbrev StateFips SchYear DataLevel DistName DistType 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 //Saving
 save "`Output'/SD_AssmtData_`year'", replace
-export delimited "`Output'/SD_AssmtData_`year'", replace
 clear
 erase "`temp_`year''"
 }
