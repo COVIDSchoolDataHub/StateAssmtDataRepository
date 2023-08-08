@@ -6,7 +6,13 @@ global GAdata "/Users/miramehta/Documents/GA State Testing Data"
 global NCES "/Users/miramehta/Documents/NCES District and School Demographics"
 
 //2010-2011
+import delimited "$GAdata/GA_OriginalData_2011_G38_all.csv", clear
+gen acdmc_lvl = "G38"
+save "$GAdata/GA_OriginalData_2011_G38_all.dta", replace
+
 import delimited "$GAdata/GA_OriginalData_2011_all.csv", clear
+tostring acdmc_lvl, replace
+append using "$GAdata/GA_OriginalData_2011_G38_all.dta"
 
 //Rename Variables
 rename long_school_year SchYear
@@ -105,7 +111,6 @@ replace Lev3_percent = "--" if Lev3_percent == "."
 replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == "."
 
 //Grade Levels
-tostring GradeLevel, replace
 replace GradeLevel = "G03" if GradeLevel == "3"
 replace GradeLevel = "G04" if GradeLevel == "4"
 replace GradeLevel = "G05" if GradeLevel == "5"
@@ -168,6 +173,49 @@ rename county_code CountyCode
 rename ncesschoolid NCESSchoolID
 rename school_type SchType
 
+tostring sch_highest_grade_offered, replace force
+tostring sch_lowest_grade_offered, replace force
+
+replace sch_lowest_grade_offered = "K" if sch_lowest_grade_offered == "0"
+
+replace GradeLevel = "G" + sch_lowest_grade_offered + sch_highest_grade_offered if GradeLevel == "G38"
+
+drop if GradeLevel == "G-112"
+drop if GradeLevel == "G-13"
+drop if GradeLevel == "G-14"
+drop if GradeLevel == "G-15"
+drop if GradeLevel == "G-16"
+drop if GradeLevel == "G-17"
+drop if GradeLevel == "G-18"
+drop if GradeLevel == "G111"
+drop if GradeLevel == "G112"
+drop if GradeLevel == "G210"
+drop if GradeLevel == "G23"
+drop if GradeLevel == "G25"
+drop if GradeLevel == "G311"
+drop if GradeLevel == "G312"
+drop if GradeLevel == "G412"
+drop if GradeLevel == "G512"
+drop if GradeLevel == "G55"
+drop if GradeLevel == "G610"
+drop if GradeLevel == "G611"
+drop if GradeLevel == "G612"
+drop if GradeLevel == "G66"
+drop if GradeLevel == "G69"
+drop if GradeLevel == "G711"
+drop if GradeLevel == "G712"
+drop if GradeLevel == "G810"
+drop if GradeLevel == "G812"
+drop if GradeLevel == "G89"
+drop if GradeLevel == "GK12"
+drop if GradeLevel == "GK3"
+drop if GradeLevel == "GK5"
+drop if GradeLevel == "GK6"
+drop if GradeLevel == "GK7"
+drop if GradeLevel == "GK8"
+drop if GradeLevel == "GK9"
+drop if GradeLevel == "G.." & SchName == "All Schools"
+
 drop state_name year _merge merge2 agency_type_num urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type district_agency_type_num school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_lowest_grade_offered dist_highest_grade_offered dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch
 
 gen State = "Georgia"
@@ -189,6 +237,7 @@ replace DistCharter = "No" if DistName == "State Schools- Atlanta Area School fo
 replace CountyCode = 13089 if DistName == "State Schools- Atlanta Area School for the Deaf"
 replace CountyName = "DeKalb County" if DistName == "State Schools- Atlanta Area School for the Deaf"
 replace DistType = 5 if DistName == "State Schools- Atlanta Area School for the Deaf"
+drop if GradeLevel == "G.." & SchName == "Atlanta Area School for the Deaf"
 replace NCESSchoolID = "130022403062" if SchName == "Georgia Academy for the Blind"
 replace NCESDistrictID = "1300224" if DistName == "State Schools- Georgia Academy for the Blind"
 replace SchLevel = 4 if SchName == "Georgia Academy for the Blind"
@@ -197,6 +246,7 @@ replace DistCharter = "No" if DistName == "State Schools- Georgia Academy for th
 replace CountyCode = 13021 if DistName == "State Schools- Georgia Academy for the Blind"
 replace CountyName = "Bibb County" if DistName == "State Schools- Georgia Academy for the Blind"
 replace DistType = 5 if DistName == "State Schools- Georgia Academy for the Blind"
+drop if GradeLevel == "G.." & SchName == "Georgia Academy for the Blind"
 replace NCESSchoolID = "130022303063" if SchName == "Georgia School for the Deaf"
 replace NCESDistrictID = "1300223" if DistName == "State Schools- Georgia School for the Deaf"
 replace SchLevel = 4 if SchName == "Georgia School for the Deaf"
@@ -205,6 +255,7 @@ replace DistCharter = "No" if DistName == "State Schools- Georgia School for the
 replace CountyCode = 13115 if DistName == "State Schools- Georgia School for the Deaf"
 replace CountyName = "Floyd County" if DistName == "State Schools- Georgia School for the Deaf"
 replace DistType = 5 if DistName == "State Schools- Georgia School for the Deaf"
+drop if GradeLevel == "G.." & SchName == "Georgia School for the Deaf"
 
 //Variable Types
 decode SchLevel, gen(SchLevel_s)
@@ -281,7 +332,13 @@ export delimited "$GAdata/GA_AssmtData_2011", replace
 clear
 
 //2011-2012
+import delimited "$GAdata/GA_OriginalData_2012_G38_all.csv", clear
+gen acdmc_lvl = "G38"
+save "$GAdata/GA_OriginalData_2012_G38_all.dta", replace
+
 import delimited "$GAdata/GA_OriginalData_2012_all.csv", clear
+tostring acdmc_lvl, replace
+append using "$GAdata/GA_OriginalData_2012_G38_all.dta"
 
 //Rename Variables
 rename long_school_year SchYear
@@ -299,22 +356,6 @@ rename meets_cnt Lev2_count
 rename meets_percent Lev2_percent
 rename exceeds_cnt Lev3_count
 rename exceeds_percent Lev3_percent
-
-//Label Variables
-label var SchYear "School year in which the data were reported"
-label var DistName "District name"
-label var StateAssignedDistID "State-assigned district ID"
-label var SchName "School name"
-label var StateAssignedSchID "State-assigned school ID"
-label var Subject "Assessment subject area"
-label var GradeLevel "Grade tested"
-label var StudentSubGroup "Student demographic subgroup"
-label var Lev1_count "Count of students within subgroup performing at Level 1"
-label var Lev1_percent "Percent of students within subgroup performing at Level 1"
-label var Lev2_count "Count of students within subgroup performing at Level 2"
-label var Lev2_percent "Percent of students within subgroup performing at Level 2"
-label var Lev3_count "Count of students within subgroup performing at Level 3"
-label var Lev3_percent "Percent of students within subgroup performing at Level 3"
 
 //Generate Other Variables
 gen AssmtName = "Criterion-Referenced Competency Tests"
@@ -397,7 +438,6 @@ replace Lev3_percent = "--" if Lev3_percent == "."
 replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == "."
 
 //Grade Levels
-tostring GradeLevel, replace
 replace GradeLevel = "G03" if GradeLevel == "3"
 replace GradeLevel = "G04" if GradeLevel == "4"
 replace GradeLevel = "G05" if GradeLevel == "5"
@@ -459,6 +499,55 @@ rename county_name CountyName
 rename county_code CountyCode
 rename ncesschoolid NCESSchoolID
 rename school_type SchType
+
+tostring sch_highest_grade_offered, replace force
+tostring sch_lowest_grade_offered, replace force
+
+replace sch_lowest_grade_offered = "K" if sch_lowest_grade_offered == "0"
+
+replace GradeLevel = "G" + sch_lowest_grade_offered + sch_highest_grade_offered if GradeLevel == "G38"
+
+drop if GradeLevel == "G-112"
+drop if GradeLevel == "G-13"
+drop if GradeLevel == "G-14"
+drop if GradeLevel == "G-15"
+drop if GradeLevel == "G-16"
+drop if GradeLevel == "G-17"
+drop if GradeLevel == "G-18"
+drop if GradeLevel == "G111"
+drop if GradeLevel == "G112"
+drop if GradeLevel == "G210"
+drop if GradeLevel == "G211"
+drop if GradeLevel == "G212"
+drop if GradeLevel == "G23"
+drop if GradeLevel == "G25"
+drop if GradeLevel == "G311"
+drop if GradeLevel == "G312"
+drop if GradeLevel == "G411"
+drop if GradeLevel == "G412"
+drop if GradeLevel == "G512"
+drop if GradeLevel == "G55"
+drop if GradeLevel == "G610"
+drop if GradeLevel == "G611"
+drop if GradeLevel == "G612"
+drop if GradeLevel == "G66"
+drop if GradeLevel == "G69"
+drop if GradeLevel == "G711"
+drop if GradeLevel == "G712"
+drop if GradeLevel == "G810"
+drop if GradeLevel == "G812"
+drop if GradeLevel == "G89"
+drop if GradeLevel == "GK10"
+drop if GradeLevel == "GK11"
+drop if GradeLevel == "GK12"
+drop if GradeLevel == "GK3"
+drop if GradeLevel == "GK4"
+drop if GradeLevel == "GK5"
+drop if GradeLevel == "GK6"
+drop if GradeLevel == "GK7"
+drop if GradeLevel == "GK8"
+drop if GradeLevel == "GK9"
+drop if GradeLevel == "G.." & SchName == "All Schools"
 
 drop state_name year _merge merge2 district_agency_type_num urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type district_agency_type_num school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_lowest_grade_offered dist_highest_grade_offered dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch
 
@@ -547,7 +636,13 @@ export delimited "$GAdata/GA_AssmtData_2012", replace
 clear
 
 //2012-2013
+import delimited "$GAdata/GA_OriginalData_2013_G38_all.csv", clear
+gen acdmc_lvl = "G38"
+save "$GAdata/GA_OriginalData_2013_G38_all.dta", replace
+
 import delimited "$GAdata/GA_OriginalData_2013_all.csv", clear
+tostring acdmc_lvl, replace
+append using "$GAdata/GA_OriginalData_2013_G38_all.dta"
 
 //Rename Variables
 rename long_school_year SchYear
@@ -710,7 +805,57 @@ rename county_code CountyCode
 rename ncesschoolid NCESSchoolID
 rename school_type SchType
 
-drop state_name year _merge merge2 district_agency_type_num urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type district_agency_type_num school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_lowest_grade_offered dist_highest_grade_offered dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch
+tostring sch_highest_grade_offered, replace force
+tostring sch_lowest_grade_offered, replace force
+
+replace sch_lowest_grade_offered = "K" if sch_lowest_grade_offered == "0"
+
+replace GradeLevel = "G" + sch_lowest_grade_offered + sch_highest_grade_offered if GradeLevel == "G38"
+
+drop if GradeLevel == "G-112"
+drop if GradeLevel == "G-13"
+drop if GradeLevel == "G-14"
+drop if GradeLevel == "G-15"
+drop if GradeLevel == "G-16"
+drop if GradeLevel == "G-17"
+drop if GradeLevel == "G-18"
+drop if GradeLevel == "G111"
+drop if GradeLevel == "G112"
+drop if GradeLevel == "G210"
+drop if GradeLevel == "G211"
+drop if GradeLevel == "G212"
+drop if GradeLevel == "G23"
+drop if GradeLevel == "G25"
+drop if GradeLevel == "G311"
+drop if GradeLevel == "G312"
+drop if GradeLevel == "G410"
+drop if GradeLevel == "G411"
+drop if GradeLevel == "G412"
+drop if GradeLevel == "G512"
+drop if GradeLevel == "G55"
+drop if GradeLevel == "G610"
+drop if GradeLevel == "G611"
+drop if GradeLevel == "G612"
+drop if GradeLevel == "G66"
+drop if GradeLevel == "G69"
+drop if GradeLevel == "G711"
+drop if GradeLevel == "G712"
+drop if GradeLevel == "G810"
+drop if GradeLevel == "G812"
+drop if GradeLevel == "G89"
+drop if GradeLevel == "GK10"
+drop if GradeLevel == "GK11"
+drop if GradeLevel == "GK12"
+drop if GradeLevel == "GK3"
+drop if GradeLevel == "GK4"
+drop if GradeLevel == "GK5"
+drop if GradeLevel == "GK6"
+drop if GradeLevel == "GK7"
+drop if GradeLevel == "GK8"
+drop if GradeLevel == "GK9"
+drop if GradeLevel == "G.." & SchName == "All Schools"
+
+drop state_name year _merge merge2 district_agency_type_num urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type district_agency_type_num school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_lowest_grade_offered dist_highest_grade_offered dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch agency_charter_indicator
 
 gen State = "Georgia"
 replace StateAbbrev = "GA"
@@ -797,7 +942,13 @@ export delimited "$GAdata/GA_AssmtData_2013", replace
 clear
 
 //2013-2014
+import delimited "$GAdata/GA_OriginalData_2014_G38_all.csv", clear
+gen acdmc_lvl = "G38"
+save "$GAdata/GA_OriginalData_2014_G38_all.dta", replace
+
 import delimited "$GAdata/GA_OriginalData_2014_all.csv", clear
+tostring acdmc_lvl, replace
+append using "$GAdata/GA_OriginalData_2014_G38_all.dta"
 
 //Rename Variables
 rename long_school_year SchYear
@@ -960,7 +1111,62 @@ rename county_code CountyCode
 rename ncesschoolid NCESSchoolID
 rename school_type SchType
 
-drop state_name year _merge merge2 district_agency_type_num urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type district_agency_type_num school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_lowest_grade_offered dist_highest_grade_offered dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch
+tostring sch_highest_grade_offered, replace force
+tostring sch_lowest_grade_offered, replace force
+
+replace sch_lowest_grade_offered = "K" if sch_lowest_grade_offered == "0"
+
+replace GradeLevel = "G" + sch_lowest_grade_offered + sch_highest_grade_offered if GradeLevel == "G38"
+
+drop if GradeLevel == "G-19"
+drop if GradeLevel == "G-112"
+drop if GradeLevel == "G-13"
+drop if GradeLevel == "G-14"
+drop if GradeLevel == "G-15"
+drop if GradeLevel == "G-16"
+drop if GradeLevel == "G-17"
+drop if GradeLevel == "G-18"
+drop if GradeLevel == "G-2-2"
+drop if GradeLevel == "G111"
+drop if GradeLevel == "G112"
+drop if GradeLevel == "G210"
+drop if GradeLevel == "G211"
+drop if GradeLevel == "G212"
+drop if GradeLevel == "G23"
+drop if GradeLevel == "G24"
+drop if GradeLevel == "G25"
+drop if GradeLevel == "G311"
+drop if GradeLevel == "G312"
+drop if GradeLevel == "G410"
+drop if GradeLevel == "G411"
+drop if GradeLevel == "G412"
+drop if GradeLevel == "G511"
+drop if GradeLevel == "G512"
+drop if GradeLevel == "G55"
+drop if GradeLevel == "G610"
+drop if GradeLevel == "G611"
+drop if GradeLevel == "G612"
+drop if GradeLevel == "G66"
+drop if GradeLevel == "G69"
+drop if GradeLevel == "G711"
+drop if GradeLevel == "G712"
+drop if GradeLevel == "G88"
+drop if GradeLevel == "G810"
+drop if GradeLevel == "G812"
+drop if GradeLevel == "G89"
+drop if GradeLevel == "GK10"
+drop if GradeLevel == "GK11"
+drop if GradeLevel == "GK12"
+drop if GradeLevel == "GK3"
+drop if GradeLevel == "GK4"
+drop if GradeLevel == "GK5"
+drop if GradeLevel == "GK6"
+drop if GradeLevel == "GK7"
+drop if GradeLevel == "GK8"
+drop if GradeLevel == "GK9"
+drop if GradeLevel == "G.." & SchName == "All Schools"
+
+drop state_name year _merge merge2 district_agency_type_num urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type district_agency_type_num school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_lowest_grade_offered dist_highest_grade_offered dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch agency_charter_indicator dist_agency_charter_indicator
 
 gen State = "Georgia"
 replace StateAbbrev = "GA"
@@ -1232,7 +1438,7 @@ rename county_code CountyCode
 rename ncesschoolid NCESSchoolID
 rename school_type SchType
 
-drop state_name year _merge merge2 district_agency_type_num urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type district_agency_type_num school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_lowest_grade_offered dist_highest_grade_offered dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch
+drop state_name year _merge merge2 district_agency_type_num urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type district_agency_type_num school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_lowest_grade_offered dist_highest_grade_offered dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch agency_charter_indicator dist_agency_charter_indicator
 
 gen State = "Georgia"
 replace StateAbbrev = "GA"
@@ -1389,7 +1595,7 @@ replace StudentGroup = "Economic Status" if StudentSubGroup == "Not Economically
 
 replace SchName = DistName + " District Total" if DataLevel == "District"
 
-bys SchName Subject GradeLevel StudentGroup: egen StudentGroup_TotalTested = total(StudentSubGroup_TotalTested)
+bys SchName Subject GradeLevel StudentGroup: egen StudentGroup_TotalTested = total (StudentSubGroup_TotalTested)
 
 //Passing Rates & Percentages
 gen ProficiencyCriteria = "Levels 3 and 4"
@@ -1490,7 +1696,7 @@ rename county_code CountyCode
 rename ncesschoolid NCESSchoolID
 rename school_type SchType
 
-drop state_name year _merge merge2 district_agency_type_num urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type district_agency_type_num school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_lowest_grade_offered dist_highest_grade_offered dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch
+drop state_name year _merge merge2 district_agency_type_num urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type district_agency_type_num school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_lowest_grade_offered dist_highest_grade_offered dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch agency_charter_indicator dist_agency_charter_indicator
 
 gen State = "Georgia"
 replace StateAbbrev = "GA"
@@ -1751,7 +1957,7 @@ rename county_code CountyCode
 rename ncesschoolid NCESSchoolID
 rename school_type SchType
 
-drop state_name year _merge merge2 district_agency_type_num urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type district_agency_type_num school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_lowest_grade_offered dist_highest_grade_offered dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch
+drop state_name year _merge merge2 district_agency_type_num urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type district_agency_type_num school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_lowest_grade_offered dist_highest_grade_offered dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch agency_charter_indicator dist_agency_charter_indicator
 
 gen State = "Georgia"
 replace StateAbbrev = "GA"
@@ -1839,15 +2045,12 @@ replace SchVirtual = 0 if SchName == "Dubois Integrity Academy I"
 replace NCESSchoolID = "130022503061" if SchName == "Atlanta Area School for the Deaf"
 replace SchLevel = 4 if SchName == "Atlanta Area School for the Deaf"
 replace SchType = 2 if SchName == "Atlanta Area School for the Deaf"
-replace SchVirtual = 0 if SchName == "Atlanta Area School for the Deaf"
 replace NCESSchoolID = "130022403062" if SchName == "Georgia Academy for the Blind"
 replace SchLevel = 4 if SchName == "Georgia Academy for the Blind"
 replace SchType = 2 if SchName == "Georgia Academy for the Blind"
-replace SchVirtual = 0 if SchName == "Georgia Academy for the Blind"
 replace NCESSchoolID = "130022303063" if SchName == "Georgia School for the Deaf"
-replace SchType = 2 if SchName == "Georgia School for the Deaf"
 replace SchLevel = 4 if SchName == "Georgia School for the Deaf"
-replace SchVirtual = 0 if SchName == "Georgia School for the Deaf"
+replace SchType = 2 if SchName == "Georgia School for the Deaf"
 replace NCESSchoolID = "130000502626" if SchName == "CCAT School"
 replace SchType = 1 if SchName == "CCAT School"
 replace SchLevel = 4 if SchName == "CCAT School"
@@ -2106,7 +2309,7 @@ rename county_code CountyCode
 rename ncesschoolid NCESSchoolID
 rename school_type SchType
 
-drop state_name year _merge merge2 district_agency_type_num urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type district_agency_type_num school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_lowest_grade_offered dist_highest_grade_offered dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch
+drop state_name year _merge merge2 district_agency_type_num urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type district_agency_type_num school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_lowest_grade_offered dist_highest_grade_offered dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch agency_charter_indicator dist_agency_charter_indicator
 
 gen State = "Georgia"
 replace StateAbbrev = "GA"
@@ -2497,7 +2700,7 @@ rename county_code CountyCode
 rename ncesschoolid NCESSchoolID
 rename school_type SchType
 
-drop state_name year _merge merge2 district_agency_type_num urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type district_agency_type_num school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_lowest_grade_offered dist_highest_grade_offered dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch
+drop state_name year _merge merge2 district_agency_type_num urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type district_agency_type_num school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_lowest_grade_offered dist_highest_grade_offered dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch agency_charter_indicator dist_agency_charter_indicator
 
 gen State = "Georgia"
 replace StateAbbrev = "GA"
@@ -3183,6 +3386,9 @@ drop if StudentSubGroup == "Students with Disabilities"
 drop if StudentSubGroup == "Students without Disabilities"
 drop if StudentSubGroup == "Migrant"
 drop if StudentSubGroup == "Non-Migrant"
+drop if StudentSubGroup == "Military Connected"
+drop if StudentSubGroup == "Homeless"
+drop if StudentSubGroup == "Foster Care"
 
 gen StudentGroup = ""
 replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
@@ -3205,7 +3411,7 @@ replace SchName = DistName + " District Total" if DataLevel == "District"
 gen StudentSubGroup_TotalTested = num_tested_cnt
 destring num_tested_cnt, replace force
 replace num_tested_cnt = -1000000 if num_tested_cnt == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(num_tested_cnt)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(num_tested_cnt)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -3279,6 +3485,10 @@ replace Subject = "ela" if Subject == "English Language Arts"
 replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "sci" if Subject == "Science"
 replace Subject = "soc" if Subject == "Social Studies"
+drop if Subject == "Physical Science"
+drop if Subject == "sci" & GradeLevel == "G03"
+drop if Subject == "sci" & GradeLevel == "G04"
+drop if Subject == "sci" & GradeLevel == "G07"
 
 //Statewide Data
 replace SchName = "All Schools" if DataLevel != "School"
