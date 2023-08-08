@@ -3,10 +3,10 @@ set more off
 
 cd "G:\Test Score Repository Project\NY\TXT Format Original"
 
-local subjects "ELA MATH SCIENCE SOC"
-local allgrades "G03 G04 G05 G06 G07 G08"
-local sciencegrades "G04 G08"
-local socgrades "G05 G08"
+local subjects "ELA" "MATH" "SCIENCE" "SOC"
+local allgrades "G03" "G04" "G05" "G06" "G07" "G08"
+local sciencegrades "G04" "G08"
+local socgrades "G05" "G08"
 
 foreach year in 2006 2007 2008 2009 2010 2011 2012 2013 2014 2015 2016 2017 {
     local firstfile = 1

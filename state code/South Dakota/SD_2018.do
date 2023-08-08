@@ -1,0 +1,384 @@
+clear
+set more off
+cd "/Volumes/T7/State Test Project/South Dakota"
+cap log close
+set trace off
+log using Observe.log, replace
+local Original "/Volumes/T7/State Test Project/South Dakota/Original Data"
+local Output "/Volumes/T7/State Test Project/South Dakota/Output"
+local NCES_District "/Volumes/T7/State Test Project/NCES/District"
+local NCES_School "/Volumes/T7/State Test Project/NCES/School"
+local years 2018
+local subjects ela math sci
+local DataLevels State District School
+local Stata_versions "/Volumes/T7/State Test Project/South Dakota/Stata .dta versions"
+*Prepping Files**
+//For this code to work, the first time it runs must be to convert all excel files to .dta format. Simply unhide the import and save commands and hide the use command.
+foreach year of local years {
+	local prevyear =`=`year'-1'
+	tempfile temp_`year'
+	clear
+	save "`temp_`year''", emptyok
+	foreach subject of local subjects {
+		foreach DataLevel of local DataLevels {
+			import excel "`Original'/`subject'_`prevyear'-`year'.xlsx", case(preserve) sheet("`DataLevel'")
+			save "`Stata_versions'/`year'_`subject'_`DataLevel'", replace
+			*use "`Stata_versions'/`year'_`subject'_`DataLevel'"
+
+			
+			
+** Cleaning **
+if "`DataLevel'" == "State" {
+drop A
+rename B GradeLevel
+rename C Total_Tested
+rename D Lev4_percentAll_Students
+rename E Lev3_percentAll_Students
+rename F Lev2_percentAll_Students
+rename G Lev1_percentAll_Students
+rename H Lev4_percentWhite
+rename I Lev3_percentWhite
+rename J Lev2_percentWhite
+rename K Lev1_percentWhite
+rename L Lev4_percentBlack
+rename M Lev3_percentBlack
+rename N Lev2_percentBlack
+rename O Lev1_percentBlack
+rename P Lev4_percentAsian
+rename Q Lev3_percentAsian
+rename R Lev2_percentAsian
+rename S Lev1_percentAsian
+rename T Lev4_percentNative_American
+rename U Lev3_percentNative_American
+rename V Lev2_percentNative_American
+rename W Lev1_percentNative_American
+rename X Lev4_percentHispanic
+rename Y Lev3_percentHispanic
+rename Z Lev2_percentHispanic
+rename AA Lev1_percentHispanic
+rename AB Lev4_percentPacific_Islander
+rename AC Lev3_percentPacific_Islander
+rename AD Lev2_percentPacific_Islander
+rename AE Lev1_percentPacific_Islander
+rename AF Lev4_percentTwo_Or_More
+rename AG Lev3_percentTwo_Or_More
+rename AH Lev2_percentTwo_Or_More
+rename AI Lev1_percentTwo_Or_More
+rename AJ Lev4_percentDisadv
+rename AK Lev3_percentDisadv
+rename AL Lev2_percentDisadv
+rename AM Lev1_percentDisadv
+rename AN Lev4_percentEnglish_Learner
+rename AO Lev3_percentEnglish_Learner
+rename AP Lev2_percentEnglish_Learner
+rename AQ Lev1_percentEnglish_Learner
+rename AR Lev4_percentMale
+rename AS Lev3_percentMale
+rename AT Lev2_percentMale
+rename AU Lev1_percentMale
+rename AV Lev4_percentFemale
+rename AW Lev3_percentFemale
+rename AX Lev2_percentFemale
+rename AY Lev1_percentFemale
+drop AZ BA BB BC BD BE BF BG BH BI BJ BK BL BM BN BO //More subgroups all dropped later.
+drop in 1/2
+}
+if "`DataLevel'" == "District" {
+rename A StateAssignedDistID
+rename B DistName 
+rename C GradeLevel
+rename D Total_Tested
+rename E Lev4_percentAll_Students
+rename F Lev3_percentAll_Students
+rename G Lev2_percentAll_Students
+rename H Lev1_percentAll_Students
+rename I Lev4_percentWhite
+rename J Lev3_percentWhite
+rename K Lev2_percentWhite
+rename L Lev1_percentWhite
+rename M Lev4_percentBlack
+rename N Lev3_percentBlack
+rename O Lev2_percentBlack
+rename P Lev1_percentBlack
+rename Q Lev4_percentAsian
+rename R Lev3_percentAsian
+rename S Lev2_percentAsian
+rename T Lev1_percentAsian
+rename U Lev4_percentNative_American
+rename V Lev3_percentNative_American
+rename W Lev2_percentNative_American
+rename X Lev1_percentNative_American
+rename Y Lev4_percentHispanic
+rename Z Lev3_percentHispanic
+rename AA Lev2_percentHispanic
+rename AB Lev1_percentHispanic
+rename AC Lev4_percentPacific_Islander
+rename AD Lev3_percentPacific_Islander
+rename AE Lev2_percentPacific_Islander
+rename AF Lev1_percentPacific_Islander
+rename AG Lev4_percentTwo_Or_More
+rename AH Lev3_percentTwo_Or_More
+rename AI Lev2_percentTwo_Or_More
+rename AJ Lev1_percentTwo_Or_More
+rename AK Lev4_percentDisadv
+rename AL Lev3_percentDisadv
+rename AM Lev2_percentDisadv
+rename AN Lev1_percentDisadv
+rename AO Lev4_percentEnglish_Learner
+rename AP Lev3_percentEnglish_Learner
+rename AQ Lev2_percentEnglish_Learner
+rename AR Lev1_percentEnglish_Learner
+rename AS Lev4_percentMale
+rename AT Lev3_percentMale
+rename AU Lev2_percentMale
+rename AV Lev1_percentMale
+rename AW Lev4_percentFemale
+rename AX Lev3_percentFemale
+rename AY Lev2_percentFemale
+rename AZ Lev1_percentFemale
+drop BA BB BC BD //More subgroups, dropped later
+drop in 1/2
+}
+if "`DataLevel'" == "School" {
+rename A StateAssignedDistID
+rename B DistName
+drop C //Only for 2018
+rename D StateAssignedSchID //Unique schoolid, no need to gen
+rename E SchName
+rename F GradeLevel
+rename G Total_Tested
+rename H Lev4_percentAll_Students
+rename I Lev3_percentAll_Students
+rename J Lev2_percentAll_Students
+rename K Lev1_percentAll_Students
+rename L Lev4_percentWhite
+rename M Lev3_percentWhite
+rename N Lev2_percentWhite
+rename O Lev1_percentWhite
+rename P Lev4_percentBlack
+rename Q Lev3_percentBlack
+rename R Lev2_percentBlack
+rename S Lev1_percentBlack
+rename T Lev4_percentAsian
+rename U Lev3_percentAsian
+rename V Lev2_percentAsian
+rename W Lev1_percentAsian
+rename X Lev4_percentNative_American
+rename Y Lev3_percentNative_American
+rename Z Lev2_percentNative_American
+rename AA Lev1_percentNative_American
+rename AB Lev4_percentHispanic
+rename AC Lev3_percentHispanic
+rename AD Lev2_percentHispanic
+rename AE Lev1_percentHispanic
+rename AF Lev4_percentPacific_Islander
+rename AG Lev3_percentPacific_Islander
+rename AH Lev2_percentPacific_Islander
+rename AI Lev1_percentPacific_Islander
+rename AJ Lev4_percentTwo_Or_More
+rename AK Lev3_percentTwo_Or_More
+rename AL Lev2_percentTwo_Or_More
+rename AM Lev1_percentTwo_Or_More
+rename AN Lev4_percentDisadv
+rename AO Lev3_percentDisadv
+rename AP Lev2_percentDisadv
+rename AQ Lev1_percentDisadv
+rename AR Lev4_percentEnglish_Learner
+rename AS Lev3_percentEnglish_Learner
+rename AT Lev2_percentEnglish_Learner
+rename AU Lev1_percentEnglish_Learner
+rename AV Lev4_percentMale
+rename AW Lev3_percentMale
+rename AX Lev2_percentMale
+rename AY Lev1_percentMale
+rename AZ Lev4_percentFemale
+rename BA Lev3_percentFemale
+rename BB Lev2_percentFemale
+rename BC Lev1_percentFemale
+drop BD BE BF BG //More subgroups, dropped later
+drop in 1/2
+}
+//Reshaping from Wide to Long
+drop if GradeLevel == "All"
+keep if GradeLevel == "3" | GradeLevel == "4" | GradeLevel == "5" | GradeLevel == "6" | GradeLevel == "7" | GradeLevel == "8"		
+
+if "`DataLevel'" == "State" {
+reshape long Lev1_percent Lev2_percent Lev3_percent Lev4_percent, i(GradeLevel) j(StudentSubGroup, string)
+gen StateAssignedDistID = ""
+gen StateAssignedSchID = ""			
+}
+
+if "`DataLevel'" == "District" {
+reshape long Lev1_percent Lev2_percent Lev3_percent Lev4_percent, i(DistName GradeLevel) j(StudentSubGroup, string)
+gen StateAssignedSchID = ""
+}
+
+if "`DataLevel'" == "School" {
+//Yankton Middle School - Checked ELA and Math data, Math has two entries for the same grade. One of them is the Ela results. Dropping Extra obs.
+drop if "`subject'" == "math" & SchName == "Yankton Middle School - 02" & Lev4_percentAll_Students == ".2"
+reshape long Lev1_percent Lev2_percent Lev3_percent Lev4_percent, i(DistName SchName GradeLevel) j(StudentSubGroup, string)
+}		
+*save "/Volumes/T7/State Test Project/South Dakota/test/`year'_`DataLevel'_`subject'", replace
+			
+//Merging NCES Data
+gen UniqueDistID = ""
+replace UniqueDistID = StateAssignedDistID if strlen(StateAssignedDistID) == 5
+replace UniqueDistID = "0" + StateAssignedDistID if strlen(StateAssignedDistID) == 4
+if "`DataLevel'" == "District" {
+tempfile temp1
+save "`temp1'"
+clear
+use "`NCES_District'/NCES_`prevyear'_District.dta"
+keep if state_fips == 46
+gen UniqueDistID = substr(state_leaid, strpos(state_leaid, "-")+1, 6)
+merge 1:m UniqueDistID using "`temp1'"
+drop if _merge==1
+count if _merge == 2
+if _rc !=0 {
+di as error "Problem with DistID, check `year'_`subject'_`DataLevel'"
+}
+
+}
+if "`DataLevel'" == "School" {
+gen UniqueSchID = StateAssignedSchID
+drop UniqueDistID
+tempfile temp1
+save "`temp1'"
+clear
+use "`NCES_School'/NCES_`prevyear'_School.dta"
+keep if state_fips == 46
+gen UniqueSchID = seasch
+merge 1:m UniqueSchID using "`temp1'"
+drop if _merge==1
+count if _merge == 2
+if _rc !=0 {
+di as error "Problem with SchID, check `year'_`subject'_`DataLevel'"
+}
+}
+*save "/Volumes/T7/State Test Project/South Dakota/test/`year'_`DataLevel'_`subject'", replace
+		
+//Combining DataLevel and subject
+gen Subject = "`subject'"
+gen DataLevel = "`DataLevel'"
+tempfile `subject'_`DataLevel'
+save "``subject'_`DataLevel''"
+clear
+use "``subject'_`DataLevel''"
+append using "`temp_`year''"
+save "`temp_`year''", replace
+*save "/Volumes/T7/State Test Project/South Dakota/test/`year'", replace
+clear			
+
+		}
+	}
+
+	
+	
+use "`temp_`year''"
+//Correcting Variables
+rename state_name State
+rename state_location StateAbbrev
+rename state_fips StateFips
+gen SchYear = "`prevyear'"+ "-" + substr("`year'",3, 2)
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+sort DataLevel_n 
+drop DataLevel 
+rename DataLevel_n DataLevel
+rename district_agency_type DistType
+rename school_type SchType
+rename ncesdistrictid NCESDistrictID
+rename state_leaid State_leaid
+rename ncesschoolid NCESSchoolID
+rename county_name CountyName
+rename county_code CountyCode
+gen AssmtName = ""
+replace AssmtName = "SBAC" if Subject != "sci"
+replace AssmtName = "SDSA" if Subject == "sci"
+gen AssmtType = "Regular"
+
+//StudentSubGroup
+replace StudentSubGroup = "All Students" if StudentSubGroup == "All_Students"
+replace StudentSubGroup = "Black or African American" if StudentSubGroup == "Black"
+replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "Pacific_Islander"
+replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Disadv"
+replace StudentSubGroup = "English Learner" if StudentSubGroup == "English_Learner"
+replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
+replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "Native_American"
+replace StudentSubGroup = "Two or More" if StudentSubGroup == "Two_Or_More"
+
+
+//StudentGroup
+gen StudentGroup = ""
+replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
+replace StudentGroup = "RaceEth" if StudentSubGroup == "American Indian or Alaska Native" | StudentSubGroup == "Asian" | StudentSubGroup == "Black or African American" | StudentSubGroup == "Hispanic or Latino" | StudentSubGroup == "White" | StudentSubGroup == "Native Hawaiian or Pacific Islander" | StudentSubGroup == "Two or More"
+replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged"
+replace StudentGroup = "Gender" if StudentSubGroup == "Male" | StudentSubGroup == "Female"
+replace StudentGroup = "EL Status" if StudentSubGroup == "English Proficient" | StudentSubGroup == "English Learner"
+
+//StudentSubGroup_TotalTested
+gen StudentSubGroup_TotalTested = "" 
+replace StudentSubGroup_TotalTested = Total_Tested if StudentSubGroup == "All Students"
+replace StudentSubGroup_TotalTested = "--" if missing(StudentSubGroup_TotalTested)
+//StudentGroup_TotalTested
+gen StudentGroup_TotalTested = StudentSubGroup_TotalTested
+//Level Counts
+foreach n in 1 2 3 4 {
+	gen Lev`n'_count = "--"
+	destring Lev`n'_percent, replace i(*)
+	format Lev`n'_percent %9.2f
+}
+//Proficiency
+gen ProficiencyCriteria = "Levels 3 and 4"
+gen ProficientOrAbove_count = "--"
+gen ProficientOrAbove_percent = Lev3_percent + Lev4_percent
+//Final Variables
+gen ParticipationRate = "--"
+gen Flag_AssmtNameChange = "N"
+gen Flag_CutScoreChange_ELA = "N"
+gen Flag_CutScoreChange_math = "N"
+gen Flag_CutScoreChange_oth = ""
+replace Flag_CutScoreChange_oth = "N" if `year' >= 2007
+gen Flag_CutScoreChange_read = "N"
+
+//Converting to Correct Types and Misc Cleaning
+foreach n in 1 2 3 4 {
+gen Lev`n'_string = string(Lev`n'_percent, "%9.2f")
+drop Lev`n'_percent
+rename Lev`n'_string Lev`n'_percent
+replace Lev`n'_percent = "*" if missing(Lev`n'_percent) | Lev`n'_percent == "."	
+}
+gen ProficientOrAbove_string = string(ProficientOrAbove_percent, "%9.2f")
+drop ProficientOrAbove_percent
+rename ProficientOrAbove_string ProficientOrAbove_percent
+replace ProficientOrAbove_percent = "*" if missing(ProficientOrAbove_percent) | ProficientOrAbove_percent == "."
+
+//Empty Variables
+gen Lev5_count = ""
+gen Lev5_percent = ""
+gen AvgScaleScore = "--"
+
+//GradeLevel
+replace GradeLevel = "G0" + GradeLevel
+//Fixing State Level Data
+drop State
+gen State = "South Dakota"
+replace StateAbbrev = "SD"
+replace StateFips = 46
+
+//DistName and SchName
+replace DistName = "All Districts" if DataLevel==1
+replace SchName = "All Schools" if DataLevel ==1
+replace SchName = "All Schools" if DataLevel ==2
+
+//Final cleaning and dropping extra variables
+order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+duplicates drop State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentSubGroup, force
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+//Saving
+save "`Output'/SD_AssmtData_`year'", replace
+clear
+erase "`temp_`year''"
+}
+log close

@@ -2,10 +2,10 @@ clear
 set more off
 set trace off
 
-global original "/Volumes/T7 1/State Test Project/Delaware/Original"
-global output "/Volumes/T7 1/State Test Project/Delaware/Cleaned"
-global nces_school "/Volumes/T7 1/State Test Project/Delaware/NCESNew/School"
-global nces_dist "/Volumes/T7 1/State Test Project/Delaware/NCESNew/District"
+global original "/Volumes/T7/State Test Project/Delaware/Original"
+global output "/Volumes/T7/State Test Project/Delaware/Cleaned"
+global nces_school "/Volumes/T7/State Test Project/Delaware/NCESNew/School"
+global nces_dist "/Volumes/T7/State Test Project/Delaware/NCESNew/District"
 
 foreach year in 2015 2016 2017 2018 2019 2021 2022 { //2020 data would be empty, is thus not included
 
@@ -240,4 +240,4 @@ clear
 
 
 }
-do "/Volumes/T7 1/State Test Project/Delaware/DE_2015_2022_PART2.do"
+do "/Volumes/T7/State Test Project/Delaware/DE_2015_2022_PART2.do"

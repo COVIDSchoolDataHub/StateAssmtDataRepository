@@ -56,6 +56,7 @@ rename DataLevel_n DataLevel
 
 replace SchName = "All Schools" if DataLevel != 3
 replace DistName = "All Districts" if DataLevel == 1
+replace CountyName = "" if DataLevel == 1
 
 replace Subject = "ela" if Subject == "English Language Arts" 
 replace Subject = "math" if Subject == "Math"
@@ -74,7 +75,7 @@ replace StudentGroup = "EL Status" if StudentGroup == "English Language Learners
 replace StudentGroup = "Economic Status" if StudentGroup == "Low Income"
 replace StudentGroup = "RaceEth" if StudentGroup == "Race"
 
-replace StudentSubGroup = "American Indian or Alaskan Native" if StudentSubGroup == "American Indian/ Alaskan Native"
+replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "American Indian/ Alaskan Native"
 replace StudentSubGroup = "Black or African American" if StudentSubGroup == "Black/ African American"
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "English Language Learners"
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic/ Latino of any race(s)"

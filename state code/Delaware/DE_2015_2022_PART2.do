@@ -7,7 +7,7 @@ log using "/Users/joshuasilverman/Desktop/observe.log", replace
 
 //NOTE: IF YOU'RE RECREATING CLEANING PROCESS, RUN DE_2015_2022 CODE FIRST. Check all sections to set directories before running.
 
-local data "/Volumes/T7 1/State Test Project/Delaware/Original/Combined .dta by DataLevel & Year"
+local data "/Volumes/T7/State Test Project/Delaware/Original/Combined .dta by DataLevel & Year"
 
 foreach year in 2015 2016 2017 {
 	di as error "`year'"
@@ -17,13 +17,18 @@ foreach year in 2015 2016 2017 {
 		rename PercentProficient PercentProficiency
 	}
 	//Converting to Percents
-		destring PL*, replace i(<>=)
+	
 		foreach n in 1 2 3 4 {
-			replace PL`n' = PL`n'/100
+			gen rangeind`n'= "" //RESPONSE TO R2
+			cap replace rangeind`n' = substr(PL`n',strpos(PL`n',"<"),1)
+			destring PL`n', replace i(<)
+			replace PL`n' = round(PL`n'/100,0.001)
 		}
-		destring ParticipationRate, replace i(<>=)
-		replace ParticipationRate = ParticipationRate/100
-		replace PercentProficiency = PercentProficiency/100
+		gen range_part = ""
+		replace range_part = substr(ParticipationRate,strpos(ParticipationRate,">"),1)
+		destring ParticipationRate, replace i(>)
+		replace ParticipationRate = round(ParticipationRate/100, 0.001)
+		replace PercentProficiency = round(PercentProficiency/100, 0.001)
 		
 	//Fixing Grade and Subject
 		gen Grade = "G0" + substr(Subject, strpos(Subject, "Grade")+6,1)
@@ -49,6 +54,8 @@ foreach year in 2015 2016 2017 {
 		drop G H I
 		rename PercentProficient PercentProficiency
 	}
+	gen range_part = ""
+	replace range_part = substr(ParticipationRate,strpos(ParticipationRate,">"),1)
 	//Fixing District for 2016 & 2017
 	if `year' !=2015 {
 	gen District1 = subinstr(District," Performance and Participation","", .)
@@ -57,9 +64,9 @@ foreach year in 2015 2016 2017 {
 	}
 	//Converting to Percents
 	destring PercentProficiency, replace i(<>=%*)
-	replace PercentProficiency = PercentProficiency/100
+	replace PercentProficiency = round(PercentProficiency/100,0.001)
 	destring ParticipationRate, replace i(<>%*)
-	replace ParticipationRate = ParticipationRate/100
+	replace ParticipationRate = round(ParticipationRate/100,0.001)
 	
 	//Fixing Grade and Subject
 	rename Data Subject
@@ -92,11 +99,13 @@ foreach year in 2015 2016 2017 {
 		drop F G H
 		rename PercentProficient PercentProficiency
 	}
+	gen range_part = ""
+	replace range_part = substr(ParticipationRate,strpos(ParticipationRate,">"),1)
 	//Converting to Percents
 	destring PercentProficiency, replace i(<>=%*)
-	replace PercentProficiency = PercentProficiency/100
+	replace PercentProficiency = round(PercentProficiency/100,0.001)
 	destring ParticipationRate, replace i(<>%*)
-	replace ParticipationRate = ParticipationRate/100
+	replace ParticipationRate = round(ParticipationRate/100,0.001)
 	
 	//Fixing Grade and Subject
 	gen Subject1 ="" 
@@ -133,11 +142,13 @@ foreach year in 2015 2016 2017 {
 		drop F G H
 		rename PercentProficient PercentProficiency
 	}
+	gen range_part = ""
+	replace range_part = substr(ParticipationRate,strpos(ParticipationRate,">"),1)
 	//Converting to Percents
 	destring PercentProficiency, replace i(<>=%*)
-	replace PercentProficiency = PercentProficiency/100
+	replace PercentProficiency = round(PercentProficiency/100, 0.001)
 	destring ParticipationRate, replace i(<>%*)
-	replace ParticipationRate = ParticipationRate/100
+	replace ParticipationRate = round(ParticipationRate/100, 0.001)
 	
 	//Fixing Grade and Subject
 	gen Subject1 ="" 
@@ -180,8 +191,8 @@ foreach year in 2015 2016 2017 {
 
 //Additional Cleaning- SET ADDITIONAL FILE DIRECTORIES
 
-local data "/Volumes/T7 1/State Test Project/Delaware/Original/Combined .dta by DataLevel & Year"
-local cleaned "/Volumes/T7 1/State Test Project/Delaware/Cleaned"
+local data "/Volumes/T7/State Test Project/Delaware/Original/Combined .dta by DataLevel & Year"
+local cleaned "/Volumes/T7/State Test Project/Delaware/Cleaned"
 	foreach year in 2015 2016 2017 {
 		use "`data'/Combined_`year'"
 		
@@ -278,7 +289,7 @@ local cleaned "/Volumes/T7 1/State Test Project/Delaware/Cleaned"
 		save "`idk'"
 //Change Directory for NCES School data below
 		local prevyear =`=`year'-1'
-		local NCES "/Volumes/T7 1/State Test Project/NCES/School/"
+		local NCES "/Volumes/T7/State Test Project/NCES/School/"
 		use "`NCES'NCES_`prevyear'_School.dta", clear
 		rename school_name SchName
 		drop if state_fips != 10
@@ -381,9 +392,18 @@ local cleaned "/Volumes/T7 1/State Test Project/Delaware/Cleaned"
 		destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested1) i(<>=*~-)
 		duplicates drop
 		egen StudentGroup_TotalTested = total(StudentSubGroup_TotalTested1), by(StudentGroup GradeLevel Subject DataLevel StateAssignedSchID StateAssignedDistID)
-		tostring Lev*, replace force
-		tostring ProficientOrAbove_percent, replace force
-		tostring ParticipationRate, replace force
+		foreach n in 1 2 3 4 5{
+			gen Lev`n'_string = string(Lev`n'_percent, "%9.2f")
+			drop Lev`n'_percent
+			rename Lev`n'_string Lev`n'_percent
+			tostring Lev`n'_count, replace
+		}
+		gen ProficientOrAbove_string = string(ProficientOrAbove_percent, "%9.2f")
+		drop ProficientOrAbove_percent
+		rename ProficientOrAbove_string ProficientOrAbove_percent
+		gen ParticipationRate_string = string(ParticipationRate, "%9.2f")
+		drop ParticipationRate
+		rename ParticipationRate_string ParticipationRate
 		replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
 		tostring StudentGroup_TotalTested, replace
 		replace StudentGroup_TotalTested = "--" if DataLevel !=1
@@ -431,6 +451,12 @@ local cleaned "/Volumes/T7 1/State Test Project/Delaware/Cleaned"
 		
 //Misc stuff partially in reponse to R1
 replace StateAssignedSchID = "" if DataLevel !=3
+
+//Range inclusion in response to R2:
+foreach n in 1 2 3 4 {
+	replace Lev`n'_percent = rangeind`n' + Lev`n'_percent
+}
+replace ParticipationRate = range_part + ParticipationRate
 
 
 		
