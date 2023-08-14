@@ -1,15 +1,15 @@
 clear
 set more off
 
-local original "/Users/joshuasilverman/Documents/State Test Project/New York/Original/2019-2022" //2019-2022 IMPORT FROM TXT
-local output "/Users/joshuasilverman/Documents/State Test Project/New York/Output/"
-local nces_school "/Users/joshuasilverman/Documents/State Test Project/NCES/School"
-local nces_district "/Users/joshuasilverman/Documents/State Test Project/NCES/District"
+local original "/Volumes/T7/State Test Project/New York/Original/2019-2022" //2019-2022 IMPORT FROM TXT
+local output "/Volumes/T7/State Test Project/New York/Output"
+local nces_school "/Volumes/T7/State Test Project/NCES/School"
+local nces_district "/Volumes/T7/State Test Project/NCES/District"
 
 //Standardizing varnames and combining
 
 //ELA *CROSSWALK IN README IS WRONG*
-import delimited "`original'/ELA2019.txt", clear
+import delimited "`original'/ELA2019.txt", clear stringcols(1)
 rename v2 ENTITY_NAME
 rename v3 YEAR
 rename v4 ASSESSMENT
@@ -35,7 +35,7 @@ save "`temp1'"
 
 //MATH
 
-import delimited "`original'/MATH2019.txt", clear
+import delimited "`original'/MATH2019.txt", clear stringcols(1)
 rename v2 ENTITY_NAME
 rename v3 YEAR
 rename v4 ASSESSMENT
@@ -63,7 +63,7 @@ save "`temp2'"
 
 //SCI *CROSSWALK IN README IS WRONG*
 
-import delimited "`original'/SCIENCE2019.txt", clear
+import delimited "`original'/SCIENCE2019.txt", clear stringcols(1)
 
 rename v2 ENTITY_NAME
 rename v3 YEAR
@@ -97,14 +97,13 @@ foreach n in 1 2 3 {
 drop if YEAR != 2019
 
 //Fixing ENTITY_CD
-format v1 %18.0g
-gen ENTITY_CD = string(v1, "%18.0g")
+gen ENTITY_CD = v1
 drop v1
 order ENTITY_CD
 
 //creating DataLevel, StateAssignedSchID, StateAssignedDistID, based on ENTITY_CD
 drop if strlen(ENTITY_CD)<12
-drop if substr(ENTITY_CD,3,10)== "0000000000"
+drop if substr(ENTITY_CD,1,2)== "00"
 gen DataLevel= "State" if ENTITY_CD== "111111111111"
 replace DataLevel= "District" if substr(ENTITY_CD,9,4)=="0000" & substr(ENTITY_CD,7,2) !="86"
 replace DataLevel= "School" if substr(ENTITY_CD,9,4) !="0000" & substr(ENTITY_CD,7,2) !="86"

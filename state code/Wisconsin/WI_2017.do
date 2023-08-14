@@ -124,7 +124,7 @@ gen Flag_CutScoreChange_read = ""
 gen Flag_CutScoreChange_oth = "N"
 
 // Fixing Waupaca County Charter
-replace StateAssignedDistID = "6384" if SchName == "Waupaca County Charter"
+drop if SchName == "Waupaca County Charter"
 
 // NCES district data
 gen state_leaid = StateAssignedDistID
@@ -332,8 +332,6 @@ append using "$temporary/WI_2017_only_suppressed.dta" "$temporary/WI_2017_wo_sup
 
 // Dealing with Multi-District Schools
 drop if SchName == "JEDI Virtual K-12" & NCESSchoolID == ""
-replace StateAssignedDistID = "6195" if SchName == "Waupaca County Charter"
-replace State_leaid = "6195" if SchName == "Waupaca County Charter"
 
 // Sorting and Exporting final
 

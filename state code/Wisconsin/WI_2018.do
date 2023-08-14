@@ -123,10 +123,12 @@ gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_read = ""
 gen Flag_CutScoreChange_oth = "N"
 
+// fix Seeds of Health Elementary Program and Rocketship to merge
+replace DistName = "Rocketship Southside Community Prep" if StateAssignedDistID == "8002"
+replace StateAssignedDistID = "8133" if DistName == "Rocketship Southside Community Prep"
+
 // NCES district data
 gen state_leaid = StateAssignedDistID
-// fix Seeds of Health Elementary Program and Rocketship to merge
-replace state_leaid = "8133" if DistName == "Rocketship Southside Community Prep"
 destring state_leaid, replace force
 save temp, replace
 clear
@@ -178,8 +180,8 @@ rename ncesschoolid NCESSchoolID
 rename school_type SchType
 
 // fix County data for Rocketship
-replace CountyName = "Milwaukee County" if DistName == "Rocketship Education Wisconsin Inc"
-replace CountyCode = "55079" if DistName == "Rocketship Education Wisconsin Inc"
+replace CountyName = "Milwaukee County" if DistName == "Rocketship Southside Community Prep"
+replace CountyCode = "55079" if DistName == "Rocketship Southside Community Prep"
 
 // sorting
 label def DataLevel 1 "State" 2 "District" 3 "School"
