@@ -333,8 +333,12 @@ tempfile temp1
 save "`temp1'"
 clear
 use "`NCES_District'/NCES_`prevyear'_District.dta"
+replace state_fips = 46 if state_location == "SD"
 keep if state_fips == 46
+drop if state_name == 59
 gen UniqueDistID = state_leaid
+replace UniqueDistID = "32001" if strpos(lea_name, upper("Highmore")) !=0 & `year'==2009
+duplicates drop UniqueDistID, force
 merge 1:m UniqueDistID using "`temp1'"
 drop if _merge==1
 count if _merge == 2
@@ -353,13 +357,27 @@ tempfile temp1
 save "`temp1'"
 clear
 use "`NCES_School'/NCES_`prevyear'_School.dta"
+replace state_fips = 46 if state_location == "SD"
 keep if state_fips == 46
+drop if state_name == 59
+
 gen UniqueDistID = state_leaid
 gen StateAssignedSchID1 = ""
+replace UniqueDistID = "32001" if strpos(lea_name, upper("Highmore")) !=0 & `year' == 2009
+replace seasch = "3" if ncesschoolid == "461032001016" & `year' == 2004
+replace seasch = "4" if ncesschoolid == "462439000207" & (`year' ==2004 | `year' == 2005)
+replace seasch = "8" if ncesschoolid == "460264000018" & `year' ==2010
+replace seasch = "8" if ncesschoolid == "461413000786" & `year' == 2010
+
 replace StateAssignedSchID1 = "0" + seasch if strlen(seasch) == 1
 replace StateAssignedSchID1 = seasch if strlen(seasch) ==2
 gen UniqueSchID = UniqueDistID + "-" + StateAssignedSchID1
+duplicates drop UniqueSchID, force
 drop UniqueDistID StateAssignedSchID1
+replace seasch = "05" if ncesschoolid == "461032001016" & `year' == 2004
+replace seasch = "08" if ncesschoolid == "462439000207" & (`year' == 2004 |`year' == 2005)
+replace seasch = "02" if ncesschoolid == "460264000018" & `year' ==2010
+replace seasch = "04" if ncesschoolid == "461413000786" & `year' ==2010
 if `year' == 2012 {
 drop if school_name == "CREEKSIDE ELEMENTARY"
 }
@@ -490,7 +508,6 @@ replace SchName = "All Schools" if DataLevel ==2
 //Final cleaning and dropping extra variables
 order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
-duplicates drop State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentSubGroup, force
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 //Saving
 save "`Output'/SD_AssmtData_`year'", replace
