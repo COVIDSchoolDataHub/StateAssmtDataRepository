@@ -168,8 +168,6 @@ replace seasch = "" if DataLevel != 3
 
 merge m:1 seasch using "${NCES}/NCES_2015_School.dta"
 
-tab SchName seasch if _merge == 1 & DataLevel == 3
-
 drop if _merge == 2
 drop _merge
 
