@@ -143,7 +143,7 @@ drop test
 
 ** Merging with NCES
 
-gen leadingzero = 1 if State_leaid < 9999
+gen leadingzero = 1 if State_leaid < 10000
 tostring State_leaid, replace
 replace State_leaid = "0" + State_leaid if leadingzero == 1
 drop leadingzero
