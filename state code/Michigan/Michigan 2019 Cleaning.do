@@ -78,11 +78,6 @@ replace StudentSubGroup = "Two or More" if StudentSubGroup == "Two or More Races
 
 ** Generating new variables
 
-gen StateAssignedDistID = State_leaid
-replace StateAssignedDistID = . if DataLevel == 1
-gen StateAssignedSchID = seasch
-replace StateAssignedSchID = . if DataLevel != 3
-
 gen AssmtType = "Regular"
 
 gen StudentGroup = "RaceEth"
@@ -146,8 +141,9 @@ gen leadingzero = 1 if State_leaid < 10000
 tostring State_leaid, replace
 replace State_leaid = "0" + State_leaid if leadingzero == 1
 drop leadingzero
-replace State_leaid = "61000" if SchName == "Muskegon County Juvenile Transition Center"
 replace State_leaid = "MI-" + State_leaid
+replace State_leaid = "MI-61000" if SchName == "Muskegon County Juvenile Transition Center"
+replace State_leaid = "MI-33020" if SchName == "Ingham Academy/Family Center"
 replace State_leaid = "" if DataLevel == 1
 
 merge m:1 State_leaid using "${NCES}/NCES_2018_District.dta"
@@ -174,7 +170,6 @@ merge m:1 seasch using "${NCES}/NCES_2018_School.dta"
 drop if _merge == 2
 drop _merge
 
-replace NCESSchoolID = "262115007963" if seasch == "33000-09949"
 replace NCESSchoolID = "268062005335" if seasch == "41000-02806"
 replace NCESSchoolID = "268085007799" if seasch == "61000-09766"
 replace NCESSchoolID = "260110308093" if seasch == "82015-09994"
@@ -191,11 +186,18 @@ merge m:1 NCESSchoolID using "${NCES}/NCES_2020_School.dta", update
 drop if _merge == 2
 drop _merge
 
+replace SchVirtual = 0 if NCESSchoolID == "260112608888"
+
 replace StateAbbrev = "MI" if DataLevel == 1
 replace State = 26 if DataLevel == 1
 replace StateFips = 26 if DataLevel == 1
 
 ** Generating new variables
+
+gen StateAssignedDistID = State_leaid
+replace StateAssignedDistID = "" if DataLevel == 1
+gen StateAssignedSchID = seasch
+replace StateAssignedSchID = "" if DataLevel != 3
 
 gen Flag_AssmtNameChange = "Y"
 gen Flag_CutScoreChange_ELA = "N"

@@ -60,6 +60,7 @@ replace SchName = "All Schools" if DataLevel != 3
 
 replace Subject = "ela" if Subject == "ELA" 
 replace Subject = "math" if Subject == "Mathematics"
+replace Subject = "sci" if Subject == "Science"
 replace Subject = "soc" if Subject == "Social Studies"
 
 tostring GradeLevel, replace
@@ -77,11 +78,6 @@ replace StudentSubGroup = "English Proficient" if StudentSubGroup == "Not Englis
 replace StudentSubGroup = "Two or More" if StudentSubGroup == "Two or More Races"
 
 ** Generating new variables
-
-gen StateAssignedDistID = State_leaid
-replace StateAssignedDistID = . if DataLevel == 1
-gen StateAssignedSchID = seasch
-replace StateAssignedSchID = . if DataLevel != 3
 
 gen AssmtType = "Regular"
 
@@ -147,6 +143,7 @@ tostring State_leaid, replace
 replace State_leaid = "0" + State_leaid if leadingzero == 1
 drop leadingzero
 replace State_leaid = "MI-" + State_leaid
+replace State_leaid = "MI-33020" if SchName == "Ingham Academy/Family Center"
 replace State_leaid = "" if DataLevel == 1
 
 merge m:1 State_leaid using "${NCES}/NCES_2021_District.dta"
@@ -173,18 +170,16 @@ merge m:1 seasch using "${NCES}/NCES_2021_School.dta"
 drop if _merge == 2
 drop _merge
 
-replace NCESSchoolID = "262115007963" if seasch == "33000-09949"
-
-merge m:1 NCESSchoolID using "${NCES}/NCES_2021_School.dta", update
-
-drop if _merge == 2
-drop _merge
-
 replace StateAbbrev = "MI" if DataLevel == 1
 replace State = 26 if DataLevel == 1
 replace StateFips = 26 if DataLevel == 1
 
 ** Generating new variables
+
+gen StateAssignedDistID = State_leaid
+replace StateAssignedDistID = "" if DataLevel == 1
+gen StateAssignedSchID = seasch
+replace StateAssignedSchID = "" if DataLevel != 3
 
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"

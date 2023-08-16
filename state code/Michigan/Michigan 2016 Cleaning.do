@@ -79,11 +79,6 @@ replace StudentSubGroup = "Two or More" if StudentSubGroup == "Two or More Races
 
 ** Generating new variables
 
-gen StateAssignedDistID = State_leaid
-replace StateAssignedDistID = . if DataLevel == 1
-gen StateAssignedSchID = seasch
-replace StateAssignedSchID = . if DataLevel != 3
-
 gen AssmtType = "Regular"
 
 gen StudentGroup = "RaceEth"
@@ -147,6 +142,17 @@ gen leadingzero = 1 if State_leaid < 10000
 tostring State_leaid, replace
 replace State_leaid = "0" + State_leaid if leadingzero == 1
 drop leadingzero
+replace State_leaid = "82010" if State_leaid == "82015"
+replace State_leaid = "84060" if SchName == "Brenda Scott Academy for Theatre Arts" | SchName == "Burns Elementary-Middle School" | SchName == "Marion Law Academy" | SchName == "Mary McLeod Bethune Elementary-Middle School" | SchName == "Nolan Elementary-Middle School"
+replace State_leaid = "82733" if SchName == "Hamilton Academy"
+replace State_leaid = "17090" if SchName == "Consolidated Community School Services"
+replace State_leaid = "33020" if SchName == "Ingham Academy/Family Center"
+replace State_leaid = "52090" if SchName == "Ishpeming-Negaunee-NICE Comm. Ed. Division"
+replace State_leaid = "41010" if SchName == "Kent Education Center--Oakleigh"
+replace State_leaid = "61000" if SchName == "Muskegon County Juvenile Transition Center"
+replace State_leaid = "13010" if SchName == "Harrington Elementary School"
+replace State_leaid = "61210" if SchName == "LAKESHORE LEARNING CENTER"
+replace State_leaid = "82734" if SchName == "New Paradigm Glazer Academy"
 replace State_leaid = "" if DataLevel == 1
 
 merge m:1 State_leaid using "${NCES}/NCES_2015_District.dta"
@@ -187,6 +193,11 @@ replace State = 26 if DataLevel == 1
 replace StateFips = 26 if DataLevel == 1
 
 ** Generating new variables
+
+gen StateAssignedDistID = State_leaid
+replace StateAssignedDistID = "" if DataLevel == 1
+gen StateAssignedSchID = seasch
+replace StateAssignedSchID = "" if DataLevel != 3
 
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
