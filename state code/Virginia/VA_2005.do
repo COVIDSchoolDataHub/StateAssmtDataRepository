@@ -193,7 +193,7 @@ drop id
 drop if subject=="_2" & grade=="_3"
 
 rename subject Subject
-replace Subject="eng" if Subject=="_1"
+replace Subject="ela" if Subject=="_1"
 replace Subject="wri" if Subject=="_2"
 replace Subject="math" if Subject=="_3"
 replace Subject="soc" if Subject=="_4"
@@ -257,7 +257,7 @@ rename ScienceAdvanced Advanced4
 reshape long Proficient Pass Advanced, i(id) j(subject)
 
 gen Subject=""
-replace Subject="eng" if subject==1
+replace Subject="ela" if subject==1
 replace Subject="math" if subject==2
 replace Subject="soc" if subject==3
 replace Subject="sci" if subject==4
@@ -340,7 +340,7 @@ rename ScienceAdvanced Advanced4
 reshape long Proficient Pass Advanced, i(id) j(subject)
 
 gen Subject=""
-replace Subject="eng" if subject==1
+replace Subject="ela" if subject==1
 replace Subject="math" if subject==2
 replace Subject="soc" if subject==3
 replace Subject="sci" if subject==4
@@ -422,7 +422,7 @@ rename ScienceAdvanced Advanced4
 reshape long Proficient Pass Advanced, i(id) j(subject)
 
 gen Subject=""
-replace Subject="eng" if subject==1
+replace Subject="ela" if subject==1
 replace Subject="math" if subject==2
 replace Subject="soc" if subject==3
 replace Subject="sci" if subject==4
@@ -542,7 +542,7 @@ merge m:1 seasch using "/${yrfiles}/VA_2004_NCESSchools.dta"
 drop if _merge==2
 rename _merge sch_merge
 
-replace school_name="ALEXANDRIA CITY HIGH - MINNIE HOWARD CAMPUS" if SchoolName=="MINNIE HOWARD"
+replace school_name="T.C. WILLIAMS HIGH - MINNIE HOWARD CAMPUS" if SchoolName=="MINNIE HOWARD"
 replace ncesschoolid="510012000054" if seasch=="1010331"
 replace SchVirtual="Missing/not reported" if seasch=="1010331"
 replace SchLevel=3 if seasch=="1010331"
@@ -587,7 +587,7 @@ gen Lev4_count="*"
 gen Lev5_percent="*"
 gen Lev5_count="*"
 gen ProficientOrAbove_count="*"
-gen ProficiencyCriteria="Lev 3 or Lev 4"
+gen ProficiencyCriteria="Pass Proficent or Pass Advanced (Lev 3 or Lev 4)"
 gen AvgScaleScore="*"
 gen ParticipationRate="*"
 gen AssmtName="Standards of Learning"
@@ -597,7 +597,7 @@ gen StudentSubGroup_TotalTested="*"
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_read = "N"
+gen Flag_CutScoreChange_read = ""
 gen Flag_CutScoreChange_oth = "N"
 
 
@@ -628,6 +628,21 @@ replace ProficientOrAbove_percent="*" if ProficientOrAbove_percent=="."
 
 label define LevelIndicator 0 "State" 1 "District" 2 "School"
 label values DataLevel LevelIndicator
+
+tostring StateAssignedSchID, replace
+replace StateAssignedSchID="" if DataLevel==1
+replace seasch="" if DataLevel==1
+
+replace StateAssignedSchID="943" if StateAssignedSchID=="945" & SchName=="PENNINGTON SCHOOL"
+
+replace StateAssignedSchID="" if (DataLevel==0 & StateAssignedSchID==".")
+replace StateAssignedSchID="" if (DataLevel==1 & StateAssignedSchID==".")
+replace seasch="" if (DataLevel==0 & seasch==".")
+replace seasch="" if (DataLevel==1 & seasch==".")
+replace StateAssignedSchID="" if (DataLevel==0)
+replace StateAssignedSchID="" if (DataLevel==1)
+replace seasch="" if (DataLevel==0)
+replace seasch="" if (DataLevel==1)
 
 
 export delimited using "${output}/VA_AssmtData_2005.csv", replace
