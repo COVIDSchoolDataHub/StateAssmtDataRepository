@@ -206,7 +206,7 @@ foreach y in $years {
 	replace SchName = "The Sgt. Cornel Young, Jr & Charlotte Woods Elementary School @ The B. Jae Clanton Complex" if SchName == "Cornel Young & Charlotte Woods" & `y' == 2019 
 	replace SchName = "The Sgt. Cornel Young Jr & Charlotte Woods Elementary School @ The B. Jae Clanton Complex" if SchName == "Cornel Young & Charlotte Woods" & `y' > 2019 
 	replace SchName = "M. Virginia Cunningham School" if SchName == "Cunningham School"
-	replace SchName = "M. Virginia Cunningham School" if SchName == "Curvin-McCabe School          "      
+	replace SchName = "Curvin-McCabe School" if SchName == "Curvin-McCabe School          "      
 	replace SchName = "DCYF Alternative Education Program" if SchName == "DCYF Alternative Ed. Program"
 	replace SchName = "Dr. Edward A. Ricci Middle School" if SchName == "Dr. Edward Ricci School"
 	replace SchName = "Dr. Harry L. Halliwell Memorial School" if SchName == "Dr. Halliwell School"
