@@ -156,7 +156,7 @@ drop highgr lowgr id
 
 gen Subject=""
 replace Subject="wri" if testsubject==1
-replace Subject="eng" if testsubject==2
+replace Subject="ela" if testsubject==2
 replace Subject="math" if testsubject==3
 replace Subject="soc" if testsubject==4
 replace Subject="sci" if testsubject==5
@@ -250,7 +250,7 @@ destring ProficientOrAbove_percent, replace
 replace ProficientOrAbove_percent=ProficientOrAbove_percent/100
 
 gen Subject=""
-replace Subject="eng" if subjectindicator==1
+replace Subject="ela" if subjectindicator==1
 replace Subject="math" if subjectindicator==2
 replace Subject="soc" if subjectindicator==3
 replace Subject="sci" if subjectindicator==4
@@ -291,7 +291,7 @@ destring ProficientOrAbove_percent, replace
 replace ProficientOrAbove_percent=ProficientOrAbove_percent/100
 
 gen Subject=""
-replace Subject="eng" if subjectindicator==1
+replace Subject="ela" if subjectindicator==1
 replace Subject="wri" if subjectindicator==2
 replace Subject="math" if subjectindicator==3
 replace Subject="soc" if subjectindicator==4
@@ -380,9 +380,9 @@ gen Lev4_percent="*"
 gen Lev5_percent="*"
 
 replace Subject="stem" if Subject=="Computer/Technology"
-replace Subject="eng" if Subject=="English"
-replace Subject="read" if Subject=="English: Reading Literature & Research"
-replace Subject="read" if Subject=="English: Reading, Literature & Research"
+replace Subject="ela" if Subject=="English"
+replace Subject="ela" if Subject=="English: Reading Literature & Research"
+replace Subject="ela" if Subject=="English: Reading, Literature & Research"
 replace Subject="wri" if Subject=="English: Writing"
 replace Subject="wri" if Subject=="English:Writing"
 replace Subject="soc" if Subject=="History"
@@ -407,7 +407,7 @@ replace GradeLevel="G08" if GradeLevel=="8"
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_read = "N"
+gen Flag_CutScoreChange_read = ""
 gen Flag_CutScoreChange_oth = "N"
 gen AssmtName="Standards of Learning"
 gen AssmtType="Regular"
@@ -416,8 +416,8 @@ gen StudentGroup_TotalTested="*"
 gen StudentSubGroup_TotalTested="*"
 gen AvgScaleScore="*"
 gen ProficiencyCriteria="Pass Proficient or Pass Advanced"
-gen ProficientOrAbove_count=.
-gen ParticipationRate=.
+gen ProficientOrAbove_count="*"
+gen ParticipationRate="*"
 
 rename state_name State
 rename state_location StateAbbrev
