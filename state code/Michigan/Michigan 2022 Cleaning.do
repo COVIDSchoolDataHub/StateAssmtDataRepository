@@ -6,7 +6,7 @@ global NCES "/Users/maggie/Desktop/Michigan/NCES/Cleaned"
 
 cd "/Users/maggie/Desktop/Michigan"
 
-use "${output}/MI_AssmtData_2017_all.dta", clear
+use "${output}/MI_AssmtData_2022_all.dta", clear
 
 ** Dropping extra variables
 
@@ -37,7 +37,7 @@ rename AvgSS AvgScaleScore
 
 ** Dropping entries
 
-keep if AssmtName == "M-STEP"
+keep if AssmtName == "M-STEP" | AssmtName == "PSAT"
 drop if StudentSubGroup == "Students With Disabilities" | StudentSubGroup == "Students Without Disabilities"
 
 ** Changing DataLevel
@@ -54,13 +54,12 @@ rename DataLevel_n DataLevel
 
 ** Replacing variables
 
-replace SchYear = "2016-17"
+replace SchYear = "2021-22"
 
 replace SchName = "All Schools" if DataLevel != 3
 
 replace Subject = "ela" if Subject == "ELA" 
 replace Subject = "math" if Subject == "Mathematics"
-replace Subject = "sci" if Subject == "Science"
 replace Subject = "soc" if Subject == "Social Studies"
 
 tostring GradeLevel, replace
@@ -150,7 +149,7 @@ drop leadingzero
 replace State_leaid = "MI-" + State_leaid
 replace State_leaid = "" if DataLevel == 1
 
-merge m:1 State_leaid using "${NCES}/NCES_2016_District.dta"
+merge m:1 State_leaid using "${NCES}/NCES_2021_District.dta"
 
 drop if _merge == 2
 drop _merge
@@ -169,32 +168,12 @@ replace seasch = State_leaid + "-" + seasch
 replace seasch = subinstr(seasch,"MI-","",.)
 replace seasch = "" if DataLevel != 3
 
-merge m:1 seasch using "${NCES}/NCES_2016_School.dta"
+merge m:1 seasch using "${NCES}/NCES_2021_School.dta"
 
 drop if _merge == 2
 drop _merge
 
-replace NCESSchoolID = "262472008659" if seasch == "25040-02565"
-replace NCESSchoolID = "261560001772" if seasch == "49055-09417"
-replace NCESSchoolID = "262187000202" if seasch == "50140-05970"
-replace NCESSchoolID = "263519008550" if seasch == "50230-01903"
-replace NCESSchoolID = "261953002051" if seasch == "52180-08864"
-replace NCESSchoolID = "262229008352" if seasch == "63140-01377"
-replace NCESSchoolID = "262766001916" if seasch == "80160-09303"
-replace NCESSchoolID = "260110304660" if seasch == "82015-00456"
-replace NCESSchoolID = "260110304724" if seasch == "82015-01518"
-replace NCESSchoolID = "260110304773" if seasch == "82015-02377"
-replace NCESSchoolID = "260110304800" if seasch == "82015-02708"
-replace NCESSchoolID = "260110301676" if seasch == "82015-09341"
 replace NCESSchoolID = "262115007963" if seasch == "33000-09949"
-replace NCESSchoolID = "268062005335" if seasch == "41000-02806"
-replace NCESSchoolID = "268085007799" if seasch == "61000-09766"
-replace NCESSchoolID = "260110308093" if seasch == "82015-09994"
-
-merge m:1 NCESSchoolID using "${NCES}/NCES_2017_School.dta", update
-
-drop if _merge == 2
-drop _merge
 
 merge m:1 NCESSchoolID using "${NCES}/NCES_2021_School.dta", update
 
@@ -211,12 +190,12 @@ gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_read = ""
-gen Flag_CutScoreChange_oth = "N"
+gen Flag_CutScoreChange_oth = "Y"
 
 order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${output}/MI_AssmtData_2017.dta", replace
+save "${output}/MI_AssmtData_2022.dta", replace
 
-export delimited using "${output}/csv/MI_AssmtData_2017.csv", replace
+export delimited using "${output}/csv/MI_AssmtData_2022.csv", replace
