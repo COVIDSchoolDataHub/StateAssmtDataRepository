@@ -164,6 +164,8 @@ drop _merge
 replace StateAbbrev = "WA" if DataLevel == 1
 replace State = 53 if DataLevel == 1
 replace StateFips = 53 if DataLevel == 1
+replace State_leaid = "" if DataLevel == 1
+replace seasch = "" if DataLevel != 3
 
 ** Generating new variables
 

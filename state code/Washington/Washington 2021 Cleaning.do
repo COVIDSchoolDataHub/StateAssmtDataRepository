@@ -53,6 +53,8 @@ rename DataLevel_n DataLevel
 
 ** Replacing variables
 
+replace SchYear = "2020-21"
+
 replace SchName = "All Schools" if DataLevel != 3
 replace DistName = "All Districts" if DataLevel == 1
 replace CountyName = "" if DataLevel == 1
@@ -154,6 +156,8 @@ drop _merge
 replace StateAbbrev = "WA" if DataLevel == 1
 replace State = 53 if DataLevel == 1
 replace StateFips = 53 if DataLevel == 1
+replace State_leaid = "" if DataLevel == 1
+replace seasch = "" if DataLevel != 3
 
 ** Generating new variables
 
