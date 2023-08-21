@@ -54,6 +54,8 @@ rename DataLevel_n DataLevel
 
 ** Replacing variables
 
+replace SchYear = "2020-21"
+
 replace Subject = "ela" if Subject == "ELA" 
 replace Subject = "math" if Subject == "Math"
 replace Subject = "sci" if Subject == "Science"
