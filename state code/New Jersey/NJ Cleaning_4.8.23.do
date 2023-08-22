@@ -585,7 +585,7 @@ gen Flag_CutScoreChange_oth = ""
 gen AssmtType = "Regular"
 gen DataLevel = "School"
 replace DataLevel = "District" if StateAssignedSchID == ""
-replace DataLevel = "School" if StateAssignedDistID == ""
+replace DataLevel = "State" if StateAssignedDistID == ""
 gen Lev1_count =.
 gen Lev2_count =.
 gen Lev3_count =.

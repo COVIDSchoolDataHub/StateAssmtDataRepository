@@ -173,49 +173,6 @@ rename county_code CountyCode
 rename ncesschoolid NCESSchoolID
 rename school_type SchType
 
-tostring sch_highest_grade_offered, replace force
-tostring sch_lowest_grade_offered, replace force
-
-replace sch_lowest_grade_offered = "K" if sch_lowest_grade_offered == "0"
-
-replace GradeLevel = "G" + sch_lowest_grade_offered + sch_highest_grade_offered if GradeLevel == "G38"
-
-drop if GradeLevel == "G-112"
-drop if GradeLevel == "G-13"
-drop if GradeLevel == "G-14"
-drop if GradeLevel == "G-15"
-drop if GradeLevel == "G-16"
-drop if GradeLevel == "G-17"
-drop if GradeLevel == "G-18"
-drop if GradeLevel == "G111"
-drop if GradeLevel == "G112"
-drop if GradeLevel == "G210"
-drop if GradeLevel == "G23"
-drop if GradeLevel == "G25"
-drop if GradeLevel == "G311"
-drop if GradeLevel == "G312"
-drop if GradeLevel == "G412"
-drop if GradeLevel == "G512"
-drop if GradeLevel == "G55"
-drop if GradeLevel == "G610"
-drop if GradeLevel == "G611"
-drop if GradeLevel == "G612"
-drop if GradeLevel == "G66"
-drop if GradeLevel == "G69"
-drop if GradeLevel == "G711"
-drop if GradeLevel == "G712"
-drop if GradeLevel == "G810"
-drop if GradeLevel == "G812"
-drop if GradeLevel == "G89"
-drop if GradeLevel == "GK12"
-drop if GradeLevel == "GK3"
-drop if GradeLevel == "GK5"
-drop if GradeLevel == "GK6"
-drop if GradeLevel == "GK7"
-drop if GradeLevel == "GK8"
-drop if GradeLevel == "GK9"
-drop if GradeLevel == "G.." & SchName == "All Schools"
-
 drop state_name year _merge merge2 agency_type_num urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type district_agency_type_num school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_lowest_grade_offered dist_highest_grade_offered dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch
 
 gen State = "Georgia"
@@ -500,55 +457,6 @@ rename county_code CountyCode
 rename ncesschoolid NCESSchoolID
 rename school_type SchType
 
-tostring sch_highest_grade_offered, replace force
-tostring sch_lowest_grade_offered, replace force
-
-replace sch_lowest_grade_offered = "K" if sch_lowest_grade_offered == "0"
-
-replace GradeLevel = "G" + sch_lowest_grade_offered + sch_highest_grade_offered if GradeLevel == "G38"
-
-drop if GradeLevel == "G-112"
-drop if GradeLevel == "G-13"
-drop if GradeLevel == "G-14"
-drop if GradeLevel == "G-15"
-drop if GradeLevel == "G-16"
-drop if GradeLevel == "G-17"
-drop if GradeLevel == "G-18"
-drop if GradeLevel == "G111"
-drop if GradeLevel == "G112"
-drop if GradeLevel == "G210"
-drop if GradeLevel == "G211"
-drop if GradeLevel == "G212"
-drop if GradeLevel == "G23"
-drop if GradeLevel == "G25"
-drop if GradeLevel == "G311"
-drop if GradeLevel == "G312"
-drop if GradeLevel == "G411"
-drop if GradeLevel == "G412"
-drop if GradeLevel == "G512"
-drop if GradeLevel == "G55"
-drop if GradeLevel == "G610"
-drop if GradeLevel == "G611"
-drop if GradeLevel == "G612"
-drop if GradeLevel == "G66"
-drop if GradeLevel == "G69"
-drop if GradeLevel == "G711"
-drop if GradeLevel == "G712"
-drop if GradeLevel == "G810"
-drop if GradeLevel == "G812"
-drop if GradeLevel == "G89"
-drop if GradeLevel == "GK10"
-drop if GradeLevel == "GK11"
-drop if GradeLevel == "GK12"
-drop if GradeLevel == "GK3"
-drop if GradeLevel == "GK4"
-drop if GradeLevel == "GK5"
-drop if GradeLevel == "GK6"
-drop if GradeLevel == "GK7"
-drop if GradeLevel == "GK8"
-drop if GradeLevel == "GK9"
-drop if GradeLevel == "G.." & SchName == "All Schools"
-
 drop state_name year _merge merge2 district_agency_type_num urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type district_agency_type_num school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_lowest_grade_offered dist_highest_grade_offered dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch
 
 gen State = "Georgia"
@@ -805,56 +713,6 @@ rename county_code CountyCode
 rename ncesschoolid NCESSchoolID
 rename school_type SchType
 
-tostring sch_highest_grade_offered, replace force
-tostring sch_lowest_grade_offered, replace force
-
-replace sch_lowest_grade_offered = "K" if sch_lowest_grade_offered == "0"
-
-replace GradeLevel = "G" + sch_lowest_grade_offered + sch_highest_grade_offered if GradeLevel == "G38"
-
-drop if GradeLevel == "G-112"
-drop if GradeLevel == "G-13"
-drop if GradeLevel == "G-14"
-drop if GradeLevel == "G-15"
-drop if GradeLevel == "G-16"
-drop if GradeLevel == "G-17"
-drop if GradeLevel == "G-18"
-drop if GradeLevel == "G111"
-drop if GradeLevel == "G112"
-drop if GradeLevel == "G210"
-drop if GradeLevel == "G211"
-drop if GradeLevel == "G212"
-drop if GradeLevel == "G23"
-drop if GradeLevel == "G25"
-drop if GradeLevel == "G311"
-drop if GradeLevel == "G312"
-drop if GradeLevel == "G410"
-drop if GradeLevel == "G411"
-drop if GradeLevel == "G412"
-drop if GradeLevel == "G512"
-drop if GradeLevel == "G55"
-drop if GradeLevel == "G610"
-drop if GradeLevel == "G611"
-drop if GradeLevel == "G612"
-drop if GradeLevel == "G66"
-drop if GradeLevel == "G69"
-drop if GradeLevel == "G711"
-drop if GradeLevel == "G712"
-drop if GradeLevel == "G810"
-drop if GradeLevel == "G812"
-drop if GradeLevel == "G89"
-drop if GradeLevel == "GK10"
-drop if GradeLevel == "GK11"
-drop if GradeLevel == "GK12"
-drop if GradeLevel == "GK3"
-drop if GradeLevel == "GK4"
-drop if GradeLevel == "GK5"
-drop if GradeLevel == "GK6"
-drop if GradeLevel == "GK7"
-drop if GradeLevel == "GK8"
-drop if GradeLevel == "GK9"
-drop if GradeLevel == "G.." & SchName == "All Schools"
-
 drop state_name year _merge merge2 district_agency_type_num urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type district_agency_type_num school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_lowest_grade_offered dist_highest_grade_offered dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch agency_charter_indicator
 
 gen State = "Georgia"
@@ -1110,61 +968,6 @@ rename county_name CountyName
 rename county_code CountyCode
 rename ncesschoolid NCESSchoolID
 rename school_type SchType
-
-tostring sch_highest_grade_offered, replace force
-tostring sch_lowest_grade_offered, replace force
-
-replace sch_lowest_grade_offered = "K" if sch_lowest_grade_offered == "0"
-
-replace GradeLevel = "G" + sch_lowest_grade_offered + sch_highest_grade_offered if GradeLevel == "G38"
-
-drop if GradeLevel == "G-19"
-drop if GradeLevel == "G-112"
-drop if GradeLevel == "G-13"
-drop if GradeLevel == "G-14"
-drop if GradeLevel == "G-15"
-drop if GradeLevel == "G-16"
-drop if GradeLevel == "G-17"
-drop if GradeLevel == "G-18"
-drop if GradeLevel == "G-2-2"
-drop if GradeLevel == "G111"
-drop if GradeLevel == "G112"
-drop if GradeLevel == "G210"
-drop if GradeLevel == "G211"
-drop if GradeLevel == "G212"
-drop if GradeLevel == "G23"
-drop if GradeLevel == "G24"
-drop if GradeLevel == "G25"
-drop if GradeLevel == "G311"
-drop if GradeLevel == "G312"
-drop if GradeLevel == "G410"
-drop if GradeLevel == "G411"
-drop if GradeLevel == "G412"
-drop if GradeLevel == "G511"
-drop if GradeLevel == "G512"
-drop if GradeLevel == "G55"
-drop if GradeLevel == "G610"
-drop if GradeLevel == "G611"
-drop if GradeLevel == "G612"
-drop if GradeLevel == "G66"
-drop if GradeLevel == "G69"
-drop if GradeLevel == "G711"
-drop if GradeLevel == "G712"
-drop if GradeLevel == "G88"
-drop if GradeLevel == "G810"
-drop if GradeLevel == "G812"
-drop if GradeLevel == "G89"
-drop if GradeLevel == "GK10"
-drop if GradeLevel == "GK11"
-drop if GradeLevel == "GK12"
-drop if GradeLevel == "GK3"
-drop if GradeLevel == "GK4"
-drop if GradeLevel == "GK5"
-drop if GradeLevel == "GK6"
-drop if GradeLevel == "GK7"
-drop if GradeLevel == "GK8"
-drop if GradeLevel == "GK9"
-drop if GradeLevel == "G.." & SchName == "All Schools"
 
 drop state_name year _merge merge2 district_agency_type_num urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type district_agency_type_num school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_lowest_grade_offered dist_highest_grade_offered dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch agency_charter_indicator dist_agency_charter_indicator
 
@@ -2955,6 +2758,8 @@ drop if StudentSubGroup == "Students with Disabilities"
 drop if StudentSubGroup == "Students without Disabilities"
 drop if StudentSubGroup == "Migrant"
 drop if StudentSubGroup == "Non-Migrant"
+drop if StudentSubGroup == "Active Duty"
+drop if StudentSubGroup == "Homeless"
 
 gen StudentGroup = ""
 replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
