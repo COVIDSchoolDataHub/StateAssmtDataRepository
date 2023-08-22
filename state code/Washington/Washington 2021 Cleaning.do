@@ -41,6 +41,7 @@ keep if AssmtName == "SBAC" | AssmtName == "WCAS"
 drop if DataLevel == "ESD"
 drop if (strpos(GradeLevel, "All") | strpos(GradeLevel, "12") | strpos(GradeLevel, "11") | strpos(GradeLevel, "9")) > 0
 drop if StudentGroup == "Foster" | StudentGroup == "homeless" | StudentGroup == "Migrant" | StudentGroup == "Military" | StudentGroup == "SWD" | StudentGroup == "s504"
+drop if SchName == "Chief Leschi Schools" | SchName == "Paschal Sherman" | SchName == "Wa He Lut Indian School" | SchName == "Lummi Nation School" | SchName == "Quileute Tribal School" | SchName == "Muckleshoot Tribal School"
 
 ** Changing DataLevel
 
@@ -51,6 +52,8 @@ drop DataLevel
 rename DataLevel_n DataLevel
 
 ** Replacing variables
+
+replace SchYear = "2020-21"
 
 replace SchName = "All Schools" if DataLevel != 3
 replace DistName = "All Districts" if DataLevel == 1
@@ -135,11 +138,6 @@ tostring State_leaid, replace
 replace State_leaid = "0" + State_leaid if leadingzero == 1
 drop leadingzero
 replace State_leaid = "WA-" + State_leaid if DataLevel != 1
-replace State_leaid = "BI-D10P15" if DistName == "Chief Leschi Schools"
-replace State_leaid = "BI-D10P14" if DistName == "Lummi Tribal Agency"
-replace State_leaid = "BI-D10P16" if DistName == "Muckleshoot Indian Tribe"
-replace State_leaid = "BI-D10P02" if DistName == "Quileute Tribal School District"
-replace State_leaid = "BI-D10P13" if DistName == "WA HE LUT Indian School Agency"
 
 merge m:1 State_leaid using "${NCES}/NCES_2021_District.dta"
 
@@ -149,12 +147,6 @@ drop _merge
 tostring seasch, replace
 replace seasch = State_leaid + "-" + seasch if DataLevel == 3
 replace seasch = subinstr(seasch,"WA-","",.) if DataLevel == 3
-replace seasch = "D10P15-D10P15" if SchName == "Chief Leschi Schools"
-replace seasch = "D03P02-D03P02" if SchName == "Paschal Sherman"
-replace seasch = "D10P13-D10P13" if SchName == "Wa He Lut Indian School"
-replace seasch = "D10P14-D10P14" if SchName == "Lummi Nation School"
-replace seasch = "D10P02-D10P02" if SchName == "Quileute Tribal School"
-replace seasch = "D10P16-D10P16" if SchName == "Muckleshoot Tribal School"
 
 merge m:1 seasch using "${NCES}/NCES_2021_School.dta"
 
@@ -164,6 +156,8 @@ drop _merge
 replace StateAbbrev = "WA" if DataLevel == 1
 replace State = 53 if DataLevel == 1
 replace StateFips = 53 if DataLevel == 1
+replace State_leaid = "" if DataLevel == 1
+replace seasch = "" if DataLevel != 3
 
 ** Generating new variables
 

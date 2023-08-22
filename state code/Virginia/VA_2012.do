@@ -172,7 +172,7 @@ rename year SchYear
 rename testsource AssmtName
 
 gen Flag_AssmtNameChange = "N"
-gen Flag_CutScoreChange_ELA = "N"
+gen Flag_CutScoreChange_ELA = ""
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_read = "N"
 gen Flag_CutScoreChange_oth = "N"
@@ -198,7 +198,7 @@ gen Lev4_percent="*"
 gen Lev5_count="*"
 gen Lev5_percent="*"
 rename averagesolscaledscore AvgScaleScore
-gen ProficiencyCriteria="Lev2 + Lev3"
+gen ProficiencyCriteria="Pass Proficient or Pass Advanced (Lev 2 or Lev 3)"
 rename passcount ProficientOrAbove_count
 rename passrate ProficientOrAbove_percent
 gen ParticipationRate="*"
@@ -221,6 +221,7 @@ replace Subject="math" if Subject=="Mathematics"
 replace Subject="wri" if Subject=="English:Writing"
 replace Subject="read" if Subject=="English:Reading"
 replace Subject="sci" if Subject=="Science"
+
 
 replace GradeLevel="G03" if GradeLevel=="Grade 3"
 replace GradeLevel="G04" if GradeLevel=="Grade 4"
@@ -379,6 +380,15 @@ tostring NCESSchoolID, replace force
 replace seasch="" if DataLevel==0
 replace State_leaid="" if DataLevel==0
 replace StateAssignedDistID="" if DataLevel==0
+
+replace StudentGroup="All Students" if StudentGroup=="All students"
+replace StudentGroup="EL Status" if StudentGroup=="EL status"
+replace StudentGroup="RaceEth" if StudentGroup=="Race"
+replace StudentSubGroup="All Students" if StudentSubGroup=="All students"
+replace StudentSubGroup="English Learner" if StudentSubGroup=="English learner"
+replace StudentSubGroup="English Proficient" if StudentSubGroup=="English proficient"
+
+replace Subject="soc" if Subject=="History and Social Science"
 
 // Flag
 

@@ -1,9 +1,10 @@
 clear
 global path "/Users/willtolmie/Documents/State Repository Research/Louisiana"
+global nces "/Users/willtolmie/Documents/State Repository Research/NCES"
 
 ** 2018-19 NCES School Data
 
-use "${path}/NCES/School/NCES_2018_School.dta"
+use "${nces}/School/NCES_2018_School.dta"
 
 ** Rename Variables
 
@@ -39,7 +40,7 @@ save "${path}/Semi-Processed Data Files/2018_19_NCES_Cleaned_School.dta", replac
 
 ** 2018-19 NCES District Data
 
-use "${path}/NCES/District/NCES_2018_District.dta"
+use "${nces}/District/NCES_2018_District.dta"
 
 ** Rename Variables
 
@@ -144,7 +145,7 @@ gen AssmtName = "LEAP 2025"
 gen AssmtType = "Regular"
 replace DataLevel = "District" if DataLevel == "School System"
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup=="Hispanic/Latino"
-replace StudentSubGroup = "Two or More" if StudentSubGroup=="Two or more races"
+replace StudentSubGroup = "Two or More" if StudentSubGroup=="Two or more races" | StudentSubGroup=="Two or More Races"
 replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup=="Native Hawaiian or Other Pacific Islander"
 replace StudentSubGroup = "All Students" if StudentSubGroup=="Total Population"
 gen StudentGroup = "RaceEth" if StudentSubGroup=="American Indian or Alaska Native" | StudentSubGroup=="Asian" | StudentSubGroup=="Black or African American" | StudentSubGroup=="Native Hawaiian or Pacific Islander" | StudentSubGroup=="Two or More" | StudentSubGroup=="White" | StudentSubGroup=="Hispanic or Latino"

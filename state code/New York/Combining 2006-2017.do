@@ -1,14 +1,15 @@
 clear
 set more off
+set trace off
 
-cd "G:\Test Score Repository Project\NY\TXT Format Original"
+cd "/Volumes/T7/State Test Project/New York/Original/2006-2017"
 
-local subjects "ELA" "MATH" "SCIENCE" "SOC"
-local allgrades "G03" "G04" "G05" "G06" "G07" "G08"
-local sciencegrades "G04" "G08"
-local socgrades "G05" "G08"
+local subjects ELA MATH SCIENCE SOC
+local allgrades G03 G04 G05 G06 G07 G08
+local sciencegrades G04 G08
+local socgrades G05 G08
 
-foreach year in 2006 2007 2008 2009 2010 2011 2012 2013 2014 2015 2016 2017 {
+foreach year in 2006 {
     local firstfile = 1
     foreach subject of local subjects {
         // If the subject is SOC and the year is after 2010, skip the rest of the loop
@@ -32,7 +33,7 @@ foreach year in 2006 2007 2008 2009 2010 2011 2012 2013 2014 2015 2016 2017 {
             capture confirm file "`filename'"
             if _rc == 0 {
                 di "`filename' exists, opening file"
-                import delimited using "`filename'", clear
+                import delimited using "`filename'", clear stringcols(1)
                 gen subject = "`subject'"
                 gen grade = "`grade'"
                 if `firstfile' == 1 {
@@ -51,5 +52,5 @@ foreach year in 2006 2007 2008 2009 2010 2011 2012 2013 2014 2015 2016 2017 {
         }
     }
     use "`thisyear'", clear
-    save "Combined_`year'.dta", replace
+    save "/Volumes/T7/State Test Project/New York/Original/Combined_`year'.dta", replace
 }

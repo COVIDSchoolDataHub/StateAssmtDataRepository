@@ -42,6 +42,7 @@ keep if AssmtType == "General"
 drop if DataLevel == "ESD"
 drop if (strpos(GradeLevel, "All") | strpos(GradeLevel, "11")) > 0
 drop if StudentGroup == "Foster" | StudentGroup == "Homeless" | StudentGroup == "Migrant" | StudentGroup == "Military" | StudentGroup == "Students with Disabilities" | StudentGroup == "Section 504"
+drop if SchName == "Paschal Sherman" | SchName == "Chief Leschi Schools(Closed)" | SchName == "Wa He Lut Indian School(Closed)" | SchName == "Lummi Nation School" | SchName == "Quileute Tribal School" | SchName == "Muckleshoot Tribal School"
 
 ** Changing DataLevel
 
@@ -145,9 +146,6 @@ tostring State_leaid, replace
 replace State_leaid = "0" + State_leaid if leadingzero == 1
 drop leadingzero
 replace State_leaid = "WA-" + State_leaid if DataLevel != 1
-replace State_leaid = "BI-D10P14" if DistName == "Lummi Tribal Agency"
-replace State_leaid = "BI-D10P16" if DistName == "Muckleshoot Indian Tribe"
-replace State_leaid = "BI-D10P02" if DistName == "Quileute Tribal School District"
 
 merge m:1 State_leaid using "${NCES}/NCES_2016_District.dta"
 
@@ -157,12 +155,6 @@ drop _merge
 tostring seasch, replace
 replace seasch = State_leaid + "-" + seasch if DataLevel == 3
 replace seasch = subinstr(seasch,"WA-","",.) if DataLevel == 3
-replace seasch = "D03P02-D03P02" if SchName == "Paschal Sherman"
-replace seasch = "D10P15-D10P15" if SchName == "Chief Leschi Schools(Closed)"
-replace seasch = "D10P13-D10P13" if SchName == "Wa He Lut Indian School(Closed)"
-replace seasch = "D10P14-D10P14" if SchName == "Lummi Nation School"
-replace seasch = "D10P02-D10P02" if SchName == "Quileute Tribal School"
-replace seasch = "D10P16-D10P16" if SchName == "Muckleshoot Tribal School"
 
 merge m:1 seasch using "${NCES}/NCES_2016_School.dta"
 
@@ -172,6 +164,8 @@ drop _merge
 replace StateAbbrev = "WA" if DataLevel == 1
 replace State = 53 if DataLevel == 1
 replace StateFips = 53 if DataLevel == 1
+replace State_leaid = "" if DataLevel == 1
+replace seasch = "" if DataLevel != 3
 
 ** Generating new variables
 

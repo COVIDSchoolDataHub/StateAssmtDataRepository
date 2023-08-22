@@ -43,6 +43,7 @@ drop if DataLevel == "ESD"
 drop if (strpos(GradeLevel, "All") | strpos(GradeLevel, "11")) > 0
 drop if StudentGroup == "Foster" | StudentGroup == "Homeless" | StudentGroup == "Migrant" | StudentGroup == "Students with Disabilities" | StudentGroup == "Section 504"
 drop if StudentSubGroup == "Unknown"
+drop if SchName == "Lummi Nation School" | SchName == "Paschal Sherman" | SchName == "Wa He Lut Indian School(Closed)" | SchName == "Chief Leschi Schools(Closed)" | SchName == "Muckleshoot Tribal School" | SchName == "Quileute Tribal School(Closed)" | SchName == "WSD - Yakama Nation(Closed)"
 
 ** Changing DataLevel
 
@@ -151,13 +152,6 @@ drop if _merge == 2
 drop _merge
 
 tostring seasch, replace
-replace seasch = "D10P14" if SchName == "Lummi Nation School"
-replace seasch = "D03P02" if SchName == "Paschal Sherman"
-replace seasch = "D10P13" if SchName == "Wa He Lut Indian School(Closed)"
-replace seasch = "D10P15" if SchName == "Chief Leschi Schools(Closed)"
-replace seasch = "D10P16" if SchName == "Muckleshoot Tribal School"
-replace seasch = "D10P02" if SchName == "Quileute Tribal School(Closed)"
-replace seasch = "D11P20" if SchName == "WSD - Yakama Nation(Closed)"
 
 merge m:1 seasch using "${NCES}/NCES_2014_School.dta"
 
@@ -167,6 +161,8 @@ drop _merge
 replace StateAbbrev = "WA" if DataLevel == 1
 replace State = 53 if DataLevel == 1
 replace StateFips = 53 if DataLevel == 1
+replace State_leaid = "" if DataLevel == 1
+replace seasch = "" if DataLevel != 3
 
 ** Generating new variables
 

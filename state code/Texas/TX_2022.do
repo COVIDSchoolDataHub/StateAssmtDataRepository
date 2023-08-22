@@ -312,6 +312,10 @@ rename county_name CountyName
 replace StateAbbrev = "TX" if DataLevel == 1
 replace StateFips = 48 if DataLevel == 1
 
+// Relabelling missing SchVirtual
+replace SchVirtual = -1 if SchVirtual == . & DataLevel == 3 & NCESSchoolID != "Missing"
+label define SchVirtual -1 "Missing/not reported"
+
 // Reordering variables and sorting data
 order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 

@@ -42,6 +42,7 @@ keep if AssmtType == "SBAC" | AssmtType == "WCAS"
 drop if DataLevel == "ESD"
 drop if (strpos(GradeLevel, "All") | strpos(GradeLevel, "11") | strpos(GradeLevel, "10")) > 0
 drop if StudentGroup == "Foster" | StudentGroup == "homeless" | StudentGroup == "Migrant" | StudentGroup == "Military" | StudentGroup == "SWD" | StudentGroup == "s504"
+drop if SchName == "Chief Leschi Schools (Closed after 2020-2021 school year)" | SchName == "Paschal Sherman (Closed after 2020-2021 school year)" | SchName == "Wa He Lut Indian School (Closed after 2020-2021 school year)" | SchName == "Lummi Nation School (Closed after 2020-2021 school year)" | SchName == "Quileute Tribal School (Closed after 2020-2021 school year)" | SchName == "Muckleshoot Tribal School (Closed after 2020-2021 school year)"
 
 ** Changing DataLevel
 
@@ -136,11 +137,6 @@ tostring State_leaid, replace
 replace State_leaid = "0" + State_leaid if leadingzero == 1
 drop leadingzero
 replace State_leaid = "WA-" + State_leaid if DataLevel != 1
-replace State_leaid = "BI-D10P15" if DistName == "Chief Leschi Schools"
-replace State_leaid = "BI-D10P14" if DistName == "Lummi Tribal Agency"
-replace State_leaid = "BI-D10P16" if DistName == "Muckleshoot Indian Tribe"
-replace State_leaid = "BI-D10P02" if DistName == "Quileute Tribal School District"
-replace State_leaid = "BI-D10P13" if DistName == "WA HE LUT Indian School Agency"
 
 merge m:1 State_leaid using "${NCES}/NCES_2018_District.dta"
 
@@ -150,12 +146,6 @@ drop _merge
 tostring seasch, replace
 replace seasch = State_leaid + "-" + seasch if DataLevel == 3
 replace seasch = subinstr(seasch,"WA-","",.) if DataLevel == 3
-replace seasch = "D10P15-D10P15" if SchName == "Chief Leschi Schools (Closed after 2020-2021 school year)"
-replace seasch = "D03P02-D03P02" if SchName == "Paschal Sherman (Closed after 2020-2021 school year)"
-replace seasch = "D10P13-D10P13" if SchName == "Wa He Lut Indian School (Closed after 2020-2021 school year)"
-replace seasch = "D10P14-D10P14" if SchName == "Lummi Nation School (Closed after 2020-2021 school year)"
-replace seasch = "D10P02-D10P02" if SchName == "Quileute Tribal School (Closed after 2020-2021 school year)"
-replace seasch = "D10P16-D10P16" if SchName == "Muckleshoot Tribal School (Closed after 2020-2021 school year)"
 
 merge m:1 seasch using "${NCES}/NCES_2018_School.dta"
 
@@ -165,6 +155,8 @@ drop _merge
 replace StateAbbrev = "WA" if DataLevel == 1
 replace State = 53 if DataLevel == 1
 replace StateFips = 53 if DataLevel == 1
+replace State_leaid = "" if DataLevel == 1
+replace seasch = "" if DataLevel != 3
 
 ** Generating new variables
 
