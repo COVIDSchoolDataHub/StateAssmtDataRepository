@@ -267,7 +267,7 @@ foreach y in $years {
 	replace SchName = "Peace Dale Elementary School" if SchName == "Peace Dale School"
 	replace SchName = "Pleasant View School" if SchName == "Pleasant View Elementary Schoo"
 	replace SchName = "Pothier-Citizens Elementary Campus" if SchName == "Pothier-Citizens Elem Campus"
-	replace SchName = "Providence Preparatory Charter School" if SchName == "Providence Preparatory Charter" // not found
+	replace SchName = "Providence Preparatory Charter School" if SchName == "Providence Preparatory Charter" 
 	replace SchName = "Rhode Island School for the Deaf" if SchName == "R.I. School for the Deaf" 
 	replace SchName = "RISE Prep Mayoral Academy Middle School" if SchName == "RISE Prep Mayoral Acad Middle"
 	replace SchName = "RISE Prep Mayoral Academy Elementary School" if SchName == "RISE Prep Mayoral Academy Ele"
@@ -554,6 +554,7 @@ foreach y in $ngsayears {
 clear
 use "${path}/Semi-Processed Data Files/2018_mat_unmerged.dta"
 append using "${path}/Semi-Processed Data Files/2018_ela_unmerged.dta"
+gen StudentGroup = ""
 save "${path}/Semi-Processed Data Files/2018_merged.dta", replace
 
 foreach y in $years {
@@ -668,6 +669,7 @@ foreach y in $years {
 	replace SchName = "All Schools" if DataLevel == "District"
 	replace DistName = "All Districts" if DataLevel == "State"
 	replace StateAssignedDistID = "" if DataLevel == "State"
+	replace StateAssignedSchID = "" if DataLevel != "School"
 	replace State_leaid = "" if DataLevel == "State"
 	replace DistType = "" if DataLevel == "State"
 	replace SchType = "" if DataLevel != "School"
