@@ -1,9 +1,10 @@
 clear
 global path "/Users/willtolmie/Documents/State Repository Research/Louisiana"
+global nces "/Users/willtolmie/Documents/State Repository Research/NCES"
 
 ** 2015-16 NCES School Data
 
-use "${path}/NCES/School/NCES_2015_School.dta"
+use "${nces}/School/NCES_2015_School.dta"
 
 ** Rename Variables
 
@@ -42,7 +43,7 @@ save "${path}/Semi-Processed Data Files/2015_16_NCES_Cleaned_School.dta", replac
 
 ** 2015-16 NCES District Data
 
-use "${path}/NCES/District/NCES_2015_District.dta"
+use "${nces}/District/NCES_2015_District.dta"
 
 ** Rename Variables
 

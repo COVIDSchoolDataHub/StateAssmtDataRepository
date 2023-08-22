@@ -2,9 +2,9 @@ clear
 global path "/Users/willtolmie/Documents/State Repository Research/Louisiana"
 global nces "/Users/willtolmie/Documents/State Repository Research/NCES"
 
-** 2018-19 NCES School Data
+** 2021-22 NCES School Data
 
-use "${nces}/School/NCES_2018_School.dta"
+use "${nces}/School/NCES_2021_School.dta"
 
 ** Rename Variables
 
@@ -19,7 +19,7 @@ rename school_type SchType
 
 ** Drop Excess Variables
 
-drop year district_agency_type district_agency_type_num county_code county_name school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch dist_lowest_grade_offered dist_highest_grade_offered dist_agency_charter_indicator
+drop year district_agency_type district_agency_type_num county_code county_name school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch dist_lowest_grade_offered dist_highest_grade_offered
 
 ** Fix Variable Types
 
@@ -32,15 +32,16 @@ rename State2 State
 rename SchLevel2 SchLevel 
 rename SchType2 SchType 
 rename SchVirtual2 SchVirtual
+tostring seasch, replace force
 
 ** Isolate Louisiana Data
 
 drop if StateFips != 22
-save "${path}/Semi-Processed Data Files/2018_19_NCES_Cleaned_School.dta", replace
+save "${path}/Semi-Processed Data Files/2021_22_NCES_Cleaned_School.dta", replace
 
-** 2018-19 NCES District Data
+** 2021-22 NCES District Data
 
-use "${nces}/District/NCES_2018_District.dta"
+use "${nces}/District/NCES_2021_District.dta"
 
 ** Rename Variables
 
@@ -55,30 +56,24 @@ rename state_fips StateFips
 
 ** Drop Excess Variables
 
-drop year lea_name urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type_num agency_charter_indicator lowest_grade_offered highest_grade_offered
+drop year lea_name urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type_num lowest_grade_offered highest_grade_offered
 
-** Isolate Louisiana Data
+** Fix Variable Types
 
-drop if StateFips != 22
 decode State, gen(State2)
 decode DistType, gen(DistType2)
 drop State DistType
-rename State2 State
 rename DistType2 DistType
-save "${path}/Semi-Processed Data Files/2018_19_NCES_Cleaned_District.dta", replace
+rename State2 State
 
-** 2018-19 Participation Data by District
+* Isolate Louisiana Data
 
-import excel "${path}/Original Data Files/LEAP Participation by District_Grade 3-8.xlsx", sheet("Sheet1") firstrow allstring clear
-drop C D E F G I J L M O P H N Q SiteName 
-rename K ParticipationRate
-rename SiteCode StateAssignedDistID
-drop if StateAssignedDistID == "" | ParticipationRate == ""
-save "${path}/Semi-Processed Data Files/ParticipationbyDistrict2019.dta", replace
+drop if StateFips != 22
+save "${path}/Semi-Processed Data Files/2021_22_NCES_Cleaned_District.dta", replace
 
-** 2018-19 Proficiency Data
+** 2022-23 Proficiency Data
 
-import excel "${path}/Original Data Files/LA_OriginalData_2019_all.xlsx", sheet("Grades 3-8") cellrange(A4:V89191) firstrow clear
+import excel "${path}/Original Data Files/LA_OriginalData_2023_all.xlsx", sheet("Grades 3-8") cellrange(A4:AA57142) firstrow clear
 
 ** Reshape Wide to Long
 
@@ -92,11 +87,16 @@ rename N Lev4_percentmath
 rename O Lev3_percentmath
 rename P Lev2_percentmath
 rename Q Lev1_percentmath
+rename Science Lev5_percentsci
+rename S Lev4_percentsci
+rename T Lev3_percentsci
+rename U Lev2_percentsci
+rename V Lev1_percentsci
 rename SocialStudies Lev5_percentsoc
-rename S Lev4_percentsoc
-rename T Lev3_percentsoc
-rename U Lev2_percentsoc
-rename V Lev1_percentsoc
+rename X Lev4_percentsoc
+rename Y Lev3_percentsoc
+rename Z Lev2_percentsoc
+rename AA Lev1_percentsoc
 generate id = _n
 foreach v of varlist SchoolName Grade Subgroup {
    rename `v' y`i'
@@ -136,38 +136,25 @@ replace Lev2_percent = subinstr(Lev2_percent, " ", "", .)
 replace Lev3_percent = subinstr(Lev3_percent, " ", "", .)
 replace Lev4_percent = subinstr(Lev4_percent, " ", "", .)
 replace Lev5_percent = subinstr(Lev5_percent, " ", "", .)
-destring GradeLevel, replace
 
 ** Generate Other Variables
 
-gen SchYear = "2018-19"
+gen SchYear = "2022-23"
 gen AssmtName = "LEAP 2025"
 gen AssmtType = "Regular"
 replace DataLevel = "District" if DataLevel == "School System"
+gen StudentGroup = "StudentGroup"
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup=="Hispanic/Latino"
 replace StudentSubGroup = "Two or More" if StudentSubGroup=="Two or more races" | StudentSubGroup=="Two or More Races"
 replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup=="Native Hawaiian or Other Pacific Islander"
 replace StudentSubGroup = "All Students" if StudentSubGroup=="Total Population"
-gen StudentGroup = "RaceEth" if StudentSubGroup=="American Indian or Alaska Native" | StudentSubGroup=="Asian" | StudentSubGroup=="Black or African American" | StudentSubGroup=="Native Hawaiian or Pacific Islander" | StudentSubGroup=="Two or More" | StudentSubGroup=="White" | StudentSubGroup=="Hispanic or Latino"
+replace StudentGroup = "RaceEth" if StudentSubGroup=="American Indian or Alaska Native" | StudentSubGroup=="Asian" | StudentSubGroup=="Black or African American" | StudentSubGroup=="Native Hawaiian or Pacific Islander" | StudentSubGroup=="Two or More" | StudentSubGroup=="White" | StudentSubGroup=="Hispanic or Latino"
+replace StudentGroup = "Gender" if StudentSubGroup=="Male" | StudentSubGroup=="Female"
 replace StudentGroup = "EL Status" if StudentSubGroup=="English Learner"
-replace StudentGroup = "Gender" if StudentSubGroup=="Female" | StudentSubGroup=="Male"
 replace StudentGroup = "All Students" if StudentSubGroup=="All Students"
 replace StudentGroup = "Economic Status" if StudentSubGroup=="Economically Disadvantaged" | StudentSubGroup=="Not Economically Disadvantaged"
 gen ProficiencyCriteria = "Levels 4 and 5"
-
-** Merge Participation Data by District
-
-merge m:1 StateAssignedDistID using "${path}/Semi-Processed Data Files/ParticipationbyDistrict2019.dta"
-replace ParticipationRate = "--" if DataLevel == "School"
-replace ParticipationRate = "--" if ParticipationRate == ""
-generate greaterthan99 = 1 if ParticipationRate == ">=99%"
-generate str id = cond(substr(ParticipationRate,-1,.)=="%",subinstr(ParticipationRate,"%","",.),ParticipationRate) if ParticipationRate != "--"
-destring id, replace force
-replace id = id / 100 if id != .
-tostring(id), replace force
-replace ParticipationRate = id if id !="."
-replace ParticipationRate = "≥.99" if greaterthan99 == 1
-drop _merge id greaterthan99
+gen ParticipationRate = "--"
 
 ** Convert Proficiency Data into Percentages
 
@@ -219,21 +206,23 @@ drop Lev4max Lev4maxnumber Lev4min Lev4minnumber Lev5max Lev5maxnumber Lev5min L
 
 ** Drop Excess Data
 
-keep if StudentGroup != ""
+keep if StudentGroup != "StudentGroup"
 
 ** Merging NCES Variables
 
 gen state_leaidnumber =.
 gen State_leaid = string(state_leaidnumber)
-replace State_leaid = "LA-" + StateAssignedDistID if DataLevel != "State"
+replace State_leaid = "LA-" + StateAssignedDistID if DataLevel != "State" 
 gen seaschnumber=.
 gen seasch = string(seaschnumber)
 replace seasch = StateAssignedDistID + "-" + StateAssignedSchID if DataLevel == "School"
-merge m:1 State_leaid using "${path}/Semi-Processed Data Files/2018_19_NCES_Cleaned_District.dta"
+merge m:1 State_leaid using "${path}/Semi-Processed Data Files/2021_22_NCES_Cleaned_District.dta"
 rename _merge district_merge
-merge m:1 seasch StateFips using "${path}/Semi-Processed Data Files/2018_19_NCES_Cleaned_School.dta"
-drop if district_merge != 3 & DataLevel != "State"| _merge !=3 & DataLevel == "School"
-drop state_leaidnumber seaschnumber _merge district_merge
+merge m:1 seasch StateFips using "${path}/Semi-Processed Data Files/2021_22_NCES_Cleaned_School.dta"
+rename _merge school_merge
+drop if district_merge != 3 & DataLevel != "State" | school_merge !=3 & DataLevel == "School"
+drop if SchYear == ""
+drop state_leaidnumber seaschnumber district_merge
 
 ** Standardize Non-School Level Data
 
@@ -252,7 +241,7 @@ replace seasch = "" if DataLevel == "State" | DataLevel == "District"
 ** Relabel GradeLevel Values
 
 tostring GradeLevel, replace
-replace GradeLevel = "G0" + GradeLevel
+replace GradeLevel = "G" + GradeLevel
 
 ** Fix Variable Types
 
@@ -326,7 +315,10 @@ order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName Sc
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-** Export 2018-19 Assessment Data
+** Export 2022-23 Assessment Data
 
-save "${path}/Semi-Processed Data Files/LA_AssmtData_2019.dta", replace
-export delimited using "${path}/Output/LA_AssmtData_2019.csv", replace
+save "${path}/Semi-Processed Data Files/LA_AssmtData_2023.dta", replace
+export delimited using "${path}/Output/LA_AssmtData_2023.csv", replace
+
+
+

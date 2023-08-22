@@ -1,9 +1,10 @@
 clear
 global path "/Users/willtolmie/Documents/State Repository Research/Louisiana"
+global nces "/Users/willtolmie/Documents/State Repository Research/NCES"
 
 ** 2021-22 NCES School Data for Caneview K-8 School Data
 
-use "${path}/NCES/School/NCES_2021_School.dta"
+use "${nces}/School/NCES_2021_School.dta"
 
 ** Rename Variables
 
@@ -40,7 +41,7 @@ save "${path}/Semi-Processed Data Files/Caneview_K8_School_2022.dta", replace
 
 ** 2020-21 NCES School Data
 
-use "${path}/NCES/School/NCES_2020_School.dta"
+use "${nces}/School/NCES_2020_School.dta"
 
 ** Rename Variables
 
@@ -80,7 +81,7 @@ save "${path}/Semi-Processed Data Files/2020_21_NCES_Cleaned_School.dta", replac
 
 ** 2020-21 NCES District Data
 
-use "${path}/NCES/District/NCES_2020_District.dta"
+use "${nces}/District/NCES_2020_District.dta"
 
 ** Rename Variables
 
@@ -193,7 +194,7 @@ gen AssmtType = "Regular"
 replace DataLevel = "District" if DataLevel == "School System"
 gen StudentGroup = "StudentGroup"
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup=="Hispanic/Latino"
-replace StudentSubGroup = "Two or More" if StudentSubGroup=="Two or more races"
+replace StudentSubGroup = "Two or More" if StudentSubGroup=="Two or more races" | StudentSubGroup=="Two or More Races"
 replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup=="Native Hawaiian or Other Pacific Islander"
 replace StudentSubGroup = "English Learner" if StudentSubGroup=="English Learner"
 replace StudentSubGroup = "All Students" if StudentSubGroup=="Total Population"
