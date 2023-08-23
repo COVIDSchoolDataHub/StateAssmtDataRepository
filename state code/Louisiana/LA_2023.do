@@ -19,7 +19,7 @@ rename school_type SchType
 
 ** Drop Excess Variables
 
-drop year district_agency_type district_agency_type_num county_code county_name school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch dist_lowest_grade_offered dist_highest_grade_offered
+drop year district_agency_type district_agency_type_num county_code county_name school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch dist_lowest_grade_offered dist_highest_grade_offered sch_lowest_grade_offered sch_highest_grade_offered
 
 ** Fix Variable Types
 
@@ -56,7 +56,7 @@ rename state_fips StateFips
 
 ** Drop Excess Variables
 
-drop year lea_name urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type_num
+drop year lea_name urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type_num lowest_grade_offered highest_grade_offered
 
 ** Fix Variable Types
 
@@ -226,7 +226,7 @@ replace seasch = "WBT-WBT001" if SchName == "Audubon Charter Gentilly"
 replace seasch = "WAZ-WAZ001" if SchName == "Audubon Charter School"
 replace seasch = "036-036161" if SchName == "Benjamin Franklin Elem. Math and Science"
 replace seasch = "WBK-WBK001" if SchName == "Bricolage Academy"
-// replace seasch = "" if SchName == "Dorothy Height Charter School"
+replace seasch = "WAM-WAM001" if SchName == "Dorothy Height Charter School" // renamed from Paul Habans
 replace seasch = "W31-W31001" if SchName == "Dr. Martin Luther King Charter School for Sci Tech"
 replace seasch = "WBV-WBV001" if SchName == "Dwight D. Eisenhower Charter School"
 replace seasch = "WBJ-WBJ001" if SchName == "ENCORE Academy"
@@ -237,7 +237,7 @@ replace seasch = "WBA-WBA001" if SchName == "Einstein Charter School at Village 
 replace seasch = "WBO-WBO001" if SchName == "Einstein Charter at Sherwood Forest"
 replace seasch = "036-036197" if SchName == "Elan Academy Charter School"
 replace seasch = "WZI-WZI001" if SchName == "Esperanza Charter School"
-// replace seasch = "" if SchName == "Eva Legard Learning Center"
+replace seasch = "Missing/not reported" if SchName == "Eva Legard Learning Center"
 replace seasch = "WAE-WAE001" if SchName == "Fannie C. Williams Charter School"
 replace seasch = "WZG-WZG001" if SchName == "Foundation Preparatory Academy"
 replace seasch = "WAF-WAF001" if SchName == "Harriet Tubman Charter School"
@@ -257,7 +257,7 @@ replace seasch = "WBP-WBP001" if SchName == "McDonogh 42 Charter School"
 replace seasch = "WV2-WV2001" if SchName == "Mildred Osborne Charter School"
 replace seasch = "WAA-WAA001" if SchName == "Morris Jeff Community School"
 replace seasch = "WZA-WZA001" if SchName == "New Orleans Accelerated High School"
-// replace seasch = "" if SchName == "North Iberville High School"
+replace seasch = "Missing/not reported" if SchName == "North Iberville High School"
 replace seasch = "W94-W94001" if SchName == "Phillis Wheatley Community School"
 replace seasch = "WZF-WZF001" if SchName == "Pierre A. Capdau Charter School"
 replace seasch = "WZ3-WZ3001" if SchName == "ReNEW Dolores T. Aaron Elementary"
@@ -265,11 +265,11 @@ replace seasch = "WZ2-WZ2001" if SchName == "ReNEW Laurel Elementary"
 replace seasch = "WZ6-WZ6001" if SchName == "ReNEW Schaumburg Elementary"
 replace seasch = "WBG-WBG001" if SchName == "Robert Russa Moton Charter School"
 replace seasch = "W91-W91001" if SchName == "Samuel J. Green Charter School"
-// replace seasch = "" if SchName == "Success @ Thurgood Marshall"
+replace seasch = "WU1-WU1001" if SchName == "Success @ Thurgood Marshall" // Success Preparatory Academy
 replace seasch = "036-036200" if SchName == "The Delores Taylor Arthur School for Young Men"
 replace seasch = "WZ9-WZ9001" if SchName == "The NET 2 Charter High School"
 replace seasch = "WAH-WAH001" if SchName == "The NET Charter High School"
-// replace seasch = "" if SchName == "The Willow School"
+replace seasch = "WBE-WBE001" if SchName == "The Willow School"
 // replace seasch = "" if SchName == "Travis Hill School"
 replace seasch = "WBL-WBL001" if SchName == "Wilson Charter School"
 replace seasch = "WZL-WZL001" if SchName == "YACS at Lawrence D. Crocker"
@@ -277,9 +277,13 @@ merge m:1 State_leaid using "${path}/Semi-Processed Data Files/2021_22_NCES_Clea
 rename _merge district_merge
 merge m:1 seasch using "${path}/Semi-Processed Data Files/2021_22_NCES_Cleaned_School.dta"
 rename _merge school_merge
-drop if district_merge != 3 & DataLevel != "State" | school_merge !=3 & DataLevel == "School"
+drop if district_merge != 3 & DataLevel != "State" & seasch != "Missing/not reported"| school_merge !=3 & DataLevel == "School" & seasch != "Missing/not reported"
 drop if SchYear == ""
 drop state_leaidnumber seaschnumber district_merge school_merge
+replace SchVirtual = "Missing/not reported" if seasch == "Missing/not reported" 
+replace SchLevel = "Missing/not reported" if seasch == "Missing/not reported" 
+replace SchType = "Missing/not reported" if seasch == "Missing/not reported" 
+replace NCESSchoolID = "Missing/not reported" if seasch == "Missing/not reported" 
 save "${path}/Semi-Processed Data Files/LA_2023_merged.dta", replace
 
 
