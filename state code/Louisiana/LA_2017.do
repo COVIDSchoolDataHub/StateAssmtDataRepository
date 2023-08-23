@@ -234,6 +234,7 @@ drop if StudentGroup == "Education Classification" | StudentGroup == "Migrant" |
 gen state_leaidnumber =.
 gen State_leaid = string(state_leaidnumber)
 replace State_leaid = "LA-" + StateAssignedDistID if DataLevel != "State"
+replace State_leaid = "LA-036" if DistName == "Orleans Parish and RSDNO"
 gen seaschnumber=.
 gen seasch = string(seaschnumber)
 replace seasch = StateAssignedDistID + "-" + StateAssignedSchID if DataLevel == "School"

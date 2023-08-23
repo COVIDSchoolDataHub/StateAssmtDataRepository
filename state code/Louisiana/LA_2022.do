@@ -235,6 +235,7 @@ keep if StudentGroup != "StudentGroup"
 gen state_leaidnumber =.
 gen State_leaid = string(state_leaidnumber)
 replace State_leaid = "LA-" + StateAssignedDistID if DataLevel != "State" 
+replace State_leaid = "LA-036" if DistName == "Orleans Parish"
 gen seaschnumber=.
 gen seasch = string(seaschnumber)
 replace seasch = StateAssignedDistID + "-" + StateAssignedSchID if DataLevel == "School"
@@ -244,6 +245,12 @@ drop if district_merge != 3 & DataLevel != "State"
 
 ** Merging NCES School Variables
 
+replace seasch = "017-017154" if SchName == "BASIS Baton Rouge Primary Mid City"
+replace seasch = "061-061013" if SchName == "Caneview K-8 School"
+replace seasch = "017-017155" if SchName == "Helix Aviation Academy"
+replace seasch = "017-017156" if SchName == "Helix Legal Academy"
+replace seasch = "017-017157" if SchName == "IDEA University Prep"
+replace seasch = "003-003036" if SchName == "Sugar Mill Primary"
 merge m:1 seasch StateFips using "${path}/Semi-Processed Data Files/2021_22_NCES_Cleaned_School.dta"
 drop if _merge !=3 & DataLevel == "School"
 drop if SchYear == ""

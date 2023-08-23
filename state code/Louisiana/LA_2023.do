@@ -19,7 +19,7 @@ rename school_type SchType
 
 ** Drop Excess Variables
 
-drop year district_agency_type district_agency_type_num county_code county_name school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch dist_lowest_grade_offered dist_highest_grade_offered
+drop year district_agency_type district_agency_type_num county_code county_name school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch dist_lowest_grade_offered dist_highest_grade_offered
 
 ** Fix Variable Types
 
@@ -56,7 +56,7 @@ rename state_fips StateFips
 
 ** Drop Excess Variables
 
-drop year lea_name urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type_num lowest_grade_offered highest_grade_offered
+drop year lea_name urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type_num
 
 ** Fix Variable Types
 
@@ -213,19 +213,137 @@ keep if StudentGroup != "StudentGroup"
 gen state_leaidnumber =.
 gen State_leaid = string(state_leaidnumber)
 replace State_leaid = "LA-" + StateAssignedDistID if DataLevel != "State" 
+replace State_leaid = "LA-036" if DistName == "Orleans Parish"
 gen seaschnumber=.
 gen seasch = string(seaschnumber)
 replace seasch = StateAssignedDistID + "-" + StateAssignedSchID if DataLevel == "School"
+replace seasch = "322-322001" if SchName == "A. E. Phillips Laboratory School"
+replace seasch = "322-322001" if SchName == "A. E. Phillips Laboratory School"
+replace seasch = "WI1-WI1001" if SchName == "Akili Academy of New Orleans"
+replace seasch = "WBC-WBC001" if SchName == "Alice M Harte Elementary Charter School"
+replace seasch = "W92-W92001" if SchName == "Arthur Ashe Charter School"
+replace seasch = "WBT-WBT001" if SchName == "Audubon Charter Gentilly"
+replace seasch = "WAZ-WAZ001" if SchName == "Audubon Charter School"
+replace seasch = "036-036161" if SchName == "Benjamin Franklin Elem. Math and Science"
+replace seasch = "WBK-WBK001" if SchName == "Bricolage Academy"
+// replace seasch = "" if SchName == "Dorothy Height Charter School"
+replace seasch = "W31-W31001" if SchName == "Dr. Martin Luther King Charter School for Sci Tech"
+replace seasch = "WBV-WBV001" if SchName == "Dwight D. Eisenhower Charter School"
+replace seasch = "WBJ-WBJ001" if SchName == "ENCORE Academy"
+replace seasch = "WZC-WZC001" if SchName == "Edward Hynes Charter School - Lakeview"
+replace seasch = "WZD-WZD001" if SchName == "Edward Hynes Charter School - UNO"
+replace seasch = "WBN-WBN001" if SchName == "Einstein Charter Middle Sch at Sarah Towles Reed"
+replace seasch = "WBA-WBA001" if SchName == "Einstein Charter School at Village De L'Est"
+replace seasch = "WBO-WBO001" if SchName == "Einstein Charter at Sherwood Forest"
+replace seasch = "036-036197" if SchName == "Elan Academy Charter School"
+replace seasch = "WZI-WZI001" if SchName == "Esperanza Charter School"
+// replace seasch = "" if SchName == "Eva Legard Learning Center"
+replace seasch = "WAE-WAE001" if SchName == "Fannie C. Williams Charter School"
+replace seasch = "WZG-WZG001" if SchName == "Foundation Preparatory Academy"
+replace seasch = "WAF-WAF001" if SchName == "Harriet Tubman Charter School"
+replace seasch = "WZK-WZK001" if SchName == "Homer Plessy Community School"
+replace seasch = "WZJ-WZJ001" if SchName == "Hynes Parkview"
+replace seasch = "W82-W82001" if SchName == "KIPP Believe"
+replace seasch = "WL1-WL1001" if SchName == "KIPP Central City"
+replace seasch = "W86-W86001" if SchName == "KIPP East"
+replace seasch = "W85-W85001" if SchName == "KIPP Leadership"
+replace seasch = "W81-W81001" if SchName == "KIPP Morial"
+replace seasch = "WZH-WZH001" if SchName == "Lafayette Academy Charter School"
+replace seasch = "WBH-WBH001" if SchName == "Lake Forest Elementary Charter School"
+replace seasch = "W95-W95001" if SchName == "Langston Hughes Charter Academy"
+replace seasch = "W66-W66001" if SchName == "Martin Behrman Charter Acad of Creative Arts & Sci"
+replace seasch = "036-036011" if SchName == "Mary Bethune Elementary Literature/Technology"
+replace seasch = "WBP-WBP001" if SchName == "McDonogh 42 Charter School"
+replace seasch = "WV2-WV2001" if SchName == "Mildred Osborne Charter School"
+replace seasch = "WAA-WAA001" if SchName == "Morris Jeff Community School"
+replace seasch = "WZA-WZA001" if SchName == "New Orleans Accelerated High School"
+// replace seasch = "" if SchName == "North Iberville High School"
+replace seasch = "W94-W94001" if SchName == "Phillis Wheatley Community School"
+replace seasch = "WZF-WZF001" if SchName == "Pierre A. Capdau Charter School"
+replace seasch = "WZ3-WZ3001" if SchName == "ReNEW Dolores T. Aaron Elementary"
+replace seasch = "WZ2-WZ2001" if SchName == "ReNEW Laurel Elementary"
+replace seasch = "WZ6-WZ6001" if SchName == "ReNEW Schaumburg Elementary"
+replace seasch = "WBG-WBG001" if SchName == "Robert Russa Moton Charter School"
+replace seasch = "W91-W91001" if SchName == "Samuel J. Green Charter School"
+// replace seasch = "" if SchName == "Success @ Thurgood Marshall"
+replace seasch = "036-036200" if SchName == "The Delores Taylor Arthur School for Young Men"
+replace seasch = "WZ9-WZ9001" if SchName == "The NET 2 Charter High School"
+replace seasch = "WAH-WAH001" if SchName == "The NET Charter High School"
+// replace seasch = "" if SchName == "The Willow School"
+// replace seasch = "" if SchName == "Travis Hill School"
+replace seasch = "WBL-WBL001" if SchName == "Wilson Charter School"
+replace seasch = "WZL-WZL001" if SchName == "YACS at Lawrence D. Crocker"
 merge m:1 State_leaid using "${path}/Semi-Processed Data Files/2021_22_NCES_Cleaned_District.dta"
 rename _merge district_merge
-merge m:1 seasch StateFips using "${path}/Semi-Processed Data Files/2021_22_NCES_Cleaned_School.dta"
+merge m:1 seasch using "${path}/Semi-Processed Data Files/2021_22_NCES_Cleaned_School.dta"
 rename _merge school_merge
 drop if district_merge != 3 & DataLevel != "State" | school_merge !=3 & DataLevel == "School"
 drop if SchYear == ""
-drop state_leaidnumber seaschnumber district_merge
+drop state_leaidnumber seaschnumber district_merge school_merge
+save "${path}/Semi-Processed Data Files/LA_2023_merged.dta", replace
+
+
+keep SchName Subject GradeLevel
+duplicates drop
+sort SchName Subject GradeLevel
+gen grade = .
+replace grade = 300000 if GradeLevel == "03"
+replace grade = 40000 if GradeLevel == "04"
+replace grade = 5000 if GradeLevel == "05"
+replace grade = 600 if GradeLevel == "06"
+replace grade = 70 if GradeLevel == "07"
+replace grade = 8 if GradeLevel == "08"
+collapse (sum) grade, by(SchName Subject)
+gen allgrades = ""
+replace allgrades = "G78" if grade == 78
+replace allgrades = "G06, G08" if grade == 608
+replace allgrades = "G67" if grade == 670
+replace allgrades = "G68" if grade == 678
+replace allgrades = "G05, G08" if grade == 5008
+replace allgrades = "G05, G07" if grade == 5070
+replace allgrades = "G05, G07, G08" if grade == 5078
+replace allgrades = "G56" if grade == 5600
+replace allgrades = "G05, G06, G08" if grade == 5608
+replace allgrades = "G57" if grade == 5670
+replace allgrades = "G58" if grade == 5678
+replace allgrades = "G04, G07" if grade == 40070
+replace allgrades = "G04, G07, G08" if grade == 40078
+replace allgrades = "G04, G06, G08" if grade == 40608
+replace allgrades = "G04, G06, G07, G08" if grade == 40678
+replace allgrades = "G45" if grade == 45000
+replace allgrades = "G46" if grade == 45600
+replace allgrades = "G04, G05, G06, G08" if grade == 45608
+replace allgrades = "G47" if grade == 45670
+replace allgrades = "G48" if grade == 45678
+replace allgrades = "G03, G07" if grade == 300070
+replace allgrades = "G03, G07, G08" if grade == 300078	
+replace allgrades = "G03, G06, G08" if grade == 300608
+replace allgrades = "G03, G06, G07" if grade == 300670
+replace allgrades = "G03, G06, G07, G08" if grade == 300678
+replace allgrades = "G03, G05" if grade == 305000
+replace allgrades = "G03, G05, G07" if grade == 305070
+replace allgrades = "G03, G05, G06" if grade == 305600
+replace allgrades = "G03, G05, G06, G07" if grade == 305670
+replace allgrades = "G03, G05, G06, G07, G08" if grade == 305678
+replace allgrades = "G34" if grade == 340000
+replace allgrades = "G03, G04, G08" if grade == 340008
+replace allgrades = "G03, G04, G06" if grade == 340600
+replace allgrades = "G03, G04, G06, G08" if grade == 340608
+replace allgrades = "G03, G04, G06, G07, G08" if grade == 340678
+replace allgrades = "G35" if grade == 345000
+replace allgrades = "G03, G04, G05, G08" if grade == 345008
+replace allgrades = "G03, G04, G05, G07" if grade == 345070
+replace allgrades = "G03, G04, G05, G07, G08" if grade == 345078
+replace allgrades = "G36" if grade == 345600
+replace allgrades = "G03, G04, G05, G06, G08" if grade == 345608
+replace allgrades = "G37" if grade == 345670
+replace allgrades = "G38" if grade == 345678
+save "${path}/Semi-Processed Data Files/LA_2023_schgrade.dta", replace
 
 ** Standardize Non-School Level Data
 
+clear
+use "${path}/Semi-Processed Data Files/LA_2023_merged.dta"
 replace SchName = "All Schools" if DataLevel == "State"
 replace SchName = "All Schools" if DataLevel == "District"
 replace DistName = "All Districts" if DataLevel == "State"
@@ -242,6 +360,16 @@ replace seasch = "" if DataLevel == "State" | DataLevel == "District"
 
 tostring GradeLevel, replace
 replace GradeLevel = "G" + GradeLevel
+replace GradeLevel = "G38" if GradeLevel == "GAll" & DataLevel != "School"
+replace GradeLevel = "G38" if GradeLevel == "GAll" & DataLevel == "District"
+merge m:1 SchName Subject using "${path}/Semi-Processed Data Files/LA_2023_schgrade.dta"
+replace GradeLevel = allgrades if GradeLevel == "GAll" & DataLevel == "School"
+replace GradeLevel = "G38" if GradeLevel == "" & DataLevel == "School" & grade == 345678
+replace GradeLevel = "G03" if GradeLevel == "" & DataLevel == "School" & grade == 300000
+replace GradeLevel = "G06" if GradeLevel == "" & DataLevel == "School" & grade == 600
+replace GradeLevel = "G08" if GradeLevel == "" & DataLevel == "School" & grade == 8
+drop _merge allgrades grade
+duplicates drop
 
 ** Fix Variable Types
 
