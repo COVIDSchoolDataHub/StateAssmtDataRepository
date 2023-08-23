@@ -229,7 +229,7 @@ rename DataLevel_n DataLevel
 
 // Fixing MN Valley School District
 replace SchName = "MN VALLEY EDUCATION DISTRICT" if SchName == "MINNESOTA VALLEY EDUCATION DISTRICT"
-replace StateAssignedSchID = "010" if StateAssignedSchID == "020"
+replace StateAssignedSchID = "010" if StateAssignedSchID == "020" & SchName == "MN VALLEY EDUCATION DISTRICT"
 
 // Combined State School IDs
 // (School ID in format to match with NCES is combination of different IDs)

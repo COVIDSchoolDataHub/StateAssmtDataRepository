@@ -245,7 +245,7 @@ save "${output_files}/MN_AssmtData_2009.dta", replace
 
 use "$NCES_files/NCES_2008_District.dta", clear 
 
-keep state_location state_fips district_agency_type ncesdistrictid state_leaid DistCharter county_name county_code boundary_change_indicator
+keep state_location state_fips district_agency_type ncesdistrictid state_leaid DistCharter county_name county_code
 
 keep if substr(ncesdistrictid, 1, 2) == "27"
 
