@@ -53,6 +53,11 @@ foreach a in $years {
                  drop dist_agency_charter_indicator
               }
 	
+	sort SchName
+	quietly by SchName: gen dup = cond(_N==1,0,_n)
+	drop if dup > 0
+	drop dup
+	
 	save "${NCES}/NCES_`a'_School.dta", replace
 	
 }
