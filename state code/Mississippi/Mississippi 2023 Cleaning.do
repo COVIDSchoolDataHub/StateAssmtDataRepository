@@ -115,6 +115,9 @@ replace DataLevel = "School" if DataLevel == ""
 gen DistName = ""
 replace DistName = SchName if DataLevel == "District"
 replace DistName = DistName[_n-1] if missing(DistName)
+replace DistName = "DUBARD SCHOOL FOR LANGUAGE DISORDERS" if SchName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
+replace DistName = "Leflore Legacy Academy" if SchName == "LEFLORE LEGACY ACADEMY"
+replace DistName = "REIMAGINE PREP" if SchName == "REIMAGINE PREP"
 replace DistName = "All Districts" if DataLevel == "State"
 
 replace SchName = "All Schools" if DataLevel != "School"
@@ -148,9 +151,6 @@ merge m:1 DistName using "${NCES}/NCES_2021_District.dta", update
 drop if _merge == 2
 drop _merge
 
-replace DistName = "DUBARD SCHOOL FOR LANGUAGE DISORDERS" if SchName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
-replace DistName = "Leflore Legacy Academy" if SchName == "LEFLORE LEGACY ACADEMY"
-replace DistName = "REIMAGINE PREP" if SchName == "REIMAGINE PREP"
 replace DistName = "Ambition Preparatory Charter School" if DistName == "AMBITION PREPARATORY"
 replace DistName = "BAY ST LOUIS WAVELAND SCHOOL DIST" if DistName == "BAY ST. LOUIS- WAVELAND SCHOOL DIST"
 replace DistName = "CLARKSDALE COLLEGIATE DISTRICT" if DistName == "CLARKSDALE COLLEGIATE PUBLIC CHARTER"
@@ -322,6 +322,8 @@ merge m:1 DistName SchName using "${NCES}/NCES_2021_School.dta", update
 drop if _merge == 2
 drop _merge
 
+replace SchVirtual = 0 if SchName == "EVA GORDON UPPER ELEMENTARY SCHOOL"
+
 //replace SchName = "Boyd Elementary School" if SchName == "BOYD ELEM"
 //replace SchName = "Carver Middle School" if SchName == "CARVER MIDDLE"
 //replace SchName = "Carver Elementary School" if SchName == "CARVER ELEM"
@@ -348,14 +350,22 @@ drop _merge
 //drop if _merge == 2
 //drop _merge
 
-replace StateAbbrev = "MS" if DataLevel == 1
-replace State = 28 if DataLevel == 1
-replace StateFips = 28 if DataLevel == 1
+replace StateAbbrev = "MS"
+replace State = 28
+replace StateFips = 28
 
 ** Generating new variables
 
+replace State_leaid = "Missing/not reported" if SchName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
 gen StateAssignedDistID = State_leaid
+replace seasch = "Missing/not reported" if SchName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
 gen StateAssignedSchID = seasch
+
+replace NCESDistrictID = "Missing/not reported" if SchName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
+replace NCESSchoolID = "Missing/not reported" if SchName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
+
+replace DistName = strproper(DistName)
+replace SchName = strproper(SchName)
 
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
@@ -367,6 +377,6 @@ order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName Sc
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${output}/CO_AssmtData_2023.dta", replace
+save "${output}/MS_AssmtData_2023.dta", replace
 
-export delimited using "${output}/csv/CO_AssmtData_2023.csv", replace
+export delimited using "${output}/csv/MS_AssmtData_2023.csv", replace

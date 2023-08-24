@@ -1,437 +1,349 @@
 clear
 set more off
 
+global output "/Users/maggie/Desktop/Mississippi/Output"
+global NCES "/Users/maggie/Desktop/Mississippi/NCES/Cleaned"
+
+local grade 3 4 5 6 7 8
+local gradesci 5 8
+local subject ELA MATH
+
 cd "/Users/maggie/Desktop/Mississippi"
 
-** Cleaning ELA & Math **
+** Appending ela & math
 
-foreach a in $grade {
-	foreach b in $subject2 {
-		use "${output}/MS_AssmtData_2022_G`a'`b'.dta", clear
-			
-			quietly ds
-			local school `:word 1 of `r(varlist)''
-			foreach var of local school {
-				rename `var' SchName
-				}
-			
-			rename TestTakers StudentGroup_TotalTested
-			rename AverageScaleScore AvgScaleScore
-			
-			drop if missing(SchName) & missing(StudentGroup_TotalTested)
-			
-			generate SchYear = "2021-22"
-			
-			generate GradeLevel = "G0`a'"
-			generate Subject = "`b'"
-			replace Subject = lower(Subject)
-			gen AssmtName = "MAAP"
-			gen AssmtType = "Regular"
-			gen StudentGroup = "All Students"
-			gen StudentSubGroup = StudentGroup
-			gen StudentSubGroup_TotalTested = StudentGroup_TotalTested
-			
-			gen DataLevel = "School"
-			replace DataLevel = "District" if (strpos(SchName, "District") | strpos(SchName, "Schools") | strpos(SchName, "district") | strpos(SchName, "Midtown Public Charter School") | strpos(SchName, "Joel E. Smilow Prep") | strpos(SchName, "Reimagine Prep") | strpos(SchName, "Consolidated") | strpos(SchName, "Blind and Deaf") | strpos(SchName, "Oakley Youth Development Center") | strpos(SchName, "Smilow Collegiate") | strpos(SchName, "Ambition Preparatory") | strpos(SchName, "Leflore Legacy Academy") | strpos(SchName, "Clarksdale Collegiate Public Charter")) & SchName != "West Bolivar District Middle School" & SchName != "Republic Charter Schools" & SchName != "Ambition Preparatory Charter School"> 0
+foreach grd of local grade {
+	foreach sub of local subject {
+		use "${output}/MS_AssmtData_2022_G`grd'`sub'.dta", clear
 
-			replace DataLevel = "State" if strpos(SchName, "Grand Total") > 0
-			
-			gen DistName = ""
-			replace DistName = SchName if DataLevel == "District"
-			replace DistName = "Reimagine Prep" if SchName == "Republic Charter Schools"
-			replace DistName = "Joel E. Smillow Prep" if SchName == "Joel E. Smilow Prep"
-			replace DistName = "University Of Southern Mississippi" if SchName == "Dubard School For Language Disorders"
-			replace DistName = DistName[_n-1] if missing(DistName)
-			replace DistName = "" if DataLevel == "State"
-			
-			replace SchName = "" if DataLevel == "District" | DataLevel == "State"	
-
-			replace DistName = subinstr(DistName,"District","Dist",.)
-			replace DistName = subinstr(DistName,"County","Co",.)
-			replace DistName = upper(DistName) if DistName != "Leflore Legacy Academy"
-			
-			replace DistName = "BALDWYN SCHOOL DISTRICT" if DistName == "BALDWYN SCHOOL DIST"
-			replace DistName = "COLUMBIA SCHOOL DISTRICT" if DistName == "COLUMBIA SCHOOL DIST"
-			replace DistName = "GREENWOOD PUBLIC SCHOOL DISTRICT" if DistName == "GREENWOOD PUBLIC SCHOOL DIST"
-			replace DistName = "HAZLEHURST CITY SCHOOL DISTRICT" if DistName == "HAZLEHURST CITY SCHOOL DIST"
-			replace DistName = "KOSCIUSKO SCHOOL DISTRICT" if DistName == "KOSCIUSKO SCHOOL DIST"
-			replace DistName = "LAUREL SCHOOL DISTRICT" if DistName == "LAUREL SCHOOL DIST"
-			replace DistName = "LUMBERTON PUBLIC SCHOOL DISTRICT" if DistName == "LUMBERTON PUBLIC SCHOOL DIST"
-			replace DistName = "MADISON CO SCHOOL DIST" if DistName == "MADISON COUNTY SCHOOL DIST"
-			replace DistName = "MCCOMB SCHOOL DISTRICT" if DistName == "MCCOMB SCHOOL DIST"
-			replace DistName = "MOSS POINT SEPARATE SCHOOL DIST" if DistName == "MOSS POINT SCHOOL DIST"
-			replace DistName = "NEWTON MUNICIPAL SCHOOL DISTRICT" if DistName == "NEWTON MUNICIPAL SCHOOL DIST"
-			replace DistName = "OXFORD SCHOOL DISTRICT" if DistName == "OXFORD SCHOOL DIST"
-			replace DistName = "PASCAGOULA-GAUTIER SCHOOL DISTRICT" if DistName == "PASCAGOULA-GAUTIER SCHOOL DIST"
-			replace DistName = "SIMPSON CO SCHOOL DIST" if DistName == "SIMPSON COUNTY SCHOOL DIST"
-			replace DistName = "SOUTH DELTA SCHOOL DISTRICT" if DistName == "SOUTH DELTA SCHOOL DIST"
-			replace DistName = "SOUTH PANOLA SCHOOL DISTRICT" if DistName == "SOUTH PANOLA SCHOOL DIST"
-			replace DistName = "TUNICA COUNTY SCHOOL DISTRICT" if DistName == "TUNICA COUNTY SCHOOL DIST"
-			replace DistName = "WATER VALLEY SCHOOL DISTRICT" if DistName == "WATER VALLEY SCHOOL DIST"
-			replace DistName = "WEST TALLAHATCHIE SCHOOL DISTRICT" if DistName == "WEST TALLAHATCHIE SCHOOL DIST"
-			replace DistName = "WESTERN LINE SCHOOL DISTRICT" if DistName == "WESTERN LINE SCHOOL DIST"
-			replace DistName = "WEST BOLIVAR CONS SCHOOL DIST" if DistName == "WEST BOLIVAR CONSOLIDATED SCHOOL DIST"
-			replace DistName = "HATTIESBURG PUBLIC SCHOOL DIST" if DistName == "HATTIESBURG PUBLIC SCHOOLDISTRICT"
-			replace DistName = "AMITE COUNTY SCHOOL DISTRICT" if DistName == "AMITE CO SCHOOL DIST"
-			replace DistName = "ITAWAMBA COUNTY SCHOOL DIST" if DistName == "ITAWAMBA CO SCHOOL DIST"
-			replace DistName = "JACKSON PUBLIC SCHOOL DISTRICT" if DistName == "JACKSON PUBLIC SCHOOL DIST"
-			replace DistName = "LINCOLN COUNTY SCHOOL DISTRICT" if DistName == "LINCOLN CO SCHOOL DIST"
-			replace DistName = "MERIDIAN PUBLIC SCHOOLS" if DistName == "MERIDIAN PUBLIC SCHOOL DIST"
-			replace DistName = "NATCHEZ-ADAMS SCHOOL DISTRICT" if DistName == "NATCHEZ-ADAMS SCHOOL DIST"
-			replace DistName = "NORTH BOLIVAR CONS SCHOOL DIST" if DistName == "NORTH BOLIVAR CONSOLIDATED SCHOOL DIST"
-			replace DistName = "NORTH PANOLA SCHOOL DISTRICT" if DistName == "NORTH PANOLA SCHOOLS"
-			replace DistName = "PICAYUNE SCHOOL DISTRICT" if DistName == "PICAYUNE SCHOOL DIST"
-			replace DistName = "PEARL PUBLIC SCHOOL DISTRICT" if DistName == "PEARL PUBLIC SCHOOL DIST"
-			replace DistName = "COVINGTON COUNTY SCHOOL DISTRICT" if DistName == "COVINGTON CO SCHOOLS"
-			replace DistName = "WINONA-MONTGOMERY CONSOLIDATED" if DistName == "WINONA-MONTGOMERY CONSOLIDATED SCHOOL DIST"
-			replace DistName = "CARROLL COUNTY SCHOOL DIST" if DistName == "CARROLL CO SCHOOL DIST"
-			replace DistName = "COAHOMA COUNTY SCHOOL DISTRICT" if DistName == "COAHOMA CO SCHOOL DIST"
-			replace DistName = "EAST JASPER CONSOLIDATED SCH DIST" if DistName == "EAST JASPER CONSOLIDATED SCHOOL DIST"
-			replace DistName = "EAST TALLAHATCHIE CONSOL SCH DIST" if DistName == "EAST TALLAHATCHIE CONSOLIDATED SCHOOL DIST"
-			replace DistName = "FORREST COUNTY SCHOOL DISTRICT" if DistName == "FORREST CO SCHOOL DIST"
-			replace DistName = "GREENE COUNTY SCHOOL DISTRICT" if DistName == "GREENE CO SCHOOL DIST"
-			replace DistName = "GREENWOOD-LEFLORE CONS SCH DISTRICT" if DistName == "GREENWOOD LEFLORE CONSOLIDATED SCHOOL DIST"
-			replace DistName = "HOLMES COUNTY CONSOLIDATED SD" if DistName == "HOLMES CO CONSOLIDATED SCHOOL DIST"
-			replace DistName = "LAMAR COUNTY SCHOOL DISTRICT" if DistName == "LAMAR CO SCHOOL DIST"
-			replace DistName = "LEE COUNTY SCHOOL DISTRICT" if DistName == "LEE CO SCHOOL DIST"
-			replace DistName = "NESHOBA COUNTY SCHOOL DISTRICT" if DistName == "NESHOBA CO SCHOOL DIST"
-			replace DistName = "NEWTON COUNTY SCHOOL DISTRICT" if DistName == "NEWTON CO SCHOOL DIST"
-			replace DistName = "NOXUBEE COUNTY SCHOOL DISTRICT" if DistName == "NOXUBEE CO SCHOOL DIST"
-			replace DistName = "PASCAGOULA-GAUTIER SCHOOL DISTRICT" if DistName == "PASCAGOULA GAUTIER SCHOOL DIST"
-			replace DistName = "STARKVILLE- OKTIBBEHA CONS DIST" if DistName == "STARKVILLE-OKTIBBEHA CONSOLIDATED SCHOOL DIST"
-			replace DistName = "SUNFLOWER CTY CONS SCHOOL DISTRICT" if DistName == "SUNFLOWER CO CONSOLIDATED SCHOOL DIST"
-			replace DistName = "TISHOMINGO CO SP MUN SCH DIST" if DistName == "TISHOMINGO CO SEPARATE MUNICIPAL SCHOOL DIST"
-			replace DistName = "TUNICA COUNTY SCHOOL DISTRICT" if DistName == "TUNICA CO SCHOOL DIST"
-			replace DistName = "MS SCHLS FOR THE DEAF AND THE BLIND" if DistName == "MS SCHOOLS FOR THE BLIND AND DEAF"
-			replace DistName = "COPIAH CO SCHOOL DIST" if DistName == "COPIAH COPIAH SCHOOL DIST"
-			replace DistName = "JOEL E SMILOW COLLEGIATE" if DistName == "SMILOW COLLEGIATE"
-			replace DistName = "Ambition Preparatory Charter School" if DistName == "AMBITION PREPARATORY"
-			replace DistName = "MDHS DIVISION OF YOUTH SERVICES" if DistName == "OAKLEY YOUTH DEVELOPMENT CENTER"
-			replace DistName = "CLARKSDALE COLLEGIATE DISTRICT" if DistName == "CLARKSDALE COLLEGIATE PUBLIC CHARTER"			
-			
-			merge m:1 DistName using "${NCES}/NCES_2021_District.dta"
-
-			drop if _merge == 2
-			drop _merge
-						
-			rename Level1PCT Lev1_percent
-			rename Level2PCT Lev2_percent
-			rename Level3PCT Lev3_percent
-			rename Level4PCT Lev4_percent
-			rename Level5PCT Lev5_percent
-						
-			gen Lev1_count = ""
-			gen Lev2_count = ""
-			gen Lev3_count = ""
-			gen Lev4_count = ""
-			gen Lev5_count = ""
-			
-			gen ProficiencyCriteria = "Levels 4-5"
-			gen ProficientOrAbove_count = ""
-			gen ParticipationRate = "--"
-			
-			replace State = 28
-			replace StateAbbrev = "MS"
-			replace StateFips = 28
-						
-			gen Flag_AssmtNameChange = "N"
-			gen Flag_CutScoreChange_ELA = "N"
-			gen Flag_CutScoreChange_math = "N"
-			gen Flag_CutScoreChange_read = ""
-			gen Flag_CutScoreChange_oth = "N"
-			
-			replace SchName = strrtrim(SchName)
-			
-			sort SchName DistName
-			quietly by SchName DistName:  gen dup = cond(_N==1,0,_n)
-			drop if dup > 1
-			drop dup
-			
-			merge 1:1 SchName DistName using "${NCES}/NCES_Schools.dta", keepusing(NCESSchoolID StateAssignedSchID)
-						
-			drop if _merge == 2
-			drop _merge
-			
-			generate StateAssignedDistID = State_leaid
-			replace StateAssignedDistID = subinstr(StateAssignedDistID,"MS-","",.)
-								
-			replace NCESSchoolID = "280018501526" if NCESSchoolID == "280018501401"
-			replace NCESSchoolID = "280019501491" if NCESSchoolID == "280198001341"
-			replace NCESSchoolID = "280261001472" if NCESSchoolID == "280261001175"
-			replace NCESSchoolID = "280327001534" if NCESSchoolID == "280327000638"
-			replace NCESSchoolID = "280019601485" if NCESSchoolID == "280474000882"	
-			replace NCESSchoolID = "280019601493" if NCESSchoolID == "280474000881"
-			replace NCESSchoolID = "280020001539" if NCESSchoolID == "280096000108"
-			
-			merge m:1 NCESSchoolID using "${NCES}/NCES_2021_School.dta"
-						
-			drop if _merge == 2
-			drop _merge			
-
-			** Aggregating Proficient Data
-
-			local level 1 2 3 4 5
-
-			foreach c of local level {
-				replace Lev`c'_percent = "-1" if Lev`c'_percent == "*"
-				destring Lev`c'_percent, replace
-			}
-
-			gen ProficientOrAbove_percent = Lev4_percent + Lev5_percent
-
-			foreach c of local level {
-				tostring Lev`c'_percent, replace force
-				replace Lev`c'_percent = "*" if Lev`c'_percent == "-1"
-			}
-			
-			tostring ProficientOrAbove_percent, replace force
-			replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "-2"			
-			
-			replace SchName = "All Schools" if DataLevel == "District" | DataLevel == "State"
-			replace DistName = "All Districts" if DataLevel == "State"
-			replace State = 28
-			replace StateAbbrev = "MS"
-			replace StateFips = 28
-
-			label def DataLevel 1 "State" 2 "District" 3 "School"
-			encode DataLevel, gen(DataLevel_n) label(DataLevel)
-			sort DataLevel_n 
-			drop DataLevel 
-			rename DataLevel_n DataLevel
-
-			order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
-
-			sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup	
-			
-			save "${output}/MS_AssmtData_2022_G`a'`b'_Cleaned.dta", replace
+		rename *DistrictSchool SchName
+		
+		gen Subject = lower("`sub'")
+		gen GradeLevel = "G0" + "`grd'"
+		
+		if (`grd' != 3) | ("`sub'" != "ELA") {
+			append using "${output}/MS_AssmtData_2022_elamath.dta"
+		}
+		save "${output}/MS_AssmtData_2022_elamath.dta", replace
 	}
 }
 
-** Cleaning science **
-
-global gradesci 5 8
-
-	foreach a in $gradesci {
-			use "${output}/MS_AssmtData_2022_G`a'sci.dta", clear
-			
-			quietly ds
-			local school `:word 1 of `r(varlist)''
-			foreach var of local school {
-				rename `var' SchName
-			}
-			
-			rename TestTakers StudentGroup_TotalTested
-			rename AverageScaleScore AvgScaleScore
-			
-			drop if missing(SchName) & missing(StudentGroup_TotalTested)
-			
-			generate SchYear = "2021-22"
-			
-			generate GradeLevel = "G0`a'"
-			generate Subject = "sci"
-			gen AssmtName = "MAAP"
-			gen AssmtType = "Regular"
-			gen StudentGroup = "All Students"
-			gen StudentSubGroup = StudentGroup
-			gen StudentSubGroup_TotalTested = StudentGroup_TotalTested
-			
-			gen DataLevel = "School"
-			replace DataLevel = "District" if (strpos(SchName, "District") | strpos(SchName, "Schools") | strpos(SchName, "district") | strpos(SchName, "Midtown Public Charter School") | strpos(SchName, "Joel E. Smilow Prep") | strpos(SchName, "Reimagine Prep") | strpos(SchName, "Consolidated") | strpos(SchName, "Division") | strpos(SchName, "Blind and Deaf") | strpos(SchName, "Oakley Youth Development Center") | strpos(SchName, "Clarksdale Collegiate Public Charter") | strpos(SchName, "Leflore Legacy Academy")) & SchName != "West Bolivar District Middle School" & SchName != "Republic Charter Schools" > 0
-			
-			replace DataLevel = "State" if strpos(SchName, "Grand Total") > 0
-			
-			gen DistName = ""
-			replace DistName = SchName if DataLevel == "District"
-			replace DistName = "Reimagine Prep" if SchName == "Republic Charter Schools"
-			replace DistName = "Joel E. Smillow Prep" if SchName == "Joel E. Smilow Prep"
-			replace DistName = "University Of Southern Mississippi" if SchName == "Dubard School For Language Disorders"
-			replace DistName = DistName[_n-1] if missing(DistName)
-			replace DistName = "" if DataLevel == "State"
-			
-			replace SchName = "" if DataLevel == "District" | DataLevel == "State"	
-
-			replace DistName = subinstr(DistName,"District","Dist",.)
-			replace DistName = subinstr(DistName,"County","Co",.)
-			replace DistName = upper(DistName)
-			
-			replace DistName = "BALDWYN SCHOOL DISTRICT" if DistName == "BALDWYN SCHOOL DIST"
-			replace DistName = "COLUMBIA SCHOOL DISTRICT" if DistName == "COLUMBIA SCHOOL DIST"
-			replace DistName = "GREENWOOD PUBLIC SCHOOL DISTRICT" if DistName == "GREENWOOD PUBLIC SCHOOL DIST"
-			replace DistName = "HAZLEHURST CITY SCHOOL DISTRICT" if DistName == "HAZLEHURST CITY SCHOOL DIST"
-			replace DistName = "KOSCIUSKO SCHOOL DISTRICT" if DistName == "KOSCIUSKO SCHOOL DIST"
-			replace DistName = "LAUREL SCHOOL DISTRICT" if DistName == "LAUREL SCHOOL DIST"
-			replace DistName = "LUMBERTON PUBLIC SCHOOL DISTRICT" if DistName == "LUMBERTON PUBLIC SCHOOL DIST"
-			replace DistName = "MADISON CO SCHOOL DIST" if DistName == "MADISON COUNTY SCHOOL DIST"
-			replace DistName = "MCCOMB SCHOOL DISTRICT" if DistName == "MCCOMB SCHOOL DIST"
-			replace DistName = "MOSS POINT SEPARATE SCHOOL DIST" if DistName == "MOSS POINT SCHOOL DIST"
-			replace DistName = "NEWTON MUNICIPAL SCHOOL DISTRICT" if DistName == "NEWTON MUNICIPAL SCHOOL DIST"
-			replace DistName = "OXFORD SCHOOL DISTRICT" if DistName == "OXFORD SCHOOL DIST"
-			replace DistName = "PASCAGOULA-GAUTIER SCHOOL DISTRICT" if DistName == "PASCAGOULA-GAUTIER SCHOOL DIST"
-			replace DistName = "SIMPSON CO SCHOOL DIST" if DistName == "SIMPSON COUNTY SCHOOL DIST"
-			replace DistName = "SOUTH DELTA SCHOOL DISTRICT" if DistName == "SOUTH DELTA SCHOOL DIST"
-			replace DistName = "SOUTH PANOLA SCHOOL DISTRICT" if DistName == "SOUTH PANOLA SCHOOL DIST"
-			replace DistName = "TUNICA COUNTY SCHOOL DISTRICT" if DistName == "TUNICA COUNTY SCHOOL DIST"
-			replace DistName = "WATER VALLEY SCHOOL DISTRICT" if DistName == "WATER VALLEY SCHOOL DIST"
-			replace DistName = "WEST TALLAHATCHIE SCHOOL DISTRICT" if DistName == "WEST TALLAHATCHIE SCHOOL DIST"
-			replace DistName = "WESTERN LINE SCHOOL DISTRICT" if DistName == "WESTERN LINE SCHOOL DIST"
-			replace DistName = "WEST BOLIVAR CONS SCHOOL DIST" if DistName == "WEST BOLIVAR CONSOLIDATED SCHOOL DIST"
-			replace DistName = "HATTIESBURG PUBLIC SCHOOL DIST" if DistName == "HATTIESBURG PUBLIC SCHOOLDISTRICT"
-			replace DistName = "AMITE COUNTY SCHOOL DISTRICT" if DistName == "AMITE CO SCHOOL DIST"
-			replace DistName = "ITAWAMBA COUNTY SCHOOL DIST" if DistName == "ITAWAMBA CO SCHOOL DIST"
-			replace DistName = "JACKSON PUBLIC SCHOOL DISTRICT" if DistName == "JACKSON PUBLIC SCHOOL DIST"
-			replace DistName = "LINCOLN COUNTY SCHOOL DISTRICT" if DistName == "LINCOLN CO SCHOOL DIST"
-			replace DistName = "MERIDIAN PUBLIC SCHOOLS" if DistName == "MERIDIAN PUBLIC SCHOOL DIST"
-			replace DistName = "NATCHEZ-ADAMS SCHOOL DISTRICT" if DistName == "NATCHEZ-ADAMS SCHOOL DIST"
-			replace DistName = "NORTH BOLIVAR CONS SCHOOL DIST" if DistName == "NORTH BOLIVAR CONSOLIDATED SCHOOL DIST"
-			replace DistName = "NORTH PANOLA SCHOOL DISTRICT" if DistName == "NORTH PANOLA SCHOOLS"
-			replace DistName = "PICAYUNE SCHOOL DISTRICT" if DistName == "PICAYUNE SCHOOL DIST"
-			replace DistName = "PEARL PUBLIC SCHOOL DISTRICT" if DistName == "PEARL PUBLIC SCHOOL DIST"
-			replace DistName = "COVINGTON COUNTY SCHOOL DISTRICT" if DistName == "COVINGTON CO SCHOOLS"
-			replace DistName = "WINONA-MONTGOMERY CONSOLIDATED" if DistName == "WINONA-MONTGOMERY CONSOLIDATED SCHOOL DIST"
-			replace DistName = "CARROLL COUNTY SCHOOL DIST" if DistName == "CARROLL CO SCHOOL DIST"
-			replace DistName = "COAHOMA COUNTY SCHOOL DISTRICT" if DistName == "COAHOMA CO SCHOOL DIST"
-			replace DistName = "EAST JASPER CONSOLIDATED SCH DIST" if DistName == "EAST JASPER CONSOLIDATED SCHOOL DIST"
-			replace DistName = "EAST TALLAHATCHIE CONSOL SCH DIST" if DistName == "EAST TALLAHATCHIE CONSOLIDATED SCHOOL DIST"
-			replace DistName = "FORREST COUNTY SCHOOL DISTRICT" if DistName == "FORREST CO SCHOOL DIST"
-			replace DistName = "GREENE COUNTY SCHOOL DISTRICT" if DistName == "GREENE CO SCHOOL DIST"
-			replace DistName = "GREENWOOD-LEFLORE CONS SCH DISTRICT" if DistName == "GREENWOOD LEFLORE CONSOLIDATED SCHOOL DIST"
-			replace DistName = "HOLMES COUNTY CONSOLIDATED SD" if DistName == "HOLMES CO CONSOLIDATED SCHOOL DIST"
-			replace DistName = "LAMAR COUNTY SCHOOL DISTRICT" if DistName == "LAMAR CO SCHOOL DIST"
-			replace DistName = "LEE COUNTY SCHOOL DISTRICT" if DistName == "LEE CO SCHOOL DIST"
-			replace DistName = "NESHOBA COUNTY SCHOOL DISTRICT" if DistName == "NESHOBA CO SCHOOL DIST"
-			replace DistName = "NEWTON COUNTY SCHOOL DISTRICT" if DistName == "NEWTON CO SCHOOL DIST"
-			replace DistName = "NOXUBEE COUNTY SCHOOL DISTRICT" if DistName == "NOXUBEE CO SCHOOL DIST"
-			replace DistName = "PASCAGOULA-GAUTIER SCHOOL DISTRICT" if DistName == "PASCAGOULA GAUTIER SCHOOL DIST"
-			replace DistName = "STARKVILLE- OKTIBBEHA CONS DIST" if DistName == "STARKVILLE-OKTIBBEHA CONSOLIDATED SCHOOL DIST"
-			replace DistName = "SUNFLOWER CTY CONS SCHOOL DISTRICT" if DistName == "SUNFLOWER CO CONSOLIDATED SCHOOL DIST"
-			replace DistName = "TISHOMINGO CO SP MUN SCH DIST" if DistName == "TISHOMINGO CO SEPARATE MUNICIPAL SCHOOL DIST"
-			replace DistName = "TUNICA COUNTY SCHOOL DISTRICT" if DistName == "TUNICA CO SCHOOL DIST"
-			replace DistName = "MS SCHLS FOR THE DEAF AND THE BLIND" if DistName == "MS SCHOOLS FOR THE BLIND AND DEAF"
-			replace DistName = "COPIAH CO SCHOOL DIST" if DistName == "COPIAH COPIAH SCHOOL DIST"
-			replace DistName = "MDHS DIVISION OF YOUTH SERVICES" if DistName == "OAKLEY YOUTH DEVELOPMENT CENTER"
-			replace DistName = "CLARKSDALE COLLEGIATE DISTRICT" if DistName == "CLARKSDALE COLLEGIATE PUBLIC CHARTER"
-
-			merge m:1 DistName using "${NCES}/NCES_2021_District.dta"
+foreach grdsci of local gradesci {
+	use "${output}/MS_AssmtData_2022_G`grdsci'sci.dta", clear
 	
-			drop if _merge == 2
-			drop _merge					
-			
-			rename Level1PCT Lev1_percent
-			rename Level2PCT Lev2_percent
-			rename Level3PCT Lev3_percent
-			rename Level4PCT Lev4_percent
-			rename Level5PCT Lev5_percent
-						
-			gen Lev1_count = ""
-			gen Lev2_count = ""
-			gen Lev3_count = ""
-			gen Lev4_count = ""
-			gen Lev5_count = ""
-			
-			gen ProficiencyCriteria = "Levels 4-5"
-			gen ProficientOrAbove_count = ""
-			gen ParticipationRate = "--"
-			
-			replace State = 28
-			replace StateAbbrev = "MS"
-			replace StateFips = 28			
-			
-			gen Flag_AssmtNameChange = "N"
-			gen Flag_CutScoreChange_ELA = "N"
-			gen Flag_CutScoreChange_math = "N"
-			gen Flag_CutScoreChange_read = ""
-			gen Flag_CutScoreChange_oth = "N"
-			
-			sort SchName DistName
-			quietly by SchName DistName:  gen dup = cond(_N==1,0,_n)
-			drop if dup > 1
-			drop dup
-			
-			merge 1:1 SchName DistName using "${NCES}/NCES_Schools.dta", keepusing(NCESSchoolID StateAssignedSchID)
-
-			drop if _merge == 2
-			drop _merge
-						
-			generate StateAssignedDistID = State_leaid
-			replace StateAssignedDistID = subinstr(StateAssignedDistID,"MS-","",.)
-						
-			replace NCESSchoolID = "280018501526" if NCESSchoolID == "280018501401"
-			replace NCESSchoolID = "280019501491" if NCESSchoolID == "280198001341"
-			replace NCESSchoolID = "280261001472" if NCESSchoolID == "280261001175"
-			replace NCESSchoolID = "280327001534" if NCESSchoolID == "280327000638"
-			replace NCESSchoolID = "280019601485" if NCESSchoolID == "280474000882"	
-			replace NCESSchoolID = "280019601493" if NCESSchoolID == "280474000881"
-			replace NCESSchoolID = "280020001539" if NCESSchoolID == "280096000108"
-			
-			merge m:1 NCESSchoolID using "${NCES}/NCES_2021_School.dta"
-			
-			drop if _merge == 2
-			drop _merge	
-			
-			** Aggregating Proficient Data
-
-			local level 1 2 3 4 5
-
-			foreach c of local level {
-				replace Lev`c'_percent = "-1" if Lev`c'_percent == "*"
-				destring Lev`c'_percent, replace
-			}
-
-			gen ProficientOrAbove_percent = Lev4_percent + Lev5_percent
-
-			foreach c of local level {
-				tostring Lev`c'_percent, replace force
-				replace Lev`c'_percent = "*" if Lev`c'_percent == "-1"
-			}
-			
-			tostring ProficientOrAbove_percent, replace force
-			replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "-2"			
-			
-			replace SchName = "All Schools" if DataLevel == "District" | DataLevel == "State"
-			replace DistName = "All Districts" if DataLevel == "State"
-			replace State = 28
-			replace StateAbbrev = "MS"
-			replace StateFips = 28
-
-			label def DataLevel 1 "State" 2 "District" 3 "School"
-			encode DataLevel, gen(DataLevel_n) label(DataLevel)
-			sort DataLevel_n 
-			drop DataLevel 
-			rename DataLevel_n DataLevel
-
-			order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
-
-			sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup	
-			
-			save "${output}/MS_AssmtData_2022_G`a'sci_Cleaned.dta", replace
-
-			}	
-
-** Appending subjects
-
-	foreach a in $grade {
-		use "${output}/MS_AssmtData_2022_G`a'ELA_Cleaned.dta", clear
-		append using "${output}/MS_AssmtData_2022_G`a'Math_Cleaned.dta"
-		save "${output}/MS_AssmtData_2022_G`a'all.dta", replace
-	}
-	foreach a in $gradesci {
-		use "${output}/MS_AssmtData_2022_G`a'all.dta", clear
-		append using "${output}/MS_AssmtData_2022_G`a'sci_Cleaned.dta"
-		save "${output}/MS_AssmtData_2022_G`a'all.dta", replace
-	}
-
-	use "${output}/MS_AssmtData_2022_G3all.dta", clear
-	append using "${output}/MS_AssmtData_2022_G4all.dta"
-	append using "${output}/MS_AssmtData_2022_G5all.dta"
-	append using "${output}/MS_AssmtData_2022_G6all.dta"
-	append using "${output}/MS_AssmtData_2022_G7all.dta"
-	append using "${output}/MS_AssmtData_2022_G8all.dta"
+	rename *DistrictSchool SchName
+		
+	gen Subject = "sci"
+	gen GradeLevel = "G0" + "`grdsci'"
 	
-	drop if SchName == "School 500"
-	
-	order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+	if (`grdsci' != 5) {
+		append using "${output}/MS_AssmtData_2022_sci.dta"
+		}
+	save "${output}/MS_AssmtData_2022_sci.dta", replace
+}
 
-	sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-	
-	save "${output}/MS_AssmtData_2022.dta", replace	
-	export delimited using "${output}/csv/MS_AssmtData_2022.csv", replace
+use "${output}/MS_AssmtData_2022_elamath.dta", clear
+append using "${output}/MS_AssmtData_2022_sci.dta"
+
+** Rename existing variables
+
+rename AverageScaleScore AvgScaleScore
+rename TestTakers StudentGroup_TotalTested
+
+local level 1 2 3 4 5
+foreach a of local level {
+	rename Level`a'PCT Lev`a'_percent
+}
+
+** Dropping entries
+
+drop if AvgScaleScore == ""
+
+drop if SchName == "School 500"
+
+** Generating new variables
+
+gen SchYear = "2021-22"
+
+gen AssmtName = "MAAP"
+gen AssmtType = "Regular"
+
+foreach a of local level {
+	gen Lev`a'_count = "--"
+}
+
+gen StudentGroup = "All Students"
+gen StudentSubGroup = "All Students"
+gen StudentSubGroup_TotalTested = StudentGroup_TotalTested
+
+gen ProficiencyCriteria = "Levels 4-5"
+gen ProficientOrAbove_count = "--"
+
+gen ParticipationRate = "--"
+
+gen test = ""
+foreach a of local level {
+	gen Lev`a'_percent2 = Lev`a'_percent
+	destring Lev`a'_percent2, replace force
+	replace test = "*" if Lev`a'_percent == "*"
+}
+gen ProficientOrAbove_percent = Lev4_percent2 + Lev5_percent2
+tostring ProficientOrAbove_percent, replace force
+replace ProficientOrAbove_percent = test if test != ""
+drop test
+foreach a of local level {
+	drop Lev`a'_percent2
+}
+
+replace SchName = strupper(SchName)
+gen DataLevel = ""
+replace DataLevel = "State" if strpos(SchName, "GRAND TOTAL") > 0
+replace DataLevel = "District" if (strpos(SchName, "DISTRICT") | strpos(SchName, "SCHOOLS") | strpos(SchName, "MIDTOWN PUBLIC CHARTER SCHOOL") | strpos(SchName, "JOEL E. SMILOW PREP") | strpos(SchName, "MS SCHOOLS FOR THE BLIND AND DEAF") | strpos(SchName, "SMILOW COLLEGIATE") | strpos(SchName, "AMBITION PREPARATORY") | strpos(SchName, "CLARKSDALE COLLEGIATE PUBLIC CHARTER") | strpos(SchName, "OAKLEY YOUTH DEVELOPMENT CENTER")) & SchName != "AMBITION PREPARATORY CHARTER SCHOOL" > 0
+replace DataLevel = "School" if DataLevel == ""
+
+gen DistName = ""
+replace DistName = SchName if DataLevel == "District"
+replace DistName = DistName[_n-1] if missing(DistName)
+replace DistName = "MDHS DIVISION OF YOUTH SERVICES" if DistName == "OAKLEY YOUTH DEVELOPMENT CENTER"
+replace DistName = "DUBARD SCHOOL FOR LANGUAGE DISORDERS" if SchName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
+replace DistName = "Leflore Legacy Academy" if SchName == "LEFLORE LEGACY ACADEMY"
+replace DistName = "REIMAGINE PREP" if SchName == "REIMAGINE PREP"
+replace DistName = "All Districts" if DataLevel == "State"
+
+replace SchName = "All Schools" if DataLevel != "School"
+
+** Changing DataLevel
+
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+sort DataLevel_n 
+drop DataLevel 
+rename DataLevel_n DataLevel
+
+** Merging with NCES
+
+merge m:1 DistName using "${NCES}/NCES_2021_District.dta"
+
+drop if _merge == 2
+drop _merge
+
+replace DistName = subinstr(DistName,"DISTRICT","DIST",.) if CountyName == ""
+
+merge m:1 DistName using "${NCES}/NCES_2021_District.dta", update
+
+drop if _merge == 2
+drop _merge
+
+replace DistName = subinstr(DistName,"COUNTY","CO",.) if CountyName == ""
+
+merge m:1 DistName using "${NCES}/NCES_2021_District.dta", update
+
+drop if _merge == 2
+drop _merge
+
+replace DistName = "Ambition Preparatory Charter School" if DistName == "AMBITION PREPARATORY"
+replace DistName = "CLARKSDALE COLLEGIATE DISTRICT" if DistName == "CLARKSDALE COLLEGIATE PUBLIC CHARTER"
+replace DistName = "COPIAH CO SCHOOL DIST" if DistName == "COPIAH COPIAH SCHOOL DIST"
+replace DistName = "COVINGTON COUNTY SCHOOL DISTRICT" if DistName == "COVINGTON CO SCHOOLS"
+replace DistName = "EAST JASPER CONSOLIDATED SCH DIST" if DistName == "EAST JASPER CONSOLIDATED SCHOOL DIST"
+replace DistName = "EAST TALLAHATCHIE CONSOL SCH DIST" if DistName == "EAST TALLAHATCHIE CONSOLIDATED SCHOOL DIST"
+replace DistName = "GREENWOOD-LEFLORE CONS SCH DISTRICT" if DistName == "GREENWOOD LEFLORE CONSOLIDATED SCHOOL DIST"
+replace DistName = "HOLMES COUNTY CONSOLIDATED SD" if DistName == "HOLMES CO CONSOLIDATED SCHOOL DIST"
+replace DistName = "JOEL E. SMILLOW PREP" if DistName == "JOEL E. SMILOW PREP"
+replace DistName = "MERIDIAN PUBLIC SCHOOLS" if DistName == "MERIDIAN PUBLIC SCHOOL DIST"
+replace DistName = "MOSS POINT SEPARATE SCHOOL DIST" if DistName == "MOSS POINT SCHOOL DIST"
+replace DistName = "MS SCHLS FOR THE DEAF AND THE BLIND" if DistName == "MS SCHOOLS FOR THE BLIND AND DEAF"
+replace DistName = "NORTH BOLIVAR CONS SCHOOL DIST" if DistName == "NORTH BOLIVAR CONSOLIDATED SCHOOL DIST"
+replace DistName = "NORTH PANOLA SCHOOL DISTRICT" if DistName == "NORTH PANOLA SCHOOLS"
+replace DistName = "JOEL E SMILOW COLLEGIATE" if DistName == "SMILOW COLLEGIATE"
+replace DistName = "STARKVILLE- OKTIBBEHA CONS DIST" if DistName == "STARKVILLE-OKTIBBEHA CONSOLIDATED SCHOOL DIST"
+replace DistName = "SUNFLOWER CTY CONS SCHOOL DISTRICT" if DistName == "SUNFLOWER CO CONSOLIDATED SCHOOL DIST"
+replace DistName = "TISHOMINGO CO SP MUN SCH DIST" if DistName == "TISHOMINGO CO SEPARATE MUNICIPAL SCHOOL DIST"
+replace DistName = "WEST BOLIVAR CONS SCHOOL DIST" if DistName == "WEST BOLIVAR CONSOLIDATED SCHOOL DIST"
+replace DistName = "WINONA-MONTGOMERY CONSOLIDATED" if DistName == "WINONA-MONTGOMERY CONSOLIDATED SCHOOL DIST"
+
+merge m:1 DistName using "${NCES}/NCES_2021_District.dta", update
+
+drop if _merge == 2
+drop _merge
+
+replace SchName = strtrim(SchName)
+replace SchName = strproper(SchName)
+
+merge m:1 DistName SchName using "${NCES}/NCES_2021_School.dta"
+
+drop if _merge == 2
+drop _merge
+
+replace SchName = strupper(SchName)
+
+merge m:1 DistName SchName using "${NCES}/NCES_2021_School.dta", update
+
+drop if _merge == 2
+drop _merge
+
+replace SchName = SchName + " SCHOOL" if strpos(SchName, "SCHOOL") == 0 & NCESSchoolID == "" & DataLevel == 3
+
+merge m:1 DistName SchName using "${NCES}/NCES_2021_School.dta", update
+
+drop if _merge == 2
+drop _merge
+
+replace SchName = subinstr(SchName,"ELEMENTARY","ELEM",.) if NCESSchoolID == "" & DataLevel == 3
+replace SchName = subinstr(SchName, "JR", "JUNIOR",.) if NCESSchoolID == "" & DataLevel == 3
+
+merge m:1 DistName SchName using "${NCES}/NCES_2021_School.dta", update
+
+drop if _merge == 2
+drop _merge
+
+replace SchName = subinstr(SchName," SCHOOL","",.) if NCESSchoolID == "" & DataLevel == 3 & DistName != "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
+
+merge m:1 DistName SchName using "${NCES}/NCES_2021_School.dta", update
+
+drop if _merge == 2
+drop _merge
+
+replace SchName = subinstr(SchName,"ELEM","ELEMENTARY",.) if NCESSchoolID == "" & DataLevel == 3
+replace SchName = subinstr(SchName, "JUNIOR", "JR",.) if NCESSchoolID == "" & DataLevel == 3
+
+merge m:1 DistName SchName using "${NCES}/NCES_2021_School.dta", update
+
+drop if _merge == 2
+drop _merge
+
+replace SchName = subinstr(SchName,"ELEMENTARY","ELEM",.) if NCESSchoolID == "" & DataLevel == 3
+
+replace SchName = "ARMSTRONG JUNIOR HIGH SCHOOL" if SchName == "ARMSTRONG MIDDLE"
+replace SchName = "A. W. WATSON  ELEMENTARY" if strpos(SchName, "WATSON") > 0 & NCESSchoolID == ""
+replace SchName = "ASHLAND MIDDLE-HIGH SCHOOL" if SchName == "ASHLAND HIGH"
+replace SchName = "BAY SPRINGS ELEM SCH" if SchName == "BAY SPRINGS ELEM"
+replace SchName = "BAY SPRINGS MIDDLE SCH" if SchName == "BAY SPRINGS MIDDLE"
+replace SchName = "BELL ELEMENTARY SCHOOL" if SchName == "BELL ACADEMY"
+replace SchName = "BELMONT SCHOOL" if SchName == "BELMONT HIGH"
+replace SchName = "BOLTON-EDWARDS ELEM./MIDDLE SCHOOL" if strpos(SchName, "BOLTON") > 0 & NCESSchoolID == ""
+replace SchName = "BYHALIA MIDDLE SCHOOL (5-8)" if strpos(SchName, "BYHALIA MIDDLE") > 0 & NCESSchoolID == ""
+replace SchName = "BYHALIA ELEMENTARY SCHOOL (K-4)" if SchName == "BYHALIA ELEM, K-4"
+replace SchName = "CLINTON JR HI SCHOOL" if SchName == "CLINTON JR HIGH"
+replace SchName = "COAHOMA COUNTY JR/SR HIGH SCHOOL" if strpos(SchName, "COAHOMA") > 0 & NCESSchoolID == ""
+replace SchName = "DEXTER ELEMENTARY SCHOOL" if SchName == "DEXTER ATTENDANCE CENTER"
+replace SchName = "EDNA M SCOTT ELEMENTARY SCHOOL" if SchName == "EDNA M. SCOTT ELEM"
+replace SchName = "ENTERPRISE SCHOOL" if SchName == "ENTERPRISE ATTENDANCE CENTER"
+replace SchName = "ETHEL ATTENDANCE CENTER" if SchName == "ETHEL HIGH"
+replace SchName = "GALENA ELEMENTARY SCHOOL (K-6)" if SchName == "GALENA ELEM, K-8"
+replace SchName = "GEO H OLIVER VISUAL/PERF. ARTS" if strpos(SchName, "OLIVER") > 0 & NCESSchoolID == ""
+replace SchName = "GOODMAN PICKENS ELEMENTARY SCHOOL" if SchName == "GOODMAN-PICKENS ELEM"
+replace SchName = "H. W. BYERS HIGH SCHOOL (5-12)" if strpos(SchName, "BYERS HIGH") > 0 & NCESSchoolID == ""
+replace SchName = "H. W. BYERS ELEMENTARY (K-4)" if SchName == "H. W. BYERS ELEM, K-4"
+replace SchName = "HARPER MC CAUGHAN ELEM SCHOOL" if strpos(SchName, "HARPER") > 0 & NCESSchoolID == ""
+replace SchName = "HAYES COOPER CENTER FOR MATH SC TEC" if strpos(SchName, "HAYES") > 0 & NCESSchoolID == ""
+replace SchName = "HEIDELBERG SCHOOL MATH & SCIENCE" if SchName == "HEIDELBERG MATH AND SCIENCE"
+replace SchName = "HENDERSON/WARD-STEWART ELEMENTARY" if SchName == "HENDERSON WARD-STEWART ELEM"
+replace SchName = "JEFFERSON CO ELEM SCHOOL" if SchName == "JEFFERSON COUNTY ELEMNTARY" | SchName == "JEFFERSON COUNTY ELEM"
+replace SchName = "JEFFERSON CO JR HI" if SchName == "JEFFERSON COUNTY JR HIGH" | SchName == "JEFFERSON CO JR HIGH"
+replace SchName = "KIRKPATRICK  HEALTH /WELLNESS" if SchName == "KIRKPATRICK HEALTH AND WELLNESS"
+replace SchName = "LELAND SCHOOL PARK" if SchName == "LELAND ELEM ACCERATED"
+replace SchName = "MANTACHIE ATTENDANCE CENTER" if strpos(SchName, "MANTACHIE") > 0 & NCESSchoolID == ""
+replace SchName = "MARY REID SCHOOL (K-3)" if SchName == "MARY REID, K-3"
+replace SchName = "MC LAIN ELEMENTARY SCHOOL" if strpos(SchName, "LAIN") > 0 & NCESSchoolID == ""
+replace SchName = "MCADAMS ATTENDANCE CENTER" if SchName == "MCADAMS HIGH"
+replace SchName = "MCCOMB HIGH SCHOOL" if SchName == "MCCOMB MIDDLE"
+replace SchName = "MC NEAL ELEMENTARY SCHOOL" if SchName == "MCNEAL ELEM"
+replace SchName = "MIDTOWN PUBLIC CHARTER SCHOOL" if SchName == "MIDTOWN PUBLIC"
+replace SchName = "MS SCHOOL FOR THE BLIND" if SchName == "MISSISSIPPI FOR THE BLIND"
+replace SchName = "MS SCHOOL FOR THE DEAF" if SchName == "MISSISSIPPI FOR THE DEAF"
+replace SchName = "MOORHEAD CENTRAL SCHOOL" if strpos(SchName, "MOORHEAD CENTRAL") > 0 & NCESSchoolID == ""
+replace SchName = "NANIH WAIYA ATTENDANCE CENTER" if SchName == "NANIH WAIYA"
+replace SchName = "NORTH GULFPORT ELEMENTARY AND MIDDL" if strpos(SchName, "NORTH GULFPORT") & NCESSchoolID == ""
+replace SchName = "NORTH PANOLA MIDDLE SCHOOL" if SchName == "NORTH PANOLA JR HIGH"
+replace SchName = "NORTH WOOLMARKET ELEMENTARY AND MID" if SchName == "NORTH WOOLMARKET ELEM AND MIDDLE"
+replace SchName = "NOXAPATER ATTENDANCE CENTER" if SchName == "NOXAPATER HIGH" & NCESSchoolID == ""
+replace SchName = "O M MC NAIR MIDDLE SCHOOL" if strpos(SchName, "NAIR") > 0 & NCESSchoolID == ""
+replace SchName = "BARACK H OBAMA ELEMENTARY SCHOOL" if SchName == "OBAMA MAGNET"
+replace SchName = "O'BANNON HIGH SCHOOL" if SchName == "OBANNON HIGH"
+replace SchName = "OCEAN SPRINGS UPPER ELEMENTARY SCHO" if SchName == "OCEAN SPRINGS UPPER ELEM"
+replace SchName = "OLD TOWN MIDDLE" if SchName == "OLDE TOWNE MIDDLE"
+replace SchName = "PEARL RIVER CENTRAL ELEMENTAR" if SchName == "PEARL RIVER CENTRAL ELEM"
+replace SchName = "POPLARVILLE UPPER ELEMENTARY SCH" if SchName == "POPLARVILLE UPPER ELEM"
+replace SchName = "POTTS CAMP HIGH SCHOOL (4-12)" if strpos(SchName, "POTTS CAMP") > 0 & NCESSchoolID == ""
+replace SchName = "REUBEN B. MYERS CANTON SCHOOL OF AR" if strpos(SchName, "REUBEN") > 0 & NCESSchoolID == ""
+replace SchName = "S V MARSHALL ELEMENTARY SCHOOL" if SchName == "S.V. MARSHALL ELEM"
+replace SchName = "S V MARSHALL MIDDLE SCHOOL" if SchName == "S. V. MARSHALL MIDDLE"
+replace SchName = "SHIRLEY D. SIMMONS MIDDLE SCHOOL" if SchName == "SHIRLEY SIMMONS MIDDLE"
+replace SchName = "SIMMONS HIGH SCHOOL" if SchName == "SIMMONS JR.SR. HIGH"
+replace SchName = "TAYLORSVILLE ATTENDANCE CENTER" if SchName == "TAYLORSVILLE HIGH"
+replace SchName = "SOCSD/MSU PARTNERSHIP MIDDLE SCHOOL" if SchName == "THE PARTNERSHIP MIDDLE"
+replace SchName = "THRASHER HIGH SCHOOL" if SchName == "THRASHER"
+replace SchName = "TREMONT ATTENDANCE CENTER" if SchName == "TREMONT HIGH"
+replace SchName = "TWENTY EIGHTH ST ELEM" if strpos(SchName, "TWENTY") > 0 & NCESSchoolID == ""
+replace SchName = "UTICA ELEM. / MIDDLE SCHOOL" if strpos(SchName, "UTICA") > 0 & NCESSchoolID == ""
+replace SchName = "WAYNE CENTRAL ELEMENTARY SCHOOL" if SchName == "WAYNE CENTRAL"
+replace SchName = "WAYNESBORO RIVERVIEW ELE SCHOOL" if strpos(SchName, "RIVERVIEW") > 0 & NCESSchoolID == ""
+replace SchName = "IDA B. WELLS APAC SCHOOL" if SchName == "WELLS APAC ELEM"
+replace SchName = "WEST BOLIVAR ELEM" if SchName == "WEST BOLIVAR ELEMENARY"
+replace SchName = "WEST JONES HIGH SCHOOL" if SchName == "WEST JONES JR SR HIGH"
+replace SchName = "WEST LINCOLN SCHOOL" if SchName == "WEST LINCOLN ATTENDANCE CENTER"
+replace SchName = "WILLIAMS SCHOOL" if SchName == "WILLIAMS"
+replace SchName = "WILLIAMS-SULLIVAN MIDDLE SCHOOL" if SchName == "WILLIAMS-SULLIVAN ELEM"
+
+
+merge m:1 DistName SchName using "${NCES}/NCES_2021_School.dta", update
+
+drop if _merge == 2
+drop _merge
+
+//replace SchName = "Boyd Elementary School" if SchName == "BOYD ELEM"
+//replace SchName = "Carver Middle School" if SchName == "CARVER MIDDLE"
+//replace SchName = "Carver Elementary School" if SchName == "CARVER ELEM"
+//replace SchName = "Central Elementary School" if SchName == "CENTRAL ELEM"
+//replace SchName = "Davis Magnet School" if SchName == "DAVIS MAGNET"
+//replace SchName = "Greenhill Elementary School" if SchName == "GREENHILL ELEM"
+//replace SchName = "Houston Middle School" if SchName == "HOUSTON MIDDLE"
+//replace SchName = "Houston Upper Elementary" if SchName == "HOUSTON UPPER ELEM"
+//replace SchName = "Lake Elementary School" if SchName == "LAKE ELEM"
+//replace SchName = "Lee Elementary School" if SchName == "LEE ELEM"
+//replace SchName = "Magnolia Middle School" if SchName == "MAGNOLIA MIDDLE"
+//replace SchName = "Marshall Elementary School" if SchName == "MARSHALL ELEM"
+//replace SchName = "McLaurin Elementary School" if SchName == "MCLAURIN ELEM"
+//replace SchName = "North Bay Elementary School" if SchName == "NORTH BAY ELEM"
+//replace SchName = "Oak Park Elementary School" if SchName == "OAK PARK ELEM"
+//replace SchName = "Pecan Park Elementary School" if SchName == "PECAN PARK ELEM"
+//replace SchName = "Power Apac School" if SchName == "POWER APAC"
+//replace SchName = "South Side Elementary School" if SchName == "SOUTH SIDE ELEM"
+//replace SchName = "West Elementary School" if SchName == "WEST ELEM"
+
+//merge m:1 DistName SchName using "${NCES}/NCES_Schools.dta", keepusing(NCESSchoolID seasch Virtual SchoolLevel SchoolType) update
+
+//drop if _merge == 2
+//drop _merge
+
+replace StateAbbrev = "MS"
+replace State = 28
+replace StateFips = 28
+
+replace DistName = strproper(DistName)
+replace SchName = strproper(SchName)
+
+** Generating new variables
+
+replace State_leaid = "Missing/not reported" if SchName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
+gen StateAssignedDistID = State_leaid
+replace seasch = "Missing/not reported" if SchName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
+gen StateAssignedSchID = seasch
+
+replace NCESDistrictID = "Missing/not reported" if SchName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
+replace NCESSchoolID = "Missing/not reported" if SchName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
+
+gen Flag_AssmtNameChange = "N"
+gen Flag_CutScoreChange_ELA = "N"
+gen Flag_CutScoreChange_math = "N"
+gen Flag_CutScoreChange_read = ""
+gen Flag_CutScoreChange_oth = "N"
+
+order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
+save "${output}/MS_AssmtData_2022.dta", replace
+
+export delimited using "${output}/csv/MS_AssmtData_2022.csv", replace
