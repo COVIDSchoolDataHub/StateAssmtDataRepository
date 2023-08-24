@@ -421,6 +421,9 @@ sort DataLevel_n
 drop DataLevel 
 rename DataLevel_n DataLevel
 rename district_agency_type DistType
+if `year' == 2011 {
+replace DistType = agency_type if DataLevel ==2
+}
 rename school_type SchType
 rename ncesdistrictid NCESDistrictID
 rename state_leaid State_leaid

@@ -1,5 +1,6 @@
 clear
 set more off
+
 //Make sure to download and edit all dofiles first and save to a directory, specified below. Directories for data must be specified in each do-file.
 cd "/Volumes/T7/State Test Project/South Dakota"
 local NCES_District "/Volumes/T7/State Test Project/NCES/District"
@@ -186,6 +187,19 @@ replace SchLevel = 16 if NCESSchoolID == "MISSING"
 replace SchVirtual = "Missing/not reported" if NCESSchoolID == "MISSING"
 replace CountyName = "MISSING" if NCESSchoolID == "MISSING" | NCESDistrictID == "MISSING"
 replace CountyCode = 0 if NCESSchoolID == "MISSING" | NCESDistrictID == "MISSING"
+
+replace DistType =1 if missing(DistType) & DataLevel !=1
+//Response to R1
+replace DistType=1 if StateAssignedDistID == "34002"
+replace NCESDistrictID = "4631560" if StateAssignedDistID == "34002"
+replace DistCharter = "No" if StateAssignedDistID == "34002"
+replace CountyName = "Hughes" if StateAssignedDistID == "34002"
+replace CountyCode = 46065 if StateAssignedDistID == "34002"
+replace DistType = 4 if StateAssignedDistID == "40201"
+replace NCESDistrictID = "4680120" if StateAssignedDistID == "40201"
+replace DistCharter = "No" if StateAssignedDistID == "40201"
+replace CountyName = "MEADE COUNTY" if StateAssignedDistID == "40201"
+replace CountyCode = 46093 if StateAssignedDistID == "40201"
 }
 
 if `year' == 2010 {
@@ -271,6 +285,12 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 foreach n in 1 2 3 {
 	erase "`temp`n''"
 }
+//Fixing Select Districts in response to R1
+replace DistType = 4 if StateAssignedDistID == "40201"
+replace NCESDistrictID = "4680120" if StateAssignedDistID == "40201"
+replace DistCharter = "No" if StateAssignedDistID == "40201"
+replace CountyName = "MEADE COUNTY" if StateAssignedDistID == "40201"
+replace CountyCode = 46093 if StateAssignedDistID == "40201"
 
 //Rest are missing
 label def school_typedf 16 "MISSING", add
@@ -317,6 +337,13 @@ replace CountyName = "MISSING" if NCESSchoolID == "MISSING" | NCESDistrictID == 
 replace CountyCode = 0 if NCESSchoolID == "MISSING" | NCESDistrictID == "MISSING"
 }
 
+//Response to R1
+replace DistType =1 if StateAssignedDistID == "66001"
+replace NCESDistrictID = "4672090" if StateAssignedDistID == "66001"
+replace DistCharter = "No" if StateAssignedDistID == "66001"
+replace CountyName = "TODD COUNTY" if StateAssignedDistID == "66001"
+replace CountyCode = 46121 if StateAssignedDistID == "66001"
+
 if `year' == 2013 {
 label def school_typedf 16 "MISSING", add
 label def agency_typedf 16 "MISSING", add
@@ -343,13 +370,20 @@ replace SchLevel = 16 if NCESSchoolID == "MISSING"
 replace SchVirtual = "Missing/not reported" if NCESSchoolID == "MISSING"
 replace CountyName = "MISSING" if NCESSchoolID == "MISSING" | NCESDistrictID == "MISSING"
 replace CountyCode = 0 if NCESSchoolID == "MISSING" | NCESDistrictID == "MISSING"
+
+//Response to R1
+replace DistType =1 if StateAssignedDistID == "66001"
+replace NCESDistrictID = "4672090" if StateAssignedDistID == "66001"
+replace DistCharter = "No" if StateAssignedDistID == "66001"
+replace CountyName = "TODD COUNTY" if StateAssignedDistID == "66001"
+replace CountyCode = 46121 if StateAssignedDistID == "66001"
 }
 if `year' == 2014 {
 label def school_typedf 16 "MISSING", add
 label def agency_typedf 16 "MISSING", add
 label def school_leveldf 16 "MISSING", add
 //Theres weird district level data where the name has several spaces and only 1 student... I'm keeping it because it's in the raw data but it doesn't give information.
-replace DistName = "MISSING" if (missing(NCESSchoolID) & DataLevel ==2) | (missing(NCESDistrictID) & DataLevel !=1)
+replace DistName = "MISSING" if (missing(NCESSchoolID) & DataLevel ==3) | (missing(NCESDistrictID) & DataLevel !=1)
 replace NCESSchoolID = "MISSING" if (missing(NCESSchoolID) & DataLevel ==3)
 replace SchType = 16 if NCESSchoolID == "MISSING"
 replace NCESDistrictID = "MISSING" if NCESSchoolID == "MISSING" | (missing(NCESDistrictID) & DataLevel !=1)
@@ -378,6 +412,13 @@ replace SchLevel = 16 if NCESSchoolID == "MISSING"
 replace SchVirtual = 16 if NCESSchoolID == "MISSING"
 replace CountyName = "MISSING" if NCESSchoolID == "MISSING" | NCESDistrictID == "MISSING"
 replace CountyCode = 0 if NCESSchoolID == "MISSING" | NCESDistrictID == "MISSING"
+
+//Response to R1
+replace DistType = 4 if StateAssignedDistID == "28201"
+replace NCESDistrictID = "4651730" if StateAssignedDistID == "28201"
+replace CountyName = "Hamlin County" if StateAssignedDistID == "28201"
+replace CountyCode = 46047 if StateAssignedDistID == "28201"
+
 }
 
 if `year' == 2021 {
@@ -415,11 +456,31 @@ replace CountyName = "MISSING" if NCESSchoolID == "MISSING" | NCESDistrictID == 
 replace CountyCode = 0 if NCESSchoolID == "MISSING" | NCESDistrictID == "MISSING"
 }
 replace State_leaid = StateAssignedDistID if missing(State_leaid)
-replace State_leaid = "MISSING" if NCESSchoolID == "MISSING" | NCESDistrictID == "MISSING"	
+replace State_leaid = "MISSING" if NCESSchoolID == "MISSING" | NCESDistrictID == "MISSING"
+
+//Flags in response to R1
+replace Flag_AssmtNameChange = "Y" if `year' == 2015 & Subject != "sci"
+replace Flag_AssmtNameChange = "Y" if `year' == 2018 & Subject == "sci"	
+replace Flag_AssmtNameChange = "Y" if `year' == 2021 & Subject == "sci"
+replace Flag_CutScoreChange_ELA = "Y" if `year' == 2015
+replace Flag_CutScoreChange_math = "Y" if `year' == 2015
+replace Flag_CutScoreChange_read = "" if `year' > 2014
+replace Flag_CutScoreChange_oth = "Y" if `year' == 2018
+replace Flag_CutScoreChange_oth = "Y" if `year' == 2021
 	
-	
-	
-	
+//Unique School ID
+replace StateAssignedSchID = StateAssignedDistID + "-" + StateAssignedSchID if DataLevel ==3
+if `year' == 2019 {
+	replace AssmtType = "Regular and Alt"
+}
+
+//Sci assessment names
+replace AssmtName = "SDSA 1.0" if (`year' == 2018 | `year' == 2019) & Subject == "sci"
+replace AssmtName = "SDSA 2.0" if (`year' ==2021 | `year' == 2022) & Subject == "sci"
+
+//Dropping Missing NCES Schools/Districts
+drop if NCESDistrictID == "MISSING"
+drop if NCESSchoolID == "MISSING"
 	
 	save "`Output'/SD_AssmtData_`year'.dta" , replace
 	export delimited "`Output'/SD_AssmtData_`year'", replace	

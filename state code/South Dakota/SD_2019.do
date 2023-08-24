@@ -231,8 +231,8 @@ rename R Lev4_countAll_Students
 rename S Lev4_percentAll_Students
 rename Y TotTestedDisadv
 rename Z PartDisadv
-rename AA Lev1_percentDisadv
-rename AB Lev1_countDisadv
+rename AA Lev1_countDisadv
+rename AB Lev1_percentDisadv
 rename AC Lev2_countDisadv
 rename AD Lev2_percentDisadv
 rename AE Lev3_countDisadv
