@@ -98,14 +98,13 @@ foreach a of local level {
 replace SchName = strupper(SchName)
 gen DataLevel = ""
 replace DataLevel = "State" if strpos(SchName, "GRAND TOTAL") > 0
-replace DataLevel = "District" if (strpos(SchName, "DISTRICT") | strpos(SchName, "SCHOOLS") | strpos(SchName, "MIDTOWN PUBLIC CHARTER SCHOOL") | strpos(SchName, "JOEL E. SMILOW PREP") | strpos(SchName, "MS SCHOOLS FOR THE BLIND AND DEAF") | strpos(SchName, "SMILOW COLLEGIATE") | strpos(SchName, "AMBITION PREPARATORY") | strpos(SchName, "CLARKSDALE COLLEGIATE PUBLIC CHARTER") | strpos(SchName, "OAKLEY YOUTH DEVELOPMENT CENTER")) & SchName != "AMBITION PREPARATORY CHARTER SCHOOL" > 0
+replace DataLevel = "District" if (strpos(SchName, "DISTRICT") | strpos(SchName, "SCHOOLS") | strpos(SchName, "MIDTOWN PUBLIC CHARTER SCHOOL") | strpos(SchName, "JOEL E. SMILOW PREP") | strpos(SchName, "MS SCHOOLS FOR THE BLIND AND DEAF") | strpos(SchName, "SMILOW COLLEGIATE") | strpos(SchName, "AMBITION PREPARATORY") | strpos(SchName, "CLARKSDALE COLLEGIATE PUBLIC CHARTER") | strpos(SchName, "OAKLEY YOUTH DEVELOPMENT CENTER") | strpos(SchName, "DUBARD SCHOOL FOR LANGUAGE DISORDERS")) & SchName != "AMBITION PREPARATORY CHARTER SCHOOL" > 0
 replace DataLevel = "School" if DataLevel == ""
 
 gen DistName = ""
 replace DistName = SchName if DataLevel == "District"
 replace DistName = DistName[_n-1] if missing(DistName)
 replace DistName = "MDHS DIVISION OF YOUTH SERVICES" if DistName == "OAKLEY YOUTH DEVELOPMENT CENTER"
-replace DistName = "DUBARD SCHOOL FOR LANGUAGE DISORDERS" if SchName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
 replace DistName = "Leflore Legacy Academy" if SchName == "LEFLORE LEGACY ACADEMY"
 replace DistName = "REIMAGINE PREP" if SchName == "REIMAGINE PREP"
 replace DistName = "All Districts" if DataLevel == "State"
@@ -321,9 +320,6 @@ replace StateAbbrev = "MS"
 replace State = 28
 replace StateFips = 28
 
-replace DistName = strproper(DistName)
-replace SchName = strproper(SchName)
-
 ** Generating new variables
 
 replace State_leaid = "Missing/not reported" if SchName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
@@ -333,6 +329,9 @@ gen StateAssignedSchID = seasch
 
 replace NCESDistrictID = "Missing/not reported" if SchName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
 replace NCESSchoolID = "Missing/not reported" if SchName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
+
+replace DistName = strproper(DistName)
+replace SchName = strproper(SchName)
 
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"

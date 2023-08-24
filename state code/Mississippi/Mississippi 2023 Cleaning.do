@@ -109,13 +109,12 @@ foreach a of local level {
 replace SchName = strupper(SchName)
 gen DataLevel = ""
 replace DataLevel = "State" if strpos(SchName, "GRAND TOTAL") > 0
-replace DataLevel = "District" if (strpos(SchName, "DISTRICT") | strpos(SchName, "SCHOOLS") | strpos(SchName, "MIDTOWN PUBLIC CHARTER SCHOOL") | strpos(SchName, "SMILOW PREP") | strpos(SchName, "MS SCHOOL FOR THE BLIND AND DEAF") | strpos(SchName, "SMILOW COLLEGIATE") | strpos(SchName, "AMBITION PREPARATORY") | strpos(SchName, "CLARKSDALE COLLEGIATE PUBLIC CHARTER") | strpos(SchName, "MDHS DIVISION OF YOUTH SERVICES")) & SchName != "AMBITION PREPARATORY CHARTER SCHOOL" > 0
+replace DataLevel = "District" if (strpos(SchName, "DISTRICT") | strpos(SchName, "SCHOOLS") | strpos(SchName, "MIDTOWN PUBLIC CHARTER SCHOOL") | strpos(SchName, "SMILOW PREP") | strpos(SchName, "MS SCHOOL FOR THE BLIND AND DEAF") | strpos(SchName, "SMILOW COLLEGIATE") | strpos(SchName, "AMBITION PREPARATORY") | strpos(SchName, "CLARKSDALE COLLEGIATE PUBLIC CHARTER") | strpos(SchName, "MDHS DIVISION OF YOUTH SERVICES") | strpos(SchName, "DUBARD SCHOOL FOR LANGUAGE DISORDERS")) & SchName != "AMBITION PREPARATORY CHARTER SCHOOL" > 0
 replace DataLevel = "School" if DataLevel == ""
 
 gen DistName = ""
 replace DistName = SchName if DataLevel == "District"
 replace DistName = DistName[_n-1] if missing(DistName)
-replace DistName = "DUBARD SCHOOL FOR LANGUAGE DISORDERS" if SchName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
 replace DistName = "Leflore Legacy Academy" if SchName == "LEFLORE LEGACY ACADEMY"
 replace DistName = "REIMAGINE PREP" if SchName == "REIMAGINE PREP"
 replace DistName = "All Districts" if DataLevel == "State"

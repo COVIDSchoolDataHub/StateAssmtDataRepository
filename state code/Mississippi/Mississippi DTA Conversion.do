@@ -17,7 +17,7 @@ local subject2 ELA MATH
 
 ** Converting to dta **
 
-	** 2013-2014
+	** 2014
 	
 import excel "${raw}/MS_OriginalData_2014_all.xls", sheet("MCT2 13-14") firstrow clear
 save "${output}/MS_AssmtData_2014_ela_mat.dta", replace
@@ -25,12 +25,12 @@ save "${output}/MS_AssmtData_2014_ela_mat.dta", replace
 import excel "${raw}/MS_OriginalData_2014_all.xls", sheet("MST 2013-2014") firstrow clear
 save "${output}/MS_AssmtData_2014_sci.dta", replace
 
-	** 2014-2015
+	** 2015
 	
 import excel "${raw}/MS_OriginalData_2015_all.xlsx", sheet("Table 1") firstrow clear
 save "${output}/MS_AssmtData_2015_all.dta", replace
 
-	** 2015-2018
+	** 2016-2018
 
 foreach yr1 of local year1 {
 	foreach grd of local grade {
@@ -56,7 +56,7 @@ save "${output}/MS_AssmtData_2018_G5sci.dta", replace
 import excel "${raw}/MS_OriginalData_2018_all.xlsx", sheet("Grade 8 Scale Score and PL") firstrow clear
 save "${output}/MS_AssmtData_2018_G8sci.dta", replace
 
-	** 2018-2023
+	** 2019-2023
 
 foreach yr3 of local years3 {
 	foreach grd of local grade {
