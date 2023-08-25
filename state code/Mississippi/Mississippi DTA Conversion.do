@@ -46,6 +46,9 @@ foreach yr2 of local year2 {
 		import excel "${raw}/MS_OriginalData_`yr2'_all.xlsx", sheet("Grade `grdsci' PL") firstrow clear
 		save "${output}/MS_AssmtData_`yr2'_G`grdsci'sci.dta", replace
 		import excel "${raw}/MS_OriginalData_`yr2'_all.xlsx", sheet("Grade `grdsci' Scale Score") firstrow clear
+		rename Grade* SchName
+		rename AverageofSS AvgScaleScore
+		gen row = _n
 		save "${output}/MS_AssmtData_`yr2'_G`grdsci'sciscale.dta", replace
 	}
 }
