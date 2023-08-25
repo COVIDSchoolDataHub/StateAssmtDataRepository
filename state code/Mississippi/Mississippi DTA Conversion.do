@@ -50,11 +50,10 @@ foreach yr2 of local year2 {
 	}
 }
 
-import excel "${raw}/MS_OriginalData_2018_all.xlsx", sheet("Grade 5 Scale Score and PL") firstrow clear
-save "${output}/MS_AssmtData_2018_G5sci.dta", replace
-
-import excel "${raw}/MS_OriginalData_2018_all.xlsx", sheet("Grade 8 Scale Score and PL") firstrow clear
-save "${output}/MS_AssmtData_2018_G8sci.dta", replace
+foreach grdsci of local gradesci {
+	import excel "${raw}/MS_OriginalData_2018_all.xlsx", sheet("Grade `grdsci' Scale Score and PL") firstrow clear
+	save "${output}/MS_AssmtData_2018_G`grdsci'sci.dta", replace
+}
 
 	** 2019-2023
 
