@@ -14,6 +14,7 @@ global temp_files "/Users/meghancornacchia/Desktop/DataRepository/Texas/Temporar
 
 forvalues i = 3/8 {
 	import sas using "$original_files/TX_OriginalData_2012_G0`i'_State.sas7bdat", clear
+	export delimited using "$original_files/TX_OriginalData_2012_G0`i'_State.csv", replace
 	drop *cat*
 	drop *ti1*
 	drop *mig*
@@ -58,6 +59,7 @@ save "$temp_files/TX_Temp_2012_All_State.dta", replace
 
 forvalues i = 3/8 {
 	import sas using "$original_files/TX_OriginalData_2012_G0`i'_District.sas7bdat", clear
+	export delimited using "$original_files/TX_OriginalData_2012_G0`i'_District.csv", replace
 	drop *cat*
 	drop *ti1*
 	drop *mig*
@@ -99,6 +101,7 @@ save "$temp_files/TX_Temp_2012_All_District.dta", replace
 
 forvalues i = 3/8 {
 	import sas using "$original_files/TX_OriginalData_2012_G0`i'_School.sas7bdat", clear
+	export delimited using "$original_files/TX_OriginalData_2012_G0`i'_School.csv", replace
 	drop *cat*
 	drop *ti1*
 	drop *mig*
@@ -248,8 +251,8 @@ tostring ParticipationRate, replace force
 replace ParticipationRate = "--" if ParticipationRate == "."
 
 // Generating missing variables
-gen Lev4_count = ""
-gen Lev4_percent = ""
+gen Lev4_count = "--"
+gen Lev4_percent = "--"
 gen Lev5_count = ""
 gen Lev5_percent = ""
 gen AssmtName = "STAAR"
@@ -317,8 +320,8 @@ replace StateAbbrev = "TX" if DataLevel == 1
 replace StateFips = 48 if DataLevel == 1
 
 // Fixing Texas Tech Univ
-replace NCESDistrictID = "Missing" if DistName == "TEXAS TECH UNIV"
-replace NCESSchoolID = "Missing" if DistName == "TEXAS TECH UNIV" & DataLevel == 3
+replace NCESDistrictID = "Missing/not reported" if DistName == "TEXAS TECH UNIV"
+replace NCESSchoolID = "Missing/not reported" if DistName == "TEXAS TECH UNIV" & DataLevel == 3
 replace StateAbbrev = "TX" if DistName == "TEXAS TECH UNIV"
 replace StateFips = 48 if DistName == "TEXAS TECH UNIV"
 drop if StateAssignedSchID == "015915137" & NCESSchoolID == ""

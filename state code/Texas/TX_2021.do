@@ -14,6 +14,7 @@ global temp_files "/Users/meghancornacchia/Desktop/DataRepository/Texas/Temporar
 
 forvalues i = 3/8 {
 	import sas using "$original_files/TX_OriginalData_2021_G0`i'_State.sas7bdat", clear
+	export delimited using "$original_files/TX_OriginalData_2021_G0`i'_State.csv", replace
 	drop *cat*
 	drop *ti*
 	drop *mig*
@@ -58,6 +59,7 @@ save "$temp_files/TX_Temp_2021_All_State.dta", replace
 
 forvalues i = 3/8 {
 	import sas using "$original_files/TX_OriginalData_2021_G0`i'_District.sas7bdat", clear
+	export delimited using "$original_files/TX_OriginalData_2021_G0`i'_District.csv", replace
 	drop *cat*
 	drop *ti*
 	drop *mig*
@@ -99,6 +101,7 @@ save "$temp_files/TX_Temp_2021_All_District.dta", replace
 
 forvalues i = 3/8 {
 	import sas using "$original_files/TX_OriginalData_2021_G0`i'_School.sas7bdat", clear
+	export delimited using "$original_files/TX_OriginalData_2021_G0`i'_School.csv", replace
 	drop *cat*
 	drop *ti*
 	drop *mig*
@@ -141,8 +144,8 @@ append using "$temp_files/TX_Temp_2021_All_State.dta" "$temp_files/TX_Temp_2021_
 
 save "$temp_files/TX_Temp_2021_All_All.dta", replace
 
-*/
 
+*/
 // Splitting Subject and Subgroups
 
 use "$temp_files/TX_Temp_2021_All_All.dta", clear

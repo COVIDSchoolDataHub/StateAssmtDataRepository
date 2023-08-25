@@ -9,11 +9,12 @@ global temp_files "/Users/meghancornacchia/Desktop/DataRepository/Texas/Temporar
 
 // 2021-2022
 
-/*
+
 // State Level
 
 forvalues i = 3/8 {
 	import sas using "$original_files/TX_OriginalData_2022_G0`i'_State.sas7bdat", clear
+	export delimited using "$original_files/TX_OriginalData_2022_G0`i'_State.csv", replace
 	drop *cat*
 	drop *ti*
 	drop *mig*
@@ -58,6 +59,7 @@ save "$temp_files/TX_Temp_2022_All_State.dta", replace
 
 forvalues i = 3/8 {
 	import sas using "$original_files/TX_OriginalData_2022_G0`i'_District.sas7bdat", clear
+	export delimited using "$original_files/TX_OriginalData_2022_G0`i'_District.csv", replace
 	drop *cat*
 	drop *ti*
 	drop *mig*
@@ -99,6 +101,7 @@ save "$temp_files/TX_Temp_2022_All_District.dta", replace
 
 forvalues i = 3/8 {
 	import sas using "$original_files/TX_OriginalData_2022_G0`i'_School.sas7bdat", clear
+	export delimited using "$original_files/TX_OriginalData_2022_G0`i'_School.csv", replace
 	drop *cat*
 	drop *ti*
 	drop *mig*
