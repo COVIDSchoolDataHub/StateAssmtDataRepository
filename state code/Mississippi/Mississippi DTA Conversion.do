@@ -61,7 +61,7 @@ foreach grdsci of local gradesci {
 
 	** 2019-2023
 
-foreach yr3 of local years3 {
+foreach yr3 of local year3 {
 	foreach grd of local grade {
 		foreach sub of local subject2 {
 		import excel "${raw}/MS_OriginalData_`yr3'_all.xlsx", sheet("G`grd' `sub'") firstrow clear
