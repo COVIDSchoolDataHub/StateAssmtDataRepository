@@ -23,6 +23,7 @@ import excel "${raw}/MS_OriginalData_2014_all.xls", sheet("MCT2 13-14") firstrow
 save "${output}/MS_AssmtData_2014_ela_mat.dta", replace
 
 import excel "${raw}/MS_OriginalData_2014_all.xls", sheet("MST 2013-2014") firstrow clear
+gen Subject = "sci"
 save "${output}/MS_AssmtData_2014_sci.dta", replace
 
 	** 2015

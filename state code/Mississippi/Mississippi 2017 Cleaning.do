@@ -26,6 +26,7 @@ foreach grd of local grade {
 		
 		gen Subject = lower("`sub'")
 		gen GradeLevel = "G0`grd'"
+		gen AssmtName = "MAAP"
 		
 		if (`grd' != 3) | ("`sub'" != "ELA") {
 			append using "${output}/MS_AssmtData_2017_elamath.dta"
@@ -45,6 +46,7 @@ foreach grdsci of local gradesci {
 		
 	gen Subject = "sci"
 	gen GradeLevel = "G0`grdsci'"
+	gen AssmtName = "MST2"
 	gen row = _n
 	
 	merge 1:1 SchName row using "${output}/MS_AssmtData_2017_G`grdsci'sciscale.dta", keepusing(AvgScaleScore)
@@ -75,7 +77,6 @@ drop if SchName == "School 500"
 
 gen SchYear = "2016-17"
 
-gen AssmtName = "MAAP"
 gen AssmtType = "Regular"
 
 foreach a of local level {
