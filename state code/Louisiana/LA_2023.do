@@ -372,6 +372,7 @@ replace GradeLevel = "G38" if GradeLevel == "" & DataLevel == "School" & grade =
 replace GradeLevel = "G03" if GradeLevel == "" & DataLevel == "School" & grade == 300000
 replace GradeLevel = "G06" if GradeLevel == "" & DataLevel == "School" & grade == 600
 replace GradeLevel = "G08" if GradeLevel == "" & DataLevel == "School" & grade == 8
+drop if SchYear == ""
 drop _merge allgrades grade
 duplicates drop
 replace GradeLevel = "G38" if GradeLevel != "G03" & GradeLevel != "G04" & GradeLevel != "G05" & GradeLevel != "G06" & GradeLevel != "G07" & GradeLevel != "G08"
