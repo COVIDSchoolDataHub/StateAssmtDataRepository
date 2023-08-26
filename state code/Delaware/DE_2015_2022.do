@@ -266,9 +266,8 @@ do "${PART2}"
 foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 {
 
 use "${output}/DE_AssmtData_`year'"
-	if `year' == 2016 {
+
 	replace DistType = "Regular local school district" if DistType == "Colonial School District"
-	}
 	drop if DistName == "Dept. of Svs. for Children Youth & Their Families"
 	replace SchType = "Missing/not reported" if SchType == "MISSING"
 	if `year' == 2015 | `year' == 2016 {
