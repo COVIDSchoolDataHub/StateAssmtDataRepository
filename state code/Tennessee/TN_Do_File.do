@@ -614,6 +614,7 @@ foreach y in $years {
 	replace GradeLevel = distallgrades if GradeLevel == "All Grades" & DataLevel == "District"
 	replace GradeLevel = "G38" if GradeLevel == "All Grades" & DataLevel == "State"
 	duplicates drop
+	replace GradeLevel = "G38" if GradeLevel != "G03" & GradeLevel != "G04" & GradeLevel != "G05" & GradeLevel != "G06" & GradeLevel != "G07" & GradeLevel != "G08"
 	
 	** Generate Flags
 
