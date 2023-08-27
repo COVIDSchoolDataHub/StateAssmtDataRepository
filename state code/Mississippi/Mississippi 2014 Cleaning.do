@@ -91,7 +91,8 @@ rename GradeLevel1 GradeLevel
 
 gen SchYear = "2013-14"
 
-gen AssmtName = "MCT"
+gen AssmtName = "MCT2" if Subject != "sci"
+replace AssmtName = "MST" if Subject == "sci"
 gen AssmtType = "Regular"
 
 gen StudentGroup = "All Students"
