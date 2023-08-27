@@ -102,6 +102,9 @@ replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
 
 ** Merging with NCES
 
+replace StateAssignedDistID = "0616" if SchName == "It Montgomery Elementary School" | SchName == "John F Kennedy High School"
+replace StateAssignedDistID = "6711" if SchName == "Carver Elementary (Sunflower)" | SchName == "Robert L Merritt Mid"
+replace StateAssignedDistID = "0618" if SchName == "Mcevans School" | SchName == "Ray Brooks School"
 replace StateAssignedDistID = "2562" if strpos(DistName, "Human Services") > 0
 replace StateAssignedDistID = "Missing/not reported" if DistName == "University Of Southern Mississippi"
 
@@ -112,12 +115,16 @@ merge m:1 State_leaid using "${NCES}/NCES_2014_District.dta"
 drop if _merge == 2
 drop _merge
 
+replace StateAssignedSchID = "6711006" if SchName == "Carver Elementary (Sunflower)"
 replace StateAssignedSchID = "1700092" if SchName == "Desoto Co Alternative Center"
 replace StateAssignedSchID = "3800094" if SchName == "Lauderdale County Education Skills Center"
 replace StateAssignedSchID = "6100092" if SchName == "Learning Center Alternative School"
+replace StateAssignedSchID = "0618014" if SchName == "Mcevans School"
 replace StateAssignedSchID = "0130027" if SchName == "Morgantown College Prep"
 replace StateAssignedSchID = "0130026" if SchName == "Morgantown Leadership Academy"
 replace StateAssignedSchID = "0130045" if SchName == "Natchez Freshman Academy"
+replace StateAssignedSchID = "0618010" if SchName == "Ray Brooks School"
+replace StateAssignedSchID = "6711014" if SchName == "Robert L Merritt Mid"
 replace StateAssignedSchID = "7620068" if SchName == "Weston Sr H"
 replace StateAssignedSchID = "2562008" if SchName == "Williams School"
 replace StateAssignedSchID = "Missing/not reported" if SchName == "Dubard School For Language Disorders"

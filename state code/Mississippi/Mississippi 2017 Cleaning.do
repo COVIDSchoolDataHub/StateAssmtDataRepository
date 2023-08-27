@@ -120,7 +120,6 @@ replace DistName = SchName if DataLevel == "District"
 replace DistName = DistName[_n-1] if missing(DistName)
 replace DistName = "MDHS DIVISION OF YOUTH SERVICES" if DistName == "OAKLEY YOUTH DEVELOPMENT CENTER"
 replace DistName = "REIMAGINE PREP" if DistName == "REPUBLIC CHARTER SCHOOLS"
-//replace DistName = "GREENWOOD-LEFLORE CONS SCH DISTRICT" if DistName == "GREENWOOD-LEFLORE CONSOLIDATED SD"
 replace DistName = "All Districts" if DataLevel == "State"
 
 replace SchName = "All Schools" if DataLevel != "School"
@@ -251,6 +250,7 @@ replace SchName = "H. W. BYERS ELEMENTARY (K-5)" if strpos(SchName, "H. W. BYERS
 replace SchName = "HAYES COOPER CENTER FOR MATH SC TEC" if strpos(SchName, "HAYES") > 0 & NCESSchoolID == ""
 replace SchName = "HEIDELBERG SCHOOL MATH & SCIENCE" if SchName == "HEIDELBERG MATH AND SCIENCE"
 replace SchName = "HENDERSON/WARD-STEWART ELEMENTARY" if SchName == "HENDERSON WARD-STEWART ELEM"
+replace SchName = "BASSFIELD HIGH SCHOOL" if SchName == "JDC HIGH"
 replace SchName = "JOHN F KENNEDY MEMORIAL HI SCHOOL" if SchName == "JOHN F KENNEDY MEML HIGH SCH"
 replace SchName = "KIRKPATRICK  HEALTH /WELLNESS" if SchName == "KIRKPATRICK HEALTH AND WELLNESS"
 replace SchName = "LEFLORE COUNTY HIGH SCHOOL" if SchName == "LE FLORE COUNTY HIGH"
@@ -266,6 +266,8 @@ replace SchName = "NANIH WAIYA ATTENDANCE CENTER" if SchName == "NANIH WAIYA"
 replace SchName = "NOXAPATER ATTENDANCE CENTER" if SchName == "NOXAPATER HIGH"
 replace SchName = "OBANNON ELEMENTARY SCHOOL" if SchName == "O'BANNON ELEM"
 replace SchName = "OBANNON HIGH SCHOOL" if SchName == "O'BANNON HIGH"
+replace SchName = "PECAN PARK ELEMENTARY SCHOOL" if SchName == "PECAN ELEM"
+replace SchName = "PERRY CENTRAL MIDDLE SCHOOL" if SchName == "PERRY CENTRAL MIDDLE"
 replace SchName = "PICAYUNE JUNIOR HIGH SCHOOL" if SchName == "PICAYUNE ITINERATE CENTER"
 replace SchName = "PRENTISS SENIOR HIGH SCHOOL" if SchName == "PRENTISS HIGH"
 replace SchName = "POTTS CAMP MIDDLE SCHOOL (4-8)" if strpos(SchName, "POTTS CAMP") > 0 & NCESSchoolID == ""
@@ -273,7 +275,8 @@ replace SchName = "SCOTT CENTRAL ATTENDANCE CENTER" if SchName == "SCOTT CENTRAL
 replace SchName = "SENATOBIA MIDDLE SCHOOL" if SchName == "SENATOBIA HIGH"
 replace SchName = "SHIRLEY D. SIMMONS MIDDLE SCHOOL" if SchName == "SHIRLEY SIMMONS MIDDLE"
 replace SchName = "SIMMONS HIGH SCHOOL" if SchName == "SIMMONS JR./SR. HIGH"
-replace SchName ="SOUTH PIKE SENIOR HIGH SCHOOL" if SchName == "SOUTH PIKE HIGH"
+replace SchName = "SOUTH PERRY ELEMENTARY SCHOOL" if SchName == "SOUTH PERRY ELEM"
+replace SchName = "SOUTH PIKE SENIOR HIGH SCHOOL" if SchName == "SOUTH PIKE HIGH"
 replace SchName = "TAYLORSVILLE ATTENDANCE CENTER" if SchName == "TAYLORSVILLE HIGH"
 replace SchName = "RANKIN COUNTY LEARNING CENTER" if SchName == "THE LEARNING CENTER"
 replace SchName = "THRASHER HIGH SCHOOL" if SchName == "THRASHER"
@@ -283,6 +286,7 @@ replace SchName = "VIRGIL JONES JR. ELEMENTARY SCHOOL" if SchName == "VIRGIL JON
 replace SchName = "WAYNESBORO ELEMENTARY SCH" if strpos(SchName, "WAYNESBORO") > 0 & NCESSchoolID == ""
 replace SchName = "WEST JONES HIGH SCHOOL" if SchName == "WEST JONES JR SR HIGH"
 replace SchName = "WEST LINCOLN SCHOOL" if SchName == "WEST LINCOLN ATTENDANCE CTR"
+replace SchName = "VIRGIL JONES JR. ELEMENTARY SCHOOL" if SchName == "WILSON ELEM"
 replace SchName = "WINONA SECONDARY SCHOOL" if SchName == "WINONA HIGH"
 
 merge m:1 DistName SchName using "${NCES}/NCES_2016_School.dta", update
@@ -290,27 +294,10 @@ merge m:1 DistName SchName using "${NCES}/NCES_2016_School.dta", update
 drop if _merge == 2
 drop _merge
 
-//replace SchName = "Boyd Elementary School" if SchName == "BOYD ELEM"
-//replace SchName = "Carver Middle School" if SchName == "CARVER MIDDLE"
-//replace SchName = "Carver Elementary School" if SchName == "CARVER ELEM"
-//replace SchName = "Central Elementary School" if strpos(SchName, "CENTRAL") > 0 & NCESSchoolID == ""
-//replace SchName = "Davis Magnet School" if SchName == "DAVIS MAGNET"
-//replace SchName = "Lake Elementary School" if SchName == "LAKE ELEM"
-//replace SchName = "Magnolia Middle School" if SchName == "MAGNOLIA MIDDLE"
-//replace SchName = "Marshall Elementary School" if SchName == "MARSHALL ELEM"
-//replace SchName = "North Bay Elementary School" if SchName == "NORTH BAY ELEM"
-//replace SchName = "Oak Park Elementary School" if SchName == "OAK PARK ELEM"
-//replace SchName = "South Side Elementary School" if SchName == "SOUTH SIDE ELEM"
-//replace SchName = "West Elementary School" if SchName == "WEST ELEM"
-//replace SchName = "William Dean Jr. Elementary School" if SchName == "WILLIAM DEAN JR. ELEM"
-//replace SchName = "Williams-Sullivan Elementary School" if SchName == "WILLIAMS-SULLIVAN ELEM"
-//replace SchName = "Winona Elementary School" if SchName == "WINONA ELEM"
-//replace SchName = "Winona Secondary School" if SchName == "WINONA SECONDARY"
+merge m:1 DistName SchName using "${NCES}/NCES_2017_School.dta", update
 
-//merge m:1 DistName SchName using "${NCES}/NCES_Schools.dta", keepusing(NCESSchoolID seasch Virtual SchoolLevel SchoolType) update
-
-//drop if _merge == 2
-//drop _merge
+drop if _merge == 2
+drop _merge
 
 replace StateAbbrev = "MS"
 replace State = 28
@@ -318,12 +305,12 @@ replace StateFips = 28
 
 ** Generating new variables
 
-replace State_leaid = "Missing/not reported" if SchName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
+replace State_leaid = "Missing/not reported" if DistName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
 gen StateAssignedDistID = State_leaid
 replace seasch = "Missing/not reported" if SchName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
 gen StateAssignedSchID = seasch
 
-replace NCESDistrictID = "Missing/not reported" if SchName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
+replace NCESDistrictID = "Missing/not reported" if DistName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
 replace NCESSchoolID = "Missing/not reported" if SchName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
 
 replace DistName = strproper(DistName)
