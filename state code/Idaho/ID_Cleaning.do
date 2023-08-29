@@ -89,7 +89,7 @@ tempfile tempdistrict
 save "`tempdistrict'", replace
 clear
 use "`nces_district'/NCES_`prevyear'_District.dta"
-keep if state_location == "ID"
+keep if state_location == "ID" | state_fips ==16
 gen StateAssignedDistID = state_leaid
 
 merge 1:m StateAssignedDistID using "`tempdistrict'"
@@ -99,13 +99,16 @@ clear
 use "`tempall'"
 keep if DataLevel == "School"
 gen NOID = subinstr(StateAssignedDistID,"ID-","",.)
+replace StateAssignedSchID = "0136" if SchName == "SALMON MIDDLE SCHOOL" & `year' == 2016
 replace StateAssignedSchID = NOID + "-" + StateAssignedSchID if strpos(StateAssignedSchID,"-") ==0
 tempfile tempschool
 save "`tempschool'", replace
 clear
 use "`nces_school'/NCES_`prevyear'_School.dta"
-keep if state_location == "ID"
+keep if state_location == "ID" | state_fips ==16
 gen StateAssignedSchID = seasch
+replace state_leaid = "025" if school_name == "POCATELLO COMMUNITY CHARTER" & `year' == 2016
+
 gen NOID = subinstr(state_leaid,"ID-","",.)
 replace StateAssignedSchID = NOID + "-" + StateAssignedSchID if strpos(StateAssignedSchID,"-") ==0
 merge 1:m StateAssignedSchID using "`tempschool'"
@@ -119,7 +122,7 @@ drop if _merge ==1
 *save "/Volumes/T7/State Test Project/Idaho/Testing/`year'", replace
 tab DistName if _merge == 2 & DataLevel == "District"
 tab SchName if _merge ==2 & DataLevel == "School"
-
+replace StateAssignedSchID = "0139" if SchName == "SALMON MIDDLE SCHOOL" & `year' == 2016
 //StudentSubGroup
 replace StudentSubGroup = "Asian" if strpos(StudentSubGroup,"Asian") !=0
 replace StudentSubGroup = "Black or African American" if strpos(StudentSubGroup,"Black") !=0
@@ -158,29 +161,39 @@ replace SchName = "All Schools" if DataLevel !=3
 //Proficient or above percent
 
 
-gen Range1 = ""
-gen Range2 = ""
+
 gen missing = ""
 foreach n in 1 2 3 4 {
+	gen Range`n' = ""
+}
+foreach n in 1 2 3 4 {
 	gen Suppressed`n' = "*" if strpos(Lev`n'_percent,"*") !=0 | strpos(Lev`n'_percent, "NSIZE") !=0
-	replace Range1 = substr(Lev`n'_percent,strpos(Lev`n'_percent,"<"),1)
-	replace Range2 = substr(Lev`n'_percent,strpos(Lev`n'_percent,">"),1)
+	replace Range`n' = ">" if strpos(Lev`n'_percent, ">") !=0
+	replace Range`n' = "<" if strpos(Lev`n'_percent, "<") !=0
 	replace missing = "Y" if Lev`n'_percent == "N/A"
 	destring Lev`n'_percent, gen(nLev`n'_percent) i(*NSIZE/A<>)
 	replace nLev`n'_percent = nLev`n'_percent/100 if (`year' != 2017 & `year' != 2018)
-	replace Lev`n'_percent = Range1 + Range2 + string(nLev`n'_percent, "%9.3f")
+	replace Lev`n'_percent = Range`n' + string(nLev`n'_percent, "%9.4f")
 	replace Lev`n'_percent = "*" if Suppressed`n' == "*"
 	replace Lev`n'_percent = "--" if missing == "Y"
 
 }
-gen ProficientOrAbove_percent = string(nLev3_percent + nLev4_percent, "%9.3f")
+gen ProficientOrAbove_percent = string(nLev3_percent + nLev4_percent, "%9.4f")
 replace ProficientOrAbove_percent = "*" if Suppressed3 == "*" | Suppressed4 == "*"
+replace ProficientOrAbove_percent = "*" if Range3 != Range4 & !missing(Range3) & !missing(Range4)
+replace ProficientOrAbove_percent = Range3 + ProficientOrAbove_percent if !missing(Range3) & missing(Range4)
+replace ProficientOrAbove_percent = Range4 + ProficientOrAbove_percent if !missing(Range4) & missing(Range3)
+replace ProficientOrAbove_percent = Range3 + ProficientOrAbove_percent if Range3==Range4
+destring ProficientOrAbove_percent, gen(ind) i(*-<>)
+replace ind = 1 if ind > 1 & !missing(ind)
+replace ProficientOrAbove_percent = "<=1.0000" if ind == 1
+drop ind
 replace ProficientOrAbove_percent = "--" if missing== "Y"
 replace ParticipationRate = "--" if ParticipationRate == "N/A"
 replace ParticipationRate = "*" if ParticipationRate == "NSIZE" | strpos(ParticipationRate, "*") !=0
 destring ParticipationRate, gen(Part) i(*-)
 replace Part = Part/100 if (`year' != 2017 & `year' != 2018)
-replace ParticipationRate = string(Part, "%9.3f") if !missing(Part)
+replace ParticipationRate = string(Part, "%9.4f") if !missing(Part)
 foreach n in 1 2 3 4 {
 replace Lev`n'_percent = "--" if Lev`n'_percent == "*" & (Suppressed1 != Suppressed2 | Suppressed3 != Suppressed4 | Suppressed2 != Suppressed3)
 }
@@ -226,7 +239,8 @@ replace CountyName = proper(CountyName)
 rename county_code CountyCode
 gen AssmtName = "ISAT"
 gen AssmtType = "Regular"
-
+replace CountyName = "Bannock County" if `year' == 2016 & SchName == "POCATELLO COMMUNITY CHARTER"
+replace CountyCode = 16005 if CountyName == "Bannock County" & `year' == 2016
 //Final cleaning and dropping extra variables
 order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
