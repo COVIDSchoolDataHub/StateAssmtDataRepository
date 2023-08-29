@@ -200,7 +200,8 @@ replace StateAssignedDistID = "" if DataLevel == 1
 gen StateAssignedSchID = seasch
 replace StateAssignedSchID = "" if DataLevel != 3
 
-gen Flag_AssmtNameChange = "Y"
+gen Flag_AssmtNameChange = "N"
+replace Flag_AssmtNameChange = "Y" if AssmtName == "PSAT"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_read = ""
