@@ -1,13 +1,13 @@
 clear
 set more off
 
-global raw "/Users/sarahridley/Desktop/CSDH/Raw/Test Scores/Arizona/Original Data"
-global output "/Users/sarahridley/Desktop/CSDH/Raw/Test Scores/Arizona/Output"
-global NCES "/Users/sarahridley/Desktop/CSDH/Raw/Test Scores/Arizona/NCES"
+global AIMS "/Users/maggie/Desktop/Arizona/AIMS"
+global output "/Users/maggie/Desktop/Arizona/Output"
+global NCES "/Users/maggie/Desktop/Arizona/NCES/Cleaned"
 
 // SCHOOLS
 
-import excel "${raw}/AZ_OriginalData_2013_all.xlsx", sheet("School by Grade") firstrow clear
+import excel "${AIMS}/AZ_OriginalData_2013_all.xlsx", sheet("School by Grade") firstrow clear
 
 ** Rename applicable variables
 rename FiscalYear SchYear
@@ -38,10 +38,9 @@ foreach v of varlist ScienceMeanScaleScore SciencePercentFallsFarBelow SciencePe
 }
 
 ** Changing file format to "long"
-reshape long MeanScaleScore PercentFallsFarBelow PercentApproaches PercentMeets PercentExceeds PercentPassing, i(StateAssignedSchID GradeLevel) j(subject, string)
+reshape long MeanScaleScore PercentFallsFarBelow PercentApproaches PercentMeets PercentExceeds PercentPassing, i(StateAssignedSchID GradeLevel) j(Subject, string)
 
 ** Rename new variables
-rename subject Subject
 rename MeanScaleScore AvgScaleScore
 rename PercentFallsFarBelow Lev1_percent
 rename PercentApproaches Lev2_percent
@@ -88,7 +87,7 @@ save "${output}/AZ_AssmtData_school_2013.dta", replace
 
 //DISTRICT
 
-import excel "${raw}/AZ_OriginalData_2013_all.xlsx", sheet("District by Grade") firstrow clear
+import excel "${AIMS}/AZ_OriginalData_2013_all.xlsx", sheet("District by Grade") firstrow clear
 
 ** Rename applicable variables
 rename FiscalYear SchYear
@@ -117,10 +116,9 @@ foreach v of varlist ScienceMeanScaleScore SciencePercentFallsFarBelow SciencePe
 }
 
 ** Changing file format to "long"
-reshape long MeanScaleScore PercentFallsFarBelow PercentApproaches PercentMeets PercentExceeds PercentPassing, i(StateAssignedDistID GradeLevel) j(subject, string)
+reshape long MeanScaleScore PercentFallsFarBelow PercentApproaches PercentMeets PercentExceeds PercentPassing, i(StateAssignedDistID GradeLevel) j(Subject, string)
 
 ** Rename new variables
-rename subject Subject
 rename MeanScaleScore AvgScaleScore
 rename PercentFallsFarBelow Lev1_percent
 rename PercentApproaches Lev2_percent
@@ -162,7 +160,7 @@ save "${output}/AZ_AssmtData_district_2013.dta", replace
 
 // STATE
 
-import excel "${raw}/AZ_OriginalData_2013_all.xlsx", sheet("State by Grade") firstrow clear
+import excel "${AIMS}/AZ_OriginalData_2013_all.xlsx", sheet("State by Grade") firstrow clear
 
 ** Rename applicable variables
 rename FiscalYear SchYear
@@ -199,10 +197,9 @@ replace GradeLevel="G08" if GradeLevel=="8"
 keep if inlist(GradeLevel, "G03", "G04", "G05", "G06", "G07", "G08")
 
 ** Changing file format to "long"
-reshape long MeanScaleScore PercentFallsFarBelow PercentApproaches PercentMeets PercentExceeds PercentPassing, i(GradeLevel) j(subject, string)
+reshape long MeanScaleScore PercentFallsFarBelow PercentApproaches PercentMeets PercentExceeds PercentPassing, i(GradeLevel) j(Subject, string)
 
 ** Rename new variables
-rename subject Subject
 rename MeanScaleScore AvgScaleScore
 rename PercentFallsFarBelow Lev1_percent
 rename PercentApproaches Lev2_percent
@@ -236,13 +233,13 @@ gen Flag_CutScoreChange_oth="N"
 
 gen Lev5_percent=""
 
-gen ProficiencyCriteria=""
+gen ProficiencyCriteria="Levels 3 and 4"
 gen ProficientOrAbove_count=""
 gen ParticipationRate=""
 gen StudentGroup = "All Students"
 gen StudentSubGroup="All Students"
-gen StudentGroup_TotalTested="-"
-gen StudentSubGroup_TotalTested="-"
+gen StudentGroup_TotalTested="--"
+gen StudentSubGroup_TotalTested="--"
 
 foreach x of numlist 1/5 {
     generate Lev`x'_count =""
@@ -252,7 +249,7 @@ foreach x of numlist 1/5 {
 
 ** Replace missing values
 foreach v of varlist AvgScaleScore Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ParticipationRate {
-	replace `v' = "-" if `v' == ""
+	replace `v' = "--" if `v' == ""
 }
 	
 foreach u of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent {
@@ -276,7 +273,6 @@ drop County LocalEducationAgencyLEACTD SchoolCTDSNumber CharterSchool lea_name y
 replace State="Arizona"
 replace StateAbbrev="AZ"
 replace StateFips=4
-replace ProficiencyCriteria="Levels 3 and 4"
 	
 //District wide
 replace SchName = "All Schools" if DataLevel == "District" | DataLevel == "State"
@@ -313,7 +309,7 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName Sch
 order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 
 save "${output}/AZ_AssmtData_2013.dta", replace
-export delimited using "${output}/AZ_AssmtData_2013.csv", replace
+export delimited using "${output}/csv/AZ_AssmtData_2013.csv", replace
 
 /*
 
