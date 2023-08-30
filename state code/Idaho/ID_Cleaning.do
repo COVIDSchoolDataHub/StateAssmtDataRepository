@@ -186,7 +186,7 @@ replace ProficientOrAbove_percent = Range4 + ProficientOrAbove_percent if !missi
 replace ProficientOrAbove_percent = Range3 + ProficientOrAbove_percent if Range3==Range4
 destring ProficientOrAbove_percent, gen(ind) i(*-<>)
 replace ind = 1 if ind > 1 & !missing(ind)
-replace ProficientOrAbove_percent = "<=1.0000" if ind == 1
+replace ProficientOrAbove_percent = "<=1.000" if ind == 1
 drop ind
 replace ProficientOrAbove_percent = "--" if missing== "Y"
 replace ParticipationRate = "--" if ParticipationRate == "N/A"
