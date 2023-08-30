@@ -3,10 +3,12 @@ set more off
 cd "/Volumes/T7/State Test Project/Hawaii"
 local cleaned "/Volumes/T7/State Test Project/Hawaii/Cleaned Data"
 local NCES "/Volumes/T7/State Test Project/NCES/District"
+local Original "/Volumes/T7/State Test Project/Hawaii/Original Data"
 local dofiles Hawaii2013_2014.do hawaii2015-2019_2021-2022.do 
 foreach file of local dofiles {
 	do `file'
 }
+set trace off
 foreach year in 2015 2016 2017 2018 2019 2021 2022 {
 local prevyear =`=`year'-1'
 	use "`cleaned'/HI_AssmtData_`year'.dta"
@@ -35,9 +37,151 @@ merge 1:m NCESDistrictID using "`temp2'"
 append using "`temp1'"
 replace State_leaid = "HI-001"
 replace Flag_CutScoreChange_read = ""
+tempfile temp4
+save "`temp4'", replace
+clear
+//Adding and cleaning strive science data for 2015, 2016, 2017, 2018, 2019, 2021, 2022
+	import excel "`Original'/HI_`year'_Strive.xls", firstrow case(preserve)
+	if `year' == 2015 | `year' == 2016 {
+		keep MathProficiency ReadingProficiency ScienceProficiency SchoolID SchoolType~I
+		rename ScienceProficiency ProficientOrAbove_percentsci
+		rename MathProficiency ProficientOrAbove_percentmath
+		rename ReadingProficiency ProficientOrAbove_percentela
+		rename SchoolID StateAssignedSchID
+		rename SchoolType~I Level
+	
+
+}
+
+	if `year' == 2017 {
+		keep MathProficiency ReadingProficiency ScienceProficiency SchoolID SchoolType~I SubgroupDescription
+		rename ScienceProficiency ProficientOrAbove_percentsci
+		rename MathProficiency ProficientOrAbove_percentmath
+		rename ReadingProficiency ProficientOrAbove_percentela
+		rename SchoolID StateAssignedSchID
+		rename SchoolType~I Level
+	
+		rename SubgroupDescription StudentSubGroup
+	}
+	if `year' == 2018 {
+		keep MathProficiency LA_Proficiency SchCode SchType SciProficiency SubDesc
+		rename SchCode StateAssignedSchID
+		rename SciProficiency ProficientOrAbove_percentsci
+		rename MathProficiency ProficientOrAbove_percentmath
+		rename LA_Proficiency ProficientOrAbove_percentela
+		rename SchType Level
+		rename SubDesc StudentSubGroup
+	
+}
+	if `year' == 2019 {
+		keep SchoolID ReadingProficiency MathProficiency SchoolType~I SubgroupDescription ScienceProficiency 
+		rename SchoolID StateAssignedSchID
+		rename SchoolType~I Level
+		rename SubgroupDescription StudentSubGroup
+		rename ScienceProficiency ProficientOrAbove_percentsci
+		rename ReadingProficiency ProficientOrAbove_percentela
+		rename MathProficiency ProficientOrAbove_percentmath
+	
+		
+}
+	if `year' == 2021 {
+		keep MathProficiency LA_Proficiency SchCode SchType SubDesc SciProficiency  
+		rename SchCode StateAssignedSchID
+		rename SchType Level
+		rename SubDesc StudentSubGroup 
+		rename SciProficiency ProficientOrAbove_percentsci
+		rename MathProficiency ProficientOrAbove_percentmath
+		rename LA_Proficiency ProficientOrAbove_percentela
+	
+	}
+
+	if `year' == 2022 {
+	keep MathProficiency LAProficiency ScienceProficiency SchoolID SchoolType SubgroupDescription
+	rename MathProficiency ProficientOrAbove_percentmath
+	rename LAProficiency ProficientOrAbove_percentela
+	rename ScienceProficiency ProficientOrAbove_percentsci 
+	rename SchoolID StateAssignedSchID
+	rename SchoolType Level
+	rename SubgroupDescription StudentSubGroup
+}
+
+	
+
+	
+	
+	
+//Dropping High School Data and empty data
+drop if missing(StateAssignedSchID)
+keep if Level != "High"
+tab Level, missing
+drop Level
+
+
+
+//Generating Variables
+gen GradeLevel = "G38"
+
+
+
+//StudentSubGroup for 2018, 2019, 2021
+if `year' <2017 {
+	gen StudentSubGroup = "All Students"
+}
+else {
+replace StudentSubGroup = "Asian" if strpos(StudentSubGroup, "Asian") !=0
+replace StudentSubGroup = "Black or African American" if strpos(StudentSubGroup, "Black") !=0
+replace StudentSubGroup = "Economically Disadvantaged" if strpos(StudentSubGroup, "Disadvantaged") !=0
+replace StudentSubGroup = "Hispanic or Latino" if strpos(StudentSubGroup, "Hispanic") !=0
+replace StudentSubGroup = "English Learner" if strpos(StudentSubGroup, "English") !=0
+replace StudentSubGroup = "Native Hawaiian" if strpos(StudentSubGroup, "Hawaiian") !=0 
+replace StudentSubGroup = "Pacific Islander" if strpos(StudentSubGroup, "Pacific") !=0
+}
+keep if StudentSubGroup == "All Students" | StudentSubGroup == "American Indian or Alaska Native" | StudentSubGroup == "Asian" | StudentSubGroup == "Black or African American" | StudentSubGroup == "Native Hawaiian or Pacific Islander" | StudentSubGroup == "White" | StudentSubGroup == "Hispanic or Latino" | StudentSubGroup == "English Learner" | StudentSubGroup == "English Proficient" | StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged" | StudentSubGroup == "Male" | StudentSubGroup == "Female" | StudentSubGroup == "Two or More" | StudentSubGroup == "Native Hawaiian" | StudentSubGroup == "Pacific Islander"
+
+//Student Group
+gen StudentGroup = ""
+replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
+replace StudentGroup = "RaceEth" if StudentSubGroup == "American Indian or Alaska Native" | StudentSubGroup == "Asian" | StudentSubGroup == "Black or African American" | StudentSubGroup == "Hispanic or Latino" | StudentSubGroup == "White" | StudentSubGroup == "Two or More" | StudentSubGroup == "Native Hawaiian or Pacific Islander" | StudentSubGroup == "Native Hawaiian" | StudentSubGroup == "Pacific Islander"
+replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged"
+replace StudentGroup = "Gender" if StudentSubGroup == "Male" | StudentSubGroup == "Female"
+replace StudentGroup = "EL Status" if StudentSubGroup == "English Proficient" | StudentSubGroup == "English Learner"
+di upper("`year'")
+//reshaping
+reshape long ProficientOrAbove_percent, i(StateAssignedSchID StudentSubGroup) j(Subject, string)
+
+//ProficientOrAbove_percent
+destring ProficientOrAbove_percent, gen(Proficient) i(*-)
+replace Proficient = Proficient/100
+replace ProficientOrAbove_percent = string(Proficient, "%9.2f")
+drop Proficient
+
+//Missing Variables
+gen ProficientOrAbove_count = "--"
+gen StudentGroup_TotalTested = "--"
+gen StudentSubGroup_TotalTested = "--"
+
+//Merging with cleaned data
+tempfile tempsci
+save "`tempsci'", replace
+clear
+use "`temp4'"
+duplicates drop StateAssignedSchID, force
+keep if DataLevel == 3
+drop Subject GradeLevel StudentGroup StudentSubGroup ProficientOrAbove_percent StudentGroup_TotalTested StudentSubGroup_TotalTested ProficientOrAbove_count
+merge 1:m StateAssignedSchID using "`tempsci'", nogen
+save "`tempsci'", replace
+clear
+use "`temp4'"
+append using "`tempsci'"
+
+//Final cleaning
+drop if missing(SchName) // No data for certain schools
+replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == "." | missing(ProficientOrAbove_percent)
+drop if missing(DataLevel)
 order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
 save "`cleaned'/HI_AssmtData_`year'.dta", replace
 export delimited "`cleaned'/HI_AssmtData_`year'.csv", replace
 clear

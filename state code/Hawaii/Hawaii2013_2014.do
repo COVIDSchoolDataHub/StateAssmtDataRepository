@@ -52,8 +52,8 @@ gen GradeLevel2=.
 tostring GradeLevel2, replace
 
 //data aggregated into elementary and middle school, reflected below
-replace GradeLevel2="--" if GradeLevel=="Elementary"
-replace GradeLevel2="--" if GradeLevel=="Middle"
+replace GradeLevel2="G38" if GradeLevel=="Elementary"
+replace GradeLevel2="G38" if GradeLevel=="Middle"
 drop GradeLevel
 rename GradeLevel2 GradeLevel
 drop if GradeLevel=="."
