@@ -67,9 +67,7 @@ replace GradeLevel = "G04" if strpos(GradeLevel, "Grade 4")>0
 replace GradeLevel = "G05" if strpos(GradeLevel, "Grade 5")>0
 replace GradeLevel = "G06" if strpos(GradeLevel, "Grade 6")>0
 replace GradeLevel = "G07" if strpos(GradeLevel, "Grade 7")>0
-
-replace GradeLevel = "G08" if strpos(GradeLevel, "Grade 8 Enrolled All Math Assessment")>0
-replace GradeLevel = "G08" if GradeLevel=="Grade 8"
+replace GradeLevel = "G08" if strpos(GradeLevel, "Grade 8")>0
 
 keep if inlist(GradeLevel, "G03", "G04", "G05", "G06", "G07", "G08")
 
@@ -166,9 +164,7 @@ replace GradeLevel = "G04" if strpos(GradeLevel, "Grade 4")>0
 replace GradeLevel = "G05" if strpos(GradeLevel, "Grade 5")>0
 replace GradeLevel = "G06" if strpos(GradeLevel, "Grade 6")>0
 replace GradeLevel = "G07" if strpos(GradeLevel, "Grade 7")>0
-
-replace GradeLevel = "G08" if strpos(GradeLevel, "Grade 8 Enrolled All Math Assessment")>0
-replace GradeLevel = "G08" if GradeLevel=="Grade 8"
+replace GradeLevel = "G08" if strpos(GradeLevel, "Grade 8")>0
 
 keep if inlist(GradeLevel, "G03", "G04", "G05", "G06", "G07", "G08", "G38")
 
@@ -250,9 +246,7 @@ replace GradeLevel = "G04" if strpos(GradeLevel, "Grade 4")>0
 replace GradeLevel = "G05" if strpos(GradeLevel, "Grade 5")>0
 replace GradeLevel = "G06" if strpos(GradeLevel, "Grade 6")>0
 replace GradeLevel = "G07" if strpos(GradeLevel, "Grade 7")>0
-
-replace GradeLevel = "G08" if strpos(GradeLevel, "Grade 8 Enrolled All Math Assessment")>0
-replace GradeLevel = "G08" if GradeLevel=="Grade 8"
+replace GradeLevel = "G08" if strpos(GradeLevel, "Grade 8")>0
 
 keep if inlist(GradeLevel, "G03", "G04", "G05", "G06", "G07", "G08", "G38")
 
