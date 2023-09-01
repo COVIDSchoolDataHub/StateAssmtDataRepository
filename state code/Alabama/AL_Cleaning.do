@@ -42,6 +42,7 @@ append using "`Original'/AL_OriginalDatamath_2023" "`Original'/AL_OriginalDatasc
 save "`Original'/AL_OriginalData_2023", replace
 clear
 
+//Adding better participation data for 2019-2022 from excel files
 foreach year in 2019 2021 2022 {
 	if `year' == 2019 {
 	import excel "`Original'/AL_ParticipationRead_`year'", firstrow case(preserve)
