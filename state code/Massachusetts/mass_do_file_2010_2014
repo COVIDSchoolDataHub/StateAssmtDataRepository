@@ -522,7 +522,7 @@ replace ParticipationRate = "-" if ParticipationRate == "."
 
 
 
-sort DataLevel DistName Subject GradeLevel StudentGroup StudentSubGroup
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 //NEW ADDED
 
 
