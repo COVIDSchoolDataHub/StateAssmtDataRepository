@@ -710,7 +710,7 @@ replace Lev5_count = "-" if Lev5_count == "." //r3 changed
 replace Lev5_percent = "-" if Lev5_percent == "." //r3 changed
 
 
-sort DataLevel DistName Subject GradeLevel StudentGroup StudentSubGroup
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 //NEW ADDED
 
 
