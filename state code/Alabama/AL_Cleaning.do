@@ -294,6 +294,10 @@ replace StateAssignedSchID = seasch if strpos(seasch,"-") !=0
 drop if StateAssignedSchID=="-"
 merge 1:m StateAssignedSchID using "`tempschool'"
 drop if _merge ==1
+if `year' == 2023 {
+	
+	replace SchVirtual = 0 if seasch == "026-0063" | seasch == "800-0015"
+}
 save "`tempschool'", replace
 clear
 
