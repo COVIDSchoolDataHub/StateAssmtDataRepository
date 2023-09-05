@@ -242,6 +242,10 @@ foreach v in $var2years {
 
 }
 
+use "${path}/Semi-Processed Data Files/TN_2013_all.dta"
+drop if StudentSubGroup_TotalTested == ""
+save "${path}/Semi-Processed Data Files/TN_2013_all.dta", replace
+
 global csvyears 2017 2018 2019 2021 
 foreach v in $csvyears {
 	clear
@@ -302,7 +306,7 @@ foreach v in $var4years {
 use "${path}/Semi-Processed Data Files/TN_2017_all.dta"
 rename school StateAssignedSchID
 gen SchName = ""
-gen AssmtName = "TCAP Achievement Assessments"
+gen AssmtName = "TNReady"
 gen ParticipationRate = "--"
 save "${path}/Semi-Processed Data Files/TN_2017_all.dta", replace
 
@@ -377,8 +381,8 @@ foreach y in $years {
 	save "${path}/Semi-Processed Data Files/TN_`y'_all.dta", replace
 }
 
-global var7years 2010 2011 2012 2013 2014 2015 2017 2018 2019 2021 2022
-foreach y in $var7years {
+global var8years 2010 2011 2012 2013 2014 2015 2017 2018 2019 2021 2022
+foreach y in $var8years {
 	
 	** Generate StudentGroup Values
 	
@@ -423,7 +427,7 @@ foreach y in $years {
 	save "${path}/Semi-Processed Data Files/TN_`y'_merge.dta", replace
 }
 
-foreach y in $var7years {
+foreach y in $var8years {
 	clear
 	use "${path}/Semi-Processed Data Files/TN_`y'_merge.dta"
 	local a = `y' - 1
@@ -445,8 +449,8 @@ rename _merge school_merge
 drop if district_merge != 3 & DataLevel != "State" | school_merge !=3 & DataLevel == "School"
 save "${path}/Semi-Processed Data Files/TN_2023_merged.dta", replace
 
-global var8years 2015 2017 2018 2019 2021 2022 2023
-foreach y in $var8years {
+global var9years 2015 2017 2018 2019 2021 2022 2023
+foreach y in $var9years {
 	clear
 	use "${path}/Semi-Processed Data Files/TN_`y'_merged.dta"
 	decode SchVirtual, gen(SchVirtual2)
@@ -454,6 +458,19 @@ foreach y in $var8years {
 	rename SchVirtual2 SchVirtual 
 	save "${path}/Semi-Processed Data Files/TN_`y'_merged.dta", replace
 }
+
+** Dist/SchName Values Missing in 2017 School-Level Data
+
+use "${path}/Semi-Processed Data Files/TN_2017_merged.dta"
+replace DistName = lea_name if DataLevel == "School"
+replace SchName = school_name if DataLevel == "School"
+save "${path}/Semi-Processed Data Files/TN_2017_merged.dta", replace
+
+** SchName Value for NCESSchoolID 470449000149 Missing in Data
+
+use "${path}/Semi-Processed Data Files/TN_2010_merged.dta"
+replace SchName = "West Carroll Primary" if NCESSchoolID == "470449000149"
+save "${path}/Semi-Processed Data Files/TN_2010_merged.dta", replace
 
 foreach y in $years {
 	clear
@@ -513,6 +530,12 @@ foreach y in $years {
 	replace allgrades = "G03, G04, G05, G06, G08" if grade == 345608
 	replace allgrades = "G37" if grade == 345670
 	replace allgrades = "G38" if grade == 345678
+	replace allgrades = "G03" if grade == 300000
+	replace allgrades = "G04" if grade == 40000
+	replace allgrades = "G05" if grade == 5000
+	replace allgrades = "G06" if grade == 600
+	replace allgrades = "G07" if grade == 70
+	replace allgrades = "G08" if grade == 8
 	save "${path}/Semi-Processed Data Files/TN_`y'_schgrade.dta", replace
 	clear
 	use "${path}/Semi-Processed Data Files/TN_`y'_merged.dta"
@@ -571,6 +594,12 @@ foreach y in $years {
 	replace distallgrades = "G03, G04, G05, G06, G08" if grade == 345608
 	replace distallgrades = "G37" if grade == 345670
 	replace distallgrades = "G38" if grade == 345678
+	replace distallgrades = "G03" if grade == 300000
+	replace distallgrades = "G04" if grade == 40000
+	replace distallgrades = "G05" if grade == 5000
+	replace distallgrades = "G06" if grade == 600
+	replace distallgrades = "G07" if grade == 70
+	replace distallgrades = "G08" if grade == 8
 	save "${path}/Semi-Processed Data Files/TN_`y'_distgrade.dta", replace
 	clear
 	use "${path}/Semi-Processed Data Files/TN_`y'_merged.dta"
@@ -584,6 +613,8 @@ foreach y in $years {
 	replace GradeLevel = allgrades if GradeLevel == "All Grades" & DataLevel == "School"
 	replace GradeLevel = distallgrades if GradeLevel == "All Grades" & DataLevel == "District"
 	replace GradeLevel = "G38" if GradeLevel == "All Grades" & DataLevel == "State"
+	duplicates drop
+	replace GradeLevel = "G38" if GradeLevel != "G03" & GradeLevel != "G04" & GradeLevel != "G05" & GradeLevel != "G06" & GradeLevel != "G07" & GradeLevel != "G08"
 	
 	** Generate Flags
 
@@ -631,6 +662,10 @@ foreach y in $years {
 	tostring(StateAssignedDistID), replace force
 	tostring(StateAssignedSchID), replace force
 	
+	** Make StateAssignedSchoolIDs Unique
+	
+	replace StateAssignedSchID = StateAssignedDistID + "-" + StateAssignedSchID
+	
 	** Standardize Subject Values
 	
 	replace Subject = "ela" if Subject == "Reading/Language" | Subject == "RLA" | Subject == "ELA"
@@ -666,7 +701,7 @@ foreach y in $years {
 		destring `v', g(n`v') i(* -) force
 	}
 	
-	gen ProficientOrAbove_count = nLev1_count + nLev2_count + nLev3_count + nLev4_count
+	gen ProficientOrAbove_count = nLev3_count + nLev4_count
 	tostring ProficientOrAbove_count, replace force
 	replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
 	
@@ -682,10 +717,10 @@ foreach y in $years {
 	replace Lev2_percent="*" if Lev2_percent=="."
 	replace Lev3_percent="*" if Lev3_percent=="."
 	replace Lev4_percent="*" if Lev4_percent=="."
-	replace Lev1_count="*" if Lev1_count=="**"
-	replace Lev2_count="*" if Lev2_count=="**"
-	replace Lev3_count="*" if Lev3_count=="**"
-	replace Lev4_count="*" if Lev4_count=="**"
+	replace Lev1_count="*" if Lev1_count=="**" | Lev1_count=="***"
+	replace Lev2_count="*" if Lev2_count=="**" | Lev2_count=="***"
+	replace Lev3_count="*" if Lev3_count=="**" | Lev3_count=="***"
+	replace Lev4_count="*" if Lev4_count=="**" | Lev4_count=="***"
 
 	** Generate Empty Variables
 

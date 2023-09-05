@@ -14,6 +14,7 @@ global temp_files "/Users/meghancornacchia/Desktop/DataRepository/Texas/Temporar
 
 forvalues i = 3/8 {
 	import sas using "$original_files/TX_OriginalData_2019_G0`i'_State.sas7bdat", clear
+	export delimited using "$original_files/TX_OriginalData_2019_G0`i'_State.csv", replace
 	drop *cat*
 	drop *ti*
 	drop *mig*
@@ -57,6 +58,7 @@ save "$temp_files/TX_Temp_2019_All_State.dta", replace
 
 forvalues i = 3/8 {
 	import sas using "$original_files/TX_OriginalData_2019_G0`i'_District.sas7bdat", clear
+	export delimited using "$original_files/TX_OriginalData_2019_G0`i'_District.csv", replace
 	drop *cat*
 	drop *ti*
 	drop *mig*
@@ -97,6 +99,7 @@ save "$temp_files/TX_Temp_2019_All_District.dta", replace
 
 forvalues i = 3/8 {
 	import sas using "$original_files/TX_OriginalData_2019_G0`i'_School.sas7bdat", clear
+	export delimited using "$original_files/TX_OriginalData_2019_G0`i'_School.csv", replace
 	drop *cat*
 	drop *ti*
 	drop *mig*
@@ -137,8 +140,8 @@ clear
 append using "$temp_files/TX_Temp_2019_All_State.dta" "$temp_files/TX_Temp_2019_All_District.dta" "$temp_files/TX_Temp_2019_All_School.dta"
 
 save "$temp_files/TX_Temp_2019_All_All.dta", replace
-*/
 
+*/
 // Splitting Subject and Subgroups
 
 use "$temp_files/TX_Temp_2019_All_All.dta", clear
@@ -314,13 +317,13 @@ replace StateAbbrev = "TX" if DataLevel == 1
 replace StateFips = 48 if DataLevel == 1
 
 // Fixing Texas Tech Univ
-replace NCESDistrictID = "Missing" if DistName == "TEXAS TECH UNIV"
-replace NCESSchoolID = "Missing" if DistName == "TEXAS TECH UNIV" & DataLevel == 3
+replace NCESDistrictID = "Missing/not reported" if DistName == "TEXAS TECH UNIV"
+replace NCESSchoolID = "Missing/not reported" if DistName == "TEXAS TECH UNIV" & DataLevel == 3
 replace StateAbbrev = "TX" if DistName == "TEXAS TECH UNIV"
 replace StateFips = 48 if DistName == "TEXAS TECH UNIV"
 
 // Relabelling missing SchVirtual
-replace SchVirtual = -1 if SchVirtual == . & DataLevel == 3 & NCESSchoolID != "Missing"
+replace SchVirtual = -1 if SchVirtual == . & DataLevel == 3 & NCESSchoolID != "Missing/not reported"
 label define SchVirtual -1 "Missing/not reported"
 
 // Reordering variables and sorting data

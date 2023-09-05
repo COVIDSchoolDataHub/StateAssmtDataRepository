@@ -8,10 +8,6 @@ cd "/Users/maggie/Desktop/Michigan"
 
 use "${output}/MI_AssmtData_2019_all.dta", clear
 
-** Dropping extra variables
-
-drop TestPopulation ISDCode ISDName CountyCode CountyName EntityType SchoolLevel Locale MISTEM_NAME MISTEM_CODE TotalSurpassed TotalAttained TotalEmergingTowards TotalDidNotMeet PercentSurpassed PercentAttained PercentEmergingTowards PercentDidNotMeet StdDevSS MeanPtsEarned MinScaleScore MaxScaleScore ScaleScore25 ScaleScore50 ScaleScore75
-
 ** Rename existing variables
 
 rename SchoolYear SchYear
@@ -38,7 +34,12 @@ rename AvgSS AvgScaleScore
 ** Dropping entries
 
 keep if AssmtName == "M-STEP" | AssmtName == "PSAT"
+drop if ISDName != "Statewide" & DistName == "All Districts"
 drop if StudentSubGroup == "Students With Disabilities" | StudentSubGroup == "Students Without Disabilities"
+
+** Dropping extra variables
+
+drop TestPopulation ISDCode ISDName CountyCode CountyName EntityType SchoolLevel Locale MISTEM_NAME MISTEM_CODE TotalSurpassed TotalAttained TotalEmergingTowards TotalDidNotMeet PercentSurpassed PercentAttained PercentEmergingTowards PercentDidNotMeet StdDevSS MeanPtsEarned MinScaleScore MaxScaleScore ScaleScore25 ScaleScore50 ScaleScore75
 
 ** Changing DataLevel
 
@@ -199,7 +200,8 @@ replace StateAssignedDistID = "" if DataLevel == 1
 gen StateAssignedSchID = seasch
 replace StateAssignedSchID = "" if DataLevel != 3
 
-gen Flag_AssmtNameChange = "Y"
+gen Flag_AssmtNameChange = "N"
+replace Flag_AssmtNameChange = "Y" if AssmtName == "PSAT"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_read = ""

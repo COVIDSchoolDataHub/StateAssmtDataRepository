@@ -8,6 +8,43 @@ cd "/Users/benjaminm/Documents/State_Repository_Research/Massachusetts"
 
 // Remaping Raw Data into Standard Format, and appending together
 
+// r3 change
+import excel "mass_district_science", clear
+save mass_district_science, replace
+use mass_district_science, clear
+
+rename A DataLevel	
+rename B SchYear 	
+rename C GradeLevel
+rename D StudentGroup	
+rename E DistName
+rename F StateAssignedDistID
+rename G Subject	
+rename H ProficientOrAbove_count
+rename I ProficientOrAbove_percent	
+rename J Lev4_count	
+rename K Lev4_percent	
+rename L Lev3_count	
+rename M Lev3_percent	
+rename N Lev2_count
+rename O Lev2_percent	
+rename P Lev1_count		
+rename Q Lev1_percent				
+rename R StudentGroup_TotalTested	
+rename S CPI
+rename T Median_SGP	
+rename U Median_SGP_2 
+gen AvgScaleScore = ""
+gen CPI_2 = ""
+
+
+gen AssmtName = "Legacy MCAS"
+
+save mass_district_science_cleaned_parcc, replace
+// r3 change
+
+
+
 //import excel "mass_districts_parcc", clear
 // save mass_districts_parcc
 use mass_districts_parcc, clear 
@@ -44,25 +81,112 @@ rename W CPI_2
 rename X Median_SGP	
 rename Y Median_SGP_2
 
+gen AssmtName = "PARCC"
+
+append using mass_district_science_cleaned_parcc
+
+// r3 change
+keep if SchYear == "2015" | SchYear == "2016" // science data included more years
+// r3 change
+
 replace DataLevel = "State" if DistName == "State Totals"
 replace DistName = "" if DistName == "State Totals"
 
+// r3 change
+replace DataLevel = "State" if DistName == "State Total"
+replace DistName = "" if DistName == "State Total"
+// r3 change
 
 save mass_districts_parcc_titled, replace
-// use mass_districts_parcc_titled, clear
+
 
 // Creating file with unique districts and IDs
 duplicates drop DistName, force
 keep DistName StateAssignedDistID
 drop if DistName == "District Name"
 
+// r3 change
 input 
-Wareham	03100000
- end
+"Community Day Charter Public School" 04260000
+end
+// r3 change
+
 
 drop if DistName == "DistName"
 
 save mass_district_IDs_parcc, replace
+
+
+
+// r3 added
+//import excel "mass_school_science", clear
+//save mass_school_science, replace
+use mass_school_science, clear
+
+
+
+drop if E == "State Total ( ALL )"
+
+split E, parse(" - ")
+
+
+egen long_district_name = concat(E1 E2), punct(" - ") 
+egen long_school_name = concat(E3 E4), punct(" - ")
+
+
+replace E1 = long_district_name if long_district_name == "Community Day Charter Public School - Prospect (District)"
+replace E1 = long_district_name if long_district_name == "Excel Academy Charter School - Chelsea (District)"
+replace E1 = long_district_name if long_district_name == "Excel Academy Charter School - Boston II (District)"
+
+replace E2 = long_school_name if long_school_name == "Community Day Charter Public School - Prospect"
+replace E2 = long_school_name if long_school_name == "Excel Academy Charter School - Boston II"
+replace E2 = long_school_name if long_school_name == "Excel Academy Charter School - Chelsea"
+
+
+drop E3 E4
+drop long_district_name
+drop long_school_name
+rename E1 DistName 
+rename E2 SchName
+
+
+rename A DataLevel
+rename B SchYear 	
+rename C GradeLevel
+rename D StudentGroup	
+drop E 
+// drop F
+rename F StateAssignedSchID
+rename G Subject	
+rename H ProficientOrAbove_count
+rename I ProficientOrAbove_percent	
+rename J Lev4_count	
+rename K Lev4_percent	
+rename L Lev3_count	
+rename M Lev3_percent	
+rename N Lev2_count
+rename O Lev2_percent	
+rename P Lev1_count		
+rename Q Lev1_percent				
+rename R StudentGroup_TotalTested	
+rename S CPI
+rename T Median_SGP	
+rename U Median_SGP_2 	
+gen CPI_2 = ""
+gen AvgScaleScore = ""
+
+// r3 changed
+keep if SchYear == "2015" | SchYear == "2016" // science data included more years
+// r3 changed
+
+
+gen AssmtName = "Legacy MCAS"
+
+
+save mass_school_science_cleaned_parcc, replace  
+// r3 added
+
+
 
 
 
@@ -79,6 +203,7 @@ split F, parse(" - ")
 
 rename F1 DistName 
 rename F2 SchName
+drop F // r3 
 
 split C, parse(" ")
 drop C C1 C4
@@ -114,7 +239,11 @@ rename X CPI_2
 rename Y Median_SGP	
 rename Z Median_SGP_2 	
 
+gen AssmtName = "PARCC"
 
+// r3 change
+append using mass_school_science_cleaned_parcc
+// r3 change
 
 append using mass_districts_parcc_titled
 drop StateAssignedDistID
@@ -127,7 +256,161 @@ merge m:1 DistName using mass_district_IDs_parcc
 drop if DistName == "School Name"
 drop if DistName == "District Name"
 
+
+replace Subject = "MATH" if Subject == "MTH"
+replace Subject = "ELA" if Subject == "ELA/L"
+
 drop _merge
+
+// r3 change
+replace GradeLevel = "3" if GradeLevel == "03"
+replace GradeLevel = "4" if GradeLevel == "04"
+replace GradeLevel = "5" if GradeLevel == "05"
+replace GradeLevel = "6" if GradeLevel == "06"
+replace GradeLevel = "7" if GradeLevel == "07"
+replace GradeLevel = "8" if GradeLevel == "08"
+// r3 change
+
+save mass_districts_parcc_in_progress_1, replace
+//use mass_districts_parcc_in_progress_1, clear
+
+
+
+
+
+
+
+
+// importing district participation data and merging
+
+// r3 changed
+//import excel "mass_district_participation_new_2", clear
+//save mass_district_participation_new, replace
+use mass_district_participation_new, clear
+
+rename A DataLevel
+rename B SchYear 	
+rename C GradeLevel
+rename D StudentGroup
+rename E Subject
+rename G StateAssignedDistID
+rename H ParticipationRate_New // part rate switches to I in 2017 and later, but we only need 2016 and above here 
+
+rename F DistName
+
+
+
+// replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentGroup == "Nat. Haw. or Pacif. Isl." // doesn't exist in part data
+replace StudentGroup = "Multi-race, Non-Hisp./Lat." if StudentGroup == "Multi-race, Non-Hisp." 
+
+// replace StudentSubGroup = "English Learner" if StudentGroup == "EL" // not in part data
+
+replace StudentGroup = "Econ. Disadvantaged" if StudentGroup == "Economically Disadvantaged"
+// replace StudentSubGroup = "Not Economically Disadvantaged" if StudentGroup == "Non-Econ. Disadvantaged" // doesn't exist in part data
+
+//replace StudentSubGroup = "Male" if StudentGroup == "Male" // doesn't exist in part data
+// replace StudentSubGroup = "Female" if StudentGroup == "Female" // doesn't exist in part data
+
+
+replace Subject = "MATH" if Subject == "Mathematics"
+replace Subject = "ELA" if Subject == "English"
+replace Subject = "SCI" if Subject == "Science"
+
+// r3 change
+replace GradeLevel = "3" if GradeLevel == "03"
+replace GradeLevel = "4" if GradeLevel == "04"
+replace GradeLevel = "5" if GradeLevel == "05"
+replace GradeLevel = "6" if GradeLevel == "06"
+replace GradeLevel = "7" if GradeLevel == "07"
+replace GradeLevel = "8" if GradeLevel == "08"
+// r3 change
+
+
+
+
+save mass_district_participation_cleaned_parcc, replace
+
+use mass_district_participation_cleaned_parcc, clear
+
+
+
+use mass_districts_parcc_in_progress_1, clear
+
+
+merge m:1 DataLevel SchYear GradeLevel StudentGroup Subject StateAssignedDistID using mass_district_participation_cleaned_parcc
+drop I
+drop if _merge == 2
+drop _merge
+
+
+save mass_districts_parcc_in_progress_2, replace
+
+
+
+// school participation cleaning and merging
+//import excel "mass_school_participation_new", clear
+//save mass_school_participation, replace
+use mass_school_participation, clear
+
+
+rename A DataLevel
+rename B SchYear 	
+rename C GradeLevel
+rename D StudentGroup
+rename E Subject
+rename G StateAssignedSchID
+rename H ParticipationRate_New_School // part rate switches to I in 2017 and later, but we only need 2016 and above here 
+
+
+// replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentGroup == "Nat. Haw. or Pacif. Isl." // doesn't exist in part data
+replace StudentGroup = "Multi-race, Non-Hisp./Lat." if StudentGroup == "Multi-race, Non-Hisp." 
+
+// replace StudentSubGroup = "English Learner" if StudentGroup == "EL" // not in part data
+
+replace StudentGroup = "Econ. Disadvantaged" if StudentGroup == "Economically Disadvantaged"
+// replace StudentSubGroup = "Not Economically Disadvantaged" if StudentGroup == "Non-Econ. Disadvantaged" // doesn't exist in part data
+
+//replace StudentSubGroup = "Male" if StudentGroup == "Male" // doesn't exist in part data
+// replace StudentSubGroup = "Female" if StudentGroup == "Female" // doesn't exist in part data
+
+
+replace Subject = "MATH" if Subject == "Mathematics"
+replace Subject = "ELA" if Subject == "English"
+replace Subject = "SCI" if Subject == "Science"
+
+// r3 change
+replace GradeLevel = "3" if GradeLevel == "03"
+replace GradeLevel = "4" if GradeLevel == "04"
+replace GradeLevel = "5" if GradeLevel == "05"
+replace GradeLevel = "6" if GradeLevel == "06"
+replace GradeLevel = "7" if GradeLevel == "07"
+replace GradeLevel = "8" if GradeLevel == "08"
+// r3 change
+
+
+save mass_school_participation_cleaned_parcc, replace
+
+use mass_school_participation_cleaned_parcc, clear
+
+use mass_districts_parcc_in_progress_2, replace
+merge m:1 DataLevel SchYear GradeLevel StudentGroup Subject StateAssignedSchID using mass_school_participation_cleaned_parcc
+drop I
+drop if _merge == 2
+drop _merge
+
+replace ParticipationRate_New = ParticipationRate_New_School if DataLevel == "School"
+drop ParticipationRate_New_School
+rename ParticipationRate_New ParticipationRate
+
+//recast
+ 
+destring ParticipationRate, replace 
+tostring ParticipationRate, replace force
+
+
+save mass_districts_parcc_in_progress_3, replace 
+// r3 change
+
 
 
 
@@ -140,8 +423,7 @@ foreach a in $years3 {
 	
 local prevyear = `a' - 1
 	
-use mass_districts_parcc_in_progress, clear
-
+use mass_districts_parcc_in_progress_3, clear
 
 keep if SchYear == "`a'"
 
@@ -196,7 +478,7 @@ gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_read = ""
-gen Flag_CutScoreChange_oth = ""
+gen Flag_CutScoreChange_oth = "N"
 }
 
 
@@ -206,7 +488,7 @@ gen Flag_AssmtNameChange = "Y"
 gen Flag_CutScoreChange_ELA = "Y"
 gen Flag_CutScoreChange_math = "Y"
 gen Flag_CutScoreChange_read = ""
-gen Flag_CutScoreChange_oth = ""
+gen Flag_CutScoreChange_oth = "Y"
 
 }
 
@@ -224,18 +506,23 @@ gen SchYear2 = "2015-16"
 drop SchYear
 rename SchYear2 SchYear
 
-gen AssmtName = "PARCC"
+// gen AssmtName = "PARCC" // r3 changed
 gen AssmtType = "Regular"
 
+
+// r3 changed
+tab Subject
 gen Subject2 = "" 
-replace Subject2 = "math" if Subject == "MATH"
-replace Subject2 = "ela" if Subject == "ELA/L"
+replace Subject2 = "math" if Subject == "MATH" | Subject == "MTH" 
+replace Subject2 = "ela" if Subject == "ELA/L" | Subject == "ELA"
+replace Subject2 = "sci" if Subject == "SCI" 
 drop Subject
 rename Subject2 Subject
+// r3 changed
 
 drop if Subject == ""
 
-
+tab GradeLevel
 gen GradeLevel2 = ""
 replace GradeLevel2 = "G03" if GradeLevel == "3"
 replace GradeLevel2 = "G04" if GradeLevel == "4"
@@ -243,19 +530,24 @@ replace GradeLevel2 = "G05" if GradeLevel == "5"
 replace GradeLevel2 = "G06" if GradeLevel == "6"
 replace GradeLevel2 = "G07" if GradeLevel == "7"
 replace GradeLevel2 = "G08" if GradeLevel == "8"
-replace GradeLevel2 = "G09" if GradeLevel == "9"
-replace GradeLevel2 = "G10" if GradeLevel == "10"
-replace GradeLevel2 = "G11" if GradeLevel == "11"
+
+// r3 change
+replace GradeLevel2 = "G03" if GradeLevel == "03"
+replace GradeLevel2 = "G04" if GradeLevel == "04"
+replace GradeLevel2 = "G05" if GradeLevel == "05"
+replace GradeLevel2 = "G06" if GradeLevel == "06"
+replace GradeLevel2 = "G07" if GradeLevel == "07"
+replace GradeLevel2 = "G08" if GradeLevel == "08"
+// r3 change
+
 
 drop GradeLevel
 rename GradeLevel2 GradeLevel
 
-drop if GradeLevel == "G09"
-drop if GradeLevel == "G10"
-drop if GradeLevel == "G11"
-drop if GradeLevel == "HS SCI"
 
 drop if GradeLevel == ""
+
+
 
 
 //CHANGED
@@ -278,7 +570,8 @@ replace StudentSubGroup = "Male" if StudentGroup == "Male"
 replace StudentSubGroup = "Female" if StudentGroup == "Female"
 
 
-drop if StudentSubGroup == ""
+//drop if StudentSubGroup == ""
+
 drop StudentGroup
 
 gen StudentGroup = ""
@@ -302,11 +595,41 @@ replace StudentGroup = "Economic Status" if StudentSubGroup == "Not Economically
 //CHANGED
 
 
-gen ProficiencyCriteria = "Levels 4 and 5"
-gen seasch = "" // CHANGED
+// r3 change
+//CHANGED
+replace StudentSubGroup = "All Students" if StudentGroup == "All Students"
+replace StudentSubGroup = "American Indian or Alaska Native" if StudentGroup == "Amer. Ind. or Alaska Nat."
+replace StudentSubGroup = "Asian" if StudentGroup == "Asian"
+replace StudentSubGroup = "Black or African American" if StudentGroup == "Afr. Amer./Black"
+replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentGroup == "Nat. Haw. or Pacif. Isl."
+replace StudentSubGroup = "Two or More" if StudentGroup == "Multi-race, Non-Hisp./Lat."
+replace StudentSubGroup = "Hispanic or Latino" if StudentGroup == "Hispanic/Latino"
+replace StudentSubGroup = "White" if StudentGroup == "White"
 
-// Part Rate 
-gen ParticipationRate = ""
+replace StudentSubGroup = "English Learner" if StudentGroup == "EL"
+
+replace StudentSubGroup = "Economically Disadvantaged" if StudentGroup == "Low income"
+replace StudentSubGroup = "Not Economically Disadvantaged" if StudentGroup == "Non-Low Income"
+
+replace StudentSubGroup = "Male" if StudentGroup == "Male"
+replace StudentSubGroup = "Female" if StudentGroup == "Female"
+
+
+drop if StudentSubGroup == ""
+
+
+
+// r3 change
+gen ProficiencyCriteria = "Levels 4 and 5"
+replace ProficiencyCriteria = "Levels 3 and 4" if AssmtName == "Legacy MCAS"
+// r3 change
+
+
+
+gen seasch = StateAssignedSchID // CHANGED // r3 changed
+
+
+// gen ParticipationRate = "" //r3 changed
 
 
 gen State_leaid = StateAssignedDistID // CHANGED
@@ -374,8 +697,20 @@ replace ParticipationRate = ParticipationRate/100
 
 //NEW ADDED
 
+// r3 changed 
+// missing data = - 
+tostring ParticipationRate, replace force
 
-sort DataLevel DistName Subject GradeLevel StudentGroup StudentSubGroup
+replace ParticipationRate = "-" if ParticipationRate == "."
+// r3 changed 
+
+tostring Lev5_count, replace force
+tostring Lev5_percent, replace force
+replace Lev5_count = "-" if Lev5_count == "." //r3 changed
+replace Lev5_percent = "-" if Lev5_percent == "." //r3 changed
+
+
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 //NEW ADDED
 
 
@@ -385,4 +720,3 @@ export delimited MA_AssmtData_`a'.csv, replace
 
 
 }
-

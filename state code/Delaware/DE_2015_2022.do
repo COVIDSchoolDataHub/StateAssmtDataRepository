@@ -6,8 +6,8 @@ global original "/Volumes/T7/State Test Project/Delaware/Original"
 global output "/Volumes/T7/State Test Project/Delaware/Cleaned"
 global nces_school "/Volumes/T7/State Test Project/Delaware/NCESNew/School"
 global nces_dist "/Volumes/T7/State Test Project/Delaware/NCESNew/District"
-
-foreach year in 2015 2016 2017 2018 2019 2021 2022 { //2020 data would be empty, is thus not included
+global PART2 "/Volumes/T7/State Test Project/Delaware/DE_2015_2022_PART2.do" //Set filepath for second do file
+foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 { //2020 data would be empty, is thus not included
 
 import excel "${original}/DE_OriginalData_`year'_all.xlsx", sheet("Sheet1") firstrow
 
@@ -30,15 +30,30 @@ order DataLevel
 
 rename SchoolCode StateAssignedSchID
 local prevyear =`=`year'-1'
-
+if `year' != 2023 {
 tostring StateAssignedSchID, replace
 merge m:1 StateAssignedSchID using "${nces_school}/NCES_`prevyear'_school.dta", force
 drop _merge
+}
+if `year' == 2023 {
+	tostring StateAssignedSchID, replace
+	merge m:1 StateAssignedSchID using "${nces_school}/NCES_2021_school.dta", force
+	drop _merge
+}
+
+if `year' !=2023 {
 
 rename DistrictCode StateAssignedDistID
 tostring StateAssignedDistID, replace
 merge m:1 StateAssignedDistID using "${nces_dist}/NCES_`prevyear'_district.dta", force
 drop _merge
+}
+if `year' == 2023 {
+	rename DistrictCode StateAssignedDistID
+	tostring StateAssignedDistID, replace
+	merge m:1 StateAssignedDistID using "${nces_dist}/NCES_2021_district.dta", force
+	drop _merge
+}
 
 //Fixing District Level Variables from merge
 
@@ -173,9 +188,15 @@ replace SchVirtual = "Missing/not reported" if SchVirtual == ""
 
 //SUPPRESSED DATA 
 tostring StudentGroup_TotalTested, replace
-tostring StudentSubGroup_TotalTested, replace 
-
-
+tostring StudentSubGroup_TotalTested, replace
+if `year' ==2023 {
+gen AvgScore = string(AvgScaleScore, "%10.0g")
+drop AvgScaleScore
+rename AvgScore AvgScaleScore
+gen profcount = string(ProficientOrAbove_count, "%10.0g")
+drop ProficientOrAbove_count
+rename profcount ProficientOrAbove_count
+}
 replace StudentGroup_TotalTested = "*" if RowStatus== "REDACTED" & (StudentGroup_TotalTested == "0" | StudentGroup_TotalTested== "." )
 replace StudentSubGroup_TotalTested = "*" if RowStatus== "REDACTED" & (StudentSubGroup_TotalTested == "0" | StudentSubGroup_TotalTested == "." )
 replace AvgScaleScore = "*" if RowStatus== "REDACTED"
@@ -225,6 +246,9 @@ replace StudentSubGroup = "English Learner" if StudentSubGroup == "English Learn
 if `year' == 2018 {
 	drop if AssmtName != "Smarter Balanced Summative Assessment"
 }
+if `year' == 2023 {
+	drop if AssmtName == "DeSSA Alternate Assessment"
+}
 
 order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
@@ -232,12 +256,31 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 //Exporting
 save "${output}/DE_AssmtData_`year'.dta", replace
-if `year' != 2015 & `year' != 2016 & `year' != 2017 {
-export delimited using "${output}/DE_AssmtData_`year'.csv", replace
-}
-
 clear
-
-
 }
-do "/Volumes/T7/State Test Project/Delaware/DE_2015_2022_PART2.do"
+
+
+do "${PART2}"
+
+//RESPONSE TO R3
+foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 {
+
+use "${output}/DE_AssmtData_`year'"
+
+	replace DistType = "Regular local school district" if DistType == "Colonial School District"
+	drop if DistName == "Dept. of Svs. for Children Youth & Their Families"
+	replace SchType = "Missing/not reported" if SchType == "MISSING"
+	if `year' == 2015 | `year' == 2016 {
+	replace State_leaid = "DE-" + State_leaid if DataLevel !=1
+	}
+	replace NCESSchoolID = "Missing/not reported" if NCESSchoolID == "MISSING"
+	if `year' == 2019 {
+	drop if SchLevel == "Prekindergarten"
+	replace Flag_AssmtNameChange = "Y" if Subject == "sci" | Subject == "soc"
+	}
+	replace SchLevel = "Missing/not reported" if SchLevel == "MISSING"
+	replace CountyName = proper(CountyName)
+	save "${output}/DE_AssmtData_`year'", replace
+	export delimited using "${output}/DE_AssmtData_`year'.csv", replace
+	clear
+}

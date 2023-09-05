@@ -52,8 +52,8 @@ gen GradeLevel2=.
 tostring GradeLevel2, replace
 
 //data aggregated into elementary and middle school, reflected below
-replace GradeLevel2="--" if GradeLevel=="Elementary"
-replace GradeLevel2="--" if GradeLevel=="Middle"
+replace GradeLevel2="G38" if GradeLevel=="Elementary"
+replace GradeLevel2="G38" if GradeLevel=="Middle"
 drop GradeLevel
 rename GradeLevel2 GradeLevel
 drop if GradeLevel=="."
@@ -99,6 +99,9 @@ rename ProficientOrAbove_decimal ProficientOrAbove_percent
 //Response to R2
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
 replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
+
+//Fixing AssmtName for HI
+replace AssmtName = "Hawaii Science Assessment" if Subject == "sci"
 
 //Ordering Variables and Dropping Extraneous Variables
 order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
