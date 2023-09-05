@@ -72,7 +72,7 @@ rename TestID Subject
 rename Grade GradeLevel
 // StudentGroup already has correct name
 rename DemographicName StudentSubGroup
-rename TotalTestedatReportingLevel StudentGroup_TotalTested
+gen StudentGroup_TotalTested = StudentsTested // r3 changed 2021 + 2022
 rename SchoolName SchName
 rename PercentageStandardExceeded Lev4_percent
 rename PercentageStandardMet Lev3_percent
@@ -158,8 +158,8 @@ gen AssmtType = "Regular"
 
 // Changing Subject to Correct Format
 gen Subject2 = "" 
-replace Subject2 = "math" if Subject == 1 
-replace Subject2 = "ela" if Subject == 2
+replace Subject2 = "math" if Subject == 2 
+replace Subject2 = "ela" if Subject == 1
 drop Subject
 rename Subject2 Subject
 
@@ -231,18 +231,20 @@ replace StudentSubGroup = "Female" if StudentSubGroup == "Female"
 //NEW ADDED
 
 
-
+//r3 changed
 // Generate Extra Level Variables 
-gen Lev1_count = .
-gen Lev2_count = .
-gen Lev3_count = .
-gen Lev4_count = .
-gen Lev5_count = .
-gen Lev5_percent = .
+gen Lev1_count = "--"
+gen Lev2_count = "--"
+gen Lev3_count = "--"
+gen Lev4_count = "--"
+gen Lev5_count = "--"
+gen Lev5_percent = "--"
+
 
 
 gen ProficiencyCriteria = "Levels 3 and 4"
-gen ProficientOrAbove_count = . 
+gen ProficientOrAbove_count = "--" 
+//r3 changed
 
 // Changed 2 
 destring StudentsTested, replace force 
@@ -311,7 +313,7 @@ replace ProficientOrAbove_percent = "-99999999" if ProficientOrAbove_percent == 
 // New ADDED 2 
 
 
-destring Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate, replace
+destring Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent ParticipationRate, replace //r3 changed
 
 
 // converting to decimal form from percentage form 
@@ -323,7 +325,7 @@ replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
 // replace ParticipationRate = ParticipationRate/100 CHANGED 2 
 
 // NEW ADDED 2
-tostring Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent ProficientOrAbove_count ProficientOrAbove_percent, replace force 
+tostring Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent, replace force // r3 changed
 
 replace Lev1_percent = "*" if Lev1_percent == "-999999.99"
 replace Lev2_percent = "*" if Lev2_percent == "-999999.99"
@@ -348,7 +350,26 @@ replace NCESDistrictID = subinstr(NCESDistrictID, "006", "06", 1)
 // NEW ADDED 2
 
 
+// r3 change unique to 2022 
+replace SchVirtual = "No" if SchName == "Aspen Ridge Public"
+replace SchVirtual = "No" if SchName == "Audeo Valley Charter"
+replace SchVirtual = "No" if SchName == "Bostonia Global"
+replace SchVirtual = "No" if SchName == "Bridges Preparatory Academy"
+replace SchVirtual = "No" if SchName == "KIPP Stockton Kindergarten-12 Grade"
+replace SchVirtual = "No" if SchName == "New Hope Charter"
+replace SchVirtual = "No" if SchName == "Shanél Valley Academy"
+// r3 change unique to 2022 
 
+// r3 change
+replace NCESDistrictID = "0691006" if NCESDistrictID == "069106"
+replace NCESDistrictID = "0602006" if NCESDistrictID == "060206"
+replace NCESDistrictID = "0600006" if NCESDistrictID == "060006"
+replace NCESDistrictID = "0600063" if NCESDistrictID == "060063"
+replace NCESDistrictID = "0600064" if NCESDistrictID == "060064"
+replace NCESDistrictID = "0600065" if NCESDistrictID == "060065"
+// r3 change
+
+replace NCESSchoolID = substr(NCESDistrictID, 1, 7) + substr(NCESSchoolID, 8, .) if NCESDistrictID != "00" & DataLevel == 3 //r3 changed
 
 //NEW ADDED
 
@@ -357,37 +378,8 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 
 save CA_AssmtData_2022_Stata, replace
-export delimited CA_AssmtData_2022.csv, replace // rereun
+export delimited CA_AssmtData_2022.csv, replace 
 
-
-
-global years4 2015 2016 2017 2018 2019 2021 2022  // 2010 2011 2012 2013   
-foreach a in $years4 {
-	
-use "California_Original_`a'", clear
-// use "CA_AssmtData_`a'_Stata", clear
-
-sum StudentsTested
-sum CAASPPReportedEnrollment 
-
-
-}
-
-help subinstr
-subinstr NCESDistrictID = 
-
-
-
-use CA_AssmtData_2015_Stata, clear
-
-egen TestB = rowtotal(Lev4_percent Lev5_percent)
-gen TestC = ProficientOrAbove_percent - TestB
-replace TestC = 0 if TestB == 0
-
-tab NCESDistrictID TestC if TestC == 0.005
-
-help egen
- 
 
 
 
@@ -461,7 +453,7 @@ rename TestID Subject
 rename Grade GradeLevel
 // StudentGroup already has correct name
 rename DemographicName StudentSubGroup
-rename TotalTestedatReportingLevel StudentGroup_TotalTested
+gen StudentGroup_TotalTested = StudentsTested // r3 changed 2021 + 2022
 rename SchoolName SchName
 rename PercentageStandardExceeded Lev4_percent
 rename PercentageStandardMet Lev3_percent
@@ -536,8 +528,8 @@ gen AssmtType = "Regular"
 
 // Changing Subject to Correct Format
 gen Subject2 = "" 
-replace Subject2 = "math" if Subject == 1 
-replace Subject2 = "ela" if Subject == 2
+replace Subject2 = "math" if Subject == 2 
+replace Subject2 = "ela" if Subject == 1
 drop Subject
 rename Subject2 Subject
 
@@ -609,17 +601,20 @@ replace StudentSubGroup = "Female" if StudentSubGroup == "Female"
 
 
 
+//r3 changed
 // Generate Extra Level Variables 
-gen Lev1_count = .
-gen Lev2_count = .
-gen Lev3_count = .
-gen Lev4_count = .
-gen Lev5_count = .
-gen Lev5_percent = .
+gen Lev1_count = "--"
+gen Lev2_count = "--"
+gen Lev3_count = "--"
+gen Lev4_count = "--"
+gen Lev5_count = "--"
+gen Lev5_percent = "--"
+
 
 
 gen ProficiencyCriteria = "Levels 3 and 4"
-gen ProficientOrAbove_count = . 
+gen ProficientOrAbove_count = "--" 
+//r3 changed
 
 // Changed 2 
 destring StudentsTested, replace force 
@@ -688,7 +683,7 @@ replace ProficientOrAbove_percent = "-99999999" if ProficientOrAbove_percent == 
 // New ADDED 2 
 
 
-destring Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate, replace
+destring Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent ParticipationRate, replace //r3 changed
 
 
 // converting to decimal form from percentage form 
@@ -700,7 +695,9 @@ replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
 // replace ParticipationRate = ParticipationRate/100 CHANGED 2 
 
 // NEW ADDED 2
-tostring Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent ProficientOrAbove_count ProficientOrAbove_percent, replace force 
+tostring Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent, replace force // r3 changed
+
+
 
 replace Lev1_percent = "*" if Lev1_percent == "-999999.99"
 replace Lev2_percent = "*" if Lev2_percent == "-999999.99"
@@ -725,14 +722,27 @@ replace NCESDistrictID = subinstr(NCESDistrictID, "006", "06", 1)
 // NEW ADDED 2
 
 
+// r3 change
+replace NCESDistrictID = "0691006" if NCESDistrictID == "069106"
+replace NCESDistrictID = "0602006" if NCESDistrictID == "060206"
+replace NCESDistrictID = "0600006" if NCESDistrictID == "060006"
+replace NCESDistrictID = "0600063" if NCESDistrictID == "060063"
+replace NCESDistrictID = "0600064" if NCESDistrictID == "060064"
+replace NCESDistrictID = "0600065" if NCESDistrictID == "060065"
+// r3 change
 
-//NEW ADDED
+replace NCESSchoolID = substr(NCESDistrictID, 1, 7) + substr(NCESSchoolID, 8, .) if NCESDistrictID != "00" & DataLevel == 3 //r3 changed
 
-sort DataLevel DistName Subject GradeLevel StudentGroup StudentSubGroup
+//NEW ADDED 
+
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup // r3 changed
 //NEW ADDED
 
 save CA_AssmtData_2021_Stata, replace
 export delimited CA_AssmtData_2021.csv, replace
+
+
+
 
 
 
@@ -893,8 +903,8 @@ gen AssmtType = "Regular"
 
 // Changing Subject to Correct Format
 gen Subject2 = "" 
-replace Subject2 = "math" if Subject == 1 
-replace Subject2 = "ela" if Subject == 2
+replace Subject2 = "math" if Subject == 2 
+replace Subject2 = "ela" if Subject == 1
 drop Subject
 rename Subject2 Subject
 
@@ -964,17 +974,20 @@ replace StudentSubGroup = "Female" if StudentSubGroup == "Female"
 //NEW ADDED
 
 
+//r3 changed
 // Generate Extra Level Variables 
-gen Lev1_count = .
-gen Lev2_count = .
-gen Lev3_count = .
-gen Lev4_count = .
-gen Lev5_count = .
-gen Lev5_percent = .
+gen Lev1_count = "--"
+gen Lev2_count = "--"
+gen Lev3_count = "--"
+gen Lev4_count = "--"
+gen Lev5_count = "--"
+gen Lev5_percent = "--"
+
 
 
 gen ProficiencyCriteria = "Levels 3 and 4"
-gen ProficientOrAbove_count = . 
+gen ProficientOrAbove_count = "--" 
+//r3 changed
 
 // Changed 2 
 destring StudentGroup_TotalTested, replace force 
@@ -1042,7 +1055,7 @@ replace ProficientOrAbove_percent = "-99999999" if ProficientOrAbove_percent == 
 // New ADDED 2 
 
 
-destring Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate, replace
+destring Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent ParticipationRate, replace //r3 changed
 
 
 // converting to decimal form from percentage form 
@@ -1054,7 +1067,7 @@ replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
 // replace ParticipationRate = ParticipationRate/100 CHANGED 2 
 
 // NEW ADDED 2
-tostring Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent ProficientOrAbove_count ProficientOrAbove_percent, replace force 
+tostring Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent, replace force // r3 changed
 
 replace Lev1_percent = "*" if Lev1_percent == "-999999.99"
 replace Lev2_percent = "*" if Lev2_percent == "-999999.99"
@@ -1078,9 +1091,22 @@ replace NCESDistrictID = subinstr(NCESDistrictID, "6", "06", 1)
 replace NCESDistrictID = subinstr(NCESDistrictID, "006", "06", 1)
 // NEW ADDED 2
 
-
+// r3 change unique to 2019
+replace SchVirtual = "No" if SchName == "Maya Lin"
+// r3 change unique to 2019
 
 //NEW ADDED
+
+// r3 change
+replace NCESDistrictID = "0691006" if NCESDistrictID == "069106"
+replace NCESDistrictID = "0602006" if NCESDistrictID == "060206"
+replace NCESDistrictID = "0600006" if NCESDistrictID == "060006"
+replace NCESDistrictID = "0600063" if NCESDistrictID == "060063"
+replace NCESDistrictID = "0600064" if NCESDistrictID == "060064"
+replace NCESDistrictID = "0600065" if NCESDistrictID == "060065"
+// r3 change
+
+replace NCESSchoolID = substr(NCESDistrictID, 1, 7) + substr(NCESSchoolID, 8, .) if NCESDistrictID != "00" & DataLevel == 3 //r3 changed
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 //NEW ADDED
@@ -1092,7 +1118,9 @@ export delimited CA_AssmtData_2019.csv, replace
 
 
 
-use CA_AssmtData_2010_Stata, clear
+
+
+
 
 
 
@@ -1243,8 +1271,8 @@ gen AssmtType = "Regular"
 
 // Changing Subject to Correct Format
 gen Subject2 = "" 
-replace Subject2 = "math" if Subject == 1 
-replace Subject2 = "ela" if Subject == 2
+replace Subject2 = "math" if Subject == 2 
+replace Subject2 = "ela" if Subject == 1
 drop Subject
 rename Subject2 Subject
 
@@ -1314,17 +1342,20 @@ replace StudentSubGroup = "Female" if StudentSubGroup == "Female"
 //NEW ADDED
 
 
+//r3 changed
 // Generate Extra Level Variables 
-gen Lev1_count = .
-gen Lev2_count = .
-gen Lev3_count = .
-gen Lev4_count = .
-gen Lev5_count = .
-gen Lev5_percent = .
+gen Lev1_count = "--"
+gen Lev2_count = "--"
+gen Lev3_count = "--"
+gen Lev4_count = "--"
+gen Lev5_count = "--"
+gen Lev5_percent = "--"
+
 
 
 gen ProficiencyCriteria = "Levels 3 and 4"
-gen ProficientOrAbove_count = .
+gen ProficientOrAbove_count = "--" 
+//r3 changed
 
 // Changed 2 
 destring StudentGroup_TotalTested, replace force 
@@ -1393,7 +1424,7 @@ replace ProficientOrAbove_percent = "-99999999" if ProficientOrAbove_percent == 
 // New ADDED 2 
 
 
-destring Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate, replace
+destring Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent ParticipationRate, replace //r3 changed
 
 
 // converting to decimal form from percentage form 
@@ -1405,7 +1436,7 @@ replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
 // replace ParticipationRate = ParticipationRate/100 CHANGED 2 
 
 // NEW ADDED 2
-tostring Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent ProficientOrAbove_count ProficientOrAbove_percent, replace force 
+tostring Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent, replace force // r3 changed
 
 replace Lev1_percent = "*" if Lev1_percent == "-999999.99"
 replace Lev2_percent = "*" if Lev2_percent == "-999999.99"
@@ -1429,7 +1460,16 @@ replace NCESDistrictID = subinstr(NCESDistrictID, "6", "06", 1)
 replace NCESDistrictID = subinstr(NCESDistrictID, "006", "06", 1)
 // NEW ADDED 2
 
+// r3 change
+replace NCESDistrictID = "0691006" if NCESDistrictID == "069106"
+replace NCESDistrictID = "0602006" if NCESDistrictID == "060206"
+replace NCESDistrictID = "0600006" if NCESDistrictID == "060006"
+replace NCESDistrictID = "0600063" if NCESDistrictID == "060063"
+replace NCESDistrictID = "0600064" if NCESDistrictID == "060064"
+replace NCESDistrictID = "0600065" if NCESDistrictID == "060065"
+// r3 change
 
+replace NCESSchoolID = substr(NCESDistrictID, 1, 7) + substr(NCESSchoolID, 8, .) if NCESDistrictID != "00" & DataLevel == 3 //r3 changed
 
 //NEW ADDED
 
@@ -1596,8 +1636,8 @@ gen AssmtType = "Regular"
 
 // Changing Subject to Correct Format
 gen Subject2 = "" 
-replace Subject2 = "math" if Subject == 1 
-replace Subject2 = "ela" if Subject == 2
+replace Subject2 = "math" if Subject == 2 
+replace Subject2 = "ela" if Subject == 1
 drop Subject
 rename Subject2 Subject
 
@@ -1667,17 +1707,20 @@ replace StudentSubGroup = "Female" if StudentSubGroup == "Female"
 //NEW ADDED
 
 
+//r3 changed
 // Generate Extra Level Variables 
-gen Lev1_count = .
-gen Lev2_count = .
-gen Lev3_count = .
-gen Lev4_count = .
-gen Lev5_count = .
-gen Lev5_percent = .
+gen Lev1_count = "--"
+gen Lev2_count = "--"
+gen Lev3_count = "--"
+gen Lev4_count = "--"
+gen Lev5_count = "--"
+gen Lev5_percent = "--"
+
 
 
 gen ProficiencyCriteria = "Levels 3 and 4"
-gen ProficientOrAbove_count = . 
+gen ProficientOrAbove_count = "--" 
+//r3 changed
 
 
 destring StudentGroup_TotalTested, replace force
@@ -1744,7 +1787,7 @@ replace ProficientOrAbove_percent = "-99999999" if ProficientOrAbove_percent == 
 // New ADDED 2 
 
 
-destring Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate, replace
+destring Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent ParticipationRate, replace //r3 changed
 
 
 // converting to decimal form from percentage form 
@@ -1756,7 +1799,7 @@ replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
 // replace ParticipationRate = ParticipationRate/100 CHANGED 2 
 
 // NEW ADDED 2
-tostring Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent ProficientOrAbove_count ProficientOrAbove_percent, replace force 
+tostring Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent, replace force // r3 changed
 
 replace Lev1_percent = "*" if Lev1_percent == "-999999.99"
 replace Lev2_percent = "*" if Lev2_percent == "-999999.99"
@@ -1780,7 +1823,16 @@ replace NCESDistrictID = subinstr(NCESDistrictID, "6", "06", 1)
 replace NCESDistrictID = subinstr(NCESDistrictID, "006", "06", 1)
 // NEW ADDED 2
 
+// r3 change
+replace NCESDistrictID = "0691006" if NCESDistrictID == "069106"
+replace NCESDistrictID = "0602006" if NCESDistrictID == "060206"
+replace NCESDistrictID = "0600006" if NCESDistrictID == "060006"
+replace NCESDistrictID = "0600063" if NCESDistrictID == "060063"
+replace NCESDistrictID = "0600064" if NCESDistrictID == "060064"
+replace NCESDistrictID = "0600065" if NCESDistrictID == "060065"
+// r3 change
 
+replace NCESSchoolID = substr(NCESDistrictID, 1, 7) + substr(NCESSchoolID, 8, .) if NCESDistrictID != "00" & DataLevel == 3 //r3 changed
 
 //NEW ADDED
 
@@ -1789,6 +1841,7 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save CA_AssmtData_2017_Stata, replace
 export delimited CA_AssmtData_2017.csv, replace
+
 
 
 
@@ -1944,8 +1997,8 @@ gen AssmtType = "Regular"
 
 // Changing Subject to Correct Format
 gen Subject2 = "" 
-replace Subject2 = "math" if Subject == 1 
-replace Subject2 = "ela" if Subject == 2
+replace Subject2 = "math" if Subject == 2 
+replace Subject2 = "ela" if Subject == 1
 drop Subject
 rename Subject2 Subject
 
@@ -2015,17 +2068,23 @@ replace StudentSubGroup = "Female" if StudentSubGroup == "Female"
 //NEW ADDED
 
 
+//r3 changed
 // Generate Extra Level Variables 
-gen Lev1_count = .
-gen Lev2_count = .
-gen Lev3_count = .
-gen Lev4_count = .
-gen Lev5_count = .
-gen Lev5_percent = .
+gen Lev1_count = "--"
+gen Lev2_count = "--"
+gen Lev3_count = "--"
+gen Lev4_count = "--"
+gen Lev5_count = "--"
+gen Lev5_percent = "--"
+
 
 
 gen ProficiencyCriteria = "Levels 3 and 4"
-gen ProficientOrAbove_count = . 
+gen ProficientOrAbove_count = "--" 
+//r3 changed
+
+
+
 gen ParticipationRate = StudentGroup_TotalTested/CAASPPReportedEnrollment // Changed 2
 
 
@@ -2093,7 +2152,8 @@ replace ProficientOrAbove_percent = "-99999999" if ProficientOrAbove_percent == 
 // New ADDED 2 
 
 
-destring Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate, replace
+
+destring Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent ParticipationRate, replace //r3 changed
 
 
 // converting to decimal form from percentage form 
@@ -2104,8 +2164,18 @@ replace Lev4_percent = Lev4_percent/100
 replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
 // replace ParticipationRate = ParticipationRate/100 CHANGED 2 
 
+
+// r3 changed
+gen total1 = Lev1_percent + Lev2_percent + Lev3_percent + Lev4_percent
+replace Lev1_percent = -111111 if total1 == 0  
+replace Lev2_percent = -111111 if total1 == 0  
+replace Lev3_percent = -111111 if total1 == 0  
+replace Lev4_percent = -111111 if total1 == 0  
+drop total1
+//r3 changed
+
 // NEW ADDED 2
-tostring Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent ProficientOrAbove_count ProficientOrAbove_percent, replace force 
+tostring Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent, replace force // r3 changed
 
 replace Lev1_percent = "*" if Lev1_percent == "-999999.99"
 replace Lev2_percent = "*" if Lev2_percent == "-999999.99"
@@ -2130,6 +2200,16 @@ replace NCESDistrictID = subinstr(NCESDistrictID, "006", "06", 1)
 // NEW ADDED 2
 
 
+// r3 change
+replace NCESDistrictID = "0691006" if NCESDistrictID == "069106"
+replace NCESDistrictID = "0602006" if NCESDistrictID == "060206"
+replace NCESDistrictID = "0600006" if NCESDistrictID == "060006"
+replace NCESDistrictID = "0600063" if NCESDistrictID == "060063"
+replace NCESDistrictID = "0600064" if NCESDistrictID == "060064"
+replace NCESDistrictID = "0600065" if NCESDistrictID == "060065"
+// r3 change
+
+replace NCESSchoolID = substr(NCESDistrictID, 1, 7) + substr(NCESSchoolID, 8, .) if NCESDistrictID != "00" & DataLevel == 3 //r3 changed
 
 //NEW ADDED
 
@@ -2138,6 +2218,10 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save CA_AssmtData_2016_Stata, replace
 export delimited CA_AssmtData_2016.csv, replace
+
+
+
+
 
 
 
@@ -2294,8 +2378,8 @@ gen AssmtType = "Regular"
 
 // Changing Subject to Correct Format
 gen Subject2 = "" 
-replace Subject2 = "math" if Subject == 1 
-replace Subject2 = "ela" if Subject == 2
+replace Subject2 = "math" if Subject == 2 
+replace Subject2 = "ela" if Subject == 1
 drop Subject
 rename Subject2 Subject
 
@@ -2365,17 +2449,22 @@ replace StudentSubGroup = "Female" if StudentSubGroup == "Female"
 //NEW ADDED
 
 
+//r3 changed
 // Generate Extra Level Variables 
-gen Lev1_count = .
-gen Lev2_count = .
-gen Lev3_count = .
-gen Lev4_count = .
-gen Lev5_count = .
-gen Lev5_percent = .
+gen Lev1_count = "--"
+gen Lev2_count = "--"
+gen Lev3_count = "--"
+gen Lev4_count = "--"
+gen Lev5_count = "--"
+gen Lev5_percent = "--"
+
 
 
 gen ProficiencyCriteria = "Levels 3 and 4"
-gen ProficientOrAbove_count = . 
+gen ProficientOrAbove_count = "--" 
+//r3 changed
+
+
 gen ParticipationRate = StudentGroup_TotalTested/CAASPPReportedEnrollment // Changed 2
 
 
@@ -2443,7 +2532,7 @@ replace ProficientOrAbove_percent = "-99999999" if ProficientOrAbove_percent == 
 // New ADDED 2 
 
 
-destring Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate, replace
+destring Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent ParticipationRate, replace //r3 changed
 
 
 // converting to decimal form from percentage form 
@@ -2454,14 +2543,33 @@ replace Lev4_percent = Lev4_percent/100
 replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
 // replace ParticipationRate = ParticipationRate/100 CHANGED 2 
 
+
+// r3 changed
+gen total1 = Lev1_percent + Lev2_percent + Lev3_percent + Lev4_percent
+replace Lev1_percent = -111111 if total1 == 0  
+replace Lev2_percent = -111111 if total1 == 0  
+replace Lev3_percent = -111111 if total1 == 0  
+replace Lev4_percent = -111111 if total1 == 0  
+drop total1
+//r3 changed
+
 // NEW ADDED 2
-tostring Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent ProficientOrAbove_count ProficientOrAbove_percent, replace force 
+tostring Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent, replace force // r3 changed
+
 
 replace Lev1_percent = "*" if Lev1_percent == "-999999.99"
 replace Lev2_percent = "*" if Lev2_percent == "-999999.99"
 replace Lev3_percent = "*" if Lev3_percent == "-999999.99"
 replace Lev4_percent = "*" if Lev4_percent == "-999999.99"
 replace Lev5_percent = "*" if Lev5_percent == "-999999.99"
+
+//r3 changed 
+replace Lev1_percent = "--" if Lev1_percent == "-111111"
+replace Lev2_percent = "--" if Lev2_percent == "-111111" 
+replace Lev3_percent = "--" if Lev3_percent == "-111111"
+replace Lev4_percent = "--" if Lev4_percent == "-111111" 
+//r3 changed 
+
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "-999999.99"
 
 
@@ -2480,6 +2588,16 @@ replace NCESDistrictID = subinstr(NCESDistrictID, "006", "06", 1)
 // NEW ADDED 2
 
 
+// r3 change
+replace NCESDistrictID = "0691006" if NCESDistrictID == "069106"
+replace NCESDistrictID = "0602006" if NCESDistrictID == "060206"
+replace NCESDistrictID = "0600006" if NCESDistrictID == "060006"
+replace NCESDistrictID = "0600063" if NCESDistrictID == "060063"
+replace NCESDistrictID = "0600064" if NCESDistrictID == "060064"
+replace NCESDistrictID = "0600065" if NCESDistrictID == "060065"
+// r3 change
+
+replace NCESSchoolID = substr(NCESDistrictID, 1, 7) + substr(NCESSchoolID, 8, .) if NCESDistrictID != "00" & DataLevel == 3 //r3 changed
 
 //NEW ADDED
 
@@ -2488,6 +2606,7 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save CA_AssmtData_2015_Stata, replace
 export delimited CA_AssmtData_2015.csv, replace
+
 
 
 
@@ -2690,13 +2809,13 @@ gen AssmtType = "Regular"
 
 // Changing Subject to Correct Format
 gen Subject2 = "" 
-replace Subject2 = "math" if Subject == 7 // CHANGED
-replace Subject2 = "ela" if Subject == 8 // CHANGED
-replace Subject2 = "soc" if Subject == 28 // CHANGED
+replace Subject2 = "math" if Subject == 8 // CHANGED
+replace Subject2 = "ela" if Subject == 7 // CHANGED
+replace Subject2 = "soc" if Subject == 29 // CHANGED
 replace Subject2 = "sci" if Subject == 32 // CHANGED
 replace Subject2 = "math" if Subject == 9 & GradeLevel == 8
 
-// MAY BE ADDING MORE
+
 drop Subject
 rename Subject2 Subject
 
@@ -2774,16 +2893,21 @@ replace StudentSubGroup = "Female" if StudentSubGroup == "Female"
 //NEW ADDED
 
 
+//r3 changed
 // Generate Extra Level Variables 
-gen Lev1_count = .
-gen Lev2_count = .
-gen Lev3_count = .
-gen Lev4_count = .
-gen Lev5_count = .
+gen Lev1_count = "--"
+gen Lev2_count = "--"
+gen Lev3_count = "--"
+gen Lev4_count = "--"
+gen Lev5_count = "--"
 
 
-gen ProficiencyCriteria = "Levels 4 and 5" //CHANGED
-gen ProficientOrAbove_count = . 
+
+gen ProficiencyCriteria = "Levels 4 and 5"
+gen ProficientOrAbove_count = "--" 
+//r3 changed
+
+ 
 gen ParticipationRate = StudentGroup_TotalTested/STARReportedEnrollmentCAPAEligib // CHANGED 2
 
 
@@ -2852,7 +2976,7 @@ replace ProficientOrAbove_percent = "-99999999" if ProficientOrAbove_percent == 
 // New ADDED 2 
 
 
-destring Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate, replace
+destring Lev1_percent Lev2_percent Lev3_percent Lev4_percent  Lev5_percent ProficientOrAbove_percent ParticipationRate, replace //r3 changed
 
 
 // converting to decimal form from percentage form 
@@ -2864,8 +2988,10 @@ replace Lev5_percent = Lev5_percent/100
 replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
 // replace ParticipationRate = ParticipationRate/100 CHANGED 2 
 
+
+
 // NEW ADDED 2
-tostring Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent ProficientOrAbove_count ProficientOrAbove_percent, replace force 
+tostring Lev1_percent Lev2_percent Lev3_percent Lev4_percent Lev5_percent ProficientOrAbove_percent, replace force // r3 changed
 
 replace Lev1_percent = "*" if Lev1_percent == "-999999.99"
 replace Lev2_percent = "*" if Lev2_percent == "-999999.99"
@@ -2890,6 +3016,16 @@ replace NCESDistrictID = subinstr(NCESDistrictID, "006", "06", 1)
 // NEW ADDED 2
 
 
+// r3 change
+replace NCESDistrictID = "0691006" if NCESDistrictID == "069106"
+replace NCESDistrictID = "0602006" if NCESDistrictID == "060206"
+replace NCESDistrictID = "0600006" if NCESDistrictID == "060006"
+replace NCESDistrictID = "0600063" if NCESDistrictID == "060063"
+replace NCESDistrictID = "0600064" if NCESDistrictID == "060064"
+replace NCESDistrictID = "0600065" if NCESDistrictID == "060065"
+// r3 change
+
+replace NCESSchoolID = substr(NCESDistrictID, 1, 7) + substr(NCESSchoolID, 8, .) if NCESDistrictID != "00" & DataLevel == 3 //r3 changed
 
 //NEW ADDED
 
@@ -3070,9 +3206,9 @@ gen AssmtType = "Regular"
 
 // Changing Subject to Correct Format
 gen Subject2 = "" 
-replace Subject2 = "math" if Subject == 7 // CHANGED
-replace Subject2 = "ela" if Subject == 8 // CHANGED
-replace Subject2 = "soc" if Subject == 28 // CHANGED
+replace Subject2 = "math" if Subject == 8 // CHANGED
+replace Subject2 = "ela" if Subject == 7 // CHANGED
+replace Subject2 = "soc" if Subject == 29 // CHANGED
 replace Subject2 = "sci" if Subject == 32 // CHANGED
 replace Subject2 = "math" if Subject == 9 & GradeLevel == 8
 
@@ -3151,16 +3287,22 @@ replace StudentSubGroup = "Female" if StudentSubGroup == "Female"
 //NEW ADDED
 
 
+//r3 changed
 // Generate Extra Level Variables 
-gen Lev1_count = .
-gen Lev2_count = .
-gen Lev3_count = .
-gen Lev4_count = .
-gen Lev5_count = .
+gen Lev1_count = "--"
+gen Lev2_count = "--"
+gen Lev3_count = "--"
+gen Lev4_count = "--"
+gen Lev5_count = "--"
 
 
-gen ProficiencyCriteria = "Levels 4 and 5" //CHANGED
-gen ProficientOrAbove_count = . 
+
+gen ProficiencyCriteria = "Levels 4 and 5"
+gen ProficientOrAbove_count = "--" 
+//r3 changed
+
+
+
 gen ParticipationRate = StudentGroup_TotalTested/STARReportedEnrollmentCAPAEligib // CHANGED 2
 
 
@@ -3231,7 +3373,7 @@ replace ProficientOrAbove_percent = "-99999999" if ProficientOrAbove_percent == 
 // New ADDED 2 
 
 
-destring Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate, replace
+destring Lev1_percent Lev2_percent Lev3_percent Lev4_percent  Lev5_percent ProficientOrAbove_percent ParticipationRate, replace //r3 changed
 
 
 // converting to decimal form from percentage form 
@@ -3243,8 +3385,12 @@ replace Lev5_percent = Lev5_percent/100
 replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
 // replace ParticipationRate = ParticipationRate/100 CHANGED 2 
 
+
+
 // NEW ADDED 2
-tostring Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent ProficientOrAbove_count ProficientOrAbove_percent, replace force 
+tostring Lev1_percent Lev2_percent Lev3_percent Lev4_percent Lev5_percent ProficientOrAbove_percent, replace force // r3 changed
+
+
 
 replace Lev1_percent = "*" if Lev1_percent == "-999999.99"
 replace Lev2_percent = "*" if Lev2_percent == "-999999.99"
@@ -3269,8 +3415,24 @@ replace NCESDistrictID = subinstr(NCESDistrictID, "006", "06", 1)
 // NEW ADDED 2
 
 
+//r3 changed
+replace NCESSchoolID = "060256214589" if StateAssignedSchID == "0140558"
+replace NCESSchoolID = "060256414577" if StateAssignedSchID == "0140798"
+replace NCESSchoolID = "060255914587" if StateAssignedSchID == "0140806"
+//r3 changed
 
 //NEW ADDED
+
+// r3 change
+replace NCESDistrictID = "0691006" if NCESDistrictID == "069106"
+replace NCESDistrictID = "0602006" if NCESDistrictID == "060206"
+replace NCESDistrictID = "0600006" if NCESDistrictID == "060006"
+replace NCESDistrictID = "0600063" if NCESDistrictID == "060063"
+replace NCESDistrictID = "0600064" if NCESDistrictID == "060064"
+replace NCESDistrictID = "0600065" if NCESDistrictID == "060065"
+// r3 change
+
+replace NCESSchoolID = substr(NCESDistrictID, 1, 7) + substr(NCESSchoolID, 8, .) if NCESDistrictID != "00" & DataLevel == 3 //r3 changed
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 //NEW ADDED
@@ -3444,9 +3606,9 @@ gen AssmtType = "Regular"
 
 // Changing Subject to Correct Format
 gen Subject2 = "" 
-replace Subject2 = "math" if Subject == 7 // CHANGED
-replace Subject2 = "ela" if Subject == 8 // CHANGED
-replace Subject2 = "soc" if Subject == 28 // CHANGED
+replace Subject2 = "math" if Subject == 8 // CHANGED
+replace Subject2 = "ela" if Subject == 7 // CHANGED
+replace Subject2 = "soc" if Subject == 29 // CHANGED
 replace Subject2 = "sci" if Subject == 32 // CHANGED
 replace Subject2 = "math" if Subject == 9 & GradeLevel == 8
 
@@ -3525,16 +3687,21 @@ replace StudentSubGroup = "Female" if StudentSubGroup == "Female"
 //NEW ADDED
 
 
+//r3 changed
 // Generate Extra Level Variables 
-gen Lev1_count = .
-gen Lev2_count = .
-gen Lev3_count = .
-gen Lev4_count = .
-gen Lev5_count = .
+gen Lev1_count = "--"
+gen Lev2_count = "--"
+gen Lev3_count = "--"
+gen Lev4_count = "--"
+gen Lev5_count = "--"
 
 
-gen ProficiencyCriteria = "Levels 4 and 5" //CHANGED
-gen ProficientOrAbove_count = . 
+
+gen ProficiencyCriteria = "Levels 4 and 5"
+gen ProficientOrAbove_count = "--" 
+//r3 changed
+
+
 gen ParticipationRate = StudentGroup_TotalTested/STARReportedEnrollmentCAPAEligib // CHANGED 2
 
 
@@ -3605,7 +3772,7 @@ replace ProficientOrAbove_percent = "-99999999" if ProficientOrAbove_percent == 
 // New ADDED 2 
 
 
-destring Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate, replace
+destring Lev1_percent Lev2_percent Lev3_percent Lev4_percent  Lev5_percent ProficientOrAbove_percent ParticipationRate, replace //r3 changed
 
 
 // converting to decimal form from percentage form 
@@ -3617,8 +3784,10 @@ replace Lev5_percent = Lev5_percent/100
 replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
 // replace ParticipationRate = ParticipationRate/100 CHANGED 2 
 
+
+
 // NEW ADDED 2
-tostring Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent ProficientOrAbove_count ProficientOrAbove_percent, replace force 
+tostring Lev1_percent Lev2_percent Lev3_percent Lev4_percent Lev5_percent ProficientOrAbove_percent, replace force // r3 changed
 
 replace Lev1_percent = "*" if Lev1_percent == "-999999.99"
 replace Lev2_percent = "*" if Lev2_percent == "-999999.99"
@@ -3642,6 +3811,20 @@ replace NCESDistrictID = subinstr(NCESDistrictID, "6", "06", 1)
 replace NCESDistrictID = subinstr(NCESDistrictID, "006", "06", 1)
 // NEW ADDED 2
 
+
+replace NCESSchoolID = "063543012538" if StateAssignedSchID == "0120261" //r3 changed
+
+
+// r3 change
+replace NCESDistrictID = "0691006" if NCESDistrictID == "069106"
+replace NCESDistrictID = "0602006" if NCESDistrictID == "060206"
+replace NCESDistrictID = "0600006" if NCESDistrictID == "060006"
+replace NCESDistrictID = "0600063" if NCESDistrictID == "060063"
+replace NCESDistrictID = "0600064" if NCESDistrictID == "060064"
+replace NCESDistrictID = "0600065" if NCESDistrictID == "060065"
+// r3 change
+
+replace NCESSchoolID = substr(NCESDistrictID, 1, 7) + substr(NCESSchoolID, 8, .) if NCESDistrictID != "00" & DataLevel == 3 //r3 changed
 
 //NEW ADDED
 
@@ -3816,9 +3999,9 @@ gen AssmtType = "Regular"
 
 // Changing Subject to Correct Format
 gen Subject2 = "" 
-replace Subject2 = "math" if Subject == 7 // CHANGED
-replace Subject2 = "ela" if Subject == 8 // CHANGED
-replace Subject2 = "soc" if Subject == 28 // CHANGED
+replace Subject2 = "math" if Subject == 8 // CHANGED
+replace Subject2 = "ela" if Subject == 7 // CHANGED
+replace Subject2 = "soc" if Subject == 29 // CHANGED
 replace Subject2 = "sci" if Subject == 32 // CHANGED
 replace Subject2 = "math" if Subject == 9 & GradeLevel == 8
 
@@ -3899,16 +4082,22 @@ replace StudentSubGroup = "Female" if StudentSubGroup == "Female"
 //NEW ADDED
 
 
+//r3 changed
 // Generate Extra Level Variables 
-gen Lev1_count = .
-gen Lev2_count = .
-gen Lev3_count = .
-gen Lev4_count = .
-gen Lev5_count = .
+gen Lev1_count = "--"
+gen Lev2_count = "--"
+gen Lev3_count = "--"
+gen Lev4_count = "--"
+gen Lev5_count = "--"
 
 
-gen ProficiencyCriteria = "Levels 4 and 5" //CHANGED
-gen ProficientOrAbove_count = . 
+
+gen ProficiencyCriteria = "Levels 4 and 5"
+gen ProficientOrAbove_count = "--" 
+//r3 changed
+
+
+
 gen ParticipationRate = StudentGroup_TotalTested/STARReportedEnrollmentCAPAEligib // CHANGED 2
 
 
@@ -3980,7 +4169,7 @@ replace ProficientOrAbove_percent = "-99999999" if ProficientOrAbove_percent == 
 // New ADDED 2 
 
 
-destring Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate, replace
+destring Lev1_percent Lev2_percent Lev3_percent Lev4_percent Lev5_percent ProficientOrAbove_percent ParticipationRate, replace //r3 changed
 
 
 // converting to decimal form from percentage form 
@@ -3992,8 +4181,9 @@ replace Lev5_percent = Lev5_percent/100
 replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
 // replace ParticipationRate = ParticipationRate/100 CHANGED 2 
 
+
 // NEW ADDED 2
-tostring Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent ProficientOrAbove_count ProficientOrAbove_percent, replace force 
+tostring Lev1_percent Lev2_percent Lev3_percent Lev4_percent Lev5_percent ProficientOrAbove_percent, replace force // r3 changed
 
 replace Lev1_percent = "*" if Lev1_percent == "-999999.99"
 replace Lev2_percent = "*" if Lev2_percent == "-999999.99"
@@ -4018,8 +4208,20 @@ replace NCESDistrictID = subinstr(NCESDistrictID, "006", "06", 1)
 // NEW ADDED 2
 
 
+replace NCESSchoolID = "060964001019" if StateAssignedSchID == "6055974" //r3 changed
 
 //NEW ADDED
+
+// r3 change
+replace NCESDistrictID = "0691006" if NCESDistrictID == "069106"
+replace NCESDistrictID = "0602006" if NCESDistrictID == "060206"
+replace NCESDistrictID = "0600006" if NCESDistrictID == "060006"
+replace NCESDistrictID = "0600063" if NCESDistrictID == "060063"
+replace NCESDistrictID = "0600064" if NCESDistrictID == "060064"
+replace NCESDistrictID = "0600065" if NCESDistrictID == "060065"
+// r3 change
+
+replace NCESSchoolID = substr(NCESDistrictID, 1, 7) + substr(NCESSchoolID, 8, .) if NCESDistrictID != "00" & DataLevel == 3 //r3 changed
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 //NEW ADDED
@@ -4028,67 +4230,4 @@ save CA_AssmtData_2010_Stata, replace
 export delimited CA_AssmtData_2010.csv, replace
 
 
-
-use CA_AssmtData_2010_Stata, clear
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// Creating Lists of Unmerged Districts
-use CA_AssmtData_2022_Stata, clear
-keep if SchoolMerge == 1
-duplicates drop SchName, force
-keep SchName StateAssignedSchID
-rename SchName SchName1
-
-export delimited CA_Unmerged_Schools_2022, replace
-
-global years 2010 2011 2012 2013 2015 2016 2017 2018 2019 2021
-foreach a in $years {
-
-use "CA_AssmtData_`a'_Stata.dta", clear
-keep if SchoolMerge == 1
-duplicates drop SchName, force
-keep SchName StateAssignedSchID
-rename SchName SchName1
-
-export delimited "CA_Unmerged_Schools_`a'", replace
-
-}
-
-
-
-
-
-global years 2011 2012 2013 // 2010 2015 2016 2017 2018 2019 2021 
-foreach a in $years {
-
-use "CA_AssmtData_`a'_Stata.dta", clear
-keep if DistMerge == 1
-duplicates drop DistName, force
-keep DistName StateAssignedDistID
-rename DistName DistName1
-
-export delimited "CA_Unmerged_Districts_`a'_v2", replace
-
-}
-
-cd "/Users/benjaminm/Documents/State_Repository_Research/California"
-
-cap log close
-log using california_cleaning.log, replace
 
