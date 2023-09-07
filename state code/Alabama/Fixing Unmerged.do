@@ -24,3 +24,68 @@ save "AL_AssmtData_2016", replace
 export delimited "AL_AssmtData_2016", replace
 clear
 
+use AL_AssmtData_2023
+
+//NCESDistrictID for unmerged 2023
+replace NCESDistrictID = "103582" if StateAssignedDistID == "811"
+replace NCESDistrictID = "103581" if StateAssignedDistID == "174"
+replace NCESDistrictID = "100390" if StateAssignedSchID == "114-0025"
+replace NCESDistrictID = "100810" if StateAssignedSchID == "016-0045"
+replace NCESDistrictID = "103582" if StateAssignedSchID == "811-0010"
+replace NCESDistrictID = "103581" if StateAssignedSchID == "174-0010"
+replace NCESDistrictID = "103581" if StateAssignedSchID == "174-0020"
+
+//NCESSchoolID for unmerged 2023
+replace NCESSchoolID = "10039002553" if StateAssignedSchID == "114-0025"
+replace NCESSchoolID = "10081002545" if StateAssignedSchID == "016-0045"
+replace NCESSchoolID = "10358202558" if StateAssignedSchID == "811-0010"
+replace NCESSchoolID = "10358102554" if StateAssignedSchID == "174-0010"
+replace NCESSchoolID = "10358102555" if StateAssignedSchID == "174-0020"
+
+//DistType (all unmerged are regular)
+replace DistType = 1 if missing(DistType) & DataLevel !=1
+
+//SchType (all unmerged are regular)
+replace SchType = 1 if missing(SchType) & DataLevel ==3
+
+//State_leaid
+replace State_leaid = "AL-" + StateAssignedDistID if missing(State_leaid) & DataLevel !=1
+
+//CountyName
+replace CountyName = "Missing/not reported" if missing(CountyName) & DataLevel !=1
+replace CountyName = "Coffee County" if StateAssignedSchID == "016-0045"
+
+//CountyCode
+replace CountyCode = 0 if missing(CountyCode) & DataLevel !=1
+
+//DistCharter
+replace DistCharter = "Yes" if StateAssignedDistID == "811"
+replace DistCharter = "No" if StateAssignedDistID == "174"
+replace DistCharter = "No" if StateAssignedSchID == "114-0025"
+replace DistCharter = "No" if StateAssignedSchID == "016-0045"
+replace DistCharter = "Yes" if StateAssignedSchID == "811-0010"
+replace DistCharter = "No" if StateAssignedSchID == "174-0010"
+replace DistCharter = "No" if StateAssignedSchID == "174-0020"
+
+//SchLevel
+replace SchLevel = 4 if StateAssignedSchID == "114-0025"
+replace SchLevel = 2 if StateAssignedSchID == "016-0045"
+replace SchLevel = 1 if StateAssignedSchID == "811-0010"
+replace SchLevel = 1 if StateAssignedSchID == "174-0010"
+replace SchLevel = 2 if StateAssignedSchID == "174-0020"
+
+//SchVirtual
+replace SchVirtual = 1 if StateAssignedSchID == "114-0025"
+replace SchVirtual = 0 if StateAssignedSchID == "016-0045"
+replace SchVirtual = 0 if StateAssignedSchID == "811-0010"
+replace SchVirtual = 0 if StateAssignedSchID == "174-0010"
+replace SchVirtual = 0 if StateAssignedSchID == "174-0020"
+
+//Exporting
+save "AL_AssmtData_2023", replace
+export delimited "AL_AssmtData_2023", replace
+clear
+
+
+
+
