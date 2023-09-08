@@ -22,6 +22,7 @@ foreach a in $years {
 	rename county_code CountyCode
 	rename lea_name DistName
 	drop year urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte
+	drop if State_leaid == ""
 	
 	if(`a' != 2010){
 		rename district_agency_type DistType

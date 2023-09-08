@@ -8,55 +8,55 @@ global output "/Users/maggie/Desktop/Virginia/Output"
 cd "/Users/maggie/Desktop/Virginia"
 
 
-////	Import aggregate data from 2006-2022
+////	Import aggregate data from 2023
 
-import delimited "/${raw}/VA_OriginalData_2006-2022_all.csv", varnames(1) clear 
+import delimited "/${raw}/VA_OriginalData_2023_all.csv", varnames(1) clear 
 
-drop if schoolyear != "2011-2012"
+drop if schoolyear != "2022-2023"
 
 gen StudentGroup = "All Students"
 gen StudentSubGroup = "All Students"
 
-save "${output}/VA_2012_base.dta", replace
+save "${output}/VA_2023_base.dta", replace
 
 
 ////	Import disaggregate gender data
 
-import delimited "/${raw}/Disaggregate/VA_OriginalData_2012_all_gender.csv", varnames(1) clear 
+import delimited "/${raw}/Disaggregate/VA_OriginalData_2023_all_gender.csv", varnames(1) clear 
 
 rename gender StudentSubGroup
 gen StudentGroup = "Gender"
 
-save "${output}/VA_2012_gender.dta", replace
+save "${output}/VA_2023_gender.dta", replace
 
 
 ////	Import disaggregate language proficiency data
 
-import delimited "/${raw}/Disaggregate/VA_OriginalData_2012_all_language.csv", varnames(1) clear 
+import delimited "/${raw}/Disaggregate/VA_OriginalData_2023_all_language.csv", varnames(1) clear 
 
 rename englishlearners StudentSubGroup
 gen StudentGroup = "EL Status"
 
-save "${output}/VA_2012_language.dta", replace
+save "${output}/VA_2023_language.dta", replace
 
 
 ////	Import disaggregate race data
 
-import delimited "/${raw}/Disaggregate/VA_OriginalData_2012_all_race.csv", varnames(1) clear 
+import delimited "/${raw}/Disaggregate/VA_OriginalData_2023_all_race.csv", varnames(1) clear 
 
 rename race StudentSubGroup
 gen StudentGroup = "RaceEth"
 
-save "${output}/VA_2012_race.dta", replace
+save "${output}/VA_2023_race.dta", replace
 
 
 ////	Append aggregate and disaggregate 
 
-use "${output}/VA_2012_base.dta", clear
+use "${output}/VA_2023_base.dta", clear
 
-append using "${output}/VA_2012_gender.dta"
-append using "${output}/VA_2012_language.dta"
-append using "${output}/VA_2012_race.dta"
+append using "${output}/VA_2023_gender.dta"
+append using "${output}/VA_2023_language.dta"
+append using "${output}/VA_2023_race.dta"
 
 
 ////	Prepare for NCES merge
@@ -64,6 +64,7 @@ append using "${output}/VA_2012_race.dta"
 destring divisionnumber, gen(StateAssignedDistID)
 replace divisionnumber = "00" + divisionnumber if StateAssignedDistID < 10
 replace divisionnumber = "0" + divisionnumber if StateAssignedDistID >= 10 & StateAssignedDistID < 100
+replace divisionnumber = "VA-" + divisionnumber
 tostring StateAssignedDistID, replace
 rename divisionnumber State_leaid
 
@@ -72,21 +73,22 @@ replace State_leaid = "" if level == "State"
 
 tostring schoolnumber, replace
 destring schoolnumber, gen(StateAssignedSchID)
-replace schoolnumber = State_leaid + "000" + schoolnumber if StateAssignedSchID < 10
-replace schoolnumber = State_leaid + "00" + schoolnumber if StateAssignedSchID >= 10 & StateAssignedSchID < 100
-replace schoolnumber = State_leaid + "0" + schoolnumber if StateAssignedSchID >= 100 & StateAssignedSchID < 1000
-replace schoolnumber = State_leaid + schoolnumber if StateAssignedSchID >= 1000
+replace schoolnumber = State_leaid + "-" + State_leaid + "000" + schoolnumber if StateAssignedSchID < 10
+replace schoolnumber = State_leaid + "-" + State_leaid + "00" + schoolnumber if StateAssignedSchID >= 10 & StateAssignedSchID < 100
+replace schoolnumber = State_leaid + "-" + State_leaid + "0" + schoolnumber if StateAssignedSchID >= 100 & StateAssignedSchID < 1000
+replace schoolnumber = State_leaid + "-" + State_leaid + schoolnumber if StateAssignedSchID >= 1000
+replace schoolnumber = subinstr(schoolnumber, "VA-", "", .)
 tostring StateAssignedSchID, replace
 rename schoolnumber seasch
 
 replace StateAssignedSchID = "" if level != "School"
 replace seasch = "" if level != "School"
 
-merge m:1 State_leaid using "/${NCES}/NCES_2011_District.dta"
+merge m:1 State_leaid using "/${NCES}/NCES_2021_District.dta"
 drop if _merge == 2
 drop _merge
 
-merge m:1 seasch using "/${NCES}/NCES_2011_School.dta"
+merge m:1 seasch using "/${NCES}/NCES_2021_School.dta"
 drop if _merge == 2
 drop _merge
 
@@ -108,7 +110,7 @@ replace DistName = "All Districts" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel != 3
 
 rename schoolyear SchYear
-replace SchYear = "2011-12"
+replace SchYear = "2022-23"
 
 rename testsource AssmtName
 replace AssmtName = "Standards of Learning"
@@ -117,7 +119,7 @@ gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = ""
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_read = "N"
-gen Flag_CutScoreChange_oth = "N"
+gen Flag_CutScoreChange_oth = "Y"
 gen AssmtType = "Regular"
 
 rename subject Subject
@@ -210,6 +212,6 @@ order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName Sc
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${output}/VA_AssmtData_2012.dta", replace
+save "${output}/VA_AssmtData_2023.dta", replace
 
-export delimited using "${output}/csv/VA_AssmtData_2012.csv", replace
+export delimited using "${output}/csv/VA_AssmtData_2023.csv", replace
