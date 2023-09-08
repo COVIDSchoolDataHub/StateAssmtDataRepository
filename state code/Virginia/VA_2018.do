@@ -119,7 +119,7 @@ gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = ""
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_read = "N"
-gen Flag_CutScoreChange_oth = "N"
+gen Flag_CutScoreChange_oth = "Y"
 gen AssmtType = "Regular"
 
 rename subject Subject
