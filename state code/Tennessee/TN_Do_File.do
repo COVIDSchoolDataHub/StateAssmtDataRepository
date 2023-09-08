@@ -731,8 +731,8 @@ foreach y in $years {
 
 	** Generate Empty Variables
 
-	gen Lev5_count = "--"
-	gen Lev5_percent = "--"
+	gen Lev5_count = ""
+	gen Lev5_percent = ""
 	gen AvgScaleScore = "--"
 	
 	** Label Variables
