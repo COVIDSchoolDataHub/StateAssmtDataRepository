@@ -180,6 +180,7 @@ gen ProficiencyCriteria = "Pass Proficient or Pass Advanced"
 
 rename passcount ProficientOrAbove_count
 replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "<"
+replace ProficientOrAbove_count = subinstr(ProficientOrAbove_count, ",", "", .)
 
 rename passrate ProficientOrAbove_percent
 replace ProficientOrAbove_percent = "9999" if ProficientOrAbove_percent == ">50"
@@ -205,6 +206,7 @@ replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGro
 replace StudentSubGroup = "White" if StudentSubGroup == "White, not of Hispanic origin"
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
 replace StudentSubGroup = "Unknown" if StudentSubGroup == "Unknown - Race/Ethnicity not provided"
+replace StudentSubGroup = "Two or More" if StudentSubGroup == "Non-Hispanic, two or more races"
 
 order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 

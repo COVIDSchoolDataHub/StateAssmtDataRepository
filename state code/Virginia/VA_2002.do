@@ -165,6 +165,7 @@ append using "/${output}/VA_2002_race58.dta"
 destring div, gen(StateAssignedDistID)
 replace div = "00" + div if StateAssignedDistID < 10
 replace div = "0" + div if StateAssignedDistID >= 10 & StateAssignedDistID < 100
+tostring StateAssignedDistID, replace
 rename div State_leaid
 
 tostring sch, replace
@@ -177,8 +178,9 @@ tostring StateAssignedSchID, replace
 rename sch seasch
 drop if seasch == "9010901" | seasch == "2190219"
 
-replace seasch = "" if schoolname == "DIVISION SUMMARY" | schoolname == "STATE SUMMARY"
-replace StateAssignedSchID = "" if schoolname == "DIVISION SUMMARY" | schoolname == "STATE SUMMARY"
+replace StateAssignedDistID = "" if schoolname == "STATE SUMMARY" | StudentGroup != "All Students"
+replace seasch = "" if schoolname == "DIVISION SUMMARY" | schoolname == "STATE SUMMARY" | StudentGroup != "All Students"
+replace StateAssignedSchID = "" if schoolname == "DIVISION SUMMARY" | schoolname == "STATE SUMMARY" | StudentGroup != "All Students"
 
 merge m:1 State_leaid using "/${NCES}/NCES_2001_District.dta"
 drop if _merge == 2

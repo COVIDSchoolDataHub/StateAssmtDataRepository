@@ -180,6 +180,7 @@ gen ProficiencyCriteria = "Pass Proficient or Pass Advanced"
 
 rename passcount ProficientOrAbove_count
 replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "<"
+replace ProficientOrAbove_count = subinstr(ProficientOrAbove_count, ",", "", .)
 
 rename passrate ProficientOrAbove_percent
 replace ProficientOrAbove_percent = "9999" if ProficientOrAbove_percent == ">50"
