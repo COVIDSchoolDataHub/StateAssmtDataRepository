@@ -13,18 +13,18 @@ cd "/Users/maggie/Desktop/Virginia"
 
 import excel "/${raw}/VA_OriginalData_1998-2002_all.xls", sheet("1998-2002 % Passing By School") cellrange(A2:EP2119) firstrow case(lower) clear
 
-rename english1999 ProficientOrAbove_percentela3
+rename english1999 ProficientOrAbove_percentread3
 rename mathematics1999 ProficientOrAbove_percentmath3
 rename history1999 ProficientOrAbove_percentsoc3
 rename science1999 ProficientOrAbove_percentsci3
 rename writing1999 ProficientOrAbove_percentwri5
-rename englishrlr1999 ProficientOrAbove_percentela5
+rename englishrlr1999 ProficientOrAbove_percentread5
 rename al ProficientOrAbove_percentmath5
 rename aq ProficientOrAbove_percentsoc5
 rename av ProficientOrAbove_percentsci5
 rename computertechnology1999 ProficientOrAbove_percentstem5
 rename bf ProficientOrAbove_percentwri8
-rename bk ProficientOrAbove_percentela8
+rename bk ProficientOrAbove_percentread8
 rename bp ProficientOrAbove_percentmath8
 rename bu ProficientOrAbove_percentsoc8
 rename bz ProficientOrAbove_percentsci8
@@ -34,7 +34,7 @@ keep div divisionname sch schoolname lowgr highgr ProficientOrAbove_percent*
 
 drop if divisionname == ""
 
-reshape long ProficientOrAbove_percentela ProficientOrAbove_percentmath ProficientOrAbove_percentsoc ProficientOrAbove_percentsci ProficientOrAbove_percentwri ProficientOrAbove_percentstem, i(div sch) j(GradeLevel)
+reshape long ProficientOrAbove_percentread ProficientOrAbove_percentmath ProficientOrAbove_percentsoc ProficientOrAbove_percentsci ProficientOrAbove_percentwri ProficientOrAbove_percentstem, i(div sch) j(GradeLevel)
 
 reshape long ProficientOrAbove_percent, i(div sch GradeLevel) j(Subject) string
 
@@ -102,7 +102,7 @@ import excel "/${raw}/disaggregate/VA_1998-2002_raceeth.xls", sheet("Sheet1 (2)"
 
 keep A C H M R
 rename A StudentSubGroup
-rename C ProficientOrAbove_percentela
+rename C ProficientOrAbove_percentread
 rename H ProficientOrAbove_percentmath
 rename M ProficientOrAbove_percentsoc
 rename R ProficientOrAbove_percentsci
@@ -125,7 +125,7 @@ import excel "/${raw}/disaggregate/VA_1998-2002_raceeth.xls", sheet("Sheet1 (2)"
 
 keep A C H M R W AB
 rename A StudentSubGroup
-rename C ProficientOrAbove_percentela
+rename C ProficientOrAbove_percentread
 rename H ProficientOrAbove_percentwri
 rename M ProficientOrAbove_percentmath
 rename R ProficientOrAbove_percentsoc
@@ -194,7 +194,7 @@ drop _merge
 
 replace Subject = "stem" if Subject == "Computer/Technology"
 replace Subject = "wri" if strpos(Subject, "Writing") > 0
-replace Subject = "ela" if strpos(Subject, "English") > 0
+replace Subject = "read" if strpos(Subject, "English") > 0
 replace Subject = "soc" if Subject == "History"
 replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "sci" if Subject == "Science"
@@ -206,10 +206,7 @@ foreach a of local level {
 }
 
 gen Lev4_count = ""
-replace Lev4_count = "--" if Subject == "math" | Subject == "ela"
 gen Lev4_percent = ""
-replace Lev4_percent = "--" if Subject == "math" | Subject == "ela"
-
 gen Lev5_count = ""
 gen Lev5_percent = ""
 
@@ -230,9 +227,9 @@ replace GradeLevel = "G05" if GradeLevel == "5"
 replace GradeLevel = "G08" if GradeLevel == "8"
 
 gen Flag_AssmtNameChange = "N"
-gen Flag_CutScoreChange_ELA = "N"
+gen Flag_CutScoreChange_ELA = ""
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_read = ""
+gen Flag_CutScoreChange_read = "N"
 gen Flag_CutScoreChange_oth = "N"
 gen AssmtName = "Standards of Learning"
 gen AssmtType = "Regular"

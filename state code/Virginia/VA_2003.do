@@ -11,10 +11,10 @@ cd "/Users/maggie/Desktop/Virginia"
 
 import excel "/${raw}/VA_OriginalData_2003-2005_all.xls", sheet("spring_pass_rate_table_03_to_05") cellrange(A3:GX1973) firstrow
 
-rename Grade3English ProficientOrAbove_percentela3
-rename Grade5English ProficientOrAbove_percentela5
+rename Grade3English ProficientOrAbove_percentread3
+rename Grade5English ProficientOrAbove_percentread5
 rename Grade5Writing ProficientOrAbove_percentwri5
-rename Grade8English ProficientOrAbove_percentela8
+rename Grade8English ProficientOrAbove_percentread8
 rename Grade8Writing ProficientOrAbove_percentwri8
 rename Grade3Math ProficientOrAbove_percentmath3
 rename Grade5Math ProficientOrAbove_percentmath5
@@ -30,7 +30,7 @@ keep DivNo DivisionName SchNo SchoolName LowGrade HighGrade ProficientOrAbove_pe
 
 drop if DivisionName == ""
 
-reshape long ProficientOrAbove_percentela ProficientOrAbove_percentmath ProficientOrAbove_percentsoc ProficientOrAbove_percentsci ProficientOrAbove_percentwri, i(DivNo SchNo) j(GradeLevel)
+reshape long ProficientOrAbove_percentread ProficientOrAbove_percentmath ProficientOrAbove_percentsoc ProficientOrAbove_percentsci ProficientOrAbove_percentwri, i(DivNo SchNo) j(GradeLevel)
 
 reshape long ProficientOrAbove_percent, i(DivNo SchNo GradeLevel) j(Subject) string
 
@@ -272,7 +272,7 @@ drop _merge
 
 ////	FINISH CLEANING DATA
 
-replace Subject = "ela" if Subject == "English"
+replace Subject = "read" if Subject == "English"
 replace Subject = "soc" if Subject == "History"
 replace Subject = "math" if Subject == "Math"
 replace Subject = "sci" if Subject == "Science"
@@ -283,16 +283,11 @@ foreach a of local level {
 	gen Lev`a'_percent = "--"
 }
 
-replace Lev2_percent = Proficient if (Subject != "math" & Subject != "ela") & Proficient != ""
-replace Lev3_percent = Advanced if (Subject != "math" & Subject != "ela") & Advanced != ""
-replace Lev3_percent = Proficient if (Subject == "math" | Subject == "ela") & Proficient != ""
+replace Lev2_percent = Proficient if Proficient != ""
+replace Lev3_percent = Advanced if Advanced != ""
 
 gen Lev4_count = ""
-replace Lev4_count = "--" if Subject == "math" | Subject == "ela"
 gen Lev4_percent = ""
-replace Lev4_percent = "--" if Subject == "math" | Subject == "ela"
-replace Lev4_percent = Advanced if (Subject == "math" | Subject == "ela") & Advanced != ""
-
 gen Lev5_count = ""
 gen Lev5_percent = ""
 
@@ -313,9 +308,9 @@ replace GradeLevel = "G05" if GradeLevel == "5"
 replace GradeLevel = "G08" if GradeLevel == "8"
 
 gen Flag_AssmtNameChange = "N"
-gen Flag_CutScoreChange_ELA = "N"
+gen Flag_CutScoreChange_ELA = ""
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_read = ""
+gen Flag_CutScoreChange_read = "N"
 gen Flag_CutScoreChange_oth = "N"
 gen AssmtName = "Standards of Learning"
 gen AssmtType = "Regular"

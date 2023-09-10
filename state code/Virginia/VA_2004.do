@@ -11,30 +11,30 @@ cd "/Users/maggie/Desktop/Virginia"
 
 import excel "/${raw}/VA_OriginalData_2003-2005_all.xls", sheet("spring_pass_rate_table_03_to_05") cellrange(A3:GX1973) firstrow
 
-rename H ProficientOrAbove_percentela3
-rename I Lev3_percentela3
-rename J Lev4_percentela3
-rename O ProficientOrAbove_percentela5
-rename P Lev3_percentela5
-rename Q Lev4_percentela5
+rename H ProficientOrAbove_percentread3
+rename I Lev2_percentread3
+rename J Lev3_percentread3
+rename O ProficientOrAbove_percentread5
+rename P Lev2_percentread5
+rename Q Lev3_percentread5
 rename V ProficientOrAbove_percentwri5
 rename W Lev2_percentwri5
 rename X Lev3_percentwri5
-rename AC ProficientOrAbove_percentela8
-rename AD Lev3_percentela8
-rename AE Lev4_percentela8
+rename AC ProficientOrAbove_percentread8
+rename AD Lev2_percentread8
+rename AE Lev3_percentread8
 rename AJ ProficientOrAbove_percentwri8
 rename AK Lev2_percentwri8
 rename AL Lev3_percentwri8
 rename BE ProficientOrAbove_percentmath3
-rename BF Lev3_percentmath3
-rename BG Lev4_percentmath3
+rename BF Lev2_percentmath3
+rename BG Lev3_percentmath3
 rename BL ProficientOrAbove_percentmath5
-rename BM Lev3_percentmath5
-rename BN Lev4_percentmath5
+rename BM Lev2_percentmath5
+rename BN Lev3_percentmath5
 rename BS ProficientOrAbove_percentmath8
-rename BT Lev3_percentmath8
-rename BU Lev4_percentmath8
+rename BT Lev2_percentmath8
+rename BU Lev3_percentmath8
 rename CU ProficientOrAbove_percentsoc3
 rename CV Lev2_percentsoc3
 rename CW Lev3_percentsoc3
@@ -54,17 +54,15 @@ rename FX ProficientOrAbove_percentsci8
 rename FY Lev2_percentsci8
 rename FZ Lev3_percentsci8
 
-keep DivNo DivisionName SchNo SchoolName LowGrade HighGrade ProficientOrAbove_percent* Lev2* Lev3* Lev4*
+keep DivNo DivisionName SchNo SchoolName LowGrade HighGrade ProficientOrAbove_percent* Lev2* Lev3*
 
 drop if DivisionName == ""
 
-reshape long ProficientOrAbove_percentela Lev3_percentela Lev4_percentela ProficientOrAbove_percentmath Lev3_percentmath Lev4_percentmath ProficientOrAbove_percentsoc Lev2_percentsoc Lev3_percentsoc ProficientOrAbove_percentsci Lev2_percentsci Lev3_percentsci ProficientOrAbove_percentwri Lev2_percentwri Lev3_percentwri, i(DivNo SchNo) j(GradeLevel)
+reshape long ProficientOrAbove_percentread Lev2_percentread Lev3_percentread ProficientOrAbove_percentmath Lev2_percentmath Lev3_percentmath ProficientOrAbove_percentsoc Lev2_percentsoc Lev3_percentsoc ProficientOrAbove_percentsci Lev2_percentsci Lev3_percentsci ProficientOrAbove_percentwri Lev2_percentwri Lev3_percentwri, i(DivNo SchNo) j(GradeLevel)
 
-reshape long ProficientOrAbove_percent Lev2_percent Lev3_percent Lev4_percent, i(DivNo SchNo GradeLevel) j(Subject) string
+reshape long ProficientOrAbove_percent Lev2_percent Lev3_percent, i(DivNo SchNo GradeLevel) j(Subject) string
 
 drop if ProficientOrAbove_percent == ""
-
-replace Lev4_percent = "-100" if Lev4_percent == "."
 
 // Rewrite percent as decimal
 
@@ -83,11 +81,6 @@ replace Lev3_percent = Lev3_percent/100
 tostring Lev3_percent, replace force
 replace Lev3_percent = "--" if Lev3_percent == "."
 
-destring Lev4_percent, replace
-replace Lev4_percent = Lev4_percent/100
-tostring Lev4_percent, replace force
-replace Lev4_percent = "--" if Lev4_percent == "-1"
-replace Lev4_percent = "" if Lev4_percent == "."
 
 // Remove PK only programs and high schools
 
@@ -302,7 +295,7 @@ drop _merge
 
 ////	FINISH CLEANING DATA
 
-replace Subject = "ela" if Subject == "English"
+replace Subject = "read" if Subject == "English"
 replace Subject = "soc" if Subject == "History"
 replace Subject = "math" if Subject == "Math"
 replace Subject = "sci" if Subject == "Science"
@@ -315,14 +308,11 @@ foreach a of local level {
 gen Lev1_percent = "--"
 
 replace Lev2_percent = "--" if Lev2_percent == ""
-replace Lev2_percent = Proficient if (Subject != "math" & Subject != "ela") & Proficient != ""
-replace Lev3_percent = Advanced if (Subject != "math" & Subject != "ela") & Advanced != ""
-replace Lev3_percent = Proficient if (Subject == "math" | Subject == "ela") & Proficient != ""
+replace Lev2_percent = Proficient if Proficient != ""
+replace Lev3_percent = Advanced if Advanced != ""
 
 gen Lev4_count = ""
-replace Lev4_count = "--" if Subject == "math" | Subject == "ela"
-replace Lev4_percent = Advanced if (Subject == "math" | Subject == "ela") & Advanced != ""
-
+gen Lev4_percent = ""
 gen Lev5_count = ""
 gen Lev5_percent = ""
 
@@ -343,9 +333,9 @@ replace GradeLevel = "G05" if GradeLevel == "5"
 replace GradeLevel = "G08" if GradeLevel == "8"
 
 gen Flag_AssmtNameChange = "N"
-gen Flag_CutScoreChange_ELA = "N"
+gen Flag_CutScoreChange_ELA = ""
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_read = ""
+gen Flag_CutScoreChange_read = "N"
 gen Flag_CutScoreChange_oth = "Y"
 gen AssmtName = "Standards of Learning"
 gen AssmtType = "Regular"
