@@ -102,7 +102,7 @@ gen Lev5_percent = ""
 
 gen ProficiencyCriteria = "Levels 3-4"
 
-gen ParticipationRate = ""
+gen ParticipationRate = "--"
 
 ** Converting Data to String
 
@@ -139,6 +139,10 @@ drop test
 
 ** Merging with NCES
 
+tostring State_leaid, gen(StateAssignedDistID)
+replace StateAssignedDistID = "33020" if SchName == "Ingham Academy/Family Center"
+replace StateAssignedDistID = "" if DataLevel == 1
+
 gen leadingzero = 1 if State_leaid < 10000
 tostring State_leaid, replace
 replace State_leaid = "0" + State_leaid if leadingzero == 1
@@ -151,6 +155,9 @@ merge m:1 State_leaid using "${NCES}/NCES_2016_District.dta"
 
 drop if _merge == 2
 drop _merge
+
+tostring seasch, gen(StateAssignedSchID)
+replace StateAssignedSchID = "" if DataLevel != 3
 
 gen leadingzero = 1 if seasch < 10000
 replace leadingzero = 2 if seasch < 1000
@@ -202,11 +209,6 @@ replace State = 26 if DataLevel == 1
 replace StateFips = 26 if DataLevel == 1
 
 ** Generating new variables
-
-gen StateAssignedDistID = State_leaid
-replace StateAssignedDistID = "" if DataLevel == 1
-gen StateAssignedSchID = seasch
-replace StateAssignedSchID = "" if DataLevel != 3
 
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
