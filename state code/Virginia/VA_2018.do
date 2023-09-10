@@ -178,7 +178,7 @@ replace Lev1_percent = "<0.5" if Lev1_percent == "11.11"
 rename averagesolscaledscore AvgScaleScore
 replace AvgScaleScore = "*" if AvgScaleScore == " "
 
-gen ProficiencyCriteria = "Pass Proficient or Pass Advanced"
+gen ProficiencyCriteria = "Pass Proficient and Pass Advanced"
 
 rename passcount ProficientOrAbove_count
 replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "<"

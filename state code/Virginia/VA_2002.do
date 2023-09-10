@@ -238,7 +238,7 @@ gen SchYear = "2001-02"
 gen StudentGroup_TotalTested = "--"
 gen StudentSubGroup_TotalTested = "--"
 gen AvgScaleScore = "--"
-gen ProficiencyCriteria = "Pass Proficient or Pass Advanced"
+gen ProficiencyCriteria = "Pass Proficient and Pass Advanced"
 gen ProficientOrAbove_count = "--"
 gen ParticipationRate = "--"
 
