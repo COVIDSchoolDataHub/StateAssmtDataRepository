@@ -10,7 +10,7 @@ use "${output}/WA_AssmtData_2016_all.dta", clear
 
 ** Dropping extra variables
 
-drop ESDName ESDOrganizationID CurrentSchoolType CountofStudentsExpectedtoTest PercentMetTestedOnly DataAsOf
+drop ESDName ESDOrganizationID CurrentSchoolType PercentMetTestedOnly DataAsOf
 
 ** Rename existing variables
 
@@ -35,6 +35,7 @@ rename PercentLevel1 Lev1_percent
 rename PercentLevel2 Lev2_percent
 rename PercentLevel3 Lev3_percent
 rename PercentLevel4 Lev4_percent
+rename CountofStudentsExpectedtoTest testreplacement
 
 ** Dropping entries
 
@@ -138,6 +139,29 @@ tostring StudentSubGroup_TotalTested, replace force
 replace StudentSubGroup_TotalTested = "*" if Suppression != "None"
 
 drop Suppression
+
+** Review 2 Update
+
+destring Lev3_percent, gen(Lev3_percent2) force
+destring Lev4_percent, gen(Lev4_percent2) force
+destring ProficientOrAbove_percent, gen(ProficientOrAbove_percent2) force
+
+gen sum = Lev3_percent2 + Lev4_percent2
+gen diff = sum - ProficientOrAbove_percent2
+
+replace ProficientOrAbove_percent2 = Lev3_percent2 + Lev4_percent2
+gen ProficientOrAbove_count2 = round(testreplacement * ProficientOrAbove_percent2)
+
+tostring ProficientOrAbove_count2, replace force
+replace ProficientOrAbove_count = ProficientOrAbove_count2 if (diff > 0.01 | diff < -0.01) & diff != . & testreplacement != . & ProficientOrAbove_percent2 != .
+
+tostring ProficientOrAbove_percent2, replace force
+replace ProficientOrAbove_percent = ProficientOrAbove_percent2 if (diff > 0.01 | diff < -0.01) & diff != .
+
+tostring testreplacement, replace force
+replace StudentSubGroup_TotalTested = testreplacement if (diff > 0.01 | diff < -0.01) & diff != .
+
+drop Lev3_percent2 Lev4_percent2 ProficientOrAbove_percent2 testreplacement ProficientOrAbove_count2 sum diff
 
 ** Merging with NCES
 
