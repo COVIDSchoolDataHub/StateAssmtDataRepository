@@ -162,7 +162,7 @@ drop if StudentGroup == "voc"
 drop *comp*
 
 replace Subject = "math" if Subject == "m"
-replace Subject = "read" if Subject == "r"
+replace Subject = "ela" if Subject == "r"
 replace Subject = "sci" if Subject == "s"
 replace Subject = "soc" if Subject == "h"
 replace Subject = "wri" if Subject == "w"
