@@ -194,7 +194,7 @@ drop _merge
 
 replace Subject = "stem" if Subject == "Computer/Technology"
 replace Subject = "wri" if strpos(Subject, "Writing") > 0
-replace Subject = "read" if strpos(Subject, "English") > 0
+replace Subject = "ela" if strpos(Subject, "English") > 0
 replace Subject = "soc" if Subject == "History"
 replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "sci" if Subject == "Science"

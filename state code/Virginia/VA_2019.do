@@ -123,7 +123,7 @@ gen Flag_CutScoreChange_oth = "N"
 gen AssmtType = "Regular"
 
 rename subject Subject
-replace Subject = "read" if Subject == "English:Reading"
+replace Subject = "ela" if Subject == "English:Reading"
 replace Subject = "wri" if Subject == "English:Writing"
 replace Subject = "soc" if Subject == "History and Social Science"
 replace Subject = "math" if Subject == "Mathematics"

@@ -293,7 +293,7 @@ drop _merge
 ////	FINISH CLEANING DATA
 
 tab Subject
-replace Subject = "read" if Subject == "English"
+replace Subject = "ela" if Subject == "English"
 replace Subject = "soc" if Subject == "History"
 replace Subject = "math" if Subject == "Math"
 replace Subject = "sci" if Subject == "Science"
