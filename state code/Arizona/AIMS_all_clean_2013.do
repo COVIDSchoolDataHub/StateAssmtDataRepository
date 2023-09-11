@@ -260,7 +260,7 @@ foreach u of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent Profici
 }
 
 ** Rename various values
-replace Subject="read" if Subject=="Reading"
+replace Subject="ela" if Subject=="Reading"
 replace Subject="math" if Subject=="Math"
 replace Subject="sci" if Subject=="Science"
 replace Subject="wri" if Subject=="Writing"
