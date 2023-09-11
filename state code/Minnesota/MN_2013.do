@@ -167,7 +167,7 @@ drop if StateAssignedDistID == "8888"
 
 replace SchYear = "2012-13" if SchYear == "12-13"
 replace Subject = "math" if Subject == "M"
-replace Subject = "read" if Subject == "R"
+replace Subject = "ela" if Subject == "R"
 replace Subject = "sci" if Subject == "S"
 replace GradeLevel = "G03" if GradeLevel == "03"
 replace GradeLevel = "G04" if GradeLevel == "04"

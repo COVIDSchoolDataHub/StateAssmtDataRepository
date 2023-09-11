@@ -317,7 +317,7 @@ drop if StudentGroup == "Special Education"
 
 replace SchYear = "2022-23" if SchYear == "22-23"
 replace Subject = "math" if Subject == "MATH"
-replace Subject = "read" if Subject == "Reading"
+replace Subject = "ela" if Subject == "Reading"
 replace Subject = "sci" if Subject == "Science"
 tostring GradeLevel, replace
 replace GradeLevel = "G03" if GradeLevel == "3"

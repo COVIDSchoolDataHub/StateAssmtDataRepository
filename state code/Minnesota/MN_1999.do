@@ -51,7 +51,7 @@ drop M
 // Transforming Variable Values
 replace SchYear = "1998-99" if SchYear == "98-99"
 replace Subject = "math" if Subject == "M"
-replace Subject = "read" if Subject == "R"
+replace Subject = "ela" if Subject == "R"
 replace Subject = "wri" if Subject == "W"
 replace GradeLevel = "G03" if GradeLevel == "03"
 replace GradeLevel = "G05" if GradeLevel == "05"
