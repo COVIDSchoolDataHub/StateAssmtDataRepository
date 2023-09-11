@@ -319,7 +319,7 @@ drop if StudentGroup == "State Race/Ethnicity"
 
 replace SchYear = "2021-22" if SchYear == "21-22"
 replace Subject = "math" if Subject == "MATH"
-replace Subject = "read" if Subject == "Reading"
+replace Subject = "ela" if Subject == "Reading"
 replace Subject = "sci" if Subject == "Science"
 tostring GradeLevel, replace
 replace GradeLevel = "G03" if GradeLevel == "3"

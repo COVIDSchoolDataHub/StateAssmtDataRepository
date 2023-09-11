@@ -160,7 +160,7 @@ replace AssmtName = "Minnesota Comprehensive Assessment II" if AssmtName == "MCA
 replace AssmtName = "Minnesota Comprehensive Assessment III" if AssmtName == "MCA-III"
 replace SchYear = "2010-11" if SchYear == "10-11"
 replace Subject = "math" if Subject == "M"
-replace Subject = "read" if Subject == "R"
+replace Subject = "ela" if Subject == "R"
 replace Subject = "sci" if Subject == "S"
 replace GradeLevel = "G03" if GradeLevel == "03"
 replace GradeLevel = "G04" if GradeLevel == "04"

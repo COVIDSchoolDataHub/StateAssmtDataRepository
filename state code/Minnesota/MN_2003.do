@@ -118,7 +118,7 @@ drop if StudentGroup == "MigrantStatus"
 
 replace SchYear = "2002-03" if SchYear == "02-03"
 replace Subject = "math" if Subject == "M"
-replace Subject = "read" if Subject == "R"
+replace Subject = "ela" if Subject == "R"
 replace Subject = "wri" if Subject == "W"
 recast int GradeLevel
 tostring GradeLevel, replace
