@@ -221,9 +221,9 @@ gen AssmtType="Regular"
 gen AssmtName="AIMS"
 gen Flag_AssmtNameChange="N"
 
-gen Flag_CutScoreChange_ELA=""
+gen Flag_CutScoreChange_ELA="N"
 gen Flag_CutScoreChange_math="N"
-gen Flag_CutScoreChange_read="N"
+gen Flag_CutScoreChange_read=""
 gen Flag_CutScoreChange_oth="N"
 
 gen Lev5_percent=""
