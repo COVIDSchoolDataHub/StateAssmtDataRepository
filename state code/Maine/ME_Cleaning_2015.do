@@ -61,38 +61,17 @@ foreach var of varlist _all {
 save "`temp_combined'", replace
 clear
 use "`NCES_School'/NCES_2014_School"
-keep if state_name == 23
+keep if state_name == 23 | state_location == "ME"
 gen StateAssignedSchID = seasch
+replace StateAssignedSchID = "1822" if school_name == "Beatrice Rafferty School"
+replace StateAssignedSchID = "1820" if school_name == "Indian Island School"
+replace StateAssignedSchID = "1821" if school_name == "Indian Township School"
 merge 1:m StateAssignedSchID using "`temp_combined'"
 drop if _merge==1
-rename _merge _merge1
-save "`temp_combined'", replace
-keep if _merge1 ==2
-tempfile testing
-save "`testing'"
-clear
-use "/Volumes/T7/State Test Project/NCES/District/NCES_2014_District.dta"
-keep if state_name ==23
-gen StateAssignedDistID = state_leaid
-merge 1:m StateAssignedDistID using "`testing'"
-drop if _merge==1 | _merge ==2
-save "`testing'", replace
-clear
-use "`temp_combined'"
-append using "`testing'"
-rename _merge _merge2
-save "`temp_combined'", replace
-keep if _merge1==2 & _merge2 !=3 & DataLevel != 1
-keep SchName DistName StateAssignedDistID StateAssignedSchID
-duplicates drop
-export excel using "`Unmerged'/2015_unmerged.xlsx", firstrow(variables) replace
-use "`temp_combined'", clear
 
-//Keep Public Unmerged Schools Below
-keep if (_merge1 ==3 | _merge2 ==3 | DataLevel ==1)
 
 //Dropping if lowest grade is 9th grade
-drop if sch_lowest_grade_offered >= 8 & DataLevel !=1
+drop if sch_lowest_grade_offered > 8 & !missing(sch_lowest_grade_offered)
 
 //Cleaning NCES
 gen StateAbbrev = "ME"
@@ -147,6 +126,5 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName Sch
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "`Output'/ME_AssmtData_2015", replace
-export delimited "`Output'/ME_AssmtData_2015", replace
 clear
 

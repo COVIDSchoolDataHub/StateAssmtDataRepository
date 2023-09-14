@@ -121,7 +121,7 @@ use "`NCES_District'/NCES_`prevyear'_District"
 if `year' == 2016 {
 use  "`NCES_District'/NCES_`year'_District"
 }
-keep if state_name ==23
+keep if state_name == 23 | state_location == "ME"
 gen StateAssignedDistID = subinstr(state_leaid,"ME-","",.)
 merge 1:m StateAssignedDistID using "`tempdist'"
 drop if _merge ==1
@@ -140,7 +140,7 @@ use "`NCES_School'/NCES_`prevyear'_School"
 if `year' == 2016 {
 use "`NCES_School'/NCES_`year'_School"
 }
-keep if state_name == 23
+keep if state_name == 23 | state_location == "ME"
 gen StateAssignedSchID1 = seasch
 merge 1:m StateAssignedSchID1 using "`tempschool'"
 drop if _merge ==1
@@ -168,20 +168,8 @@ replace StateAbbrev = "ME"
 
 
 //GradeLevel
-drop if sch_lowest_grade_offered == 9
+drop if sch_lowest_grade_offered > 8 & !missing(sch_lowest_grade_offered)
 gen GradeLevel = "G38"
-
-//Creating Unmerged sheet
-if `year' != 2019 {
-tempfile all
-save "`all'"
-cap keep if _merge ==2
-keep SchName DistName StateAssignedDistID StateAssignedSchID
-duplicates drop
-export excel using "`Unmerged'/`year'_unmerged.xlsx", firstrow(variables) replace
-}
-clear
-use "`all'"
 
 
 //Proficiency Criteria
@@ -229,7 +217,6 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName Sch
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "`Output'/ME_AssmtData_`year'", replace
-export delimited "`Output'/ME_AssmtData_`year'", replace
 
 
 
