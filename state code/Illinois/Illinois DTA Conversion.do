@@ -11,17 +11,17 @@ global NCES "/Users/maggie/Desktop/Illinois/NCES/Cleaned"
 
 ** 2015-17 state-level
 
-import excel "${raw}/IL_OriginalData_2015-2017_all_state.xlsx", sheet("Sheet1") cellrange(A2) firstrow clear
-save "${output}/IL_OriginalData_2015-2017_all_state.dta", replace
+import excel "${raw}/IL_OriginalData_2015-2017_all_state.xlsx", sheet("Sheet1") cellrange(A2:T58) firstrow clear
+save "${output}/IL_AssmtData_2015-2017_all_state.dta", replace
 
 ** 2015
 
-import excel "${raw}/IL_OriginalData_2015_all.xlsx", sheet("PARCC performance at 5 levels_s") cellrange(A2) firstrow clear
+import excel "${raw}/IL_OriginalData_2015_all.xlsx", sheet("PARCC performance at 5 levels_s") cellrange(A2:BN4627) firstrow clear
 save "${output}/IL_AssmtData_2015_all.dta", replace
 
 ** 2016
 
-import excel "${raw}/IL_OriginalData_2016_all.xlsx", sheet("PARCC performance at 5 levels_s") cellrange(A2) firstrow clear
+import excel "${raw}/IL_OriginalData_2016_all.xlsx", sheet("PARCC performance at 5 levels_s") cellrange(A2:BN4594) firstrow clear
 save "${output}/IL_AssmtData_2016_all.dta", replace
 
 import excel "${raw}/IL_OriginalData_2016_sci.xlsx", sheet("gr 5") firstrow clear
