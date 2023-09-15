@@ -44,7 +44,7 @@ save "${output}/IL_AssmtData_2016_sci_AvgScaleScore_8.dta", replace
 
 ** 2017
 
-import excel "${raw}/IL_OriginalData_2017_all.xlsx", sheet("test at performance levels_s") cellrange(A2) firstrow clear
+import excel "${raw}/IL_OriginalData_2017_all.xlsx", sheet("test at performance levels_s") cellrange(A2:BN4660) firstrow clear
 save "${output}/IL_AssmtData_2017_all.dta", replace
 
 import excel "${raw}/IL_OriginalData_2017_sci.xlsx", sheet("gr 5") firstrow clear
@@ -67,7 +67,7 @@ save "${output}/IL_AssmtData_2017_sci_AvgScaleScore_8.dta", replace
 
 ** 2018
 
-import excel "${raw}/IL_OriginalData_2018_all.xlsx", sheet("PARCC") firstrow clear
+import excel "${raw}/IL_OriginalData_2018_all.xlsx", sheet("PARCC") cellrange(A1:AHZ4755) firstrow clear
 save "${output}/IL_AssmtData_2018_all.dta", replace
 
 import excel "${raw}/IL_OriginalData_2018_sci.xlsx", sheet("Grade 5") firstrow clear
@@ -90,7 +90,7 @@ save "${output}/IL_AssmtData_2018_sci_AvgScaleScore_8.dta", replace
 
 ** 2019
 
-import excel "${raw}/IL_OriginalData_2019_all.xlsx", sheet("IAR") firstrow clear
+import excel "${raw}/IL_OriginalData_2019_all.xlsx", sheet("IAR") cellrange(A1:AQB4739) firstrow clear
 save "${output}/IL_AssmtData_2019_all.dta", replace
 
 import excel "${raw}/IL_OriginalData_2019_sci.xlsx", sheet("Grade 5") firstrow clear

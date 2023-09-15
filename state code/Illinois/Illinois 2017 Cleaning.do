@@ -39,11 +39,11 @@ rename NotLowIncome ProficientOrAbove_percentNotDis
 
 ** Dropping entries
 
-keep if SchYear == "2016"
+keep if SchYear == "2017"
 
 ** Replacing variables
 
-replace SchYear = "2015-16"
+replace SchYear = "2016-17"
 
 ** Generating new variables
 
@@ -113,7 +113,7 @@ destring ProficientOrAbove_percent, replace
 replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
 tostring ProficientOrAbove_percent, replace force
 
-save "${output}/IL_AssmtData_2016_all_state.dta", replace
+save "${output}/IL_AssmtData_2017_all_state.dta", replace
 
 
 
@@ -122,10 +122,10 @@ save "${output}/IL_AssmtData_2016_all_state.dta", replace
 
 *** Sci AvgScaleScore
 
-use "${output}/IL_AssmtData_2016_sci_AvgScaleScore_5.dta", clear
+use "${output}/IL_AssmtData_2017_sci_AvgScaleScore_5.dta", clear
 gen GradeLevel = "G05"
 
-append using "${output}/IL_AssmtData_2016_sci_AvgScaleScore_8.dta"
+append using "${output}/IL_AssmtData_2017_sci_AvgScaleScore_8.dta"
 replace GradeLevel = "G08" if GradeLevel == ""
 
 ** Dropping extra variables
@@ -148,16 +148,16 @@ replace StateAssignedSchID = "STATE" if SchName == "STATE"
 tostring AvgScaleScore, replace
 replace AvgScaleScore = "*" if AvgScaleScore == "."
 
-save "${output}/IL_AssmtData_2016_sci_AvgScaleScore.dta", replace
+save "${output}/IL_AssmtData_2017_sci_AvgScaleScore.dta", replace
 
 
 
 *** Sci Participation
 
-use "${output}/IL_AssmtData_2016_sci_Participation_5.dta", clear
+use "${output}/IL_AssmtData_2017_sci_Participation_5.dta", clear
 gen GradeLevel = "G05"
 
-append using "${output}/IL_AssmtData_2016_sci_Participation_8.dta"
+append using "${output}/IL_AssmtData_2017_sci_Participation_8.dta"
 replace GradeLevel = "G08" if GradeLevel == ""
 
 ** Dropping extra variables
@@ -209,16 +209,18 @@ replace ParticipationRate = ParticipationRate/100
 tostring ParticipationRate, replace force
 replace ParticipationRate = "*" if ParticipationRate == "."
 
-save "${output}/IL_AssmtData_2016_sci_Participation.dta", replace
+replace StateAssignedSchID = "STATE" if SchName == "State" | StateAssignedSchID == "State"
+
+save "${output}/IL_AssmtData_2017_sci_Participation.dta", replace
 
 
 
 *** Sci Performance Levels
 
-use "${output}/IL_AssmtData_2016_sci_5.dta", clear
+use "${output}/IL_AssmtData_2017_sci_5.dta", clear
 gen GradeLevel = "G05"
 
-append using "${output}/IL_AssmtData_2016_sci_8.dta"
+append using "${output}/IL_AssmtData_2017_sci_8.dta"
 replace GradeLevel = "G08" if GradeLevel == ""
 
 ** Dropping extra variables
@@ -251,7 +253,7 @@ drop if StateAssignedSchID == ""
 
 ** Generating new variables
 
-gen SchYear = "2015-16"
+gen SchYear = "2016-17"
 
 gen AssmtName = "ISA"
 gen AssmtType = "Regular"
@@ -305,12 +307,12 @@ replace Lev1_percent = "*" if Lev1_percent == "."
 
 gen Lev2_percent = ProficientOrAbove_percent
 
-merge 1:1 StateAssignedSchID GradeLevel StudentSubGroup using "${output}/IL_AssmtData_2016_sci_AvgScaleScore.dta"
+merge 1:1 StateAssignedSchID GradeLevel StudentSubGroup using "${output}/IL_AssmtData_2017_sci_AvgScaleScore.dta"
 drop _merge
 
 replace AvgScaleScore = "--" if AvgScaleScore == ""
 
-merge 1:1 StateAssignedSchID GradeLevel StudentSubGroup using "${output}/IL_AssmtData_2016_sci_Participation.dta"
+merge 1:1 StateAssignedSchID GradeLevel StudentSubGroup using "${output}/IL_AssmtData_2017_sci_Participation.dta"
 drop if _merge == 2
 drop _merge
 
@@ -337,29 +339,30 @@ drop leadingzero
 
 gen State_leaid = StateAssignedSchID
 replace State_leaid = substr(State_leaid,1,11)
-replace State_leaid = substr(State_leaid,1,2) + "-" + substr(State_leaid,3,3) + "-" + substr(State_leaid,6,4) + "-" + substr(State_leaid,10,2)
+replace State_leaid = "IL-" + substr(State_leaid,1,2) + "-" + substr(State_leaid,3,3) + "-" + substr(State_leaid,6,4) + "-" + substr(State_leaid,10,2)
 replace StateAssignedSchID = "" if DataLevel != 3
 
 gen seasch = StateAssignedSchID
+replace seasch = subinstr(seasch,"IL-","",.)
 replace seasch = substr(seasch,1,9) + substr(seasch,12,4)
 replace seasch = "" if DataLevel != 3
 
-merge m:1 State_leaid using "${NCES}/NCES_2015_District.dta"
+merge m:1 State_leaid using "${NCES}/NCES_2016_District.dta"
 drop if _merge == 2
 drop _merge
 
-merge m:1 seasch using "${NCES}/NCES_2015_School.dta"
+merge m:1 seasch using "${NCES}/NCES_2016_School.dta"
 drop if _merge == 2
 drop _merge
 
-save "${output}/IL_AssmtData_2016_sci.dta", replace
+save "${output}/IL_AssmtData_2017_sci.dta", replace
 
 
 
 
 **** ELA & Math District & Schools
 
-use "${output}/IL_AssmtData_2016_all.dta", clear
+use "${output}/IL_AssmtData_2017_all.dta", clear
 
 ** Dropping extra variables
 
@@ -458,7 +461,7 @@ replace GradeLevel = "G0" + GradeLevel
 
 ** Generating new variables
 
-gen SchYear = "2015-16"
+gen SchYear = "2016-17"
 
 gen AssmtName = "PARCC"
 gen AssmtType = "Regular"
@@ -495,20 +498,19 @@ gen ParticipationRate = "--"
 
 gen State_leaid = StateAssignedSchID
 replace State_leaid = substr(State_leaid,1,11)
-replace State_leaid = substr(State_leaid,1,2) + "-" + substr(State_leaid,3,3) + "-" + substr(State_leaid,6,4) + "-" + substr(State_leaid,10,2)
+replace State_leaid = "IL-" + substr(State_leaid,1,2) + "-" + substr(State_leaid,3,3) + "-" + substr(State_leaid,6,4) + "-" + substr(State_leaid,10,2)
 replace StateAssignedSchID = "" if DataLevel != 3
 
 gen seasch = StateAssignedSchID
+replace seasch = subinstr(seasch,"IL-","",.)
 replace seasch = substr(seasch,1,9) + substr(seasch,12,4)
 replace seasch = "" if DataLevel != 3
 
-merge m:1 State_leaid using "${NCES}/NCES_2015_District.dta"
-
+merge m:1 State_leaid using "${NCES}/NCES_2017_District.dta"
 drop if _merge == 2
 drop _merge
 
-merge m:1 seasch using "${NCES}/NCES_2015_School.dta"
-
+merge m:1 seasch using "${NCES}/NCES_2017_School.dta"
 drop if _merge == 2
 drop _merge
 
@@ -517,8 +519,8 @@ drop _merge
 
 **** Appending
 
-append using "${output}/IL_AssmtData_2016_all_state.dta"
-append using "${output}/IL_AssmtData_2016_sci.dta"
+append using "${output}/IL_AssmtData_2017_all_state.dta"
+append using "${output}/IL_AssmtData_2017_sci.dta"
 
 replace StateAbbrev = "IL" if DataLevel == 1
 replace State = 17 if DataLevel == 1
@@ -534,12 +536,12 @@ gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_read = ""
-gen Flag_CutScoreChange_oth = "Y"
+gen Flag_CutScoreChange_oth = "N"
 
 order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${output}/IL_AssmtData_2016.dta", replace
+save "${output}/IL_AssmtData_2017.dta", replace
 
-export delimited using "${output}/csv/IL_AssmtData_2016.csv", replace
+export delimited using "${output}/csv/IL_AssmtData_2017.csv", replace
