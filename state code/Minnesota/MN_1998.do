@@ -52,7 +52,7 @@ drop M
 
 replace SchYear = "1997-98" if SchYear == "97-98"
 replace Subject = "math" if Subject == "M"
-replace Subject = "read" if Subject == "R"
+replace Subject = "ela" if Subject == "R"
 replace Subject = "wri" if Subject == "W"
 replace GradeLevel = "G03" if GradeLevel == "03"
 replace GradeLevel = "G05" if GradeLevel == "05"

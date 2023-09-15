@@ -221,9 +221,9 @@ gen AssmtType="Regular"
 gen AssmtName="AIMS"
 gen Flag_AssmtNameChange="N"
 
-gen Flag_CutScoreChange_ELA=""
+gen Flag_CutScoreChange_ELA="N"
 gen Flag_CutScoreChange_math="N"
-gen Flag_CutScoreChange_read="N"
+gen Flag_CutScoreChange_read=""
 gen Flag_CutScoreChange_oth="N"
 
 gen Lev5_percent=""
@@ -255,7 +255,7 @@ foreach u of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent Profici
 }
 
 ** Rename various values
-replace Subject="read" if Subject=="Reading"
+replace Subject="ela" if Subject=="Reading"
 replace Subject="math" if Subject=="Math"
 replace Subject="sci" if Subject=="Science"
 replace Subject="wri" if Subject=="Writing"

@@ -10,7 +10,7 @@ use "${output}/WA_AssmtData_2017_all.dta", clear
 
 ** Dropping extra variables
 
-drop ESDName ESDOrganizationID CurrentSchoolType CountofStudentsExpectedtoTest PercentMetTestedOnly DataAsOf
+drop ESDName ESDOrganizationID CurrentSchoolType PercentMetTestedOnly DataAsOf
 
 ** Rename existing variables
 
@@ -35,6 +35,7 @@ rename PercentLevel1 Lev1_percent
 rename PercentLevel2 Lev2_percent
 rename PercentLevel3 Lev3_percent
 rename PercentLevel4 Lev4_percent
+rename CountofStudentsExpectedtoTest testreplacement
 
 ** Dropping entries
 
@@ -87,10 +88,6 @@ replace StudentSubGroup = "Two or More" if StudentSubGroup == "Two or More Races
 
 ** Generating new variables
 
-replace StudentSubGroup_TotalTested = -100000 if StudentSubGroup_TotalTested == .
-bysort DistName SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
-replace StudentGroup_TotalTested = . if StudentGroup_TotalTested < 0
-
 local level 1 2 3 4
 
 foreach a of local level {
@@ -131,13 +128,41 @@ replace ProficientOrAbove_percent = "*" if Suppression != "None" & ProficientOrA
 tostring ProficientOrAbove_count, replace force
 replace ProficientOrAbove_count = "*" if Suppression != "None"
 
-tostring StudentGroup_TotalTested, replace force
-replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
-
 tostring StudentSubGroup_TotalTested, replace force
 replace StudentSubGroup_TotalTested = "*" if Suppression != "None"
 
 drop Suppression
+
+** Review 2 Update
+
+destring Lev3_percent, gen(Lev3_percent2) force
+destring Lev4_percent, gen(Lev4_percent2) force
+destring ProficientOrAbove_percent, gen(ProficientOrAbove_percent2) force
+
+gen sum = Lev3_percent2 + Lev4_percent2
+gen diff = sum - ProficientOrAbove_percent2
+
+replace ProficientOrAbove_percent2 = Lev3_percent2 + Lev4_percent2
+gen ProficientOrAbove_count2 = round(testreplacement * ProficientOrAbove_percent2)
+
+tostring ProficientOrAbove_count2, replace force
+replace ProficientOrAbove_count = ProficientOrAbove_count2 if (diff > 0.01 | diff < -0.01) & diff != . & ProficientOrAbove_count2 != "."
+
+tostring ProficientOrAbove_percent2, replace force
+replace ProficientOrAbove_percent = ProficientOrAbove_percent2 if (diff > 0.01 | diff < -0.01) & diff != . & ProficientOrAbove_percent2 != "."
+
+tostring testreplacement, replace force
+replace StudentSubGroup_TotalTested = testreplacement if (diff > 0.01 | diff < -0.01) & diff != . & testreplacement != "."
+
+destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
+replace StudentSubGroup_TotalTested2 = -100000 if StudentSubGroup_TotalTested2 == .
+bysort DistName SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested2)
+replace StudentGroup_TotalTested = . if StudentGroup_TotalTested < 0
+
+tostring StudentGroup_TotalTested, replace force
+replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
+
+drop *percent2 testreplacement ProficientOrAbove_count2 sum diff StudentSubGroup_TotalTested2
 
 ** Merging with NCES
 

@@ -121,7 +121,7 @@ drop if StateAssignedDistID == "8888"
 
 replace SchYear = "2006-07" if SchYear == "06-07"
 replace Subject = "math" if Subject == "M"
-replace Subject = "read" if Subject == "R"
+replace Subject = "ela" if Subject == "R"
 recast int GradeLevel
 tostring GradeLevel, replace
 replace GradeLevel = "G03" if GradeLevel == "3"

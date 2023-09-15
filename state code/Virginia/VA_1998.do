@@ -13,18 +13,18 @@ cd "/Users/maggie/Desktop/Virginia"
 
 import excel "/${raw}/VA_OriginalData_1998-2002_all.xls", sheet("1998-2002 % Passing By School") cellrange(A2:EP2119) firstrow case(lower) clear
 
-rename english1998 ProficientOrAbove_percentela3
+rename english1998 ProficientOrAbove_percentread3
 rename mathematics1998 ProficientOrAbove_percentmath3
 rename history1998 ProficientOrAbove_percentsoc3
 rename science1998 ProficientOrAbove_percentsci3
 rename writing1998 ProficientOrAbove_percentwri5
-rename englishrlr1998 ProficientOrAbove_percentela5
+rename englishrlr1998 ProficientOrAbove_percentread5
 rename ak ProficientOrAbove_percentmath5
 rename ap ProficientOrAbove_percentsoc5
 rename au ProficientOrAbove_percentsci5
 rename computertechnology1998 ProficientOrAbove_percentstem5
 rename be ProficientOrAbove_percentwri8
-rename bj ProficientOrAbove_percentela8
+rename bj ProficientOrAbove_percentread8
 rename bo ProficientOrAbove_percentmath8
 rename bt ProficientOrAbove_percentsoc8
 rename by ProficientOrAbove_percentsci8
@@ -34,7 +34,7 @@ keep div divisionname sch schoolname lowgr highgr ProficientOrAbove_percent*
 
 drop if divisionname == ""
 
-reshape long ProficientOrAbove_percentela ProficientOrAbove_percentmath ProficientOrAbove_percentsoc ProficientOrAbove_percentsci ProficientOrAbove_percentwri ProficientOrAbove_percentstem, i(div sch) j(GradeLevel)
+reshape long ProficientOrAbove_percentread ProficientOrAbove_percentmath ProficientOrAbove_percentsoc ProficientOrAbove_percentsci ProficientOrAbove_percentwri ProficientOrAbove_percentstem, i(div sch) j(GradeLevel)
 
 reshape long ProficientOrAbove_percent, i(div sch GradeLevel) j(Subject) string
 
@@ -75,10 +75,10 @@ drop if SOLTest == "" | SOLTest == "Grade 3" | SOLTest == "Grade 5" | SOLTest ==
 gen gradebreakup = _n
 drop if gradebreakup > 16
 
-gen GradeLevel= .
-replace GradeLevel=3 if gradebreakup < 5
-replace GradeLevel=5 if gradebreakup > 4
-replace GradeLevel=8 if gradebreakup > 10
+gen GradeLevel = .
+replace GradeLevel = 3 if gradebreakup < 5
+replace GradeLevel = 5 if gradebreakup > 4
+replace GradeLevel = 8 if gradebreakup > 10
 
 keep SOLTest Female Male GradeLevel
 rename Female ProficientOrAbove_percentFemale
@@ -86,11 +86,11 @@ rename Male ProficientOrAbove_percentMale
 
 reshape long ProficientOrAbove_percent, i(SOLTest GradeLevel) j(StudentSubGroup) string
 
-gen StudentGroup="Gender"
+gen StudentGroup = "Gender"
 rename SOLTest Subject
 
 destring ProficientOrAbove_percent, replace
-replace ProficientOrAbove_percent=ProficientOrAbove_percent/100
+replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
 tostring ProficientOrAbove_percent, replace force
 
 save "/${output}/VA_1998_gender.dta", replace
@@ -102,19 +102,19 @@ import excel "/${raw}/disaggregate/VA_1998-2002_raceeth.xls", sheet("Sheet1 (2)"
 
 keep A B G L Q
 rename A StudentSubGroup
-rename B ProficientOrAbove_percentela	//Eng
-rename G ProficientOrAbove_percentmath	//math
-rename L ProficientOrAbove_percentsoc	//Hist
-rename Q ProficientOrAbove_percentsci	//Sci
+rename B ProficientOrAbove_percentread
+rename G ProficientOrAbove_percentmath
+rename L ProficientOrAbove_percentsoc
+rename Q ProficientOrAbove_percentsci
 
-gen GradeLevel=3
+gen GradeLevel = 3
 
 reshape long ProficientOrAbove_percent, i(StudentSubGroup) j(Subject) string
 
-replace ProficientOrAbove_percent=ProficientOrAbove_percent/100
+replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
 tostring ProficientOrAbove_percent, replace force
 
-gen StudentGroup="RaceEth"
+gen StudentGroup = "RaceEth"
 
 save "/${output}/VA_1998_race3.dta", replace
 
@@ -125,19 +125,19 @@ import excel "/${raw}/disaggregate/VA_1998-2002_raceeth.xls", sheet("Sheet1 (2)"
 
 keep A B G L Q V AA
 rename A StudentSubGroup
-rename B ProficientOrAbove_percentela	//Eng
-rename G ProficientOrAbove_percentwri	//wri
-rename L ProficientOrAbove_percentmath	//mat
-rename Q ProficientOrAbove_percentsoc	//soc
-rename V ProficientOrAbove_percentsci	//sci
-rename AA ProficientOrAbove_percentstem	//stem
+rename B ProficientOrAbove_percentread
+rename G ProficientOrAbove_percentwri
+rename L ProficientOrAbove_percentmath
+rename Q ProficientOrAbove_percentsoc
+rename V ProficientOrAbove_percentsci
+rename AA ProficientOrAbove_percentstem
 
-gen id=_n
-gen GradeLevel=.
-replace GradeLevel=5 if id<12
-replace GradeLevel=8 if id>12
-drop if id<=4
-drop if id>10 & id<18
+gen id = _n
+gen GradeLevel = .
+replace GradeLevel = 5 if id<12
+replace GradeLevel = 8 if id>12
+drop if id <= 4
+drop if id > 10 & id < 18
 drop id
 
 reshape long ProficientOrAbove_percent, i(StudentSubGroup GradeLevel) j(Subject) string
@@ -146,7 +146,7 @@ destring ProficientOrAbove_percent, replace
 replace ProficientOrAbove_percent=ProficientOrAbove_percent/100
 tostring ProficientOrAbove_percent, replace force
 
-gen StudentGroup="RaceEth"
+gen StudentGroup = "RaceEth"
 
 save "/${output}/VA_1998_race58.dta", replace
 
@@ -162,29 +162,27 @@ append using "/${output}/VA_1998_race58.dta"
 
 ////	PREPARE FOR NCES MERGE
 
-gen StateAssignedDistID=div
-destring div, gen(divindex)
-replace div="00" + div if divindex<10
-replace div="0" + div if divindex>=10 & divindex<100
-drop divindex
+destring div, gen(StateAssignedDistID)
+replace div = "00" + div if StateAssignedDistID < 10
+replace div = "0" + div if StateAssignedDistID >= 10 & StateAssignedDistID < 100
+tostring StateAssignedDistID, replace
 rename div State_leaid
 
-gen StateAssignedSchID=sch
-tostring StateAssignedSchID, replace
 tostring sch, replace
-destring sch, gen(schindex)
-replace sch=State_leaid+"000"+sch if schindex<10
-replace sch=State_leaid+"00"+sch if schindex>=10 & schindex<100
-replace sch=State_leaid+"0"+sch if schindex>=100 & schindex<1000
-replace sch=State_leaid+sch if schindex>=1000
-drop schindex
+destring sch, gen(StateAssignedSchID)
+replace sch = State_leaid + "000" + sch if StateAssignedSchID < 10
+replace sch = State_leaid + "00" + sch if StateAssignedSchID >= 10 & StateAssignedSchID < 100
+replace sch = State_leaid + "0" + sch if StateAssignedSchID >= 100 & StateAssignedSchID < 1000
+replace sch = State_leaid + sch if StateAssignedSchID >= 1000
+tostring StateAssignedSchID, replace
 rename sch seasch
 
-replace seasch="" if schoolname=="DIVISION SUMMARY" | schoolname=="STATE SUMMARY"
-replace StateAssignedSchID="" if schoolname=="DIVISION SUMMARY" | schoolname=="STATE SUMMARY"
+replace StateAssignedDistID = "" if schoolname == "STATE SUMMARY" | StudentGroup != "All Students"
+replace seasch = "" if schoolname == "DIVISION SUMMARY" | schoolname == "STATE SUMMARY" | StudentGroup != "All Students"
+replace StateAssignedSchID = "" if schoolname == "DIVISION SUMMARY" | schoolname == "STATE SUMMARY" | StudentGroup != "All Students"
 
 merge m:1 State_leaid using "/${NCES}/NCES_2001_District.dta"
-drop if _merge==2
+drop if _merge == 2
 drop _merge
 
 merge m:1 seasch using "/${NCES}/NCES_2001_School.dta"
@@ -194,13 +192,12 @@ drop _merge
 
 ////	FINISH CLEANING DATA
 
-
-replace Subject="stem" if Subject=="Computer/Technology"
-replace Subject="wri" if strpos(Subject, "Writing") > 0
-replace Subject="ela" if strpos(Subject, "English") > 0
-replace Subject="soc" if Subject=="History"
-replace Subject="math" if Subject=="Mathematics"
-replace Subject="sci" if Subject=="Science"
+replace Subject = "stem" if Subject == "Computer/Technology"
+replace Subject = "wri" if strpos(Subject, "Writing") > 0
+replace Subject = "ela" if strpos(Subject, "English") > 0
+replace Subject = "soc" if Subject == "History"
+replace Subject = "math" if Subject == "Mathematics"
+replace Subject = "sci" if Subject == "Science"
 
 local level 1 2 3
 foreach a of local level {
@@ -209,17 +206,14 @@ foreach a of local level {
 }
 
 gen Lev4_count = ""
-replace Lev4_count = "--" if Subject == "math" | Subject == "ela"
 gen Lev4_percent = ""
-replace Lev4_percent = "--" if Subject == "math" | Subject == "ela"
-
 gen Lev5_count = ""
 gen Lev5_percent = ""
 
 gen DataLevel = "School"
-replace DataLevel="State" if StudentGroup!="All Students"
-replace DataLevel="State" if schoolname=="STATE SUMMARY"
-replace DataLevel="District" if schoolname=="DIVISION SUMMARY"
+replace DataLevel = "State" if StudentGroup != "All Students"
+replace DataLevel = "State" if schoolname == "STATE SUMMARY"
+replace DataLevel = "District" if schoolname == "DIVISION SUMMARY"
 
 label def DataLevel 1 "State" 2 "District" 3 "School"
 encode DataLevel, gen(DataLevel_n) label(DataLevel)
@@ -228,37 +222,37 @@ drop DataLevel
 rename DataLevel_n DataLevel 
 
 tostring GradeLevel, replace
-replace GradeLevel="G03" if GradeLevel=="3"
-replace GradeLevel="G05" if GradeLevel=="5"
-replace GradeLevel="G08" if GradeLevel=="8"
+replace GradeLevel = "G03" if GradeLevel == "3"
+replace GradeLevel = "G05" if GradeLevel == "5"
+replace GradeLevel = "G08" if GradeLevel == "8"
 
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_read = ""
 gen Flag_CutScoreChange_oth = "N"
-gen AssmtName="Standards of Learning"
-gen AssmtType="Regular"
-gen SchYear="1997-98"
-gen StudentGroup_TotalTested="--"
-gen StudentSubGroup_TotalTested="--"
-gen AvgScaleScore="--"
-gen ProficiencyCriteria="Pass Proficient or Pass Advanced"
-gen ProficientOrAbove_count="--"
-gen ParticipationRate="--"
+gen AssmtName = "Standards of Learning"
+gen AssmtType = "Regular"
+gen SchYear = "1997-98"
+gen StudentGroup_TotalTested = "--"
+gen StudentSubGroup_TotalTested = "--"
+gen AvgScaleScore = "--"
+gen ProficiencyCriteria = "Pass Proficient and Pass Advanced"
+gen ProficientOrAbove_count = "--"
+gen ParticipationRate = "--"
 
-replace StudentSubGroup="Black or African American" if StudentSubGroup=="African American"
-replace StudentSubGroup="American Indian or Alaska Native" if StudentSubGroup=="Am Indian/Alaskan Native"
-replace StudentSubGroup="White" if StudentSubGroup=="Caucasian"
-replace StudentSubGroup="Asian" if StudentSubGroup=="Asian/Pacific Islander"
-replace StudentSubGroup="Unknown" if StudentSubGroup=="Ethnicity Unknown"
-replace StudentSubGroup="Hispanic or Latino" if StudentSubGroup=="Hispanic"
+replace StudentSubGroup = "Black or African American" if StudentSubGroup == "African American"
+replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "Am Indian/Alaskan Native"
+replace StudentSubGroup = "White" if StudentSubGroup == "Caucasian"
+replace StudentSubGroup = "Asian" if StudentSubGroup == "Asian/Pacific Islander"
+replace StudentSubGroup = "Unknown" if StudentSubGroup == "Ethnicity Unknown"
+replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
 
-replace State=51 if DataLevel == 1
-replace StateAbbrev="VA" if DataLevel == 1
-replace StateFips=51 if DataLevel == 1
-replace DistName="All Districts" if DataLevel == 1
-replace SchName="All Schools" if DataLevel != 3
+replace State = 51 if DataLevel == 1
+replace StateAbbrev = "VA" if DataLevel == 1
+replace StateFips = 51 if DataLevel == 1
+replace DistName = "All Districts" if DataLevel == 1
+replace SchName = "All Schools" if DataLevel != 3
 
 drop divisionname schoolname
 

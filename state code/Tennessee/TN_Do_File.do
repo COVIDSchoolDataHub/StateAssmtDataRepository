@@ -68,6 +68,13 @@ foreach n in $ncesyears {
 	save "${path}/Semi-Processed Data Files/`n'_`m'_NCES_Cleaned_District.dta", replace
 }
 
+use "${path}/Semi-Processed Data Files/2011_12_NCES_Cleaned_School.dta"
+gen SchYear = "2011-12"
+append using "/Users/willtolmie/Documents/State Repository Research/Tennessee/Semi-Processed Data Files/2012_13_NCES_Cleaned_School.dta"
+drop if SchYear == "2011-12" & NCESSchoolID != "470294001075"
+drop SchYear
+save "${path}/Semi-Processed Data Files/2012_13_NCES_Cleaned_School.dta", replace
+
 global ncesyear 2010  
 foreach n in $ncesyear {
 	
@@ -422,8 +429,8 @@ foreach y in $years {
 	gen str4 z = string(StateAssignedSchID,"%04.0f")
 	gen State_leaid = "TN-" + x if DataLevel != "State"
 	gen seasch = x + "-" + z if DataLevel == "School"
-	replace seasch = "00900-0050" if SchName == "Grandview Heights Elementary School" & `y' == 2013
-	replace State_leaid = "TN-00900"  if SchName == "Grandview Heights Elementary School" & `y' == 2013
+	// replace seasch = "00900-0050" if SchName == "Grandview Heights Elementary School" & `y' == 2013
+	// replace State_leaid = "TN-00900"  if SchName == "Grandview Heights Elementary School" & `y' == 2013
 	save "${path}/Semi-Processed Data Files/TN_`y'_merge.dta", replace
 }
 
@@ -626,7 +633,7 @@ foreach y in $years {
 	replace Flag_CutScoreChange_math = "Y" if `y' == 2017
 	gen Flag_CutScoreChange_read = ""
 	gen Flag_CutScoreChange_oth = "N"
-	replace Flag_CutScoreChange_math = "Y" if `y' == 2021 | `y' == 2017
+	replace Flag_CutScoreChange_oth = "Y" if `y' == 2017
 	
 	** Generate Other Variables
 	
@@ -724,8 +731,8 @@ foreach y in $years {
 
 	** Generate Empty Variables
 
-	gen Lev5_count = "--"
-	gen Lev5_percent = "--"
+	gen Lev5_count = ""
+	gen Lev5_percent = ""
 	gen AvgScaleScore = "--"
 	
 	** Label Variables

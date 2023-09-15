@@ -7,7 +7,7 @@ global raw "/Users/maggie/Desktop/Washington/Original Data Files"
 global output "/Users/maggie/Desktop/Washington/Output"
 global NCES "/Users/maggie/Desktop/Washington/NCES/Cleaned"
 
-global years 2015 2016 2017 2018 2019 2021 2022
+global years 2015 2016 2017 2018 2019 2021 2022 2023
 
 ** Converting to dta **
 
