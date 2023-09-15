@@ -81,7 +81,7 @@ rename BX ProficientOrAbove_pct_G08_ela
 drop BY BZ CA CB CC CD CE CF CG CH CI CJ
 
 drop if StateAssignedDistID == ""
-drop if StateAssignedDistID == "Dist"
+drop if StateAssignedDistID == "District"
 drop if StateAssignedDistID == "** Indicates that the rate has been suppressed due to a very small student count at the subgroup level. "
 drop if StateAssignedDistID == "Data suppression is applied to comply with WVDE standards for disclosure avoidance to protect student confidentiality."
 drop if StateAssignedDistID == "Please Note"
@@ -141,11 +141,11 @@ replace Lev3_percent = Lev3_percent/100
 replace Lev4_percent = Lev4_percent/100
 replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
 
-tostring Lev1_percent, replace format("%10.0g") force
-tostring Lev2_percent, replace format("%10.0g") force
-tostring Lev3_percent, replace format("%10.0g") force
-tostring Lev4_percent, replace format("%10.0g") force
-tostring ProficientOrAbove_percent, replace format("%10.0g") force
+tostring Lev1_percent, replace format("%6.0g") force
+tostring Lev2_percent, replace format("%6.0g") force
+tostring Lev3_percent, replace format("%6.0g") force
+tostring Lev4_percent, replace format("%6.0g") force
+tostring ProficientOrAbove_percent, replace format("%6.0g") force
 
 replace Lev1_percent = "*" if Lev1_pct == "**"
 replace Lev1_percent = "--" if Lev1_pct == "--"
@@ -181,8 +181,8 @@ gen Lev1_count = "--"
 gen Lev2_count = "--"
 gen Lev3_count = "--"
 gen Lev4_count = "--"
-gen Lev5_count = "--"
-gen Lev5_percent = "--"
+gen Lev5_count = ""
+gen Lev5_percent = ""
 gen ProficiencyCriteria = "Levels 3 + 4"
 gen ProficientOrAbove_count = "--"
 gen ParticipationRate = "--"
@@ -254,6 +254,7 @@ replace NCESSchoolID = "540117001522" if SchName == "South Preston School"
 replace SchVirtual = 0 if SchName == "South Preston School"
 replace SchLevel = 1 if SchName == "South Preston School"
 replace SchType = 1 if SchName == "South Preston School"
+replace seasch = "70106" if SchName == "South Preston School"
 
 decode SchVirtual, gen(SchVirtual_s)
 drop SchVirtual
@@ -407,7 +408,7 @@ rename BX ProficientOrAbove_pct_G08_ela
 drop BY BZ CA CB CC CD CE CF CG CH CI CJ CK CL CM CN CO CP CQ CR CS CT CU CV
 
 drop if StateAssignedDistID == ""
-drop if StateAssignedDistID == "Dist"
+drop if StateAssignedDistID == "District"
 drop if StateAssignedDistID == "** Indicates that the rate has been suppressed due to a very small student count at the subgroup level. "
 drop if StateAssignedDistID == "Data suppression is applied to comply with WVDE standards for disclosure avoidance to protect student confidentiality."
 drop if StateAssignedDistID == "Please Note"
@@ -467,11 +468,11 @@ replace Lev3_percent = Lev3_percent/100
 replace Lev4_percent = Lev4_percent/100
 replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
 
-tostring Lev1_percent, replace format("%10.0g") force
-tostring Lev2_percent, replace format("%10.0g") force
-tostring Lev3_percent, replace format("%10.0g") force
-tostring Lev4_percent, replace format("%10.0g") force
-tostring ProficientOrAbove_percent, replace format("%10.0g") force
+tostring Lev1_percent, replace format("%6.0g") force
+tostring Lev2_percent, replace format("%6.0g") force
+tostring Lev3_percent, replace format("%6.0g") force
+tostring Lev4_percent, replace format("%6.0g") force
+tostring ProficientOrAbove_percent, replace format("%6.0g") force
 
 replace Lev1_percent = "*" if Lev1_pct == "**"
 replace Lev1_percent = "--" if Lev1_pct == "--"
@@ -507,8 +508,8 @@ gen Lev1_count = "--"
 gen Lev2_count = "--"
 gen Lev3_count = "--"
 gen Lev4_count = "--"
-gen Lev5_count = "--"
-gen Lev5_percent = "--"
+gen Lev5_count = ""
+gen Lev5_percent = ""
 gen ProficiencyCriteria = "Levels 3 + 4"
 gen ProficientOrAbove_count = "--"
 gen ParticipationRate = "--"
@@ -726,7 +727,7 @@ rename BX ProficientOrAbove_pct_G08_ela
 drop BY BZ CA CB CC CD CE CF CG CH CI
 
 drop if StateAssignedDistID == ""
-drop if StateAssignedDistID == "Dist"
+drop if StateAssignedDistID == "District"
 drop if StateAssignedDistID == "** Indicates that the rate has been suppressed due to a very small student count at the subgroup level. "
 drop if StateAssignedDistID == "Data suppression is applied to comply with WVDE standards for disclosure avoidance to protect student confidentiality."
 drop if StateAssignedDistID == "Please Note"
@@ -786,11 +787,11 @@ replace Lev3_percent = Lev3_percent/100
 replace Lev4_percent = Lev4_percent/100
 replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
 
-tostring Lev1_percent, replace format("%10.0g") force
-tostring Lev2_percent, replace format("%10.0g") force
-tostring Lev3_percent, replace format("%10.0g") force
-tostring Lev4_percent, replace format("%10.0g") force
-tostring ProficientOrAbove_percent, replace format("%10.0g") force
+tostring Lev1_percent, replace format("%6.0g") force
+tostring Lev2_percent, replace format("%6.0g") force
+tostring Lev3_percent, replace format("%6.0g") force
+tostring Lev4_percent, replace format("%6.0g") force
+tostring ProficientOrAbove_percent, replace format("%6.0g") force
 
 replace Lev1_percent = "*" if Lev1_pct == "**"
 replace Lev1_percent = "--" if Lev1_pct == "--"
@@ -817,7 +818,7 @@ replace StateAssignedSchID = "" if DataLevel != "School"
 
 //Generate New Variables
 gen State = "West Virginia"
-gen SchYear = "2017-18"
+gen SchYear = "2016-17"
 gen AssmtName = "West Virginia General Summative Assessment"
 gen AssmtType = "Regular"
 gen StudentGroup_TotalTested = "--"
@@ -826,8 +827,8 @@ gen Lev1_count = "--"
 gen Lev2_count = "--"
 gen Lev3_count = "--"
 gen Lev4_count = "--"
-gen Lev5_count = "--"
-gen Lev5_percent = "--"
+gen Lev5_count = ""
+gen Lev5_percent = ""
 gen ProficiencyCriteria = "Levels 3 + 4"
 gen ProficientOrAbove_count = "--"
 gen ParticipationRate = "--"
@@ -1047,7 +1048,7 @@ rename BX ProficientOrAbove_pct_G08_ela
 drop BY BZ CA CB CC CD CE CF CG CH CI CJ CK
 
 drop if StateAssignedDistID == ""
-drop if StateAssignedDistID == "Dist"
+drop if StateAssignedDistID == "District"
 drop if StateAssignedDistID == "** Indicates that the rate has been suppressed due to a very small student count at the subgroup level. "
 drop if StateAssignedDistID == "Data suppression is applied to comply with WVDE standards for disclosure avoidance to protect student confidentiality."
 drop if StateAssignedDistID == "Please Note"
@@ -1107,11 +1108,11 @@ replace Lev3_percent = Lev3_percent/100
 replace Lev4_percent = Lev4_percent/100
 replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
 
-tostring Lev1_percent, replace format("%10.0g") force
-tostring Lev2_percent, replace format("%10.0g") force
-tostring Lev3_percent, replace format("%10.0g") force
-tostring Lev4_percent, replace format("%10.0g") force
-tostring ProficientOrAbove_percent, replace format("%10.0g") force
+tostring Lev1_percent, replace format("%6.0g") force
+tostring Lev2_percent, replace format("%6.0g") force
+tostring Lev3_percent, replace format("%6.0g") force
+tostring Lev4_percent, replace format("%6.0g") force
+tostring ProficientOrAbove_percent, replace format("%6.0g") force
 
 replace Lev1_percent = "*" if Lev1_pct == "**"
 replace Lev1_percent = "--" if Lev1_pct == "--"
@@ -1147,8 +1148,8 @@ gen Lev1_count = "--"
 gen Lev2_count = "--"
 gen Lev3_count = "--"
 gen Lev4_count = "--"
-gen Lev5_count = "--"
-gen Lev5_percent = "--"
+gen Lev5_count = ""
+gen Lev5_percent = ""
 gen ProficiencyCriteria = "Levels 3 + 4"
 gen ProficientOrAbove_count = "--"
 gen ParticipationRate = "--"
@@ -1378,7 +1379,7 @@ rename CR ProficientOrAbove_pct_G08_sci
 drop CS CT CU CV CW CX CY CZ DA DB DC
 
 drop if StateAssignedDistID == ""
-drop if StateAssignedDistID == "Dist"
+drop if StateAssignedDistID == "District"
 drop if StateAssignedDistID == "** Indicates that the rate has been suppressed due to a very small student count at the subgroup level. "
 drop if StateAssignedDistID == "Data suppression is applied to comply with WVDE standards for disclosure avoidance to protect student confidentiality."
 drop if StateAssignedDistID == "Please Note"
@@ -1438,11 +1439,11 @@ replace Lev3_percent = Lev3_percent/100
 replace Lev4_percent = Lev4_percent/100
 replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
 
-tostring Lev1_percent, replace format("%10.0g") force
-tostring Lev2_percent, replace format("%10.0g") force
-tostring Lev3_percent, replace format("%10.0g") force
-tostring Lev4_percent, replace format("%10.0g") force
-tostring ProficientOrAbove_percent, replace format("%10.0g") force
+tostring Lev1_percent, replace format("%6.0g") force
+tostring Lev2_percent, replace format("%6.0g") force
+tostring Lev3_percent, replace format("%6.0g") force
+tostring Lev4_percent, replace format("%6.0g") force
+tostring ProficientOrAbove_percent, replace format("%6.0g") force
 
 replace Lev1_percent = "*" if Lev1_pct == "**"
 replace Lev1_percent = "--" if Lev1_pct == "--"
@@ -1478,8 +1479,8 @@ gen Lev1_count = "--"
 gen Lev2_count = "--"
 gen Lev3_count = "--"
 gen Lev4_count = "--"
-gen Lev5_count = "--"
-gen Lev5_percent = "--"
+gen Lev5_count = ""
+gen Lev5_percent = ""
 gen ProficiencyCriteria = "Levels 3 + 4"
 gen ProficientOrAbove_count = "--"
 gen ParticipationRate = "--"
@@ -1713,7 +1714,7 @@ rename CR ProficientOrAbove_pct_G08_sci
 drop CS CT CU CV CW CX CY CZ DA DB
 
 drop if StateAssignedDistID == ""
-drop if StateAssignedDistID == "Dist"
+drop if StateAssignedDistID == "District"
 drop if StateAssignedDistID == "** Indicates that the rate has been suppressed due to a very small student count at the subgroup level. "
 drop if StateAssignedDistID == "Data suppression is applied to comply with WVDE standards for disclosure avoidance to protect student confidentiality."
 drop if StateAssignedDistID == "Please Note"
@@ -1773,11 +1774,11 @@ replace Lev3_percent = Lev3_percent/100
 replace Lev4_percent = Lev4_percent/100
 replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
 
-tostring Lev1_percent, replace format("%10.0g") force
-tostring Lev2_percent, replace format("%10.0g") force
-tostring Lev3_percent, replace format("%10.0g") force
-tostring Lev4_percent, replace format("%10.0g") force
-tostring ProficientOrAbove_percent, replace format("%10.0g") force
+tostring Lev1_percent, replace format("%6.0g") force
+tostring Lev2_percent, replace format("%6.0g") force
+tostring Lev3_percent, replace format("%6.0g") force
+tostring Lev4_percent, replace format("%6.0g") force
+tostring ProficientOrAbove_percent, replace format("%6.0g") force
 
 replace Lev1_percent = "*" if Lev1_pct == "**"
 replace Lev1_percent = "--" if Lev1_pct == "--"
@@ -1813,8 +1814,8 @@ gen Lev1_count = "--"
 gen Lev2_count = "--"
 gen Lev3_count = "--"
 gen Lev4_count = "--"
-gen Lev5_count = "--"
-gen Lev5_percent = "--"
+gen Lev5_count = ""
+gen Lev5_percent = ""
 gen ProficiencyCriteria = "Levels 3 + 4"
 gen ProficientOrAbove_count = "--"
 gen ParticipationRate = "--"
@@ -2107,11 +2108,11 @@ replace Lev3_percent = Lev3_percent/100
 replace Lev4_percent = Lev4_percent/100
 replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
 
-tostring Lev1_percent, replace format("%10.0g") force
-tostring Lev2_percent, replace format("%10.0g") force
-tostring Lev3_percent, replace format("%10.0g") force
-tostring Lev4_percent, replace format("%10.0g") force
-tostring ProficientOrAbove_percent, replace format("%10.0g") force
+tostring Lev1_percent, replace format("%6.0g") force
+tostring Lev2_percent, replace format("%6.0g") force
+tostring Lev3_percent, replace format("%6.0g") force
+tostring Lev4_percent, replace format("%6.0g") force
+tostring ProficientOrAbove_percent, replace format("%6.0g") force
 
 replace Lev1_percent = "*" if Lev1_pct == "**"
 replace Lev1_percent = "--" if Lev1_pct == "--"
@@ -2147,8 +2148,8 @@ gen Lev1_count = "--"
 gen Lev2_count = "--"
 gen Lev3_count = "--"
 gen Lev4_count = "--"
-gen Lev5_count = "--"
-gen Lev5_percent = "--"
+gen Lev5_count = ""
+gen Lev5_percent = ""
 gen ProficiencyCriteria = "Levels 3 + 4"
 gen ProficientOrAbove_count = "--"
 gen ParticipationRate = "--"
@@ -2452,8 +2453,8 @@ gen Lev1_count = "--"
 gen Lev2_count = "--"
 gen Lev3_count = "--"
 gen Lev4_count = "--"
-gen Lev5_count = "--"
-gen Lev5_percent = "--"
+gen Lev5_count = ""
+gen Lev5_percent = ""
 gen ProficiencyCriteria = "Levels 3 + 4"
 gen ProficientOrAbove_count = "--"
 gen ParticipationRate = "--"
@@ -2506,29 +2507,57 @@ replace StateFips = 54
 
 //Unmerged Schools
 replace NCESSchoolID = "540006201604" if SchName == "Eastern Panhandle Preparatory Academy"
+replace seasch = "1020000-102102" if SchName == "Eastern Panhandle Preparatory Academy"
+replace SchVirtual = -1 if SchName == "Eastern Panhandle Preparatory Academy"
 replace SchType = 1 if SchName == "Eastern Panhandle Preparatory Academy"
+replace SchLevel = -1 if SchName == "Eastern Panhandle Preparatory Academy"
 replace NCESDistrictID = "5400062" if DistName == "EP Prep Academy"
 replace CountyName = "Jefferson County" if DistName == "EP Prep Academy"
 replace CountyCode = 54037 if DistName == "EP Prep Academy"
 replace DistCharter = "Yes" if DistName == "EP Prep Academy"
+replace DistType = 7 if DistName == "EP Prep Academy"
+replace State_leaid = "WV-1020000" if DistName == "EP Prep Academy"
 
-replace NCESSchoolID = "Missing/Not Reported" if SchName == "Virtual Preparatory Academy of West Virginia"
+replace NCESSchoolID = "540006301605" if SchName == "Virtual Preparatory Academy of West Virginia"
+replace seasch = "1040000-104104" if SchName == "Virtual Preparatory Academy of West Virginia"
+replace SchVirtual = 1 if SchName == "Virtual Preparatory Academy of West Virginia"
+replace SchType = 1 if SchName == "Virtual Preparatory Academy of West Virginia"
+replace SchLevel = -1 if SchName == "Virtual Preparatory Academy of West Virginia"
 replace NCESDistrictID = "5400063" if DistName == "Virt Prep Academy"
 replace DistCharter = "Yes" if DistName == "Virt Prep Academy"
+replace DistType = 7 if DistName == "Virt Prep Academy"
 replace CountyName = "Jefferson County" if DistName == "Virt Prep Academy"
 replace CountyCode = 54037 if DistName == "Virt Prep Academy"
+replace State_leaid = "WV-1040000" if DistName == "Virt Prep Academy"
 
-replace NCESSchoolID = "Missing/Not Reported" if SchName == "West Virginia Virtual Academy"
+replace NCESSchoolID = "540006401606" if SchName == "West Virginia Virtual Academy"
+replace seasch = "1050000-105105" if SchName == "West Virginia Virtual Academy"
+replace SchVirtual = -1 if SchName == "West Virginia Virtual Academy"
+replace SchType = 1 if SchName == "West Virginia Virtual Academy"
+replace SchLevel = -1 if SchName == "West Virginia Virtual Academy"
 replace NCESDistrictID = "5400064" if DistName == "WV Virt Academy"
 replace DistCharter = "Yes" if DistName == "WV Virt Academy"
-replace CountyName = "Missing/Not Reported" if DistName == "WV Virt Academy"
+replace DistType = 7 if DistName == "WV Virt Academy"
+replace CountyName = "Kanawha County" if DistName == "WV Virt Academy"
+replace CountyCode = 54039 if DistName == "WV Virt Academy"
+replace State_leaid = "WV-1050000" if DistName == "WV Virt Academy"
 
-replace NCESSchoolID = "Missing/Not Reported" if SchName == "West Virginia Academy"
-replace NCESDistrictID = "Missing/Not Reported" if DistName == "WV Academy"
-replace CountyName = "Missing/Not Reported" if DistName == "WV Academy"
-replace DistCharter = "Missing/Not Reported" if DistName == "WV Academy"
+replace NCESSchoolID = "Missing/not reported" if SchName == "West Virginia Academy"
+replace seasch = "Missing/not reported" if SchName == "West Virginia Academy"
+replace SchVirtual = -1 if SchName == "West Virginia Academy"
+replace SchType = -1 if SchName == "West Virginia Academy"
+replace SchLevel = -1 if SchName == "West Virginia Academy"
+replace NCESDistrictID = "Missing/not reported" if DistName == "WV Academy"
+replace CountyName = "Missing/not reported" if DistName == "WV Academy"
+replace DistCharter = "Missing/not reported" if DistName == "WV Academy"
+replace DistType = -1 if DistName == "WV Academy"
+replace State_leaid = "Missing/not reported" if DistName == "WV Academy"
 
-replace NCESSchoolID = "Missing/Not Reported" if SchName == "Victory Elementary School"
+replace NCESSchoolID = "Missing/not reported" if SchName == "Victory Elementary School"
+replace seasch = "Missing/not reported" if SchName == "Victory Elementary School"
+replace SchLevel = 1 if SchName == "Victory Elementary School"
+replace SchType = -1 if SchName == "Victory Elementary School"
+replace SchVirtual = -1 if SchName == "Victory Elementary School"
 
 //Variable Types
 label def DataLevel 1 "State" 2 "District" 3 "School"
@@ -2585,7 +2614,7 @@ label var ProficientOrAbove_count "Count of students achieving proficiency or ab
 label var ProficientOrAbove_percent "Percent of students achieving proficiency or above on the state assessment"
 label var ParticipationRate "Participation rate"
 
-order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType  Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "$data/WV_AssmtData_2023", replace
