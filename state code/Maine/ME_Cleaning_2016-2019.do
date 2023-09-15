@@ -81,6 +81,7 @@ replace SchName = "All Schools" if DataLevel !=3
 //StudentSubGroup
 replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if strpos(StudentSubGroup, "Hawaiian") !=0
 replace StudentSubGroup = "Two or More" if strpos(StudentSubGroup, "Two") !=0
+replace StudentSubGroup = "English Learner" if StudentSubGroup == "English Learners"
 keep if StudentSubGroup == "All Students" | StudentSubGroup == "American Indian or Alaska Native" | StudentSubGroup == "Asian" | StudentSubGroup == "Black or African American" | StudentSubGroup == "Native Hawaiian or Pacific Islander" | StudentSubGroup == "White" | StudentSubGroup == "Hispanic or Latino" | StudentSubGroup == "English Learner" | StudentSubGroup == "English Proficient" | StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged" | StudentSubGroup == "Male" | StudentSubGroup == "Female" | StudentSubGroup == "Two or More"
 
 //StudentGroup
@@ -174,7 +175,10 @@ gen GradeLevel = "G38"
 
 //Proficiency Criteria
 gen ProficiencyCriteria = "Levels 3 and 4"
-gen AssmtName = "Maine Educational Assessment"
+
+//AssmtName
+gen AssmtName = "eMPowerME"
+replace AssmtName = "Maine Educational Assessment" if Subject == "sci"
 
 //State 
 gen State = "Maine"
