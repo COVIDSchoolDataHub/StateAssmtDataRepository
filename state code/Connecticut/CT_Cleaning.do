@@ -581,6 +581,19 @@ replace SchVirtual = 0 if SchName == "Geraldine Claytor Magnet Academy" & `year'
 replace CountyName = "Fairfield County" if SchName == "Geraldine Claytor Magnet Academy" & `year' == 2017
 replace CountyCode = 9001 if SchName == "Geraldine Claytor Magnet Academy" & `year' == 2017
 
+replace State_leaid = "CT-244" if SchName == "Mill Academy" & missing(NCESSchoolID)
+replace SchType = 4 if SchName == "Mill Academy" & missing(NCESSchoolID)
+replace NCESDistrictID = "900070" if SchName == "Mill Academy" & missing(NCESSchoolID)
+replace NCESSchoolID = "90007001505" if SchName == "Mill Academy" & missing(NCESSchoolID)
+replace seasch = "244-94" if SchName == "Mill Academy" & missing(NCESSchoolID)
+replace DistCharter = "No" if SchName == "Mill Academy" & missing(NCESSchoolID)
+replace DistType = 4 if SchName == "Mill Academy" & missing(NCESSchoolID)
+replace SchLevel = -1 if SchName == "Mill Academy" & missing(NCESSchoolID)
+replace SchVirtual = -1 if SchName == "Mill Academy" & missing(NCESSchoolID)
+replace CountyName = "New Haven County" if SchName == "Mill Academy" & missing(NCESSchoolID)
+replace CountyCode = 9009 if SchName == "Mill Academy" & missing(NCESSchoolID)
+
+
 //Dropping Unmerged with no data available
 
 drop if [_merge==2] & [(Lev1_percent == "*" | Lev1_percent == "--" | Lev1_percent == "0")  & (Lev2_percent == "*" | Lev2_percent == "--" | Lev2_percent == "0") & (Lev3_percent == "*" | Lev3_percent == "--" | Lev3_percent == "0" ) & (Lev4_percent == "*" | Lev4_percent == "--" | Lev4_percent == "0") & (ProficientOrAbove_percent == "*" | ProficientOrAbove_percent == "--" | ProficientOrAbove_percent == "0") & (ProficientOrAbove_count == "*" | ProficientOrAbove_count == "--" | ProficientOrAbove_count == "0")]
