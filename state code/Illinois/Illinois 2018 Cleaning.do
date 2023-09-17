@@ -1208,6 +1208,8 @@ gen ParticipationRate = "--"
 
 ** Merging with NCES
 
+gen StateAssignedDistID = substr(StateAssignedSchID,6,3)
+
 gen State_leaid = StateAssignedSchID
 replace State_leaid = substr(State_leaid,1,11)
 replace State_leaid = "IL-" + substr(State_leaid,1,2) + "-" + substr(State_leaid,3,3) + "-" + substr(State_leaid,6,4) + "-" + substr(State_leaid,10,2)

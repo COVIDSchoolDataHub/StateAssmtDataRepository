@@ -9,43 +9,48 @@ cd "/Users/maggie/Desktop/Illinois"
 
 
 
-**** Sci
+/**** Sci
 
 *** Sci AvgScaleScore
 
-use "${output}/IL_AssmtData_2019_sci_AvgScaleScore_5.dta", clear
-append using "${output}/IL_AssmtData_2019_sci_AvgScaleScore_8.dta"
+use "${output}/IL_AssmtData_2021_sci_AvgScaleScore_5.dta", clear
+gen GradeLevel = "G05"
+
+append using "${output}/IL_AssmtData_2021_sci_AvgScaleScore_8.dta"
+replace GradeLevel = "G08" if GradeLevel == ""
 
 ** Dropping extra variables
 
-drop County City
+drop County City H
 
 ** Rename existing variables
 
 rename RCDTS StateAssignedSchID
 rename DIST StateAssignedDistID
 rename SchoolorDistrictName SchName
-rename Grade GradeLevel
 rename StateDistrictSchool DataLevel
-rename AverageScaleScore AvgScaleScore
+rename ALL AvgScaleScore
 
 ** Generating new variables
-
-replace GradeLevel = "G" + GradeLevel
 
 gen StudentSubGroup = "All Students"
 
 tostring AvgScaleScore, replace
 replace AvgScaleScore = "*" if AvgScaleScore == "."
 
-save "${output}/IL_AssmtData_2019_sci_AvgScaleScore.dta", replace
+drop if DataLevel == ""
+
+save "${output}/IL_AssmtData_2021_sci_AvgScaleScore.dta", replace
 
 
 
 *** Sci Participation
 
-use "${output}/IL_AssmtData_2019_sci_Participation_5.dta", clear
-append using "${output}/IL_AssmtData_2019_sci_Participation_8.dta"
+use "${output}/IL_AssmtData_2021_sci_Participation_5.dta", clear
+gen GradeLevel = "G05"
+
+append using "${output}/IL_AssmtData_2021_sci_Participation_8.dta"
+replace GradeLevel = "G08" if  GradeLevel == ""
 
 ** Dropping extra variables
 
@@ -56,9 +61,8 @@ drop County City Migrant IEP NotIEP
 rename RCDTS StateAssignedSchID
 rename DIST StateAssignedDistID
 rename SchoolorDistrictName SchName
-rename Grade GradeLevel
 rename StateDistrictSchool DataLevel
-rename All ParticipationRateAll
+rename ALL ParticipationRateAll
 rename Male ParticipationRateMale
 rename Female ParticipationRateFemale
 rename White ParticipationRateWhite
@@ -75,7 +79,9 @@ rename NotLowIncome ParticipationRateNotDis
 
 ** Reshaping
 
-reshape long ParticipationRate, i(StateAssignedSchID GradeLevel) j(StudentSubGroup) string
+drop if DataLevel == ""
+
+reshape long ParticipationRate, i(DataLevel StateAssignedSchID SchName GradeLevel) j(StudentSubGroup) string
 
 replace StudentSubGroup = "All Students" if StudentSubGroup == "All"
 replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "Native"
@@ -94,34 +100,41 @@ replace StudentGroup = "EL Status" if StudentSubGroup == "English Learner" | Stu
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged"
 replace StudentGroup = "Gender" if StudentSubGroup == "Male" | StudentSubGroup == "Female"
 
-replace GradeLevel = "G" + GradeLevel
+tostring ParticipationRate, gen(ParticipationRate2)
+replace ParticipationRate2 = substr(ParticipationRate2,1,1) + "0" + substr(ParticipationRate2,2,2) if ParticipationRate < 10 & ParticipationRate > 1 & strpos(ParticipationRate2,".")>0
+replace ParticipationRate2 = "100" if ParticipationRate2 == "1"
+replace ParticipationRate2 = ParticipationRate2 + "0" if ParticipationRate < 10 & ParticipationRate > 1 & strpos(ParticipationRate2,".") == 0
+destring ParticipationRate2, replace
+replace ParticipationRate = ParticipationRate2
+drop ParticipationRate2
 
-destring ParticipationRate, replace
-replace ParticipationRate = ParticipationRate/100
+replace ParticipationRate = ParticipationRate/100 if ParticipationRate > 1
 tostring ParticipationRate, replace force
 replace ParticipationRate = "*" if ParticipationRate == "."
 
-save "${output}/IL_AssmtData_2019_sci_Participation.dta", replace
+save "${output}/IL_AssmtData_2021_sci_Participation.dta", replace
 
 
 
 *** Sci Performance Levels
 
-use "${output}/IL_AssmtData_2019_sci_5.dta", clear
-append using "${output}/IL_AssmtData_2019_sci_8.dta"
+use "${output}/IL_AssmtData_2021_sci_5.dta", clear
+gen GradeLevel = "G05"
+
+append using "${output}/IL_AssmtData_2021_sci_8.dta"
+replace GradeLevel = "G08" if GradeLevel == ""
 
 ** Dropping extra variables
 
-drop County City Migrant IEP NotIEP Y
+//drop County City Migrant IEP NotIEP X
 
 ** Rename existing variables
 
 rename RCDTS StateAssignedSchID
 rename DIST StateAssignedDistID
 rename SchoolorDistrictName SchName
-rename Grade GradeLevel
 rename StateDistrictSchool DataLevel
-rename All ProficientOrAbove_percentAll
+rename ALL ProficientOrAbove_percentAll
 rename Male ProficientOrAbove_percentMale
 rename Female ProficientOrAbove_percentFemale
 rename White ProficientOrAbove_percentWhite
@@ -142,30 +155,30 @@ drop if StateAssignedSchID == ""
 
 ** Generating new variables
 
-gen SchYear = "2018-19"
+gen SchYear = "2020-21"
 
 gen AssmtName = "ISA"
 gen AssmtType = "Regular"
 
-gen Lev1_count = "--"
-gen Lev2_count = "--"
-
-local level 3 4 5
+local level 1 2 3 4
 
 foreach a of local level {
-	gen Lev`a'_count = ""
-	gen Lev`a'_percent = ""
+	gen Lev`a'_count = "--"
+	gen Lev`a'_percent = "--"
 }
+
+gen Lev5_count = ""
+gen Lev5_percent = ""
 
 gen ProficientOrAbove_count = "--"
 
-gen ProficiencyCriteria = "Level 2"
+gen ProficiencyCriteria = "Levels 3-4"
 
 gen Subject = "sci"
 
 ** Reshaping
 
-reshape long ProficientOrAbove_percent, i(StateAssignedSchID GradeLevel) j(StudentSubGroup) string
+reshape long ProficientOrAbove_percent, i(DataLevel StateAssignedSchID SchName GradeLevel) j(StudentSubGroup) string
 
 replace StudentSubGroup = "All Students" if StudentSubGroup == "All"
 replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "Native"
@@ -187,24 +200,24 @@ replace StudentGroup = "Gender" if StudentSubGroup == "Male" | StudentSubGroup =
 gen StudentSubGroup_TotalTested = "--"
 gen StudentGroup_TotalTested = "--"
 
-replace GradeLevel = "G" + GradeLevel
+tostring ProficientOrAbove_percent, gen(ProficientOrAbove_percent2)
+replace ProficientOrAbove_percent2 = substr(ProficientOrAbove_percent2,1,1) + "0" + substr(ProficientOrAbove_percent2,2,2) if ProficientOrAbove_percent < 10 & ProficientOrAbove_percent > 1 & strpos(ProficientOrAbove_percent2,".")>0
+replace ProficientOrAbove_percent2 = "100" if ProficientOrAbove_percent2 == "1"
+replace ProficientOrAbove_percent2 = ProficientOrAbove_percent2 + "0" if ProficientOrAbove_percent < 10 & ProficientOrAbove_percent > 1 & strpos(ProficientOrAbove_percent2,".") == 0
+destring ProficientOrAbove_percent2, replace
+replace ProficientOrAbove_percent = ProficientOrAbove_percent2
+drop ProficientOrAbove_percent2
 
-destring ProficientOrAbove_percent, replace
 replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
-gen Lev1_percent = 1 - ProficientOrAbove_percent
 tostring ProficientOrAbove_percent, replace force
-tostring Lev1_percent, replace force
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
-replace Lev1_percent = "*" if Lev1_percent == "."
 
-gen Lev2_percent = ProficientOrAbove_percent
-
-merge 1:1 DataLevel StateAssignedSchID GradeLevel StudentSubGroup using "${output}/IL_AssmtData_2019_sci_AvgScaleScore.dta"
+merge 1:1 DataLevel StateAssignedDistID SchName GradeLevel StudentSubGroup using "${output}/IL_AssmtData_2021_sci_AvgScaleScore.dta"
 drop _merge
 
 replace AvgScaleScore = "--" if AvgScaleScore == ""
 
-merge 1:1 DataLevel StateAssignedSchID GradeLevel StudentSubGroup using "${output}/IL_AssmtData_2019_sci_Participation.dta"
+merge 1:1 DataLevel StateAssignedSchID GradeLevel StudentSubGroup using "${output}/IL_AssmtData_2021_sci_Participation.dta"
 drop if _merge == 2
 drop _merge
 
@@ -239,26 +252,27 @@ replace seasch = subinstr(seasch,"IL-","",.)
 replace seasch = substr(seasch,1,9) + substr(seasch,12,4)
 replace seasch = "" if DataLevel != 3
 
-merge m:1 State_leaid using "${NCES}/NCES_2018_District.dta"
+merge m:1 State_leaid using "${NCES}/NCES_2020_District.dta"
 drop if _merge == 2
 drop _merge
 
-merge m:1 seasch using "${NCES}/NCES_2018_School.dta"
+merge m:1 seasch using "${NCES}/NCES_2020_School.dta"
 drop if _merge == 2
 drop _merge
 
-save "${output}/IL_AssmtData_2019_sci.dta", replace
+save "${output}/IL_AssmtData_2021_sci.dta", replace
+*/
 
 
 
 
 **** ELA & Math
 
-use "${output}/IL_AssmtData_2019_all.dta", clear
+use "${output}/IL_AssmtData_2021_all.dta", clear
 
 ** Dropping extra variables
 
-drop County City DistrictType DistrictSize SchoolType GradesServed Children* IEP* NonIEP* Homeless* Migrant* Military* DH DI DJ DK DL DM DN DO DP EG EH EI EJ EQ ER ES ET FP FQ FR FS FU FV FW FX GE GF GG GH GJ GK GL GM GO GP GQ GR KO KP KQ KR KS KT KU KV KW KX RW RX RY RZ SA SB SC SD SE SF ZE ZF ZG ZH ZI ZJ ZK ZL ZM ZN AGM AGN AGO AGP AGQ AGR AGS AGT AGU AGV ANU ANV ANW ANX ANY ANZ AOA AOB AOC AOD LI LJ LK LL LM LN LO LP LQ LR LS LT LU LV LW LX LY LZ MA MB SQ SR SS ST SU SV SW SX SY SZ TA TB TC TD TE TF TG TH TI TJ ZY ZZ AAA AAB AAC AAD AAE AAF AAG AAH AAI AAJ AAK AAL AAM AAN AAO AAP AAQ AAR AHG AHH AHI AHJ AHK AHL AHM AHN AHO AHP AHQ AHR AHS AHT AHU AHV AHW AHX AHY AHZ AOO AOP AOQ AOR AOS AOT AOU AOV AOW AOX AOY AOZ APA APB APC APD APE APF APG APH MW MX MY MZ NA NB NC ND NE NF UE UF UG UH UI UJ UK UL UM UN ABM ABN ABO ABP ABQ ABR ABS ABT ABU ABV AIU AIV AIW AIX AIY AIZ AJA AJB AJC AJD NG NH NI NJ NK NL NM NN NO NP UO UP UQ UR US UT UU UV UW UX ABW ABX ABY ABZ ACA ACB ACC ACD ACE ACF AJE AJF AJG AJH AJI AJJ AJK AJL AJM AJN NQ NR NS NT NU NV NW NX NY NZ UY UZ VA VB VC VD VE VF VG VH ACG ACH ACI ACJ ACK ACL ACM ACN ACO ACP AJO AJP AJQ AJR AJS AJT AJU AJV AJW AJX
+drop County City DistrictType DistrictSize SchoolType GradesServed Children* IEP* NonIEP* Homeless* Migrant* Military* DH DI DJ DK DL DM DN DO DP EG EH EI EJ EL EM EN EO EQ ER ES ET FP FQ FR FS FU FV FW FX FZ GA GB GC GE GF GG GH GJ GK GL GM GO GP GQ GR KO KP KQ KR KS KT KU KV KW KX RW RX RY RZ SA SB SC SD SE SF ZE ZF ZG ZH ZI ZJ ZK ZL ZM ZN AGM AGN AGO AGP AGQ AGR AGS AGT AGU AGV ANU ANV ANW ANX ANY ANZ AOA AOB AOC AOD LI LJ LK LL LM LN LO LP LQ LR LS LT LU LV LW LX LY LZ MA MB SQ SR SS ST SU SV SW SX SY SZ TA TB TC TD TE TF TG TH TI TJ ZY ZZ AAA AAB AAC AAD AAE AAF AAG AAH AAI AAJ AAK AAL AAM AAN AAO AAP AAQ AAR AHG AHH AHI AHJ AHK AHL AHM AHN AHO AHP AHQ AHR AHS AHT AHU AHV AHW AHX AHY AHZ AOO AOP AOQ AOR AOS AOT AOU AOV AOW AOX AOY AOZ APA APB APC APD APE APF APG APH MW MX MY MZ NA NB NC ND NE NF UE UF UG UH UI UJ UK UL UM UN ABM ABN ABO ABP ABQ ABR ABS ABT ABU ABV AIU AIV AIW AIX AIY AIZ AJA AJB AJC AJD NG NH NI NJ NK NL NM NN NO NP UO UP UQ UR US UT UU UV UW UX ABW ABX ABY ABZ ACA ACB ACC ACD ACE ACF AJE AJF AJG AJH AJI AJJ AJK AJL AJM AJN NQ NR NS NT NU NV NW NX NY NZ UY UZ VA VB VC VD VE VF VG VH ACG ACH ACI ACJ ACK ACL ACM ACN ACO ACP AJO AJP AJQ AJR AJS AJT AJU AJV AJW AJX
 
 ** Rename existing variables
 
@@ -267,12 +281,12 @@ rename Type DataLevel
 rename SchoolName SchName
 rename District DistName
 
-rename AllstudentsIARELALevel1G Lev1_percentela3All
-rename AllstudentsIARELALevel2G Lev2_percentela3All
-rename AllstudentsIARELALevel3G Lev3_percentela3All
-rename AllstudentsIARELALevel4G Lev4_percentela3All
-rename AllstudentsIARELALevel5G Lev5_percentela3All
-rename AllstudentsIARMathematicsLev Lev1_percentmath3All
+rename AllstudentsIARELALevel1 Lev1_percentela3All
+rename AllstudentsIARELALevel2 Lev2_percentela3All
+rename AllstudentsIARELALevel3 Lev3_percentela3All
+rename AllstudentsIARELALevel4 Lev4_percentela3All
+rename AllstudentsIARELALevel5 Lev5_percentela3All
+rename AllstudentsIARMathematicsL Lev1_percentmath3All
 rename Q Lev2_percentmath3All
 rename R Lev3_percentmath3All
 rename S Lev4_percentmath3All
@@ -283,18 +297,18 @@ rename MalestudentsIARELALevel2 Lev2_percentela3male
 rename MalestudentsIARELALevel3 Lev3_percentela3male
 rename MalestudentsIARELALevel4 Lev4_percentela3male
 rename MalestudentsIARELALevel5 Lev5_percentela3male
-rename MalestudentsIARMathematicsLe Lev1_percentmath3male
+rename MalestudentsIARMathematics Lev1_percentmath3male
 rename AA Lev2_percentmath3male
 rename AB Lev3_percentmath3male
 rename AC Lev4_percentmath3male
 rename AD Lev5_percentmath3male
 
-rename FemalestudentsIARELALevel1 Lev1_percentela3female
-rename FemalestudentsIARELALevel2 Lev2_percentela3female
-rename FemalestudentsIARELALevel3 Lev3_percentela3female
-rename FemalestudentsIARELALevel4 Lev4_percentela3female
-rename FemalestudentsIARELALevel5 Lev5_percentela3female
-rename FemalestudentsIARMathematics Lev1_percentmath3female
+rename FemalestudentsIARELALevel Lev1_percentela3female
+rename AF Lev2_percentela3female
+rename AG Lev3_percentela3female
+rename AH Lev4_percentela3female
+rename AI Lev5_percentela3female
+rename FemalestudentsIARMathematic Lev1_percentmath3female
 rename AK Lev2_percentmath3female
 rename AL Lev3_percentmath3female
 rename AM Lev4_percentmath3female
@@ -305,13 +319,13 @@ rename WhitestudentsIARELALevel2 Lev2_percentela3white
 rename WhitestudentsIARELALevel3 Lev3_percentela3white
 rename WhitestudentsIARELALevel4 Lev4_percentela3white
 rename WhitestudentsIARELALevel5 Lev5_percentela3white
-rename WhitestudentsIARMathematicsL Lev1_percentmath3white
+rename WhitestudentsIARMathematics Lev1_percentmath3white
 rename AU Lev2_percentmath3white
 rename AV Lev3_percentmath3white
 rename AW Lev4_percentmath3white
 rename AX Lev5_percentmath3white
 
-rename BlackorAfricanAmericanstuden Lev1_percentela3black
+rename BlackorAfricanAmericanstud Lev1_percentela3black
 rename AZ Lev2_percentela3black
 rename BA Lev3_percentela3black
 rename BB Lev4_percentela3black
@@ -322,7 +336,7 @@ rename BF Lev3_percentmath3black
 rename BG Lev4_percentmath3black
 rename BH Lev5_percentmath3black
 
-rename HispanicorLatinostudentsIAR Lev1_percentela3hisp
+rename HispanicorLatinostudentsIA Lev1_percentela3hisp
 rename BJ Lev2_percentela3hisp
 rename BK Lev3_percentela3hisp
 rename BL Lev4_percentela3hisp
@@ -338,13 +352,13 @@ rename AsianstudentsIARELALevel2 Lev2_percentela3asian
 rename AsianstudentsIARELALevel3 Lev3_percentela3asian
 rename AsianstudentsIARELALevel4 Lev4_percentela3asian
 rename AsianstudentsIARELALevel5 Lev5_percentela3asian
-rename AsianstudentsIARMathematicsL Lev1_percentmath3asian
+rename AsianstudentsIARMathematics Lev1_percentmath3asian
 rename BY Lev2_percentmath3asian
 rename BZ Lev3_percentmath3asian
 rename CA Lev4_percentmath3asian
 rename CB Lev5_percentmath3asian
 
-rename NativeHawaiianorOtherPacific Lev1_percentela3hawaii
+rename NativeHawaiianorOtherPacif Lev1_percentela3hawaii
 rename CD Lev2_percentela3hawaii
 rename CE Lev3_percentela3hawaii
 rename CF Lev4_percentela3hawaii
@@ -355,7 +369,7 @@ rename CJ Lev3_percentmath3hawaii
 rename CK Lev4_percentmath3hawaii
 rename CL Lev5_percentmath3hawaii
 
-rename AmericanIndianorAlaskaNative Lev1_percentela3native
+rename AmericanIndianorAlaskaNati Lev1_percentela3native
 rename CN Lev2_percentela3native
 rename CO Lev3_percentela3native
 rename CP Lev4_percentela3native
@@ -366,23 +380,23 @@ rename CT Lev3_percentmath3native
 rename CU Lev4_percentmath3native
 rename CV Lev5_percentmath3native
 
-rename TwoorMoreRacestudentsIAREL Lev1_percentela3two
+rename TwoorMoreRacestudentsIAR Lev1_percentela3two
 rename CX Lev2_percentela3two
 rename CY Lev3_percentela3two
 rename CZ Lev4_percentela3two
 rename DA Lev5_percentela3two
-rename TwoorMoreRacestudentsIARMa Lev1_percentmath3two
+rename DB Lev1_percentmath3two
 rename DC Lev2_percentmath3two
 rename DD Lev3_percentmath3two
 rename DE Lev4_percentmath3two
 rename DF Lev5_percentmath3two
 
-rename ELstudentsIARELALevel1Gr Lev1_percentela3learner
-rename ELstudentsIARELALevel2Gr Lev2_percentela3learner
-rename ELstudentsIARELALevel3Gr Lev3_percentela3learner
-rename ELstudentsIARELALevel4Gr Lev4_percentela3learner
-rename ELstudentsIARELALevel5Gr Lev5_percentela3learner
-rename ELstudentsIARMathematicsLeve Lev1_percentmath3learner
+rename ELstudentsIARELALevel1 Lev1_percentela3learner
+rename ELstudentsIARELALevel2 Lev2_percentela3learner
+rename ELstudentsIARELALevel3 Lev3_percentela3learner
+rename ELstudentsIARELALevel4 Lev4_percentela3learner
+rename ELstudentsIARELALevel5 Lev5_percentela3learner
+rename ELstudentsIARMathematicsLe Lev1_percentmath3learner
 rename DW Lev2_percentmath3learner
 rename DX Lev3_percentmath3learner
 rename DY Lev4_percentmath3learner
@@ -399,12 +413,12 @@ rename FB Lev3_percentmath3notdis
 rename FC Lev4_percentmath3notdis
 rename FD Lev5_percentmath3notdis
 
-rename NonLowIncomestudentsIARELA Lev1_percentela3dis
+rename NonLowIncomestudentsIAREL Lev1_percentela3dis
 rename FF Lev2_percentela3dis
 rename FG Lev3_percentela3dis
 rename FH Lev4_percentela3dis
 rename FI Lev5_percentela3dis
-rename NonLowIncomestudentsIARMath Lev1_percentmath3dis
+rename NonLowIncomestudentsIARMa Lev1_percentmath3dis
 rename FK Lev2_percentmath3dis
 rename FL Lev3_percentmath3dis
 rename FM Lev4_percentmath3dis
@@ -1141,9 +1155,9 @@ rename DataLevel_n DataLevel
 
 ** Reshaping
 
-reshape long Lev1_percentela3 Lev2_percentela3 Lev3_percentela3 Lev4_percentela3 Lev5_percentela3 Lev1_percentmath3 Lev2_percentmath3 Lev3_percentmath3 Lev4_percentmath3 Lev5_percentmath3 Lev1_percentela4 Lev2_percentela4 Lev3_percentela4 Lev4_percentela4 Lev5_percentela4 Lev1_percentmath4 Lev2_percentmath4 Lev3_percentmath4 Lev4_percentmath4 Lev5_percentmath4 Lev1_percentela5 Lev2_percentela5 Lev3_percentela5 Lev4_percentela5 Lev5_percentela5 Lev1_percentmath5 Lev2_percentmath5 Lev3_percentmath5 Lev4_percentmath5 Lev5_percentmath5 Lev1_percentela6 Lev2_percentela6 Lev3_percentela6 Lev4_percentela6 Lev5_percentela6 Lev1_percentmath6 Lev2_percentmath6 Lev3_percentmath6 Lev4_percentmath6 Lev5_percentmath6 Lev1_percentela7 Lev2_percentela7 Lev3_percentela7 Lev4_percentela7 Lev5_percentela7 Lev1_percentmath7 Lev2_percentmath7 Lev3_percentmath7 Lev4_percentmath7 Lev5_percentmath7 Lev1_percentela8 Lev2_percentela8 Lev3_percentela8 Lev4_percentela8 Lev5_percentela8 Lev1_percentmath8 Lev2_percentmath8 Lev3_percentmath8 Lev4_percentmath8 Lev5_percentmath8, i(StateAssignedSchID) j(StudentSubGroup) string
+reshape long Lev1_percentela3 Lev2_percentela3 Lev3_percentela3 Lev4_percentela3 Lev5_percentela3 Lev1_percentmath3 Lev2_percentmath3 Lev3_percentmath3 Lev4_percentmath3 Lev5_percentmath3 Lev1_percentela4 Lev2_percentela4 Lev3_percentela4 Lev4_percentela4 Lev5_percentela4 Lev1_percentmath4 Lev2_percentmath4 Lev3_percentmath4 Lev4_percentmath4 Lev5_percentmath4 Lev1_percentela5 Lev2_percentela5 Lev3_percentela5 Lev4_percentela5 Lev5_percentela5 Lev1_percentmath5 Lev2_percentmath5 Lev3_percentmath5 Lev4_percentmath5 Lev5_percentmath5 Lev1_percentela6 Lev2_percentela6 Lev3_percentela6 Lev4_percentela6 Lev5_percentela6 Lev1_percentmath6 Lev2_percentmath6 Lev3_percentmath6 Lev4_percentmath6 Lev5_percentmath6 Lev1_percentela7 Lev2_percentela7 Lev3_percentela7 Lev4_percentela7 Lev5_percentela7 Lev1_percentmath7 Lev2_percentmath7 Lev3_percentmath7 Lev4_percentmath7 Lev5_percentmath7 Lev1_percentela8 Lev2_percentela8 Lev3_percentela8 Lev4_percentela8 Lev5_percentela8 Lev1_percentmath8 Lev2_percentmath8 Lev3_percentmath8 Lev4_percentmath8 Lev5_percentmath8, i(StateAssignedSchID SchName) j(StudentSubGroup) string
 
-reshape long Lev1_percent Lev2_percent Lev3_percent Lev4_percent Lev5_percent, i(StateAssignedSchID StudentSubGroup) j(Subject) string
+reshape long Lev1_percent Lev2_percent Lev3_percent Lev4_percent Lev5_percent, i(StateAssignedSchID SchName StudentSubGroup) j(Subject) string
 
 drop if Lev1_percent == .
 
@@ -1179,7 +1193,7 @@ replace StudentGroup = "Gender" if StudentSubGroup == "Male" | StudentSubGroup =
 
 ** Generating new variables
 
-gen SchYear = "2018-19"
+gen SchYear = "2020-21"
 
 gen AssmtName = "IAR"
 gen AssmtType = "Regular"
@@ -1223,11 +1237,15 @@ replace seasch = subinstr(seasch,"IL-","",.)
 replace seasch = substr(seasch,1,9) + substr(seasch,12,4)
 replace seasch = "" if DataLevel != 3
 
-merge m:1 State_leaid using "${NCES}/NCES_2018_District.dta"
+merge m:1 State_leaid using "${NCES}/NCES_2020_District.dta"
 drop if _merge == 2
 drop _merge
 
-merge m:1 seasch using "${NCES}/NCES_2018_School.dta"
+merge m:1 seasch using "${NCES}/NCES_2020_School.dta"
+drop if _merge == 2
+drop _merge
+
+merge m:1 seasch using "${NCES}/NCES_2021_School.dta", update
 drop if _merge == 2
 drop _merge
 
@@ -1236,7 +1254,7 @@ drop _merge
 
 **** Appending
 
-append using "${output}/IL_AssmtData_2019_sci.dta"
+// append using "${output}/IL_AssmtData_2021_sci.dta"
 
 replace StateAbbrev = "IL" if DataLevel == 1
 replace State = 17 if DataLevel == 1
@@ -1248,15 +1266,15 @@ replace DistName = "All Districts" if DataLevel == 1
 
 ** Generating new variables
 
-gen Flag_AssmtNameChange = "Y"
-gen Flag_CutScoreChange_ELA = "Y"
-gen Flag_CutScoreChange_math = "Y"
+gen Flag_AssmtNameChange = "N"
+gen Flag_CutScoreChange_ELA = "N"
+gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_read = ""
-gen Flag_CutScoreChange_oth = "N"
+gen Flag_CutScoreChange_oth = "Y"
 order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${output}/IL_AssmtData_2019.dta", replace
+save "${output}/IL_AssmtData_2021.dta", replace
 
-export delimited using "${output}/csv/IL_AssmtData_2019.csv", replace
+export delimited using "${output}/csv/IL_AssmtData_2021.csv", replace

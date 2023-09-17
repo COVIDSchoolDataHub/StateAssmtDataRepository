@@ -113,7 +113,7 @@ save "${output}/IL_AssmtData_2019_sci_AvgScaleScore_8.dta", replace
 
 ** 2021
 
-import excel "${raw}/IL_OriginalData_2021_all.xlsx", sheet("IAR") firstrow clear
+import excel "${raw}/IL_OriginalData_2021_all.xlsx", sheet("IAR") cellrange(A1:AQB4721) firstrow clear
 save "${output}/IL_AssmtData_2021_all.dta", replace
 
 import excel "${raw}/IL_OriginalData_2021_sci.xlsx", sheet("Grade 5") firstrow clear
