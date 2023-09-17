@@ -136,11 +136,8 @@ save "${output}/IL_AssmtData_2021_sci_AvgScaleScore_8.dta", replace
 
 ** 2022
 
-import excel "${raw}/IL_OriginalData_2022_all.xlsx", sheet("IAR") firstrow clear
-save "${output}/IL_AssmtData_2022_all_1.dta", replace
-
-import excel "${raw}/IL_OriginalData_2022_all.xlsx", sheet("IAR (2)") firstrow clear
-save "${output}/IL_AssmtData_2022_all_2.dta", replace
+import excel "${raw}/IL_OriginalData_2022_all.xlsx", sheet("IAR") cellrange(A1:ARZ4708) firstrow clear
+save "${output}/IL_AssmtData_2022_all.dta", replace
 
 import excel "${raw}/IL_OriginalData_2022_sci.xlsx", sheet("Grade 5") firstrow clear
 save "${output}/IL_AssmtData_2022_sci_5.dta", replace
