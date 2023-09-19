@@ -423,6 +423,7 @@ forvalues year = 2015/2023 {
 	}
 use "`temp_`year''"
 
+
 //StateAssignedDistID and StateAssignedSchID
 replace StateAssignedDistID = subinstr(StateAssignedDistID, "=","",.)
 replace StateAssignedSchID = subinstr(StateAssignedSchID,"=","",.)
@@ -593,10 +594,43 @@ replace SchVirtual = -1 if SchName == "Mill Academy" & missing(NCESSchoolID)
 replace CountyName = "New Haven County" if SchName == "Mill Academy" & missing(NCESSchoolID)
 replace CountyCode = 9009 if SchName == "Mill Academy" & missing(NCESSchoolID)
 
+replace State_leaid = "CT-1510011" if SchName == "Enlightenment School" & missing(NCESSchoolID)
+replace SchType = 1 if SchName == "Enlightenment School" & missing(NCESSchoolID)
+replace NCESDistrictID = "904830" if SchName == "Enlightenment School" & missing(NCESSchoolID)
+replace NCESSchoolID = "90483001418" if SchName == "Enlightenment School" & missing(NCESSchoolID)
+replace seasch = "1510011-1519111" if SchName == "Enlightenment School" & missing(NCESSchoolID)
+replace DistCharter = "No" if SchName == "Enlightenment School" & missing(NCESSchoolID)
+replace DistType = 1 if SchName == "Enlightenment School" & missing(NCESSchoolID)
+replace SchLevel = 4 if SchName == "Enlightenment School" & missing(NCESSchoolID)
+replace SchVirtual = 0 if SchName == "Enlightenment School" & missing(NCESSchoolID)
+replace CountyName = "New Haven County" if SchName == "Enlightenment School" & missing(NCESSchoolID)
+replace CountyCode = 9009 if SchName == "Enlightenment School" & missing(NCESSchoolID)
 
-//Dropping Unmerged with no data available
+replace State_leaid = "CT-0430011" if SchName == "Woodland School" & missing(NCESSchoolID)
+replace SchType = 2 if SchName == "Woodland School" & missing(NCESSchoolID)
+replace NCESDistrictID = "901260" if SchName == "Woodland School" & missing(NCESSchoolID)
+replace NCESSchoolID = "90126000205" if SchName == "Woodland School" & missing(NCESSchoolID)
+replace seasch = "0430011-0439011" if SchName == "Woodland School" & missing(NCESSchoolID)
+replace DistCharter = "No" if SchName == "Woodland School" & missing(NCESSchoolID)
+replace DistType = 2 if SchName == "Woodland School" & missing(NCESSchoolID)
+replace SchLevel = 4 if SchName == "Woodland School" & missing(NCESSchoolID)
+replace SchVirtual = -1 if SchName == "Woodland School" & missing(NCESSchoolID)
+replace CountyName = "Hartford County" if SchName == "Woodland School" & missing(NCESSchoolID)
+replace CountyCode = 9003 if SchName == "Woodland School" & missing(NCESSchoolID)
+
+replace State_leaid = "CT-2440014" if DistName == "Area Cooperative Educational Services"
+replace NCESDistrictID = "0900070" if DistName == "Area Cooperative Educational Services"
+replace DistCharter = "No" if DistName == "Area Cooperative Educational Services"
+replace DistType = 9 if DistName == "Area Cooperative Educational Services"
+replace CountyName = "New Haven County" if DistName == "Area Cooperative Educational Services"
+replace CountyCode = 9009 if DistName == "Area Cooperative Educational Services"
+replace seasch = StateAssignedDistID + "-" + StateAssignedSchID if _merge == 2
+
+//Dropping Unmerged with no data available and unmerged bilingual schools
 
 drop if [_merge==2] & [(Lev1_percent == "*" | Lev1_percent == "--" | Lev1_percent == "0")  & (Lev2_percent == "*" | Lev2_percent == "--" | Lev2_percent == "0") & (Lev3_percent == "*" | Lev3_percent == "--" | Lev3_percent == "0" ) & (Lev4_percent == "*" | Lev4_percent == "--" | Lev4_percent == "0") & (ProficientOrAbove_percent == "*" | ProficientOrAbove_percent == "--" | ProficientOrAbove_percent == "0") & (ProficientOrAbove_count == "*" | ProficientOrAbove_count == "--" | ProficientOrAbove_count == "0")]
+
+drop if (_merge==2) & strpos(SchName, "Bilingual") !=0
 
 //Replacing NCES vars with Missing/not reported when applicable
 label def agency_typedf -1 "Missing/not reported", add
@@ -636,13 +670,15 @@ gen Flag_CutScoreChange_oth = ""
 foreach var of varlist Flag* {
 	replace `var' = "Y" if `year' == 2015 & "`var'" != "Flag_CutScoreChange_oth"
 	replace `var' = "N" if "`var'" == "Flag_CutScoreChange_oth" & `year' >= 2019
+	replace `var' = "Y" if `year' == 2022 & "`var'" != "Flag_AssmtNameChange" & "`var'" != "Flag_CutScoreChange_read"
 }
 
 //Missing/empty Variables
-gen Lev5_count =.
-gen Lev5_percent=.
+gen Lev5_count = ""
+gen Lev5_percent= ""
 
 //Final Cleaning
+recast str80 SchName
 order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
@@ -656,3 +692,5 @@ clear
 clear	
 }
 log close
+do CT_Cleaning_2021
+
