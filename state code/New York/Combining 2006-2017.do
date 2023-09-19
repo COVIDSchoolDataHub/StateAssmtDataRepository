@@ -4,12 +4,12 @@ set trace off
 
 cd "/Volumes/T7/State Test Project/New York/Original/2006-2017"
 
-local subjects ELA MATH SCIENCE SOC
+local subjects ela mat sci soc
 local allgrades G03 G04 G05 G06 G07 G08
 local sciencegrades G04 G08
 local socgrades G05 G08
 
-foreach year in 2006 {
+forvalues year = 2006/2017 {
     local firstfile = 1
     foreach subject of local subjects {
         // If the subject is SOC and the year is after 2010, skip the rest of the loop
@@ -27,7 +27,7 @@ foreach year in 2006 {
             local grades "`allgrades'"
         }
         foreach grade of local grades {
-            local filename "`subject'`grade'_`year'.txt"
+            local filename "NY_OriginalData_`subject'_`grade'_`year'.txt"
 
             di "`filename'"
             capture confirm file "`filename'"

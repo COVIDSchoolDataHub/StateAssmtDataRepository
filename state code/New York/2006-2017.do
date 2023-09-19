@@ -270,6 +270,16 @@ capture replace SchType = "Regular school" if StateAssignedSchID == "33140086093
 capture replace CountyName = "KINGS COUNTY" if StateAssignedSchID == "331400860930" & `year' == 2012
 capture replace CountyCode = 36047 if StateAssignedSchID == "331400860930" & `year' == 2012
 
+//Response to R2 and some misc cleaning
+replace DistType = "Regular local school district" if DistName == "NORTH COLONIE CSD"
+replace DistType = "Charter agency" if DistType == "Charter Agency"
+
+if `year'== 2016 replace SchType = "Regular school" if SchName == "UNION SPRINGS MIDDLE SCHOOL"
+if `year'== 2016 replace NCESSchoolID = "362925006575" if SchName == "UNION SPRINGS MIDDLE SCHOOL"
+if `year'== 2016 replace seasch = StateAssignedSchID if SchName == "UNION SPRINGS MIDDLE SCHOOL"
+if `year'== 2016 replace SchLevel = "Middle" if SchName == "UNION SPRINGS MIDDLE SCHOOL"
+if `year'== 2016 replace SchVirtual = "No" if SchName == "UNION SPRINGS MIDDLE SCHOOL"
+
 //Final Sorting and dropping extra variables
 
 order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
