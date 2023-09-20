@@ -23,14 +23,14 @@ clear
 import excel "`Original'/CT_OriginalData_2021_sci.xlsx", firstrow case(preserve) sheet(ALL)
 gen SUBJECT = "sci"
 append using "`temp1'"
-save "`Original/CT_OriginalData_2021_all'", replace
+save "`Original'/CT_OriginalData_2021_all", replace
 
 
 */
 
 //Unhide above code on first run
 clear
-use "`Original/CT_OriginalData_2021_all'"
+use "`Original'/CT_OriginalData_2021_all"
 
 //Renaming Variables
 rename DistrictCode StateAssignedDistID
