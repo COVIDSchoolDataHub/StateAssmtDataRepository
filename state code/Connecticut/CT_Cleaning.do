@@ -8,7 +8,7 @@ local Output "/Volumes/T7/State Test Project/Connecticut/Output"
 local NCES_School "/Volumes/T7/State Test Project/NCES/School"
 local NCES_District "/Volumes/T7/State Test Project/NCES/District"
 log using variablescheck.log, replace
-//Standardizing Varnames (and variables if necessary) before appending
+//Standardizing Varnames (and values if necessary) before appending
 
 forvalues year = 2015/2023 {
 	local prevyear =`=`year'-1'
