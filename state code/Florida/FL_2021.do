@@ -114,7 +114,7 @@ replace GradeLevel = "0" + GradeLevel if strlen(GradeLevel) < 2
 
 // Transforming Variable Values
 replace Subject = "ela" if Subject == "ELA"
-replace Subject = "mat" if Subject == "M"
+replace Subject = "math" if Subject == "M"
 replace GradeLevel = "G" + GradeLevel
 
 foreach var of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent Lev5_percent ProficientOrAbove_percent {
@@ -133,7 +133,7 @@ foreach var of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent Lev5_
 
 // Generating Missing Variables
 gen SchYear = "2020-21"
-gen AssmtName = ""
+gen AssmtName = "FSA"
 gen AssmtType = "Regular"
 gen StudentGroup = "All Students"
 gen StudentSubGroup = "All Students"
@@ -158,6 +158,9 @@ encode DataLevel, gen(DataLevel_n) label(DataLevel)
 sort DataLevel_n 
 drop DataLevel 
 rename DataLevel_n DataLevel
+
+// Fixing Baycare Behavioral Health
+replace StateAssignedSchID = "9045" if SchName == "BAYCARE BEHAVIORAL HEALTH"
 
 // Generate ID to match NCES
 gen seasch = StateAssignedDistID + "-" + StateAssignedSchID
