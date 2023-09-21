@@ -1142,7 +1142,7 @@ replace StudentGroup = "Gender" if StudentSubGroup == "Male" | StudentSubGroup =
 
 ** Generating new variables
 
-gen SchYear = "2021-21"
+gen SchYear = "2021-22"
 
 gen AssmtName = "IAR"
 gen AssmtType = "Regular"
@@ -1205,6 +1205,7 @@ replace StateAbbrev = "IL" if DataLevel == 1
 replace State = 17 if DataLevel == 1
 replace StateFips = 17 if DataLevel == 1
 replace State_leaid = "" if DataLevel == 1
+replace StateAssignedDistID = "" if DataLevel == 1
 
 replace SchName = "All Schools" if DataLevel != 3
 replace DistName = "All Districts" if DataLevel == 1

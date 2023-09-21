@@ -141,6 +141,8 @@ rename Mean AvgScaleScore
 
 ** Generating new variables
 
+drop if StateAssignedSchID == "150162990252882"
+
 gen StudentSubGroup = "All Students"
 
 replace StateAssignedSchID = "STATE" if SchName == "STATE"
@@ -249,7 +251,7 @@ rename NotLowIncome ProficientOrAbove_percentNotDis
 
 ** Dropping entries
 
-drop if StateAssignedSchID == ""
+drop if StateAssignedSchID == "" | StateAssignedSchID == "150162990252882"
 
 ** Generating new variables
 
@@ -506,11 +508,15 @@ replace seasch = subinstr(seasch,"IL-","",.)
 replace seasch = substr(seasch,1,9) + substr(seasch,12,4)
 replace seasch = "" if DataLevel != 3
 
-merge m:1 State_leaid using "${NCES}/NCES_2017_District.dta"
+merge m:1 State_leaid using "${NCES}/NCES_2016_District.dta"
 drop if _merge == 2
 drop _merge
 
-merge m:1 seasch using "${NCES}/NCES_2017_School.dta"
+merge m:1 seasch using "${NCES}/NCES_2016_School.dta"
+drop if _merge == 2
+drop _merge
+
+merge m:1 seasch using "${NCES}/NCES_2017_School.dta", update
 drop if _merge == 2
 drop _merge
 
