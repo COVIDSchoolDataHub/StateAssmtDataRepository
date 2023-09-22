@@ -1,21 +1,19 @@
+clear
+set more off
 
-global yrfiles "/Users/hayden/Desktop/Research/IN/2019"
-global nces "/Users/hayden/Desktop/Research/NCES"
-global output "/Users/hayden/Desktop/Research/IN/Output"
+cd "/Users/maggie/Desktop/Indiana"
 
+global raw "/Users/maggie/Desktop/Indiana/Original Data Files"
+global output "/Users/maggie/Desktop/Indiana/Output"
+global NCES "/Users/maggie/Desktop/Indiana/NCES/Cleaned"
 
 //////	ORGANIZING AND APPENDING DATA
 
 
-//// Create state level data
+//// State
 
 //ela
-import excel "/${yrfiles}/IN_OriginalData_2019_all_state.xlsx", sheet("ELA") clear
-
-gen count=_n
-drop if count==1
-drop if count==2
-drop count
+import excel "/${raw}/2019/IN_OriginalData_2019_all_state.xlsx", sheet("ELA") cellrange(A3:H9) clear
 
 rename A GradeLevel
 rename B Lev1_count
@@ -26,24 +24,15 @@ rename F ProficientOrAbove_count
 rename G StudentGroup_TotalTested
 rename H ProficientOrAbove_percent
 
-gen StudentGroup="All Students"
-gen StudentSubGroup="All Students"
-gen StudentSubGroup_TotalTested=StudentGroup_TotalTested
-gen Subject="ela"
+gen StudentGroup = "All Students"
+gen StudentSubGroup = "All Students"
+gen StudentSubGroup_TotalTested = StudentGroup_TotalTested
+gen Subject = "ela"
 
-gen id=_n
-drop if id>=8
-drop id
-
-save "/${yrfiles}/StateELA2019", replace
+save "/${output}/StateELA2019", replace
 
 //math
-import excel "/${yrfiles}/IN_OriginalData_2019_all_state.xlsx", sheet("Math") clear
-
-gen count=_n
-drop if count==1
-drop if count==2
-drop count
+import excel "/${raw}/2019/IN_OriginalData_2019_all_state.xlsx", sheet("Math") cellrange(A3:H9) clear
 
 rename A GradeLevel
 rename B Lev1_count
@@ -54,24 +43,15 @@ rename F ProficientOrAbove_count
 rename G StudentGroup_TotalTested
 rename H ProficientOrAbove_percent
 
-gen StudentGroup="All Students"
-gen StudentSubGroup="All Students"
-gen StudentSubGroup_TotalTested=StudentGroup_TotalTested
-gen Subject="math"
+gen StudentGroup = "All Students"
+gen StudentSubGroup = "All Students"
+gen StudentSubGroup_TotalTested = StudentGroup_TotalTested
+gen Subject = "math"
 
-gen id=_n
-drop if id>=8
-drop id
-
-save "/${yrfiles}/StateMath2019", replace
+save "/${output}/StateMath2019", replace
 
 //sci
-import excel "/${yrfiles}/IN_OriginalData_2019_all_state.xlsx", sheet("Science") clear
-
-gen count=_n
-drop if count==1
-drop if count==2
-drop count
+import excel "/${raw}/2019/IN_OriginalData_2019_all_state.xlsx", sheet("Science") cellrange(A3:H5) clear
 
 rename A GradeLevel
 rename B Lev1_count
@@ -81,27 +61,16 @@ rename E Lev4_count
 rename F ProficientOrAbove_count
 rename G StudentGroup_TotalTested
 rename H ProficientOrAbove_percent
-drop I
-drop J
 
-gen StudentGroup="All Students"
-gen StudentSubGroup="All Students"
-gen StudentSubGroup_TotalTested=StudentGroup_TotalTested
-gen Subject="sci"
+gen StudentGroup = "All Students"
+gen StudentSubGroup = "All Students"
+gen StudentSubGroup_TotalTested = StudentGroup_TotalTested
+gen Subject = "sci"
 
-gen id=_n
-drop if id>=4
-drop id
-
-save "/${yrfiles}/StateSci2019", replace
+save "/${output}/StateSci2019", replace
 
 //soc
-import excel "/${yrfiles}/IN_OriginalData_2019_all_state.xlsx", sheet("Social Studies") clear
-
-gen count=_n
-drop if count==1
-drop if count==2
-drop count
+import excel "/${raw}/2019/IN_OriginalData_2019_all_state.xlsx", sheet("Social Studies") cellrange(A3:H4) clear
 
 rename A GradeLevel
 rename B Lev1_count
@@ -112,19 +81,15 @@ rename F ProficientOrAbove_count
 rename G StudentGroup_TotalTested
 rename H ProficientOrAbove_percent
 
-gen StudentGroup="All Students"
-gen StudentSubGroup="All Students"
-gen StudentSubGroup_TotalTested=StudentGroup_TotalTested
-gen Subject="soc"
+gen StudentGroup = "All Students"
+gen StudentSubGroup = "All Students"
+gen StudentSubGroup_TotalTested = StudentGroup_TotalTested
+gen Subject = "soc"
 
-gen id=_n
-drop if id>=3
-drop id
-
-save "/${yrfiles}/StateSoc2019", replace
+save "/${output}/StateSoc2019", replace
 
 // state disaggregate data (ela)
-import excel "/${yrfiles}/IN_OriginalData_2019_all_state_disagg.xlsx", sheet("ELA") clear
+import excel "/${raw}/2019/IN_OriginalData_2019_all_state_disagg.xlsx", sheet("ELA") cellrange(A2:H16) clear
 
 rename A StudentSubGroup
 rename B Lev1_count
@@ -134,49 +99,24 @@ rename E Lev4_count
 rename F ProficientOrAbove_count
 rename G StudentSubGroup_TotalTested
 rename H ProficientOrAbove_percent
-drop I
 
-gen count=_n
-drop if count==1
-drop if count==11
-drop if count==12
-drop if count>=17
-drop count
+drop if inlist(StudentSubGroup, "General Education", "Special Education")
 
+gen Subject = "ela"
 
-gen Subject="ela"
+gen StudentGroup = "RaceEth"
+replace StudentGroup = "EL Status" if StudentSubGroup == "Non-English Language Learner" | StudentSubGroup == "English Language Learner"
+replace StudentGroup = "Gender" if StudentSubGroup == "Male" | StudentSubGroup == "Female"
+replace StudentGroup = "Economic Status" if StudentSubGroup == "Free/Reduced price meals" | StudentSubGroup == "Paid meals"
 
-gen StudentGroup="RaceEth"
-replace StudentGroup="EL Status" if StudentSubGroup=="Non-English Language Learner" | StudentSubGroup=="English Language Learner"
-replace StudentGroup="Gender" if StudentSubGroup=="Male" | StudentSubGroup=="Female"
-replace StudentGroup="Economic Status" if StudentSubGroup=="Free/Reduced price meals" | StudentSubGroup=="Paid meals"
+bysort StudentGroup: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
 
-destring StudentSubGroup_TotalTested, replace
+gen GradeLevel = "G38"
 
-save "/${yrfiles}/StateDisagg2019ELA", replace
-
-// generate subgroup totals
-collapse (sum) StudentSubGroup_TotalTested, by(Subject StudentGroup)
-
-rename StudentSubGroup_TotalTested StudentGroup_TotalTested
-
-save "/${yrfiles}/StateDisaggTotals2019ELA", replace
-
-use "/${yrfiles}/StateDisagg2019ELA", clear
-
-merge m:1 StudentGroup Subject using "/${yrfiles}/StateDisaggTotals2019ELA.dta"
-
-drop _merge
-gen GradeLevel="G38"
-tostring StudentSubGroup_TotalTested StudentGroup_TotalTested, replace
-
-save "/${yrfiles}/StateDisagg2019ELA", replace
-
-
-
+save  "/${output}/StateDisagg2019ELA", replace
 
 // state disaggregate data (math)
-import excel "/${yrfiles}/IN_OriginalData_2019_all_state_disagg.xlsx", sheet("Math") clear
+import excel "/${raw}/2019/IN_OriginalData_2019_all_state_disagg.xlsx", sheet("Math") cellrange(A2:H16) clear
 
 rename A StudentSubGroup
 rename B Lev1_count
@@ -186,49 +126,24 @@ rename E Lev4_count
 rename F ProficientOrAbove_count
 rename G StudentSubGroup_TotalTested
 rename H ProficientOrAbove_percent
-drop I
 
-gen count=_n
-drop if count==1
-drop if count==11
-drop if count==12
-drop if count>=17
-drop count
+drop if inlist(StudentSubGroup, "General Education", "Special Education")
 
+gen Subject = "math"
 
-gen Subject="mat"
+gen StudentGroup = "RaceEth"
+replace StudentGroup = "EL Status" if StudentSubGroup == "Non-English Language Learner" | StudentSubGroup == "English Language Learner"
+replace StudentGroup = "Gender" if StudentSubGroup == "Male" | StudentSubGroup == "Female"
+replace StudentGroup = "Economic Status" if StudentSubGroup == "Free/Reduced price meals" | StudentSubGroup == "Paid meals"
 
-gen StudentGroup="RaceEth"
-replace StudentGroup="EL Status" if StudentSubGroup=="Non-English Language Learner" | StudentSubGroup=="English Language Learner"
-replace StudentGroup="Gender" if StudentSubGroup=="Male" | StudentSubGroup=="Female"
-replace StudentGroup="Economic Status" if StudentSubGroup=="Free/Reduced price meals" | StudentSubGroup=="Paid meals"
+bysort StudentGroup: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
 
-destring StudentSubGroup_TotalTested, replace
+gen GradeLevel = "G38"
 
-save "/${yrfiles}/StateDisagg2019Math", replace
-
-// generate subgroup totals
-collapse (sum) StudentSubGroup_TotalTested, by(Subject StudentGroup)
-
-rename StudentSubGroup_TotalTested StudentGroup_TotalTested
-
-save "/${yrfiles}/StateDisaggTotals2019Math", replace
-
-use "/${yrfiles}/StateDisagg2019Math", clear
-
-merge m:1 StudentGroup Subject using "/${yrfiles}/StateDisaggTotals2019Math.dta"
-
-drop _merge
-gen GradeLevel="G38"
-tostring StudentSubGroup_TotalTested StudentGroup_TotalTested, replace
-
-save "/${yrfiles}/StateDisagg2019Math", replace
-
-
-
+save "/${output}/StateDisagg2019Math", replace
 
 // state disaggregate data (sci)
-import excel "/${yrfiles}/IN_OriginalData_2019_all_state_disagg.xlsx", sheet("Science") clear
+import excel "/${raw}/2019/IN_OriginalData_2019_all_state_disagg.xlsx", sheet("Science") cellrange(A2:H16) clear
 
 rename A StudentSubGroup
 rename B Lev1_count
@@ -238,51 +153,24 @@ rename E Lev4_count
 rename F ProficientOrAbove_count
 rename G StudentSubGroup_TotalTested
 rename H ProficientOrAbove_percent
-drop I
 
-gen count=_n
-drop if count==1
-drop if count==11
-drop if count==12
-drop if count>=17
-drop count
+drop if inlist(StudentSubGroup, "General Education", "Special Education")
 
+gen Subject = "sci"
 
-gen Subject="sci"
+gen StudentGroup = "RaceEth"
+replace StudentGroup = "EL Status" if StudentSubGroup == "Non-English Language Learner" | StudentSubGroup == "English Language Learner"
+replace StudentGroup = "Gender" if StudentSubGroup == "Male" | StudentSubGroup == "Female"
+replace StudentGroup = "Economic Status" if StudentSubGroup == "Free/Reduced price meals" | StudentSubGroup == "Paid meals"
 
-gen StudentGroup="RaceEth"
-replace StudentGroup="EL Status" if StudentSubGroup=="Non-English Language Learner" | StudentSubGroup=="English Language Learner"
-replace StudentGroup="Gender" if StudentSubGroup=="Male" | StudentSubGroup=="Female"
-replace StudentGroup="Economic Status" if StudentSubGroup=="Free/Reduced price meals" | StudentSubGroup=="Paid meals"
+bysort StudentGroup: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
 
-destring StudentSubGroup_TotalTested, replace
+gen GradeLevel = "G38"
 
-save "/${yrfiles}/StateDisagg2019Sci", replace
+save "/${output}/StateDisagg2019Sci", replace
 
-// generate subgroup totals
-collapse (sum) StudentSubGroup_TotalTested, by(Subject StudentGroup)
-
-rename StudentSubGroup_TotalTested StudentGroup_TotalTested
-
-save "/${yrfiles}/StateDisaggTotals2019Sci", replace
-
-use "/${yrfiles}/StateDisagg2019Sci", clear
-
-merge m:1 StudentGroup Subject using "/${yrfiles}/StateDisaggTotals2019Sci.dta"
-
-drop _merge
-gen GradeLevel="G38"
-tostring StudentSubGroup_TotalTested StudentGroup_TotalTested, replace
-
-save "/${yrfiles}/StateDisagg2019Sci", replace
-
-
-
-
-
-
-// state disaggregate data (sci)
-import excel "/${yrfiles}/IN_OriginalData_2019_all_state_disagg.xlsx", sheet("Social Studies") clear
+// state disaggregate data (soc)
+import excel "/${raw}/2019/IN_OriginalData_2019_all_state_disagg.xlsx", sheet("Social Studies") cellrange(A2:H16) clear
 
 rename A StudentSubGroup
 rename B Lev1_count
@@ -292,70 +180,48 @@ rename E Lev4_count
 rename F ProficientOrAbove_count
 rename G StudentSubGroup_TotalTested
 rename H ProficientOrAbove_percent
-drop I
 
-gen count=_n
-drop if count==1
-drop if count==11
-drop if count==12
-drop if count>=17
-drop count
+drop if inlist(StudentSubGroup, "General Education", "Special Education")
 
+gen Subject = "soc"
 
-gen Subject="soc"
+gen StudentGroup = "RaceEth"
+replace StudentGroup = "EL Status" if StudentSubGroup == "Non-English Language Learner" | StudentSubGroup == "English Language Learner"
+replace StudentGroup = "Gender" if StudentSubGroup == "Male" | StudentSubGroup == "Female"
+replace StudentGroup = "Economic Status" if StudentSubGroup == "Free/Reduced price meals" | StudentSubGroup == "Paid meals"
 
-gen StudentGroup="RaceEth"
-replace StudentGroup="EL Status" if StudentSubGroup=="Non-English Language Learner" | StudentSubGroup=="English Language Learner"
-replace StudentGroup="Gender" if StudentSubGroup=="Male" | StudentSubGroup=="Female"
-replace StudentGroup="Economic Status" if StudentSubGroup=="Free/Reduced price meals" | StudentSubGroup=="Paid meals"
+bysort StudentGroup: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
 
-destring StudentSubGroup_TotalTested, replace
+gen GradeLevel = "G38"
 
-save "/${yrfiles}/StateDisagg2019Soc", replace
-
-// generate subgroup totals
-collapse (sum) StudentSubGroup_TotalTested, by(Subject StudentGroup)
-
-rename StudentSubGroup_TotalTested StudentGroup_TotalTested
-
-save "/${yrfiles}/StateDisaggTotals2019Soc", replace
-
-use "/${yrfiles}/StateDisagg2019Soc", clear
-
-merge m:1 StudentGroup Subject using "/${yrfiles}/StateDisaggTotals2019Soc.dta"
-
-drop _merge
-gen GradeLevel="G38"
-tostring StudentSubGroup_TotalTested StudentGroup_TotalTested, replace
-
-save "/${yrfiles}/StateDisagg2019Soc", replace
-
-
+save "/${output}/StateDisagg2019Soc", replace
 
 //append all state-level files
-use "/${yrfiles}/StateELA2019", replace
-append using "/${yrfiles}/StateMath2019"
-append using "/${yrfiles}/StateSci2019"
-append using "/${yrfiles}/StateSoc2019"
-append using "/${yrfiles}/StateDisagg2019ELA"
-append using "/${yrfiles}/StateDisagg2019Math"
-append using "/${yrfiles}/StateDisagg2019Sci"
-append using "/${yrfiles}/StateDisagg2019Soc"
+use "/${output}/StateELA2019", replace
+append using "/${output}/StateMath2019"
+append using "/${output}/StateSci2019"
+append using "/${output}/StateSoc2019"
+append using "/${output}/StateDisagg2019ELA"
+append using "/${output}/StateDisagg2019Math"
+append using "/${output}/StateDisagg2019Sci"
+append using "/${output}/StateDisagg2019Soc"
 
-gen DataLevel=0
+gen DataLevel = "State"
 
-save "/${yrfiles}/State2019", replace
+tostring Lev*, replace
+tostring ProficientOrAbove_count, replace
+tostring ProficientOrAbove_percent, replace force
+
+save "/${output}/State2019", replace
 
 
-//// Create district level data
+//// District
 
 //ela
-import excel "/${yrfiles}/IN_OriginalData_2019_all_dist.xlsx", sheet("ELA") clear
+import excel "/${raw}/2019/IN_OriginalData_2019_all_dist.xlsx", sheet("ELA") cellrange(A7:AY369) clear
 
 rename A StateAssignedDistID
-rename B CorpName
-
-//prepare to transform from wide to long (first digit: 1=ela, 2=math, second digit: grade)
+rename B DistName
 
 rename C Lev1_count3
 rename D Lev2_count3
@@ -405,43 +271,32 @@ rename AP ProficientOrAbove_count8
 rename AQ StudentGroup_TotalTested8
 rename AR ProficientOrAbove_percent8
 
-rename AS Lev1_count9
-rename AT Lev2_count9
-rename AU Lev3_count9
-rename AV Lev4_count9
-rename AW ProficientOrAbove_count9
-rename AX StudentGroup_TotalTested9
-rename AY ProficientOrAbove_percent9
+rename AS Lev1_count38
+rename AT Lev2_count38
+rename AU Lev3_count38
+rename AV Lev4_count38
+rename AW ProficientOrAbove_count38
+rename AX StudentGroup_TotalTested38
+rename AY ProficientOrAbove_percent38
 
-gen id=_n
-drop if id<=6
+tostring Lev*, replace
+tostring Proficient*, replace force
 
-reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentGroup_TotalTested, i(id) j(GradeLevel)
+reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentGroup_TotalTested, i(StateAssignedDistID) j(GradeLevel) string
 
-drop id
-gen id=_n
+gen Subject = "ela"
 
+gen StudentSubGroup_TotalTested = StudentGroup_TotalTested
+gen StudentSubGroup = "All Students"
+gen StudentGroup = "All Students"
 
-gen Subject="ela"
-
-
-tostring GradeLevel, replace
-
-gen StudentSubGroup_TotalTested=StudentGroup_TotalTested
-gen StudentSubGroup="All Students"
-gen StudentGroup="All Students"
-
-save "/${yrfiles}/DistELA2019", replace
-
-
+save "/${output}/DistELA2019", replace
 
 //math
-import excel "/${yrfiles}/IN_OriginalData_2019_all_dist.xlsx", sheet("Math") clear
+import excel "/${raw}/2019/IN_OriginalData_2019_all_dist.xlsx", sheet("Math") cellrange(A7:AY369) clear
 
 rename A StateAssignedDistID
-rename B CorpName
-
-//prepare to transform from wide to long (first digit: 1=ela, 2=math, second digit: grade)
+rename B DistName
 
 rename C Lev1_count3
 rename D Lev2_count3
@@ -491,43 +346,32 @@ rename AP ProficientOrAbove_count8
 rename AQ StudentGroup_TotalTested8
 rename AR ProficientOrAbove_percent8
 
-rename AS Lev1_count9
-rename AT Lev2_count9
-rename AU Lev3_count9
-rename AV Lev4_count9
-rename AW ProficientOrAbove_count9
-rename AX StudentGroup_TotalTested9
-rename AY ProficientOrAbove_percent9
+rename AS Lev1_count38
+rename AT Lev2_count38
+rename AU Lev3_count38
+rename AV Lev4_count38
+rename AW ProficientOrAbove_count38
+rename AX StudentGroup_TotalTested38
+rename AY ProficientOrAbove_percent38
 
-gen id=_n
-drop if id<=6
+tostring Lev*, replace
+tostring Proficient*, replace force
 
-reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentGroup_TotalTested, i(id) j(GradeLevel)
+reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentGroup_TotalTested, i(StateAssignedDistID) j(GradeLevel) string
 
-drop id
-gen id=_n
+gen Subject = "math"
 
+gen StudentSubGroup_TotalTested = StudentGroup_TotalTested
+gen StudentSubGroup = "All Students"
+gen StudentGroup = "All Students"
 
-gen Subject="math"
-
-
-tostring GradeLevel, replace
-
-gen StudentSubGroup_TotalTested=StudentGroup_TotalTested
-gen StudentSubGroup="All Students"
-gen StudentGroup="All Students"
-
-save "/${yrfiles}/DistMath2019", replace
-
-
+save "/${output}/DistMath2019", replace
 
 //sci
-import excel "/${yrfiles}/IN_OriginalData_2019_all_dist.xlsx", sheet("Science") clear
+import excel "/${raw}/2019/IN_OriginalData_2019_all_dist.xlsx", sheet("Science") cellrange(A7:W359) clear
 
 rename A StateAssignedDistID
-rename B CorpName
-
-//prepare to transform from wide to long (first digit: 1=ela, 2=math, second digit: grade)
+rename B DistName
 
 rename C Lev1_count4
 rename D Lev2_count4
@@ -545,45 +389,30 @@ rename N ProficientOrAbove_count6
 rename O StudentGroup_TotalTested6
 rename P ProficientOrAbove_percent6
 
-rename Q Lev1_count9
-rename R Lev2_count9
-rename S Lev3_count9
-rename T Lev4_count9
-rename U ProficientOrAbove_count9
-rename V StudentGroup_TotalTested9
-rename W ProficientOrAbove_percent9
+rename Q Lev1_count38
+rename R Lev2_count38
+rename S Lev3_count38
+rename T Lev4_count38
+rename U ProficientOrAbove_count38
+rename V StudentGroup_TotalTested38
+rename W ProficientOrAbove_percent38
 
+reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentGroup_TotalTested, i(StateAssignedDistID) j(GradeLevel) string
 
-gen id=_n
-drop if id<=6
+gen Subject = "sci"
 
-reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentGroup_TotalTested, i(id) j(GradeLevel)
+gen StudentSubGroup_TotalTested = StudentGroup_TotalTested
+gen StudentSubGroup = "All Students"
+gen StudentGroup = "All Students"
 
-drop id
-gen id=_n
-
-
-gen Subject="sci"
-
-
-tostring GradeLevel, replace
-
-gen StudentSubGroup_TotalTested=StudentGroup_TotalTested
-gen StudentSubGroup="All Students"
-gen StudentGroup="All Students"
-
-save "/${yrfiles}/DistSci2019.dta", replace
-
-
-
+save "/${output}/DistSci2019.dta", replace
 
 //soc
-import excel "/${yrfiles}/IN_OriginalData_2019_all_dist.xlsx", sheet("Social Studies") clear
+import excel "/${raw}/2019/IN_OriginalData_2019_all_dist.xlsx", sheet("Social Studies") cellrange(A7:I351) clear
+
 
 rename A StateAssignedDistID
-rename B CorpName
-
-//prepare to transform from wide to long (first digit: 1=ela, 2=math, second digit: grade)
+rename B DistName
 
 rename C Lev1_count5
 rename D Lev2_count5
@@ -593,39 +422,24 @@ rename G ProficientOrAbove_count5
 rename H StudentGroup_TotalTested5
 rename I ProficientOrAbove_percent5
 
-gen id=_n
-drop if id<=6
+reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentGroup_TotalTested, i(StateAssignedDistID) j(GradeLevel) string
 
-reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentGroup_TotalTested, i(id) j(GradeLevel)
+gen Subject = "soc"
 
-drop id
-gen id=_n
+gen StudentSubGroup_TotalTested = StudentGroup_TotalTested
+gen StudentSubGroup = "All Students"
+gen StudentGroup = "All Students"
 
-
-gen Subject="soc"
-
-
-tostring GradeLevel, replace
-
-gen StudentSubGroup_TotalTested=StudentGroup_TotalTested
-gen StudentSubGroup="All Students"
-gen StudentGroup="All Students"
-
-save "/${yrfiles}/DistSoc2019.dta", replace
-
-
+save "/${output}/DistSoc2019.dta", replace
 
 // dist disaggregate data
 
-
 // ela race
 
-import excel "/${yrfiles}/IN_OriginalData_2019_all_dist_race&gender.xlsx", sheet("ELA Ethnicity") clear
+import excel "/${raw}/2019/IN_OriginalData_2019_all_dist_race_gender.xlsx", sheet("ELA Ethnicity") cellrange(A7:AY369) clear
 
 rename A StateAssignedDistID
-rename B CorpName
-
-//prepare to transform from wide to long (first digit: 1=ela, 2=math, second digit: grade)
+rename B DistName
 
 rename C Lev1_count3
 rename D Lev2_count3
@@ -683,68 +497,33 @@ rename AW ProficientOrAbove_count9
 rename AX StudentSubGroup_TotalTested9
 rename AY ProficientOrAbove_percent9
 
-gen id=_n
-drop if id<=6
+reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(StateAssignedDistID) j(StudentSubGroup) string
 
-reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(id) j(StudentSubGroup)
+gen GradeLevel = "G38"
 
-drop id
-gen id=_n
+replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "3"
+replace StudentSubGroup = "Asian" if StudentSubGroup == "4"
+replace StudentSubGroup = "Black or African American" if StudentSubGroup == "5"
+replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "6"
+replace StudentSubGroup = "Two or More" if StudentSubGroup == "7"
+replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "8"
+replace StudentSubGroup = "White" if StudentSubGroup == "9"
 
+gen StudentGroup = "RaceEth"
+gen Subject = "ela"
 
-gen GradeLevel="G38"
-tostring StudentSubGroup, replace
+drop if Lev1_count == ""
 
-replace StudentSubGroup="American Indian or Alaska Native" if StudentSubGroup=="3"
-replace StudentSubGroup="Asian" if StudentSubGroup=="4"
-replace StudentSubGroup="Black or African American" if StudentSubGroup=="5"
-replace StudentSubGroup="Hispanic or Latino" if StudentSubGroup=="6"
-replace StudentSubGroup="Two or More" if StudentSubGroup=="7"
-replace StudentSubGroup="Native Hawaiian or Pacific Islander" if StudentSubGroup=="8"
-replace StudentSubGroup="White" if StudentSubGroup=="9"
+bysort StateAssignedDistID: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
 
-
-
-gen StudentGroup="Race/Eth"
-gen Subject="ela"
-
-
-save "/${yrfiles}/DistDisaggRaceEth2019_ELA.dta", replace
-
-// gen student group totals
-
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested==""
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested=="***"
-
-destring StudentSubGroup_TotalTested, replace
-collapse (sum) StudentSubGroup_TotalTested, by(Subject StateAssignedDistID)
-
-replace StudentSubGroup_TotalTested=100000000000 if StudentSubGroup_TotalTested>=100000000000
-
-tostring StudentSubGroup_TotalTested, replace
-replace StudentSubGroup_TotalTested="*" if StudentSubGroup_TotalTested=="1.00000e+11"
-
-rename StudentSubGroup_TotalTested StudentGroup_TotalTested
-
-save "/${yrfiles}/DistDisaggRaceEthTotals2019_ELA.dta", replace
-
-use "/${yrfiles}/DistDisaggRaceEth2019_ELA.dta", clear
-
-merge m:1 StateAssignedDistID Subject using "/${yrfiles}/DistDisaggRaceEthTotals2019_ELA.dta"
-drop _merge
-
-save "/${yrfiles}/DistDisaggRaceEth2019_ELA.dta", replace
-
-
+save "/${output}/DistDisaggRaceEth2019_ELA.dta", replace
 
 // math race
 
-import excel "/${yrfiles}/IN_OriginalData_2019_all_dist_race&gender.xlsx", sheet("Math Ethnicity") clear
+import excel "/${raw}/2019/IN_OriginalData_2019_all_dist_race_gender.xlsx", sheet("Math Ethnicity") cellrange(A7:AY369) clear
 
 rename A StateAssignedDistID
-rename B CorpName
-
-//prepare to transform from wide to long (first digit: 1=ela, 2=math, second digit: grade)
+rename B DistName
 
 rename C Lev1_count3
 rename D Lev2_count3
@@ -802,68 +581,33 @@ rename AW ProficientOrAbove_count9
 rename AX StudentSubGroup_TotalTested9
 rename AY ProficientOrAbove_percent9
 
-gen id=_n
-drop if id<=6
+reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(StateAssignedDistID) j(StudentSubGroup) string
 
-reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(id) j(StudentSubGroup)
+gen GradeLevel = "G38"
 
-drop id
-gen id=_n
+replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "3"
+replace StudentSubGroup = "Asian" if StudentSubGroup == "4"
+replace StudentSubGroup = "Black or African American" if StudentSubGroup == "5"
+replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "6"
+replace StudentSubGroup = "Two or More" if StudentSubGroup == "7"
+replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "8"
+replace StudentSubGroup = "White" if StudentSubGroup == "9"
 
+gen StudentGroup = "RaceEth"
+gen Subject = "math"
 
-gen GradeLevel="G38"
-tostring StudentSubGroup, replace
+drop if Lev1_count == ""
 
-replace StudentSubGroup="American Indian or Alaska Native" if StudentSubGroup=="3"
-replace StudentSubGroup="Asian" if StudentSubGroup=="4"
-replace StudentSubGroup="Black or African American" if StudentSubGroup=="5"
-replace StudentSubGroup="Hispanic or Latino" if StudentSubGroup=="6"
-replace StudentSubGroup="Two or More" if StudentSubGroup=="7"
-replace StudentSubGroup="Native Hawaiian or Pacific Islander" if StudentSubGroup=="8"
-replace StudentSubGroup="White" if StudentSubGroup=="9"
+bysort StateAssignedDistID: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
 
-
-
-gen StudentGroup="Race/Eth"
-gen Subject="math"
-
-
-save "/${yrfiles}/DistDisaggRaceEth2019_Math.dta", replace
-
-// gen student group totals
-
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested==""
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested=="***"
-
-destring StudentSubGroup_TotalTested, replace
-collapse (sum) StudentSubGroup_TotalTested, by(Subject StateAssignedDistID)
-
-replace StudentSubGroup_TotalTested=100000000000 if StudentSubGroup_TotalTested>=100000000000
-
-tostring StudentSubGroup_TotalTested, replace
-replace StudentSubGroup_TotalTested="*" if StudentSubGroup_TotalTested=="1.00000e+11"
-
-rename StudentSubGroup_TotalTested StudentGroup_TotalTested
-
-save "/${yrfiles}/DistDisaggRaceEthTotals2019_Math.dta", replace
-
-use "/${yrfiles}/DistDisaggRaceEth2019_Math.dta", clear
-
-merge m:1 StateAssignedDistID Subject using "/${yrfiles}/DistDisaggRaceEthTotals2019_Math.dta"
-drop _merge
-
-save "/${yrfiles}/DistDisaggRaceEth2019_Math.dta", replace
-
-
+save "/${output}/DistDisaggRaceEth2019_Math.dta", replace
 
 // sci race
 
-import excel "/${yrfiles}/IN_OriginalData_2019_all_dist_race&gender.xlsx", sheet("Science Ethnicity") clear
+import excel "/${raw}/2019/IN_OriginalData_2019_all_dist_race_gender.xlsx", sheet("Science Ethnicity") cellrange(A7:AY359) clear
 
 rename A StateAssignedDistID
-rename B CorpName
-
-//prepare to transform from wide to long (first digit: 1=ela, 2=math, second digit: grade)
+rename B DistName
 
 rename C Lev1_count3
 rename D Lev2_count3
@@ -921,70 +665,33 @@ rename AW ProficientOrAbove_count9
 rename AX StudentSubGroup_TotalTested9
 rename AY ProficientOrAbove_percent9
 
-gen id=_n
-drop if id<=6
+reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(StateAssignedDistID) j(StudentSubGroup) string
 
-reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(id) j(StudentSubGroup)
+gen GradeLevel = "G38"
 
-drop id
-gen id=_n
+replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "3"
+replace StudentSubGroup = "Asian" if StudentSubGroup == "4"
+replace StudentSubGroup = "Black or African American" if StudentSubGroup == "5"
+replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "6"
+replace StudentSubGroup = "Two or More" if StudentSubGroup == "7"
+replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "8"
+replace StudentSubGroup = "White" if StudentSubGroup == "9"
 
+gen StudentGroup = "RaceEth"
+gen Subject = "sci"
 
-gen GradeLevel="G38"
-tostring StudentSubGroup, replace
+drop if Lev1_count == ""
 
-replace StudentSubGroup="American Indian or Alaska Native" if StudentSubGroup=="3"
-replace StudentSubGroup="Asian" if StudentSubGroup=="4"
-replace StudentSubGroup="Black or African American" if StudentSubGroup=="5"
-replace StudentSubGroup="Hispanic or Latino" if StudentSubGroup=="6"
-replace StudentSubGroup="Two or More" if StudentSubGroup=="7"
-replace StudentSubGroup="Native Hawaiian or Pacific Islander" if StudentSubGroup=="8"
-replace StudentSubGroup="White" if StudentSubGroup=="9"
+bysort StateAssignedDistID: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
 
-
-
-gen StudentGroup="Race/Eth"
-gen Subject="sci"
-
-
-save "/${yrfiles}/DistDisaggRaceEth2019_sci.dta", replace
-
-// gen student group totals
-
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested==""
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested=="***"
-
-destring StudentSubGroup_TotalTested, replace
-collapse (sum) StudentSubGroup_TotalTested, by(Subject StateAssignedDistID)
-
-replace StudentSubGroup_TotalTested=100000000000 if StudentSubGroup_TotalTested>=100000000000
-
-tostring StudentSubGroup_TotalTested, replace
-replace StudentSubGroup_TotalTested="*" if StudentSubGroup_TotalTested=="1.00000e+11"
-
-rename StudentSubGroup_TotalTested StudentGroup_TotalTested
-
-save "/${yrfiles}/DistDisaggRaceEthTotals2019_sci.dta", replace
-
-use "/${yrfiles}/DistDisaggRaceEth2019_sci.dta", clear
-
-merge m:1 StateAssignedDistID Subject using "/${yrfiles}/DistDisaggRaceEthTotals2019_sci.dta"
-drop _merge
-
-save "/${yrfiles}/DistDisaggRaceEth2019_sci.dta", replace
-
-
-
-
+save "/${output}/DistDisaggRaceEth2019_sci.dta", replace
 
 // soc race
 
-import excel "/${yrfiles}/IN_OriginalData_2019_all_dist_race&gender.xlsx", sheet("Social Studies Ethnicity") clear
+import excel "/${raw}/2019/IN_OriginalData_2019_all_dist_race_gender.xlsx", sheet("Social Studies Ethnicity") cellrange(A7:AY351) clear
 
 rename A StateAssignedDistID
-rename B CorpName
-
-//prepare to transform from wide to long (first digit: 1=ela, 2=math, second digit: grade)
+rename B DistName
 
 rename C Lev1_count3
 rename D Lev2_count3
@@ -1042,71 +749,36 @@ rename AW ProficientOrAbove_count9
 rename AX StudentSubGroup_TotalTested9
 rename AY ProficientOrAbove_percent9
 
-gen id=_n
-drop if id<=6
+reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(StateAssignedDistID) j(StudentSubGroup) string
 
-reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(id) j(StudentSubGroup)
+gen GradeLevel = "G38"
 
-drop id
-gen id=_n
+replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "3"
+replace StudentSubGroup = "Asian" if StudentSubGroup == "4"
+replace StudentSubGroup = "Black or African American" if StudentSubGroup == "5"
+replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "6"
+replace StudentSubGroup = "Two or More" if StudentSubGroup == "7"
+replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "8"
+replace StudentSubGroup = "White" if StudentSubGroup == "9"
 
+gen StudentGroup = "RaceEth"
+gen Subject = "soc"
 
-gen GradeLevel="G38"
-tostring StudentSubGroup, replace
+drop if Lev1_count == ""
 
-replace StudentSubGroup="American Indian or Alaska Native" if StudentSubGroup=="3"
-replace StudentSubGroup="Asian" if StudentSubGroup=="4"
-replace StudentSubGroup="Black or African American" if StudentSubGroup=="5"
-replace StudentSubGroup="Hispanic or Latino" if StudentSubGroup=="6"
-replace StudentSubGroup="Two or More" if StudentSubGroup=="7"
-replace StudentSubGroup="Native Hawaiian or Pacific Islander" if StudentSubGroup=="8"
-replace StudentSubGroup="White" if StudentSubGroup=="9"
+bysort StateAssignedDistID: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
 
-
-
-gen StudentGroup="Race/Eth"
-gen Subject="soc"
-
-
-save "/${yrfiles}/DistDisaggRaceEth2019_soc.dta", replace
-
-// gen student group totals
-
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested==""
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested=="***"
-
-destring StudentSubGroup_TotalTested, replace
-collapse (sum) StudentSubGroup_TotalTested, by(Subject StateAssignedDistID)
-
-replace StudentSubGroup_TotalTested=100000000000 if StudentSubGroup_TotalTested>=100000000000
-
-tostring StudentSubGroup_TotalTested, replace
-replace StudentSubGroup_TotalTested="*" if StudentSubGroup_TotalTested=="1.00000e+11"
-
-rename StudentSubGroup_TotalTested StudentGroup_TotalTested
-
-save "/${yrfiles}/DistDisaggRaceEthTotals2019_soc.dta", replace
-
-use "/${yrfiles}/DistDisaggRaceEth2019_soc.dta", clear
-
-merge m:1 StateAssignedDistID Subject using "/${yrfiles}/DistDisaggRaceEthTotals2019_soc.dta"
-drop _merge
-
-save "/${yrfiles}/DistDisaggRaceEth2019_soc.dta", replace
-
-
+save "/${output}/DistDisaggRaceEth2019_soc.dta", replace
 
 // gender
 
 
 // math gender
 
-import excel "/${yrfiles}/IN_OriginalData_2019_all_dist_race&gender.xlsx", sheet("Math Gender") clear
+import excel "/${raw}/2019/IN_OriginalData_2019_all_dist_race_gender.xlsx", sheet("Math Gender") cellrange(A7:P369) clear
 
 rename A StateAssignedDistID
-rename B CorpName
-
-//prepare to transform from wide to long (first digit: 1=ela, 2=math, second digit: grade)
+rename B DistName
 
 rename C Lev1_count3
 rename D Lev2_count3
@@ -1124,63 +796,28 @@ rename N ProficientOrAbove_count4
 rename O StudentSubGroup_TotalTested4
 rename P ProficientOrAbove_percent4
 
+reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(StateAssignedDistID) j(StudentSubGroup) string
 
-gen id=_n
-drop if id<=6
+gen GradeLevel = "G38"
 
-reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(id) j(StudentSubGroup)
+replace StudentSubGroup = "Female" if StudentSubGroup == "3"
+replace StudentSubGroup =  "Male" if StudentSubGroup == "4"
 
-drop id
-gen id=_n
+gen StudentGroup = "Gender"
+gen Subject = "math"
 
+drop if Lev1_count == ""
 
-gen GradeLevel="G38"
-tostring StudentSubGroup, replace
+bysort StateAssignedDistID: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
 
-replace StudentSubGroup="Female" if StudentSubGroup=="3"
-replace StudentSubGroup="Male" if StudentSubGroup=="4"
-
-gen StudentGroup="Gender"
-gen Subject="math"
-
-
-save "/${yrfiles}/DistDisaggGender2019_Math.dta", replace
-
-// gen student group totals
-
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested==""
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested=="***"
-
-destring StudentSubGroup_TotalTested, replace
-collapse (sum) StudentSubGroup_TotalTested, by(Subject StateAssignedDistID)
-
-replace StudentSubGroup_TotalTested=100000000000 if StudentSubGroup_TotalTested>=100000000000
-
-tostring StudentSubGroup_TotalTested, replace
-replace StudentSubGroup_TotalTested="*" if StudentSubGroup_TotalTested=="1.00000e+11"
-
-rename StudentSubGroup_TotalTested StudentGroup_TotalTested
-
-save "/${yrfiles}/DistDisaggGenderTotals2019_Math.dta", replace
-
-use "/${yrfiles}/DistDisaggGender2019_Math.dta", clear
-
-merge m:1 StateAssignedDistID Subject using "/${yrfiles}/DistDisaggGenderTotals2019_Math.dta"
-drop _merge
-
-save "/${yrfiles}/DistDisaggGender2019_Math.dta", replace
-
-
-
+save "/${output}/DistDisaggGender2019_Math.dta", replace
 
 // ela gender
 
-import excel "/${yrfiles}/IN_OriginalData_2019_all_dist_race&gender.xlsx", sheet("ELA Gender") clear
+import excel "/${raw}/2019/IN_OriginalData_2019_all_dist_race_gender.xlsx", sheet("ELA Gender") cellrange(A7:P369) clear
 
 rename A StateAssignedDistID
-rename B CorpName
-
-//prepare to transform from wide to long (first digit: 1=ela, 2=math, second digit: grade)
+rename B DistName
 
 rename C Lev1_count3
 rename D Lev2_count3
@@ -1198,62 +835,28 @@ rename N ProficientOrAbove_count4
 rename O StudentSubGroup_TotalTested4
 rename P ProficientOrAbove_percent4
 
+reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(StateAssignedDistID) j(StudentSubGroup) string
 
-gen id=_n
-drop if id<=6
+gen GradeLevel = "G38"
 
-reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(id) j(StudentSubGroup)
+replace StudentSubGroup = "Female" if StudentSubGroup == "3"
+replace StudentSubGroup =  "Male" if StudentSubGroup == "4"
 
-drop id
-gen id=_n
+gen StudentGroup = "Gender"
+gen Subject = "ela"
 
+drop if Lev1_count == ""
 
-gen GradeLevel="G38"
-tostring StudentSubGroup, replace
+bysort StateAssignedDistID: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
 
-replace StudentSubGroup="Female" if StudentSubGroup=="3"
-replace StudentSubGroup="Male" if StudentSubGroup=="4"
-
-gen StudentGroup="Gender"
-gen Subject="ela"
-
-
-save "/${yrfiles}/DistDisaggGender2019_ELA.dta", replace
-
-// gen student group totals
-
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested==""
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested=="***"
-
-destring StudentSubGroup_TotalTested, replace
-collapse (sum) StudentSubGroup_TotalTested, by(Subject StateAssignedDistID)
-
-replace StudentSubGroup_TotalTested=100000000000 if StudentSubGroup_TotalTested>=100000000000
-
-tostring StudentSubGroup_TotalTested, replace
-replace StudentSubGroup_TotalTested="*" if StudentSubGroup_TotalTested=="1.00000e+11"
-
-rename StudentSubGroup_TotalTested StudentGroup_TotalTested
-
-save "/${yrfiles}/DistDisaggGenderTotals2019_ELA", replace
-
-use "/${yrfiles}/DistDisaggGender2019_ELA.dta", clear
-
-merge m:1 StateAssignedDistID Subject using "/${yrfiles}/DistDisaggGenderTotals2019_ELA.dta"
-drop _merge
-
-save "/${yrfiles}/DistDisaggGender2019_ELA.dta", replace
-
-
+save "/${output}/DistDisaggGender2019_ELA.dta", replace
 
 // sci gender
 
-import excel "/${yrfiles}/IN_OriginalData_2019_all_dist_race&gender.xlsx", sheet("Science Gender") clear
+import excel "/${raw}/2019/IN_OriginalData_2019_all_dist_race_gender.xlsx", sheet("Science Gender") cellrange(A7:P359) clear
 
 rename A StateAssignedDistID
-rename B CorpName
-
-//prepare to transform from wide to long (first digit: 1=ela, 2=math, second digit: grade)
+rename B DistName
 
 rename C Lev1_count3
 rename D Lev2_count3
@@ -1271,63 +874,28 @@ rename N ProficientOrAbove_count4
 rename O StudentSubGroup_TotalTested4
 rename P ProficientOrAbove_percent4
 
+reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(StateAssignedDistID) j(StudentSubGroup) string
 
-gen id=_n
-drop if id<=6
+gen GradeLevel = "G38"
 
-reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(id) j(StudentSubGroup)
+replace StudentSubGroup = "Female" if StudentSubGroup == "3"
+replace StudentSubGroup =  "Male" if StudentSubGroup == "4"
 
-drop id
-gen id=_n
+gen StudentGroup = "Gender"
+gen Subject = "sci"
 
+drop if Lev1_count == ""
 
-gen GradeLevel="G38"
-tostring StudentSubGroup, replace
+bysort StateAssignedDistID: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
 
-replace StudentSubGroup="Female" if StudentSubGroup=="3"
-replace StudentSubGroup="Male" if StudentSubGroup=="4"
-
-gen StudentGroup="Gender"
-gen Subject="sci"
-
-
-save "/${yrfiles}/DistDisaggGender2019_sci.dta", replace
-
-// gen student group totals
-
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested==""
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested=="***"
-
-destring StudentSubGroup_TotalTested, replace
-collapse (sum) StudentSubGroup_TotalTested, by(Subject StateAssignedDistID)
-
-replace StudentSubGroup_TotalTested=100000000000 if StudentSubGroup_TotalTested>=100000000000
-
-tostring StudentSubGroup_TotalTested, replace
-replace StudentSubGroup_TotalTested="*" if StudentSubGroup_TotalTested=="1.00000e+11"
-
-rename StudentSubGroup_TotalTested StudentGroup_TotalTested
-
-save "/${yrfiles}/DistDisaggGenderTotals2019_sci.dta", replace
-
-use "/${yrfiles}/DistDisaggGender2019_sci.dta", clear
-
-merge m:1 StateAssignedDistID Subject using "/${yrfiles}/DistDisaggGenderTotals2019_sci.dta"
-drop _merge
-
-save "/${yrfiles}/DistDisaggGender2019_sci.dta", replace
-
-
-
+save "/${output}/DistDisaggGender2019_sci.dta", replace
 
 // soc gender
 
-import excel "/${yrfiles}/IN_OriginalData_2019_all_dist_race&gender.xlsx", sheet("Social Studies Gender") clear
+import excel "/${raw}/2019/IN_OriginalData_2019_all_dist_race_gender.xlsx", sheet("Social Studies Gender") cellrange(A7:P351) clear
 
 rename A StateAssignedDistID
-rename B CorpName
-
-//prepare to transform from wide to long (first digit: 1=ela, 2=math, second digit: grade)
+rename B DistName
 
 rename C Lev1_count3
 rename D Lev2_count3
@@ -1345,66 +913,30 @@ rename N ProficientOrAbove_count4
 rename O StudentSubGroup_TotalTested4
 rename P ProficientOrAbove_percent4
 
+reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(StateAssignedDistID) j(StudentSubGroup) string
 
-gen id=_n
-drop if id<=6
+gen GradeLevel = "G38"
 
-reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(id) j(StudentSubGroup)
+replace StudentSubGroup = "Female" if StudentSubGroup == "3"
+replace StudentSubGroup =  "Male" if StudentSubGroup == "4"
 
-drop id
-gen id=_n
+gen StudentGroup = "Gender"
+gen Subject = "soc"
 
+drop if Lev1_count == ""
 
-gen GradeLevel="G38"
-tostring StudentSubGroup, replace
+bysort StateAssignedDistID: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
 
-replace StudentSubGroup="Female" if StudentSubGroup=="3"
-replace StudentSubGroup="Male" if StudentSubGroup=="4"
-
-gen StudentGroup="Gender"
-gen Subject="soc"
-
-
-save "/${yrfiles}/DistDisaggGender2019_soc.dta", replace
-
-// gen student group totals
-
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested==""
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested=="***"
-
-destring StudentSubGroup_TotalTested, replace
-collapse (sum) StudentSubGroup_TotalTested, by(Subject StateAssignedDistID)
-
-replace StudentSubGroup_TotalTested=100000000000 if StudentSubGroup_TotalTested>=100000000000
-
-tostring StudentSubGroup_TotalTested, replace
-replace StudentSubGroup_TotalTested="*" if StudentSubGroup_TotalTested=="1.00000e+11"
-
-rename StudentSubGroup_TotalTested StudentGroup_TotalTested
-
-save "/${yrfiles}/DistDisaggGenderTotals2019_soc.dta", replace
-
-use "/${yrfiles}/DistDisaggGender2019_soc.dta", clear
-
-merge m:1 StateAssignedDistID Subject using "/${yrfiles}/DistDisaggGenderTotals2019_soc.dta"
-drop _merge
-
-save "/${yrfiles}/DistDisaggGender2019_soc.dta", replace
-
-
+save "/${output}/DistDisaggGender2019_soc.dta", replace
 
 //	english learners
 
-
-
 // ela el status
 
-import excel "/${yrfiles}/IN_OriginalData_2019_all_dist_disagg.xlsx", sheet("ELA English Learners") clear
+import excel "/${raw}/2019/IN_OriginalData_2019_all_dist_disagg.xlsx", sheet("ELA English Learners") cellrange(A7:P369) clear
 
 rename A StateAssignedDistID
-rename B CorpName
-
-//prepare to transform from wide to long (first digit: 1=ela, 2=math, second digit: grade)
+rename B DistName
 
 rename C Lev1_count3
 rename D Lev2_count3
@@ -1422,62 +954,28 @@ rename N ProficientOrAbove_count4
 rename O StudentSubGroup_TotalTested4
 rename P ProficientOrAbove_percent4
 
+reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(StateAssignedDistID) j(StudentSubGroup) string
 
-gen id=_n
-drop if id<=6
+gen GradeLevel = "G38"
 
-reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(id) j(StudentSubGroup)
+replace StudentSubGroup = "English Proficient" if StudentSubGroup == "3"
+replace StudentSubGroup = "English Learner" if StudentSubGroup == "4"
 
-drop id
-gen id=_n
+gen StudentGroup = "EL Status"
+gen Subject = "ela"
 
+drop if Lev1_count == ""
 
-gen GradeLevel="G38"
-tostring StudentSubGroup, replace
+bysort StateAssignedDistID: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
 
-replace StudentSubGroup="English Proficient" if StudentSubGroup=="3"
-replace StudentSubGroup="English Learner" if StudentSubGroup=="4"
-
-gen StudentGroup="EL Status"
-gen Subject="ela"
-
-
-save "/${yrfiles}/DistDisaggELStatus2019_ELA.dta", replace
-
-// gen student group totals
-
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested==""
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested=="***"
-
-destring StudentSubGroup_TotalTested, replace
-collapse (sum) StudentSubGroup_TotalTested, by(Subject StateAssignedDistID)
-
-replace StudentSubGroup_TotalTested=100000000000 if StudentSubGroup_TotalTested>=100000000000
-
-tostring StudentSubGroup_TotalTested, replace
-replace StudentSubGroup_TotalTested="*" if StudentSubGroup_TotalTested=="1.00000e+11"
-
-rename StudentSubGroup_TotalTested StudentGroup_TotalTested
-
-save "/${yrfiles}/DistDisaggELStatusTotals2019_ELA.dta", replace
-
-use "/${yrfiles}/DistDisaggELStatus2019_ELA.dta", clear
-
-merge m:1 StateAssignedDistID Subject using "/${yrfiles}/DistDisaggELStatusTotals2019_ELA.dta"
-drop _merge
-
-save "/${yrfiles}/DistDisaggELStatus2019_ELA.dta", replace
-
-
+save "/${output}/DistDisaggELStatus2019_ELA.dta", replace
 
 // math el status
 
-import excel "/${yrfiles}/IN_OriginalData_2019_all_dist_disagg.xlsx", sheet("Math English Learners") clear
+import excel "/${raw}/2019/IN_OriginalData_2019_all_dist_disagg.xlsx", sheet("Math English Learners") cellrange(A7:P369) clear
 
 rename A StateAssignedDistID
-rename B CorpName
-
-//prepare to transform from wide to long (first digit: 1=ela, 2=math, second digit: grade)
+rename B DistName
 
 rename C Lev1_count3
 rename D Lev2_count3
@@ -1495,62 +993,28 @@ rename N ProficientOrAbove_count4
 rename O StudentSubGroup_TotalTested4
 rename P ProficientOrAbove_percent4
 
+reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(StateAssignedDistID) j(StudentSubGroup) string
 
-gen id=_n
-drop if id<=6
+gen GradeLevel = "G38"
 
-reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(id) j(StudentSubGroup)
+replace StudentSubGroup = "English Proficient" if StudentSubGroup == "3"
+replace StudentSubGroup = "English Learner" if StudentSubGroup == "4"
 
-drop id
-gen id=_n
+gen StudentGroup = "EL Status"
+gen Subject = "math"
 
+drop if Lev1_count == ""
 
-gen GradeLevel="G38"
-tostring StudentSubGroup, replace
+bysort StateAssignedDistID: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
 
-replace StudentSubGroup="English Proficient" if StudentSubGroup=="3"
-replace StudentSubGroup="English Learner" if StudentSubGroup=="4"
-
-gen StudentGroup="EL Status"
-gen Subject="math"
-
-
-save "/${yrfiles}/DistDisaggELStatus2019_Math.dta", replace
-
-// gen student group totals
-
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested==""
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested=="***"
-
-destring StudentSubGroup_TotalTested, replace
-collapse (sum) StudentSubGroup_TotalTested, by(Subject StateAssignedDistID)
-
-replace StudentSubGroup_TotalTested=100000000000 if StudentSubGroup_TotalTested>=100000000000
-
-tostring StudentSubGroup_TotalTested, replace
-replace StudentSubGroup_TotalTested="*" if StudentSubGroup_TotalTested=="1.00000e+11"
-
-rename StudentSubGroup_TotalTested StudentGroup_TotalTested
-
-save "/${yrfiles}/DistDisaggELStatusTotals2019_Math.dta", replace
-
-use "/${yrfiles}/DistDisaggELStatus2019_Math.dta", clear
-
-merge m:1 StateAssignedDistID Subject using "/${yrfiles}/DistDisaggELStatusTotals2019_Math.dta"
-drop _merge
-
-save "/${yrfiles}/DistDisaggELStatus2019_Math.dta", replace
-
-
+save "/${output}/DistDisaggELStatus2019_Math.dta", replace
 
 // science el status
 
-import excel "/${yrfiles}/IN_OriginalData_2019_all_dist_disagg.xlsx", sheet("Science English Learners") clear
+import excel "/${raw}/2019/IN_OriginalData_2019_all_dist_disagg.xlsx", sheet("Science English Learners") cellrange(A7:P359) clear
 
 rename A StateAssignedDistID
-rename B CorpName
-
-//prepare to transform from wide to long (first digit: 1=ela, 2=math, second digit: grade)
+rename B DistName
 
 rename C Lev1_count3
 rename D Lev2_count3
@@ -1568,62 +1032,28 @@ rename N ProficientOrAbove_count4
 rename O StudentSubGroup_TotalTested4
 rename P ProficientOrAbove_percent4
 
+reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(StateAssignedDistID) j(StudentSubGroup) string
 
-gen id=_n
-drop if id<=6
+gen GradeLevel = "G38"
 
-reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(id) j(StudentSubGroup)
+replace StudentSubGroup = "English Proficient" if StudentSubGroup == "3"
+replace StudentSubGroup = "English Learner" if StudentSubGroup == "4"
 
-drop id
-gen id=_n
+gen StudentGroup = "EL Status"
+gen Subject = "sci"
 
+drop if Lev1_count == ""
 
-gen GradeLevel="G38"
-tostring StudentSubGroup, replace
+bysort StateAssignedDistID: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
 
-replace StudentSubGroup="English Proficient" if StudentSubGroup=="3"
-replace StudentSubGroup="English Learner" if StudentSubGroup=="4"
-
-gen StudentGroup="EL Status"
-gen Subject="sci"
-
-
-save "/${yrfiles}/DistDisaggELStatus2019_sci.dta", replace
-
-// gen student group totals
-
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested==""
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested=="***"
-
-destring StudentSubGroup_TotalTested, replace
-collapse (sum) StudentSubGroup_TotalTested, by(Subject StateAssignedDistID)
-
-replace StudentSubGroup_TotalTested=100000000000 if StudentSubGroup_TotalTested>=100000000000
-
-tostring StudentSubGroup_TotalTested, replace
-replace StudentSubGroup_TotalTested="*" if StudentSubGroup_TotalTested=="1.00000e+11"
-
-rename StudentSubGroup_TotalTested StudentGroup_TotalTested
-
-save "/${yrfiles}/DistDisaggELStatusTotals2019_sci.dta", replace
-
-use "/${yrfiles}/DistDisaggELStatus2019_sci.dta", clear
-
-merge m:1 StateAssignedDistID Subject using "/${yrfiles}/DistDisaggELStatusTotals2019_sci.dta"
-drop _merge
-
-save "/${yrfiles}/DistDisaggELStatus2019_sci.dta", replace
-
-
+save "/${output}/DistDisaggELStatus2019_sci.dta", replace
 
 // soc el status
 
-import excel "/${yrfiles}/IN_OriginalData_2019_all_dist_disagg.xlsx", sheet("Social Studies English Learners") clear
+import excel "/${raw}/2019/IN_OriginalData_2019_all_dist_disagg.xlsx", sheet("Social Studies English Learners") cellrange(A7:P351) clear
 
 rename A StateAssignedDistID
-rename B CorpName
-
-//prepare to transform from wide to long (first digit: 1=ela, 2=math, second digit: grade)
+rename B DistName
 
 rename C Lev1_count3
 rename D Lev2_count3
@@ -1641,62 +1071,28 @@ rename N ProficientOrAbove_count4
 rename O StudentSubGroup_TotalTested4
 rename P ProficientOrAbove_percent4
 
+reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(StateAssignedDistID) j(StudentSubGroup) string
 
-gen id=_n
-drop if id<=6
+gen GradeLevel = "G38"
 
-reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(id) j(StudentSubGroup)
+replace StudentSubGroup = "English Proficient" if StudentSubGroup == "3"
+replace StudentSubGroup = "English Learner" if StudentSubGroup == "4"
 
-drop id
-gen id=_n
+gen StudentGroup = "EL Status"
+gen Subject = "soc"
 
+drop if Lev1_count == ""
 
-gen GradeLevel="G38"
-tostring StudentSubGroup, replace
+bysort StateAssignedDistID: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
 
-replace StudentSubGroup="English Proficient" if StudentSubGroup=="3"
-replace StudentSubGroup="English Learner" if StudentSubGroup=="4"
-
-gen StudentGroup="EL Status"
-gen Subject="soc"
-
-
-save "/${yrfiles}/DistDisaggELStatus2019_soc", replace
-
-// gen student group totals
-
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested==""
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested=="***"
-
-destring StudentSubGroup_TotalTested, replace
-collapse (sum) StudentSubGroup_TotalTested, by(Subject StateAssignedDistID)
-
-replace StudentSubGroup_TotalTested=100000000000 if StudentSubGroup_TotalTested>=100000000000
-
-tostring StudentSubGroup_TotalTested, replace
-replace StudentSubGroup_TotalTested="*" if StudentSubGroup_TotalTested=="1.00000e+11"
-
-rename StudentSubGroup_TotalTested StudentGroup_TotalTested
-
-save "/${yrfiles}/DistDisaggELStatusTotals2019_soc.dta", replace
-
-use "/${yrfiles}/DistDisaggELStatus2019_soc.dta", clear
-
-merge m:1 StateAssignedDistID Subject using "/${yrfiles}/DistDisaggELStatusTotals2019_soc.dta"
-drop _merge
-
-save "/${yrfiles}/DistDisaggELStatus2019_soc.dta", replace
-
-
+save "/${output}/DistDisaggELStatus2019_soc", replace
 
 // ela econ status
 
-import excel "/${yrfiles}/IN_OriginalData_2019_all_dist_disagg.xlsx", sheet("ELA Socio Economic") clear
+import excel "/${raw}/2019/IN_OriginalData_2019_all_dist_disagg.xlsx", sheet("ELA Socio Economic") cellrange(A7:P369) clear
 
 rename A StateAssignedDistID
-rename B CorpName
-
-//prepare to transform from wide to long (first digit: 1=ela, 2=math, second digit: grade)
+rename B DistName
 
 rename C Lev1_count3
 rename D Lev2_count3
@@ -1714,62 +1110,29 @@ rename N ProficientOrAbove_count4
 rename O StudentSubGroup_TotalTested4
 rename P ProficientOrAbove_percent4
 
+reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(StateAssignedDistID) j(StudentSubGroup) string
 
-gen id=_n
-drop if id<=6
-
-reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(id) j(StudentSubGroup)
-
-drop id
-gen id=_n
-
-
-gen GradeLevel="G38"
+gen GradeLevel = "G38"
 tostring StudentSubGroup, replace
 
-replace StudentSubGroup="Not Economically Disadvantaged" if StudentSubGroup=="3"
-replace StudentSubGroup="Economically Disadvantaged" if StudentSubGroup=="4"
+replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "3"
+replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "4"
 
-gen StudentGroup="EL Status"
-gen Subject="ela"
+gen StudentGroup = "Economic Status"
+gen Subject = "ela"
 
+drop if Lev1_count == ""
 
-save "/${yrfiles}/DistDisaggEconStatus2019_ELA.dta", replace
+bysort StateAssignedDistID: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
 
-// gen student group totals
-
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested==""
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested=="***"
-
-destring StudentSubGroup_TotalTested, replace
-collapse (sum) StudentSubGroup_TotalTested, by(Subject StateAssignedDistID)
-
-replace StudentSubGroup_TotalTested=100000000000 if StudentSubGroup_TotalTested>=100000000000
-
-tostring StudentSubGroup_TotalTested, replace
-replace StudentSubGroup_TotalTested="*" if StudentSubGroup_TotalTested=="1.00000e+11"
-
-rename StudentSubGroup_TotalTested StudentGroup_TotalTested
-
-save "/${yrfiles}/DistDisaggEconStatusTotals2019_ELA.dta", replace
-
-use "/${yrfiles}/DistDisaggEconStatus2019_ELA.dta", clear
-
-merge m:1 StateAssignedDistID Subject using "/${yrfiles}/DistDisaggEconStatusTotals2019_ELA.dta"
-drop _merge
-
-save "/${yrfiles}/DistDisaggEconStatus2019_ELA.dta", replace
-
-
+save "/${output}/DistDisaggEconStatus2019_ELA.dta", replace
 
 // math econ status
 
-import excel "/${yrfiles}/IN_OriginalData_2019_all_dist_disagg.xlsx", sheet("Math Socio Economic") clear
+import excel "/${raw}/2019/IN_OriginalData_2019_all_dist_disagg.xlsx", sheet("Math Socio Economic") cellrange(A7:P369) clear
 
 rename A StateAssignedDistID
-rename B CorpName
-
-//prepare to transform from wide to long (first digit: 1=ela, 2=math, second digit: grade)
+rename B DistName
 
 rename C Lev1_count3
 rename D Lev2_count3
@@ -1787,62 +1150,29 @@ rename N ProficientOrAbove_count4
 rename O StudentSubGroup_TotalTested4
 rename P ProficientOrAbove_percent4
 
+reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(StateAssignedDistID) j(StudentSubGroup) string
 
-gen id=_n
-drop if id<=6
-
-reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(id) j(StudentSubGroup)
-
-drop id
-gen id=_n
-
-
-gen GradeLevel="G38"
+gen GradeLevel = "G38"
 tostring StudentSubGroup, replace
 
-replace StudentSubGroup="Not Economically Disadvantaged" if StudentSubGroup=="3"
-replace StudentSubGroup="Economically Disadvantaged" if StudentSubGroup=="4"
+replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "3"
+replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "4"
 
-gen StudentGroup="EL Status"
-gen Subject="math"
+gen StudentGroup = "Economic Status"
+gen Subject = "math"
 
+drop if Lev1_count == ""
 
-save "/${yrfiles}/DistDisaggEconStatus2019_Math.dta", replace
+bysort StateAssignedDistID: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
 
-// gen student group totals
-
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested==""
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested=="***"
-
-destring StudentSubGroup_TotalTested, replace
-collapse (sum) StudentSubGroup_TotalTested, by(Subject StateAssignedDistID)
-
-replace StudentSubGroup_TotalTested=100000000000 if StudentSubGroup_TotalTested>=100000000000
-
-tostring StudentSubGroup_TotalTested, replace
-replace StudentSubGroup_TotalTested="*" if StudentSubGroup_TotalTested=="1.00000e+11"
-
-rename StudentSubGroup_TotalTested StudentGroup_TotalTested
-
-save "/${yrfiles}/DistDisaggEconStatusTotals2019_Math.dta", replace
-
-use "/${yrfiles}/DistDisaggEconStatus2019_Math.dta", clear
-
-merge m:1 StateAssignedDistID Subject using "/${yrfiles}/DistDisaggEconStatusTotals2019_Math.dta"
-drop _merge
-
-save "/${yrfiles}/DistDisaggEconStatus2019_Math.dta", replace
-
-
+save "/${output}/DistDisaggEconStatus2019_Math.dta", replace
 
 // science econ status
 
-import excel "/${yrfiles}/IN_OriginalData_2019_all_dist_disagg.xlsx", sheet("Science Socio Economic") clear
+import excel "/${raw}/2019/IN_OriginalData_2019_all_dist_disagg.xlsx", sheet("Science Socio Economic") cellrange(A7:P359) clear
 
 rename A StateAssignedDistID
-rename B CorpName
-
-//prepare to transform from wide to long (first digit: 1=ela, 2=math, second digit: grade)
+rename B DistName
 
 rename C Lev1_count3
 rename D Lev2_count3
@@ -1860,62 +1190,29 @@ rename N ProficientOrAbove_count4
 rename O StudentSubGroup_TotalTested4
 rename P ProficientOrAbove_percent4
 
+reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(StateAssignedDistID) j(StudentSubGroup) string
 
-gen id=_n
-drop if id<=6
-
-reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(id) j(StudentSubGroup)
-
-drop id
-gen id=_n
-
-
-gen GradeLevel="G38"
+gen GradeLevel = "G38"
 tostring StudentSubGroup, replace
 
-replace StudentSubGroup="Not Economically Disadvantaged" if StudentSubGroup=="3"
-replace StudentSubGroup="Economically Disadvantaged" if StudentSubGroup=="4"
+replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "3"
+replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "4"
 
-gen StudentGroup="EL Status"
-gen Subject="sci"
+gen StudentGroup = "Economic Status"
+gen Subject = "sci"
 
+drop if Lev1_count == ""
 
-save "/${yrfiles}/DistDisaggEconStatus2019_sci.dta", replace
+bysort StateAssignedDistID: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
 
-// gen student group totals
-
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested==""
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested=="***"
-
-destring StudentSubGroup_TotalTested, replace
-collapse (sum) StudentSubGroup_TotalTested, by(Subject StateAssignedDistID)
-
-replace StudentSubGroup_TotalTested=100000000000 if StudentSubGroup_TotalTested>=100000000000
-
-tostring StudentSubGroup_TotalTested, replace
-replace StudentSubGroup_TotalTested="*" if StudentSubGroup_TotalTested=="1.00000e+11"
-
-rename StudentSubGroup_TotalTested StudentGroup_TotalTested
-
-save "/${yrfiles}/DistDisaggEconStatusTotals2019_sci.dta", replace
-
-use "/${yrfiles}/DistDisaggEconStatus2019_sci.dta", clear
-
-merge m:1 StateAssignedDistID Subject using "/${yrfiles}/DistDisaggEconStatusTotals2019_sci.dta"
-drop _merge
-
-save "/${yrfiles}/DistDisaggEconStatus2019_sci.dta", replace
-
-
+save "/${output}/DistDisaggEconStatus2019_sci.dta", replace
 
 // soc econ status
 
-import excel "/${yrfiles}/IN_OriginalData_2019_all_dist_disagg.xlsx", sheet("Social Studies Socio Economic") clear
+import excel "/${raw}/2019/IN_OriginalData_2019_all_dist_disagg.xlsx", sheet("Social Studies Socio Economic") cellrange(A7:P351) clear
 
 rename A StateAssignedDistID
-rename B CorpName
-
-//prepare to transform from wide to long (first digit: 1=ela, 2=math, second digit: grade)
+rename B DistName
 
 rename C Lev1_count3
 rename D Lev2_count3
@@ -1933,100 +1230,60 @@ rename N ProficientOrAbove_count4
 rename O StudentSubGroup_TotalTested4
 rename P ProficientOrAbove_percent4
 
+reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(StateAssignedDistID) j(StudentSubGroup) string
 
-gen id=_n
-drop if id<=6
-
-reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(id) j(StudentSubGroup)
-
-drop id
-gen id=_n
-
-
-gen GradeLevel="G38"
+gen GradeLevel = "G38"
 tostring StudentSubGroup, replace
 
-replace StudentSubGroup="Not Economically Disadvantaged" if StudentSubGroup=="3"
-replace StudentSubGroup="Economically Disadvantaged" if StudentSubGroup=="4"
+replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "3"
+replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "4"
 
-gen StudentGroup="EL Status"
-gen Subject="soc"
+gen StudentGroup = "Economic Status"
+gen Subject = "soc"
 
+drop if Lev1_count == ""
 
-save "/${yrfiles}/DistDisaggEconStatus2019_soc.dta", replace
+bysort StateAssignedDistID: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
 
-// gen student group totals
-
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested==""
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested=="***"
-
-destring StudentSubGroup_TotalTested, replace
-collapse (sum) StudentSubGroup_TotalTested, by(Subject StateAssignedDistID)
-
-replace StudentSubGroup_TotalTested=100000000000 if StudentSubGroup_TotalTested>=100000000000
-
-tostring StudentSubGroup_TotalTested, replace
-replace StudentSubGroup_TotalTested="*" if StudentSubGroup_TotalTested=="1.00000e+11"
-
-rename StudentSubGroup_TotalTested StudentGroup_TotalTested
-
-save "/${yrfiles}/DistDisaggEconStatusTotals2019_soc.dta", replace
-
-use "/${yrfiles}/DistDisaggEconStatus2019_soc.dta", clear
-
-merge m:1 StateAssignedDistID Subject using "/${yrfiles}/DistDisaggEconStatusTotals2019_soc.dta"
-drop _merge
-
-save "/${yrfiles}/DistDisaggEconStatus2019_soc.dta", replace
-
-
-
+save "/${output}/DistDisaggEconStatus2019_soc.dta", replace
 
 // append at district level data
 
-use "/${yrfiles}/DistELA2019.dta"
-append using "/${yrfiles}/DistMath2019.dta"
-append using "/${yrfiles}/DistSci2019.dta"
-append using "/${yrfiles}/DistSoc2019.dta"
-append using "/${yrfiles}/DistDisaggEconStatus2019_ELA"
-append using "/${yrfiles}/DistDisaggELStatus2019_ELA"
-append using "/${yrfiles}/DistDisaggRaceEth2019_ELA"
-append using "/${yrfiles}/DistDisaggGender2019_ELA"
-append using "/${yrfiles}/DistDisaggEconStatus2019_Math"
-append using "/${yrfiles}/DistDisaggELStatus2019_Math"
-append using "/${yrfiles}/DistDisaggRaceEth2019_Math"
-append using "/${yrfiles}/DistDisaggGender2019_Math"
-append using "/${yrfiles}/DistDisaggEconStatus2019_sci"
-append using "/${yrfiles}/DistDisaggELStatus2019_sci"
-append using "/${yrfiles}/DistDisaggRaceEth2019_sci"
-append using "/${yrfiles}/DistDisaggGender2019_sci"
-append using "/${yrfiles}/DistDisaggEconStatus2019_soc"
-append using "/${yrfiles}/DistDisaggELStatus2019_soc"
-append using "/${yrfiles}/DistDisaggRaceEth2019_soc"
-append using "/${yrfiles}/DistDisaggGender2019_soc"
+use "/${output}/DistELA2019.dta"
+append using "/${output}/DistMath2019.dta"
+append using "/${output}/DistSci2019.dta"
+append using "/${output}/DistSoc2019.dta"
+append using "/${output}/DistDisaggEconStatus2019_ELA"
+append using "/${output}/DistDisaggELStatus2019_ELA"
+append using "/${output}/DistDisaggRaceEth2019_ELA"
+append using "/${output}/DistDisaggGender2019_ELA"
+append using "/${output}/DistDisaggEconStatus2019_Math"
+append using "/${output}/DistDisaggELStatus2019_Math"
+append using "/${output}/DistDisaggRaceEth2019_Math"
+append using "/${output}/DistDisaggGender2019_Math"
+append using "/${output}/DistDisaggEconStatus2019_sci"
+append using "/${output}/DistDisaggELStatus2019_sci"
+append using "/${output}/DistDisaggRaceEth2019_sci"
+append using "/${output}/DistDisaggGender2019_sci"
+append using "/${output}/DistDisaggEconStatus2019_soc"
+append using "/${output}/DistDisaggELStatus2019_soc"
+append using "/${output}/DistDisaggRaceEth2019_soc"
+append using "/${output}/DistDisaggGender2019_soc"
 
-gen DataLevel=1
+gen DataLevel = "District"
 
-save "/${yrfiles}/Dist2019", replace
-
-
-
+save "/${output}/Dist2019", replace
 
 
 ///////// school level data
 
-
-
-
 //ela
-import excel "/${yrfiles}/IN_OriginalData_2019_all_sch.xlsx", sheet("ELA") clear
+import excel "/${raw}/2019/IN_OriginalData_2019_all_sch.xlsx", sheet("ELA") cellrange(A7:BA1703) clear
 
 rename A StateAssignedDistID
-rename B CorpName
+rename B DistName
 rename C StateAssignedSchID
-rename D SchoolNameOriginalData
-
-//prepare to transform from wide to long (first digit: 1=ela, 2=math, second digit: grade)
+rename D SchName
 
 rename E Lev1_count3
 rename F Lev2_count3
@@ -2076,45 +1333,31 @@ rename AR ProficientOrAbove_count8
 rename AS StudentGroup_TotalTested8
 rename AT ProficientOrAbove_percent8
 
-rename AU Lev1_count9
-rename AV Lev2_count9
-rename AW Lev3_count9
-rename AX Lev4_count9
-rename AY ProficientOrAbove_count9
-rename AZ StudentGroup_TotalTested9
-rename BA ProficientOrAbove_percent9
+rename AU Lev1_count38
+rename AV Lev2_count38
+rename AW Lev3_count38
+rename AX Lev4_count38
+rename AY ProficientOrAbove_count38
+rename AZ StudentGroup_TotalTested38
+rename BA ProficientOrAbove_percent38
 
-gen id=_n
-drop if id<=6
+reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentGroup_TotalTested, i(StateAssignedSchID) j(GradeLevel) string
 
-reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentGroup_TotalTested, i(id) j(GradeLevel)
+gen Subject = "ela"
 
-drop id
-gen id=_n
+gen StudentSubGroup_TotalTested = StudentGroup_TotalTested
+gen StudentSubGroup = "All Students"
+gen StudentGroup = "All Students"
 
-
-gen Subject="ela"
-
-
-tostring GradeLevel, replace
-
-gen StudentSubGroup_TotalTested=StudentGroup_TotalTested
-gen StudentSubGroup="All Students"
-gen StudentGroup="All Students"
-
-save "/${yrfiles}/SchELA2019", replace
-
-
+save "/${output}/SchELA2019", replace
 
 //math
-import excel "/${yrfiles}/IN_OriginalData_2019_all_sch.xlsx", sheet("Math") clear
+import excel "/${raw}/2019/IN_OriginalData_2019_all_sch.xlsx", sheet("Math") cellrange(A7:BA1703) clear
 
 rename A StateAssignedDistID
-rename B CorpName
+rename B DistName
 rename C StateAssignedSchID
-rename D SchoolNameOriginalData
-
-//prepare to transform from wide to long (first digit: 1=ela, 2=math, second digit: grade)
+rename D SchName
 
 rename E Lev1_count3
 rename F Lev2_count3
@@ -2164,42 +1407,31 @@ rename AR ProficientOrAbove_count8
 rename AS StudentGroup_TotalTested8
 rename AT ProficientOrAbove_percent8
 
-rename AU Lev1_count9
-rename AV Lev2_count9
-rename AW Lev3_count9
-rename AX Lev4_count9
-rename AY ProficientOrAbove_count9
-rename AZ StudentGroup_TotalTested9
-rename BA ProficientOrAbove_percent9
+rename AU Lev1_count38
+rename AV Lev2_count38
+rename AW Lev3_count38
+rename AX Lev4_count38
+rename AY ProficientOrAbove_count38
+rename AZ StudentGroup_TotalTested38
+rename BA ProficientOrAbove_percent38
 
-gen id=_n
-drop if id<=6
+reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentGroup_TotalTested, i(StateAssignedSchID) j(GradeLevel) string
 
-reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentGroup_TotalTested, i(id) j(GradeLevel)
+gen Subject = "math"
 
-drop id
-gen id=_n
+gen StudentSubGroup_TotalTested = StudentGroup_TotalTested
+gen StudentSubGroup = "All Students"
+gen StudentGroup = "All Students"
 
-
-gen Subject="math"
-
-
-tostring GradeLevel, replace
-
-gen StudentSubGroup_TotalTested=StudentGroup_TotalTested
-gen StudentSubGroup="All Students"
-gen StudentGroup="All Students"
-
-save "/${yrfiles}/SchMath2019", replace
-
+save "/${output}/SchMath2019", replace
 
 //sci
-import excel "/${yrfiles}/IN_OriginalData_2019_all_sch.xlsx", sheet("Science") clear
+import excel "/${raw}/2019/IN_OriginalData_2019_all_sch.xlsx", sheet("Science") cellrange(A7:Y1517) clear
 
 rename A StateAssignedDistID
-rename B CorpName
+rename B DistName
 rename C StateAssignedSchID
-rename D SchoolNameOriginalData
+rename D SchName
 
 rename E Lev1_count4
 rename F Lev2_count4
@@ -2217,44 +1449,31 @@ rename P ProficientOrAbove_count6
 rename Q StudentGroup_TotalTested6
 rename R ProficientOrAbove_percent6
 
-rename S Lev1_count9
-rename T Lev2_count9
-rename U Lev3_count9
-rename V Lev4_count9
-rename W ProficientOrAbove_count9
-rename X StudentGroup_TotalTested9
-rename Y ProficientOrAbove_percent9
+rename S Lev1_count38
+rename T Lev2_count38
+rename U Lev3_count38
+rename V Lev4_count38
+rename W ProficientOrAbove_count38
+rename X StudentGroup_TotalTested38
+rename Y ProficientOrAbove_percent38
 
-gen id=_n
-drop if id<=6
+reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentGroup_TotalTested, i(StateAssignedSchID) j(GradeLevel) string
 
-reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentGroup_TotalTested, i(id) j(GradeLevel)
+gen Subject = "sci"
 
-drop id
-gen id=_n
+gen StudentSubGroup_TotalTested = StudentGroup_TotalTested
+gen StudentSubGroup = "All Students"
+gen StudentGroup = "All Students"
 
-
-gen Subject="sci"
-
-
-tostring GradeLevel, replace
-
-gen StudentSubGroup_TotalTested=StudentGroup_TotalTested
-gen StudentSubGroup="All Students"
-gen StudentGroup="All Students"
-
-save "/${yrfiles}/SchSci2019", replace
-
-
+save "/${output}/SchSci2019", replace
 
 //soc
-import excel "/${yrfiles}/IN_OriginalData_2019_all_sch.xlsx", sheet("Social Studies") clear
+import excel "/${raw}/2019/IN_OriginalData_2019_all_sch.xlsx", sheet("Social Studies") cellrange(A7:K1140) clear
 
 rename A StateAssignedDistID
-rename B CorpName
+rename B DistName
 rename C StateAssignedSchID
-rename D SchoolNameOriginalData
-
+rename D SchName
 
 rename E Lev1_count5
 rename F Lev2_count5
@@ -2264,48 +1483,33 @@ rename I ProficientOrAbove_count5
 rename J StudentGroup_TotalTested5
 rename K ProficientOrAbove_percent5
 
-gen id=_n
-drop if id<=6
+reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentGroup_TotalTested, i(StateAssignedSchID) j(GradeLevel) string
 
-reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentGroup_TotalTested, i(id) j(GradeLevel)
+gen Subject = "soc"
 
-drop id
-gen id=_n
+gen StudentSubGroup_TotalTested = StudentGroup_TotalTested
+gen StudentSubGroup = "All Students"
+gen StudentGroup = "All Students"
 
-
-gen Subject="soc"
-
-
-tostring GradeLevel, replace
-
-gen StudentSubGroup_TotalTested=StudentGroup_TotalTested
-gen StudentSubGroup="All Students"
-gen StudentGroup="All Students"
-
-save "/${yrfiles}/SchSoc2019", replace
-
+save "/${output}/SchSoc2019", replace
 
 /////// disaggregate school files
 
-
-
 // ela race
 
-import excel "/${yrfiles}/IN_OriginalData_2019_all_sch_race&gender.xlsx", sheet("ELA Ethnicity") clear
+import excel "/${raw}/2019/IN_OriginalData_2019_all_sch_race_gender.xlsx", sheet("ELA Ethnicity") cellrange(A7:BA1703) clear
 
 rename A StateAssignedDistID
-rename B CorpName
+rename B DistName
 rename C StateAssignedSchID
-rename D SchoolNameOriginalData
-
-//prepare to transform from wide to long (first digit: 1=ela, 2=math, second digit: grade)
+rename D SchName
 
 rename E Lev1_count3
 rename F Lev2_count3
 rename G Lev3_count3
 rename H Lev4_count3
 rename I ProficientOrAbove_count3
-rename J StudentGroup_TotalTested3
+rename J StudentSubGroup_TotalTested3
 rename K ProficientOrAbove_percent3
 
 rename L Lev1_count4
@@ -2313,7 +1517,7 @@ rename M Lev2_count4
 rename N Lev3_count4
 rename O Lev4_count4
 rename P ProficientOrAbove_count4
-rename Q StudentGroup_TotalTested4
+rename Q StudentSubGroup_TotalTested4
 rename R ProficientOrAbove_percent4
 
 rename S Lev1_count5
@@ -2321,7 +1525,7 @@ rename T Lev2_count5
 rename U Lev3_count5
 rename V Lev4_count5
 rename W ProficientOrAbove_count5
-rename X StudentGroup_TotalTested5
+rename X StudentSubGroup_TotalTested5
 rename Y ProficientOrAbove_percent5
 
 rename Z Lev1_count6
@@ -2329,7 +1533,7 @@ rename AA Lev2_count6
 rename AB Lev3_count6
 rename AC Lev4_count6
 rename AD ProficientOrAbove_count6
-rename AE StudentGroup_TotalTested6
+rename AE StudentSubGroup_TotalTested6
 rename AF ProficientOrAbove_percent6
 
 rename AG Lev1_count7
@@ -2337,7 +1541,7 @@ rename AH Lev2_count7
 rename AI Lev3_count7
 rename AJ Lev4_count7
 rename AK ProficientOrAbove_count7
-rename AL StudentGroup_TotalTested7
+rename AL StudentSubGroup_TotalTested7
 rename AM ProficientOrAbove_percent7
 
 rename AN Lev1_count8
@@ -2345,7 +1549,7 @@ rename AO Lev2_count8
 rename AP Lev3_count8
 rename AQ Lev4_count8
 rename AR ProficientOrAbove_count8
-rename AS StudentGroup_TotalTested8
+rename AS StudentSubGroup_TotalTested8
 rename AT ProficientOrAbove_percent8
 
 rename AU Lev1_count9
@@ -2353,82 +1557,45 @@ rename AV Lev2_count9
 rename AW Lev3_count9
 rename AX Lev4_count9
 rename AY ProficientOrAbove_count9
-rename AZ StudentGroup_TotalTested9
+rename AZ StudentSubGroup_TotalTested9
 rename BA ProficientOrAbove_percent9
 
-gen id=_n
-drop if id<=6
+reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(StateAssignedSchID) j(StudentSubGroup) string
 
-reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentGroup_TotalTested, i(id) j(StudentSubGroup)
-rename StudentGroup_TotalTested StudentSubGroup_TotalTested
+gen GradeLevel = "G38"
 
-drop id
-gen id=_n
+replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "3"
+replace StudentSubGroup = "Asian" if StudentSubGroup == "4"
+replace StudentSubGroup = "Black or African American" if StudentSubGroup == "5"
+replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "6"
+replace StudentSubGroup = "Two or More" if StudentSubGroup == "7"
+replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "8"
+replace StudentSubGroup = "White" if StudentSubGroup == "9"
 
+gen StudentGroup = "RaceEth"
+gen Subject = "ela"
 
-gen GradeLevel="G38"
-tostring StudentSubGroup, replace
+drop if Lev1_count == ""
 
-replace StudentSubGroup="American Indian or Alaska Native" if StudentSubGroup=="3"
-replace StudentSubGroup="Asian" if StudentSubGroup=="4"
-replace StudentSubGroup="Black or African American" if StudentSubGroup=="5"
-replace StudentSubGroup="Hispanic or Latino" if StudentSubGroup=="6"
-replace StudentSubGroup="Two or More" if StudentSubGroup=="7"
-replace StudentSubGroup="Native Hawaiian or Pacific Islander" if StudentSubGroup=="8"
-replace StudentSubGroup="White" if StudentSubGroup=="9"
+bysort StateAssignedSchID: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
 
-
-
-gen StudentGroup="Race/Eth"
-gen Subject="ela"
-
-
-save "/${yrfiles}/SchDisaggRaceEth2019_ELA.dta", replace
-
-// gen student group totals
-tostring StudentSubGroup_TotalTested, replace force
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested==""
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested=="***"
-
-destring StudentSubGroup_TotalTested, replace
-collapse (sum) StudentSubGroup_TotalTested, by(Subject StateAssignedDistID)
-
-replace StudentSubGroup_TotalTested=100000000000 if StudentSubGroup_TotalTested>=100000000000
-
-tostring StudentSubGroup_TotalTested, replace
-replace StudentSubGroup_TotalTested="*" if StudentSubGroup_TotalTested=="1.00000e+11"
-
-rename StudentSubGroup_TotalTested StudentGroup_TotalTested
-
-save "/${yrfiles}/SchDisaggRaceEthTotals2019_ELA.dta", replace
-
-use "/${yrfiles}/SchDisaggRaceEth2019_ELA.dta", clear
-
-merge m:1 StateAssignedDistID Subject using "/${yrfiles}/SchDisaggRaceEthTotals2019_ELA.dta"
-drop _merge
-
-tostring StudentSubGroup_TotalTested, replace force
-save "/${yrfiles}/SchDisaggRaceEth2019_ELA.dta", replace
-
-
+save "/${output}/SchDisaggRaceEth2019_ELA.dta", replace
 
 // math race
 
-import excel "/${yrfiles}/IN_OriginalData_2019_all_sch_race&gender.xlsx", sheet("Math Ethnicity") clear
+import excel "/${raw}/2019/IN_OriginalData_2019_all_sch_race_gender.xlsx", sheet("Math Ethnicity") cellrange(A7:BA1703) clear
 
 rename A StateAssignedDistID
-rename B CorpName
+rename B DistName
 rename C StateAssignedSchID
-rename D SchoolNameOriginalData
-
-//prepare to transform from wide to long (first digit: 1=ela, 2=math, second digit: grade)
+rename D SchName
 
 rename E Lev1_count3
 rename F Lev2_count3
 rename G Lev3_count3
 rename H Lev4_count3
 rename I ProficientOrAbove_count3
-rename J StudentGroup_TotalTested3
+rename J StudentSubGroup_TotalTested3
 rename K ProficientOrAbove_percent3
 
 rename L Lev1_count4
@@ -2436,7 +1603,7 @@ rename M Lev2_count4
 rename N Lev3_count4
 rename O Lev4_count4
 rename P ProficientOrAbove_count4
-rename Q StudentGroup_TotalTested4
+rename Q StudentSubGroup_TotalTested4
 rename R ProficientOrAbove_percent4
 
 rename S Lev1_count5
@@ -2444,7 +1611,7 @@ rename T Lev2_count5
 rename U Lev3_count5
 rename V Lev4_count5
 rename W ProficientOrAbove_count5
-rename X StudentGroup_TotalTested5
+rename X StudentSubGroup_TotalTested5
 rename Y ProficientOrAbove_percent5
 
 rename Z Lev1_count6
@@ -2452,7 +1619,7 @@ rename AA Lev2_count6
 rename AB Lev3_count6
 rename AC Lev4_count6
 rename AD ProficientOrAbove_count6
-rename AE StudentGroup_TotalTested6
+rename AE StudentSubGroup_TotalTested6
 rename AF ProficientOrAbove_percent6
 
 rename AG Lev1_count7
@@ -2460,7 +1627,7 @@ rename AH Lev2_count7
 rename AI Lev3_count7
 rename AJ Lev4_count7
 rename AK ProficientOrAbove_count7
-rename AL StudentGroup_TotalTested7
+rename AL StudentSubGroup_TotalTested7
 rename AM ProficientOrAbove_percent7
 
 rename AN Lev1_count8
@@ -2468,7 +1635,7 @@ rename AO Lev2_count8
 rename AP Lev3_count8
 rename AQ Lev4_count8
 rename AR ProficientOrAbove_count8
-rename AS StudentGroup_TotalTested8
+rename AS StudentSubGroup_TotalTested8
 rename AT ProficientOrAbove_percent8
 
 rename AU Lev1_count9
@@ -2476,82 +1643,45 @@ rename AV Lev2_count9
 rename AW Lev3_count9
 rename AX Lev4_count9
 rename AY ProficientOrAbove_count9
-rename AZ StudentGroup_TotalTested9
+rename AZ StudentSubGroup_TotalTested9
 rename BA ProficientOrAbove_percent9
 
-gen id=_n
-drop if id<=6
+reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(StateAssignedSchID) j(StudentSubGroup) string
 
-reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentGroup_TotalTested, i(id) j(StudentSubGroup)
-rename StudentGroup_TotalTested StudentSubGroup_TotalTested
+gen GradeLevel = "G38"
 
-drop id
-gen id=_n
+replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "3"
+replace StudentSubGroup = "Asian" if StudentSubGroup == "4"
+replace StudentSubGroup = "Black or African American" if StudentSubGroup == "5"
+replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "6"
+replace StudentSubGroup = "Two or More" if StudentSubGroup == "7"
+replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "8"
+replace StudentSubGroup = "White" if StudentSubGroup == "9"
 
+gen StudentGroup = "RaceEth"
+gen Subject = "math"
 
-gen GradeLevel="G38"
-tostring StudentSubGroup, replace
+drop if Lev1_count == ""
 
-replace StudentSubGroup="American Indian or Alaska Native" if StudentSubGroup=="3"
-replace StudentSubGroup="Asian" if StudentSubGroup=="4"
-replace StudentSubGroup="Black or African American" if StudentSubGroup=="5"
-replace StudentSubGroup="Hispanic or Latino" if StudentSubGroup=="6"
-replace StudentSubGroup="Two or More" if StudentSubGroup=="7"
-replace StudentSubGroup="Native Hawaiian or Pacific Islander" if StudentSubGroup=="8"
-replace StudentSubGroup="White" if StudentSubGroup=="9"
+bysort StateAssignedSchID: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
 
-
-
-gen StudentGroup="Race/Eth"
-gen Subject="math"
-
-
-save "/${yrfiles}/SchDisaggRaceEth2019_Math.dta", replace
-
-// gen student group totals
-tostring StudentSubGroup_TotalTested, replace force
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested==""
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested=="***"
-
-destring StudentSubGroup_TotalTested, replace
-collapse (sum) StudentSubGroup_TotalTested, by(Subject StateAssignedDistID)
-
-replace StudentSubGroup_TotalTested=100000000000 if StudentSubGroup_TotalTested>=100000000000
-
-tostring StudentSubGroup_TotalTested, replace
-replace StudentSubGroup_TotalTested="*" if StudentSubGroup_TotalTested=="1.00000e+11"
-
-rename StudentSubGroup_TotalTested StudentGroup_TotalTested
-
-save "/${yrfiles}/SchDisaggRaceEthTotals2019_Math.dta", replace
-
-use "/${yrfiles}/SchDisaggRaceEth2019_Math.dta", clear
-
-merge m:1 StateAssignedDistID Subject using "/${yrfiles}/SchDisaggRaceEthTotals2019_Math.dta"
-drop _merge
-
-tostring StudentSubGroup_TotalTested, replace force
-save "/${yrfiles}/SchDisaggRaceEth2019_Math.dta", replace
-
-
+save "/${output}/SchDisaggRaceEth2019_Math.dta", replace
 
 // sci race
 
-import excel "/${yrfiles}/IN_OriginalData_2019_all_sch_race&gender.xlsx", sheet("Science Ethnicity") clear
+import excel "/${raw}/2019/IN_OriginalData_2019_all_sch_race_gender.xlsx", sheet("Science Ethnicity") cellrange(A7:BA1517) clear
 
 rename A StateAssignedDistID
-rename B CorpName
+rename B DistName
 rename C StateAssignedSchID
-rename D SchoolNameOriginalData
-
-//prepare to transform from wide to long (first digit: 1=ela, 2=math, second digit: grade)
+rename D SchName
 
 rename E Lev1_count3
 rename F Lev2_count3
 rename G Lev3_count3
 rename H Lev4_count3
 rename I ProficientOrAbove_count3
-rename J StudentGroup_TotalTested3
+rename J StudentSubGroup_TotalTested3
 rename K ProficientOrAbove_percent3
 
 rename L Lev1_count4
@@ -2559,7 +1689,7 @@ rename M Lev2_count4
 rename N Lev3_count4
 rename O Lev4_count4
 rename P ProficientOrAbove_count4
-rename Q StudentGroup_TotalTested4
+rename Q StudentSubGroup_TotalTested4
 rename R ProficientOrAbove_percent4
 
 rename S Lev1_count5
@@ -2567,7 +1697,7 @@ rename T Lev2_count5
 rename U Lev3_count5
 rename V Lev4_count5
 rename W ProficientOrAbove_count5
-rename X StudentGroup_TotalTested5
+rename X StudentSubGroup_TotalTested5
 rename Y ProficientOrAbove_percent5
 
 rename Z Lev1_count6
@@ -2575,7 +1705,7 @@ rename AA Lev2_count6
 rename AB Lev3_count6
 rename AC Lev4_count6
 rename AD ProficientOrAbove_count6
-rename AE StudentGroup_TotalTested6
+rename AE StudentSubGroup_TotalTested6
 rename AF ProficientOrAbove_percent6
 
 rename AG Lev1_count7
@@ -2583,7 +1713,7 @@ rename AH Lev2_count7
 rename AI Lev3_count7
 rename AJ Lev4_count7
 rename AK ProficientOrAbove_count7
-rename AL StudentGroup_TotalTested7
+rename AL StudentSubGroup_TotalTested7
 rename AM ProficientOrAbove_percent7
 
 rename AN Lev1_count8
@@ -2591,7 +1721,7 @@ rename AO Lev2_count8
 rename AP Lev3_count8
 rename AQ Lev4_count8
 rename AR ProficientOrAbove_count8
-rename AS StudentGroup_TotalTested8
+rename AS StudentSubGroup_TotalTested8
 rename AT ProficientOrAbove_percent8
 
 rename AU Lev1_count9
@@ -2599,83 +1729,45 @@ rename AV Lev2_count9
 rename AW Lev3_count9
 rename AX Lev4_count9
 rename AY ProficientOrAbove_count9
-rename AZ StudentGroup_TotalTested9
+rename AZ StudentSubGroup_TotalTested9
 rename BA ProficientOrAbove_percent9
 
-gen id=_n
-drop if id<=6
+reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(StateAssignedSchID) j(StudentSubGroup) string
 
-reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentGroup_TotalTested, i(id) j(StudentSubGroup)
-rename StudentGroup_TotalTested StudentSubGroup_TotalTested
+gen GradeLevel = "G38"
 
-drop id
-gen id=_n
+replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "3"
+replace StudentSubGroup = "Asian" if StudentSubGroup == "4"
+replace StudentSubGroup = "Black or African American" if StudentSubGroup == "5"
+replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "6"
+replace StudentSubGroup = "Two or More" if StudentSubGroup == "7"
+replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "8"
+replace StudentSubGroup = "White" if StudentSubGroup == "9"
 
+gen StudentGroup = "RaceEth"
+gen Subject = "sci"
 
-gen GradeLevel="G38"
-tostring StudentSubGroup, replace
+drop if Lev1_count == ""
 
-replace StudentSubGroup="American Indian or Alaska Native" if StudentSubGroup=="3"
-replace StudentSubGroup="Asian" if StudentSubGroup=="4"
-replace StudentSubGroup="Black or African American" if StudentSubGroup=="5"
-replace StudentSubGroup="Hispanic or Latino" if StudentSubGroup=="6"
-replace StudentSubGroup="Two or More" if StudentSubGroup=="7"
-replace StudentSubGroup="Native Hawaiian or Pacific Islander" if StudentSubGroup=="8"
-replace StudentSubGroup="White" if StudentSubGroup=="9"
+bysort StateAssignedSchID: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
 
-
-
-gen StudentGroup="Race/Eth"
-gen Subject="sci"
-
-
-save "/${yrfiles}/SchDisaggRaceEth2019_sci.dta", replace
-
-// gen student group totals
-tostring StudentSubGroup_TotalTested, replace force
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested==""
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested=="***"
-
-destring StudentSubGroup_TotalTested, replace
-collapse (sum) StudentSubGroup_TotalTested, by(Subject StateAssignedDistID)
-
-replace StudentSubGroup_TotalTested=100000000000 if StudentSubGroup_TotalTested>=100000000000
-
-tostring StudentSubGroup_TotalTested, replace
-replace StudentSubGroup_TotalTested="*" if StudentSubGroup_TotalTested=="1.00000e+11"
-
-rename StudentSubGroup_TotalTested StudentGroup_TotalTested
-
-save "/${yrfiles}/SchDisaggRaceEthTotals2019_sci.dta", replace
-
-use "/${yrfiles}/SchDisaggRaceEth2019_sci.dta", clear
-
-merge m:1 StateAssignedDistID Subject using "/${yrfiles}/SchDisaggRaceEthTotals2019_sci.dta"
-drop _merge
-
-tostring StudentSubGroup_TotalTested, replace force
-save "/${yrfiles}/SchDisaggRaceEth2019_sci.dta", replace
-
-
-
+save "/${output}/SchDisaggRaceEth2019_sci.dta", replace
 
 // soc race
 
-import excel "/${yrfiles}/IN_OriginalData_2019_all_sch_race&gender.xlsx", sheet("Social Studies Ethnicity") clear
+import excel "/${raw}/2019/IN_OriginalData_2019_all_sch_race_gender.xlsx", sheet("Social Studies Ethnicity") cellrange(A7:BA1140) clear
 
 rename A StateAssignedDistID
-rename B CorpName
+rename B DistName
 rename C StateAssignedSchID
-rename D SchoolNameOriginalData
-
-//prepare to transform from wide to long (first digit: 1=ela, 2=math, second digit: grade)
+rename D SchName
 
 rename E Lev1_count3
 rename F Lev2_count3
 rename G Lev3_count3
 rename H Lev4_count3
 rename I ProficientOrAbove_count3
-rename J StudentGroup_TotalTested3
+rename J StudentSubGroup_TotalTested3
 rename K ProficientOrAbove_percent3
 
 rename L Lev1_count4
@@ -2683,7 +1775,7 @@ rename M Lev2_count4
 rename N Lev3_count4
 rename O Lev4_count4
 rename P ProficientOrAbove_count4
-rename Q StudentGroup_TotalTested4
+rename Q StudentSubGroup_TotalTested4
 rename R ProficientOrAbove_percent4
 
 rename S Lev1_count5
@@ -2691,7 +1783,7 @@ rename T Lev2_count5
 rename U Lev3_count5
 rename V Lev4_count5
 rename W ProficientOrAbove_count5
-rename X StudentGroup_TotalTested5
+rename X StudentSubGroup_TotalTested5
 rename Y ProficientOrAbove_percent5
 
 rename Z Lev1_count6
@@ -2699,7 +1791,7 @@ rename AA Lev2_count6
 rename AB Lev3_count6
 rename AC Lev4_count6
 rename AD ProficientOrAbove_count6
-rename AE StudentGroup_TotalTested6
+rename AE StudentSubGroup_TotalTested6
 rename AF ProficientOrAbove_percent6
 
 rename AG Lev1_count7
@@ -2707,7 +1799,7 @@ rename AH Lev2_count7
 rename AI Lev3_count7
 rename AJ Lev4_count7
 rename AK ProficientOrAbove_count7
-rename AL StudentGroup_TotalTested7
+rename AL StudentSubGroup_TotalTested7
 rename AM ProficientOrAbove_percent7
 
 rename AN Lev1_count8
@@ -2715,7 +1807,7 @@ rename AO Lev2_count8
 rename AP Lev3_count8
 rename AQ Lev4_count8
 rename AR ProficientOrAbove_count8
-rename AS StudentGroup_TotalTested8
+rename AS StudentSubGroup_TotalTested8
 rename AT ProficientOrAbove_percent8
 
 rename AU Lev1_count9
@@ -2723,84 +1815,47 @@ rename AV Lev2_count9
 rename AW Lev3_count9
 rename AX Lev4_count9
 rename AY ProficientOrAbove_count9
-rename AZ StudentGroup_TotalTested9
+rename AZ StudentSubGroup_TotalTested9
 rename BA ProficientOrAbove_percent9
 
-gen id=_n
-drop if id<=6
+reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(StateAssignedSchID) j(StudentSubGroup) string
 
-reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentGroup_TotalTested, i(id) j(StudentSubGroup)
-rename StudentGroup_TotalTested StudentSubGroup_TotalTested
+gen GradeLevel = "G38"
 
-drop id
-gen id=_n
+replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "3"
+replace StudentSubGroup = "Asian" if StudentSubGroup == "4"
+replace StudentSubGroup = "Black or African American" if StudentSubGroup == "5"
+replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "6"
+replace StudentSubGroup = "Two or More" if StudentSubGroup == "7"
+replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "8"
+replace StudentSubGroup = "White" if StudentSubGroup == "9"
 
+gen StudentGroup = "RaceEth"
+gen Subject = "soc"
 
-gen GradeLevel="G38"
-tostring StudentSubGroup, replace
+drop if Lev1_count == ""
 
-replace StudentSubGroup="American Indian or Alaska Native" if StudentSubGroup=="3"
-replace StudentSubGroup="Asian" if StudentSubGroup=="4"
-replace StudentSubGroup="Black or African American" if StudentSubGroup=="5"
-replace StudentSubGroup="Hispanic or Latino" if StudentSubGroup=="6"
-replace StudentSubGroup="Two or More" if StudentSubGroup=="7"
-replace StudentSubGroup="Native Hawaiian or Pacific Islander" if StudentSubGroup=="8"
-replace StudentSubGroup="White" if StudentSubGroup=="9"
+bysort StateAssignedSchID: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
 
-
-
-gen StudentGroup="Race/Eth"
-gen Subject="soc"
-
-
-save "/${yrfiles}/SchDisaggRaceEth2019_soc.dta", replace
-
-// gen student group totals
-tostring StudentSubGroup_TotalTested, replace force
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested==""
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested=="***"
-
-destring StudentSubGroup_TotalTested, replace
-collapse (sum) StudentSubGroup_TotalTested, by(Subject StateAssignedDistID)
-
-replace StudentSubGroup_TotalTested=100000000000 if StudentSubGroup_TotalTested>=100000000000
-
-tostring StudentSubGroup_TotalTested, replace
-replace StudentSubGroup_TotalTested="*" if StudentSubGroup_TotalTested=="1.00000e+11"
-
-rename StudentSubGroup_TotalTested StudentGroup_TotalTested
-
-save "/${yrfiles}/SchDisaggRaceEthTotals2019_soc.dta", replace
-
-use "/${yrfiles}/SchDisaggRaceEth2019_soc.dta", clear
-
-merge m:1 StateAssignedDistID Subject using "/${yrfiles}/SchDisaggRaceEthTotals2019_soc.dta"
-drop _merge
-
-tostring StudentSubGroup_TotalTested, replace force
-save "/${yrfiles}/SchDisaggRaceEth2019_soc.dta", replace
-
+save "/${output}/SchDisaggRaceEth2019_soc.dta", replace
 
 // gender
 
-
 // ela gender
 
-import excel "/${yrfiles}/IN_OriginalData_2019_all_sch_race&gender.xlsx", sheet("ELA Gender") clear
+import excel "/${raw}/2019/IN_OriginalData_2019_all_sch_race_gender.xlsx", sheet("ELA Gender") cellrange(A7:R1703) clear
 
 rename A StateAssignedDistID
-rename B CorpName
+rename B DistName
 rename C StateAssignedSchID
-rename D SchoolNameOriginalData
-
-//prepare to transform from wide to long (first digit: 1=ela, 2=math, second digit: grade)
+rename D SchName
 
 rename E Lev1_count3
 rename F Lev2_count3
 rename G Lev3_count3
 rename H Lev4_count3
 rename I ProficientOrAbove_count3
-rename J StudentGroup_TotalTested3
+rename J StudentSubGroup_TotalTested3
 rename K ProficientOrAbove_percent3
 
 rename L Lev1_count4
@@ -2808,78 +1863,41 @@ rename M Lev2_count4
 rename N Lev3_count4
 rename O Lev4_count4
 rename P ProficientOrAbove_count4
-rename Q StudentGroup_TotalTested4
+rename Q StudentSubGroup_TotalTested4
 rename R ProficientOrAbove_percent4
 
+reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(StateAssignedSchID) j(StudentSubGroup) string
 
-gen id=_n
-drop if id<=6
-
-reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentGroup_TotalTested, i(id) j(StudentSubGroup)
-rename StudentGroup_TotalTested StudentSubGroup_TotalTested
-
-drop id
-gen id=_n
-
-
-gen GradeLevel="G38"
+gen GradeLevel = "G38"
 tostring StudentSubGroup, replace
 
-replace StudentSubGroup="Female" if StudentSubGroup=="3"
-replace StudentSubGroup="Male" if StudentSubGroup=="4"
+replace StudentSubGroup = "Female" if StudentSubGroup == "3"
+replace StudentSubGroup = "Male" if StudentSubGroup == "4"
 
+gen StudentGroup = "Gender"
+gen Subject = "ela"
 
-gen StudentGroup="Gender"
-gen Subject="ela"
+drop if Lev1_count == ""
 
+bysort StateAssignedSchID: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
 
-save "/${yrfiles}/SchDisaggGender2019_ELA.dta", replace
-
-// gen student group totals
-tostring StudentSubGroup_TotalTested, replace force
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested==""
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested=="***"
-
-destring StudentSubGroup_TotalTested, replace
-collapse (sum) StudentSubGroup_TotalTested, by(Subject StateAssignedDistID)
-
-replace StudentSubGroup_TotalTested=100000000000 if StudentSubGroup_TotalTested>=100000000000
-
-tostring StudentSubGroup_TotalTested, replace
-replace StudentSubGroup_TotalTested="*" if StudentSubGroup_TotalTested=="1.00000e+11"
-
-rename StudentSubGroup_TotalTested StudentGroup_TotalTested
-
-save "/${yrfiles}/SchDisaggGenderTotals2019_ELA.dta", replace
-
-use "/${yrfiles}/SchDisaggGender2019_ELA.dta", clear
-
-merge m:1 StateAssignedDistID Subject using "/${yrfiles}/SchDisaggGenderTotals2019_ELA.dta"
-drop _merge
-
-tostring StudentSubGroup_TotalTested, replace force
-save "/${yrfiles}/SchDisaggGender2019_ELA.dta", replace
-
-
-
+save "/${output}/SchDisaggGender2019_ELA.dta", replace
 
 // math gender
 
-import excel "/${yrfiles}/IN_OriginalData_2019_all_sch_race&gender.xlsx", sheet("Math Gender") clear
+import excel "/${raw}/2019/IN_OriginalData_2019_all_sch_race_gender.xlsx", sheet("Math Gender") cellrange(A7:R1703) clear
 
 rename A StateAssignedDistID
-rename B CorpName
+rename B DistName
 rename C StateAssignedSchID
-rename D SchoolNameOriginalData
-
-//prepare to transform from wide to long (first digit: 1=ela, 2=math, second digit: grade)
+rename D SchName
 
 rename E Lev1_count3
 rename F Lev2_count3
 rename G Lev3_count3
 rename H Lev4_count3
 rename I ProficientOrAbove_count3
-rename J StudentGroup_TotalTested3
+rename J StudentSubGroup_TotalTested3
 rename K ProficientOrAbove_percent3
 
 rename L Lev1_count4
@@ -2887,78 +1905,41 @@ rename M Lev2_count4
 rename N Lev3_count4
 rename O Lev4_count4
 rename P ProficientOrAbove_count4
-rename Q StudentGroup_TotalTested4
+rename Q StudentSubGroup_TotalTested4
 rename R ProficientOrAbove_percent4
 
+reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(StateAssignedSchID) j(StudentSubGroup) string
 
-gen id=_n
-drop if id<=6
-
-reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentGroup_TotalTested, i(id) j(StudentSubGroup)
-rename StudentGroup_TotalTested StudentSubGroup_TotalTested
-
-drop id
-gen id=_n
-
-
-gen GradeLevel="G38"
+gen GradeLevel = "G38"
 tostring StudentSubGroup, replace
 
-replace StudentSubGroup="Female" if StudentSubGroup=="3"
-replace StudentSubGroup="Male" if StudentSubGroup=="4"
+replace StudentSubGroup = "Female" if StudentSubGroup == "3"
+replace StudentSubGroup = "Male" if StudentSubGroup == "4"
 
+gen StudentGroup = "Gender"
+gen Subject = "math"
 
-gen StudentGroup="Gender"
-gen Subject="math"
+drop if Lev1_count == ""
 
+bysort StateAssignedSchID: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
 
-save "/${yrfiles}/SchDisaggGender2019_Math.dta", replace
-
-// gen student group totals
-tostring StudentSubGroup_TotalTested, replace force
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested==""
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested=="***"
-
-destring StudentSubGroup_TotalTested, replace
-collapse (sum) StudentSubGroup_TotalTested, by(Subject StateAssignedDistID)
-
-replace StudentSubGroup_TotalTested=100000000000 if StudentSubGroup_TotalTested>=100000000000
-
-tostring StudentSubGroup_TotalTested, replace
-replace StudentSubGroup_TotalTested="*" if StudentSubGroup_TotalTested=="1.00000e+11"
-
-rename StudentSubGroup_TotalTested StudentGroup_TotalTested
-
-save "/${yrfiles}/SchDisaggGenderTotals2019_Math.dta", replace
-
-use "/${yrfiles}/SchDisaggGender2019_Math.dta", clear
-
-merge m:1 StateAssignedDistID Subject using "/${yrfiles}/SchDisaggGenderTotals2019_Math.dta"
-drop _merge
-
-tostring StudentSubGroup_TotalTested, replace force
-save "/${yrfiles}/SchDisaggGender2019_Math.dta", replace
-
-
-
+save "/${output}/SchDisaggGender2019_Math.dta", replace
 
 // sci gender
 
-import excel "/${yrfiles}/IN_OriginalData_2019_all_sch_race&gender.xlsx", sheet("Science Gender") clear
+import excel "/${raw}/2019/IN_OriginalData_2019_all_sch_race_gender.xlsx", sheet("Science Gender") cellrange(A7:R1517) clear
 
 rename A StateAssignedDistID
-rename B CorpName
+rename B DistName
 rename C StateAssignedSchID
-rename D SchoolNameOriginalData
-
-//prepare to transform from wide to long (first digit: 1=ela, 2=math, second digit: grade)
+rename D SchName
 
 rename E Lev1_count3
 rename F Lev2_count3
 rename G Lev3_count3
 rename H Lev4_count3
 rename I ProficientOrAbove_count3
-rename J StudentGroup_TotalTested3
+rename J StudentSubGroup_TotalTested3
 rename K ProficientOrAbove_percent3
 
 rename L Lev1_count4
@@ -2966,78 +1947,41 @@ rename M Lev2_count4
 rename N Lev3_count4
 rename O Lev4_count4
 rename P ProficientOrAbove_count4
-rename Q StudentGroup_TotalTested4
+rename Q StudentSubGroup_TotalTested4
 rename R ProficientOrAbove_percent4
 
+reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(StateAssignedSchID) j(StudentSubGroup) string
 
-gen id=_n
-drop if id<=6
-
-reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentGroup_TotalTested, i(id) j(StudentSubGroup)
-rename StudentGroup_TotalTested StudentSubGroup_TotalTested
-
-drop id
-gen id=_n
-
-
-gen GradeLevel="G38"
+gen GradeLevel = "G38"
 tostring StudentSubGroup, replace
 
-replace StudentSubGroup="Female" if StudentSubGroup=="3"
-replace StudentSubGroup="Male" if StudentSubGroup=="4"
+replace StudentSubGroup = "Female" if StudentSubGroup == "3"
+replace StudentSubGroup = "Male" if StudentSubGroup == "4"
 
+gen StudentGroup = "Gender"
+gen Subject = "sci"
 
-gen StudentGroup="Gender"
-gen Subject="sci"
+drop if Lev1_count == ""
 
+bysort StateAssignedSchID: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
 
-save "/${yrfiles}/SchDisaggGender2019_sci.dta", replace
-
-// gen student group totals
-tostring StudentSubGroup_TotalTested, replace force
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested==""
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested=="***"
-
-destring StudentSubGroup_TotalTested, replace
-collapse (sum) StudentSubGroup_TotalTested, by(Subject StateAssignedDistID)
-
-replace StudentSubGroup_TotalTested=100000000000 if StudentSubGroup_TotalTested>=100000000000
-
-tostring StudentSubGroup_TotalTested, replace
-replace StudentSubGroup_TotalTested="*" if StudentSubGroup_TotalTested=="1.00000e+11"
-
-rename StudentSubGroup_TotalTested StudentGroup_TotalTested
-
-save "/${yrfiles}/SchDisaggGenderTotals2019_sci.dta", replace
-
-use "/${yrfiles}/SchDisaggGender2019_sci.dta", clear
-
-merge m:1 StateAssignedDistID Subject using "/${yrfiles}/SchDisaggGenderTotals2019_sci.dta"
-drop _merge
-
-tostring StudentSubGroup_TotalTested, replace force
-save "/${yrfiles}/SchDisaggGender2019_sci.dta", replace
-
-
-
+save "/${output}/SchDisaggGender2019_sci.dta", replace
 
 // soc gender
 
-import excel "/${yrfiles}/IN_OriginalData_2019_all_sch_race&gender.xlsx", sheet("Social Studies Gender") clear
+import excel "/${raw}/2019/IN_OriginalData_2019_all_sch_race_gender.xlsx", sheet("Social Studies Gender") cellrange(A7:R1140) clear
 
 rename A StateAssignedDistID
-rename B CorpName
+rename B DistName
 rename C StateAssignedSchID
-rename D SchoolNameOriginalData
-
-//prepare to transform from wide to long (first digit: 1=ela, 2=math, second digit: grade)
+rename D SchName
 
 rename E Lev1_count3
 rename F Lev2_count3
 rename G Lev3_count3
 rename H Lev4_count3
 rename I ProficientOrAbove_count3
-rename J StudentGroup_TotalTested3
+rename J StudentSubGroup_TotalTested3
 rename K ProficientOrAbove_percent3
 
 rename L Lev1_count4
@@ -3045,77 +1989,41 @@ rename M Lev2_count4
 rename N Lev3_count4
 rename O Lev4_count4
 rename P ProficientOrAbove_count4
-rename Q StudentGroup_TotalTested4
+rename Q StudentSubGroup_TotalTested4
 rename R ProficientOrAbove_percent4
 
+reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(StateAssignedSchID) j(StudentSubGroup) string
 
-gen id=_n
-drop if id<=6
-
-reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentGroup_TotalTested, i(id) j(StudentSubGroup)
-rename StudentGroup_TotalTested StudentSubGroup_TotalTested
-
-drop id
-gen id=_n
-
-
-gen GradeLevel="G38"
+gen GradeLevel = "G38"
 tostring StudentSubGroup, replace
 
-replace StudentSubGroup="Female" if StudentSubGroup=="3"
-replace StudentSubGroup="Male" if StudentSubGroup=="4"
+replace StudentSubGroup = "Female" if StudentSubGroup == "3"
+replace StudentSubGroup = "Male" if StudentSubGroup == "4"
 
+gen StudentGroup = "Gender"
+gen Subject = "soc"
 
-gen StudentGroup="Gender"
-gen Subject="soc"
+drop if Lev1_count == ""
 
+bysort StateAssignedSchID: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
 
-save "/${yrfiles}/SchDisaggGender2019_soc.dta", replace
-
-// gen student group totals
-tostring StudentSubGroup_TotalTested, replace force
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested==""
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested=="***"
-
-destring StudentSubGroup_TotalTested, replace
-collapse (sum) StudentSubGroup_TotalTested, by(Subject StateAssignedDistID)
-
-replace StudentSubGroup_TotalTested=100000000000 if StudentSubGroup_TotalTested>=100000000000
-
-tostring StudentSubGroup_TotalTested, replace
-replace StudentSubGroup_TotalTested="*" if StudentSubGroup_TotalTested=="1.00000e+11"
-
-rename StudentSubGroup_TotalTested StudentGroup_TotalTested
-
-save "/${yrfiles}/SchDisaggGenderTotals2019_soc.dta", replace
-
-use "/${yrfiles}/SchDisaggGender2019_soc.dta", clear
-
-merge m:1 StateAssignedDistID Subject using "/${yrfiles}/SchDisaggGenderTotals2019_soc.dta"
-drop _merge
-
-tostring StudentSubGroup_TotalTested, replace force
-
-save "/${yrfiles}/SchDisaggGender2019_soc.dta", replace
-
+save "/${output}/SchDisaggGender2019_soc.dta", replace
 
 // ela ELStatus
 
-import excel "/${yrfiles}/IN_OriginalData_2019_all_sch_disagg.xlsx", sheet("ELA English Learners") clear
+import excel "/${raw}/2019/IN_OriginalData_2019_all_sch_disagg.xlsx", sheet("ELA English Learners") cellrange(A7:R1703) clear
 
 rename A StateAssignedDistID
-rename B CorpName
+rename B DistName
 rename C StateAssignedSchID
-rename D SchoolNameOriginalData
-
-//prepare to transform from wide to long (first digit: 1=ela, 2=math, second digit: grade)
+rename D SchName
 
 rename E Lev1_count3
 rename F Lev2_count3
 rename G Lev3_count3
 rename H Lev4_count3
 rename I ProficientOrAbove_count3
-rename J StudentGroup_TotalTested3
+rename J StudentSubGroup_TotalTested3
 rename K ProficientOrAbove_percent3
 
 rename L Lev1_count4
@@ -3123,78 +2031,40 @@ rename M Lev2_count4
 rename N Lev3_count4
 rename O Lev4_count4
 rename P ProficientOrAbove_count4
-rename Q StudentGroup_TotalTested4
+rename Q StudentSubGroup_TotalTested4
 rename R ProficientOrAbove_percent4
 
+reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(StateAssignedSchID) j(StudentSubGroup) string
 
-gen id=_n
-drop if id<=6
+gen GradeLevel = "G38"
 
-reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentGroup_TotalTested, i(id) j(StudentSubGroup)
-rename StudentGroup_TotalTested StudentSubGroup_TotalTested
+replace StudentSubGroup = "English Proficient" if StudentSubGroup == "3"
+replace StudentSubGroup = "English Learner" if StudentSubGroup == "4"
 
-drop id
-gen id=_n
+gen StudentGroup = "EL Status"
+gen Subject = "ela"
 
+drop if Lev1_count == ""
 
-gen GradeLevel="G38"
-tostring StudentSubGroup, replace
+bysort StateAssignedSchID: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
 
-replace StudentSubGroup="English Proficient" if StudentSubGroup=="3"
-replace StudentSubGroup="English Learner" if StudentSubGroup=="4"
-
-
-gen StudentGroup="EL Status"
-gen Subject="ela"
-
-
-save "/${yrfiles}/SchDisaggELStatus2019_ELA.dta", replace
-
-// gen student group totals
-tostring StudentSubGroup_TotalTested, replace force
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested==""
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested=="***"
-
-destring StudentSubGroup_TotalTested, replace
-collapse (sum) StudentSubGroup_TotalTested, by(Subject StateAssignedDistID)
-
-replace StudentSubGroup_TotalTested=100000000000 if StudentSubGroup_TotalTested>=100000000000
-
-tostring StudentSubGroup_TotalTested, replace
-replace StudentSubGroup_TotalTested="*" if StudentSubGroup_TotalTested=="1.00000e+11"
-
-rename StudentSubGroup_TotalTested StudentGroup_TotalTested
-
-save "/${yrfiles}/SchDisaggELStatusTotals2019_ELA.dta", replace
-
-use "/${yrfiles}/SchDisaggELStatus2019_ELA.dta", clear
-
-merge m:1 StateAssignedDistID Subject using "/${yrfiles}/SchDisaggELStatusTotals2019_ELA.dta"
-drop _merge
-
-tostring StudentSubGroup_TotalTested, replace force
-save "/${yrfiles}/SchDisaggELStatus2019_ELA.dta", replace
-
-
-
+save "/${output}/SchDisaggELStatus2019_ELA.dta", replace
 
 // math ELStatus
 
-import excel "/${yrfiles}/IN_OriginalData_2019_all_sch_disagg.xlsx", sheet("Math English Learners") clear
+import excel "/${raw}/2019/IN_OriginalData_2019_all_sch_disagg.xlsx", sheet("Math English Learners") cellrange(A7:R1703) clear
 
 rename A StateAssignedDistID
-rename B CorpName
+rename B DistName
 rename C StateAssignedSchID
-rename D SchoolNameOriginalData
-
-//prepare to transform from wide to long (first digit: 1=ela, 2=math, second digit: grade)
+rename D SchName
 
 rename E Lev1_count3
 rename F Lev2_count3
 rename G Lev3_count3
 rename H Lev4_count3
 rename I ProficientOrAbove_count3
-rename J StudentGroup_TotalTested3
+rename J StudentSubGroup_TotalTested3
 rename K ProficientOrAbove_percent3
 
 rename L Lev1_count4
@@ -3202,78 +2072,40 @@ rename M Lev2_count4
 rename N Lev3_count4
 rename O Lev4_count4
 rename P ProficientOrAbove_count4
-rename Q StudentGroup_TotalTested4
+rename Q StudentSubGroup_TotalTested4
 rename R ProficientOrAbove_percent4
 
+reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(StateAssignedSchID) j(StudentSubGroup) string
 
-gen id=_n
-drop if id<=6
+gen GradeLevel = "G38"
 
-reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentGroup_TotalTested, i(id) j(StudentSubGroup)
-rename StudentGroup_TotalTested StudentSubGroup_TotalTested
+replace StudentSubGroup = "English Proficient" if StudentSubGroup == "3"
+replace StudentSubGroup = "English Learner" if StudentSubGroup == "4"
 
-drop id
-gen id=_n
+gen StudentGroup = "EL Status"
+gen Subject = "math"
 
+drop if Lev1_count == ""
 
-gen GradeLevel="G38"
-tostring StudentSubGroup, replace
+bysort StateAssignedSchID: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
 
-replace StudentSubGroup="English Proficient" if StudentSubGroup=="3"
-replace StudentSubGroup="English Learner" if StudentSubGroup=="4"
-
-
-gen StudentGroup="EL Status"
-gen Subject="math"
-
-
-save "/${yrfiles}/SchDisaggELStatus2019_Math.dta", replace
-
-// gen student group totals
-tostring StudentSubGroup_TotalTested, replace force
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested==""
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested=="***"
-
-destring StudentSubGroup_TotalTested, replace
-collapse (sum) StudentSubGroup_TotalTested, by(Subject StateAssignedDistID)
-
-replace StudentSubGroup_TotalTested=100000000000 if StudentSubGroup_TotalTested>=100000000000
-
-tostring StudentSubGroup_TotalTested, replace
-replace StudentSubGroup_TotalTested="*" if StudentSubGroup_TotalTested=="1.00000e+11"
-
-rename StudentSubGroup_TotalTested StudentGroup_TotalTested
-
-save "/${yrfiles}/SchDisaggELStatusTotals2019_Math.dta", replace
-
-use "/${yrfiles}/SchDisaggELStatus2019_Math.dta", clear
-
-merge m:1 StateAssignedDistID Subject using "/${yrfiles}/SchDisaggELStatusTotals2019_Math.dta"
-drop _merge
-
-tostring StudentSubGroup_TotalTested, replace force
-save "/${yrfiles}/SchDisaggELStatus2019_Math.dta", replace
-
-
-
+save "/${output}/SchDisaggELStatus2019_Math.dta", replace
 
 // sci ELStatus
 
-import excel "/${yrfiles}/IN_OriginalData_2019_all_sch_disagg.xlsx", sheet("Science English Learners") clear
+import excel "/${raw}/2019/IN_OriginalData_2019_all_sch_disagg.xlsx", sheet("Science English Learners") cellrange(A7:R1517) clear
 
 rename A StateAssignedDistID
-rename B CorpName
+rename B DistName
 rename C StateAssignedSchID
-rename D SchoolNameOriginalData
-
-//prepare to transform from wide to long (first digit: 1=ela, 2=math, second digit: grade)
+rename D SchName
 
 rename E Lev1_count3
 rename F Lev2_count3
 rename G Lev3_count3
 rename H Lev4_count3
 rename I ProficientOrAbove_count3
-rename J StudentGroup_TotalTested3
+rename J StudentSubGroup_TotalTested3
 rename K ProficientOrAbove_percent3
 
 rename L Lev1_count4
@@ -3281,78 +2113,40 @@ rename M Lev2_count4
 rename N Lev3_count4
 rename O Lev4_count4
 rename P ProficientOrAbove_count4
-rename Q StudentGroup_TotalTested4
+rename Q StudentSubGroup_TotalTested4
 rename R ProficientOrAbove_percent4
 
+reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(StateAssignedSchID) j(StudentSubGroup) string
 
-gen id=_n
-drop if id<=6
+gen GradeLevel = "G38"
 
-reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentGroup_TotalTested, i(id) j(StudentSubGroup)
-rename StudentGroup_TotalTested StudentSubGroup_TotalTested
+replace StudentSubGroup = "English Proficient" if StudentSubGroup == "3"
+replace StudentSubGroup = "English Learner" if StudentSubGroup == "4"
 
-drop id
-gen id=_n
+gen StudentGroup = "EL Status"
+gen Subject = "sci"
 
+drop if Lev1_count == ""
 
-gen GradeLevel="G38"
-tostring StudentSubGroup, replace
+bysort StateAssignedSchID: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
 
-replace StudentSubGroup="English Proficient" if StudentSubGroup=="3"
-replace StudentSubGroup="English Learner" if StudentSubGroup=="4"
-
-
-gen StudentGroup="EL Status"
-gen Subject="sci"
-
-
-save "/${yrfiles}/SchDisaggELStatus2019_sci.dta", replace
-
-// gen student group totals
-tostring StudentSubGroup_TotalTested, replace force
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested==""
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested=="***"
-
-destring StudentSubGroup_TotalTested, replace
-collapse (sum) StudentSubGroup_TotalTested, by(Subject StateAssignedDistID)
-
-replace StudentSubGroup_TotalTested=100000000000 if StudentSubGroup_TotalTested>=100000000000
-
-tostring StudentSubGroup_TotalTested, replace
-replace StudentSubGroup_TotalTested="*" if StudentSubGroup_TotalTested=="1.00000e+11"
-
-rename StudentSubGroup_TotalTested StudentGroup_TotalTested
-
-save "/${yrfiles}/SchDisaggELStatusTotals2019_sci.dta", replace
-
-use "/${yrfiles}/SchDisaggELStatus2019_sci.dta", clear
-
-merge m:1 StateAssignedDistID Subject using "/${yrfiles}/SchDisaggELStatusTotals2019_sci.dta"
-drop _merge
-
-tostring StudentSubGroup_TotalTested, replace force
-save "/${yrfiles}/SchDisaggELStatus2019_sci.dta", replace
-
-
-
+save "/${output}/SchDisaggELStatus2019_sci.dta", replace
 
 // soc ELStatus
 
-import excel "/${yrfiles}/IN_OriginalData_2019_all_sch_disagg.xlsx", sheet("Social Studies English Learners") clear
+import excel "/${raw}/2019/IN_OriginalData_2019_all_sch_disagg.xlsx", sheet("Social Studies English Learners") cellrange(A7:R1140) clear
 
 rename A StateAssignedDistID
-rename B CorpName
+rename B DistName
 rename C StateAssignedSchID
-rename D SchoolNameOriginalData
-
-//prepare to transform from wide to long (first digit: 1=ela, 2=math, second digit: grade)
+rename D SchName
 
 rename E Lev1_count3
 rename F Lev2_count3
 rename G Lev3_count3
 rename H Lev4_count3
 rename I ProficientOrAbove_count3
-rename J StudentGroup_TotalTested3
+rename J StudentSubGroup_TotalTested3
 rename K ProficientOrAbove_percent3
 
 rename L Lev1_count4
@@ -3360,78 +2154,40 @@ rename M Lev2_count4
 rename N Lev3_count4
 rename O Lev4_count4
 rename P ProficientOrAbove_count4
-rename Q StudentGroup_TotalTested4
+rename Q StudentSubGroup_TotalTested4
 rename R ProficientOrAbove_percent4
 
+reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(StateAssignedSchID) j(StudentSubGroup) string
 
-gen id=_n
-drop if id<=6
+gen GradeLevel = "G38"
 
-reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentGroup_TotalTested, i(id) j(StudentSubGroup)
-rename StudentGroup_TotalTested StudentSubGroup_TotalTested
+replace StudentSubGroup = "English Proficient" if StudentSubGroup == "3"
+replace StudentSubGroup = "English Learner" if StudentSubGroup == "4"
 
-drop id
-gen id=_n
+gen StudentGroup = "EL Status"
+gen Subject = "soc"
 
+drop if Lev1_count == ""
 
-gen GradeLevel="G38"
-tostring StudentSubGroup, replace
+bysort StateAssignedSchID: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
 
-replace StudentSubGroup="English Proficient" if StudentSubGroup=="3"
-replace StudentSubGroup="English Learner" if StudentSubGroup=="4"
-
-
-gen StudentGroup="EL Status"
-gen Subject="soc"
-
-
-save "/${yrfiles}/SchDisaggELStatus2019_soc.dta", replace
-
-// gen student group totals
-tostring StudentSubGroup_TotalTested, replace force
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested==""
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested=="***"
-
-destring StudentSubGroup_TotalTested, replace
-collapse (sum) StudentSubGroup_TotalTested, by(Subject StateAssignedDistID)
-
-replace StudentSubGroup_TotalTested=100000000000 if StudentSubGroup_TotalTested>=100000000000
-
-tostring StudentSubGroup_TotalTested, replace
-replace StudentSubGroup_TotalTested="*" if StudentSubGroup_TotalTested=="1.00000e+11"
-
-rename StudentSubGroup_TotalTested StudentGroup_TotalTested
-
-save "/${yrfiles}/SchDisaggELStatusTotals2019_soc.dta", replace
-
-use "/${yrfiles}/SchDisaggELStatus2019_soc.dta", clear
-
-merge m:1 StateAssignedDistID Subject using "/${yrfiles}/SchDisaggELStatusTotals2019_soc.dta"
-drop _merge
-
-tostring StudentSubGroup_TotalTested, replace force
-save "/${yrfiles}/SchDisaggELStatus2019_soc.dta", replace
-
-
-
+save "/${output}/SchDisaggELStatus2019_soc.dta", replace
 
 // ela EconStatus
 
-import excel "/${yrfiles}/IN_OriginalData_2019_all_sch_disagg.xlsx", sheet("ELA Socio Economic") clear
+import excel "/${raw}/2019/IN_OriginalData_2019_all_sch_disagg.xlsx", sheet("ELA Socio Economic") cellrange(A7:R1703) clear
 
 rename A StateAssignedDistID
-rename B CorpName
+rename B DistName
 rename C StateAssignedSchID
-rename D SchoolNameOriginalData
-
-//prepare to transform from wide to long (first digit: 1=ela, 2=math, second digit: grade)
+rename D SchName
 
 rename E Lev1_count3
 rename F Lev2_count3
 rename G Lev3_count3
 rename H Lev4_count3
 rename I ProficientOrAbove_count3
-rename J StudentGroup_TotalTested3
+rename J StudentSubGroup_TotalTested3
 rename K ProficientOrAbove_percent3
 
 rename L Lev1_count4
@@ -3439,78 +2195,40 @@ rename M Lev2_count4
 rename N Lev3_count4
 rename O Lev4_count4
 rename P ProficientOrAbove_count4
-rename Q StudentGroup_TotalTested4
+rename Q StudentSubGroup_TotalTested4
 rename R ProficientOrAbove_percent4
 
+reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(StateAssignedSchID) j(StudentSubGroup) string
 
-gen id=_n
-drop if id<=6
+gen GradeLevel = "G38"
 
-reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentGroup_TotalTested, i(id) j(StudentSubGroup)
-rename StudentGroup_TotalTested StudentSubGroup_TotalTested
+replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "3"
+replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "4"
 
-drop id
-gen id=_n
+gen StudentGroup = "EL Status"
+gen Subject = "ela"
 
+drop if Lev1_count == ""
 
-gen GradeLevel="G38"
-tostring StudentSubGroup, replace
+bysort StateAssignedSchID: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
 
-replace StudentSubGroup="Not Economically Disadvantaged" if StudentSubGroup=="3"
-replace StudentSubGroup="Economically Disadvantaged" if StudentSubGroup=="4"
-
-
-gen StudentGroup="EL Status"
-gen Subject="ela"
-
-
-save "/${yrfiles}/SchDisaggEconStatus2019_ELA.dta", replace
-
-// gen student group totals
-tostring StudentSubGroup_TotalTested, replace force
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested==""
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested=="***"
-
-destring StudentSubGroup_TotalTested, replace
-collapse (sum) StudentSubGroup_TotalTested, by(Subject StateAssignedDistID)
-
-replace StudentSubGroup_TotalTested=100000000000 if StudentSubGroup_TotalTested>=100000000000
-
-tostring StudentSubGroup_TotalTested, replace
-replace StudentSubGroup_TotalTested="*" if StudentSubGroup_TotalTested=="1.00000e+11"
-
-rename StudentSubGroup_TotalTested StudentGroup_TotalTested
-
-save "/${yrfiles}/SchDisaggEconStatusTotals2019_ELA.dta", replace
-
-use "/${yrfiles}/SchDisaggEconStatus2019_ELA.dta", clear
-
-merge m:1 StateAssignedDistID Subject using "/${yrfiles}/SchDisaggEconStatusTotals2019_ELA.dta"
-drop _merge
-
-tostring StudentSubGroup_TotalTested, replace force
-save "/${yrfiles}/SchDisaggEconStatus2019_ELA.dta", replace
-
-
-
+save "/${output}/SchDisaggEconStatus2019_ELA.dta", replace
 
 // math EconStatus
 
-import excel "/${yrfiles}/IN_OriginalData_2019_all_sch_disagg.xlsx", sheet("Math Socio Economic") clear
+import excel "/${raw}/2019/IN_OriginalData_2019_all_sch_disagg.xlsx", sheet("Math Socio Economic") cellrange(A7:R1703) clear
 
 rename A StateAssignedDistID
-rename B CorpName
+rename B DistName
 rename C StateAssignedSchID
-rename D SchoolNameOriginalData
-
-//prepare to transform from wide to long (first digit: 1=ela, 2=math, second digit: grade)
+rename D SchName
 
 rename E Lev1_count3
 rename F Lev2_count3
 rename G Lev3_count3
 rename H Lev4_count3
 rename I ProficientOrAbove_count3
-rename J StudentGroup_TotalTested3
+rename J StudentSubGroup_TotalTested3
 rename K ProficientOrAbove_percent3
 
 rename L Lev1_count4
@@ -3518,78 +2236,40 @@ rename M Lev2_count4
 rename N Lev3_count4
 rename O Lev4_count4
 rename P ProficientOrAbove_count4
-rename Q StudentGroup_TotalTested4
+rename Q StudentSubGroup_TotalTested4
 rename R ProficientOrAbove_percent4
 
+reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(StateAssignedSchID) j(StudentSubGroup) string
 
-gen id=_n
-drop if id<=6
+gen GradeLevel = "G38"
 
-reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentGroup_TotalTested, i(id) j(StudentSubGroup)
-rename StudentGroup_TotalTested StudentSubGroup_TotalTested
+replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "3"
+replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "4"
 
-drop id
-gen id=_n
+gen StudentGroup = "EL Status"
+gen Subject = "math"
 
+drop if Lev1_count == ""
 
-gen GradeLevel="G38"
-tostring StudentSubGroup, replace
+bysort StateAssignedSchID: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
 
-replace StudentSubGroup="Not Economically Disadvantaged" if StudentSubGroup=="3"
-replace StudentSubGroup="Economically Disadvantaged" if StudentSubGroup=="4"
-
-
-gen StudentGroup="EL Status"
-gen Subject="math"
-
-
-save "/${yrfiles}/SchDisaggEconStatus2019_Math.dta", replace
-
-// gen student group totals
-tostring StudentSubGroup_TotalTested, replace force
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested==""
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested=="***"
-
-destring StudentSubGroup_TotalTested, replace
-collapse (sum) StudentSubGroup_TotalTested, by(Subject StateAssignedDistID)
-
-replace StudentSubGroup_TotalTested=100000000000 if StudentSubGroup_TotalTested>=100000000000
-
-tostring StudentSubGroup_TotalTested, replace
-replace StudentSubGroup_TotalTested="*" if StudentSubGroup_TotalTested=="1.00000e+11"
-
-rename StudentSubGroup_TotalTested StudentGroup_TotalTested
-
-save "/${yrfiles}/SchDisaggEconStatusTotals2019_Math.dta", replace
-
-use "/${yrfiles}/SchDisaggEconStatus2019_Math.dta", clear
-
-merge m:1 StateAssignedDistID Subject using "/${yrfiles}/SchDisaggEconStatusTotals2019_Math.dta"
-drop _merge
-
-tostring StudentSubGroup_TotalTested, replace force
-save "/${yrfiles}/SchDisaggEconStatus2019_Math.dta", replace
-
-
-
+save "/${output}/SchDisaggEconStatus2019_Math.dta", replace
 
 // sci EconStatus
 
-import excel "/${yrfiles}/IN_OriginalData_2019_all_sch_disagg.xlsx", sheet("Science Socio Economic") clear
+import excel "/${raw}/2019/IN_OriginalData_2019_all_sch_disagg.xlsx", sheet("Science Socio Economic") cellrange(A7:R1517) clear
 
 rename A StateAssignedDistID
-rename B CorpName
+rename B DistName
 rename C StateAssignedSchID
-rename D SchoolNameOriginalData
-
-//prepare to transform from wide to long (first digit: 1=ela, 2=math, second digit: grade)
+rename D SchName
 
 rename E Lev1_count3
 rename F Lev2_count3
 rename G Lev3_count3
 rename H Lev4_count3
 rename I ProficientOrAbove_count3
-rename J StudentGroup_TotalTested3
+rename J StudentSubGroup_TotalTested3
 rename K ProficientOrAbove_percent3
 
 rename L Lev1_count4
@@ -3597,78 +2277,40 @@ rename M Lev2_count4
 rename N Lev3_count4
 rename O Lev4_count4
 rename P ProficientOrAbove_count4
-rename Q StudentGroup_TotalTested4
+rename Q StudentSubGroup_TotalTested4
 rename R ProficientOrAbove_percent4
 
+reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(StateAssignedSchID) j(StudentSubGroup) string
 
-gen id=_n
-drop if id<=6
+gen GradeLevel = "G38"
 
-reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentGroup_TotalTested, i(id) j(StudentSubGroup)
-rename StudentGroup_TotalTested StudentSubGroup_TotalTested
+replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "3"
+replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "4"
 
-drop id
-gen id=_n
+gen StudentGroup = "EL Status"
+gen Subject = "sci"
 
+drop if Lev1_count == ""
 
-gen GradeLevel="G38"
-tostring StudentSubGroup, replace
+bysort StateAssignedSchID: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
 
-replace StudentSubGroup="Not Economically Disadvantaged" if StudentSubGroup=="3"
-replace StudentSubGroup="Economically Disadvantaged" if StudentSubGroup=="4"
-
-
-gen StudentGroup="EL Status"
-gen Subject="sci"
-
-
-save "/${yrfiles}/SchDisaggEconStatus2019_sci.dta", replace
-
-// gen student group totals
-tostring StudentSubGroup_TotalTested, replace force
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested==""
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested=="***"
-
-destring StudentSubGroup_TotalTested, replace
-collapse (sum) StudentSubGroup_TotalTested, by(Subject StateAssignedDistID)
-
-replace StudentSubGroup_TotalTested=100000000000 if StudentSubGroup_TotalTested>=100000000000
-
-tostring StudentSubGroup_TotalTested, replace
-replace StudentSubGroup_TotalTested="*" if StudentSubGroup_TotalTested=="1.00000e+11"
-
-rename StudentSubGroup_TotalTested StudentGroup_TotalTested
-
-save "/${yrfiles}/SchDisaggEconStatusTotals2019_sci.dta", replace
-
-use "/${yrfiles}/SchDisaggEconStatus2019_sci.dta", clear
-
-merge m:1 StateAssignedDistID Subject using "/${yrfiles}/SchDisaggEconStatusTotals2019_sci.dta"
-drop _merge
-
-tostring StudentSubGroup_TotalTested, replace force
-save "/${yrfiles}/SchDisaggEconStatus2019_sci.dta", replace
-
-
-
+save "/${output}/SchDisaggEconStatus2019_sci.dta", replace
 
 // soc EconStatus
 
-import excel "/${yrfiles}/IN_OriginalData_2019_all_sch_disagg.xlsx", sheet("Social Studies Socio Economic") clear
+import excel "/${raw}/2019/IN_OriginalData_2019_all_sch_disagg.xlsx", sheet("Social Studies Socio Economic") cellrange(A7:R1140) clear
 
 rename A StateAssignedDistID
-rename B CorpName
+rename B DistName
 rename C StateAssignedSchID
-rename D SchoolNameOriginalData
-
-//prepare to transform from wide to long (first digit: 1=ela, 2=math, second digit: grade)
+rename D SchName
 
 rename E Lev1_count3
 rename F Lev2_count3
 rename G Lev3_count3
 rename H Lev4_count3
 rename I ProficientOrAbove_count3
-rename J StudentGroup_TotalTested3
+rename J StudentSubGroup_TotalTested3
 rename K ProficientOrAbove_percent3
 
 rename L Lev1_count4
@@ -3676,234 +2318,163 @@ rename M Lev2_count4
 rename N Lev3_count4
 rename O Lev4_count4
 rename P ProficientOrAbove_count4
-rename Q StudentGroup_TotalTested4
+rename Q StudentSubGroup_TotalTested4
 rename R ProficientOrAbove_percent4
 
+reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(StateAssignedSchID) j(StudentSubGroup) string
 
-gen id=_n
-drop if id<=6
+gen GradeLevel = "G38"
 
-reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentGroup_TotalTested, i(id) j(StudentSubGroup)
-rename StudentGroup_TotalTested StudentSubGroup_TotalTested
+replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "3"
+replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "4"
 
-drop id
-gen id=_n
+gen StudentGroup = "EL Status"
+gen Subject = "soc"
 
+drop if Lev1_count == ""
 
-gen GradeLevel="G38"
-tostring StudentSubGroup, replace
+bysort StateAssignedSchID: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
 
-replace StudentSubGroup="Not Economically Disadvantaged" if StudentSubGroup=="3"
-replace StudentSubGroup="Economically Disadvantaged" if StudentSubGroup=="4"
-
-
-gen StudentGroup="EL Status"
-gen Subject="soc"
-
-
-save "/${yrfiles}/SchDisaggEconStatus2019_soc.dta", replace
-
-// gen student group totals
-tostring StudentSubGroup_TotalTested, replace force
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested==""
-replace StudentSubGroup_TotalTested="100000000000" if StudentSubGroup_TotalTested=="***"
-
-destring StudentSubGroup_TotalTested, replace
-collapse (sum) StudentSubGroup_TotalTested, by(Subject StateAssignedDistID)
-
-replace StudentSubGroup_TotalTested=100000000000 if StudentSubGroup_TotalTested>=100000000000
-
-tostring StudentSubGroup_TotalTested, replace
-replace StudentSubGroup_TotalTested="*" if StudentSubGroup_TotalTested=="1.00000e+11"
-
-rename StudentSubGroup_TotalTested StudentGroup_TotalTested
-
-save "/${yrfiles}/SchDisaggEconStatusTotals2019_soc.dta", replace
-
-use "/${yrfiles}/SchDisaggEconStatus2019_soc.dta", clear
-
-merge m:1 StateAssignedDistID Subject using "/${yrfiles}/SchDisaggEconStatusTotals2019_soc.dta"
-drop _merge
-
-tostring StudentSubGroup_TotalTested, replace force
-save "/${yrfiles}/SchDisaggEconStatus2019_soc.dta", replace
-
-
-
+save "/${output}/SchDisaggEconStatus2019_soc.dta", replace
 
 //append state level data
-use "/${yrfiles}/SchELA2019.dta", clear
-append using "/${yrfiles}/SchMath2019.dta"
-append using "/${yrfiles}/SchSci2019.dta"
-append using "/${yrfiles}/SchSoc2019.dta"
-append using "/${yrfiles}/SchDisaggEconStatus2019_ELA.dta"
-append using "/${yrfiles}/SchDisaggELStatus2019_ELA.dta"
-append using "/${yrfiles}/SchDisaggRaceEth2019_ELA.dta"
-append using "/${yrfiles}/SchDisaggGender2019_ELA.dta"
-append using "/${yrfiles}/SchDisaggEconStatus2019_Math.dta"
-append using "/${yrfiles}/SchDisaggELStatus2019_Math.dta"
-append using "/${yrfiles}/SchDisaggRaceEth2019_Math.dta"
-append using "/${yrfiles}/SchDisaggGender2019_Math.dta"
-append using "/${yrfiles}/SchDisaggEconStatus2019_sci.dta"
-append using "/${yrfiles}/SchDisaggELStatus2019_sci.dta"
-append using "/${yrfiles}/SchDisaggRaceEth2019_sci.dta"
-append using "/${yrfiles}/SchDisaggGender2019_sci.dta"
-append using "/${yrfiles}/SchDisaggEconStatus2019_soc.dta"
-append using "/${yrfiles}/SchDisaggELStatus2019_soc.dta"
-append using "/${yrfiles}/SchDisaggRaceEth2019_soc.dta"
-append using "/${yrfiles}/SchDisaggGender2019_soc.dta"
+use "/${output}/SchELA2019.dta", clear
+append using "/${output}/SchMath2019.dta"
+append using "/${output}/SchSci2019.dta"
+append using "/${output}/SchSoc2019.dta"
+append using "/${output}/SchDisaggEconStatus2019_ELA.dta"
+append using "/${output}/SchDisaggELStatus2019_ELA.dta"
+append using "/${output}/SchDisaggRaceEth2019_ELA.dta"
+append using "/${output}/SchDisaggGender2019_ELA.dta"
+append using "/${output}/SchDisaggEconStatus2019_Math.dta"
+append using "/${output}/SchDisaggELStatus2019_Math.dta"
+append using "/${output}/SchDisaggRaceEth2019_Math.dta"
+append using "/${output}/SchDisaggGender2019_Math.dta"
+append using "/${output}/SchDisaggEconStatus2019_sci.dta"
+append using "/${output}/SchDisaggELStatus2019_sci.dta"
+append using "/${output}/SchDisaggRaceEth2019_sci.dta"
+append using "/${output}/SchDisaggGender2019_sci.dta"
+append using "/${output}/SchDisaggEconStatus2019_soc.dta"
+append using "/${output}/SchDisaggELStatus2019_soc.dta"
+append using "/${output}/SchDisaggRaceEth2019_soc.dta"
+append using "/${output}/SchDisaggGender2019_soc.dta"
 
-gen DataLevel=2
+gen DataLevel = "School"
 
-save "/${yrfiles}/School2019", replace
+save "/${output}/School2019", replace
 
 //append all data
-append using "/${yrfiles}/Dist2019.dta"
-append using "/${yrfiles}/State2019.dta"
+append using "/${output}/Dist2019.dta"
+append using "/${output}/State2019.dta"
 
-save "/${yrfiles}/IN_2019_appended.dta", replace
-
+save "/${output}/IN_2019_appended.dta", replace
 
 ////	MERGE NCES
 
-use "/${nces}/NCES_2018_District.dta", clear
-drop if state_fips!=18
-save "/${yrfiles}/IN_2018_District.dta", replace
+replace StateAssignedDistID = "9040" if StateAssignedSchID == "7094"
+replace StateAssignedDistID = "9365" if StateAssignedSchID == "5667"
+replace StateAssignedDistID = "9975" if StateAssignedSchID == "1112"
+replace StateAssignedDistID = "9010" if StateAssignedSchID == "1806"
+replace StateAssignedDistID = "9400" if StateAssignedSchID == "5860"
+replace StateAssignedDistID = "9410" if StateAssignedSchID == "5741"
+replace StateAssignedDistID = "9115" if StateAssignedSchID == "1118"
+replace StateAssignedDistID = "9090" if StateAssignedSchID == "1041"
+replace StateAssignedDistID = "9095" if StateAssignedSchID == "9094"
+replace DistName = SchName if inlist(SchName,"Avondale Meadows Middle School", "Enlace Academy", "Global Preparatory Academy", "Ignite Achievement Academy", "KIPP Indy College Prep Middle", "KIPP Indy Unite Elementary", "Kindezi Academy", "Matchbook Learning", "Urban ACT Academy")
 
+gen State_leaid = "IN-" + StateAssignedDistID
 
-use "/${yrfiles}/IN_2019_appended.dta", replace
+merge m:1 State_leaid using "/${NCES}/NCES_2018_District.dta"
 
-gen state_leaid="IN-"+StateAssignedDistID
-drop if CorpName=="Independent Non-Public Schools"
-drop if StateAssignedDistID=="9200"
-drop if StateAssignedDistID=="9205"
-drop if StateAssignedDistID=="9210"
-drop if StateAssignedDistID=="9215"
-drop if StateAssignedDistID=="9220"
-drop if StateAssignedDistID=="9230"
-drop if StateAssignedDistID=="9240"
+tab DistName StateAssignedDistID if _merge == 1 & DataLevel != "State"
 
-merge m:1 state_leaid using "/${yrfiles}/IN_2018_District.dta"
+drop if StateAssignedDistID == "9200"
+drop if StateAssignedDistID == "9205"
+drop if StateAssignedDistID == "9210"
+drop if StateAssignedDistID == "9215"
+drop if StateAssignedDistID == "9220"
+drop if StateAssignedDistID == "9230"
+drop if StateAssignedDistID == "9240"
+
 drop if _merge==2
 drop _merge
 
-gen seasch=StateAssignedDistID+"-"+StateAssignedSchID
+gen seasch = StateAssignedDistID + "-" + StateAssignedSchID
 
-save "/${yrfiles}/IN_2019.dta", replace
+merge m:1 seasch using "/${NCES}/NCES_2018_School.dta"
 
-use "/${nces}/NCES_2018_School.dta", clear
-drop if state_fips!=18
-save "/${yrfiles}/IN_2018_School.dta", replace
+tab SchName if _merge == 1 & DataLevel == "School"
 
-
-use "/${yrfiles}/IN_2019.dta", replace
-
-merge m:1 seasch using "/${yrfiles}/IN_2018_School.dta"
 drop if _merge==2
 drop _merge
-
-
 
 /////	FINISH CLEANING
 
-rename state_name State
-replace State=18
-rename state_location StateAbbrev
-replace StateAbbrev="IN"
-rename state_fips StateFips
-replace StateFips=18
-gen SchYear="2018-19"
-rename lea_name DistName
-rename district_agency_type DistType
-rename school_name SchName
-rename school_type SchType
-rename ncesdistrictid NCESDistrictID
-rename state_leaid State_leaid
-rename ncesschoolid NCESSchoolID
-rename county_name CountyName
-rename county_code CountyCode
-gen AssmtName="ILEARN"
-gen AssmtType="Regular"
-gen Lev5_count="*"
-gen Lev1_percent="*"
-gen Lev2_percent="*"
-gen Lev3_percent="*"
-gen Lev4_percent="*"
-gen Lev5_percent="*"
-gen AvgScaleScore="*"
-gen ProficiencyCriteria="Lev 3 & Lev 4"
-gen ParticipationRate="*"
-gen Flag_AssmtNameChange="Y"
-gen Flag_CutScoreChange_ELA="Y"
-gen Flag_CutScoreChange_math="Y"
-gen Flag_CutScoreChange_read=""
-gen Flag_CutScoreChange_oth="Y"
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+sort DataLevel_n 
+drop DataLevel 
+rename DataLevel_n DataLevel
 
-label define LevelIndicator 0 "State" 1 "District" 2 "School"
-label values DataLevel LevelIndicator
+replace DistName = "All Districts" if DataLevel == 1
+replace SchName = "All Schools" if DataLevel != 3
 
-replace SchName="All Schools" if DataLevel<2
-replace DistName="All Districts" if DataLevel==0
-replace seasch="" if DataLevel<2
-replace State_leaid="" if DataLevel==0
+replace seasch = "" if DataLevel != 3
+replace State_leaid = "" if DataLevel == 1
 
-replace StudentGroup="RaceEth" if StudentGroup=="Race/Eth"
-replace StudentSubGroup="American Indian or Alaska Native" if StudentSubGroup=="American Indian"
-replace StudentSubGroup="Black or African American" if StudentSubGroup=="Black"
-replace StudentSubGroup="English Learner" if StudentSubGroup=="English Language Learner"
-replace StudentSubGroup="Economically Disadvantaged" if StudentSubGroup=="Free/Reduced price meals"
-replace StudentSubGroup="Hispanic or Latino" if StudentSubGroup=="Hispanic"
-replace StudentSubGroup="Two or More" if StudentSubGroup=="Multiracial"
-replace StudentSubGroup="Native Hawaiian or Pacific Islander" if StudentSubGroup=="Native Hawaiian or Other Pacific Islander"
-replace StudentSubGroup="English Proficient" if StudentSubGroup=="Non-English Language Learner"
-replace StudentSubGroup="Not Economically Disadvantaged" if StudentSubGroup=="Paid meals"
+gen SchYear = "2018-19"
 
-replace Subject="math" if Subject=="mat"
+gen AssmtName = "ILEARN"
+gen AssmtType = "Regular"
 
-replace GradeLevel="G03" if GradeLevel=="3"
-replace GradeLevel="G04" if GradeLevel=="4"
-replace GradeLevel="G05" if GradeLevel=="5"
-replace GradeLevel="G06" if GradeLevel=="6"
-replace GradeLevel="G07" if GradeLevel=="7"
-replace GradeLevel="G08" if GradeLevel=="8"
-replace GradeLevel="G38" if GradeLevel=="9"
-replace GradeLevel="G38" if GradeLevel=="38"
-replace GradeLevel="G03" if GradeLevel=="Grade 3"
-replace GradeLevel="G04" if GradeLevel=="Grade 4"
-replace GradeLevel="G05" if GradeLevel=="Grade 5"
-replace GradeLevel="G06" if GradeLevel=="Grade 6"
-replace GradeLevel="G07" if GradeLevel=="Grade 7"
-replace GradeLevel="G08" if GradeLevel=="Grade 8"
-replace GradeLevel="G38" if GradeLevel=="Grand Total"
-replace GradeLevel="G38" if StudentGroup!="All Students"
+gen Flag_AssmtNameChange = "Y"
+gen Flag_CutScoreChange_ELA = "Y"
+gen Flag_CutScoreChange_math = "Y"
+gen Flag_CutScoreChange_read = ""
+gen Flag_CutScoreChange_oth = "Y"
 
-replace ProficientOrAbove_count="*" if ProficientOrAbove_count==""
-replace ProficientOrAbove_count="*" if ProficientOrAbove_count=="***"
-replace ProficientOrAbove_percent="*" if ProficientOrAbove_percent==""
-replace ProficientOrAbove_percent="*" if ProficientOrAbove_percent=="***"
-replace StudentGroup_TotalTested="*" if StudentGroup_TotalTested==""
-replace StudentGroup_TotalTested="*" if StudentGroup_TotalTested=="***"
-replace StudentSubGroup_TotalTested="*" if StudentSubGroup_TotalTested==""
-replace StudentSubGroup_TotalTested="*" if StudentSubGroup_TotalTested=="***"
+replace GradeLevel = "G38" if inlist(GradeLevel,"38","Grand Total","All Students")
+replace GradeLevel = subinstr(GradeLevel,"Grade ","",.)
+replace GradeLevel = "G0" + GradeLevel if GradeLevel != "G38"
 
-keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "American Indian"
+replace StudentSubGroup = "Black or African American" if StudentSubGroup == "Black"
+replace StudentSubGroup = "English Learner" if StudentSubGroup == "English Language Learner"
+replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Free/Reduced price meals"
+replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
+replace StudentSubGroup = "Two or More" if StudentSubGroup == "Multiracial"
+replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "Native Hawaiian or Other Pacific Islander"
+replace StudentSubGroup = "English Proficient" if StudentSubGroup == "Non-English Language Learner"
+replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "Paid meals"
+
+drop if Lev1_count == ""
+
+gen Lev5_count = ""
+gen Lev5_percent = ""
+
+local level 1 2 3 4
+
+foreach a of local level{
+	gen Lev`a'_percent = "--"
+	replace Lev`a'_count = "*" if Lev`a'_count == "***"
+}
+
+replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "***"
+replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "***"
+
+gen AvgScaleScore = "--"
+gen ParticipationRate = "--"
+
+gen ProficiencyCriteria = "Levels 3 and 4"
+
+replace State = 18
+replace StateAbbrev = "IN"
+replace StateFips = 18
 
 order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
+save "${output}/IN_AssmtData_2019.dta", replace
 
-replace StudentGroup="RaceEth" if StudentGroup=="Race/Eth"
-replace GradeLevel="G38" if StudentGroup=="RaceEth"
-replace GradeLevel="G38" if StudentGroup=="EL Status"
-replace GradeLevel="G38" if StudentGroup=="Gender"
-replace GradeLevel="G38" if StudentGroup=="Economic Status"
-drop if StateAssignedDistID=="***Due to federal privacy laws, student performance data may not be displayed for any group of less than 10 students."
-drop if StateAssignedDistID=="" & (DataLevel==1 | DataLevel==2)
-
-save "/${yrfiles}/IN_2019.dta", replace
-
-export delimited using "/${output}/IN_AssmtData_2019.csv", replace
-
-
-
+export delimited using "${output}/csv/IN_AssmtData_2019.csv", replace

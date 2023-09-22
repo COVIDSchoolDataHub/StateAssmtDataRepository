@@ -1274,12 +1274,11 @@ gen DataLevel = "District"
 
 save "/${output}/Dist2022", replace
 
-** continue here **
 
 ///////// school level data
 
 //ela
-import excel "/${raw}/2022/IN_OriginalData_2022_all_sch.xlsx", sheet("ELA") cellrange(A6:BA1707) clear
+import excel "/${raw}/2022/IN_OriginalData_2022_all_sch.xlsx", sheet("ELA") cellrange(A6:BA1992) clear
 
 rename A StateAssignedDistID
 rename B DistName
@@ -1344,7 +1343,7 @@ rename BA ProficientOrAbove_percent38
 
 reshape long Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ProficientOrAbove_percent StudentGroup_TotalTested, i(StateAssignedSchID) j(GradeLevel) string
 
-gen Subject="ela"
+gen Subject = "ela"
 
 gen StudentSubGroup_TotalTested = StudentGroup_TotalTested
 gen StudentSubGroup = "All Students"
@@ -1353,7 +1352,7 @@ gen StudentGroup = "All Students"
 save "/${output}/SchELA2022", replace
 
 //math
-import excel "/${raw}/2022/IN_OriginalData_2022_all_sch.xlsx", sheet("Math") cellrange(A6:BA1707) clear
+import excel "/${raw}/2022/IN_OriginalData_2022_all_sch.xlsx", sheet("Math") cellrange(A6:BA1992) clear
 
 rename A StateAssignedDistID
 rename B DistName
@@ -1427,7 +1426,7 @@ gen StudentGroup = "All Students"
 save "/${output}/SchMath2022", replace
 
 //sci
-import excel "/${raw}/2022/IN_OriginalData_2022_all_sch.xlsx", sheet("Science") cellrange(A6:Y1515) clear
+import excel "/${raw}/2022/IN_OriginalData_2022_all_sch.xlsx", sheet("Science") cellrange(A6:Y1518) clear
 
 rename A StateAssignedDistID
 rename B DistName
@@ -1469,7 +1468,7 @@ gen StudentGroup = "All Students"
 save "/${output}/SchSci2022", replace
 
 //soc
-import excel "/${raw}/2022/IN_OriginalData_2022_all_sch.xlsx", sheet("Social Studies") cellrange(A6:K1123) clear
+import excel "/${raw}/2022/IN_OriginalData_2022_all_sch.xlsx", sheet("Social Studies") cellrange(A6:K1134) clear
 
 rename A StateAssignedDistID
 rename B DistName
@@ -1498,7 +1497,7 @@ save "/${output}/SchSoc2022", replace
 
 // ela race
 
-import excel "/${raw}/2022/IN_OriginalData_2022_all_sch_race_gender.xlsx", sheet("ELA Ethnicity") cellrange(A6:BA1707) clear
+import excel "/${raw}/2022/IN_OriginalData_2022_all_sch_race_gender.xlsx", sheet("ELA Ethnicity") cellrange(A6:BA1708) clear
 
 rename A StateAssignedDistID
 rename B DistName
@@ -1584,7 +1583,7 @@ save "/${output}/SchDisaggRaceEth2022_ELA.dta", replace
 
 // math race
 
-import excel "/${raw}/2022/IN_OriginalData_2022_all_sch_race_gender.xlsx", sheet("Math Ethnicity") cellrange(A6:BA1707) clear
+import excel "/${raw}/2022/IN_OriginalData_2022_all_sch_race_gender.xlsx", sheet("Math Ethnicity") cellrange(A6:BA1992) clear
 
 rename A StateAssignedDistID
 rename B DistName
@@ -1670,7 +1669,7 @@ save "/${output}/SchDisaggRaceEth2022_Math.dta", replace
 
 // sci race
 
-import excel "/${raw}/2022/IN_OriginalData_2022_all_sch_race_gender.xlsx", sheet("Science Ethnicity") cellrange(A6:BA1515) clear
+import excel "/${raw}/2022/IN_OriginalData_2022_all_sch_race_gender.xlsx", sheet("Science Ethnicity") cellrange(A6:BA1518) clear
 
 rename A StateAssignedDistID
 rename B DistName
@@ -1756,7 +1755,7 @@ save "/${output}/SchDisaggRaceEth2022_sci.dta", replace
 
 // soc race
 
-import excel "/${raw}/2022/IN_OriginalData_2022_all_sch_race_gender.xlsx", sheet("Social Studies Ethnicity") cellrange(A6:BA1123) clear
+import excel "/${raw}/2022/IN_OriginalData_2022_all_sch_race_gender.xlsx", sheet("Social Studies Ethnicity") cellrange(A6:BA1134) clear
 
 rename A StateAssignedDistID
 rename B DistName
@@ -1928,7 +1927,7 @@ save "/${output}/SchDisaggGender2022_Math.dta", replace
 
 // sci gender
 
-import excel "/${raw}/2022/IN_OriginalData_2022_all_sch_race_gender.xlsx", sheet("Science Gender") cellrange(A6:R1515) clear
+import excel "/${raw}/2022/IN_OriginalData_2022_all_sch_race_gender.xlsx", sheet("Science Gender") cellrange(A6:R1518) clear
 
 rename A StateAssignedDistID
 rename B DistName
@@ -1970,7 +1969,7 @@ save "/${output}/SchDisaggGender2022_sci.dta", replace
 
 // soc gender
 
-import excel "/${raw}/2022/IN_OriginalData_2022_all_sch_race_gender.xlsx", sheet("Social Studies Gender") cellrange(A6:R1123) clear
+import excel "/${raw}/2022/IN_OriginalData_2022_all_sch_race_gender.xlsx", sheet("Social Studies Gender") cellrange(A6:R1134) clear
 
 rename A StateAssignedDistID
 rename B DistName
@@ -2012,7 +2011,7 @@ save "/${output}/SchDisaggGender2022_soc.dta", replace
 
 // ela ELStatus
 
-import excel "/${raw}/2022/IN_OriginalData_2022_all_sch_disagg.xlsx", sheet("ELA English Learners") cellrange(A6:R1707) clear
+import excel "/${raw}/2022/IN_OriginalData_2022_all_sch_disagg.xlsx", sheet("ELA English Learners") cellrange(A6:R1708) clear
 
 rename A StateAssignedDistID
 rename B DistName
@@ -2094,7 +2093,7 @@ save "/${output}/SchDisaggELStatus2022_Math.dta", replace
 
 // sci ELStatus
 
-import excel "/${raw}/2022/IN_OriginalData_2022_all_sch_disagg.xlsx", sheet("Science English Learners") cellrange(A6:R1515) clear
+import excel "/${raw}/2022/IN_OriginalData_2022_all_sch_disagg.xlsx", sheet("Science English Learners") cellrange(A6:R1518) clear
 
 rename A StateAssignedDistID
 rename B DistName
@@ -2135,7 +2134,7 @@ save "/${output}/SchDisaggELStatus2022_sci.dta", replace
 
 // soc ELStatus
 
-import excel "/${raw}/2022/IN_OriginalData_2022_all_sch_disagg.xlsx", sheet("Social Studies English Learners") cellrange(A6:R1123) clear
+import excel "/${raw}/2022/IN_OriginalData_2022_all_sch_disagg.xlsx", sheet("Social Studies English Learners") cellrange(A6:R1133) clear
 
 rename A StateAssignedDistID
 rename B DistName
@@ -2176,7 +2175,7 @@ save "/${output}/SchDisaggELStatus2022_soc.dta", replace
 
 // ela EconStatus
 
-import excel "/${raw}/2022/IN_OriginalData_2022_all_sch_disagg.xlsx", sheet("ELA Socio Economic") cellrange(A6:R1707) clear
+import excel "/${raw}/2022/IN_OriginalData_2022_all_sch_disagg.xlsx", sheet("ELA Socio Economic") cellrange(A6:R1708) clear
 
 rename A StateAssignedDistID
 rename B DistName
@@ -2258,7 +2257,7 @@ save "/${output}/SchDisaggEconStatus2022_Math.dta", replace
 
 // sci EconStatus
 
-import excel "/${raw}/2022/IN_OriginalData_2022_all_sch_disagg.xlsx", sheet("Science Socio Economic") cellrange(A6:R1515) clear
+import excel "/${raw}/2022/IN_OriginalData_2022_all_sch_disagg.xlsx", sheet("Science Socio Economic") cellrange(A6:R1518) clear
 
 rename A StateAssignedDistID
 rename B DistName
@@ -2299,7 +2298,7 @@ save "/${output}/SchDisaggEconStatus2022_sci.dta", replace
 
 // soc EconStatus
 
-import excel "/${raw}/2022/IN_OriginalData_2022_all_sch_disagg.xlsx", sheet("Social Studies Socio Economic") cellrange(A6:R1123) clear
+import excel "/${raw}/2022/IN_OriginalData_2022_all_sch_disagg.xlsx", sheet("Social Studies Socio Economic") cellrange(A6:R1133) clear
 
 rename A StateAssignedDistID
 rename B DistName
@@ -2412,7 +2411,7 @@ replace SchName = "All Schools" if DataLevel != 3
 replace seasch = "" if DataLevel != 3
 replace State_leaid = "" if DataLevel == 1
 
-gen SchYear = "2022-23"
+gen SchYear = "2021-22"
 
 gen AssmtName = "ILEARN"
 gen AssmtType = "Regular"
