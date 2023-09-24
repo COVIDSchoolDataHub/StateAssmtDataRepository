@@ -579,7 +579,7 @@ save "/${raw}/2018/SchMathELA2018", replace
 
 // science
 
-import excel "/${raw}/2018/IN_OriginalData_2018_sci_soc.xlsx", sheet("2018_Science_School") cellrange(A3:M365) clear
+import excel "/${raw}/2018/IN_OriginalData_2018_sci_soc.xlsx", sheet("2018_Science_School") cellrange(A3:M1512) clear
 
 rename A StateAssignedDistID
 rename B DistName
@@ -614,7 +614,7 @@ save "/${raw}/2018/SchSci2018", replace
 
 // social studies
 
-import excel "/${raw}/2018/IN_OriginalData_2018_sci_soc.xlsx", sheet("2018_Social_Studies_School") cellrange(A3:M373) clear
+import excel "/${raw}/2018/IN_OriginalData_2018_sci_soc.xlsx", sheet("2018_Social_Studies_School") cellrange(A3:M1516) clear
 
 rename A StateAssignedDistID
 rename B DistName
@@ -909,7 +909,7 @@ drop if StateAssignedDistID=="9240"
 
 gen seasch = StateAssignedDistID + "-" + StateAssignedSchID
 
-merge m:1 seasch using "/${NCES}/NCES_2018_School.dta"
+merge m:1 seasch using "/${NCES}/NCES_2017_School.dta"
 
 tab SchName if _merge == 1 & DataLevel == "School"
 

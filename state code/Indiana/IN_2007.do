@@ -1,274 +1,271 @@
+clear
+set more off
 
-global source "/Users/hayden/Desktop/Research/IN/Pre 2014"
-global yrfiles "/Users/hayden/Desktop/Research/IN/2007"
-global nces "/Users/hayden/Desktop/Research/NCES"
-global output "/Users/hayden/Desktop/Research/IN/Output"
+cd "/Users/maggie/Desktop/Indiana"
 
+global raw "/Users/maggie/Desktop/Indiana/Original Data Files"
+global output "/Users/maggie/Desktop/Indiana/Output"
+global NCES "/Users/maggie/Desktop/Indiana/NCES/Cleaned"
 
-//////	Import District Data
+//////	ORGANIZING AND APPENDING DATA
 
-import excel "/${source}/IN_OriginalData_2005-2015_mat&ela_dist.xlsx", sheet("Fall 2007") cellrange(A2:AV340) firstrow clear
 
-// rename variables to add grades
+//// Create district level data
 
-rename ELAPassN ProficientOrAbove_count_ELA_3
-rename ELAPercentPass ProficientOrAbove_percent_ELA_3
-rename MathPassN ProficientOrAbove_count_Math_3
-rename MathPercentPass ProficientOrAbove_percent_Math_3
+//math and ela
+import excel "/${raw}/Pre 2014/IN_OriginalData_2005-2015_mat_ela_dist", sheet("Fall 2007") cellrange(A3:AU338) clear
 
-rename H ProficientOrAbove_count_ELA_4
-rename I ProficientOrAbove_percent_ELA_4
-rename J ProficientOrAbove_count_Math_4
-rename K ProficientOrAbove_percent_Math_4
+rename A StateAssignedDistID
+rename B DistName
 
-rename M ProficientOrAbove_count_ELA_5
-rename N ProficientOrAbove_percent_ELA_5
-rename O ProficientOrAbove_count_Math_5
-rename P ProficientOrAbove_percent_Math_5
+rename C ProficientOrAbove_countela3
+rename D ProficientOrAbove_percentela3
 
-rename R ProficientOrAbove_count_ELA_6
-rename S ProficientOrAbove_percent_ELA_6
-rename T ProficientOrAbove_count_Math_6
-rename U ProficientOrAbove_percent_Math_6
+rename E ProficientOrAbove_countmath3
+rename F ProficientOrAbove_percentmath3
 
-rename W ProficientOrAbove_count_ELA_7
-rename X ProficientOrAbove_percent_ELA_7
-rename Y ProficientOrAbove_count_Math_7
-rename Z ProficientOrAbove_percent_Math_7
+drop G
 
-rename AB ProficientOrAbove_count_ELA_8
-rename AC ProficientOrAbove_percent_ELA_8
-rename AD ProficientOrAbove_count_Math_8
-rename AE ProficientOrAbove_percent_Math_8
+rename H ProficientOrAbove_countela4
+rename I ProficientOrAbove_percentela4
 
+rename J ProficientOrAbove_countmath4
+rename K ProficientOrAbove_percentmath4
 
-// drop combined math and ELA, as well as grades 9-10
+drop L
 
-drop PassBothMathandELAPercent L Q V AA AF AG AH AI AJ AK AL AM AN AO AP AQ AR AS AT AU AV
+rename M ProficientOrAbove_countela5
+rename N ProficientOrAbove_percentela5
 
+rename O ProficientOrAbove_countmath5
+rename P ProficientOrAbove_percentmath5
 
-// transform from wide to long, generate grade
+drop Q
 
-gen id=_n
+rename R ProficientOrAbove_countela6
+rename S ProficientOrAbove_percentela6
 
-reshape long ProficientOrAbove_count_ELA_ ProficientOrAbove_count_Math_ ProficientOrAbove_percent_ELA_ ProficientOrAbove_percent_Math_, i(id) j(GradeLevel)
+rename T ProficientOrAbove_countmath6
+rename U ProficientOrAbove_percentmath6
 
+drop V
 
-// rename variables to add subject (1=ELA, 2=Math)
+rename W ProficientOrAbove_countela7
+rename X ProficientOrAbove_percentela7
 
-rename ProficientOrAbove_count_ELA_ ProficientOrAbove_count1
-rename ProficientOrAbove_percent_ELA_ ProficientOrAbove_percent1
-rename ProficientOrAbove_count_Math_ ProficientOrAbove_count2
-rename ProficientOrAbove_percent_Math_ ProficientOrAbove_percent2
+rename Y ProficientOrAbove_countmath7
+rename Z ProficientOrAbove_percentmath7
 
-drop id
-gen id=_n
+drop AA
 
-// transform from wide to long, generate subject
+rename AB ProficientOrAbove_countela8
+rename AC ProficientOrAbove_percentela8
 
-reshape long ProficientOrAbove_count ProficientOrAbove_percent, i(id) j(Subject)
+rename AD ProficientOrAbove_countmath8
+rename AE ProficientOrAbove_percentmath8
 
-drop id
+drop AF
 
-tostring Subject, replace
-replace Subject="ela" if Subject=="1"
-replace Subject="math" if Subject=="2"
+drop AG AH AI AJ AK AL AM AN AO AP
 
-gen DataLevel=1
+rename AQ ProficientOrAbove_countela38
+rename AR ProficientOrAbove_percentela38
 
-save "/${yrfiles}/IN_2007_dist.dta", replace
+rename AS ProficientOrAbove_countmath38
+rename AT ProficientOrAbove_percentmath38
 
+drop AU
 
-/////////	Import School Data
+tostring Proficient*, replace force
 
-import excel "/${source}/IN_OriginalData_2007-2015_mat&ela_sch.xlsx", sheet("Fall 2007") cellrange(A2:AX1833) firstrow clear
+reshape long ProficientOrAbove_countela ProficientOrAbove_percentela ProficientOrAbove_countmath ProficientOrAbove_percentmath, i(StateAssignedDistID) j(GradeLevel) string
 
-rename ELAPassN ProficientOrAbove_count_ELA_3
-rename ELAPercentPass ProficientOrAbove_percent_ELA_3
-rename MathPassN ProficientOrAbove_count_Math_3
-rename MathPercentPass ProficientOrAbove_percent_Math_3
-rename J ProficientOrAbove_count_ELA_4
-rename K ProficientOrAbove_percent_ELA_4
-rename L ProficientOrAbove_count_Math_4
-rename M ProficientOrAbove_percent_Math_4
-rename O ProficientOrAbove_count_ELA_5
-rename P ProficientOrAbove_percent_ELA_5
-rename Q ProficientOrAbove_count_Math_5
-rename R ProficientOrAbove_percent_Math_5
-rename T ProficientOrAbove_count_ELA_6
-rename U ProficientOrAbove_percent_ELA_6
-rename V ProficientOrAbove_count_Math_6
-rename W ProficientOrAbove_percent_Math_6
-rename Y ProficientOrAbove_count_ELA_7
-rename Z ProficientOrAbove_percent_ELA_7
-rename AA ProficientOrAbove_count_Math_7
-rename AB ProficientOrAbove_percent_Math_7
-rename AD ProficientOrAbove_count_ELA_8
-rename AE ProficientOrAbove_percent_ELA_8
-rename AF ProficientOrAbove_count_Math_8
-rename AG ProficientOrAbove_percent_Math_8
+reshape long ProficientOrAbove_count ProficientOrAbove_percent, i(StateAssignedDistID GradeLevel) j(Subject) string
 
+gen StudentSubGroup_TotalTested = "--"
+gen StudentGroup_TotalTested = "--"
+gen StudentSubGroup = "All Students"
+gen StudentGroup = "All Students"
 
-//drop combined math and ela proficiency and grades 9+
-drop PassBothMathandELAPercent N S X AC AH AI AJ AK AL AM AN AO AP AQ AR AS AT AU AV AW AX
+drop if ProficientOrAbove_count == ""
 
+gen DataLevel = "District"
 
-// transform from wide to long, generate grade, drop blanks and footnotes
-gen id=_n
-drop if id==1830
-drop if id==1831
+save "/${raw}/Pre 2014/Dist2007", replace
 
-reshape long ProficientOrAbove_count_ELA_ ProficientOrAbove_count_Math_ ProficientOrAbove_percent_ELA_ ProficientOrAbove_percent_Math_, i(id) j(GradeLevel)
 
+//// School level data files
+import excel "/${raw}/Pre 2014/IN_OriginalData_2007-2015_mat_ela_sch", sheet("Fall 2007") cellrange(A3:AW1831) clear
 
-// rename variables to add subject (1=ELA, 2=Math)
+rename A StateAssignedDistID
+rename B DistName
+rename C StateAssignedSchID
+rename D SchName
 
-rename ProficientOrAbove_count_ELA_ ProficientOrAbove_count1
-rename ProficientOrAbove_percent_ELA_ ProficientOrAbove_percent1
-rename ProficientOrAbove_count_Math_ ProficientOrAbove_count2
-rename ProficientOrAbove_percent_Math_ ProficientOrAbove_percent2
+rename E ProficientOrAbove_countela3
+rename F ProficientOrAbove_percentela3
 
-drop id
-gen id=_n
+rename G ProficientOrAbove_countmath3
+rename H ProficientOrAbove_percentmath3
 
+drop I
 
-// transform from wide to long, generate subject
+rename J ProficientOrAbove_countela4
+rename K ProficientOrAbove_percentela4
 
-reshape long ProficientOrAbove_count ProficientOrAbove_percent, i(id) j(Subject)
+rename L ProficientOrAbove_countmath4
+rename M ProficientOrAbove_percentmath4
 
-drop id
+drop N
 
-tostring Subject, replace
-replace Subject="ela" if Subject=="1"
-replace Subject="math" if Subject=="2"
+rename O ProficientOrAbove_countela5
+rename P ProficientOrAbove_percentela5
 
-gen DataLevel=2
+rename Q ProficientOrAbove_countmath5
+rename R ProficientOrAbove_percentmath5
 
+drop S
 
-// append school and district data
+rename T ProficientOrAbove_countela6
+rename U ProficientOrAbove_percentela6
 
-append using "/${yrfiles}/IN_2007_dist.dta"
+rename V ProficientOrAbove_countmath6
+rename W ProficientOrAbove_percentmath6
 
+drop X
 
-// prepare for NCES merge
+rename Y ProficientOrAbove_countela7
+rename Z ProficientOrAbove_percentela7
 
-rename CorpID StateAssignedDistID
-gen state_leaid=StateAssignedDistID
-rename SchoolID seasch
+rename AA ProficientOrAbove_countmath7
+rename AB ProficientOrAbove_percentmath7
 
-save "/${yrfiles}/IN_2007_base.dta", replace
+drop AC
 
+rename AD ProficientOrAbove_countela8
+rename AE ProficientOrAbove_percentela8
 
-// dist
+rename AF ProficientOrAbove_countmath8
+rename AG ProficientOrAbove_percentmath8
 
-use "/${nces}/NCES_2007_District.dta", clear
+drop AH AI AJ AK AL AM AN AO AP AQ AR
 
-keep if state_location=="IN"
+rename AS ProficientOrAbove_countela38
+rename AT ProficientOrAbove_percentela38
 
-save "/${yrfiles}/IN_2007_NCESDistricts.dta", replace
+rename AU ProficientOrAbove_countmath38
+rename AV ProficientOrAbove_percentmath38
 
+drop AW
 
-// sch
+tostring Proficient*, replace force
 
-use "/${nces}/NCES_2007_School.dta", clear
+reshape long ProficientOrAbove_countela ProficientOrAbove_percentela ProficientOrAbove_countmath ProficientOrAbove_percentmath, i(StateAssignedSchID) j(GradeLevel) string
 
-keep if state_location=="IN"
+reshape long ProficientOrAbove_count ProficientOrAbove_percent, i(StateAssignedSchID GradeLevel) j(Subject) string
 
-save "/${yrfiles}/IN_2007_NCESSchools.dta", replace
+gen StudentSubGroup = "All Students"
+gen StudentGroup = "All Students"
 
+gen StudentGroup_TotalTested = "--"
+gen StudentSubGroup_TotalTested = "--"
 
-// merge NCES district data
+drop if ProficientOrAbove_count == ""
 
-use "/${yrfiles}/IN_2007_base.dta", clear
+gen DataLevel = "School"
 
-merge m:1 state_leaid using "/${yrfiles}/IN_2007_NCESDistricts.dta"
+save "/${raw}/Pre 2014/School2007", replace
+
+
+//append all data
+append using "/${raw}/Pre 2014/Dist2007.dta"
+
+save "/${raw}/Pre 2014/IN_2007_appended.dta", replace
+
+
+////	MERGE NCES
+
+gen State_leaid = StateAssignedDistID
+
+merge m:1 State_leaid using "/${NCES}/NCES_2009_District.dta"
+
+tab DistName StateAssignedDistID if _merge == 1 & DataLevel != "State"
+
 drop if _merge==2
 drop _merge
 
-merge m:1 state_leaid seasch using "/${yrfiles}/IN_2007_NCESSchools.dta"
+gen seasch = StateAssignedSchID
+
+merge m:1 State_leaid seasch using "/${NCES}/NCES_2007_School.dta"
+
+tab SchName if _merge == 1 & DataLevel == "School"
+
 drop if _merge==2
 drop _merge
 
 
-// drop blank observations from outside of a school's offered grade levels (like G03 results at a middle school) since data transfered from wide to long
 
-replace ProficientOrAbove_count="*" if ProficientOrAbove_count==""
-replace ProficientOrAbove_count="*" if ProficientOrAbove_count=="***"
-replace ProficientOrAbove_percent="*" if ProficientOrAbove_percent==""
-replace ProficientOrAbove_percent="*" if ProficientOrAbove_percent=="***"
-
-drop if GradeLevel<sch_lowest_grade_offered & ProficientOrAbove_count=="*" & ProficientOrAbove_percent=="*" & DataLevel==2
-drop if GradeLevel>sch_highest_grade_offered & ProficientOrAbove_count=="*" & ProficientOrAbove_percent=="*" & DataLevel==2
+/////	FINISH CLEANING
 
 
-// finish cleaning
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+sort DataLevel_n 
+drop DataLevel 
+rename DataLevel_n DataLevel
 
-tostring GradeLevel, replace
-replace GradeLevel="G03" if GradeLevel=="3"
-replace GradeLevel="G04" if GradeLevel=="4"
-replace GradeLevel="G05" if GradeLevel=="5"
-replace GradeLevel="G06" if GradeLevel=="6"
-replace GradeLevel="G07" if GradeLevel=="7"
-replace GradeLevel="G08" if GradeLevel=="8"
+replace DistName = "All Districts" if DataLevel == 1
+replace SchName = "All Schools" if DataLevel != 3
 
-rename state_name State
-rename state_location StateAbbrev
-rename state_fips StateFips
-rename lea_name DistName
-rename district_agency_type DistType
-rename school_name SchName
-rename school_type SchType
-rename ncesdistrictid NCESDistrictID
-rename state_leaid State_leaid
-rename ncesschoolid NCESSchoolID
-rename school_id StateAssignedSchID
-rename county_name CountyName
-rename county_code CountyCode
+replace seasch = "" if DataLevel != 3
+replace State_leaid = "" if DataLevel == 1
 
-gen SchYear="2006-07"
-gen AssmtName="ISTEP+"
-gen AssmtType="Regular"
-gen StudentGroup="All Students"
-gen StudentGroup_TotalTested="*"
-gen StudentSubGroup="All Students"
-gen StudentSubGroup_TotalTested="*"
-gen Lev1_count="*"
-gen Lev1_percent="*"
-gen Lev2_count="*"
-gen Lev2_percent="*"
-gen Lev3_count="*"
-gen Lev3_percent="*"
-gen Lev4_count="*"
-gen Lev4_percent="*"
-gen Lev5_count="*"
-gen Lev5_percent="*"
-gen AvgScaleScore="*"
-gen ProficiencyCriteria="Lev 2 & Lev 3"
-gen ParticipationRate="*"
-gen Flag_AssmtNameChange="N"
-gen Flag_CutScoreChange_ELA="N"
-gen Flag_CutScoreChange_math="N"
-gen Flag_CutScoreChange_read=""
-gen Flag_CutScoreChange_oth="N"
+gen SchYear = "2006-07"
 
-label define LevelIndicator 0 "State" 1 "District" 2 "School"
-label values DataLevel LevelIndicator
+gen AssmtName = "ISTEP+"
+gen AssmtType = "Regular"
 
-keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+gen Flag_AssmtNameChange = "N"
+gen Flag_CutScoreChange_ELA = "N"
+gen Flag_CutScoreChange_math = "N"
+gen Flag_CutScoreChange_read = ""
+gen Flag_CutScoreChange_oth = "N"
+
+replace GradeLevel = "G38" if inlist(GradeLevel,"38","Grand Total","All Students")
+replace GradeLevel = subinstr(GradeLevel,"Grade ","",.)
+replace GradeLevel = "G0" + GradeLevel if GradeLevel != "G38"
+
+drop if ProficientOrAbove_count == ""
+
+gen Lev4_count = ""
+gen Lev4_percent = ""
+gen Lev5_count = ""
+gen Lev5_percent = ""
+
+local level 1 2 3
+
+foreach a of local level{
+	gen Lev`a'_percent = "--"
+	gen Lev`a'_count = "--"
+}
+
+replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "***"
+replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "***"
+replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "***"
+
+gen AvgScaleScore = "--"
+gen ParticipationRate = "--"
+
+gen ProficiencyCriteria = "Levels 2 and 3"
+
+replace State = 18
+replace StateAbbrev = "IN"
+replace StateFips = 18
 
 order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
+save "${output}/IN_AssmtData_2007.dta", replace
 
-replace StudentGroup="RaceEth" if StudentGroup=="Race/Eth"
-replace GradeLevel="G38" if StudentGroup=="RaceEth"
-replace GradeLevel="G38" if StudentGroup=="EL Status"
-replace GradeLevel="G38" if StudentGroup=="Gender"
-replace GradeLevel="G38" if StudentGroup=="Economic Status"
-drop if StateAssignedDistID=="***Due to federal privacy laws, student performance data may not be displayed for any group of less than 10 students."
-drop if StateAssignedDistID=="" & (DataLevel==1 | DataLevel==2)
-
-
-save "/${yrfiles}/IN_2007.dta", replace
-export delimited using "/${output}/IN_AssmtData_2007.csv", replace
+export delimited using "${output}/csv/IN_AssmtData_2007.csv", replace
