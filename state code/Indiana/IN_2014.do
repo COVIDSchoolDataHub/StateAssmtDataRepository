@@ -867,7 +867,7 @@ replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGro
 replace StudentSubGroup = "English Proficient" if StudentSubGroup == "Non-English Language Learner"
 replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "Paid meals"
 
-drop if ProficientOrAbove_count == ""
+drop if ProficientOrAbove_count == "" | ProficientOrAbove_count == "NA"
 
 gen Lev4_count = ""
 gen Lev4_percent = ""

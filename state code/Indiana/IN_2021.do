@@ -2438,6 +2438,8 @@ replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup ==
 
 drop if Lev1_count == ""
 
+drop if StudentSubGroup_TotalTested == .
+
 gen Lev5_count = ""
 gen Lev5_percent = ""
 

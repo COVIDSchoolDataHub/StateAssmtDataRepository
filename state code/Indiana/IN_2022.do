@@ -290,6 +290,8 @@ gen StudentSubGroup_TotalTested = StudentGroup_TotalTested
 gen StudentSubGroup = "All Students"
 gen StudentGroup = "All Students"
 
+drop if StudentGroup_TotalTested == .
+
 save "/${output}/DistELA2022", replace
 
 //math
@@ -365,6 +367,8 @@ gen StudentSubGroup_TotalTested = StudentGroup_TotalTested
 gen StudentSubGroup = "All Students"
 gen StudentGroup = "All Students"
 
+drop if StudentGroup_TotalTested == .
+
 save "/${output}/DistMath2022", replace
 
 //sci
@@ -404,6 +408,8 @@ gen Subject = "sci"
 gen StudentSubGroup_TotalTested = StudentGroup_TotalTested
 gen StudentSubGroup = "All Students"
 gen StudentGroup = "All Students"
+
+drop if StudentGroup_TotalTested == .
 
 save "/${output}/DistSci2022.dta", replace
 

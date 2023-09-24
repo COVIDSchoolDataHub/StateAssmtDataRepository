@@ -287,6 +287,8 @@ gen StudentSubGroup_TotalTested = StudentGroup_TotalTested
 gen StudentSubGroup = "All Students"
 gen StudentGroup = "All Students"
 
+drop if StudentSubGroup_TotalTested == .
+
 save "/${output}/DistELA2023", replace
 
 //math
@@ -359,6 +361,8 @@ gen StudentSubGroup_TotalTested = StudentGroup_TotalTested
 gen StudentSubGroup = "All Students"
 gen StudentGroup = "All Students"
 
+drop if StudentSubGroup_TotalTested == .
+
 save "/${output}/DistMath2023", replace
 
 //sci
@@ -398,6 +402,8 @@ gen Subject = "sci"
 gen StudentSubGroup_TotalTested = StudentGroup_TotalTested
 gen StudentSubGroup = "All Students"
 gen StudentGroup = "All Students"
+
+drop if StudentSubGroup_TotalTested == .
 
 save "/${output}/DistSci2023.dta", replace
 
@@ -2431,6 +2437,8 @@ replace StudentSubGroup = "English Proficient" if StudentSubGroup == "Non-Englis
 replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "Paid meals"
 
 drop if Lev1_count == ""
+
+drop if StudentSubGroup_TotalTested == .
 
 gen Lev5_count = ""
 gen Lev5_percent = ""

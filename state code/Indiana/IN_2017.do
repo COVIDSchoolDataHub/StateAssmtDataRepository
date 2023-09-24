@@ -969,6 +969,7 @@ foreach a of local level{
 replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "***"
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "***"
 replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "***"
+replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "***"
 
 gen AvgScaleScore = "--"
 gen ParticipationRate = "--"
