@@ -8,8 +8,7 @@ local Output "/Volumes/T7/State Test Project/Connecticut/Output"
 local NCES_School "/Volumes/T7/State Test Project/NCES/School"
 local NCES_District "/Volumes/T7/State Test Project/NCES/District"
 log using variablescheck.log, replace
-//Standardizing Varnames (and values if necessary) before appending
-
+//Standardizing Varnames (and variables if necessary) before appending
 forvalues year = 2015/2023 {
 	local prevyear =`=`year'-1'
 	if `year' == 2020 | `year' == 2021 continue
@@ -486,7 +485,7 @@ foreach n in 1 2 3 4 {
 
 //Sometimes, ProficientOrAbove_count and ProficientOrAbove_percent can be calculated even if they're listed as suppressed for some reason. Correcting below. 
 replace ProficientOrAbove_count = string(nLev3_count + nLev4_count, "%9.3g") if ProficientOrAbove_count == "*" & Lev3_count != "*" & Lev4_count != "*" & Lev3_count != "--" & Lev4_count != "--"
-replace ProficientOrAbove_percent = string(nLev3_percent + nLev4_percent, "%9.3g") if ProficientOrAbove_percent == "*" & Lev3_percent != "*" & Lev4_percent != "*" & Lev3_percent != "--" & Lev4_percent != "--"
+replace ProficientOrAbove_percent = string((nLev3_percent/100) + (nLev4_percent/100), "%9.3g") if ProficientOrAbove_percent == "*" & Lev3_percent != "*" & Lev4_percent != "*" & Lev3_percent != "--" & Lev4_percent != "--"
 
 //Year
 gen SchYear = "`prevyear'" + "-" + substr("`year'",-2,2)
@@ -668,7 +667,7 @@ gen Flag_CutScoreChange_read=""
 gen Flag_CutScoreChange_oth = ""
 
 foreach var of varlist Flag* {
-	replace `var' = "Y" if `year' == 2015 & "`var'" != "Flag_CutScoreChange_oth"
+	replace `var' = "Y" if `year' == 2015 & "`var'" != "Flag_CutScoreChange_oth" & `var' != "Flag_CutScoreChange_read"
 	replace `var' = "N" if "`var'" == "Flag_CutScoreChange_oth" & `year' >= 2019
 	replace `var' = "Y" if `year' == 2022 & "`var'" != "Flag_AssmtNameChange" & "`var'" != "Flag_CutScoreChange_read"
 }
