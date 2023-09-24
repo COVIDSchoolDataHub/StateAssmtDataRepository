@@ -13,7 +13,7 @@ global NCES "/Users/maggie/Desktop/Indiana/NCES/Cleaned"
 //// Create district level data
 
 //math and ela
-import excel "/${raw}/Pre 2014/IN_OriginalData_2005-2015_mat_ela_dist", sheet("Fall 2005") cellrange(A3:AU325) clear
+import excel "/${raw}/Pre 2014/IN_OriginalData_2005-2015_mat_ela_dist", sheet("Fall 2005") cellrange(A3:AE325) clear
 
 rename A StateAssignedDistID
 rename B DistName
@@ -63,18 +63,6 @@ rename AC ProficientOrAbove_percentela8
 
 rename AD ProficientOrAbove_countmath8
 rename AE ProficientOrAbove_percentmath8
-
-drop AF
-
-drop AG AH AI AJ AK AL AM AN AO AP
-
-rename AQ ProficientOrAbove_countela38
-rename AR ProficientOrAbove_percentela38
-
-rename AS ProficientOrAbove_countmath38
-rename AT ProficientOrAbove_percentmath38
-
-drop AU
 
 tostring Proficient*, replace force
 
@@ -135,8 +123,7 @@ gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_read = ""
 gen Flag_CutScoreChange_oth = "N"
 
-replace GradeLevel = "G38" if GradeLevel == "38"
-replace GradeLevel = "G0" + GradeLevel if GradeLevel != "G38"
+replace GradeLevel = "G0" + GradeLevel
 
 drop if ProficientOrAbove_count == ""
 

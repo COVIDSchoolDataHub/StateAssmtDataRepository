@@ -13,7 +13,7 @@ global NCES "/Users/maggie/Desktop/Indiana/NCES/Cleaned"
 //// Create district level data
 
 //math and ela
-import excel "/${raw}/Pre 2014/IN_OriginalData_2005-2015_mat_ela_dist", sheet("Fall 2007") cellrange(A3:AU338) clear
+import excel "/${raw}/Pre 2014/IN_OriginalData_2005-2015_mat_ela_dist", sheet("Fall 2007") cellrange(A3:AE338) clear
 
 rename A StateAssignedDistID
 rename B DistName
@@ -64,18 +64,6 @@ rename AC ProficientOrAbove_percentela8
 rename AD ProficientOrAbove_countmath8
 rename AE ProficientOrAbove_percentmath8
 
-drop AF
-
-drop AG AH AI AJ AK AL AM AN AO AP
-
-rename AQ ProficientOrAbove_countela38
-rename AR ProficientOrAbove_percentela38
-
-rename AS ProficientOrAbove_countmath38
-rename AT ProficientOrAbove_percentmath38
-
-drop AU
-
 tostring Proficient*, replace force
 
 reshape long ProficientOrAbove_countela ProficientOrAbove_percentela ProficientOrAbove_countmath ProficientOrAbove_percentmath, i(StateAssignedDistID) j(GradeLevel) string
@@ -95,7 +83,7 @@ save "/${raw}/Pre 2014/Dist2007", replace
 
 
 //// School level data files
-import excel "/${raw}/Pre 2014/IN_OriginalData_2007-2015_mat_ela_sch", sheet("Fall 2007") cellrange(A3:AW1831) clear
+import excel "/${raw}/Pre 2014/IN_OriginalData_2007-2015_mat_ela_sch", sheet("Fall 2007") cellrange(A3:AG1831) clear
 
 rename A StateAssignedDistID
 rename B DistName
@@ -147,16 +135,6 @@ rename AE ProficientOrAbove_percentela8
 
 rename AF ProficientOrAbove_countmath8
 rename AG ProficientOrAbove_percentmath8
-
-drop AH AI AJ AK AL AM AN AO AP AQ AR
-
-rename AS ProficientOrAbove_countela38
-rename AT ProficientOrAbove_percentela38
-
-rename AU ProficientOrAbove_countmath38
-rename AV ProficientOrAbove_percentmath38
-
-drop AW
 
 tostring Proficient*, replace force
 
@@ -231,9 +209,7 @@ gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_read = ""
 gen Flag_CutScoreChange_oth = "N"
 
-replace GradeLevel = "G38" if inlist(GradeLevel,"38","Grand Total","All Students")
-replace GradeLevel = subinstr(GradeLevel,"Grade ","",.)
-replace GradeLevel = "G0" + GradeLevel if GradeLevel != "G38"
+replace GradeLevel = "G0" + GradeLevel
 
 drop if ProficientOrAbove_count == ""
 
