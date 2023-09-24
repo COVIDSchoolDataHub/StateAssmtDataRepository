@@ -227,7 +227,7 @@ gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_read = ""
-gen Flag_CutScoreChange_oth = "N"
+gen Flag_CutScoreChange_oth = ""
 
 replace GradeLevel = "G38" if inlist(GradeLevel,"38","Grand Total","All Students")
 replace GradeLevel = subinstr(GradeLevel,"Grade ","",.)
