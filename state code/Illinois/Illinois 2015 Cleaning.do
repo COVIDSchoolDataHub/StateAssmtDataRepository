@@ -124,7 +124,7 @@ drop County City
 
 rename RCDTS StateAssignedSchID
 rename DistrictSchool DataLevel
-rename Dist StateAssignedDistID
+drop Dist
 rename DistrictNameSchoolName SchName
 rename Grade3 Lev1_percentela3
 rename H Lev2_percentela3
@@ -220,7 +220,6 @@ gen SchYear = "2014-15"
 gen State_leaid = StateAssignedSchID
 replace State_leaid = substr(State_leaid,1,11)
 replace State_leaid = substr(State_leaid,1,2) + "-" + substr(State_leaid,3,3) + "-" + substr(State_leaid,6,4) + "-" + substr(State_leaid,10,2)
-replace StateAssignedSchID = "" if DataLevel != 3
 
 gen seasch = StateAssignedSchID
 replace seasch = substr(seasch,1,9) + substr(seasch,12,4)
@@ -259,6 +258,8 @@ gen ParticipationRate = "--"
 
 ** Merging with NCES
 
+gen StateAssignedDistID = substr(StateAssignedSchID,1,11)
+
 merge m:1 State_leaid using "${NCES}/NCES_2015_District.dta"
 
 drop if _merge == 2
@@ -276,6 +277,7 @@ append using "${output}/IL_AssmtData_2015_all_state.dta"
 replace StateAbbrev = "IL" if DataLevel == 1
 replace State = 17 if DataLevel == 1
 replace StateFips = 17 if DataLevel == 1
+replace StateAssignedSchID = "" if DataLevel != 3
 
 ** Generating new variables
 

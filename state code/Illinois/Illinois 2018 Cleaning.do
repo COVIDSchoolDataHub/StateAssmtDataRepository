@@ -23,7 +23,7 @@ drop County City
 ** Rename existing variables
 
 rename RCDTS StateAssignedSchID
-rename DIST StateAssignedDistID
+drop DIST
 rename SchoolorDistrictName SchName
 rename Grade GradeLevel
 rename StateDistrictSchool DataLevel
@@ -36,7 +36,7 @@ replace GradeLevel = "G" + GradeLevel
 gen StudentSubGroup = "All Students"
 
 tostring AvgScaleScore, replace
-replace AvgScaleScore = "*" if AvgScaleScore == "."
+replace AvgScaleScore = "--" if AvgScaleScore == " "
 
 save "${output}/IL_AssmtData_2018_sci_AvgScaleScore.dta", replace
 
@@ -54,7 +54,7 @@ drop County City Migrant IEP NotIEP
 ** Rename existing variables
 
 rename RCDTS StateAssignedSchID
-rename DIST StateAssignedDistID
+drop DIST
 rename SchoolorDistrictName SchName
 rename Grade GradeLevel
 rename StateDistrictSchool DataLevel
@@ -117,7 +117,7 @@ drop County City Migrant IEP NotIEP
 ** Rename existing variables
 
 rename RCDTS StateAssignedSchID
-rename DIST StateAssignedDistID
+drop DIST
 rename SchoolorDistrictName SchName
 rename Grade GradeLevel
 rename StateDistrictSchool DataLevel
@@ -224,6 +224,8 @@ gen leadingzero = 0
 replace leadingzero = 1 if substr(StateAssignedSchID,15,1) == ""
 replace StateAssignedSchID = "0" + StateAssignedSchID if leadingzero == 1
 drop leadingzero
+
+gen StateAssignedDistID = substr(StateAssignedSchID,1,11)
 
 gen State_leaid = StateAssignedSchID
 replace State_leaid = substr(State_leaid,1,11)
@@ -1159,7 +1161,7 @@ replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup 
 replace StudentSubGroup = "Asian" if StudentSubGroup == "asian"
 replace StudentSubGroup = "Black or African American" if StudentSubGroup == "black"
 replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "hawaii"
-replace StudentSubGroup = "White" if StudentSubGroup == "White"
+replace StudentSubGroup = "White" if StudentSubGroup == "white"
 replace StudentSubGroup = "Two or More" if StudentSubGroup == "two"
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "hisp"
 replace StudentSubGroup = "Female" if StudentSubGroup == "female"
@@ -1208,7 +1210,7 @@ gen ParticipationRate = "--"
 
 ** Merging with NCES
 
-gen StateAssignedDistID = substr(StateAssignedSchID,6,3)
+gen StateAssignedDistID = substr(StateAssignedSchID,1,11)
 
 gen State_leaid = StateAssignedSchID
 replace State_leaid = substr(State_leaid,1,11)
@@ -1239,6 +1241,7 @@ replace StateAbbrev = "IL" if DataLevel == 1
 replace State = 17 if DataLevel == 1
 replace StateFips = 17 if DataLevel == 1
 replace State_leaid = "" if DataLevel == 1
+replace StateAssignedDistID = "" if DataLevel == 1
 
 replace SchName = "All Schools" if DataLevel != 3
 replace DistName = "All Districts" if DataLevel == 1

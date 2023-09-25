@@ -2408,6 +2408,11 @@ tab SchName if _merge == 1 & DataLevel == "School"
 drop if _merge==2
 drop _merge
 
+merge m:1 seasch using "/${NCES}/NCES_2017_School.dta", update
+
+drop if _merge==2
+drop _merge
+
 /////	FINISH CLEANING
 
 label def DataLevel 1 "State" 2 "District" 3 "School"

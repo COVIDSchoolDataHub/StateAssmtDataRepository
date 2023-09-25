@@ -26,7 +26,7 @@ drop County City H
 ** Rename existing variables
 
 rename RCDTS StateAssignedSchID
-rename DIST StateAssignedDistID
+drop DIST
 rename SchoolorDistrictName SchName
 rename StateDistrictSchool DataLevel
 rename ALL AvgScaleScore
@@ -59,7 +59,7 @@ drop County City Migrant IEP NotIEP
 ** Rename existing variables
 
 rename RCDTS StateAssignedSchID
-rename DIST StateAssignedDistID
+drop DIST
 rename SchoolorDistrictName SchName
 rename StateDistrictSchool DataLevel
 rename ALL ParticipationRateAll
@@ -131,7 +131,7 @@ replace GradeLevel = "G08" if GradeLevel == ""
 ** Rename existing variables
 
 rename RCDTS StateAssignedSchID
-rename DIST StateAssignedDistID
+drop DIST
 rename SchoolorDistrictName SchName
 rename StateDistrictSchool DataLevel
 rename ALL ProficientOrAbove_percentAll
@@ -1176,7 +1176,7 @@ replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup 
 replace StudentSubGroup = "Asian" if StudentSubGroup == "asian"
 replace StudentSubGroup = "Black or African American" if StudentSubGroup == "black"
 replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "hawaii"
-replace StudentSubGroup = "White" if StudentSubGroup == "White"
+replace StudentSubGroup = "White" if StudentSubGroup == "white"
 replace StudentSubGroup = "Two or More" if StudentSubGroup == "two"
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "hisp"
 replace StudentSubGroup = "Female" if StudentSubGroup == "female"
@@ -1225,7 +1225,7 @@ gen ParticipationRate = "--"
 
 ** Merging with NCES
 
-gen StateAssignedDistID = substr(StateAssignedSchID,6,3)
+gen StateAssignedDistID = substr(StateAssignedSchID,1,11)
 
 gen State_leaid = StateAssignedSchID
 replace State_leaid = substr(State_leaid,1,11)

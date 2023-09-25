@@ -2400,6 +2400,8 @@ merge m:1 seasch using "/${NCES}/NCES_2021_School.dta"
 
 tab SchName if _merge == 1 & DataLevel == "School"
 
+drop if SchName == "Sanders School"
+
 drop if _merge==2
 drop _merge
 
