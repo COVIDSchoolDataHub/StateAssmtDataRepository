@@ -256,7 +256,7 @@ gen AssmtType = "Regular"
 
 //Aesthetic changes
 replace StateAssignedDistID = subinstr(StateAssignedDistID, "VT-","",.)
-replace seasch = StateAssignedDistID + "-" + StateAssignedSchID if DataLevel == 3
+
 
 //Changing 0 levels to missing if StudentSubGroup_TotalTested == 0 or "--"
 
@@ -265,6 +265,9 @@ foreach n in 1 2 3 4 {
 }
 replace ProficientOrAbove_percent = "--" if StudentSubGroup_TotalTested == "0" | (StudentSubGroup_TotalTested == "--" & Lev3_percent == "--" & Lev4_percent == "--")
 replace AvgScaleScore = "--" if StudentSubGroup_TotalTested == "0"
+
+//DATA DECISION: DROPPING DISTRICT LEVEL DATA
+drop if DataLevel ==2
 
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
