@@ -307,7 +307,7 @@ gen State_leaid = "LA-" + StateAssignedDistID if DataLevel != "State"
 replace StateAssignedSchID = StateAssignedDistID + StateAssignedSchID
 gen seasch = StateAssignedDistID + "-" + StateAssignedSchID if DataLevel == "School"
 replace seasch = "D50S09-D50S09" if SchName == "Chitimacha Tribal School"
-replace State_leaid = "LA-D50S09" if SchName == "Chitimacha Tribal School"
+replace State_leaid = "LA-D50S09" if State_leaid == "LA-660"
 merge m:1 State_leaid using "${path}/Semi-Processed Data Files/2014_15_NCES_Cleaned_District.dta"
 rename _merge district_merge
 merge m:1 seasch StateAbbrev using "${path}/Semi-Processed Data Files/2014_15_NCES_Cleaned_School.dta"
