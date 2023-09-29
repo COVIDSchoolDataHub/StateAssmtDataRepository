@@ -10,7 +10,7 @@ global NCES_clean "/Users/miramehta/Documents/NCES District and School Demograph
 global dta "/Users/miramehta/Documents/OH State Testing Data/dta"
 global csv "/Users/miramehta/Documents/OH State Testing Data/CSV"
 
-import excel "${raw}/OH_OriginalData_2021_all.xlsx", sheet("Performance_Indicators") firstrow
+import excel "${raw}/OH_OriginalData_District_2021.xlsx", sheet("Performance_Indicators") firstrow
 
 keep AA AB AC AD AF AG AH AI AJ AK AL AM AN AO AP AQ AR AS AT AU AV AW AX AY AZ BA BB DistrictIRN DistrictName N O Q R T U W rdGradeEnglishLanguageArts X Y Z rdGradeMath20202021Percent thGradeEnglishLanguageArts thGradeMath20202021Percent thGradeScience20202021Perc
 
@@ -96,11 +96,41 @@ replace Subject="sci" if Subject=="Science"
 
 rename District ProficientOrAbove_percent
 
-replace ProficientOrAbove_percent="-" if ProficientOrAbove_percent==""
-replace ProficientOrAbove_percent="*" if ProficientOrAbove_percent=="NC"
+//Percentages
+destring ProficientOrAbove_percent, replace force
+replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
+tostring ProficientOrAbove_percent, replace force
+replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == "."
 	
-gen ProficiencyCriteria="Level 3/4/5"
-gen DataLevel="District" 
+//Other Variables
+gen DataLevel = "District"
+gen StudentGroup = "All Students"
+gen StudentSubGroup = "All Students"
+gen StudentGroup_TotalTested =.
+gen StudentSubGroup_TotalTested =.
+
+gen AssmtName = "Ohio's State Tests (OST)"
+gen SchName = "All Schools"
+gen StateAssignedSchID = ""
+gen Flag_AssmtNameChange = "N" 
+gen Flag_CutScoreChange_ELA = "N"  
+gen Flag_CutScoreChange_math = "N"  
+gen Flag_CutScoreChange_read = ""  
+gen Flag_CutScoreChange_oth = "N"  
+gen AssmtType = "Regular"
+gen Lev1_count = "--"
+gen Lev1_percent = "--" 
+gen Lev2_count = "--" 
+gen Lev2_percent = "--" 
+gen Lev3_count = "--" 
+gen Lev3_percent = "--" 
+gen Lev4_count = "--" 
+gen Lev4_percent = "--"  
+gen Lev5_count = "--"  
+gen Lev5_percent = "--" 
+gen AvgScaleScore = "--"  
+gen ProficientOrAbove_count = "--" 
+gen ParticipationRate = "--"
 
 save "${output}/OH_AssmtData_2021.dta", replace
 
@@ -953,12 +983,15 @@ use "${NCES}/NCES District Files, Fall 1997-Fall 2021/NCES_2020_District.dta", c
 drop if state_location != "OH"
 rename lea_name DistName
 gen str StateAssignedDistID = substr(state_leaid, 4, 9)
+replace state_leaid = StateAssignedDistID
 save "$NCES_clean/NCES_2021_District_OH.dta", replace
 
 use "${NCES}/NCES School Files, Fall 1997-Fall 2021/NCES_2020_School.dta", clear
 drop if state_location != "OH"
 gen str StateAssignedDistID = substr(state_leaid, 4, 9)
 gen str StateAssignedSchID = substr(seasch, 8, 13)
+replace state_leaid = StateAssignedDistID
+replace seasch = StateAssignedSchID
 save "$NCES_clean/NCES_2021_School_OH.dta", replace
 
 * Merge Data
@@ -975,7 +1008,7 @@ save "$output/OH_AssmtData_2021.dta", replace
 
 * Extracting and cleaning 2021 State Data
 
-use "${dta}/OH_AssmtData_2021.dta", replace
+use "${dta}/OH_AssmtData_2021.dta", clear
 
 drop *District*
 
@@ -1071,7 +1104,7 @@ rename district_agency_type DistType
 rename state_leaid State_leaid
 rename ncesschoolid NCESSchoolID
 rename school_type SchType
-replace ProficiencyCriteria= "Levels 3, 4, 5"
+gen ProficiencyCriteria= "Levels 3, 4, 5"
 
 replace StateAbbrev="OH"
 replace StateFips=39
@@ -1083,13 +1116,248 @@ replace GradeLevel = "G06" if GradeLevel == "G6"
 replace GradeLevel = "G07" if GradeLevel == "G7"
 replace GradeLevel = "G08" if GradeLevel == "G8"
 
+replace Subject = "ela" if Subject == "ELA"
+replace Subject = "math" if Subject == "Math"
+replace Subject = "sci" if Subject == "Science"
+
+//Variable Types
 decode DistType, gen(DistType_s)
 drop DistType
 rename DistType_s DistType
 
-replace Subject = "ela" if Subject == "ELA"
-replace Subject = "math" if Subject == "Math"
-replace Subject = "sci" if Subject == "Science"
+decode SchType, gen(SchType_s)
+drop SchType
+rename SchType_s SchType
+
+decode SchLevel, gen(SchLevel_s)
+drop SchLevel
+rename SchLevel_s SchLevel
+
+decode SchVirtual, gen(SchVirtual_s)
+drop SchVirtual
+rename SchVirtual_s SchVirtual
+
+//Unmerged Schools
+replace DistName = "Citizens Academy" if SchName == "Citizens Academy"
+replace NCESDistrictID = "3900032" if SchName == "Citizens Academy"
+replace State_leaid = "133520" if SchName == "Citizens Academy"
+replace DistCharter = "Yes" if SchName == "Citizens Academy"
+replace DistType = "Charter agency" if SchName == "Citizens Academy"
+replace NCESSchoolID = "390003202833" if SchName == "Citizens Academy"
+replace SchType = "Regular school" if SchName == "Citizens Academy"
+replace seasch = "133520" if SchName == "Citizens Academy"
+replace SchLevel = "Primary" if SchName == "Citizens Academy"
+replace SchVirtual = "No" if SchName == "Citizens Academy"
+replace CountyName = "Cuyahoga County" if SchName == "Citizens Academy"
+replace CountyCode = 39035 if SchName == "Citizens Academy"
+
+replace DistName = "Citizens Academy Southeast" if SchName == "Citizens Academy Southeast"
+replace NCESDistrictID = "3901570" if SchName == "Citizens Academy Southeast"
+replace State_leaid = "015261" if SchName == "Citizens Academy Southeast"
+replace DistCharter = "Yes" if SchName == "Citizens Academy Southeast"
+replace DistType = "Charter agency" if SchName == "Citizens Academy Southeast"
+replace NCESSchoolID = "390157005844" if SchName == "Citizens Academy Southeast"
+replace SchType = "Regular school" if SchName == "Citizens Academy Southeast"
+replace seasch = "015261" if SchName == "Citizens Academy Southeast"
+replace SchLevel = "Primary" if SchName == "Citizens Academy Southeast"
+replace SchVirtual = "No" if SchName == "Citizens Academy Southeast"
+replace CountyName = "Cuyahoga County" if SchName == "Citizens Academy Southeast"
+replace CountyCode = 39035 if SchName == "Citizens Academy Southeast"
+
+replace DistName = "Citizens Leadership Academy" if SchName == "Citizens Leadership Academy"
+replace NCESDistrictID = "3901444" if SchName == "Citizens Leadership Academy"
+replace State_leaid = "012029" if SchName == "Citizens Leadership Academy"
+replace DistCharter = "Yes" if SchName == "Citizens Leadership Academy"
+replace DistType = "Charter agency" if SchName == "Citizens Leadership Academy"
+replace NCESSchoolID = "390144405673" if SchName == "Citizens Leadership Academy"
+replace SchType = "Regular school" if SchName == "Citizens Leadership Academy"
+replace seasch = "012029" if SchName == "Citizens Leadership Academy"
+replace SchLevel = "Middle" if SchName == "Citizens Leadership Academy"
+replace SchVirtual = "No" if SchName == "Citizens Leadership Academy"
+replace CountyName = "Cuyahoga County" if SchName == "Citizens Leadership Academy"
+replace CountyCode = 39035 if SchName == "Citizens Leadership Academy"
+
+replace DistName = "Citizens Leadership Academy East" if SchName == "Citizens Leadership Academy East"
+replace NCESDistrictID = "3901594" if SchName == "Citizens Leadership Academy East"
+replace State_leaid = "016843" if SchName == "Citizens Leadership Academy East"
+replace DistCharter = "Yes" if SchName == "Citizens Leadership Academy East"
+replace DistType = "Charter agency" if SchName == "Citizens Leadership Academy East"
+replace NCESSchoolID = "390159405904" if SchName == "Citizens Leadership Academy East"
+replace SchType = "Regular school" if SchName == "Citizens Leadership Academy East"
+replace seasch = "016843" if SchName == "Citizens Leadership Academy East"
+replace SchLevel = "Primary" if SchName == "Citizens Leadership Academy East"
+replace SchVirtual = "No" if SchName == "Citizens Leadership Academy East"
+replace CountyName = "Cuyahoga County" if SchName == "Citizens Leadership Academy East"
+replace CountyCode = 39035 if SchName == "Citizens Leadership Academy East"
+
+replace DistName = "Cleveland College Preparatory School" if SchName == "Cleveland College Preparatory School"
+replace NCESDistrictID = "3901397" if SchName == "Cleveland College Preparatory School"
+replace State_leaid = "012010" if SchName == "Cleveland College Preparatory School"
+replace DistCharter = "Yes" if SchName == "Cleveland College Preparatory School"
+replace DistType = "Charter agency" if SchName == "Cleveland College Preparatory School"
+replace NCESSchoolID = "390139705615" if SchName == "Cleveland College Preparatory School"
+replace SchType = "Regular school" if SchName == "Cleveland College Preparatory School"
+replace seasch = "012010" if SchName == "Cleveland College Preparatory School"
+replace SchLevel = "Primary" if SchName == "Cleveland College Preparatory School"
+replace SchVirtual = "No" if SchName == "Cleveland College Preparatory School"
+replace CountyName = "Cuyahoga County" if SchName == "Cleveland College Preparatory School"
+replace CountyCode = 39035 if SchName == "Cleveland College Preparatory School"
+
+replace DistName = "Foxfire Intermediate School" if SchName == "Foxfire Intermediate School"
+replace NCESDistrictID = "3901407" if SchName == "Foxfire Intermediate School"
+replace State_leaid = "012033" if SchName == "Foxfire Intermediate School"
+replace DistCharter = "Yes" if SchName == "Foxfire Intermediate School"
+replace DistType = "Charter agency" if SchName == "Foxfire Intermediate School"
+replace NCESSchoolID = "390140705576" if SchName == "Foxfire Intermediate School"
+replace SchType = "Regular school" if SchName == "Foxfire Intermediate School"
+replace seasch = "012033" if SchName == "Foxfire Intermediate School"
+replace SchLevel = "Missing/not reported" if SchName == "Foxfire Intermediate School"
+replace SchVirtual = "Missing/not reported" if SchName == "Foxfire Intermediate School"
+replace CountyName = "Muskingum County" if SchName == "Foxfire Intermediate School"
+replace CountyCode = 39119 if SchName == "Foxfire Intermediate School"
+
+replace DistName = "Hope Academy Northwest Campus" if SchName == "Hope Academy Northwest Campus"
+replace NCESDistrictID = "3900313" if SchName == "Hope Academy Northwest Campus"
+replace State_leaid = "000575" if SchName == "Hope Academy Northwest Campus"
+replace DistCharter = "Yes" if SchName == "Hope Academy Northwest Campus"
+replace DistType = "Charter agency" if SchName == "Hope Academy Northwest Campus"
+replace NCESSchoolID = "390031304850" if SchName == "Hope Academy Northwest Campus"
+replace SchType = "Regular school" if SchName == "Hope Academy Northwest Campus"
+replace seasch = "000575" if SchName == "Hope Academy Northwest Campus"
+replace SchLevel = "Primary" if SchName == "Hope Academy Northwest Campus"
+replace SchVirtual = "No" if SchName == "Hope Academy Northwest Campus"
+replace CountyName = "Cuyahoga County" if SchName == "Hope Academy Northwest Campus"
+replace CountyCode = 39035 if SchName == "Hope Academy Northwest Campus"
+
+replace DistName = "Horizon Science Academy-cleveland Middle School" if SchName == "Horizon Science Acad Cleveland"
+replace NCESDistrictID = "3900470" if SchName == "Horizon Science Acad Cleveland"
+replace State_leaid = "000858" if SchName == "Horizon Science Acad Cleveland"
+replace DistCharter = "Yes" if SchName == "Horizon Science Acad Cleveland"
+replace DistType = "Charter agency" if SchName == "Horizon Science Acad Cleveland"
+replace NCESSchoolID = "390047005029" if SchName == "Horizon Science Acad Cleveland"
+replace SchType = "Regular school" if SchName == "Horizon Science Acad Cleveland"
+replace seasch = "000858" if SchName == "Horizon Science Acad Cleveland"
+replace SchLevel = "High" if SchName == "Horizon Science Acad Cleveland"
+replace SchVirtual = "No" if SchName == "Horizon Science Acad Cleveland"
+replace CountyName = "Cuyahoga County" if SchName == "Horizon Science Acad Cleveland"
+replace CountyCode = 39035 if SchName == "Horizon Science Acad Cleveland"
+
+replace DistName = "Menlo Park Academy" if SchName == "Menlo Park Academy"
+replace NCESDistrictID = "3900505" if SchName == "Menlo Park Academy"
+replace State_leaid = "000318" if SchName == "Menlo Park Academy"
+replace DistCharter = "Yes" if SchName == "Menlo Park Academy"
+replace DistType = "Charter agency" if SchName == "Menlo Park Academy"
+replace NCESSchoolID = "390050505215" if SchName == "Menlo Park Academy"
+replace SchType = "Regular school" if SchName == "Menlo Park Academy"
+replace seasch = "000318" if SchName == "Menlo Park Academy"
+replace SchLevel = "Primary" if SchName == "Menlo Park Academy"
+replace SchVirtual = "No" if SchName == "Menlo Park Academy"
+replace CountyName = "Cuyahoga County" if SchName == "Menlo Park Academy"
+replace CountyCode = 39035 if SchName == "Menlo Park Academy"
+
+replace DistName = "Near West Intergenerational School" if SchName == "Near West Intergenerational School"
+replace NCESDistrictID = "3901405" if SchName == "Near West Intergenerational School"
+replace State_leaid = "012030" if SchName == "Near West Intergenerational School"
+replace DistCharter = "Yes" if SchName == "Near West Intergenerational School"
+replace DistType = "Charter agency" if SchName == "Near West Intergenerational School"
+replace NCESSchoolID = "390140505596" if SchName == "Near West Intergenerational School"
+replace SchType = "Regular school" if SchName == "Near West Intergenerational School"
+replace seasch = "012030" if SchName == "Near West Intergenerational School"
+replace SchLevel = "Primary" if SchName == "Near West Intergenerational School"
+replace SchVirtual = "No" if SchName == "Near West Intergenerational School"
+replace CountyName = "Cuyahoga County" if SchName == "Near West Intergenerational School"
+replace CountyCode = 39035 if SchName == "Near West Intergenerational School"
+
+replace DistName = "Northeast Ohio College Preparatory School" if SchName == "Northeast Ohio College Preparatory School"
+replace NCESDistrictID = "3901376" if SchName == "Northeast Ohio College Preparatory School"
+replace State_leaid = "011923" if SchName == "Northeast Ohio College Preparatory School"
+replace DistCharter = "Yes" if SchName == "Northeast Ohio College Preparatory School"
+replace DistType = "Charter agency" if SchName == "Northeast Ohio College Preparatory School"
+replace NCESSchoolID = "390142005577" if SchName == "Northeast Ohio College Preparatory School"
+replace SchType = "Regular school" if SchName == "Northeast Ohio College Preparatory School"
+replace seasch = "011923" if SchName == "Northeast Ohio College Preparatory School"
+replace SchLevel = "Other" if SchName == "Northeast Ohio College Preparatory School"
+replace SchVirtual = "No" if SchName == "Northeast Ohio College Preparatory School"
+replace CountyName = "Cuyahoga County" if SchName == "Northeast Ohio College Preparatory School"
+replace CountyCode = 39035 if SchName == "Northeast Ohio College Preparatory School"
+
+replace DistName = "Quaker Preparatory Academy" if SchName == "Quaker Preparatory Academy"
+replace NCESDistrictID = "3901619" if SchName == "Quaker Preparatory Academy"
+replace State_leaid = "019156" if SchName == "Quaker Preparatory Academy"
+replace DistCharter = "Yes" if SchName == "Quaker Preparatory Academy"
+replace DistType = "Charter agency" if SchName == "Quaker Preparatory Academy"
+replace NCESSchoolID = "390161906019" if SchName == "Quaker Preparatory Academy"
+replace SchType = "Regular school" if SchName == "Quaker Preparatory Academy"
+replace seasch = "019156" if SchName == "Quaker Preparatory Academy"
+replace SchLevel = "Primary" if SchName == "Quaker Preparatory Academy"
+replace SchVirtual = "Yes" if SchName == "Quaker Preparatory Academy"
+replace CountyName = "Tuscarawas County" if SchName == "Quaker Preparatory Academy"
+replace CountyCode = 39157 if SchName == "Quaker Preparatory Academy"
+
+replace DistName = "Stepstone Academy" if SchName == "Stepstone Academy"
+replace NCESDistrictID = "3901498" if SchName == "Stepstone Academy"
+replace State_leaid = "013148" if SchName == "Stepstone Academy"
+replace DistCharter = "Yes" if SchName == "Stepstone Academy"
+replace DistType = "Charter agency" if SchName == "Stepstone Academy"
+replace NCESSchoolID = "390149805759" if SchName == "Stepstone Academy"
+replace SchType = "Regular school" if SchName == "Stepstone Academy"
+replace seasch = "013148" if SchName == "Stepstone Academy"
+replace SchLevel = "Primary" if SchName == "Stepstone Academy"
+replace SchVirtual = "No" if SchName == "Stepstone Academy"
+replace CountyName = "Cuyahoga County" if SchName == "Stepstone Academy"
+replace CountyCode = 39035 if SchName == "Stepstone Academy"
+
+replace DistName = "Village Preparatory School Cliffs" if SchName == "Village Preparatory School Cliffs"
+replace NCESDistrictID = "3901368" if SchName == "Village Preparatory School Cliffs"
+replace State_leaid = "011291" if SchName == "Village Preparatory School Cliffs"
+replace DistCharter = "Yes" if SchName == "Village Preparatory School Cliffs"
+replace DistType = "Charter agency" if SchName == "Village Preparatory School Cliffs"
+replace NCESSchoolID = "390136805528" if SchName == "Village Preparatory School Cliffs"
+replace SchType = "Regular school" if SchName == "Village Preparatory School Cliffs"
+replace seasch = "011291" if SchName == "Village Preparatory School Cliffs"
+replace SchLevel = "Primary" if SchName == "Village Preparatory School Cliffs"
+replace SchVirtual = "No" if SchName == "Village Preparatory School Cliffs"
+replace CountyName = "Cuyahoga County" if SchName == "Village Preparatory School Cliffs"
+replace CountyCode = 39035 if SchName == "Village Preparatory School Cliffs"
+
+replace DistName = "Village Preparatory School Willard" if SchName == "Village Preparatory School Willard"
+replace NCESDistrictID = "3901581" if SchName == "Village Preparatory School Willard"
+replace State_leaid = "015722" if SchName == "Village Preparatory School Willard"
+replace DistCharter = "Yes" if SchName == "Village Preparatory School Willard"
+replace DistType = "Charter agency" if SchName == "Village Preparatory School Willard"
+replace NCESSchoolID = "390158105885" if SchName == "Village Preparatory School Willard"
+replace SchType = "Regular school" if SchName == "Village Preparatory School Willard"
+replace seasch = "015722" if SchName == "Village Preparatory School Willard"
+replace SchLevel = "Other" if SchName == "Village Preparatory School Willard"
+replace SchVirtual = "Missing/not reported" if SchName == "Village Preparatory School Willard"
+replace CountyName = "Cuyahoga County" if SchName == "Village Preparatory School Willard"
+replace CountyCode = 39035 if SchName == "Village Preparatory School Willard"
+
+replace DistName = "Village Preparatory School Woodland Hills" if SchName == "Village Preparatory School Woodland Hills"
+replace NCESDistrictID = "3901505" if SchName == "Village Preparatory School Woodland Hills"
+replace State_leaid = "013034" if SchName == "Village Preparatory School Woodland Hills"
+replace DistCharter = "Yes" if SchName == "Village Preparatory School Woodland Hills"
+replace DistType = "Charter agency" if SchName == "Village Preparatory School Woodland Hills"
+replace NCESSchoolID = "390150505720" if SchName == "Village Preparatory School Woodland Hills"
+replace SchType = "Regular school" if SchName == "Village Preparatory School Woodland Hills"
+replace seasch = "013034" if SchName == "Village Preparatory School Woodland Hills"
+replace SchLevel = "Primary" if SchName == "Village Preparatory School Woodland Hills"
+replace SchVirtual = "No" if SchName == "Village Preparatory School Woodland Hills"
+replace CountyName = "Cuyahoga County" if SchName == "Village Preparatory School Woodland Hills"
+replace CountyCode = 39035 if SchName == "Village Preparatory School Woodland Hills"
+
+replace DistName = "Wings Academy 1" if SchName == "Wings Academy 1"
+replace NCESDistrictID = "3900399" if SchName == "Wings Academy 1"
+replace State_leaid = "000736" if SchName == "Wings Academy 1"
+replace DistCharter = "Yes" if SchName == "Wings Academy 1"
+replace DistType = "Charter agency" if SchName == "Wings Academy 1"
+replace NCESSchoolID = "390039904959" if SchName == "Wings Academy 1"
+replace SchType = "Regular school" if SchName == "Wings Academy 1"
+replace seasch = "000736" if SchName == "Wings Academy 1"
+replace SchLevel = "Primary" if SchName == "Wings Academy 1"
+replace SchVirtual = "No" if SchName == "Wings Academy 1"
+replace CountyName = "Cuyahoga County" if SchName == "Wings Academy 1"
+replace CountyCode = 39035 if SchName == "Wings Academy 1"
 
 //Label & Organize Variables
 label var State "State name"

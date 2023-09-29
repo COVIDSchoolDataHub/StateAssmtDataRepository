@@ -10,19 +10,19 @@ global NCES_clean "/Users/miramehta/Documents/NCES District and School Demograph
 global dta "/Users/miramehta/Documents/OH State Testing Data/dta"
 global csv "/Users/miramehta/Documents/OH State Testing Data/CSV"
 
-import excel "${raw}/OH_OriginalData_District_2022.xlsx", sheet("Report_Only_Indicators") firstrow
+import excel "${raw}/OH_OriginalData_District_2023.xlsx", sheet("Report_Only_Indicators") firstrow
 
-keep AA AB AC AD AE AF AG AH AI AJ AK AL AM AN AO AP AQ AR AS AT DistrictIRN DistrictName F G I J L M O P Q R S T U V rdGradeEnglishLanguageArts X Y Z rdGradeMath20212022Percent thGradeEnglishLanguageArts thGradeMath20212022Percent thGradeScience20212022Perc
+keep AA AB AC AD AE AF AG AH AI AJ AK AL AM AN AO AP AQ AR AS AT DistrictIRN DistrictName F G I J L M O P Q R S T U V rdGradeEnglishLanguageArts X Y Z rdGradeMath20222023Percent thGradeEnglishLanguageArts thGradeMath20222023Percent thGradeScience20222023Perc
 
-foreach var of varlist AA AB AC AD AE AF AG AH AI AJ AK AL AM AN AO AP AQ AR AS AT DistrictIRN DistrictName F G I J L M O P Q R S T U V rdGradeEnglishLanguageArts X Y Z rdGradeMath20212022Percent thGradeEnglishLanguageArts thGradeMath20212022Percent thGradeScience20212022Perc {
+foreach var of varlist AA AB AC AD AE AF AG AH AI AJ AK AL AM AN AO AP AQ AR AS AT DistrictIRN DistrictName F G I J L M O P Q R S T U V rdGradeEnglishLanguageArts X Y Z rdGradeMath20222023Percent thGradeEnglishLanguageArts thGradeMath20222023Percent thGradeScience20222023Perc {
 
   local varlabel : var label `var'
-  local newname = subinstr("`varlabel'"," 2021-2022 Percent Proficient or above - ", "", .)
+  local newname = subinstr("`varlabel'"," 2022-2023 Percent Proficient or above - ", "", .)
   label variable `var' "`newname'"
   
 }
 
-foreach var of varlist AA AB AC AD AE AF AG AH AI AJ AK AL AM AN AO AP AQ AR AS AT DistrictIRN DistrictName F G I J L M O P Q R S T U V rdGradeEnglishLanguageArts X Y Z rdGradeMath20212022Percent thGradeEnglishLanguageArts thGradeMath20212022Percent thGradeScience20212022Perc {
+foreach var of varlist AA AB AC AD AE AF AG AH AI AJ AK AL AM AN AO AP AQ AR AS AT DistrictIRN DistrictName F G I J L M O P Q R S T U V rdGradeEnglishLanguageArts X Y Z rdGradeMath20222023Percent thGradeEnglishLanguageArts thGradeMath20222023Percent thGradeScience20222023Perc {
 
   local varlabel : var label `var'
   local newname = subinstr("`varlabel'"," ", "", .)
@@ -30,7 +30,7 @@ foreach var of varlist AA AB AC AD AE AF AG AH AI AJ AK AL AM AN AO AP AQ AR AS 
   
 }
 
-foreach var of varlist AA AB AC AD AE AF AG AH AI AJ AK AL AM AN AO AP AQ AR AS AT DistrictIRN DistrictName F G I J L M O P Q R S T U V rdGradeEnglishLanguageArts X Y Z rdGradeMath20212022Percent thGradeEnglishLanguageArts thGradeMath20212022Percent thGradeScience20212022Perc {
+foreach var of varlist AA AB AC AD AE AF AG AH AI AJ AK AL AM AN AO AP AQ AR AS AT DistrictIRN DistrictName F G I J L M O P Q R S T U V rdGradeEnglishLanguageArts X Y Z rdGradeMath20222023Percent thGradeEnglishLanguageArts thGradeMath20222023Percent thGradeScience20222023Perc {
 
   local varlabel : var label `var'
   local newname = substr("`varlabel'",4,.)+substr("`varlabel'",1,3)
@@ -38,7 +38,7 @@ foreach var of varlist AA AB AC AD AE AF AG AH AI AJ AK AL AM AN AO AP AQ AR AS 
   
 }
 
-foreach var of varlist AA AB AC AD AE AF AG AH AI AJ AK AL AM AN AO AP AQ AR AS AT DistrictIRN DistrictName F G I J L M O P Q R S T U V rdGradeEnglishLanguageArts X Y Z rdGradeMath20212022Percent thGradeEnglishLanguageArts thGradeMath20212022Percent thGradeScience20212022Perc {
+foreach var of varlist AA AB AC AD AE AF AG AH AI AJ AK AL AM AN AO AP AQ AR AS AT DistrictIRN DistrictName F G I J L M O P Q R S T U V rdGradeEnglishLanguageArts X Y Z rdGradeMath20222023Percent thGradeEnglishLanguageArts thGradeMath20222023Percent thGradeScience20222023Perc {
 
   local varlabel : var label `var'
   local newname = subinstr("`varlabel'","EnglishLanguageArts","ELA",.)
@@ -46,7 +46,7 @@ foreach var of varlist AA AB AC AD AE AF AG AH AI AJ AK AL AM AN AO AP AQ AR AS 
   
 }
 
-foreach var of varlist AA AB AC AD AE AF AG AH AI AJ AK AL AM AN AO AP AQ AR AS AT DistrictIRN DistrictName F G I J L M O P Q R S T U V rdGradeEnglishLanguageArts X Y Z rdGradeMath20212022Percent thGradeEnglishLanguageArts thGradeMath20212022Percent thGradeScience20212022Perc {
+foreach var of varlist AA AB AC AD AE AF AG AH AI AJ AK AL AM AN AO AP AQ AR AS AT DistrictIRN DistrictName F G I J L M O P Q R S T U V rdGradeEnglishLanguageArts X Y Z rdGradeMath20222023Percent thGradeEnglishLanguageArts thGradeMath20222023Percent thGradeScience20222023Perc {
    local x : var label `var'
    rename `var' `x'
 }
@@ -54,7 +54,7 @@ foreach var of varlist AA AB AC AD AE AF AG AH AI AJ AK AL AM AN AO AP AQ AR AS 
 drop *Simil*
 rename *rd* *th*
 
-save "${dta}/OH_AssmtData_2022.dta", replace
+save "${dta}/OH_AssmtData_2023.dta", replace
 
 drop *State*
 
@@ -90,7 +90,6 @@ reshape long District, i(StateAssignedDistID Subject) j(GradeLevel) string
 
 replace Subject="math" if Subject=="Math"
 replace Subject="ela" if Subject=="ELA"
-replace Subject="soc" if Subject=="SocialStudies"
 replace Subject="sci" if Subject=="Science"
 
 rename District ProficientOrAbove_percent
@@ -131,10 +130,10 @@ gen AvgScaleScore = "--"
 gen ProficientOrAbove_count = "--" 
 gen ParticipationRate = "--"
 
-save "${output}/OH_AssmtData_2022.dta", replace
+save "${output}/OH_AssmtData_2023.dta", replace
 
 * Gender Files
-import excel "${raw}/OH_OriginalData_Gender_District_2022.xlsx", sheet("GENDER") clear
+import excel "${raw}/OH_OriginalData_Gender_District_2023.xlsx", sheet("GENDER") clear
 drop C D F G H W X Y Z AA AB AC AD AE AF AG
 
 rename A StateAssignedDistID
@@ -224,10 +223,10 @@ gen AvgScaleScore = "--"
 gen ProficientOrAbove_count = "--" 
 gen ParticipationRate = "--"
 
-save "${dta}/OH_DistData_Gender_2022.dta", replace
+save "${dta}/OH_DistData_Gender_2023.dta", replace
 
 * EL Status Files
-import excel "${raw}/OH_OriginalData_EL Status_District_2022.xlsx", sheet("ENGLEARN") clear
+import excel "${raw}/OH_OriginalData_EL Status_District_2023.xlsx", sheet("ENGLEARN") clear
 drop C D F G H W X Y Z AA AB AC AD AE AF AG
 
 rename A StateAssignedDistID
@@ -317,10 +316,10 @@ gen AvgScaleScore = "--"
 gen ProficientOrAbove_count = "--" 
 gen ParticipationRate = "--"
 
-save "${dta}/OH_DistData_EL Status_2022.dta", replace
+save "${dta}/OH_DistData_EL Status_2023.dta", replace
 
 * Economic Status Files
-import excel "${raw}/OH_OriginalData_Econ_District_2022.xlsx", sheet("ECON_DISADV") clear
+import excel "${raw}/OH_OriginalData_Econ_District_2023.xlsx", sheet("ECON_DISADV") clear
 drop C D F G H W X Y Z AA AB AC AD AE AF AG
 
 rename A StateAssignedDistID
@@ -410,10 +409,10 @@ gen AvgScaleScore = "--"
 gen ProficientOrAbove_count = "--" 
 gen ParticipationRate = "--"
 
-save "${dta}/OH_DistData_Econ Status_2022.dta", replace
+save "${dta}/OH_DistData_Econ Status_2023.dta", replace
 
 * RaceEth Files
-import excel "${raw}/OH_OriginalData_RaceEth_District_2022.xlsx", sheet("RACE") clear
+import excel "${raw}/OH_OriginalData_RaceEth_District_2023.xlsx", sheet("RACE") clear
 drop C D F G H W X Y Z AA AB AC AD AE AF AG
 
 rename A StateAssignedDistID
@@ -507,10 +506,10 @@ gen AvgScaleScore = "--"
 gen ProficientOrAbove_count = "--" 
 gen ParticipationRate = "--"
 
-save "${dta}/OH_DistData_RaceEth_2022.dta", replace
+save "${dta}/OH_DistData_RaceEth_2023.dta", replace
 
 //School Data - All Students
-import excel "${raw}/OH_OriginalData_School_2022.xlsx", sheet("Report_Only_Indicators") clear
+import excel "${raw}/OH_OriginalData_School_2023.xlsx", sheet("Report_Only_Indicators") clear
 
 drop E F H J L N P R T V X Z AB AD AF AH AI AJ AK AL AM AN AO AP AQ AR AS AT AU AV AW AX AY AZ BA BB BC BD BE BF BG BH BI BJ BK BL BM BN BO BP BQ BR BS BT BU
 
@@ -599,10 +598,10 @@ gen AvgScaleScore = "--"
 gen ProficientOrAbove_count = "--" 
 gen ParticipationRate = "--"
 
-save "${dta}/OH_SchoolData_2022.dta", replace
+save "${dta}/OH_SchoolData_2023.dta", replace
 
 * Gender Files
-import excel "${raw}/OH_OriginalData_Gender_School_2022.xlsx", sheet("GENDER") clear
+import excel "${raw}/OH_OriginalData_Gender_School_2023.xlsx", sheet("GENDER") clear
 drop E F H I J Y Z AA AB AC AD AE AF AG AH AI
 
 rename A StateAssignedSchID
@@ -692,10 +691,10 @@ gen AvgScaleScore = "--"
 gen ProficientOrAbove_count = "--" 
 gen ParticipationRate = "--"
 
-save "${dta}/OH_SchoolData_Gender_2022.dta", replace
+save "${dta}/OH_SchoolData_Gender_2023.dta", replace
 
 * EL Status Files
-import excel "${raw}/OH_OriginalData_EL Status_School_2022.xlsx", sheet("ENGLEARN") clear
+import excel "${raw}/OH_OriginalData_EL Status_School_2023.xlsx", sheet("ENGLEARN") clear
 drop E F H I J Y Z AA AB AC AD AE AF AG AH AI
 
 rename A StateAssignedSchID
@@ -785,10 +784,10 @@ gen AvgScaleScore = "--"
 gen ProficientOrAbove_count = "--" 
 gen ParticipationRate = "--"
 
-save "${dta}/OH_SchoolData_EL Status_2022.dta", replace
+save "${dta}/OH_SchoolData_EL Status_2023.dta", replace
 
 * Economic Status Files
-import excel "${raw}/OH_OriginalData_Econ_School_2022.xlsx", sheet("ECON_DISADV") clear
+import excel "${raw}/OH_OriginalData_Econ_School_2023.xlsx", sheet("ECON_DISADV") clear
 drop E F H I J Y Z AA AB AC AD AE AF AG AH AI
 
 rename A StateAssignedSchID
@@ -878,10 +877,10 @@ gen AvgScaleScore = "--"
 gen ProficientOrAbove_count = "--" 
 gen ParticipationRate = "--"
 
-save "${dta}/OH_SchoolData_Econ Status_2022.dta", replace
+save "${dta}/OH_SchoolData_Econ Status_2023.dta", replace
 
 * RaceEth Files
-import excel "${raw}/OH_OriginalData_RaceEth_School_2022.xlsx", sheet("RACE") clear
+import excel "${raw}/OH_OriginalData_RaceEth_School_2023.xlsx", sheet("RACE") clear
 drop E F H I J Y Z AA AB AC AD AE AF AG AH AI
 
 rename A StateAssignedSchID
@@ -975,7 +974,7 @@ gen AvgScaleScore = "--"
 gen ProficientOrAbove_count = "--" 
 gen ParticipationRate = "--"
 
-save "${dta}/OH_SchoolData_RaceEth_2022.dta", replace
+save "${dta}/OH_SchoolData_RaceEth_2023.dta", replace
 
 * Cleaning NCES Data
 use "${NCES}/NCES District Files, Fall 1997-Fall 2021/NCES_2021_District.dta", clear
@@ -994,8 +993,8 @@ replace seasch = StateAssignedSchID
 save "$NCES_clean/NCES_2022_School_OH.dta", replace
 
 * Merge Data
-use "$output/OH_AssmtData_2022.dta", clear
-append using "${dta}/OH_DistData_Gender_2022.dta" "${dta}/OH_DistData_EL Status_2022.dta" "${dta}/OH_DistData_Econ Status_2022.dta" "${dta}/OH_DistData_RaceEth_2022.dta" "${dta}/OH_SchoolData_2022.dta" "${dta}/OH_SchoolData_Gender_2022.dta" "${dta}/OH_SchoolData_EL Status_2022.dta" "${dta}/OH_SchoolData_Econ Status_2022.dta" "${dta}/OH_SchoolData_RaceEth_2022.dta"
+use "$output/OH_AssmtData_2023.dta", clear
+append using "${dta}/OH_DistData_Gender_2023.dta" "${dta}/OH_DistData_EL Status_2023.dta" "${dta}/OH_DistData_Econ Status_2023.dta" "${dta}/OH_DistData_RaceEth_2023.dta" "${dta}/OH_SchoolData_2023.dta" "${dta}/OH_SchoolData_Gender_2023.dta" "${dta}/OH_SchoolData_EL Status_2023.dta" "${dta}/OH_SchoolData_Econ Status_2023.dta" "${dta}/OH_SchoolData_RaceEth_2023.dta"
 
 merge m:1 StateAssignedDistID using "$NCES_clean/NCES_2022_District_OH.dta"
 drop if _merge == 2
@@ -1003,11 +1002,11 @@ drop if _merge == 2
 merge m:1 StateAssignedSchID StateAssignedDistID using "$NCES_clean/NCES_2022_School_OH.dta", gen (merge2)
 drop if merge2 == 2
 
-save "$output/OH_AssmtData_2022.dta", replace
+save "$output/OH_AssmtData_2023.dta", replace
 
-* Extracting and cleaning 2022 State Data
+* Extracting and cleaning 2023 State Data
 
-use "${dta}/OH_AssmtData_2022.dta", replace
+use "${dta}/OH_AssmtData_2023.dta", replace
 
 drop *District*
 
@@ -1076,21 +1075,15 @@ gen ParticipationRate = "--"
 gen SchName = "All Schools"
 gen DistName = "All Districts"
 
-//Percentages
-destring ProficientOrAbove_percent, replace force
-replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
-tostring ProficientOrAbove_percent, replace force
-replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == "."
-
-save "${dta}/OH_AssmtData_state_2022.dta", replace
+save "${dta}/OH_AssmtData_state_2023.dta", replace
 
 *Append and clean 
 
-use "${output}/OH_AssmtData_2022.dta", clear
+use "${output}/OH_AssmtData_2023.dta", clear
 
-append using "${dta}/OH_AssmtData_state_2022.dta"
+append using "${dta}/OH_AssmtData_state_2023.dta"
 
-gen SchYear="2021-22"
+gen SchYear="2022-23"
 drop year
 
 gen State="Ohio"
@@ -1137,6 +1130,29 @@ drop SchVirtual
 rename SchVirtual_s SchVirtual
 
 //Unmerged Schools
+replace NCESSchoolID = "390436410842" if SchName == "Brecksville-Broadview Heights Elementary School"
+replace SchType = "Regular school" if SchName == "Brecksville-Broadview Heights Elementary School"
+replace seasch = "019910" if SchName == "Brecksville-Broadview Heights Elementary School"
+replace SchLevel = "Primary" if SchName == "Brecksville-Broadview Heights Elementary School"
+replace SchVirtual = "Missing/not reported" if SchName == "Brecksville-Broadview Heights Elementary School"
+
+replace NCESSchoolID = "390454910835" if SchName == "Cardinal Autism Resource and Education School (CARES)"
+replace SchType = "Regular school" if SchName == "Cardinal Autism Resource and Education School (CARES)"
+replace seasch = "020375" if SchName == "Cardinal Autism Resource and Education School (CARES)"
+replace SchLevel = "Other" if SchName == "Cardinal Autism Resource and Education School (CARES)"
+replace SchVirtual = "Missing/not reported" if SchName == "Cardinal Autism Resource and Education School (CARES)"
+
+replace NCESDistrictID = "3910034" if SchName == "Cincinnati Classical Academy"
+replace State_leaid = "019530" if SchName == "Cincinnati Classical Academy"
+replace DistCharter = "Yes" if SchName == "Cincinnati Classical Academy"
+replace DistType = "Charter agency" if SchName == "Cincinnati Classical Academy"
+replace NCESSchoolID = "391003410838" if SchName == "Cincinnati Classical Academy"
+replace SchType = "Regular school" if SchName == "Cincinnati Classical Academy"
+replace seasch = "019530" if SchName == "Cincinnati Classical Academy"
+replace SchLevel = "Primary" if SchName == "Cincinnati Classical Academy"
+replace SchVirtual = "Missing/not reported" if SchName == "Cincinnati Classical Academy"
+replace CountyName = "Missing/not reported" if SchName == "Cincinnati Classical Academy"
+
 replace DistName = "Citizens Academy Southeast" if SchName == "Citizens Academy Southeast"
 replace NCESDistrictID = "3901570" if SchName == "Citizens Academy Southeast"
 replace State_leaid = "015261" if SchName == "Citizens Academy Southeast"
@@ -1149,19 +1165,6 @@ replace SchLevel = "Primary" if SchName == "Citizens Academy Southeast"
 replace SchVirtual = "No" if SchName == "Citizens Academy Southeast"
 replace CountyName = "Cuyahoga County" if SchName == "Citizens Academy Southeast"
 replace CountyCode = 39035 if SchName == "Citizens Academy Southeast"
-
-replace DistName = "Citizens Leadership Academy" if SchName == "Citizens Leadership Academy"
-replace NCESDistrictID = "3901444" if SchName == "Citizens Leadership Academy"
-replace State_leaid = "012029" if SchName == "Citizens Leadership Academy"
-replace DistCharter = "Yes" if SchName == "Citizens Leadership Academy"
-replace DistType = "Charter agency" if SchName == "Citizens Leadership Academy"
-replace NCESSchoolID = "390144405673" if SchName == "Citizens Leadership Academy"
-replace SchType = "Regular school" if SchName == "Citizens Leadership Academy"
-replace seasch = "012029" if SchName == "Citizens Leadership Academy"
-replace SchLevel = "Middle" if SchName == "Citizens Leadership Academy"
-replace SchVirtual = "No" if SchName == "Citizens Leadership Academy"
-replace CountyName = "Cuyahoga County" if SchName == "Citizens Leadership Academy"
-replace CountyCode = 39035 if SchName == "Citizens Leadership Academy"
 
 replace DistName = "Citizens Leadership Academy East" if SchName == "Citizens Leadership Academy East"
 replace NCESDistrictID = "3901594" if SchName == "Citizens Leadership Academy East"
@@ -1189,6 +1192,24 @@ replace SchVirtual = "No" if SchName == "Cleveland College Preparatory School"
 replace CountyName = "Cuyahoga County" if SchName == "Cleveland College Preparatory School"
 replace CountyCode = 39035 if SchName == "Cleveland College Preparatory School"
 
+replace NCESSchoolID = "390438010826" if SchName == "Columbus Online Academy"
+replace SchType = "Regular school" if SchName == "Columbus Online Academy"
+replace seasch = "020245" if SchName == "Columbus Online Academy"
+replace SchLevel = "Other" if SchName == "Columbus Online Academy"
+replace SchVirtual = "Yes" if SchName == "Columbus Online Academy"
+
+replace NCESSchoolID = "390470210855" if SchName == "DCS Virtual"
+replace SchType = "Regular school" if SchName == "DCS Virtual"
+replace seasch = "020079" if SchName == "DCS Virtual"
+replace SchLevel = "Other" if SchName == "DCS Virtual"
+replace SchVirtual = "Yes" if SchName == "DCS Virtual"
+
+replace NCESSchoolID = "390473310843" if SchName == "Finneytown Elementary"
+replace SchType = "Regular school" if SchName == "Finneytown Elementary"
+replace seasch = "019940" if SchName == "Finneytown Elementary"
+replace SchLevel = "Primary" if SchName == "Finneytown Elementary"
+replace SchVirtual = "Missing/not reported" if SchName == "Finneytown Elementary"
+
 replace DistName = "Foxfire Intermediate School" if SchName == "Foxfire Intermediate School"
 replace NCESDistrictID = "3901407" if SchName == "Foxfire Intermediate School"
 replace State_leaid = "012033" if SchName == "Foxfire Intermediate School"
@@ -1202,18 +1223,16 @@ replace SchVirtual = "Missing/not reported" if SchName == "Foxfire Intermediate 
 replace CountyName = "Muskingum County" if SchName == "Foxfire Intermediate School"
 replace CountyCode = 39119 if SchName == "Foxfire Intermediate School"
 
-replace DistName = "Hope Academy Northwest Campus" if SchName == "Hope Academy Northwest Campus"
-replace NCESDistrictID = "3900313" if SchName == "Hope Academy Northwest Campus"
-replace State_leaid = "000575" if SchName == "Hope Academy Northwest Campus"
-replace DistCharter = "Yes" if SchName == "Hope Academy Northwest Campus"
-replace DistType = "Charter agency" if SchName == "Hope Academy Northwest Campus"
-replace NCESSchoolID = "390031304850" if SchName == "Hope Academy Northwest Campus"
-replace SchType = "Regular school" if SchName == "Hope Academy Northwest Campus"
-replace seasch = "000575" if SchName == "Hope Academy Northwest Campus"
-replace SchLevel = "Primary" if SchName == "Hope Academy Northwest Campus"
-replace SchVirtual = "No" if SchName == "Hope Academy Northwest Campus"
-replace CountyName = "Cuyahoga County" if SchName == "Hope Academy Northwest Campus"
-replace CountyCode = 39035 if SchName == "Hope Academy Northwest Campus"
+replace NCESDistrictID = "3910039" if SchName == "Gateway Online Academy of Ohio"
+replace State_leaid = "020078" if SchName == "Gateway Online Academy of Ohio"
+replace DistCharter = "Yes" if SchName == "Gateway Online Academy of Ohio"
+replace DistType = "Charter agency" if SchName == "Gateway Online Academy of Ohio"
+replace NCESSchoolID = "391003910854" if SchName == "Gateway Online Academy of Ohio"
+replace SchType = "Regular school" if SchName == "Gateway Online Academy of Ohio"
+replace seasch = "020078" if SchName == "Gateway Online Academy of Ohio"
+replace SchLevel = "High" if SchName == "Gateway Online Academy of Ohio"
+replace SchVirtual = "Yes" if SchName == "Gateway Online Academy of Ohio"
+replace CountyName = "Missing/not reported" if SchName == "Gateway Online Academy of Ohio"
 
 replace DistName = "Horizon Science Academy-cleveland Middle School" if SchName == "Horizon Science Acad Cleveland"
 replace NCESDistrictID = "3900470" if SchName == "Horizon Science Acad Cleveland"
@@ -1228,6 +1247,17 @@ replace SchVirtual = "Missing/not reported" if SchName == "Horizon Science Acad 
 replace CountyName = "Cuyahoga County" if SchName == "Horizon Science Acad Cleveland"
 replace CountyCode = 39035 if SchName == "Horizon Science Acad Cleveland"
 
+replace NCESDistrictID = "3910035" if SchName == "IDEA Greater Cincinnati, Inc"
+replace State_leaid = "020007" if SchName == "IDEA Greater Cincinnati, Inc"
+replace DistCharter = "Yes" if SchName == "IDEA Greater Cincinnati, Inc"
+replace DistType = "Charter agency" if SchName == "IDEA Greater Cincinnati, Inc"
+replace NCESSchoolID = "391003510847" if SchName == "IDEA Greater Cincinnati, Inc"
+replace SchType = "Regular school" if SchName == "IDEA Greater Cincinnati, Inc"
+replace seasch = "020007" if SchName == "IDEA Greater Cincinnati, Inc"
+replace SchLevel = "Missing/not reported" if SchName == "IDEA Greater Cincinnati, Inc"
+replace SchVirtual = "Missing/not reported" if SchName == "IDEA Greater Cincinnati, Inc"
+replace CountyName = "Missing/not reported" if SchName == "IDEA Greater Cincinnati, Inc"
+
 replace DistName = "Intergenerational School, The" if SchName == "Intergenerational School, The"
 replace NCESDistrictID = "3900065" if SchName == "Intergenerational School, The"
 replace State_leaid = "133215" if SchName == "Intergenerational School, The"
@@ -1240,6 +1270,12 @@ replace SchLevel = "Primary" if SchName == "Intergenerational School, The"
 replace SchVirtual = "No" if SchName == "Intergenerational School, The"
 replace CountyName = "Cuyahoga County" if SchName == "Intergenerational School, The"
 replace CountyCode = 39035 if SchName == "Intergenerational School, The"
+
+replace NCESSchoolID = "390479810845" if SchName == "JOHNSTOWN INTERMEDIATE SCHOOL"
+replace SchType = "Regular school" if SchName == "JOHNSTOWN INTERMEDIATE SCHOOL"
+replace seasch = "019946" if SchName == "JOHNSTOWN INTERMEDIATE SCHOOL"
+replace SchLevel = "Missing/not reported" if SchName == "JOHNSTOWN INTERMEDIATE SCHOOL"
+replace SchVirtual = "Missing/not reported" if SchName == "JOHNSTOWN INTERMEDIATE SCHOOL"
 
 replace DistName = "Lakeshore Intergenerational School" if SchName == "Lakeshore Intergenerational School"
 replace NCESDistrictID = "3901564" if SchName == "Lakeshore Intergenerational School"
@@ -1254,6 +1290,34 @@ replace SchVirtual = "No" if SchName == "Lakeshore Intergenerational School"
 replace CountyName = "Cuyahoga County" if SchName == "Lakeshore Intergenerational School"
 replace CountyCode = 39035 if SchName == "Lakeshore Intergenerational School"
 
+replace NCESSchoolID = "390461110849" if SchName == "Lakota Central"
+replace SchType = "Regular school" if SchName == "Lakota Central"
+replace seasch = "020059" if SchName == "Lakota Central"
+replace SchLevel = "High" if SchName == "Lakota Central"
+replace SchVirtual = "Missing/not reported" if SchName == "Lakota Central"
+
+replace NCESDistrictID = "3910040" if SchName == "Legacy Academy of Excellence"
+replace State_leaid = "020091" if SchName == "Legacy Academy of Excellence"
+replace DistCharter = "Yes" if SchName == "Legacy Academy of Excellence"
+replace DistType = "Charter agency" if SchName == "Legacy Academy of Excellence"
+replace NCESSchoolID = "391004010856" if SchName == "Legacy Academy of Excellence"
+replace SchType = "Regular school" if SchName == "Legacy Academy of Excellence"
+replace seasch = "020091" if SchName == "Legacy Academy of Excellence"
+replace SchLevel = "Missing/not reported" if SchName == "Legacy Academy of Excellence"
+replace SchVirtual = "Missing/not reported" if SchName == "Legacy Academy of Excellence"
+replace CountyName = "Missing/not reported" if SchName == "ILegacy Academy of Excellence"
+
+replace NCESDistrictID = "3910042" if SchName == "Lorain Preparatory High School"
+replace State_leaid = "020186" if SchName == "Lorain Preparatory High School"
+replace DistCharter = "Yes" if SchName == "Lorain Preparatory High School"
+replace DistType = "Charter agency" if SchName == "Lorain Preparatory High School"
+replace NCESSchoolID = "391004210824" if SchName == "Lorain Preparatory High School"
+replace SchType = "Regular school" if SchName == "Lorain Preparatory High School"
+replace seasch = "020186" if SchName == "Lorain Preparatory High School"
+replace SchLevel = "High" if SchName == "Lorain Preparatory High School"
+replace SchVirtual = "Missing/not reported" if SchName == "Lorain Preparatory High School"
+replace CountyName = "Missing/not reported" if SchName == "Lorain Preparatory High School"
+
 replace DistName = "Menlo Park Academy" if SchName == "Menlo Park Academy"
 replace NCESDistrictID = "3900505" if SchName == "Menlo Park Academy"
 replace State_leaid = "000318" if SchName == "Menlo Park Academy"
@@ -1266,6 +1330,18 @@ replace SchLevel = "Primary" if SchName == "Menlo Park Academy"
 replace SchVirtual = "No" if SchName == "Menlo Park Academy"
 replace CountyName = "Cuyahoga County" if SchName == "Menlo Park Academy"
 replace CountyCode = 39035 if SchName == "Menlo Park Academy"
+
+replace NCESSchoolID = "390450410841" if SchName == "Minerva France Elementary School"
+replace SchType = "Regular school" if SchName == "Minerva France Elementary School"
+replace seasch = "019875" if SchName == "Minerva France Elementary School"
+replace SchLevel = "Primary" if SchName == "Minerva France Elementary School"
+replace SchVirtual = "Missing/not reported" if SchName == "Minerva France Elementary School"
+
+replace NCESSchoolID = "390444110844" if SchName == "MT. HEALTHY VIRTUAL ACADEMY"
+replace SchType = "Regular school" if SchName == "MT. HEALTHY VIRTUAL ACADEMY"
+replace seasch = "019945" if SchName == "MT. HEALTHY VIRTUAL ACADEMY"
+replace SchLevel = "Other" if SchName == "MT. HEALTHY VIRTUAL ACADEMY"
+replace SchVirtual = "Yes" if SchName == "MT. HEALTHY VIRTUAL ACADEMY"
 
 replace DistName = "Near West Intergenerational School" if SchName == "Near West Intergenerational School"
 replace NCESDistrictID = "3901405" if SchName == "Near West Intergenerational School"
@@ -1293,6 +1369,38 @@ replace SchVirtual = "No" if SchName == "Northeast Ohio College Preparatory Scho
 replace CountyName = "Cuyahoga County" if SchName == "Northeast Ohio College Preparatory School"
 replace CountyCode = 39035 if SchName == "Northeast Ohio College Preparatory School"
 
+replace DistName = "Northwest School of the Arts" if SchName == "Northwest School of the Arts"
+replace NCESDistrictID = "3900313" if SchName == "Northwest School of the Arts"
+replace State_leaid = "000575" if SchName == "Northwest School of the Arts"
+replace DistCharter = "Yes" if SchName == "Northwest School of the Arts"
+replace DistType = "Charter agency" if SchName == "Northwest School of the Arts"
+replace NCESSchoolID = "390031304850" if SchName == "Northwest School of the Arts"
+replace SchType = "Regular school" if SchName == "Northwest School of the Arts"
+replace seasch = "000575" if SchName == "Northwest School of the Arts"
+replace SchLevel = "Missing/not reported" if SchName == "Northwest School of the Arts"
+replace SchVirtual = "Missing/not reported" if SchName == "Northwest School of the Arts"
+replace CountyName = "Cuyahoga County" if SchName == "Northwest School of the Arts"
+replace CountyCode = 39035 if SchName == "Northwest School of the Arts"
+
+replace NCESSchoolID = "390446310832" if SchName == "Parma Virtual Learning Academy"
+replace SchType = "Regular school" if SchName == "Parma Virtual Learning Academy"
+replace seasch = "020317" if SchName == "Parma Virtual Learning Academy"
+replace SchLevel = "Other" if SchName == "Parma Virtual Learning Academy"
+replace SchVirtual = "Yes" if SchName == "Parma Virtual Learning Academy"
+
+replace DistName = "Wings Academy 1" if SchName == "Phoenix Village Academy Primary 2 dba Wings Academy 1"
+replace NCESDistrictID = "3900399" if SchName == "Phoenix Village Academy Primary 2 dba Wings Academy 1"
+replace State_leaid = "000736" if SchName == "Phoenix Village Academy Primary 2 dba Wings Academy 1"
+replace DistCharter = "Yes" if SchName == "Phoenix Village Academy Primary 2 dba Wings Academy 1"
+replace DistType = "Charter agency" if SchName == "Phoenix Village Academy Primary 2 dba Wings Academy 1"
+replace NCESSchoolID = "390039904959" if SchName == "Phoenix Village Academy Primary 2 dba Wings Academy 1"
+replace SchType = "Regular school" if SchName == "Phoenix Village Academy Primary 2 dba Wings Academy 1"
+replace seasch = "000736" if SchName == "Phoenix Village Academy Primary 2 dba Wings Academy 1"
+replace SchLevel = "Primary" if SchName == "Phoenix Village Academy Primary 2 dba Wings Academy 1"
+replace SchVirtual = "No" if SchName == "Phoenix Village Academy Primary 2 dba Wings Academy 1"
+replace CountyName = "Cuyahoga County" if SchName == "Phoenix Village Academy Primary 2 dba Wings Academy 1"
+replace CountyCode = 39035 if SchName == "Phoenix Village Academy Primary 2 dba Wings Academy 1"
+
 replace DistName = "Quaker Preparatory Academy" if SchName == "Quaker Preparatory Academy"
 replace NCESDistrictID = "3901619" if SchName == "Quaker Preparatory Academy"
 replace State_leaid = "019156" if SchName == "Quaker Preparatory Academy"
@@ -1306,6 +1414,40 @@ replace SchVirtual = "Yes" if SchName == "Quaker Preparatory Academy"
 replace CountyName = "Tuscarawas County" if SchName == "Quaker Preparatory Academy"
 replace CountyCode = 39157 if SchName == "Quaker Preparatory Academy"
 
+replace NCESSchoolID = "390470005566" if SchName == "Reynoldsburg High School"
+replace SchType = "Regular school" if SchName == "Reynoldsburg High School"
+replace seasch = "012094" if SchName == "Reynoldsburg High School"
+replace SchLevel = "High" if SchName == "Reynoldsburg High School"
+replace SchVirtual = "Missing/not reported" if SchName == "Reynoldsburg High School"
+
+replace NCESDistrictID = "3910041" if SchName == "Sheffield Academy"
+replace State_leaid = "020092" if SchName == "Sheffield Academy"
+replace DistCharter = "Yes" if SchName == "Sheffield Academy"
+replace DistType = "Charter agency" if SchName == "Sheffield Academy"
+replace NCESSchoolID = "391004110857" if SchName == "Sheffield Academy"
+replace SchType = "Regular school" if SchName == "Sheffield Academy"
+replace seasch = "020092" if SchName == "Sheffield Academy"
+replace SchLevel = "Primary" if SchName == "Sheffield Academy"
+replace SchVirtual = "Missing/not reported" if SchName == "Sheffield Academy"
+replace CountyName = "Missing/not reported" if SchName == "Sheffield Academy"
+
+replace NCESDistrictID = "3910037" if SchName == "Solon Academy"
+replace State_leaid = "020076" if SchName == "Solon Academy"
+replace DistCharter = "Yes" if SchName == "Solon Academy"
+replace DistType = "Charter agency" if SchName == "Solon Academy"
+replace NCESSchoolID = "391003710852" if SchName == "Solon Academy"
+replace SchType = "Regular school" if SchName == "Solon Academy"
+replace seasch = "020076" if SchName == "Solon Academy"
+replace SchLevel = "Primary" if SchName == "Solon Academy"
+replace SchVirtual = "Missing/not reported" if SchName == "Solon Academy"
+replace CountyName = "Missing/not reported" if SchName == "Solon Academy"
+
+replace NCESSchoolID = "390482210850" if SchName == "Springfield Digital Academy (SDA)"
+replace SchType = "Regular school" if SchName == "Springfield Digital Academy (SDA)"
+replace seasch = "020063" if SchName == "Springfield Digital Academy (SDA)"
+replace SchLevel = "Other" if SchName == "Springfield Digital Academy (SDA)"
+replace SchVirtual = "Yes" if SchName == "Springfield Digital Academy (SDA)"
+
 replace DistName = "Stepstone Academy" if SchName == "Stepstone Academy"
 replace NCESDistrictID = "3901498" if SchName == "Stepstone Academy"
 replace State_leaid = "013148" if SchName == "Stepstone Academy"
@@ -1318,6 +1460,81 @@ replace SchLevel = "Primary" if SchName == "Stepstone Academy"
 replace SchVirtual = "No" if SchName == "Stepstone Academy"
 replace CountyName = "Cuyahoga County" if SchName == "Stepstone Academy"
 replace CountyCode = 39035 if SchName == "Stepstone Academy"
+
+replace NCESDistrictID = "3910043" if SchName == "Strongsville Academy"
+replace State_leaid = "020189" if SchName == "Strongsville Academy"
+replace DistCharter = "Yes" if SchName == "Strongsville Academy"
+replace DistType = "Charter agency" if SchName == "Strongsville Academy"
+replace NCESSchoolID = "391004310825" if SchName == "Strongsville Academy"
+replace SchType = "Regular school" if SchName == "Strongsville Academy"
+replace seasch = "020189" if SchName == "Strongsville Academy"
+replace SchLevel = "Primary" if SchName == "Strongsville Academy"
+replace SchVirtual = "Missing/not reported" if SchName == "Strongsville Academy"
+replace SchVirtual = "Missing/not reported" if SchName == "Strongsville Academy"
+replace CountyName = "Missing/not reported" if SchName == "Strongsville Academy"
+
+replace NCESSchoolID = "390439010858" if SchName == "Superior School for the Performing Arts"
+replace SchType = "Regular school" if SchName == "Superior School for the Performing Arts"
+replace seasch = "020109" if SchName == "Superior School for the Performing Arts"
+replace SchLevel = "Primary" if SchName == "Superior School for the Performing Arts"
+replace SchVirtual = "Missing/not reported" if SchName == "Superior School for the Performing Arts"
+
+replace NCESSchoolID = "390480410823" if SchName == "SWL Digital Academy"
+replace SchType = "Regular school" if SchName == "SWL Digital Academy"
+replace seasch = "020112" if SchName == "SWL Digital Academy"
+replace SchLevel = "Other" if SchName == "SWL Digital Academy"
+replace SchVirtual = "Missing/not reported" if SchName == "SWL Digital Academy"
+
+replace NCESSchoolID = "390490910839" if SchName == "Teays Valley Digital Academy"
+replace SchType = "Regular school" if SchName == "Teays Valley Digital Academy"
+replace seasch = "019829" if SchName == "Teays Valley Digital Academy"
+replace SchLevel = "Other" if SchName == "Teays Valley Digital Academy"
+replace SchVirtual = "Missing/not reported" if SchName == "Teays Valley Digital Academy"
+
+replace NCESDistrictID = "3910045" if SchName == "The Dayton School"
+replace State_leaid = "020293" if SchName == "The Dayton School"
+replace DistCharter = "Yes" if SchName == "The Dayton School"
+replace DistType = "Charter agency" if SchName == "The Dayton School"
+replace NCESSchoolID = "391004510831" if SchName == "The Dayton School"
+replace SchType = "Regular school" if SchName == "The Dayton School"
+replace seasch = "020293" if SchName == "The Dayton School"
+replace SchLevel = "High" if SchName == "The Dayton School"
+replace SchVirtual = "Missing/not reported" if SchName == "The Dayton School"
+replace CountyName = "Missing/not reported" if SchName == "The Dayton School"
+
+replace NCESSchoolID = "Missing/not reported" if SchName == "The International School"
+replace SchType = "Missing/not reported" if SchName == "The International School"
+replace seasch = "Missing/not reported" if SchName == "The International School"
+replace SchLevel = "Missing/not reported" if SchName == "The International School"
+replace SchVirtual = "Missing/not reported" if SchName == "The International School"
+
+replace NCESSchoolID = "390445710846" if SchName == "The Norwood Montessori School"
+replace SchType = "Regular school" if SchName == "The Norwood Montessori School"
+replace seasch = "019994" if SchName == "The Norwood Montessori School"
+replace SchLevel = "Primary" if SchName == "The Norwood Montessori School"
+replace SchVirtual = "Missing/not reported" if SchName == "The Norwood Montessori School"
+
+replace NCESDistrictID = "3910036" if SchName == "Unity Academy"
+replace State_leaid = "020046" if SchName == "Unity Academy"
+replace DistCharter = "Yes" if SchName == "Unity Academy"
+replace DistType = "Charter agency" if SchName == "Unity Academy"
+replace NCESSchoolID = "391003610848" if SchName == "Unity Academy"
+replace SchType = "Regular school" if SchName == "Unity Academy"
+replace seasch = "020046" if SchName == "Unity Academy"
+replace SchLevel = "High" if SchName == "Unity Academy"
+replace SchVirtual = "Missing/not reported" if SchName == "Unity Academy"
+replace CountyName = "Missing/not reported" if SchName == "Unity Academy"
+
+replace NCESDistrictID = "3910044" if SchName == "Victory Academy of Toledo"
+replace State_leaid = "020265" if SchName == "Victory Academy of Toledo"
+replace DistCharter = "Yes" if SchName == "Victory Academy of Toledo"
+replace DistType = "Charter agency" if SchName == "Victory Academy of Toledo"
+replace NCESSchoolID = "391004410829" if SchName == "Victory Academy of Toledo"
+replace SchType = "Regular school" if SchName == "Victory Academy of Toledo"
+replace seasch = "020265" if SchName == "Victory Academy of Toledo"
+replace SchLevel = "Other" if SchName == "Victory Academy of Toledo"
+replace SchVirtual = "Missing/not reported" if SchName == "Victory Academy of Toledo"
+replace CountyName = "Missing/not reported" if SchName == "Victory Academy of Toledo"
 
 replace DistName = "Village Preparatory School Cliffs" if SchName == "Village Preparatory School Cliffs"
 replace NCESDistrictID = "3901368" if SchName == "Village Preparatory School Cliffs"
@@ -1358,18 +1575,16 @@ replace SchVirtual = "No" if SchName == "Village Preparatory School Woodland Hil
 replace CountyName = "Cuyahoga County" if SchName == "Village Preparatory School Woodland Hills"
 replace CountyCode = 39035 if SchName == "Village Preparatory School Woodland Hills"
 
-replace DistName = "Wings Academy 1" if SchName == "Wings Academy 1"
-replace NCESDistrictID = "3900399" if SchName == "Wings Academy 1"
-replace State_leaid = "000736" if SchName == "Wings Academy 1"
-replace DistCharter = "Yes" if SchName == "Wings Academy 1"
-replace DistType = "Charter agency" if SchName == "Wings Academy 1"
-replace NCESSchoolID = "390039904959" if SchName == "Wings Academy 1"
-replace SchType = "Regular school" if SchName == "Wings Academy 1"
-replace seasch = "000736" if SchName == "Wings Academy 1"
-replace SchLevel = "Primary" if SchName == "Wings Academy 1"
-replace SchVirtual = "No" if SchName == "Wings Academy 1"
-replace CountyName = "Cuyahoga County" if SchName == "Wings Academy 1"
-replace CountyCode = 39035 if SchName == "Wings Academy 1"
+replace NCESDistrictID = "3910038" if SchName == "Westlake Academy"
+replace State_leaid = "020077" if SchName == "Westlake Academy"
+replace DistCharter = "Yes" if SchName == "Westlake Academy"
+replace DistType = "Charter agency" if SchName == "Westlake Academy"
+replace NCESSchoolID = "391003810853" if SchName == "Westlake Academy"
+replace SchType = "Regular school" if SchName == "Westlake Academy"
+replace seasch = "020077" if SchName == "Westlake Academy"
+replace SchLevel = "Primary" if SchName == "Westlake Academy"
+replace SchVirtual = "Missing/not reported" if SchName == "Westlake Academy"
+replace CountyName = "Missing/not reported" if SchName == "Westlake Academy"
 
 //Label & Organize Variables
 label var State "State name"
@@ -1430,6 +1645,6 @@ drop state_name _merge merge2 district_agency_type_num urban_centric_locale bure
 order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType  Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${output}/OH_AssmtData_2022.dta", replace
+save "${output}/OH_AssmtData_2023.dta", replace
 
-export delimited "${output}/OH_AssmtData_2022.csv", replace
+export delimited "${output}/OH_AssmtData_2023.csv", replace
