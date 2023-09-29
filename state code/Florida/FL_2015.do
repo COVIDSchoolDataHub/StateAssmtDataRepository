@@ -121,7 +121,7 @@ replace GradeLevel = "0" + GradeLevel if strlen(GradeLevel) < 2
 
 // Transforming Variable Values
 replace Subject = "ela" if Subject == "ELA"
-replace Subject = "mat" if Subject == "M"
+replace Subject = "math" if Subject == "M"
 replace GradeLevel = "G" + GradeLevel
 
 foreach var of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent Lev5_percent ProficientOrAbove_percent {
@@ -140,7 +140,7 @@ foreach var of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent Lev5_
 
 // Generating Missing Variables
 gen SchYear = "2014-15"
-gen AssmtName = ""
+gen AssmtName = "FSA"
 gen AssmtType = "Regular"
 gen StudentGroup = "All Students"
 gen StudentSubGroup = "All Students"
@@ -153,11 +153,11 @@ gen Lev5_count = ""
 gen ProficiencyCriteria = "Levels 3, 4, 5"
 gen ProficientOrAbove_count = ""
 gen ParticipationRate = ""
-gen Flag_AssmtNameChange = "N"
-gen Flag_CutScoreChange_ELA = "N"
-gen Flag_CutScoreChange_math = "N"
+gen Flag_AssmtNameChange = "Y"
+gen Flag_CutScoreChange_ELA = "Y"
+gen Flag_CutScoreChange_math = "Y"
 gen Flag_CutScoreChange_read = ""
-gen Flag_CutScoreChange_oth = "N"
+gen Flag_CutScoreChange_oth = "Y"
 
 // Relabelling Data Levels
 label def DataLevel 1 "State" 2 "District" 3 "School"

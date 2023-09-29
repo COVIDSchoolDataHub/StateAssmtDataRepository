@@ -14,6 +14,7 @@ forvalues i = 3/8 {
 	foreach subj in ELA M {
 			import excel "$original_files/FL_OriginalData_2018_DistState_`subj'_G0`i'", cellrange(A5) firstrow allstring clear
 			gen Subject = "`subj'"
+			rename Percentage*Level3orAbove ProficientOrAbove_percent
 	save "$temp_files/FL_OriginalData_2018_DistState_`subj'_G0`i'.dta", replace
 	}
 	
@@ -34,6 +35,7 @@ forvalues i = 3/8 {
 		foreach subj in ELA M {
 			import excel "$original_files/FL_OriginalData_2018_School_`subj'_G0`i'", cellrange(A5) firstrow allstring clear
 			gen Subject = "`subj'"
+			rename Percentage*Level3orAbove ProficientOrAbove_percent
 	save "$temp_files/FL_OriginalData_2018_School_`subj'_G0`i'.dta", replace
 	}
 	
@@ -67,7 +69,7 @@ foreach i in 5 8 {
 	rename H Lev3_percent
 	rename I Lev4_percent
 	rename J Lev5_percent
-	rename PercentagePassingAchievement PercentageinLevel3orAbove
+	rename PercentagePassingAchievement ProficientOrAbove_percent
 	save "$temp_files/FL_OriginalData_2018_DistState_S_G0`i'.dta", replace
 	
 	import excel "$original_files/FL_OriginalData_2018_School_S_G0`i'", cellrange(A9) firstrow allstring clear
@@ -81,7 +83,7 @@ foreach i in 5 8 {
 	rename J Lev3_percent
 	rename K Lev4_percent
 	rename L Lev5_percent
-	rename PercentagePassingAchievement PercentageinLevel3orAbove
+	rename PercentagePassingAchievement ProficientOrAbove_percent
 	save "$temp_files/FL_OriginalData_2018_School_S_G0`i'.dta", replace
 	
 	clear
@@ -106,7 +108,6 @@ rename DistrictName DistName
 rename Grade GradeLevel
 rename NumberofStudents StudentSubGroup_TotalTested
 rename MeanScaleScore AvgScaleScore
-rename PercentageinLevel3orAbove ProficientOrAbove_percent
 rename SchoolNumber StateAssignedSchID
 rename SchoolName SchName
 
@@ -120,7 +121,7 @@ replace GradeLevel = "0" + GradeLevel if strlen(GradeLevel) < 2
 
 // Transforming Variable Values
 replace Subject = "ela" if Subject == "ELA"
-replace Subject = "mat" if Subject == "M"
+replace Subject = "math" if Subject == "M"
 replace GradeLevel = "G" + GradeLevel
 
 foreach var of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent Lev5_percent ProficientOrAbove_percent {
@@ -139,7 +140,7 @@ foreach var of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent Lev5_
 
 // Generating Missing Variables
 gen SchYear = "2017-18"
-gen AssmtName = ""
+gen AssmtName = "FSA"
 gen AssmtType = "Regular"
 gen StudentGroup = "All Students"
 gen StudentSubGroup = "All Students"

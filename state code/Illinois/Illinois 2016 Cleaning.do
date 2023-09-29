@@ -135,7 +135,7 @@ drop County City
 ** Rename existing variables
 
 rename RCDTS StateAssignedSchID
-rename DIST StateAssignedDistID
+drop DIST
 rename SchoolorDistrictName SchName
 rename Mean AvgScaleScore
 
@@ -146,7 +146,7 @@ gen StudentSubGroup = "All Students"
 replace StateAssignedSchID = "STATE" if SchName == "STATE"
 
 tostring AvgScaleScore, replace
-replace AvgScaleScore = "*" if AvgScaleScore == "."
+replace AvgScaleScore = "--" if AvgScaleScore == "."
 
 save "${output}/IL_AssmtData_2016_sci_AvgScaleScore.dta", replace
 
@@ -167,7 +167,7 @@ drop County City Migrant IEP NotIEP
 ** Rename existing variables
 
 rename RCDTS StateAssignedSchID
-rename DIST StateAssignedDistID
+drop DIST
 rename SchoolorDistrictName SchName
 rename All ParticipationRateAll
 rename Male ParticipationRateMale
@@ -228,7 +228,7 @@ drop County City Migrant IEP NotIEP
 ** Rename existing variables
 
 rename RCDTS StateAssignedSchID
-rename DIST StateAssignedDistID
+drop DIST
 rename SchoolorDistrictName SchName
 rename All ProficientOrAbove_percentAll
 rename Male ProficientOrAbove_percentMale
@@ -335,6 +335,8 @@ replace leadingzero = 1 if substr(StateAssignedSchID,15,1) == ""
 replace StateAssignedSchID = "0" + StateAssignedSchID if leadingzero == 1
 drop leadingzero
 
+gen StateAssignedDistID = substr(StateAssignedSchID,1,11)
+
 gen State_leaid = StateAssignedSchID
 replace State_leaid = substr(State_leaid,1,11)
 replace State_leaid = substr(State_leaid,1,2) + "-" + substr(State_leaid,3,3) + "-" + substr(State_leaid,6,4) + "-" + substr(State_leaid,10,2)
@@ -369,7 +371,7 @@ drop County City
 
 rename RCDTS StateAssignedSchID
 rename DistrictSchool DataLevel
-rename Dist StateAssignedDistID
+drop Dist
 rename DistrictNameSchoolName SchName
 rename Grade3 Lev1_percentela3
 rename H Lev2_percentela3
@@ -458,7 +460,7 @@ replace GradeLevel = "G0" + GradeLevel
 
 ** Generating new variables
 
-gen SchYear = "2014-15"
+gen SchYear = "2015-16"
 
 gen AssmtName = "PARCC"
 gen AssmtType = "Regular"
@@ -492,6 +494,8 @@ gen ProficiencyCriteria = "Levels 4-5"
 gen ParticipationRate = "--"
 
 ** Merging with NCES
+
+gen StateAssignedDistID = substr(StateAssignedSchID,1,11)
 
 gen State_leaid = StateAssignedSchID
 replace State_leaid = substr(State_leaid,1,11)

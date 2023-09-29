@@ -171,9 +171,9 @@ merge m:1 seasch using "${NCES}/NCES_2021_School.dta"
 drop if _merge == 2
 drop _merge
 
-replace StateAbbrev = "MI" if DataLevel == 1
-replace State = 26 if DataLevel == 1
-replace StateFips = 26 if DataLevel == 1
+replace StateAbbrev = "MI"
+replace State = 26
+replace StateFips = 26
 
 ** Generating new variables
 

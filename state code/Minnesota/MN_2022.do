@@ -8,7 +8,7 @@ global output_files "/Users/meghancornacchia/Desktop/DataRepository/Minnesota/Ou
 global temp_files "/Users/meghancornacchia/Desktop/DataRepository/Minnesota/Temporary_Data_Files"
 
 // 2021-2022
-
+/*
 // Separating large subject files by datalevel sheets and combining
 // Math
 
@@ -213,10 +213,10 @@ clear
 // Combining all subjects
 
 append using "${temp_files}/MN_AssmtData_2022_mat_all.dta" "${temp_files}/MN_AssmtData_2022_rea_all.dta" "${temp_files}/MN_AssmtData_2022_sci_all.dta"
-save "${output_files}/MN_AssmtData_2022.dta", replace
+save "${temp_files}/MN_AssmtData_2022_all_imported.dta", replace
+*/
 
-
-use "${output_files}/MN_AssmtData_2022.dta", clear
+use "${temp_files}/MN_AssmtData_2022_all_imported.dta", clear
 
 // Reformatting IDs to standard length strings
 
@@ -364,9 +364,9 @@ gen Lev5_count = ""
 gen Lev5_percent = ""
 replace AssmtName = "Minnesota Comprehensive Assessment III & Minnesota Test of Academic Skills"
 gen Flag_AssmtNameChange = "N"
-gen Flag_CutScoreChange_ELA = ""
+gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_read = "N"
+gen Flag_CutScoreChange_read = ""
 gen Flag_CutScoreChange_oth = "N"
 gen AssmtType = "Regular and Alt"
 gen ProficiencyCriteria = "Levels 3 and 4"
