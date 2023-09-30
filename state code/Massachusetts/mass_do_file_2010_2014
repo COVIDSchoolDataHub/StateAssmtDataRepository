@@ -487,7 +487,7 @@ rename SchLevel1 SchLevel
 replace NCESSchoolID = "250483002838" if SchName == "Resiliency Middle School" 
 replace SchVirtual = "Missing/not reported" if SchName == "Resiliency Middle School"  
 replace SchLevel = "Middle" if SchName == "Resiliency Middle School" 
-replace SchType = "Regular School" if SchName == "Resiliency Middle School" // NCESDistrictID = "2504830" 
+replace SchType = "Regular school" if SchName == "Resiliency Middle School" // NCESDistrictID = "2504830" 
 
 
 
