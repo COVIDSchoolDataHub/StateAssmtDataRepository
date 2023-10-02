@@ -23,14 +23,14 @@ clear
 import excel "`Original'/CT_OriginalData_2021_sci.xlsx", firstrow case(preserve) sheet(ALL)
 gen SUBJECT = "sci"
 append using "`temp1'"
-save "`Original'/CT_OriginalData_2021_all", replace
+save "`Original/CT_OriginalData_2021_all'", replace
 
 
 */
 
 //Unhide above code on first run
 clear
-use "`Original'/CT_OriginalData_2021_all"
+use "`Original/CT_OriginalData_2021_all'"
 
 //Renaming Variables
 rename DistrictCode StateAssignedDistID
@@ -84,7 +84,7 @@ replace StudentGroup = "RaceEth" if StudentSubGroup == "American Indian or Alask
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged"
 replace StudentGroup = "Gender" if StudentSubGroup == "Male" | StudentSubGroup == "Female"
 replace StudentGroup = "EL Status" if StudentSubGroup == "English Proficient" | StudentSubGroup == "English Learner"
-replace StudentGroup = "Ethnicity" if StudentSubGroup == "Hispanic or Latino"
+replace StudentGroup = "RaceEth" if StudentSubGroup == "Hispanic or Latino"
 
 //Subject
 replace Subject = lower(Subject)
@@ -245,6 +245,12 @@ foreach n in 1 2 3 4 {
 gen ProficientOrAbove_count = "--"
 gen StudentGroup_TotalTested = "--"
 gen StudentSubGroup_TotalTested = "--"
+
+//AvgScaleScore
+replace AvgScaleScore = "--" if AvgScaleScore == "N/A"
+
+//Dropping specific schools in response to R1
+drop if StateAssignedSchID == "2449414" | StateAssignedSchID == "2440214"
 
 //Final Cleaning
 recast str80 SchName

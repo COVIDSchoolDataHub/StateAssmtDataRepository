@@ -443,7 +443,7 @@ replace StudentGroup = "RaceEth" if StudentSubGroup == "American Indian or Alask
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged"
 replace StudentGroup = "Gender" if StudentSubGroup == "Male" | StudentSubGroup == "Female"
 replace StudentGroup = "EL Status" if StudentSubGroup == "English Proficient" | StudentSubGroup == "English Learner"
-replace StudentGroup = "Ethnicity" if StudentSubGroup == "Hispanic or Latino"
+replace StudentGroup = "RaceEth" if StudentSubGroup == "Hispanic or Latino"
 
 //StudentGroup_TotalTested
 destring StudentSubGroup_TotalTested, gen(nStudentSubGroup_TotalTested) i(*N/A)
@@ -671,10 +671,17 @@ foreach var of varlist Flag* {
 	replace `var' = "N" if "`var'" == "Flag_CutScoreChange_oth" & `year' >= 2019
 	replace `var' = "Y" if `year' == 2022 & "`var'" != "Flag_AssmtNameChange" & "`var'" != "Flag_CutScoreChange_read"
 }
+replace Flag_CutScoreChange_read = ""
 
 //Missing/empty Variables
 gen Lev5_count = ""
 gen Lev5_percent= ""
+
+//AvgScaleScore
+replace AvgScaleScore = "--" if AvgScaleScore == "N/A"
+
+//Dropping specific schools in response to R1
+drop if StateAssignedSchID == "2449414" | StateAssignedSchID == "2440214"
 
 //Final Cleaning
 recast str80 SchName
