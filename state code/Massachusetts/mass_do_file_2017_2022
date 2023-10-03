@@ -1,12 +1,6 @@
-cap log close
-log using massachusetts_cleaning.log, replace
-
-
-
 cd "/Users/benjaminm/Documents/State_Repository_Research/Massachusetts"
 
 
-// Remaping Raw Data into Standard Format, and appending together
 
 // cleaning district science data
 // r3 added
@@ -51,7 +45,13 @@ save mass_district_science_cleaned, replace
 // cleaning district data 
 // import excel "mass_districts_new_mcas", clear
 // save mass_districts_new_mcas
-use mass_districts_new_mcas, clear 
+// use mass_districts_new_mcas, clear 
+
+//import excel districts_2023, clear
+use districts_2023, clear
+replace A = "District" 
+
+append using mass_districts_new_mcas, force
 
 rename A DataLevel	
 rename B SchYear 	
@@ -79,7 +79,7 @@ drop W
 
 gen AssmtName = "NextGen MCAS"
 
-append using mass_district_science_cleaned
+append using mass_district_science_cleaned, force
 
 // drop early school years
 // make sure append went well
@@ -105,7 +105,7 @@ end
 
 save mass_district_IDs, replace
 
-
+use mass_districts_new_mcas_titled, clear
 
 
 // cleaning school science data 
@@ -183,7 +183,13 @@ save mass_school_science_cleaned, replace
 // cleaning school data 
 // import excel "mass_schools_new_mcas", clear
 // save mass_schools_new_mcas, replace
-use mass_schools_new_mcas, clear
+//use mass_schools_new_mcas, clear
+
+//import excel schools_2023, clear
+use schools_2023, clear 
+
+
+append using mass_schools_new_mcas, force
 
 drop if E == "State Total"
 
@@ -232,7 +238,7 @@ drop W X
 gen AssmtName = "NextGen MCAS"
 
 // r3 change
-append using mass_school_science_cleaned
+append using mass_school_science_cleaned, force 
 // r3 change
 
 
@@ -244,18 +250,15 @@ drop StateAssignedDistID
 
 merge m:1 DistName using mass_district_IDs
 
+
 drop if DistName == "School Name"
 drop if DistName == "District Name"
 
 drop _merge
 
-save mass_districts_new_mcas_in_progress_1, replace
+save mass_districts_new_mcas_in_progress_1_n, replace
 
-use mass_districts_new_mcas_in_progress_1, replace
-
-
-
-
+// use mass_districts_new_mcas_in_progress_1, replace
 
 
 
@@ -301,14 +304,14 @@ save mass_district_participation_cleaned, replace
 use mass_district_participation_cleaned, clear
 
 
-use mass_districts_new_mcas_in_progress_1, replace
+use mass_districts_new_mcas_in_progress_1_n, replace
 merge m:1 DataLevel SchYear GradeLevel StudentGroup Subject StateAssignedDistID using mass_district_participation_cleaned
 drop H
 drop if _merge == 2
 drop _merge
 
 
-save mass_districts_new_mcas_in_progress_2, replace
+save mass_districts_new_mcas_in_progress_2_n, replace
 
 
 
@@ -347,7 +350,9 @@ save mass_school_participation_cleaned, replace
 
 use mass_school_participation_cleaned, clear
 
-use mass_districts_new_mcas_in_progress_2, replace
+help pause
+
+use mass_districts_new_mcas_in_progress_2_n, replace
 merge m:1 DataLevel SchYear GradeLevel StudentGroup Subject StateAssignedSchID using mass_school_participation_cleaned
 drop H
 drop if _merge == 2
@@ -365,7 +370,7 @@ destring ParticipationRate, replace
 tostring ParticipationRate, replace force
 
 
-save mass_districts_new_mcas_in_progress_3, replace 
+save mass_districts_new_mcas_in_progress_3_n, replace 
 // r3 change
 
 
@@ -375,13 +380,13 @@ save mass_districts_new_mcas_in_progress_3, replace
 
 // Loop to merge with NCES data, separate into individual years and add necessary variables
 
-global years1 2017 2018 2019 2021 2022 
+global years1 2017 2018 2019 2021 2022 2023
 
 foreach a in $years1 {
 	
 local prevyear = `a' - 1
 	
-use mass_districts_new_mcas_in_progress_3, clear
+use mass_districts_new_mcas_in_progress_3_n, clear
 
 keep if SchYear == "`a'"
 
@@ -390,6 +395,21 @@ replace StateAssignedDistID = subinstr(StateAssignedDistID, "0000", "", .)
 rename StateAssignedDistID State_leaid
 
 // District NCES Merge
+
+if `a' == 2023 {
+merge m:1 State_leaid using 1_NCES_2021_District_Mass // CHANGED
+rename _merge DistMerge
+drop if DistMerge == 2
+
+rename State_leaid StateAssignedDistID
+
+drop DistMerge
+	
+}
+
+
+
+if `a' != 2023 {
 merge m:1 State_leaid using 1_NCES_`prevyear'_District_Mass // CHANGED
 rename _merge DistMerge
 drop if DistMerge == 2
@@ -397,6 +417,7 @@ drop if DistMerge == 2
 rename State_leaid StateAssignedDistID
 
 drop DistMerge
+}
 
 //NEW ADDED
 
@@ -416,11 +437,57 @@ replace SchName = "All Schools" if DataLevel == 2
 
 // NEW ADDED
 
-	
+if `a' == 2023 {	
+rename StateAssignedSchID seasch
+merge m:1 seasch using 1_NCES_2021_School_Mass // CHANGED 
+rename _merge SchoolMerge
+drop if SchoolMerge == 2
+ 
+
+
+// Center Elementary School info
+replace NCESSchoolID = "251158002946" if seasch == "02950030"  
+replace SchVirtual = 0 if seasch == "02950030"  
+replace SchLevel = 1 if seasch == "02950030"  
+replace SchType = 1 if seasch == "02950030"  
+
+
+// Maria Weston Chapman Middle School  info
+replace NCESSchoolID = "251284002948" if seasch == "03360020"  
+replace SchVirtual = 0 if seasch == "03360020"  
+replace SchLevel = 2 if seasch == "03360020"  
+replace SchType = 1 if seasch == "03360020" 
+
+// Holyoke Middle School info
+replace NCESSchoolID = "250627002939" if seasch == "01370325"  
+replace SchVirtual = 0 if seasch == "01370325"  
+replace SchLevel = 2 if seasch == "01370325"  
+replace SchType = 1 if seasch == "01370325" 
+
+// Mountain View School info
+replace NCESSchoolID = "250459002937" if seasch == "00860415"  
+replace SchVirtual = 0 if seasch == "00860415"  
+replace SchLevel = 4 if seasch == "00860415"  
+replace SchType = 1 if seasch == "00860415" 
+
+}
+
+
+// finish the rest of these things here 
+//SchLevel = 
+
+
+//SchVirtual = "No" 
+
+
+if `a' != 2023 {	
 rename StateAssignedSchID seasch
 merge m:1 seasch using 1_NCES_`prevyear'_School_Mass // CHANGED 
 rename _merge SchoolMerge
 drop if SchoolMerge == 2
+} 
+
+
 
 rename seasch StateAssignedSchID
 
@@ -481,6 +548,12 @@ if `a' == 2022 {
 gen SchYear2 = "2021-22"
 
 } 
+
+if `a' == 2023 {
+gen SchYear2 = "2023-23"
+
+} 
+// add a year here 
 
 drop SchYear
 rename SchYear2 SchYear
@@ -572,9 +645,12 @@ gen Lev5_count = "-" //r3 changed
 gen Lev5_percent = "-" //r3 changed
 
 
+
+
+//if `a' != 2023 {
 gen State_leaid = StateAssignedDistID // CHANGED
 
-
+//} 
 
 
 // CHANGED

@@ -108,7 +108,8 @@ replace StudentSubGroup = "All Students" if strpos(Gender, "All") !=0 & strpos(R
 replace StudentSubGroup = subinstr(StudentSubGroup, "/", " or ",.)
 replace StudentSubGroup = "English Learner" if strpos(StudentSubGroup, "English") !=0
 replace StudentSubGroup = "Two or More" if strpos(StudentSubGroup, "Two or more") !=0
-keep if StudentSubGroup == "All Students" | StudentSubGroup == "American Indian or Alaska Native" | StudentSubGroup == "Asian" | StudentSubGroup == "Black or African American" | StudentSubGroup == "Native Hawaiian or Pacific Islander" | StudentSubGroup == "White" | StudentSubGroup == "Hispanic or Latino" | StudentSubGroup == "English Learner" | StudentSubGroup == "English Proficient" | StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged" | StudentSubGroup == "Male" | StudentSubGroup == "Female" | StudentSubGroup == "Two or More"
+replace StudentSubGroup = "Not Hispanic or Latino" if StudentSubGroup == "Other Ethnicity"
+keep if StudentSubGroup == "All Students" | StudentSubGroup == "American Indian or Alaska Native" | StudentSubGroup == "Asian" | StudentSubGroup == "Black or African American" | StudentSubGroup == "Native Hawaiian or Pacific Islander" | StudentSubGroup == "White" | StudentSubGroup == "Hispanic or Latino" | StudentSubGroup == "Not Hispanic or Latino" | StudentSubGroup == "English Learner" | StudentSubGroup == "English Proficient" | StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged" | StudentSubGroup == "Male" | StudentSubGroup == "Female" | StudentSubGroup == "Two or More"
 
 //StudentGroup
 gen StudentGroup = ""
@@ -117,7 +118,7 @@ replace StudentGroup = "RaceEth" if StudentSubGroup == "American Indian or Alask
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged"
 replace StudentGroup = "Gender" if StudentSubGroup == "Male" | StudentSubGroup == "Female"
 replace StudentGroup = "EL Status" if StudentSubGroup == "English Proficient" | StudentSubGroup == "English Learner"
-replace StudentGroup = "Ethnicity" if StudentSubGroup == "Hispanic or Latino"
+replace StudentGroup = "Ethnicity" if StudentSubGroup == "Hispanic or Latino" | StudentSubGroup == "Not Hispanic or Latino"
 
 //Standardizing other variable names
 
@@ -377,6 +378,14 @@ replace Flag_CutScoreChange_read = "Y" if `year' == 2018
 replace Flag_CutScoreChange_oth = "Y" if `year' == 2018 | `year' == 2021
 replace Flag_CutScoreChange_math = "Y" if `year' == 2018 | `year' == 2021
 
+//Changes fall 2023:
+replace Subject = "ela" if Subject == "read"
+replace Flag_CutScoreChange_ELA = Flag_CutScoreChange_read if missing(Flag_CutScoreChange_ELA)
+replace Flag_CutScoreChange_read = ""
+
+//Response to R2
+drop if StudentSubGroup_TotalTested == "0"
+drop if Lev1_percent == "0" & Lev2_percent == "0" & Lev3_percent == "0" & Lev4_percent == "0"
 
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth

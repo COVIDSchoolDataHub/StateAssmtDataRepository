@@ -154,6 +154,8 @@ replace StudentGroup = "RaceEth" if StudentSubGroup == "Hispanic or Latino"
 destring StudentSubGroup_TotalTested, gen(nStudentSubGroup_TotalTested) i(*-)
 sort StudentGroup
 egen StudentGroup_TotalTested = total(nStudentSubGroup_TotalTested), by(StudentGroup GradeLevel Subject DataLevel SchName DistName)
+tostring StudentGroup_TotalTested, replace
+replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "0"
 
 
 //Dropping Extra Variables
@@ -244,9 +246,9 @@ gen ParticipationRate = "--"
 gen State = "Vermont"
 replace StateAbbrev = "VT"
 gen Flag_AssmtNameChange = "N"
-gen Flag_CutScoreChange_ELA = ""
+gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_oth = "N"
+gen Flag_CutScoreChange_oth = ""
 gen Flag_CutScoreChange_read = ""
 gen ProficiencyCriteria = "Levels 3 and 4"
 gen Lev5_percent =.
@@ -254,17 +256,17 @@ gen Lev5_count =.
 gen SchYear = "`prevyear'" + "-" + substr("`year'",-2,2)
 gen AssmtType = "Regular"
 
+//Flags
+replace Flag_CutScoreChange_oth = "Y" if `year' == 2019
+replace Flag_CutScoreChange_oth = "N" if `year' > 2019
+
 //Aesthetic changes
 replace StateAssignedDistID = subinstr(StateAssignedDistID, "VT-","",.)
 
+//Response to R2
+drop if StudentSubGroup_TotalTested == "0"
+drop if Lev1_percent == "0" & Lev2_percent == "0" & Lev3_percent == "0" & Lev4_percent == "0"
 
-//Changing 0 levels to missing if StudentSubGroup_TotalTested == 0 or "--"
-
-foreach n in 1 2 3 4 {
-	replace Lev`n'_percent = "--" if StudentSubGroup_TotalTested == "0" | (StudentSubGroup_TotalTested == "--" & Lev`n'_percent == "0") 
-}
-replace ProficientOrAbove_percent = "--" if StudentSubGroup_TotalTested == "0" | (StudentSubGroup_TotalTested == "--" & Lev3_percent == "--" & Lev4_percent == "--")
-replace AvgScaleScore = "--" if StudentSubGroup_TotalTested == "0"
 
 //DATA DECISION: DROPPING DISTRICT LEVEL DATA
 drop if DataLevel ==2
