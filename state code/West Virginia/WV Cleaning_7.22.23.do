@@ -173,7 +173,7 @@ replace StateAssignedSchID = "" if DataLevel != "School"
 //Generate New Variables
 gen State = "West Virginia"
 gen SchYear = "2014-15"
-gen AssmtName = "West Virginia General Summative Assessment"
+gen AssmtName = "Smarter Balanced Assessment Consortium"
 gen AssmtType = "Regular"
 gen StudentGroup_TotalTested = "--"
 gen StudentSubGroup_TotalTested = "--"
@@ -500,7 +500,7 @@ replace StateAssignedSchID = "" if DataLevel != "School"
 //Generate New Variables
 gen State = "West Virginia"
 gen SchYear = "2015-16"
-gen AssmtName = "West Virginia General Summative Assessment"
+gen AssmtName = "Smarter Balanced Assessment Consortium"
 gen AssmtType = "Regular"
 gen StudentGroup_TotalTested = "--"
 gen StudentSubGroup_TotalTested = "--"
@@ -819,7 +819,7 @@ replace StateAssignedSchID = "" if DataLevel != "School"
 //Generate New Variables
 gen State = "West Virginia"
 gen SchYear = "2016-17"
-gen AssmtName = "West Virginia General Summative Assessment"
+gen AssmtName = "Smarter Balanced Assessment Consortium"
 gen AssmtType = "Regular"
 gen StudentGroup_TotalTested = "--"
 gen StudentSubGroup_TotalTested = "--"
@@ -1154,9 +1154,9 @@ gen ProficiencyCriteria = "Levels 3 + 4"
 gen ProficientOrAbove_count = "--"
 gen ParticipationRate = "--"
 gen AvgScaleScore = "--"
-gen Flag_AssmtNameChange = "N"
-gen Flag_CutScoreChange_ELA = "N"
-gen Flag_CutScoreChange_math = "N"
+gen Flag_AssmtNameChange = "Y"
+gen Flag_CutScoreChange_ELA = "Y"
+gen Flag_CutScoreChange_math = "Y"
 gen Flag_CutScoreChange_read = ""
 gen Flag_CutScoreChange_oth = ""
 
@@ -2542,24 +2542,41 @@ replace CountyName = "Kanawha County" if DistName == "WV Virt Academy"
 replace CountyCode = 54039 if DistName == "WV Virt Academy"
 replace State_leaid = "WV-1050000" if DistName == "WV Virt Academy"
 
-replace NCESSchoolID = "Missing/not reported" if SchName == "West Virginia Academy"
-replace seasch = "Missing/not reported" if SchName == "West Virginia Academy"
+replace NCESSchoolID = "540165201611" if SchName == "West Virginia Academy"
+replace seasch = "1010000-101101" if SchName == "West Virginia Academy"
 replace SchVirtual = -1 if SchName == "West Virginia Academy"
-replace SchType = -1 if SchName == "West Virginia Academy"
+replace SchType = 1 if SchName == "West Virginia Academy"
 replace SchLevel = -1 if SchName == "West Virginia Academy"
-replace NCESDistrictID = "Missing/not reported" if DistName == "WV Academy"
-replace CountyName = "Missing/not reported" if DistName == "WV Academy"
-replace DistCharter = "Missing/not reported" if DistName == "WV Academy"
-replace DistType = -1 if DistName == "WV Academy"
-replace State_leaid = "Missing/not reported" if DistName == "WV Academy"
+replace NCESDistrictID = "5401652" if DistName == "WV Academy"
+replace CountyName = "Monongalia County" if DistName == "WV Academy"
+replace CountyCode = 54061 if DistName == "WV Academy"
+replace DistCharter = "Yes" if DistName == "WV Academy"
+replace DistType = 7 if DistName == "WV Academy"
+replace State_leaid = "WV-1010000" if DistName == "WV Academy"
 
-replace NCESSchoolID = "Missing/not reported" if SchName == "Victory Elementary School"
-replace seasch = "Missing/not reported" if SchName == "Victory Elementary School"
+replace NCESSchoolID = "540051001608" if SchName == "Victory Elementary School"
+replace seasch = "3300000-33236" if SchName == "Victory Elementary School"
 replace SchLevel = 1 if SchName == "Victory Elementary School"
-replace SchType = -1 if SchName == "Victory Elementary School"
+replace SchType = 1 if SchName == "Victory Elementary School"
 replace SchVirtual = -1 if SchName == "Victory Elementary School"
 
 //Variable Types
+decode DistType, gen(DistType_s)
+drop DistType
+rename DistType_s DistType
+
+decode SchType, gen(SchType_s)
+drop SchType
+rename SchType_s SchType
+
+decode SchLevel, gen(SchLevel_s)
+drop SchLevel
+rename SchLevel_s SchLevel
+
+decode SchVirtual, gen(SchVirtual_s)
+drop SchVirtual
+rename SchVirtual_s SchVirtual
+
 label def DataLevel 1 "State" 2 "District" 3 "School"
 encode DataLevel, gen(DataLevel_n) label(DataLevel)
 sort DataLevel_n 
