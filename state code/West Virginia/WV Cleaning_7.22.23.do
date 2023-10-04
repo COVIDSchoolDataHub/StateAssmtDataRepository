@@ -1486,10 +1486,10 @@ gen ProficientOrAbove_count = "--"
 gen ParticipationRate = "--"
 gen AvgScaleScore = "--"
 gen Flag_AssmtNameChange = "N"
-gen Flag_CutScoreChange_ELA = "Y"
-gen Flag_CutScoreChange_math = "Y"
+gen Flag_CutScoreChange_ELA = "N"
+gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_read = ""
-gen Flag_CutScoreChange_oth = "Y"
+gen Flag_CutScoreChange_oth = "N"
 
 //Student Groups
 replace StudentGroup = "All Students" if StudentGroup == "Total Population"
