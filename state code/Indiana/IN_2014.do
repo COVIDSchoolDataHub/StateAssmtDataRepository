@@ -96,7 +96,7 @@ replace StudentGroup = "EL Status" if StudentSubGroup == "Non-English Language L
 replace StudentGroup = "Gender" if StudentSubGroup == "Male" | StudentSubGroup == "Female"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Free/Reduced price meals" | StudentSubGroup == "Paid meals"
 
-bysort StudentGroup: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
+bysort Subject StudentGroup: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
 
 gen GradeLevel = "G38"
 
