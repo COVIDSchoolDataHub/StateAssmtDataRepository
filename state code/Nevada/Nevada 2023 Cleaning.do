@@ -220,6 +220,30 @@ merge m:1 seasch using "${NCES}/NCES_2021_School.dta"
 drop if _merge == 2
 drop _merge
 
+**** Including 2023 schools
+
+replace SchType = 1 if SchName == "Battle Born Academy"
+replace NCESSchoolID = "320000100975" if SchName == "Battle Born Academy"
+
+replace SchType = 1 if SchName == "Pinecrest Academy Virtual"
+replace NCESSchoolID = "320000100976" if SchName == "Pinecrest Academy Virtual"
+
+replace SchType = 1 if SchName == "Sage Collegiate Public Charter School"
+replace NCESSchoolID = "320000100971" if SchName == "Sage Collegiate Public Charter School"
+
+replace SchType = 1 if SchName == "Young Women's Leadership Academy of Las Vegas"
+replace NCESSchoolID = "320000100972" if SchName == "Young Women's Leadership Academy of Las Vegas"
+
+replace SchType = 1 if SchName == "pilotED Cactus Park"
+replace NCESSchoolID = "320000100973" if SchName == "pilotED Cactus Park"
+
+replace SchLevel = -1 if SchName == "Battle Born Academy" | SchName == "Pinecrest Academy Virtual" | SchName == "Sage Collegiate Public Charter School" | SchName == "Young Women's Leadership Academy of Las Vegas" | SchName == "pilotED Cactus Park"
+replace SchVirtual = -1 if SchName == "Battle Born Academy" | SchName == "Pinecrest Academy Virtual" | SchName == "Sage Collegiate Public Charter School" | SchName == "Young Women's Leadership Academy of Las Vegas" | SchName == "pilotED Cactus Park" | SchName == "Coral Academy Cadence"
+label def SchLevel -1 "Missing/not reported"
+label def SchVirtual -1 "Missing/not reported"
+
+**
+
 replace StateAbbrev = "NV" if DataLevel == 1
 replace State = 32 if DataLevel == 1
 replace StateFips = 32 if DataLevel == 1

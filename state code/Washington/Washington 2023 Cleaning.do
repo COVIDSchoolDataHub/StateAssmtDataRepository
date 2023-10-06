@@ -176,6 +176,51 @@ merge m:1 seasch using "${NCES}/NCES_2021_School.dta"
 drop if _merge == 2
 drop _merge
 
+**** Update 2023 schools
+
+replace SchType = 1 if SchName == "Bellevue Digital Discovery"
+replace NCESSchoolID = "530039003883" if SchName == "Bellevue Digital Discovery"
+
+replace SchType = 1 if SchName == "Desert Sky Elementary"
+replace NCESSchoolID = "530732003901" if SchName == "Desert Sky Elementary"
+
+replace SchType = 1 if SchName == "Eagle Virtual Sky Academy"
+replace NCESSchoolID = "530249003884" if SchName == "Eagle Virtual Sky Academy"
+
+replace SchType = 1 if SchName == "Ida Nason Aronica Elementary"
+replace NCESSchoolID = "530246003887" if SchName == "Ida Nason Aronica Elementary"
+
+replace SchType = 4 if SchName == "Kent Virtual Academy"
+replace NCESSchoolID = "530396003898" if SchName == "Kent Virtual Academy"
+
+replace SchType = 1 if SchName == "Kiona-Benton City Elementary"
+replace NCESSchoolID = "530402003888" if SchName == "Kiona-Benton City Elementary"
+
+replace SchType = 1 if SchName == "Tacoma Online Elementary School"
+replace NCESSchoolID = "530870003889" if SchName == "Tacoma Online Elementary School"
+
+replace SchType = 1 if SchName == "Tacoma Online Middle School"
+replace NCESSchoolID = "530870003890" if SchName == "Tacoma Online Middle School"
+
+replace SchType = 2 if SchName == "Vancouver Intensive Communications Center"
+replace NCESSchoolID = "530927003885" if SchName == "Vancouver Intensive Communications Center"
+
+replace SchType = 4 if SchName == "Vancouver Success Academy"
+replace NCESSchoolID = "530927003882" if SchName == "Vancouver Success Academy"
+
+replace SchType = 1 if SchName == "Wapato Online Academy 6-8"
+replace NCESSchoolID = "530948003893" if SchName == "Wapato Online Academy 6-8"
+
+replace SchType = 1 if SchName == "Willow Crest Elementary"
+replace NCESSchoolID = "530030003886" if SchName == "Willow Crest Elementary"
+
+replace SchLevel = -1 if SchName == "Bellevue Digital Discovery" | SchName == "Desert Sky Elementary" | SchName == "Eagle Virtual Sky Academy" | SchName == "Ida Nason Aronica Elementary" | SchName == "Kent Virtual Academy" | SchName == "Kiona-Benton City Elementary" | SchName == "Tacoma Online Elementary School" | SchName == "Tacoma Online Middle School" | SchName == "Vancouver Intensive Communications Center" | SchName == "Vancouver Success Academy" | SchName == "Wapato Online Academy 6-8" | SchName == "Willow Crest Elementary"
+replace SchVirtual = -1 if SchName == "Bellevue Digital Discovery" | SchName == "Desert Sky Elementary" | SchName == "Eagle Virtual Sky Academy" | SchName == "Ida Nason Aronica Elementary" | SchName == "Kent Virtual Academy" | SchName == "Kiona-Benton City Elementary" | SchName == "Tacoma Online Elementary School" | SchName == "Tacoma Online Middle School" | SchName == "Vancouver Intensive Communications Center" | SchName == "Vancouver Success Academy" | SchName == "Wapato Online Academy 6-8" | SchName == "Willow Crest Elementary"
+label def SchLevel -1 "Missing/not reported"
+label def SchVirtual -1 "Missing/not reported"
+
+**
+
 replace StateAbbrev = "WA" if DataLevel == 1
 replace State = 53 if DataLevel == 1
 replace StateFips = 53 if DataLevel == 1
