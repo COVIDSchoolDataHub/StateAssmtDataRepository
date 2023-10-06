@@ -12,11 +12,17 @@ import excel "`Original'/DC_OriginalData_2017_all.xlsx", sheet(School Performanc
 append using "`temp1'"
 save "`temp1'", replace
 clear
+import excel "`Original'/DC_OriginalData_2017_all.xlsx", sheet(LEA Performance) firstrow
+append using "`temp1'"
+save "`temp1'", replace
+clear
 import excel "`Original'/DC_OriginalData_2017_all.xlsx", sheet(State Performance) firstrow
 append using "`temp1'"
 save "`Original'/2017", replace
+replace K = M if !missing(LEAName) & missing(SchoolName)
 replace K = P if !missing(SchoolName)
 drop P
+drop M
 
 //Standardizing Varnames
 rename AssessmentType AssmtName
@@ -40,16 +46,17 @@ rename SchoolName SchName
 //DataLevel
 gen DataLevel = ""
 replace DataLevel = "State" if missing(StateAssignedDistID)
-replace DataLevel = "School" if missing(DataLevel)
+replace DataLevel = "District" if !missing(StateAssignedDistID) & missing(StateAssignedSchID)
+replace DataLevel = "School" if !missing(StateAssignedDistID) & !missing(StateAssignedSchID)
 label def DataLevel 1 "State" 2 "District" 3 "School"
 encode DataLevel, gen(DataLevel_n) label(DataLevel)
 sort DataLevel_n 
 drop DataLevel
 rename DataLevel_n DataLevel
 replace DistName = "All Districts" if DataLevel ==1
-replace SchName = "All Schools" if DataLevel ==1
+replace SchName = "All Schools" if DataLevel ==1 | DataLevel ==2
 replace StateAssignedDistID = "" if DataLevel ==1
-replace StateAssignedSchID = "" if DataLevel ==1
+replace StateAssignedSchID = "" if DataLevel ==1 | DataLevel ==2
 
 //StudentSubGroup
 replace StudentSubGroup = subinstr(StudentSubGroup, "/", " or ",.)
@@ -72,7 +79,7 @@ replace StudentGroup = "RaceEth" if StudentSubGroup == "Hispanic or Latino"
 
 //GradeLevel
 replace GradeLevel = "G0" + GradeLevel
-keep if inlist(GradeLevel,"G03","G04","G05","G06","G07","G08")
+keep if inlist(GradeLevel,"G03","G04","G05","G06","G07","G08", "G38")
 
 //Supressed Data
 foreach var of varlist _all {
@@ -96,8 +103,22 @@ replace ProficientOrAbove_percent = string(nProficientOrAbove_percent/100, "%9.4
 //Merging with NCES
 tempfile temp1
 save "`temp1'"
-
+clear
+//District Level
+use "`temp1'"
+keep if DataLevel ==2
+tempfile tempdist
+save "`tempdist'", replace
+clear
+use "`NCES'/NCES_2016_District"
+keep if state_name == 11 | state_location == "DC"
+gen StateAssignedDistID = subinstr(state_leaid, "DC-","",.)
+merge 1:m StateAssignedDistID using "`tempdist'"
+drop if _merge ==1
+save "`tempdist'", replace
+clear
 //School Level
+use "`temp1'"
 keep if DataLevel ==3
 tempfile tempsch
 save "`tempsch'", replace
@@ -114,7 +135,7 @@ save "`tempsch'", replace
 //Appending
 use "`temp1'"
 keep if DataLevel==1
-append using "`tempsch'"
+append using "`tempsch'" "`tempdist'"
 
 //Fixing NCES Variables
 rename state_location StateAbbrev

@@ -8,17 +8,18 @@ local NCES "/Volumes/T7/State Test Project/NCES"
 tempfile temp1
 save "`temp1'", emptyok replace
 clear
-import excel "`Original'/DC_OriginalData_2016_ela.xlsx", sheet(ELA_Data) firstrow
+import excel "`Original'/DC_OriginalData_2016_ela.xlsx", sheet(ELA_Data) firstrow allstring
 gen Subject = "ela"
 append using "`temp1'"
 save "`temp1'", replace
 clear
-import excel "`Original'/DC_OriginalData_2016_mat.xlsx", sheet(MATH_Data) firstrow
+import excel "`Original'/DC_OriginalData_2016_mat.xlsx", sheet(MATH_Data) firstrow allstring
 gen Subject = "math"
 append using "`temp1'"
 save "`Original'/2016", replace
 
 //Standardizing Varnames
+drop if missing(SchoolWard)
 drop SchoolWard
 rename LEACode StateAssignedDistID
 rename LEAName DistName
@@ -51,8 +52,9 @@ gen StudentGroup = "All Students"
 
 //GradeLevel
 gen ind = regexm(GradeLevel,"[3-8]") & strpos(GradeLevel, "Test") !=0
-keep if ind == 1
+keep if ind == 1 | GradeLevel == "All ELA" | GradeLevel == "All Math"
 replace GradeLevel = "G0" + substr(GradeLevel, 1,1)
+replace GradeLevel = "G38" if strpos(GradeLevel, "A") !=0
 
 //Supressed Data
 foreach var of varlist _all {

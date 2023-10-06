@@ -7,29 +7,37 @@ local NCES "/Volumes/T7/State Test Project/NCES"
 //Importing
 tempfile temp1
 save "`temp1'", replace emptyok
-import delimited using "`Original'/DC_OriginalData_2023_Sch", case(preserve)
+import delimited using "`Original'/DC_OriginalData_2023_Sch", case(preserve) stringcols(2,4)
 append using "`temp1'"
 save "`temp1'", replace
 clear
-import delimited using "`Original'/DC_OriginalData_2023_Sch2", case(preserve)
+import delimited using "`Original'/DC_OriginalData_2023_Sch2", case(preserve) stringcols(2,4)
+append using "`temp1'"
+save "`temp1'", replace
+clear
+import excel using "`Original'/DC_OriginalData_2023_Dist", sheet(Data) case(preserve) firstrow
+replace AggregationLevel = "District"
 append using "`temp1'"
 save "`temp1'", replace
 clear
 import excel using "`Original'/DC_OriginalData_2023_State", sheet(Performance Level) case(preserve) firstrow
 replace LEACode = ""
 replace SchoolCode = ""
-destring LEACode SchoolCode, replace
 append using "`temp1'"
 save "`temp1'", replace
 clear
-import delimited using "`Original'/DC_OriginalData_2023_Sch_Part", case(preserve)
+import delimited using "`Original'/DC_OriginalData_2023_Sch_Part", case(preserve) stringcols(2,4)
+append using "`temp1'"
+save "`temp1'", replace
+clear
+import excel using "`Original'/DC_OriginalData_2023_Dist", sheet(Participation) firstrow case(preserve)
+replace AggregationLevel = "District"
 append using "`temp1'"
 save "`temp1'", replace
 clear
 import excel using "`Original'/DC_OriginalData_2023_State", sheet(Participation) firstrow case(preserve)
 replace LEACode = ""
 replace SchoolCode = ""
-destring LEACode SchoolCode, replace
 append using "`temp1'"
 save "`Original'/2023", replace
 
@@ -58,6 +66,7 @@ replace Metric = subinstr(Metric, "Performance Level ","",.)
 duplicates drop
 duplicates tag DataLevel Subject Metric StateAssignedDistID StateAssignedSchID StudentSubGroup GradeLevel, gen(ind)
 drop if ind !=0 & (Count == "n<10" | Count == "DS")
+save "/Volumes/T7/State Test Project/District of Columbia/Testing/2023", replace
 reshape wide Count Percent TotalCount, i(DataLevel Subject StateAssignedDistID StateAssignedSchID StudentSubGroup GradeLevel) j(Metric, string)
 
 //TotalCount
@@ -86,7 +95,8 @@ sort DataLevel_n
 drop DataLevel
 rename DataLevel_n DataLevel
 replace DistName = "All Districts" if DataLevel ==1
-replace SchName = "All Schools" if DataLevel ==1
+replace SchName = "All Schools" if DataLevel ==1 | DataLevel ==2
+
 
 //StudentSubGroup
 replace StudentSubGroup = subinstr(StudentSubGroup, "/", " or ",.)
@@ -139,13 +149,27 @@ tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "0"
 
 //Merging with NCES
-tostring StateAssignedDistID StateAssignedSchID, replace
 replace StateAssignedDistID = "" if DataLevel ==1
 replace StateAssignedSchID = "" if DataLevel == 1
+replace StateAssignedSchID = "" if DataLevel == 2
 tempfile temp1
 save "`temp1'"
-
+clear
+//District Level
+use "`temp1'"
+keep if DataLevel ==2
+tempfile tempdist
+save "`tempdist'", replace
+clear
+use "`NCES'/NCES_2021_District"
+keep if state_name == 11 | state_location == "DC"
+gen StateAssignedDistID = subinstr(state_leaid, "DC-","",.)
+merge 1:m StateAssignedDistID using "`tempdist'"
+drop if _merge ==1
+save "`tempdist'", replace
+clear
 //School Level
+use "`temp1'"
 keep if DataLevel ==3
 tempfile tempsch
 save "`tempsch'", replace
@@ -162,7 +186,7 @@ save "`tempsch'", replace
 //Appending
 use "`temp1'"
 keep if DataLevel==1
-append using "`tempsch'"
+append using "`tempsch'" "`tempdist'"
 
 //Fixing NCES Variables
 rename state_location StateAbbrev
@@ -196,7 +220,7 @@ gen AvgScaleScore = "--"
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_oth = "N"
+gen Flag_CutScoreChange_oth = ""
 gen Flag_CutScoreChange_read = ""
 gen ProficiencyCriteria = "Levels 4 and 5"
 gen AssmtType = "Regular"

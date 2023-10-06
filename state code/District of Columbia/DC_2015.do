@@ -9,11 +9,11 @@ local NCES "/Volumes/T7/State Test Project/NCES"
 tempfile temp1
 save "`temp1'", emptyok replace
 clear
-import excel "`Original'/DC_OriginalData_2015_all.xlsx", sheet(School) firstrow
+import excel "`Original'/DC_OriginalData_2015_all.xlsx", sheet(School) firstrow allstring
 append using "`temp1'"
 save "`temp1'", replace
 clear
-import excel "`Original'/DC_OriginalData_2015_all.xlsx", sheet(State & Sector) firstrow
+import excel "`Original'/DC_OriginalData_2015_all.xlsx", sheet(State & Sector) firstrow allstring
 append using "`temp1'"
 save "`Original'/2015", replace
 replace J = N if !missing(SchoolName)
@@ -52,14 +52,16 @@ rename DataLevel_n DataLevel
 drop if DataLevel ==2
 replace DistName = "All Districts" if DataLevel ==1
 replace SchName = "All Schools" if DataLevel ==1
-replace StateAssignedDistID =. if DataLevel ==1
-replace StateAssignedSchID =. if DataLevel ==1
+replace StateAssignedDistID = "" if DataLevel ==1
+replace StateAssignedSchID = "" if DataLevel ==1
 
 //StudentSubGroup
 replace StudentSubGroup = "All Students" if StudentSubGroup == "All"
 replace StudentSubGroup = "English Learner" if strpos(StudentSubGroup, "English")
 replace StudentSubGroup = subinstr(StudentSubGroup, "/", " or ",.)
 replace StudentSubGroup = "Two or More" if strpos(StudentSubGroup, "Two") !=0
+replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if strpos(StudentSubGroup, "Hawaiian") !=0
+replace StudentSubGroup = "American Indian or Alaska Native" if strpos(StudentSubGroup, "Alaskan") !=0
 keep if StudentSubGroup == "All Students" | StudentSubGroup == "American Indian or Alaska Native" | StudentSubGroup == "Asian" | StudentSubGroup == "Black or African American" | StudentSubGroup == "Native Hawaiian or Pacific Islander" | StudentSubGroup == "White" | StudentSubGroup == "Hispanic or Latino" | StudentSubGroup == "English Learner" | StudentSubGroup == "English Proficient" | StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged" | StudentSubGroup == "Male" | StudentSubGroup == "Female" | StudentSubGroup == "Two or More"
 
 //StudentGroup
@@ -73,7 +75,8 @@ replace StudentGroup = "RaceEth" if StudentSubGroup == "Hispanic or Latino"
 
 //GradeLevel
 replace GradeLevel = "G0" + GradeLevel
-keep if inlist(GradeLevel,"G03","G04","G05","G06","G07","G08")
+replace GradeLevel = "G38" if GradeLevel == "G0All"
+keep if inlist(GradeLevel,"G03","G04","G05","G06","G07","G08", "G38")
 
 //Supressed Data
 foreach var of varlist _all {
@@ -107,7 +110,7 @@ save "`tempsch'", replace
 clear
 use "`NCES'/NCES_2014_School"
 keep if state_name == 11 | state_location == "DC"
-destring seasch, gen(StateAssignedSchID)
+gen StateAssignedSchID = seasch
 merge 1:m StateAssignedSchID using "`tempsch'"
 drop if _merge == 1
 save "`tempsch'", replace

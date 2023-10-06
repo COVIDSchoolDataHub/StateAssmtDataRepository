@@ -7,14 +7,18 @@ local NCES "/Volumes/T7/State Test Project/NCES"
 //Importing ela/math
 tempfile temp1
 save "`temp1'", replace emptyok
-import delimited using "`Original'/DC_OriginalData_2022_Sch", case(preserve)
+import delimited using "`Original'/DC_OriginalData_2022_Sch", case(preserve) stringcols(2,4)
+append using "`temp1'"
+save "`temp1'", replace
+clear
+import excel using "`Original'/DC_OriginalData_2022_Dist", sheet(Data) firstrow allstring
+replace AggregationLevel = "District"
 append using "`temp1'"
 save "`temp1'", replace
 clear
 import excel using "`Original'/DC_OriginalData_2022_State", sheet(Data) case(preserve) firstrow
 replace LEACode = ""
 replace SchoolCode = ""
-destring LEACode SchoolCode, replace
 append using "`temp1'"
 save "`temp1'", replace
 clear
@@ -22,15 +26,18 @@ clear
 //Importing sci
 tempfile temp2
 save "`temp2'", replace emptyok
-import excel using "`Original'/DC_OriginalData_2022_sci_Sch", sheet(perf_level) firstrow case(preserve)
-destring LEACode SchoolCode, replace
+import excel using "`Original'/DC_OriginalData_2022_sci_Sch", sheet(perf_level) firstrow case(preserve) allstring
+append using "`temp2'"
+save "`temp2'", replace
+clear
+import excel using "`Original'/DC_OriginalData_2022_sci_Dist", sheet(perf_level) firstrow case(preserve) allstring
+replace AggregationLevel = "District"
 append using "`temp2'"
 save "`temp2'", replace
 clear
 import excel using "`Original'/DC_OriginalData_2022_sci_State", sheet(perf_level) firstrow case(preserve)
 replace LEACode = ""
 replace SchoolCode = ""
-destring LEACode SchoolCode, replace
 append using "`temp2'"
 append using "`temp1'"
 
@@ -80,7 +87,7 @@ sort DataLevel_n
 drop DataLevel
 rename DataLevel_n DataLevel
 replace DistName = "All Districts" if DataLevel ==1
-replace SchName = "All Schools" if DataLevel ==1
+replace SchName = "All Schools" if DataLevel ==1 | DataLevel == 2
 
 //StudentSubGroup
 replace StudentSubGroup = subinstr(StudentSubGroup, "/", " or ",.)
@@ -132,13 +139,27 @@ tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "0"
 
 //Merging with NCES
-tostring StateAssignedDistID StateAssignedSchID, replace
 replace StateAssignedDistID = "" if DataLevel ==1
 replace StateAssignedSchID = "" if DataLevel == 1
+replace StateAssignedSchID = "" if DataLevel == 2
 tempfile temp1
 save "`temp1'"
-
+clear
+//District Level
+use "`temp1'"
+keep if DataLevel ==2
+tempfile tempdist
+save "`tempdist'", replace
+clear
+use "`NCES'/NCES_2021_District"
+keep if state_name == 11 | state_location == "DC"
+gen StateAssignedDistID = subinstr(state_leaid, "DC-","",.)
+merge 1:m StateAssignedDistID using "`tempdist'"
+drop if _merge ==1
+save "`tempdist'", replace
+clear
 //School Level
+use "`temp1'"
 keep if DataLevel ==3
 tempfile tempsch
 save "`tempsch'", replace
@@ -155,7 +176,7 @@ save "`tempsch'", replace
 //Appending
 use "`temp1'"
 keep if DataLevel==1
-append using "`tempsch'"
+append using "`tempsch'" "`tempdist'"
 
 //Fixing NCES Variables
 rename state_location StateAbbrev
