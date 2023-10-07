@@ -1,0 +1,564 @@
+
+
+cap log close
+log using north_carolina_cleaning.log, replace 
+
+cd "/Users/benjaminm/Documents/State_Repository_Research/North_Carolina"
+
+// imports all years and converts to dta files 
+local years 13-14 14-15 15-16 16-17 17-18 21-22 22-23 //18-19 20-21
+foreach a in `years' {
+import delimited Disag_20`a'_Data.txt, clear
+save NC_OriginalData_`a'
+	
+}
+
+
+
+
+local years1  "13-14 14-15 15-16 16-17 17-18 18-19 20-21 21-22 22-23"
+// 14-15 15-16 16-17 17-18 21-22 22-23 //18-19 20-21
+
+
+foreach a in `years1' {
+	
+local prevyear = "20" + substr("`a'", 1, 2)
+local current = "20" + substr("`a'", 4, 5)
+
+
+
+use "NC_OriginalData_`a'", clear 
+
+
+rename school_code Code // will need to seprate in district/school
+// will need to make datalevel var based off of code
+rename name SchName
+rename subject Subject
+rename grade GradeLevel
+rename type AssmtType
+rename subgroup StudentSubGroup
+rename num_tested StudentSubGroup_TotalTested	
+
+if "`a'" == "22-23" | "`a'" == "21-22" {
+rename pct_notprof Lev2_percent
+}
+
+
+if "`a'" == "20-21" | "`a'" == "18-19" |  "`a'" == "17-18" | "`a'" == "16-17" | "`a'" == "15-16" | "`a'" == "14-15" | "`a'" == "13-14"  {
+rename pct_l1 Lev1_percent
+rename pct_l2 Lev2_percent
+	
+}
+
+if "`a'" == "20-21" | "`a'" == "18-19" {
+rename pct_notprof Lev2_percent1
+replace Lev2_percent = Lev2_percent1 if Lev2_percent == ""
+drop Lev2_percent1 
+}
+
+
+
+
+if "`a'" == "16-17" | "`a'" == "15-16" | "`a'" == "14-15" | "`a'" == "13-14"  {
+rename num_l1 Lev1_count
+rename num_l2 Lev2_count
+rename num_l3 Lev3_count
+rename num_l5 Lev5_count
+rename num_l4 Lev4_count
+rename num_glp ProficientOrAbove_count
+} 
+
+
+rename pct_l3 Lev3_percent
+rename pct_l4 Lev4_percent
+rename pct_l5 Lev5_percent
+rename pct_glp ProficientOrAbove_percent
+rename avg_score AvgScaleScore
+drop pct_ccr grade_span
+
+
+// keeping necessary grades 
+gen GradeLevel2 = ""
+replace GradeLevel2 = "G03" if GradeLevel == "03"
+replace GradeLevel2 = "G04" if GradeLevel == "04"
+replace GradeLevel2 = "G05" if GradeLevel == "05"
+replace GradeLevel2 = "G06" if GradeLevel == "06"
+replace GradeLevel2 = "G07" if GradeLevel == "07"
+replace GradeLevel2 = "G08" if GradeLevel == "08"
+replace GradeLevel2 = "G38" if GradeLevel == "GS"
+
+drop if GradeLevel2 == ""
+drop GradeLevel
+rename GradeLevel2 GradeLevel
+
+// keeping necessary test types
+keep if AssmtType == "RG"
+replace AssmtType = "Regular" if AssmtType == "RG"
+
+// keeping necessary subjects 
+gen Subject2 = ""
+replace Subject2 = "math" if Subject == "MA"
+replace Subject2 = "ela" if Subject == "RD"
+replace Subject2 = "sci" if Subject == "SC"
+drop if Subject2 == ""
+drop Subject
+rename Subject2 Subject
+
+// keeping necessary subroups 
+
+gen StudentSubGroup2 = ""
+replace StudentSubGroup2 = "All Students" if StudentSubGroup == "ALL"
+replace StudentSubGroup2 = "American Indian or Alaska Native" if StudentSubGroup == "AMIN"
+replace StudentSubGroup2 = "Asian" if StudentSubGroup == "ASIA"
+replace StudentSubGroup2 = "Black or African American" if StudentSubGroup == "BLCK"
+replace StudentSubGroup2 = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "PACI"
+replace StudentSubGroup2 = "Two or More" if StudentSubGroup == "MULT"
+replace StudentSubGroup2 = "Hispanic or Latino" if StudentSubGroup == "HISP"
+replace StudentSubGroup2 = "White" if StudentSubGroup == "WHTE"
+
+replace StudentSubGroup2 = "English Learner" if StudentSubGroup == "ELS"
+replace StudentSubGroup2 = "English Proficient" if StudentSubGroup== "NOT_ELS"
+
+replace StudentSubGroup2 = "Economically Disadvantaged" if StudentSubGroup == "EDS"
+replace StudentSubGroup2 = "Not Economically Disadvantaged" if StudentSubGroup== "NOT_EDS"
+
+replace StudentSubGroup2 = "Male" if StudentSubGroup == "MALE"
+replace StudentSubGroup2 = "Female" if StudentSubGroup == "FEM"
+drop if StudentSubGroup2 == ""
+drop StudentSubGroup
+rename StudentSubGroup2 StudentSubGroup
+
+
+
+// creating student groups 
+
+gen StudentGroup = ""
+replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
+replace StudentGroup = "RaceEth" if StudentSubGroup == "American Indian or Alaska Native"
+replace StudentGroup = "RaceEth" if StudentSubGroup == "Asian"
+replace StudentGroup = "RaceEth" if StudentSubGroup == "Black or African American"
+replace StudentGroup = "RaceEth" if StudentSubGroup == "Native Hawaiian or Pacific Islander"
+replace StudentGroup = "RaceEth" if StudentSubGroup == "Two or More"
+replace StudentGroup = "RaceEth" if StudentSubGroup == "Hispanic or Latino"
+replace StudentGroup = "RaceEth" if StudentSubGroup == "White"
+
+replace StudentGroup = "EL Status" if StudentSubGroup == "English Learner"
+replace StudentGroup = "EL Status" if StudentSubGroup == "English Proficient"
+
+replace StudentGroup = "Gender" if StudentSubGroup == "Male"
+replace StudentGroup = "Gender" if StudentSubGroup == "Female"
+
+
+replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged"
+replace StudentGroup = "Economic Status" if StudentSubGroup == "Not Economically Disadvantaged"
+
+
+// proficiency level 
+gen ProficiencyCriteria = "Levels 3, 4 and 5" // THIS WILL DIFF FOR PRIOR TO 2021/19 DEPENDING ON SUBJECT
+
+
+
+// split CODE into district piece, and school piece 
+
+gen StateAssignedDistID = ""
+replace StateAssignedDistID = Code if regexm(Code, "[0-9]{3}LEA")
+
+// remove LEA piece from stateassigneddistrictID 
+
+replace StateAssignedDistID = subinstr(StateAssignedDistID, "LEA", "", .)
+
+// drop entries which are "regions" by datalevel 
+drop if regexm(Code, "^NC-SB")
+
+// create datalevel funciton based on codes 
+gen DataLevel = "School"
+replace DataLevel = "District" if StateAssignedDistID != ""
+replace DataLevel = "State" if Code == "NC-SEA"
+
+replace Code = "" if DataLevel == "District" | DataLevel == "State"
+
+replace StateAssignedDistID = substr(Code, 1, 3) if DataLevel == "School"
+
+rename Code StateAssignedSchID
+
+
+// create separate district and school names, based on length of code (or daalevel function)
+
+gen DistName = SchName if DataLevel == "District"
+
+
+// hardcoding DataLevel 
+
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+sort DataLevel_n 
+drop DataLevel 
+rename DataLevel_n DataLevel 
+
+
+// "All Districts" and "All School" creation
+replace DistName = "All Districts" if DataLevel == 1
+replace SchName = "All Schools" if DataLevel == 1
+
+replace SchName = "All Schools" if DataLevel == 2
+
+
+save nc_progress_1, replace // use loop variable here (or not)
+
+
+
+//making state assigned school ID just 3 for match 
+replace StateAssignedSchID = substr(StateAssignedSchID, 4, .)
+
+
+rename StateAssignedDistID State_leaid
+
+if "`a'" == "22-23" {
+merge m:1 State_leaid using nc_district_IDs_2021
+} 
+
+
+if "`a'" != "22-23" {
+merge m:1 State_leaid using nc_district_IDs_`prevyear'
+} 
+
+drop DistName 
+rename DistName1 DistName 
+replace DistName = "All Districts" if DataLevel == 1
+
+drop if _merge == 2
+drop _merge
+
+
+if "`a'" == "22-23" {
+merge m:1 State_leaid using NCES_2021_District_NC // CHANGED
+rename _merge DistMerge
+drop if DistMerge == 2
+
+drop DistMerge
+	
+}
+
+ 
+
+
+
+
+
+if "`a'" != "22-23" {
+merge m:1 State_leaid using "NCES_`prevyear'_District_NC" // CHANGED
+rename _merge DistMerge
+drop if DistMerge == 2
+
+// rename State_leaid StateAssignedDistID
+
+drop DistMerge
+}
+
+
+
+
+
+if "`a'" == "22-23" {	
+rename StateAssignedSchID seasch
+merge m:1 State_leaid seasch using NCES_2021_School_NC // CHANGED 
+rename _merge SchoolMerge
+drop if SchoolMerge == 2
+} 
+
+if "`a'" != "22-23" {	
+rename StateAssignedSchID seasch
+merge m:1 State_leaid seasch using "NCES_`prevyear'_School_NC" // CHANGED 
+rename _merge SchoolMerge
+drop if SchoolMerge == 2
+} 
+
+
+
+
+
+
+rename State_leaid StateAssignedDistID
+rename seasch StateAssignedSchID
+
+// general 
+drop State
+drop StateAbbrev
+drop StateFips
+gen State = "North Carolina"
+gen StateAbbrev = "NC"
+gen StateFips = 37 // CHANGED
+
+// flags // FLAGSSSSS
+gen Flag_AssmtNameChange = "N"
+gen Flag_CutScoreChange_ELA = "N"
+gen Flag_CutScoreChange_math = "N"
+gen Flag_CutScoreChange_read = ""
+gen Flag_CutScoreChange_oth = "N"
+
+
+if "`a'" == "18-19" {
+
+replace Flag_CutScoreChange_math = "Y"
+
+}
+
+if "`a'" == "21-22" {
+
+replace Flag_CutScoreChange_ELA = "Y"
+replace Flag_CutScoreChange_oth = "Y"
+
+}
+
+
+
+if "`a'" == "13-14" {
+gen SchYear = "2013-14"
+
+} 
+
+if "`a'" == "14-15" {
+gen SchYear = "2014-15"
+
+} 
+
+if "`a'" == "15-16" {
+gen SchYear = "2015-16"
+
+} 
+
+if "`a'" == "16-17" {
+gen SchYear = "2016-17"
+
+} 
+
+if "`a'" == "17-18" {
+gen SchYear = "2017-18"
+
+} 
+
+if "`a'" == "18-19" {
+gen SchYear = "2018-19"
+} 
+
+if "`a'" == "20-21" {
+gen SchYear = "2020-21"
+
+}
+
+if "`a'" == "21-22" {
+gen SchYear = "2021-22"
+
+}
+
+if "`a'" == "22-23" {
+gen SchYear = "2022-23"
+
+} 
+
+
+// decoding to create strings here
+
+if "`a'" != "13-14" {
+decode DistType, gen (DistType1)
+drop DistType
+rename DistType1 DistType
+
+decode SchType, gen (SchType1)
+drop SchType
+rename SchType1 SchType
+
+decode SchLevel, gen (SchLevel1)
+drop SchLevel
+rename SchLevel1 SchLevel
+
+decode SchVirtual, gen (SchVirtual1)
+drop SchVirtual
+rename SchVirtual1 SchVirtual
+} 
+
+
+gen AssmtName = "End Of Grade Assessments" // r3 changed
+
+gen seasch = StateAssignedSchID // CHANGED //r3 changed
+gen State_leaid = StateAssignedDistID // CHANGED
+
+
+
+if "`a'" == "22-23" | "`a'" == "21-22" {
+gen Lev1_count = "-" //r3 changed
+gen Lev1_percent = "-" //r3 changed
+gen Lev2_count = "-" //r3 changed
+gen Lev3_count = "-" //r3 changed
+gen Lev4_count = "-" //r3 changed
+gen Lev5_count = "-" //r3 changed
+} 
+
+if "`a'" == "20-21" | "`a'" == "18-19" | "`a'" == "17-18" {
+gen Lev1_count = "-" //r3 changed
+gen Lev2_count = "-" //r3 changed
+gen Lev3_count = "-" //r3 changed
+gen Lev4_count = "-" //r3 changed
+gen Lev5_count = "-" //r3 changed
+	
+}
+
+
+if "`a'" == "22-23" | "`a'" == "21-22" | "`a'" == "20-21" | "`a'" == "18-19" |  "`a'" == "17-18" {
+gen ProficientOrAbove_count = "-" //r3 changed
+ 
+}
+
+
+
+gen StudentGroup_TotalTested = StudentSubGroup_TotalTested 
+destring StudentGroup_TotalTested, replace force ignore(",")
+// replace StudentGroup_TotalTested = -1000000 if StudentGroup_TotalTested == .
+bys StudentGroup Subject GradeLevel DistName SchName: egen StudentGroup_TotalTested1 = total(StudentGroup_TotalTested)
+replace StudentGroup_TotalTested1 =. if StudentGroup_TotalTested1 < 0
+tostring StudentGroup_TotalTested1, replace
+replace StudentGroup_TotalTested1 = "*" if StudentGroup_TotalTested1 == "."
+drop StudentGroup_TotalTested
+rename StudentGroup_TotalTested1 StudentGroup_TotalTested
+
+// CHANGED
+
+gen ParticipationRate = ""
+
+order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth 
+
+
+keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth 
+
+
+
+replace Lev2_percent = "-" if Lev2_percent =="-100000"
+replace Lev3_percent = "-" if Lev3_percent == "-100000"
+replace Lev4_percent = "-" if Lev4_percent == "-100000"
+replace Lev5_percent = "-" if Lev5_percent == "-100000"
+
+
+replace Lev2_percent = "5000000" if Lev2_percent == "<5"
+replace Lev3_percent = "5000000" if Lev3_percent == "<5"
+replace Lev4_percent = "5000000" if Lev4_percent == "<5"
+replace Lev5_percent = "5000000" if Lev5_percent == "<5"
+
+
+replace Lev2_percent = "95000000" if Lev2_percent == ">95"
+replace Lev3_percent = "95000000" if Lev3_percent == ">95"
+replace Lev4_percent = "95000000" if Lev4_percent == ">95"
+replace Lev5_percent = "95000000" if Lev5_percent == ">95"
+
+
+replace ProficientOrAbove_percent = "-" if ProficientOrAbove_percent == "-100000"
+replace ProficientOrAbove_percent = "5000000" if ProficientOrAbove_percent == "<5"
+replace ProficientOrAbove_percent = "95000000" if ProficientOrAbove_percent == ">95"
+
+
+if "`a'" == "16-17" | "`a'" == "15-16" | "`a'" == "14-15" | "`a'" == "13-14"  {
+replace Lev1_count = "-100000" if Lev1_count == "-"
+replace Lev2_count = "-100000" if Lev2_count == "-"
+replace Lev3_count = "-100000" if Lev3_count == "-"
+replace Lev4_count = "-100000" if Lev4_count == "-"
+replace Lev5_count = "-100000" if Lev5_count == "-"
+replace ProficientOrAbove_count = "-100000" if ProficientOrAbove_count == "-"
+} 
+
+if "`a'" == "21-22" | "`a'" == "20-21" | "`a'" == "18-19" |  "`a'" == "17-18" | "`a'" == "16-17" | "`a'" == "15-16" | "`a'" == "14-15" | "`a'" == "13-14"  {
+replace Lev1_percent = "-100000" if Lev1_percent == "-"
+replace Lev1_percent = "5000000" if Lev1_percent == "<5"
+replace Lev1_percent = "95000000" if Lev1_percent == ">95"
+} 
+
+
+if "`a'" == "22-23" | "`a'" == "21-22" {
+destring Lev2_percent Lev3_percent Lev4_percent Lev5_percent ProficientOrAbove_percent, replace force ignore(", < >") // CHANGED // r3 changed (no lev 5) // participationrate
+
+
+// converting to decimal form from percentage form 
+replace Lev2_percent = Lev2_percent/100 
+replace Lev3_percent = Lev3_percent/100 
+replace Lev4_percent = Lev4_percent/100 
+replace Lev5_percent = Lev5_percent/100 
+replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
+// replace ParticipationRate = ParticipationRate/100
+
+tostring Lev2_percent Lev3_percent Lev4_percent Lev5_percent ProficientOrAbove_percent, replace force
+} 
+
+
+
+if "`a'" == "20-21" | "`a'" == "18-19" | "`a'" == "17-18" | "`a'" == "16-17" | "`a'" == "15-16" | "`a'" == "14-15" | "`a'" == "13-14"  {
+destring Lev1_percent Lev2_percent Lev3_percent Lev4_percent Lev5_percent ProficientOrAbove_percent, replace force ignore(", < >") // CHANGED // r3 changed (no lev 5) // participationrate
+
+
+// converting to decimal form from percentage form 
+replace Lev1_percent = Lev1_percent/100 
+replace Lev2_percent = Lev2_percent/100 
+replace Lev3_percent = Lev3_percent/100 
+replace Lev4_percent = Lev4_percent/100 
+replace Lev5_percent = Lev5_percent/100 
+replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
+
+tostring Lev1_percent Lev2_percent Lev3_percent Lev4_percent Lev5_percent ProficientOrAbove_percent, replace force
+
+} 
+
+
+
+
+if "`a'" == "16-17" | "`a'" == "15-16" | "`a'" == "14-15" | "`a'" == "13-14"  {
+replace Lev1_count = "*" if Lev1_count == "-100000" 
+replace Lev2_count = "*" if Lev2_count == "-100000" 
+replace Lev3_count = "*" if Lev3_count == "-100000" 
+replace Lev4_count = "*" if Lev4_count == "-100000" 
+replace Lev5_count = "*" if Lev5_count == "-100000" 
+
+replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "-100000"
+replace ProficientOrAbove_count = "<.05" if ProficientOrAbove_count  == "50000"
+replace ProficientOrAbove_count = ">.95" if ProficientOrAbove_count  == "950000"
+
+} 
+
+
+if "`a'" == "20-21" | "`a'" == "18-19" |  "`a'" == "17-18" | "`a'" == "16-17" | "`a'" == "15-16" | "`a'" == "14-15" | "`a'" == "13-14"  {
+replace Lev1_percent = "*" if Lev1_percent == "-1000"
+replace Lev1_percent = "<.05" if Lev1_percent == "50000"
+replace Lev1_percent = ">.95" if Lev1_percent == "950000"
+} 
+
+replace Lev2_percent = "<.05" if Lev2_percent == "50000"
+replace Lev2_percent = ">.95" if Lev2_percent == "950000"
+
+replace Lev3_percent = "<.05" if Lev3_percent == "50000"
+replace Lev3_percent = ">.95" if Lev3_percent == "950000"
+
+replace Lev4_percent = "<.05" if Lev4_percent == "50000"
+replace Lev4_percent = ">.95" if Lev4_percent == "950000"
+
+replace Lev5_percent = "<.05" if Lev5_percent == "50000"
+replace Lev5_percent = ">.95" if Lev5_percent == "950000"
+
+replace Lev2_percent = "*" if Lev2_percent == "-1000"
+replace Lev3_percent = "*" if Lev3_percent == "-1000"
+replace Lev4_percent = "*" if Lev4_percent == "-1000"
+replace Lev5_percent = "*" if Lev5_percent == "-1000"
+
+
+replace ProficientOrAbove_percent = "<.05" if ProficientOrAbove_percent == "50000"
+replace ProficientOrAbove_percent = ">.95" if ProficientOrAbove_percent == "950000"
+replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "-1000"
+
+
+
+
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
+save NC_AssmtData_`current'_Stata, replace
+export delimited NC_AssmtData_`current'.csv, replace
+
+
+}
+
+
+
