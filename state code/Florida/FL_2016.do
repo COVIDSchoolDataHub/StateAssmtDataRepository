@@ -141,19 +141,20 @@ foreach var of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent Lev5_
 // Generating Missing Variables
 gen SchYear = "2015-16"
 gen AssmtName = "FSA"
+replace AssmtName = "Statewide Science Assessment" if Subject == "sci"
 gen AssmtType = "Regular"
 gen StudentGroup = "All Students"
 gen StudentSubGroup = "All Students"
 gen StudentGroup_TotalTested = StudentSubGroup_TotalTested
-gen Lev1_count = ""
-gen Lev2_count = ""
-gen Lev3_count = ""
-gen Lev4_count = ""
-gen Lev5_count = ""
+gen Lev1_count = "--"
+gen Lev2_count = "--"
+gen Lev3_count = "--"
+gen Lev4_count = "--"
+gen Lev5_count = "--"
 gen ProficiencyCriteria = "Levels 3, 4, 5"
-gen ProficientOrAbove_count = ""
-gen ParticipationRate = ""
-gen Flag_AssmtNameChange = "N"
+gen ProficientOrAbove_count = "--"
+gen ParticipationRate = "--"
+gen Flag_AssmtNameChange = "Y"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_read = ""
@@ -221,6 +222,19 @@ replace SchName = "All Schools" if DataLevel == 2
 replace seasch = "" if DataLevel == 1 | DataLevel == 2
 replace State_leaid = "" if DataLevel == 1
 replace StateAssignedDistID = "" if DataLevel == 1
+
+// Removing commas
+replace StudentGroup_TotalTested = subinstr(StudentGroup_TotalTested, ",","",.)
+replace StudentSubGroup_TotalTested = subinstr(StudentSubGroup_TotalTested, ",","",.)
+
+// Fixing Wabasso missing percents
+replace Lev1_percent = "*" if Lev1_percent == "."
+replace Lev2_percent = "*" if Lev2_percent == "."
+replace Lev3_percent = "*" if Lev3_percent == "."
+replace Lev4_percent = "*" if Lev4_percent == "."
+replace Lev5_percent = "*" if Lev5_percent == "."
+replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
+replace AvgScaleScore = "*" if AvgScaleScore == ""
 
 // Reordering variables and sorting data
 order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth

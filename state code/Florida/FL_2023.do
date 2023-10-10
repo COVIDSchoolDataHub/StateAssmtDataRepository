@@ -141,19 +141,19 @@ foreach var of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent Lev5_
 // Generating Missing Variables
 gen SchYear = "2022-23"
 gen AssmtName = "FAST"
-replace AssmtName = "FSA" if Subject == "sci"
+replace AssmtName = "Statewide Science Assessment" if Subject == "sci"
 gen AssmtType = "Regular"
 gen StudentGroup = "All Students"
 gen StudentSubGroup = "All Students"
 gen StudentGroup_TotalTested = StudentSubGroup_TotalTested
-gen Lev1_count = ""
-gen Lev2_count = ""
-gen Lev3_count = ""
-gen Lev4_count = ""
-gen Lev5_count = ""
+gen Lev1_count = "--"
+gen Lev2_count = "--"
+gen Lev3_count = "--"
+gen Lev4_count = "--"
+gen Lev5_count = "--"
 gen ProficiencyCriteria = "Levels 3, 4, 5"
-gen ProficientOrAbove_count = ""
-gen ParticipationRate = ""
+gen ProficientOrAbove_count = "--"
+gen ParticipationRate = "--"
 gen Flag_AssmtNameChange = "Y"
 gen Flag_CutScoreChange_ELA = "Y"
 gen Flag_CutScoreChange_math = "Y"
@@ -229,9 +229,30 @@ replace seasch = "" if DataLevel == 1 | DataLevel == 2
 replace State_leaid = "" if DataLevel == 1
 replace StateAssignedDistID = "" if DataLevel == 1
 
-// Adding state info for missing NCES districts
+// Fixing Missing SchVirtual
+replace SchVirtual = -1 if SchLevel == -1 & SchVirtual == .
+
+// Fixing other NCES variables for Missing/not reported IDs
+replace State = "Florida" if NCESDistrictID == "Missing/not reported"
 replace StateAbbrev = "FL" if NCESDistrictID == "Missing/not reported"
 replace StateFips = 12 if NCESDistrictID == "Missing/not reported"
+replace DistType = -1 if NCESDistrictID == "Missing/not reported"
+label def agency_typedf -1 "Missing/not reported", modify
+replace State_leaid = "Missing/not reported" if State_leaid == "" & NCESDistrictID == "Missing/not reported"
+replace DistCharter = "Missing/not reported" if NCESDistrictID == "Missing/not reported"
+replace CountyName = "Missing/not reported" if NCESDistrictID == "Missing/not reported"
+replace CountyCode = -1 if NCESDistrictID == "Missing/not reported"
+label def county_codedf -1 "Missing/not reported", modify
+
+
+replace SchType = -1 if NCESSchoolID == "Missing/not reported"
+label def school_typedf -1 "Missing/not reported", modify
+replace seasch = "Missing/not reported" if seasch == "" & NCESSchoolID == "Missing/not reported"
+replace SchLevel = -1 if NCESSchoolID == "Missing/not reported"
+label def school_leveldf -1 "Missing/not reported", modify
+replace SchVirtual = -1 if NCESSchoolID == "Missing/not reported"
+label def virtualdf -1 "Missing/not reported", modify
+
 
 // Reordering variables and sorting data
 order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
