@@ -42,7 +42,8 @@ append using "`temp2'"
 append using "`temp1'"
 
 save "`Original'/2019", replace
-drop if !missing(M) | !missing(P)
+
+drop if !missing(M) | !missing(P) & Subject != "Science"
 //Standardizing Varnames
 rename AssessmentType AssmtName
 keep if AssmtName == "PARCC" | AssmtName == "DC Science"
