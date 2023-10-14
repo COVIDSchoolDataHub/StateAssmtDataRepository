@@ -191,6 +191,8 @@ gen ProficiencyCriteria = "Levels 3 and 4"
 gen AssmtType = "Regular"
 gen AssmtName = "ACT Aspire"
 gen SchYear = "`prevyear'" + "-" + substr("`year'",-2,2)
+replace Flag_CutScoreChange_ELA = "Y" if `year' == 2018
+replace Flag_CutScoreChange_oth = "Y" if `year' == 2018
 
 foreach var of varlist Flag* {
 	replace `var' = "Y" if `year' == 2016
