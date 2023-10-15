@@ -1,8 +1,4 @@
 
-
-cap log close
-log using north_carolina_cleaning.log, replace 
-
 cd "/Users/benjaminm/Documents/State_Repository_Research/North_Carolina"
 
 // imports all years and converts to dta files 
@@ -12,8 +8,7 @@ import delimited Disag_20`a'_Data.txt, clear
 save NC_OriginalData_`a'
 	
 }
-
-
+	
 
 
 local years1  "13-14 14-15 15-16 16-17 17-18 18-19 20-21 21-22 22-23"
@@ -421,21 +416,16 @@ replace StudentGroup_TotalTested1 = "*" if StudentGroup_TotalTested1 == "."
 drop StudentGroup_TotalTested
 rename StudentGroup_TotalTested1 StudentGroup_TotalTested
 
-// CHANGED
-
-gen ParticipationRate = ""
-
-order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth 
 
 
-keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth 
+gen ParticipationRate = "-" //r1
 
 
-
-replace Lev2_percent = "-" if Lev2_percent =="-100000"
-replace Lev3_percent = "-" if Lev3_percent == "-100000"
-replace Lev4_percent = "-" if Lev4_percent == "-100000"
-replace Lev5_percent = "-" if Lev5_percent == "-100000"
+display "CCCCCCCCC"
+replace Lev2_percent = "-100000" if Lev2_percent =="-"
+replace Lev3_percent = "-100000" if Lev3_percent == "-"
+replace Lev4_percent = "-100000" if Lev4_percent == "-"
+replace Lev5_percent = "-100000" if Lev5_percent == "-"
 
 
 replace Lev2_percent = "5000000" if Lev2_percent == "<5"
@@ -472,7 +462,7 @@ replace Lev1_percent = "95000000" if Lev1_percent == ">95"
 
 
 if "`a'" == "22-23" | "`a'" == "21-22" {
-destring Lev2_percent Lev3_percent Lev4_percent Lev5_percent ProficientOrAbove_percent, replace force ignore(", < >") // CHANGED // r3 changed (no lev 5) // participationrate
+destring Lev2_percent Lev3_percent Lev4_percent Lev5_percent ProficientOrAbove_percent AvgScaleScore, replace force ignore(", < >")  //r1 added avgscale 
 
 
 // converting to decimal form from percentage form 
@@ -483,13 +473,13 @@ replace Lev5_percent = Lev5_percent/100
 replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
 // replace ParticipationRate = ParticipationRate/100
 
-tostring Lev2_percent Lev3_percent Lev4_percent Lev5_percent ProficientOrAbove_percent, replace force
+tostring Lev2_percent Lev3_percent Lev4_percent Lev5_percent ProficientOrAbove_percent AvgScaleScore, replace force //r1 added avgscale 
 } 
 
 
 
 if "`a'" == "20-21" | "`a'" == "18-19" | "`a'" == "17-18" | "`a'" == "16-17" | "`a'" == "15-16" | "`a'" == "14-15" | "`a'" == "13-14"  {
-destring Lev1_percent Lev2_percent Lev3_percent Lev4_percent Lev5_percent ProficientOrAbove_percent, replace force ignore(", < >") // CHANGED // r3 changed (no lev 5) // participationrate
+destring Lev1_percent Lev2_percent Lev3_percent Lev4_percent Lev5_percent ProficientOrAbove_percent AvgScaleScore, replace force ignore(", < >")  //r1 added avgscale score
 
 
 // converting to decimal form from percentage form 
@@ -500,9 +490,12 @@ replace Lev4_percent = Lev4_percent/100
 replace Lev5_percent = Lev5_percent/100 
 replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
 
-tostring Lev1_percent Lev2_percent Lev3_percent Lev4_percent Lev5_percent ProficientOrAbove_percent, replace force
+tostring Lev1_percent Lev2_percent Lev3_percent Lev4_percent Lev5_percent ProficientOrAbove_percent AvgScaleScore, replace force //r1 added avgscale score
 
 } 
+
+display "BBBBBBBBBB"
+replace AvgScaleScore = "-" if AvgScaleScore == "."
 
 
 
@@ -539,6 +532,7 @@ replace Lev4_percent = ">.95" if Lev4_percent == "950000"
 replace Lev5_percent = "<.05" if Lev5_percent == "50000"
 replace Lev5_percent = ">.95" if Lev5_percent == "950000"
 
+display "AAAAAAAA"
 replace Lev2_percent = "*" if Lev2_percent == "-1000"
 replace Lev3_percent = "*" if Lev3_percent == "-1000"
 replace Lev4_percent = "*" if Lev4_percent == "-1000"
@@ -549,7 +543,52 @@ replace ProficientOrAbove_percent = "<.05" if ProficientOrAbove_percent == "5000
 replace ProficientOrAbove_percent = ">.95" if ProficientOrAbove_percent == "950000"
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "-1000"
 
+if "`a'" == "14-15" { // r1
+	
+replace NCESSchoolID = "" if DataLevel == 1 // r1 (for 2015)
+	
+} //r1 
 
+// convert > < to ranges // r1 
+foreach var of varlist Lev*_percent ProficientOrAbove_percent {
+        // replace `var' = subinstr(`var', "=","",.)
+        replace `var' = subinstr(`var',">","",.) + "-1" if strpos(`var', ">") !=0
+        replace `var' = subinstr(`var', "<","0-",.) if strpos(`var', "<") !=0
+} // r1
+
+
+if "`a'" == "22-23" { // r1
+
+save nc_in_progress_2023, replace
+import delimited "/Users/benjaminm/Documents/State_Repository_Research/North_Carolina/missing_nc.csv", case(preserve) stringcols(2 6 12) clear 
+save missing_nc, replace 
+
+
+use nc_in_progress_2023, clear
+merge m:1 StateAssignedDistID StateAssignedSchID using missing_nc
+
+replace DistName = DistName2 if DistName == "" & DataLevel == 3
+replace NCESDistrictID = NCESDistrictID1 if NCESDistrictID == "" & DataLevel == 3
+replace DistCharter = DistCharter1 if DistCharter == "" & DataLevel == 3
+replace DistType = DistType1 if DistType == "" & DataLevel == 3
+drop DistName1 DistCharter1 DistType1 
+
+replace NCESSchoolID = NCESSchoolID1 if NCESSchoolID == "" & DataLevel == 3
+replace SchType = SchType1 if SchType == "" & DataLevel == 3
+replace SchLevel = SchLevel1 if SchLevel == "" & DataLevel == 3
+replace CountyName = CountyName1 if CountyName == "" & DataLevel == 3
+replace CountyCode = CountyCode1 if CountyCode == . & DataLevel == 3
+replace SchVirtual = SchVirtual1 if SchVirtual == "" & DataLevel == 3
+drop NCESSchoolID1 SchType1 SchLevel1 CountyName1 CountyCode1 SchVirtual1
+}
+
+
+
+
+order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth 
+
+
+keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth 
 
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
@@ -559,6 +598,3 @@ export delimited NC_AssmtData_`current'.csv, replace
 
 
 }
-
-
-
