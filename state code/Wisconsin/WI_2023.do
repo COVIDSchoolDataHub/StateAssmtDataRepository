@@ -340,8 +340,24 @@ append using "$temporary/WI_2023_only_suppressed.dta" "$temporary/WI_2023_wo_sup
 drop if SchName == "eSucceed Charter School" & NCESDistrictID != "5505280"
 drop if SchName == "Lakeland STAR School--Strong Talented Adventurous Remarkable" & NCESDistrictID != "5509690"
 drop if SchName == "Kiel eSchool" & NCESDistrictID != "5507440"
-replace NCESSchoolID = "Missing" if SchName == "JEDI Virtual K-12 - Jefferson and Eastern Dane County Interactive" & NCESSchoolID == ""
-*/
+replace NCESSchoolID = "Missing/not reported" if SchName == "JEDI Virtual K-12 - Jefferson and Eastern Dane County Interactive" & NCESSchoolID == ""*/
+
+// 2023 new schools manual NCES
+save "$temporary/WI_2023_wo_new2023.dta", replace
+import delimited using "$path/WI_2023_NCES_Merging.csv", varnames(1) delimit(",") case(preserve) clear
+
+tostring NCESDistrictID, replace force
+tostring CountyCode, replace force
+tostring StateAssignedDistID, replace force
+tostring StateAssignedSchID, replace force
+replace StateAssignedSchID = "" if StateAssignedSchID == "."
+drop DataLevel
+
+merge 1:m StateAssignedDistID StateAssignedSchID using "$temporary/WI_2023_wo_new2023.dta", nogenerate
+
+
+// Fixing Sun Prairie
+replace SchVirtual = "Missing/not reported" if NCESSchoolID == "551464003161"
 
 // Sorting and Exporting final
 
@@ -349,5 +365,7 @@ drop Suppressed
 drop SuppressedSubGroup
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
+order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 
 export delimited using "${output}/WI_AssmtData_2023.csv", replace
