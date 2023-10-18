@@ -15,7 +15,6 @@ foreach n in $ncesyears {
 	rename ncesdistrictid NCESDistrictID
 	rename state_leaid State_leaid
 	rename ncesschoolid NCESSchoolID
-	rename lea_name DistName
 	rename school_type SchType
 	
 	** Fix Variable Types
@@ -37,7 +36,7 @@ foreach n in $ncesyears {
 	
 	** Drop Excess Variables
 
-	keep StateFips NCESDistrictID State_leaid DistCharter NCESSchoolID seasch SchVirtual SchLevel SchType
+	keep StateFips school_name NCESDistrictID State_leaid DistCharter NCESSchoolID seasch SchVirtual SchLevel SchType
 	local m = `n' - 1999
 	
 	save "${path}/Semi-Processed Data Files/`n'_`m'_NCES_Cleaned_School.dta", replace
@@ -65,7 +64,7 @@ foreach n in $ncesyears {
 
 	** Drop Excess Variables
 
-	keep StateFips NCESDistrictID State_leaid DistCharter CountyCode CountyName DistType
+	keep StateFips NCESDistrictID State_leaid DistCharter CountyCode CountyName DistType lea_name
 
 	* Isolate Rhode Island Data
 
@@ -98,6 +97,8 @@ foreach v in $screadyyears {
 	rename mathpct34 ProficientOrAbove_percentmath
 	rename elaN StudentSubGroup_TotalTestedela
 	rename mathN StudentSubGroup_TotalTestedmath
+	rename elaMEAN AvgScaleScoreela
+	rename mathMEAN AvgScaleScoremath
 	save "${path}/Semi-Processed Data Files/SC_OriginalData_`v'_all.dta", replace
 }
 
@@ -124,6 +125,8 @@ foreach v in $lateryears {
 	rename Mathpct34 ProficientOrAbove_percentmath 
 	rename ELAN StudentSubGroup_TotalTestedela
 	rename MathN StudentSubGroup_TotalTestedmath
+	rename ELAMEAN AvgScaleScoreela
+	rename MathMEAN AvgScaleScoremath
 	save "${path}/Semi-Processed Data Files/SC_OriginalData_`v'_all.dta", replace
 }
 
@@ -134,6 +137,7 @@ rename Scipct3 Lev3_percentsci
 rename Scipct4 Lev4_percentsci
 rename Scipct34 ProficientOrAbove_percentsci
 rename SciN StudentSubGroup_TotalTestedsci
+rename SciMean AvgScaleScoresci
 save "${path}/Semi-Processed Data Files/SC_OriginalData_2023_all.dta", replace
 
 global years 2016 2017 2018 2019 2021 2022 2023
@@ -143,7 +147,7 @@ foreach y in $years {
 	** Reshape Wide to Long
 	
 	generate id = _n
-	reshape long N Lev1_percent Lev2_percent Lev3_percent Lev4_percent StudentSubGroup_TotalTested ProficientOrAbove_percent, i(id) j(Subject, string)
+	reshape long Lev1_percent Lev2_percent Lev3_percent Lev4_percent StudentSubGroup_TotalTested ProficientOrAbove_percent AvgScaleScore, i(id) j(Subject, string)
 	drop id
 	
 	** Rename Variables
@@ -167,6 +171,7 @@ foreach y in $years {
 	merge m:1 DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel using "${path}/Semi-Processed Data Files/SC_`y'_group.dta"
 	tab _merge
 	drop _merge
+	drop if StudentSubGroup_TotalTested == ""
 	save "${path}/Semi-Processed Data Files/SC_`y'_all.dta", replace
 	
 	** Standardize StudentSubGroup Data
@@ -232,6 +237,7 @@ foreach y in $years {
 	replace Lev3_percent = "*" if Lev3_percent=="."
 	replace Lev4_percent = "*" if Lev4_percent=="."
 	replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent=="."
+	replace AvgScaleScore = "*" if AvgScaleScore==""
 	
 	** Generate Empty Variables
 
@@ -241,7 +247,6 @@ foreach y in $years {
 	gen Lev4_count = "--"
 	gen Lev5_count = ""
 	gen Lev5_percent = ""
-	gen AvgScaleScore = "--"
 	gen ProficientOrAbove_count = "--"
 	gen ParticipationRate = "--"
 
@@ -249,6 +254,9 @@ foreach y in $years {
 
 	gen State_leaid = "SC-" + StateAssignedDistID if DataLevel != "State" 
 	gen seasch = StateAssignedSchID if DataLevel == "School"
+	replace State_leaid = "SC-0" + StateAssignedDistID if strlen(StateAssignedDistID)==3  & `y' < 2018
+	replace seasch = "0" + StateAssignedSchID if strlen(StateAssignedSchID)==6  & `y' < 2018
+	replace seasch = "5208003" if SchName == "Detention Center School"
 	save "${path}/Semi-Processed Data Files/SC_`y'_unmerged.dta", replace
 }
 	
@@ -301,7 +309,7 @@ foreach y in $years {
 
 	tostring GradeLevel, replace
 	replace GradeLevel = "G0" + GradeLevel if `y' < 2018
-	replace GradeLevel = "G0" + GradeLevel if `y' >= 2018
+	replace GradeLevel = "G" + GradeLevel if `y' >= 2018
 
 	** Fix Variable Types
 
