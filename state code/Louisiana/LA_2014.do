@@ -1,9 +1,10 @@
 clear
 global path "/Users/willtolmie/Documents/State Repository Research/Louisiana"
+global nces "/Users/willtolmie/Documents/State Repository Research/NCES"
 
 ** 2013-14 NCES School Data
 
-use "${path}/NCES/School/NCES_2013_School.dta"
+use "${nces}/School/NCES_2013_School.dta"
 
 ** Rename Variables
 
@@ -40,7 +41,7 @@ save "${path}/Semi-Processed Data Files/2013_14_NCES_Cleaned_School.dta", replac
 
 ** 2013-14 NCES District Data
 
-use "${path}/NCES/District/NCES_2013_District.dta"
+use "${nces}/District/NCES_2013_District.dta"
 
 ** Rename Variables
 
@@ -149,7 +150,7 @@ save "${path}/Semi-Processed Data Files/StateAssignedDistID_2014.dta", replace
 
 clear
 use "${path}/Semi-Processed Data Files/LA_CleanedData_2014_3"
-append using "${path}/Semi-Processed Data Files/LA_CleanedData_2014_4.dta""/${path}/Semi-Processed Data Files/LA_CleanedData_2014_4.dta" "/${path}/Semi-Processed Data Files/LA_CleanedData_2014_5.dta" "${path}/Semi-Processed Data Files/LA_CleanedData_2014_6.dta""/${path}/Semi-Processed Data Files/LA_CleanedData_2014_7.dta" "/${path}/Semi-Processed Data Files/LA_CleanedData_2014_8.dta"
+append using "${path}/Semi-Processed Data Files/LA_CleanedData_2014_4.dta" "/${path}/Semi-Processed Data Files/LA_CleanedData_2014_5.dta" "${path}/Semi-Processed Data Files/LA_CleanedData_2014_6.dta""/${path}/Semi-Processed Data Files/LA_CleanedData_2014_7.dta" "/${path}/Semi-Processed Data Files/LA_CleanedData_2014_8.dta"
 gen StateAssignedDistID = substr(StateAssignedSchID,1,3)
 merge m:1 StateAssignedDistID using "${path}/Semi-Processed Data Files/StateAssignedDistID_2014.dta"
 drop if SchName ==""
@@ -258,28 +259,12 @@ merge m:1 seasch StateAbbrev using "${path}/Semi-Processed Data Files/2013_14_NC
 drop if district_merge != 3 & DataLevel != "State"| _merge !=3 & DataLevel == "School"
 drop state_leaidnumber seaschnumber _merge district_merge
 
-** Standardize Non-School Level Data
-
-replace SchName = "All Schools" if DataLevel == "State"
-replace SchName = "All Schools" if DataLevel == "District"
-replace DistName = "All Districts" if DataLevel == "State"
-replace StateAssignedDistID = "" if DataLevel == "State"
-replace State_leaid = "" if DataLevel == "State"
-replace seasch = "" if DataLevel == "State" | DataLevel == "District"
-replace DistName = lea_name if DistName == ""
-drop lea_name
-
 ** Relabel GradeLevel Values
 
 replace GradeLevel = "G" + GradeLevel
 
 ** Fix Variable Types
 
-label def DataLevel 1 "State" 2 "District" 3 "School"
-encode DataLevel, gen(DataLevel_n) label(DataLevel)
-sort DataLevel_n 
-drop DataLevel 
-rename DataLevel_n DataLevel 
 recast int CountyCode
 drop State StateAbbrev StateFips
 gen State = "Louisiana"
@@ -287,6 +272,30 @@ gen StateAbbrev = "LA"
 gen StateFips = 22
 recast int StateFips
 replace SchVirtual = "Missing/not reported"
+
+** Standardize Non-School Level Data
+
+replace SchName = "All Schools" if DataLevel == "State"
+replace SchName = "All Schools" if DataLevel == "District"
+replace DistName = "All Districts" if DataLevel == "State"
+replace StateAssignedDistID = "" if DataLevel == "State"
+replace StateAssignedSchID = "" if DataLevel == "State" | DataLevel == "District"
+replace State_leaid = "" if DataLevel == "State"
+replace seasch = "" if DataLevel == "State" | DataLevel == "District"
+replace DistName = lea_name if DistName == ""
+replace SchLevel = ""  if DataLevel == "State" | DataLevel == "District"
+replace SchVirtual = ""  if DataLevel == "State" | DataLevel == "District"
+replace DistType = "" if DataLevel == "State"
+replace DistCharter = "" if DataLevel == "State"
+drop lea_name
+
+** Fix DataLevel Format
+
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+sort DataLevel_n 
+drop DataLevel 
+rename DataLevel_n DataLevel
 
 ** Label Variables
 

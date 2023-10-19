@@ -51,7 +51,7 @@ drop M
 // Transforming Variable Values
 replace SchYear = "1999-00" if SchYear == "99-00"
 replace Subject = "math" if Subject == "M"
-replace Subject = "read" if Subject == "R"
+replace Subject = "ela" if Subject == "R"
 replace Subject = "wri" if Subject == "W"
 replace GradeLevel = "G03" if GradeLevel == "03"
 replace GradeLevel = "G05" if GradeLevel == "05"
@@ -89,13 +89,13 @@ replace AvgScaleScore = "--" if Subject == "wri"
 gen StudentSubGroup_TotalTested = StudentGroup_TotalTested
 gen AssmtName = "Minnesota Comprehensive Assessment"
 gen Flag_AssmtNameChange = "N"
-gen Flag_CutScoreChange_ELA = ""
+gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_read = "N"
+gen Flag_CutScoreChange_read = ""
 gen Flag_CutScoreChange_oth = "N"
 gen AssmtType = "Regular"
-gen StudentGroup = "All students"
-gen StudentSubGroup = "All students"
+gen StudentGroup = "All Students"
+gen StudentSubGroup = "All Students"
 gen ProficiencyCriteria = "Levels 3, 4, 5"
 gen ParticipationRate = ""
 
@@ -168,6 +168,10 @@ replace StateFips = 27 if DataLevel == 1
 replace DistName = "All Districts" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel == 2
+replace StateAssignedDistID = "" if DataLevel == 1
+replace StateAssignedSchID = "" if DataLevel != 3
+replace seasch = "" if DataLevel != 3
+replace State_leaid = "" if DataLevel == 1
 
 // Reordering variables and sorting data
 order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
