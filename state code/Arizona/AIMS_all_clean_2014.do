@@ -1,13 +1,13 @@
 clear
 set more off
 
-global raw "/Users/sarahridley/Desktop/CSDH/Raw/Test Scores/Arizona/Original Data"
-global output "/Users/sarahridley/Desktop/CSDH/Raw/Test Scores/Arizona/Output"
-global NCES "/Users/sarahridley/Desktop/CSDH/Raw/Test Scores/Arizona/NCES"
+global AIMS "/Users/maggie/Desktop/Arizona/AIMS"
+global output "/Users/maggie/Desktop/Arizona/Output"
+global NCES "/Users/maggie/Desktop/Arizona/NCES/Cleaned"
 
 // SCHOOLS
 
-import excel "${raw}/AZ_OriginalData_2014_all.xlsx", sheet("2014SchoolGrade") firstrow clear
+import excel "${AIMS}/AZ_OriginalData_2014_all.xlsx", sheet("2014SchoolGrade") firstrow clear
 
 ** Rename applicable variables
 rename FiscalYear SchYear
@@ -38,10 +38,9 @@ foreach v of varlist ScienceMeanScaleScore SciencePercentFallsFarBelow SciencePe
 }
 
 ** Changing file format to "long"
-reshape long MeanScaleScore PercentFallsFarBelow PercentApproaches PercentMeets PercentExceeds PercentPassing, i(StateAssignedSchID GradeLevel) j(subject, string)
+reshape long MeanScaleScore PercentFallsFarBelow PercentApproaches PercentMeets PercentExceeds PercentPassing, i(StateAssignedSchID GradeLevel) j(Subject, string)
 
 ** Rename new variables
-rename subject Subject
 rename MeanScaleScore AvgScaleScore
 rename PercentFallsFarBelow Lev1_percent
 rename PercentApproaches Lev2_percent
@@ -60,6 +59,8 @@ replace GradeLevel="G08" if GradeLevel=="8"
 
 keep if inlist(GradeLevel, "G03", "G04", "G05", "G06", "G07", "G08")
 
+drop if AvgScaleScore==""
+
 sort StateAssignedSchID GradeLevel Subject
 
 gen DataLevel="School"
@@ -68,20 +69,22 @@ tostring StateAssignedDistID, generate(State_leaid)
 
 tostring StateAssignedDistID, replace
 
-merge m:1 State_leaid using "${NCES}/NCES_2014_District.dta", force
+merge m:1 State_leaid using "${NCES}/NCES_2013_District.dta", force
 drop _merge
 drop if State == ""
 
 replace lea_name = strproper(lea_name)
 replace DistName = lea_name if DistName == ""
 
-
-replace NCESDistrictID = "0400927" if SchName == "Legacy Traditional School - Queen Creek"
-replace NCESDistrictID = "0400884" if SchName == "ASU Preparatory Academy-Polytechnic Middle School"
-
 tostring StateAssignedSchID, generate(seasch)
 
-merge m:1 seasch NCESDistrictID using "${NCES}/NCES_2014_School.dta", force
+merge m:1 seasch NCESDistrictID using "${NCES}/NCES_2013_School.dta", force
+
+drop _merge
+drop if State == ""
+
+merge m:1 seasch NCESDistrictID using "${NCES}/NCES_2014_School.dta", force update
+
 drop _merge
 drop if State == ""
 
@@ -92,7 +95,7 @@ save "${output}/AZ_AssmtData_school_2014.dta", replace
 
 // DISTRICT
 
-import excel "${raw}/AZ_OriginalData_2014_all.xlsx", sheet("2014LEAGrade") firstrow clear
+import excel "${AIMS}/AZ_OriginalData_2014_all.xlsx", sheet("2014LEAGrade") firstrow clear
 
 ** Rename applicable variables
 rename FiscalYear SchYear
@@ -121,10 +124,9 @@ foreach v of varlist ScienceMeanScaleScore SciencePercentFallsFarBelow SciencePe
 }
 
 ** Changing file format to "long"
-reshape long MeanScaleScore PercentFallsFarBelow PercentApproaches PercentMeets PercentExceeds PercentPassing, i(StateAssignedDistID GradeLevel) j(subject, string)
+reshape long MeanScaleScore PercentFallsFarBelow PercentApproaches PercentMeets PercentExceeds PercentPassing, i(StateAssignedDistID GradeLevel) j(Subject, string)
 
 ** Rename new variables
-rename subject Subject
 rename MeanScaleScore AvgScaleScore
 rename PercentFallsFarBelow Lev1_percent
 rename PercentApproaches Lev2_percent
@@ -142,6 +144,8 @@ replace GradeLevel="G08" if GradeLevel=="8"
 
 keep if inlist(GradeLevel, "G03", "G04", "G05", "G06", "G07", "G08")
 
+drop if AvgScaleScore==""
+
 sort StateAssignedDistID GradeLevel Subject
 
 ** Generating missing variables
@@ -151,7 +155,7 @@ gen DataLevel="District"
 tostring StateAssignedDistID, generate(State_leaid)
 tostring StateAssignedDistID, replace
 
-merge m:1 State_leaid using "${NCES}/NCES_2014_District.dta", force
+merge m:1 State_leaid using "${NCES}/NCES_2013_District.dta", force
 drop _merge
 drop if State == ""
 
@@ -165,7 +169,7 @@ save "${output}/AZ_AssmtData_district_2014.dta", replace
 
 // STATE
 
-import excel "${raw}/AZ_OriginalData_2014_all.xlsx", sheet("2014StateGrade") firstrow clear
+import excel "${AIMS}/AZ_OriginalData_2014_all.xlsx", sheet("2014StateGrade") firstrow clear
 
 ** Rename applicable variables
 rename FiscalYear SchYear
@@ -202,10 +206,9 @@ replace GradeLevel="G08" if GradeLevel=="8"
 keep if inlist(GradeLevel, "G03", "G04", "G05", "G06", "G07", "G08")
 
 ** Changing file format to "long"
-reshape long MeanScaleScore PercentFallsFarBelow PercentApproaches PercentMeets PercentExceeds PercentPassing, i(GradeLevel) j(subject, string)
+reshape long MeanScaleScore PercentFallsFarBelow PercentApproaches PercentMeets PercentExceeds PercentPassing, i(GradeLevel) j(Subject, string)
 
 ** Rename new variables
-rename subject Subject
 rename MeanScaleScore AvgScaleScore
 rename PercentFallsFarBelow Lev1_percent
 rename PercentApproaches Lev2_percent
@@ -232,20 +235,20 @@ gen AssmtType="Regular"
 gen AssmtName="AIMS"
 gen Flag_AssmtNameChange="N"
 
-gen Flag_CutScoreChange_ELA=""
+gen Flag_CutScoreChange_ELA="N"
 gen Flag_CutScoreChange_math="N"
-gen Flag_CutScoreChange_read="N"
+gen Flag_CutScoreChange_read=""
 gen Flag_CutScoreChange_oth="N"
 
 gen Lev5_percent=""
 
-gen ProficiencyCriteria=""
+gen ProficiencyCriteria="Levels 3 and 4"
 gen ProficientOrAbove_count=""
 gen ParticipationRate=""
 gen StudentGroup = "All Students"
 gen StudentSubGroup="All Students"
-gen StudentGroup_TotalTested="-"
-gen StudentSubGroup_TotalTested="-"
+gen StudentGroup_TotalTested="--"
+gen StudentSubGroup_TotalTested="--"
 
 foreach x of numlist 1/5 {
     generate Lev`x'_count =""
@@ -255,7 +258,7 @@ foreach x of numlist 1/5 {
 
 ** Replace missing values
 foreach v of varlist AvgScaleScore Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ParticipationRate {
-	replace `v' = "-" if `v' == ""
+	replace `v' = "--" if `v' == ""
 }
 	
 foreach u of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent {
@@ -266,7 +269,7 @@ foreach u of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent Profici
 }
 
 ** Rename various values
-replace Subject="read" if Subject=="Reading"
+replace Subject="ela" if Subject=="Reading"
 replace Subject="math" if Subject=="Math"
 replace Subject="sci" if Subject=="Science"
 replace Subject="wri" if Subject=="Writing"
@@ -279,7 +282,6 @@ drop County LocalEducationAgencyLEACTD SchoolCTDSNumber CharterSchool lea_name y
 replace State="Arizona"
 replace StateAbbrev="AZ"
 replace StateFips=4
-replace ProficiencyCriteria="Levels 3 and 4"
 	
 //District wide
 replace SchName = "All Schools" if DataLevel == "District" | DataLevel == "State"
@@ -291,9 +293,6 @@ replace StateAssignedSchID = "" if StateAssignedSchID == "."
 decode DistType, generate(new)
 drop DistType
 rename new DistType
-decode SchVirtual, generate(new)
-drop SchVirtual
-rename new SchVirtual
 decode SchLevel, generate(new)
 drop SchLevel
 rename new SchLevel
@@ -319,7 +318,7 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName Sch
 order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 
 save "${output}/AZ_AssmtData_2014.dta", replace
-export delimited using "${output}/AZ_AssmtData_2014.csv", replace
+export delimited using "${output}/csv/AZ_AssmtData_2014.csv", replace
 
 /*
 

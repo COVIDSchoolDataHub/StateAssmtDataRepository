@@ -1,9 +1,9 @@
 clear
 set more off
 set trace off
-global original "G:\Test Score Repository Project\Hawaii\Original Data"
-global cleaned  "G:\Test Score Repository Project\Hawaii\Cleaned Data"
-global nces "G:\Test Score Repository Project\Hawaii\NCES"
+global original "/Volumes/T7/State Test Project/Hawaii/Original Data"
+global cleaned  "/Volumes/T7/State Test Project/Hawaii/Cleaned Data"
+global nces "/Volumes/T7/State Test Project/Hawaii/NCES/NCESCLEANED/"
 
 //loop for 2013 and 2014 school level(2012-13 and 2013-14 years)
 foreach year of numlist 2013 2014 {
@@ -20,7 +20,7 @@ reshape long ProficientOrAbove_percent, i(SchoolID) j(Subject,string)
 rename SchoolID StateAssignedSchID
 tostring StateAssignedSchID, replace
 local prevyear =`=`year'-1'
-merge m:1 StateAssignedSchID using "G:\Test Score Repository Project\Hawaii\NCES\NCESCLEANED/NCES_`prevyear'_school.dta", force
+merge m:1 StateAssignedSchID using "${nces}/NCES_`prevyear'_school.dta", force
 drop if Year==.
 
 //reformatting
@@ -52,8 +52,8 @@ gen GradeLevel2=.
 tostring GradeLevel2, replace
 
 //data aggregated into elementary and middle school, reflected below
-replace GradeLevel2="--" if GradeLevel=="Elementary"
-replace GradeLevel2="--" if GradeLevel=="Middle"
+replace GradeLevel2="G38" if GradeLevel=="Elementary"
+replace GradeLevel2="G38" if GradeLevel=="Middle"
 drop GradeLevel
 rename GradeLevel2 GradeLevel
 drop if GradeLevel=="."
@@ -79,7 +79,7 @@ gen ProficiencyCriteria="Level 3 or 4"
 gen ProficientOrAbove_count="--"
 gen ParticipationRate="--"
 gen Flag_AssmtNameChange ="N"
-gen Flag_CutScoreChange_ELA="N"
+gen Flag_CutScoreChange_ELA=""
 gen Flag_CutScoreChange_math="N"
 gen Flag_CutScoreChange_read="N"
 gen Flag_CutScoreChange_oth="N"
@@ -96,6 +96,13 @@ drop ProficientOrAbove_percent
 rename ProficientOrAbove_decimal ProficientOrAbove_percent
 //the code above works for some reason, idk why but not questioning
 
+//Response to R2
+replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
+replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
+
+//Fixing AssmtName for HI
+replace AssmtName = "Hawaii Science Assessment" if Subject == "sci"
+
 //Ordering Variables and Dropping Extraneous Variables
 order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
@@ -110,3 +117,4 @@ save "${cleaned}/HI_AssmtData_`year'.dta", replace
 export delimited using "${cleaned}/HI_AssmtData_`year'.csv", replace
 clear
 }
+*do "/Volumes/T7/State Test Project/Hawaii/hawaii2015-2019_2021-2022.do"
