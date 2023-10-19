@@ -108,7 +108,7 @@ drop if StudentGroup == "MigrantStatus"
 
 replace SchYear = "2004-05" if SchYear == "04-05"
 replace Subject = "math" if Subject == "M"
-replace Subject = "ela" if Subject == "R"
+replace Subject = "read" if Subject == "R"
 replace Subject = "wri" if Subject == "W"
 recast int GradeLevel
 tostring GradeLevel, replace
@@ -148,9 +148,9 @@ drop filtered
 // Generating missing variables
 gen AssmtName = "Minnesota Comprehensive Assessment"
 gen Flag_AssmtNameChange = "N"
-gen Flag_CutScoreChange_ELA = "N"
+gen Flag_CutScoreChange_ELA = ""
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_read = ""
+gen Flag_CutScoreChange_read = "N"
 gen Flag_CutScoreChange_oth = "N"
 gen AssmtType = "Regular"
 gen ProficiencyCriteria = "Levels 3, 4, 5"
@@ -223,10 +223,6 @@ replace StateFips = 27 if DataLevel == 1
 replace DistName = "All Districts" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel == 2
-replace StateAssignedDistID = "" if DataLevel == 1
-replace StateAssignedSchID = "" if DataLevel != 3
-replace seasch = "" if DataLevel != 3
-replace State_leaid = "" if DataLevel == 1
 
 // Reordering variables and sorting data
 order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth

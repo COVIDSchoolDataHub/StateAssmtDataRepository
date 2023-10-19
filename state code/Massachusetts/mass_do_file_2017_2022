@@ -1,57 +1,19 @@
+cap log close
+log using massachusetts_cleaning.log, replace
+
+
+
+
 cd "/Users/benjaminm/Documents/State_Repository_Research/Massachusetts"
 
 
-
-// cleaning district science data
-// r3 added
-import excel "mass_district_science", clear
-save mass_district_science, replace
-use mass_district_science, clear
-
-rename A DataLevel	
-rename B SchYear 	
-rename C GradeLevel
-rename D StudentGroup	
-rename E DistName
-rename F StateAssignedDistID
-rename G Subject	
-rename H ProficientOrAbove_count
-rename I ProficientOrAbove_percent	
-rename J Lev4_count	
-rename K Lev4_percent	
-rename L Lev3_count	
-rename M Lev3_percent	
-rename N Lev2_count
-rename O Lev2_percent	
-rename P Lev1_count		
-rename Q Lev1_percent				
-rename R StudentGroup_TotalTested	
-rename S CPI
-rename T SGP	
-rename U SGP_2 
-gen ParticipationRate = ""	
-gen AvgScaleScore = ""
-drop CPI
-
-order DataLevel SchYear GradeLevel StudentGroup	DistName StateAssignedDistID Subject ProficientOrAbove_count ProficientOrAbove_percent Lev4_count Lev4_percent	Lev3_count	Lev3_percent Lev2_count Lev2_percent Lev1_count	Lev1_percent StudentGroup_TotalTested ParticipationRate AvgScaleScore SGP SGP_2
-
-gen AssmtName = "Legacy MCAS"
+// Remaping Raw Data into Standard Format, and appending together
 
 
-save mass_district_science_cleaned, replace 
-// r3 added
-
-
-// cleaning district data 
 // import excel "mass_districts_new_mcas", clear
 // save mass_districts_new_mcas
-// use mass_districts_new_mcas, clear 
+use mass_districts_new_mcas, clear 
 
-//import excel districts_2023, clear
-use districts_2023, clear
-replace A = "District" 
-
-append using mass_districts_new_mcas, force
 
 rename A DataLevel	
 rename B SchYear 	
@@ -77,21 +39,12 @@ rename U SGP
 rename V SGP_2
 drop W 
 
-gen AssmtName = "NextGen MCAS"
-
-append using mass_district_science_cleaned, force
-
-// drop early school years
-// make sure append went well
-
 replace DataLevel = "State" if DistName == "State Total"
 replace DistName = "" if DistName == "State Total"
 
-// r3 added 
-drop if SchYear == "2015" | SchYear == "2016"
-// r3 added
 
-save mass_districts_new_mcas_titled, replace // change subject renaming for sci
+
+save mass_districts_new_mcas_titled, replace
 // use mass_districts_new_mcas_titled, clear
 
 // Creating file with unique districts and IDs
@@ -99,97 +52,14 @@ duplicates drop DistName, force
 keep DistName StateAssignedDistID
 drop if DistName == "District Name"
 
-input 
-"Community Day Charter Public School" 04260000
-end
-
 save mass_district_IDs, replace
 
-use mass_districts_new_mcas_titled, clear
+use mass_district_IDs, clear
 
 
-// cleaning school science data 
-// r3 added
-//import excel "mass_school_science", clear
-//save mass_school_science, replace
-use mass_school_science, clear
-
-
-
-drop if E == "State Total ( ALL )"
-
-split E, parse(" - ")
-
-
-egen long_district_name = concat(E1 E2), punct(" - ") 
-egen long_school_name = concat(E3 E4), punct(" - ")
-
-
-replace E1 = long_district_name if long_district_name == "Community Day Charter Public School - Prospect (District)"
-replace E1 = long_district_name if long_district_name == "Excel Academy Charter School - Chelsea (District)"
-replace E1 = long_district_name if long_district_name == "Excel Academy Charter School - Boston II (District)"
-
-replace E2 = long_school_name if long_school_name == "Community Day Charter Public School - Prospect"
-replace E2 = long_school_name if long_school_name == "Excel Academy Charter School - Boston II"
-replace E2 = long_school_name if long_school_name == "Excel Academy Charter School - Chelsea"
-
-
-drop E3 E4
-drop long_district_name
-drop long_school_name
-rename E1 DistName 
-rename E2 SchName
-
-
-rename A DataLevel
-rename B SchYear 	
-rename C GradeLevel
-rename D StudentGroup	
-drop E 
-// drop F
-rename F StateAssignedSchID
-rename G Subject	
-rename H ProficientOrAbove_count
-rename I ProficientOrAbove_percent	
-rename J Lev4_count	
-rename K Lev4_percent	
-rename L Lev3_count	
-rename M Lev3_percent	
-rename N Lev2_count
-rename O Lev2_percent	
-rename P Lev1_count		
-rename Q Lev1_percent				
-rename R StudentGroup_TotalTested	
-rename S CPI
-rename T SGP	
-rename U SGP_2 	
-
-gen ParticipationRate = ""	
-gen AvgScaleScore = ""
-drop CPI
-
-// r3 added 
-drop if SchYear == "2015" | SchYear == "2016"
-// r3 added
-
-gen AssmtName = "Legacy MCAS"
-
-save mass_school_science_cleaned, replace  
-// r3 added
-
-
-
-
-// cleaning school data 
 // import excel "mass_schools_new_mcas", clear
 // save mass_schools_new_mcas, replace
-//use mass_schools_new_mcas, clear
-
-//import excel schools_2023, clear
-use schools_2023, clear 
-
-
-append using mass_schools_new_mcas, force
+use mass_schools_new_mcas, clear
 
 drop if E == "State Total"
 
@@ -235,158 +105,32 @@ rename U SGP
 rename V SGP_2
 drop W X
 
-gen AssmtName = "NextGen MCAS"
 
-// r3 change
-append using mass_school_science_cleaned, force 
-// r3 change
-
-
-
-// appending districts to general and science data
 append using mass_districts_new_mcas_titled
 drop StateAssignedDistID
 
 
 merge m:1 DistName using mass_district_IDs
 
+tab DistName if _merge == 1
 
 drop if DistName == "School Name"
 drop if DistName == "District Name"
 
 drop _merge
 
-save mass_districts_new_mcas_in_progress_1_n, replace
-
-// use mass_districts_new_mcas_in_progress_1, replace
-
-
-
-// importing district participation data and merging
-
-// r3 changed
-//import excel "mass_district_participation_new_2", clear
-//save mass_district_participation_new, replace
-use mass_district_participation_new, clear
-
-rename A DataLevel
-rename B SchYear 	
-rename C GradeLevel
-rename D StudentGroup
-rename E Subject
-rename G StateAssignedDistID
-rename I ParticipationRate_New // part rate switches to H in 2016 and prior, but we only need 2017 and above here 
-
-
-
-// replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentGroup == "Nat. Haw. or Pacif. Isl." // doesn't exist in part data
-replace StudentGroup = "Multi-race, Non-Hisp./Lat." if StudentGroup == "Multi-race, Non-Hisp." 
-
-// replace StudentSubGroup = "English Learner" if StudentGroup == "EL" // not in part data
-
-replace StudentGroup = "Econ. Disadvantaged" if StudentGroup == "Economically Disadvantaged"
-// replace StudentSubGroup = "Not Economically Disadvantaged" if StudentGroup == "Non-Econ. Disadvantaged" // doesn't exist in part data
-
-//replace StudentSubGroup = "Male" if StudentGroup == "Male" // doesn't exist in part data
-// replace StudentSubGroup = "Female" if StudentGroup == "Female" // doesn't exist in part data
-
-
-replace Subject = "MATH" if Subject == "Mathematics"
-replace Subject = "ELA" if Subject == "English"
-replace Subject = "SCI" if Subject == "Science"
-
-
-
-//duplicates list DataLevel SchYear GradeLevel StudentGroup Subject StateAssignedDistID
-
-save mass_district_participation_cleaned, replace
-
-use mass_district_participation_cleaned, clear
-
-
-use mass_districts_new_mcas_in_progress_1_n, replace
-merge m:1 DataLevel SchYear GradeLevel StudentGroup Subject StateAssignedDistID using mass_district_participation_cleaned
-drop H
-drop if _merge == 2
-drop _merge
-
-
-save mass_districts_new_mcas_in_progress_2_n, replace
-
-
-
-// school participation cleaning and merging
-//import excel "mass_school_participation_new", clear
-//save mass_school_participation, replace
-use mass_school_participation, clear
-
-
-rename A DataLevel
-rename B SchYear 	
-rename C GradeLevel
-rename D StudentGroup
-rename E Subject
-rename G StateAssignedSchID
-rename I ParticipationRate_New_School // part rate switches to H in 2016 and less, but we only need 2017 and above here 
-
-
-// replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentGroup == "Nat. Haw. or Pacif. Isl." // doesn't exist in part data
-replace StudentGroup = "Multi-race, Non-Hisp./Lat." if StudentGroup == "Multi-race, Non-Hisp." 
-
-// replace StudentSubGroup = "English Learner" if StudentGroup == "EL" // not in part data
-
-replace StudentGroup = "Econ. Disadvantaged" if StudentGroup == "Economically Disadvantaged"
-// replace StudentSubGroup = "Not Economically Disadvantaged" if StudentGroup == "Non-Econ. Disadvantaged" // doesn't exist in part data
-
-//replace StudentSubGroup = "Male" if StudentGroup == "Male" // doesn't exist in part data
-// replace StudentSubGroup = "Female" if StudentGroup == "Female" // doesn't exist in part data
-
-
-replace Subject = "MATH" if Subject == "Mathematics"
-replace Subject = "ELA" if Subject == "English"
-replace Subject = "SCI" if Subject == "Science"
-
-save mass_school_participation_cleaned, replace
-
-use mass_school_participation_cleaned, clear
-
-help pause
-
-use mass_districts_new_mcas_in_progress_2_n, replace
-merge m:1 DataLevel SchYear GradeLevel StudentGroup Subject StateAssignedSchID using mass_school_participation_cleaned
-drop H
-drop if _merge == 2
-drop _merge
-
-replace ParticipationRate_New = ParticipationRate_New_School if DataLevel == "School"
-replace ParticipationRate_New = ParticipationRate if ParticipationRate_New == "" & ParticipationRate != "NN/AA"
-replace ParticipationRate_New = "" if ParticipationRate_New == "N/A"
-drop ParticipationRate_New_School ParticipationRate
-rename ParticipationRate_New ParticipationRate
-
-//recast
- 
-destring ParticipationRate, replace 
-tostring ParticipationRate, replace force
-
-
-save mass_districts_new_mcas_in_progress_3_n, replace 
-// r3 change
-
-
-
 
 
 
 // Loop to merge with NCES data, separate into individual years and add necessary variables
 
-global years1 2017 2018 2019 2021 2022 2023
+global years1 2017 2018 2019 2021 2022 
 
 foreach a in $years1 {
 	
 local prevyear = `a' - 1
 	
-use mass_districts_new_mcas_in_progress_3_n, clear
+use mass_districts_new_mcas_in_progress, clear
 
 keep if SchYear == "`a'"
 
@@ -395,21 +139,6 @@ replace StateAssignedDistID = subinstr(StateAssignedDistID, "0000", "", .)
 rename StateAssignedDistID State_leaid
 
 // District NCES Merge
-
-if `a' == 2023 {
-merge m:1 State_leaid using 1_NCES_2021_District_Mass // CHANGED
-rename _merge DistMerge
-drop if DistMerge == 2
-
-rename State_leaid StateAssignedDistID
-
-drop DistMerge
-	
-}
-
-
-
-if `a' != 2023 {
 merge m:1 State_leaid using 1_NCES_`prevyear'_District_Mass // CHANGED
 rename _merge DistMerge
 drop if DistMerge == 2
@@ -417,7 +146,6 @@ drop if DistMerge == 2
 rename State_leaid StateAssignedDistID
 
 drop DistMerge
-}
 
 //NEW ADDED
 
@@ -437,62 +165,15 @@ replace SchName = "All Schools" if DataLevel == 2
 
 // NEW ADDED
 
-if `a' == 2023 {	
-rename StateAssignedSchID seasch
-merge m:1 seasch using 1_NCES_2021_School_Mass // CHANGED 
-rename _merge SchoolMerge
-drop if SchoolMerge == 2
- 
-
-
-// Center Elementary School info
-replace NCESSchoolID = "251158002946" if seasch == "02950030"  
-replace SchVirtual = 0 if seasch == "02950030"  
-replace SchLevel = 1 if seasch == "02950030"  
-replace SchType = 1 if seasch == "02950030"  
-
-
-// Maria Weston Chapman Middle School  info
-replace NCESSchoolID = "251284002948" if seasch == "03360020"  
-replace SchVirtual = 0 if seasch == "03360020"  
-replace SchLevel = 2 if seasch == "03360020"  
-replace SchType = 1 if seasch == "03360020" 
-
-// Holyoke Middle School info
-replace NCESSchoolID = "250627002939" if seasch == "01370325"  
-replace SchVirtual = 0 if seasch == "01370325"  
-replace SchLevel = 2 if seasch == "01370325"  
-replace SchType = 1 if seasch == "01370325" 
-
-// Mountain View School info
-replace NCESSchoolID = "250459002937" if seasch == "00860415"  
-replace SchVirtual = 0 if seasch == "00860415"  
-replace SchLevel = 4 if seasch == "00860415"  
-replace SchType = 1 if seasch == "00860415" 
-
-}
-
-
-// finish the rest of these things here 
-//SchLevel = 
-
-
-//SchVirtual = "No" 
-
-
-if `a' != 2023 {	
+	
 rename StateAssignedSchID seasch
 merge m:1 seasch using 1_NCES_`prevyear'_School_Mass // CHANGED 
 rename _merge SchoolMerge
 drop if SchoolMerge == 2
-} 
-
-
 
 rename seasch StateAssignedSchID
 
 drop SchoolMerge
-
 
 
 drop State
@@ -549,29 +230,18 @@ gen SchYear2 = "2021-22"
 
 } 
 
-if `a' == 2023 {
-gen SchYear2 = "2023-23"
-
-} 
-// add a year here 
-
 drop SchYear
 rename SchYear2 SchYear
 
-//gen AssmtName = "MCAS" // r3 changed
+gen AssmtName = "MCAS"
 gen AssmtType = "Regular"
-
-
-
 
 gen Subject2 = "" 
 replace Subject2 = "math" if Subject == "MATH"
 replace Subject2 = "ela" if Subject == "ELA"
 replace Subject2 = "sci" if Subject == "SCI"
-
 drop Subject
 rename Subject2 Subject
-
 
 gen GradeLevel2 = ""
 replace GradeLevel2 = "G03" if GradeLevel == "03"
@@ -592,8 +262,6 @@ drop if GradeLevel == ""
 
 
 //CHANGED
-
-tab StudentGroup
 gen StudentSubGroup = ""
 replace StudentSubGroup = "All Students" if StudentGroup == "All Students"
 replace StudentSubGroup = "American Indian or Alaska Native" if StudentGroup == "Amer. Ind. or Alaska Nat."
@@ -636,21 +304,17 @@ replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Dis
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Not Economically Disadvantaged"
 //CHANGED
 
-
 gen ProficiencyCriteria = "Levels 3 and 4"
-gen seasch = StateAssignedSchID // CHANGED //r3 changed
+gen seasch = "" // CHANGED
 
 // Empty Count Vars 
-gen Lev5_count = "-" //r3 changed
-gen Lev5_percent = "-" //r3 changed
+gen Lev5_count = ""
+gen Lev5_percent = ""
 
 
-
-
-//if `a' != 2023 {
 gen State_leaid = StateAssignedDistID // CHANGED
 
-//} 
+
 
 
 // CHANGED
@@ -702,7 +366,7 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName Sch
 // NEW EDITED
 
 
-destring Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate AvgScaleScore, replace force ignore(",") // CHANGED // r3 changed (no lev 5)
+destring Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate AvgScaleScore, replace force ignore(",") // CHANGED
 
 
 // converting to decimal form from percentage form 
@@ -714,18 +378,11 @@ replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
 replace ParticipationRate = ParticipationRate/100
 
 
-// r3 changed 
-// missing data = - 
-tostring ParticipationRate, replace force
-
-replace ParticipationRate = "-" if ParticipationRate == "."
-// r3 changed 
-
 
 //NEW ADDED
 
 
-sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+sort DataLevel DistName Subject GradeLevel StudentGroup StudentSubGroup
 //NEW ADDED
 
 
@@ -735,3 +392,5 @@ export delimited MA_AssmtData_`a'.csv, replace
 
 
 }
+
+

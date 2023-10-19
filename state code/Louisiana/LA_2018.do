@@ -1,10 +1,9 @@
 clear
 global path "/Users/willtolmie/Documents/State Repository Research/Louisiana"
-global nces "/Users/willtolmie/Documents/State Repository Research/NCES"
 
 ** 2017-18 NCES School Data
 
-use "${nces}/School/NCES_2017_School.dta"
+use "${path}/NCES/School/NCES_2017_School.dta"
 
 ** Rename Variables
 
@@ -40,7 +39,7 @@ save "${path}/Semi-Processed Data Files/2017_18_NCES_Cleaned_School.dta", replac
 
 ** 2017-18 NCES District Data
 
-use "${nces}/District/NCES_2017_District.dta"
+use "${path}/NCES/District/NCES_2017_District.dta"
 
 ** Rename Variables
 
@@ -78,54 +77,32 @@ save "${path}/Semi-Processed Data Files/ParticipationbyDistrict2018.dta", replac
 
 ** 2017-18 Proficiency Data
 
-import excel "${path}/Original Data Files/LA_OriginalData_2018.xls", sheet("2018 LEAP SUPPRESSED") cellrange(A3:AY65536) firstrow allstring clear
-
-rename ELA AvgScaleScoreela
-rename Math AvgScaleScoremath
-rename SocialStudies AvgScaleScoresoc
-
-rename TotalStudentTested StudentSubGroup_TotalTestedela
-rename Advanced Lev5_countela
-rename O Lev5_percentela
-rename Mastery Lev4_countela
-rename Q Lev4_percentela
-rename Basic Lev3_countela
-rename S Lev3_percentela
-rename ApproachingBasic Lev2_countela
-rename U Lev2_percentela
-rename Unsatisfactory Lev1_countela
-rename W Lev1_percentela
-
-rename X StudentSubGroup_TotalTestedmath
-rename Y Lev5_countmath
-rename Z Lev5_percentmath
-rename AA Lev4_countmath
-rename AB Lev4_percentmath
-rename AC Lev3_countmath
-rename AD Lev3_percentmath
-rename AE Lev2_countmath
-rename AF Lev2_percentmath
-rename AG Lev1_countmath
-rename AH Lev1_percentmath
-
-rename AI StudentSubGroup_TotalTestedsoc
-rename AJ Lev5_countsoc
-rename AK Lev5_percentsoc
-rename AL Lev4_countsoc
-rename AM Lev4_percentsoc
-rename AN Lev3_countsoc
-rename AO Lev3_percentsoc
-rename AP Lev2_countsoc
-rename AQ Lev2_percentsoc
-rename AR Lev1_countsoc
-rename AS Lev1_percentsoc
+import excel "${path}/Original Data Files/LA_OriginalData_2018_all.xlsx", sheet("Sheet1") cellrange(A4:W123661) firstrow clear
 
 ** Reshape Wide to Long
 
+rename EnglishLanguageArts Lev5_percentela
+rename J Lev4_percentela
+rename K Lev3_percentela
+rename L Lev2_percentela
+rename M Lev1_percentela
+rename Mathematics Lev5_percentmath
+rename O Lev4_percentmath
+rename P Lev3_percentmath
+rename Q Lev2_percentmath
+rename R Lev1_percentmath
+rename SocialStudies Lev5_percentsoc
+rename T Lev4_percentsoc
+rename U Lev3_percentsoc
+rename V Lev2_percentsoc
+rename W Lev1_percentsoc
 generate id = _n
-reshape long Lev1_percent Lev1_count Lev2_percent Lev2_count Lev3_percent Lev3_count Lev4_percent Lev4_count Lev5_percent Lev5_count StudentSubGroup_TotalTested AvgScaleScore, i(id) j(Subject, string)
+foreach v of varlist SchoolName Grade Subgroup {
+   rename `v' y`i'
+   local i = `i' + 1
+}
+reshape long Lev1_percent Lev2_percent Lev3_percent Lev4_percent Lev5_percent, i(id) j(Subject, string)
 drop id
-keep if StudentSubGroup_TotalTested != ""
 
 ** Rename Variables
 
@@ -134,22 +111,9 @@ rename SchoolSystemName DistName
 rename SchoolCode StateAssignedSchID
 rename Group StudentGroup
 rename SummaryLevel DataLevel
-rename SchoolName SchName
-rename Grade GradeLevel
-rename Subgroup StudentSubGroup
-
-* Generate StudentGroup Values
-
-save "${path}/Semi-Processed Data Files/TN_2018_nogroup.dta", replace
-keep if StudentGroup=="Total Population"
-keep DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel StudentSubGroup_TotalTested
-rename StudentSubGroup_TotalTested StudentGroup_TotalTested
-save "${path}/Semi-Processed Data Files/TN_2018_group.dta", replace
-clear
-use "${path}/Semi-Processed Data Files/TN_2018_nogroup.dta"
-merge m:1 DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel using "${path}/Semi-Processed Data Files/TN_2018_group.dta"
-drop _merge
-save "${path}/Semi-Processed Data Files/TN_2018_all.dta", replace
+rename y SchName
+rename y1 GradeLevel
+rename y2 StudentSubGroup
 
 ** Generate Flags
 
@@ -157,7 +121,13 @@ gen Flag_AssmtNameChange = "Y"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_read = ""
-gen Flag_CutScoreChange_oth = "N"
+gen Flag_CutScoreChange_oth = "Y"
+
+** Generate Empty Variables
+
+gen AvgScaleScore = "--"
+gen StudentGroup_TotalTested = "--"
+gen StudentSubGroup_TotalTested = "--"
 
 ** Fix Variable Types
 
@@ -166,39 +136,32 @@ replace Lev2_percent = subinstr(Lev2_percent, " ", "", .)
 replace Lev3_percent = subinstr(Lev3_percent, " ", "", .)
 replace Lev4_percent = subinstr(Lev4_percent, " ", "", .)
 replace Lev5_percent = subinstr(Lev5_percent, " ", "", .)
-replace Lev1_percent = subinstr(Lev1_percent, "%", "", .)
-replace Lev2_percent = subinstr(Lev2_percent, "%", "", .)
-replace Lev3_percent = subinstr(Lev3_percent, "%", "", .)
-replace Lev4_percent = subinstr(Lev4_percent, "%", "", .)
-replace Lev5_percent = subinstr(Lev5_percent, "%", "", .)
 
 ** Generate Other Variables
 
 gen SchYear = "2017-18"
 gen AssmtName = "LEAP 2025"
 gen AssmtType = "Regular"
+replace DataLevel = "District" if DataLevel == "School System"
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup=="Hispanic/Latino"
 replace StudentSubGroup = "Two or More" if StudentSubGroup=="Two or more races"
 replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup=="Native Hawaiian or Other Pacific Islander"
 replace StudentSubGroup = "All Students" if StudentGroup=="Total Population"
-replace StudentGroup = "All Students" if StudentGroup=="Total Population"
-replace StudentGroup = "RaceEth" if StudentGroup=="Ethnicity "
-replace StudentSubGroup = "English Learner" if StudentSubGroup=="Yes" & StudentGroup=="English Learner"
-replace StudentSubGroup = "English Proficient" if StudentSubGroup=="No" & StudentGroup=="English Learner"
-replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup=="Yes" & StudentGroup=="Economically Disadvantaged"
-replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup=="No" & StudentGroup=="Economically Disadvantaged"
-replace StudentGroup = "Economic Status" if StudentGroup=="Economically Disadvantaged"
+replace StudentGroup = "RaceEth" if StudentGroup=="Ethnicity"
 replace StudentGroup = "EL Status" if StudentGroup=="English Learner"
-keep if StudentGroup == "All Students" | StudentGroup == "EL Status" | StudentGroup == "Economic Status" | StudentGroup == "Gender" | StudentGroup == "RaceEth"
+replace StudentSubGroup = "English Learner" if StudentGroup=="EL Status" & StudentSubGroup=="Yes"
+replace StudentSubGroup = "English Proficient" if StudentGroup=="EL Status" & StudentSubGroup=="No"
+replace StudentGroup = "All Students" if StudentGroup=="Total Population"
+replace StudentGroup = "Economic Status" if StudentGroup=="Economically Disadvantaged"
+replace StudentSubGroup = "Economically Disadvantaged" if StudentGroup=="Economic Status" & StudentSubGroup=="Yes"
+replace StudentSubGroup = "Not Economically Disadvantaged" if StudentGroup=="Economic Status" & StudentSubGroup=="No"
 gen ProficiencyCriteria = "Levels 4 and 5"
-replace AvgScaleScore = "*" if AvgScaleScore == ""
 
 ** Merge Participation Data by District
 
 merge m:1 StateAssignedDistID using "${path}/Semi-Processed Data Files/ParticipationbyDistrict2018.dta"
 replace ParticipationRate = "--" if DataLevel == "School"
 replace ParticipationRate = "--" if ParticipationRate == ""
-replace ParticipationRate = "--" if StudentGroup != "All Students"
 generate greaterthan99 = 1 if ParticipationRate == ">=99%"
 generate str id = cond(substr(ParticipationRate,-1,.)=="%",subinstr(ParticipationRate,"%","",.),ParticipationRate) if ParticipationRate != "--"
 destring id, replace force
@@ -210,33 +173,31 @@ drop _merge id greaterthan99
 
 ** Convert Proficiency Data into Percentages
 
-foreach v of varlist Lev*_percent {
+foreach v of varlist Lev* {
+	generate lessthan`v'=0
+	replace lessthan`v'=1 if `v'=="<5"
+	replace `v'="*" if `v'== "<5"
 	destring `v', g(n`v') i(* -) force
 	replace n`v' = n`v' / 100 if n`v' != .
-	generate lessthan`v' = 1 if `v'=="<5"
-	generate greaterthan`v' = 1 if `v'==">95"
 	tostring n`v', replace force
 	replace `v' = n`v' if `v' != "*"
-	replace `v' = "0-0.05" if lessthan`v' == 1
-	replace `v' = "0.95-1" if greaterthan`v' == 1
+	replace `v' = "<.05" if lessthan==1
+	drop n`v' lessthan`v'
 }
+
 ** Generate Proficient or Above Percent
 
 gen Lev4max = Lev4_percent
-replace Lev4max = ".05" if Lev4_percent== "0-0.05"
-replace Lev4max = "1" if Lev4_percent== "0.95-1"
+replace Lev4max = ".05" if Lev4_percent== "<.05"
 destring Lev4max, generate(Lev4maxnumber) force
 gen Lev4min = Lev4_percent
-replace Lev4min = "0" if Lev4_percent== "0-0.05"
-replace Lev4min = "0.95" if Lev4_percent== "0.95-1"
+replace Lev4min = "0" if Lev4_percent== "<.05"
 destring Lev4min, generate(Lev4minnumber) force
 gen Lev5max = Lev5_percent
-replace Lev5max = ".05" if Lev5_percent== "0-0.05"
-replace Lev5max = "1" if Lev5_percent== "0.95-1"
+replace Lev5max = ".05" if Lev5_percent== "<.05"
 destring Lev5max, generate(Lev5maxnumber) force
 gen Lev5min = Lev5_percent
-replace Lev5min = "0" if Lev5_percent== "0-0.05"
-replace Lev5min = "0.95" if Lev5_percent== "0.95-1"
+replace Lev5min = "0" if Lev5_percent== "<.05"
 destring Lev5min, generate(Lev5minnumber) force
 gen ProficientOrAbovemin = Lev4minnumber + Lev5minnumber
 gen ProficientOrAbovemax = Lev4maxnumber + Lev5maxnumber
@@ -245,49 +206,36 @@ tostring ProficientOrAbovemax, replace force
 gen ProficientOrAbove_percent = ProficientOrAbovemin + "-" + ProficientOrAbovemax
 replace ProficientOrAbove_percent = ProficientOrAbovemax if ProficientOrAbovemax == ProficientOrAbovemin
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent=="."
-drop Lev4max Lev4maxnumber Lev4min Lev4minnumber Lev5max Lev5maxnumber Lev5min Lev5minnumber ProficientOrAbovemin ProficientOrAbovemax
-
-** Generate Proficient or Above Count
-
-gen Lev4max = Lev4_count
-replace Lev4max = "10" if Lev4_count== "<10"
-destring Lev4max, generate(Lev4maxnumber) force
-gen Lev4min = Lev4_count
-replace Lev4min = "0" if Lev4_count== "<10"
-destring Lev4min, generate(Lev4minnumber) force
-gen Lev5max = Lev5_count
-replace Lev5max = "10" if Lev5_count== "<10"
-destring Lev5max, generate(Lev5maxnumber) force
-gen Lev5min = Lev5_count
-replace Lev5min = "0" if Lev5_count== "<10"
-destring Lev5min, generate(Lev5minnumber) force
-gen ProficientOrAbovemin = Lev4minnumber + Lev5minnumber
-gen ProficientOrAbovemax = Lev4maxnumber + Lev5maxnumber
-tostring ProficientOrAbovemin, replace force
-tostring ProficientOrAbovemax, replace force
-gen ProficientOrAbove_count = ProficientOrAbovemin + "-" + ProficientOrAbovemax
-replace ProficientOrAbove_count = ProficientOrAbovemax if ProficientOrAbovemax == ProficientOrAbovemin
-replace ProficientOrAbove_count = "*" if ProficientOrAbove_count=="."
 replace Lev1_percent = "*" if Lev1_percent=="."
 replace Lev2_percent = "*" if Lev2_percent=="."
 replace Lev3_percent = "*" if Lev3_percent=="."
 replace Lev4_percent = "*" if Lev4_percent=="."
 replace Lev5_percent = "*" if Lev5_percent=="."
-replace Lev1_count = "*" if Lev1_count==" "
-replace Lev2_count = "*" if Lev2_count==" "
-replace Lev3_count = "*" if Lev3_count==" "
-replace Lev4_count = "*" if Lev4_count==" "
-replace Lev5_count = "*" if Lev5_count==" "
+gen ProficientOrAbove_count = "--"
+gen Lev1_count = "--"
+gen Lev2_count = "--"
+gen Lev3_count = "--"
+gen Lev4_count = "--"
+gen Lev5_count = "--"
+drop Lev4max Lev4maxnumber Lev4min Lev4minnumber Lev5max Lev5maxnumber Lev5min Lev5minnumber ProficientOrAbovemin ProficientOrAbovemax
+
+** Drop Excess Data
+
+drop if StudentGroup == "Education Classification" | StudentGroup == "Migrant" | StudentGroup == "Military Affiliation" | StudentGroup == "Foster Care" | StudentGroup == "Homeless"
 
 ** Merging NCES Variables
 
-gen State_leaid = "LA-" + StateAssignedDistID if DataLevel != "State" 
-replace State_leaid = "LA-036" if DistName == "Orleans Parish and RSDNO"
-gen seasch = StateAssignedDistID + "-" + StateAssignedSchID if DataLevel == "School"
+gen state_leaidnumber =.
+gen State_leaid = string(state_leaidnumber)
+replace State_leaid = "LA-" + StateAssignedDistID if DataLevel != "State" 
+gen seaschnumber=.
+gen seasch = string(seaschnumber)
+replace seasch = StateAssignedDistID + "-" + StateAssignedSchID if DataLevel == "School"
 merge m:1 State_leaid using "${path}/Semi-Processed Data Files/2017_18_NCES_Cleaned_District.dta"
 rename _merge district_merge
 merge m:1 seasch StateFips using "${path}/Semi-Processed Data Files/2017_18_NCES_Cleaned_School.dta"
 drop if district_merge != 3 & DataLevel != "State"| _merge !=3 & DataLevel == "School"
+drop state_leaidnumber seaschnumber _merge district_merge
 
 ** Standardize Non-School Level Data
 
@@ -295,12 +243,7 @@ replace SchName = "All Schools" if DataLevel == "State"
 replace SchName = "All Schools" if DataLevel == "District"
 replace DistName = "All Districts" if DataLevel == "State"
 replace StateAssignedDistID = "" if DataLevel == "State"
-replace StateAssignedSchID = "" if DataLevel == "State" | DataLevel == "District"
 replace State_leaid = "" if DataLevel == "State"
-replace SchLevel = ""  if DataLevel == "State" | DataLevel == "District"
-replace SchVirtual = ""  if DataLevel == "State" | DataLevel == "District"
-replace DistType = "" if DataLevel == "State"
-replace DistCharter = "" if DataLevel == "State"
 replace seasch = "" if DataLevel == "State" | DataLevel == "District"
 
 ** Relabel GradeLevel Values
@@ -375,8 +318,6 @@ label var Flag_CutScoreChange_math "Flag denoting a change in scoring determinat
 label var Flag_CutScoreChange_read "Flag denoting a change in scoring determinations in reading from the prior year only."
 
 ** Fix Variable Order 
-
-keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 
 order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 

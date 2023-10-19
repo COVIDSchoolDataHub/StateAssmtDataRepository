@@ -21,12 +21,6 @@ import delimited "", case(preserve)
 ** to import excel file: 
 ** import excel "FILE PATH HERE", firstrow case(preserve)
 
-****** Check format of NCES IDs *******
-
-// If NCES IDs are string:
-//destring NCESDistrictID, replace force
-//destring NCESSchoolID, replace force
-
 local variables "State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth"
 
 
@@ -349,29 +343,7 @@ list row NCESSchoolID NCESDistrictID if tot>1.01
 
 di as error "Below rows have percent total lower than 50%"
 
-preserve
-drop if Lev1_percent == "*"
-drop if Lev2_percent == "*"
-drop if Lev3_percent == "*"
-drop if Lev4_percent == "*"
-drop if Lev5_percent == "*"
-drop if Lev1_percent == "--"
-drop if Lev2_percent == "--"
-drop if Lev3_percent == "--"
-drop if Lev4_percent == "--"
-drop if Lev5_percent == "--"
-drop if Lev1_count == "*"
-drop if Lev2_count == "*"
-drop if Lev3_count == "*"
-drop if Lev4_count == "*"
-drop if Lev5_count == "*"
-drop if Lev1_count == "--"
-drop if Lev2_count == "--"
-drop if Lev3_count == "--"
-drop if Lev4_count == "--"
-drop if Lev5_count == "--"
 list row NCESSchoolID NCESDistrictID if tot<.50
-restore
 
 tab ProficiencyCriteria
 
@@ -384,24 +356,8 @@ tab ProficiencyCriteria
 egen check_count=rowtotal(nLev3_count nLev4_count nLev5_count)
 egen check_perc=rowtotal(nLev3_percent nLev4_percent nLev5_percent)
 
-preserve
-drop if Lev3_percent == "*"
-drop if Lev4_percent == "*"
-drop if Lev5_percent == "*"
-drop if Lev3_percent == "--"
-drop if Lev4_percent == "--"
-drop if Lev5_percent == "--"
-drop if Lev3_count == "*"
-drop if Lev4_count == "*"
-drop if Lev5_count == "*"
-drop if Lev3_count == "--"
-drop if Lev4_count == "--"
-drop if Lev5_count == "--"
-destring ProficientOrAbove_count, gen(xProficientOrAbove_count) force
-destring ProficientOrAbove_percent, gen(xProficientOrAbove_percent) force
-list row NCESSchoolID NCESDistrictID if check_count != xProficientOrAbove_count
-list row NCESSchoolID NCESDistrictID if !inrange(check_perc, xProficientOrAbove_percent - 0.01, xProficientOrAbove_percent + 0.01)
-restore
+list row NCESSchoolID NCESDistrictID if check_count != ProficientOrAbove_count
+list row NCESSchoolID NCESDistrictID if check_perc != ProficientOrAbove_percent
 
 drop tot nLev* check* nProficientOrAbove_percent nParticipationRate row
 

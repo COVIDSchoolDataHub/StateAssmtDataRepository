@@ -27,8 +27,6 @@ drop districtcountynumber
 
 save "${temp_files}/MN_AssmtData_2010_sci.dta", replace
 
-clear
-
 append using "${temp_files}/MN_AssmtData_2010_sci.dta" "${temp_files}/MN_AssmtData_2010_mat_rea.dta"
 
 // Dropping extra variables
@@ -149,7 +147,7 @@ drop if StateAssignedDistID == "8888"
 
 replace SchYear = "2009-10" if SchYear == "09-10"
 replace Subject = "math" if Subject == "M"
-replace Subject = "ela" if Subject == "R"
+replace Subject = "read" if Subject == "R"
 replace Subject = "sci" if Subject == "S"
 replace GradeLevel = "G03" if GradeLevel == "03"
 replace GradeLevel = "G04" if GradeLevel == "04"
@@ -162,7 +160,7 @@ drop if GradeLevel == "011"
 drop if GradeLevel == "HS"
 replace StudentGroup = "All Students" if StudentGroup == "All Categories"
 replace StudentGroup = "RaceEth" if StudentGroup == "Race/Ethnicity"
-replace StudentGroup = "EL Status" if StudentGroup == "English Proficiency"
+replace StudentGroup = "EL Status" if StudentGroup == "Limited English Proficient"
 replace StudentGroup = "Economic Status" if StudentGroup == "EconomicStatus"
 replace StudentSubGroup = "All Students" if StudentSubGroup == "All Students"
 replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "1-American Indian"
@@ -199,9 +197,9 @@ gen Lev5_count = ""
 gen Lev5_percent = ""
 gen AssmtName = "Minnesota Comprehensive Assessment II"
 gen Flag_AssmtNameChange = "N"
-gen Flag_CutScoreChange_ELA = "N"
+gen Flag_CutScoreChange_ELA = ""
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_read = ""
+gen Flag_CutScoreChange_read = "N"
 gen Flag_CutScoreChange_oth = "N"
 gen AssmtType = "Regular"
 gen ProficiencyCriteria = "Levels 3 and 4"
@@ -273,10 +271,6 @@ replace StateFips = 27 if DataLevel == 1
 replace DistName = "All Districts" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel == 2
-replace StateAssignedDistID = "" if DataLevel == 1
-replace StateAssignedSchID = "" if DataLevel != 3
-replace seasch = "" if DataLevel != 3
-replace State_leaid = "" if DataLevel == 1
 
 // Reordering variables and sorting data
 order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
