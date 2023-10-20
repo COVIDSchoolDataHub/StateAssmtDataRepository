@@ -71,7 +71,7 @@ replace StudentGroup = "RaceEth" if StudentSubGroup == "Hispanic or Latino" | St
 
 //Subject
 replace Subject = "math" if substr(Subject, 1,1) == "m"
-replace Subject = "ela" if substr(Subject,1,1) == "e"
+replace Subject = "eng" if substr(Subject,1,1) == "e"
 replace Subject = "read" if substr(Subject,1,1) == "r"
 replace Subject = "sci" if substr(Subject,1,1) == "s"
 
