@@ -157,6 +157,7 @@ clear
 //District
 use "`temp1'"
 keep if DataLevel == 2
+replace StateAssignedDistID = "1702000" if DistName == "CEDARVILLE SCHOOL DISTRICT"
 tempfile tempdist
 save "`tempdist'", replace
 clear
@@ -221,6 +222,7 @@ foreach n in 1 2 3 4 5 {
 	gen Lev`n'_count = "--"
 }
 gen ProficientOrAbove_count = "--"
+replace ProficientOrAbove_percent = "*" if Lev3_percent == "*" | Lev4_percent == "*"
 
 //Fixing sci obs
 replace Lev5_count = "" if Subject == "sci"

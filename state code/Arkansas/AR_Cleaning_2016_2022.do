@@ -94,6 +94,7 @@ gen StudentGroup_TotalTested = StudentSubGroup_TotalTested
 foreach var of varlist Lev* ProficientOrAbove_percent StudentSubGroup_TotalTested StudentGroup_TotalTested {
 	replace `var' = lower(`var')
 	replace `var' = "*" if `var' == "n<10"
+	replace `var' = "*" if `year' == 2019 & Subject == "ela" & `var' == "."
 	replace `var' = "--" if missing(`var')
 	replace `var' = "--" if `var' == "na"
 	replace `var' = "--" if `var' == "."
