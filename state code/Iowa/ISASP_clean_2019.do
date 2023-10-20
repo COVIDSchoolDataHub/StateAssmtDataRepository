@@ -1,12 +1,12 @@
 clear
 set more off
 
-global raw "/Users/minnamgung/Desktop/Iowa/Input"
-global output "/Users/minnamgung/Desktop/Iowa/Output"
-global int "/Users/minnamgung/Desktop/Iowa/Intermediate"
+global raw "/Users/mnamgung/Desktop/Iowa/Input"
+global output "/Users/mnamgung/Desktop/Iowa/Output"
+global int "/Users/mnamgung/Desktop/Iowa/Intermediate"
 
-global nces "/Users/minnamgung/Desktop/NCES"
-global iowa "/Users/minnamgung/Desktop/Iowa/NCES"
+global nces "/Users/mnamgung/Desktop/NCES"
+global iowa "/Users/mnamgung/Desktop/Iowa/NCES"
 
 /////////////////////////////////////////
 *** NCES Cleaning for IA ***
@@ -100,14 +100,7 @@ reshape long NotProficient Proficient TotalTested PercentProficient, i(StateAssi
 gen State_leaid=StateAssignedDistID
 merge m:1 State_leaid using "${iowa}/NCES_2018_district.dta"
 
-
-foreach i of varlist NCESDistrictID State_leaid DistType CountyName CountyCode {
-	tostring `i', replace force
-	replace `i'="Missing/not reported" if _merge==1 & DistName!="State" & DistName!="Accountable to State"
-}
-
 drop if _merge==2
-drop _merge AEA
 
 gen DataLevel="District"
 replace DataLevel="State" if DistName=="State"
@@ -189,19 +182,10 @@ replace school_name="South O'Brien Secondary School" if SchName=="South O'Brien 
 gen seasch=StateAssignedDistID
 merge m:1 school_name seasch using "${iowa}/NCES_2018_school.dta"
 
-rename school_level SchLevel
-rename virtual SchVirtual 
-
-foreach i of varlist NCESSchoolID NCESDistrictID State_leaid CountyName CountyCode SchLevel SchType SchVirtual {
-	tostring `i', replace force
-	replace `i'="Missing/not reported" if _merge==1 & DistName!="State" & DistName!="Accountable to State"
-}
-
 drop if DistName=="State" | SchName=="State"
 gen DataLevel="School"
 
 drop if _merge==2
-drop _merge
 
 save "${int}/IA_AssmtData_school_2019.dta", replace
 
@@ -218,7 +202,7 @@ tostring GradeLevel, replace
 replace GradeLevel="G0"+GradeLevel
 
 drop State
-gen State="IOWA"
+gen State="Iowa"
 replace StateAbbrev="IA"
 replace StateFips=19
 gen SchYear="2018-19"
@@ -240,13 +224,13 @@ rename TotalTested StudentGroup_TotalTested
 rename PercentProficient ProficientOrAbove_percent
 rename Proficient ProficientOrAbove_count
 
-replace StudentGroup_TotalTested="0" if StudentGroup_TotalTested==""
+replace StudentGroup_TotalTested="--" if StudentGroup_TotalTested==""
 
 gen ProficiencyCriteria="Levels 2 and 3"
-gen AvgScaleScore=""
+gen AvgScaleScore="--"
 gen StudentSubGroup="All Students"
 gen StudentSubGroup_TotalTested=StudentGroup_TotalTested 
-gen ParticipationRate=""
+gen ParticipationRate="--"
 
 foreach x of numlist 1/5 {
     generate Lev`x'_count = ""
@@ -255,26 +239,54 @@ foreach x of numlist 1/5 {
     label variable Lev`x'_percent "Percent of students within subgroup performing at Level `x'."
 }
 
-** Replace missing values
-foreach v of varlist StudentSubGroup_TotalTested AvgScaleScore Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ParticipationRate {
-	tostring `v', replace
-	replace `v' = "-" if `v' == "" | `v' == "."
-}
-	
-foreach u of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent {
-	destring `u', replace force
-	replace `u' = `u' / 100
-	tostring `u', replace force
-	replace `u' = "*" if `u' == "."
-}
-
 gen Flag_AssmtNameChange="Y"
 gen Flag_CutScoreChange_ELA="Y"
 gen Flag_CutScoreChange_math="Y"
 gen Flag_CutScoreChange_read=""
 gen Flag_CutScoreChange_oth="N"
 
-rename charter DistCharter
+////////////////////////////////////
+*** Review 1 Edits ***
+////////////////////////////////////
+
+replace State="Iowa"
+
+replace SchName="All Schools" if DataLevel==2 | DataLevel==1
+
+drop if DistName=="Rolled up to state"
+
+foreach i of varlist NCESDistrictID State_leaid NCESSchoolID seasch CountyName DistCharter {
+	tostring `i', replace 
+	replace `i'="Missing/not reported" if _merge==1 & DataLevel!=1
+}
+
+foreach i of varlist DistType SchType SchLevel SchVirtual CountyCode  {
+	replace `i'=-1 if _merge==1 & DataLevel!=1 
+	label def `i' -1 "Missing/not reported"
+}
+
+foreach v of varlist StudentGroup_TotalTested StudentSubGroup_TotalTested ProficientOrAbove_count ProficientOrAbove_percent {
+	replace `v'="*" if StudentSubGroup_TotalTested=="small N"
+}
+
+foreach v of varlist StudentSubGroup_TotalTested AvgScaleScore Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ParticipationRate Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent {
+	tostring `v', replace
+	replace `v' = "--" if `v' == "" | `v' == "."
+}
+
+drop if _merge==1 & strpos(SchName, "Online")>0
+
+save "${int}/IA_AssmtData_school_2019.dta", replace
+
+keep if _merge==1 & DataLevel!=1
+
+export delimited using "${output}/Unmerged/IA_unmerged_2019.csv", replace
+
+use "${int}/IA_AssmtData_school_2019.dta", clear
+
+////////////////////////////////////
+*** Sorting ***
+////////////////////////////////////
 
 keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 
@@ -282,7 +294,9 @@ order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName Sc
 
 //sort
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-replace SchVirtual = "Missing/not reported" if SchVirtual == "" & DataLevel == 3
-replace SchLevel = "Missing/not reported" if SchLevel == "" & DataLevel == 3
+*replace SchVirtual = "Missing/not reported" if SchVirtual == "" & DataLevel == 3
+*replace SchLevel = "Missing/not reported" if SchLevel == "" & DataLevel == 3
 
-save "${output}/IA_AssmtData_all_2019.dta"
+save "${output}/IA_AssmtData_all_2019.dta", replace
+
+export delimited using "${output}/IA_AssmtData_2019.csv", replace
