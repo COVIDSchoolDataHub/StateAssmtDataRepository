@@ -24,8 +24,9 @@ rename program_year SchYear
 
 ** Dropping entries
 
-drop if Population == "Report Card"
+drop if Population == "Accountability"
 drop Population
+
 drop if inlist(GradeLevel, "10", "ALL")
 
 drop if SchYear == "2015"
@@ -85,8 +86,6 @@ foreach a of local level {
 	gen Lev`a'_count = "--"
 }
 
-drop PCNotValid
-
 gen Lev5_count = ""
 gen Lev5_percent = ""
 
@@ -95,7 +94,8 @@ gen AssmtType = "Regular"
 
 gen AvgScaleScore = "--"
 
-gen ParticipationRate = "--"
+gen ParticipationRate = 1 - PCNotValid
+drop PCNotValid
 
 gen ProficiencyCriteria = "Levels 3-4"
 gen ProficientOrAbove_count = "--"

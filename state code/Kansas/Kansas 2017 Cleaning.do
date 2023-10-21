@@ -24,9 +24,7 @@ rename program_year SchYear
 
 ** Dropping entries
 
-drop PCNotValid
-
-drop if Population == "Report Card"
+drop if Population == "Accountability"
 drop Population
 
 drop if inlist(GradeLevel, 10, 13)
@@ -62,7 +60,6 @@ replace StateAssignedSchID = "" if DataLevel != "School"
 replace StateAssignedDistID = "" if DataLevel == "State"
 
 replace StudentSubGroup = strtrim(StudentSubGroup)
-tab StudentSubGroup
 replace StudentSubGroup = "Black or African American" if StudentSubGroup == "African-American Students"
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "ELL Students"
 replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Free and Reduced Lunch"
@@ -79,10 +76,14 @@ replace StudentGroup = "Economic Status" if inlist(StudentSubGroup, "Economicall
 gen StudentGroup_TotalTested = "--"
 gen StudentSubGroup_TotalTested = "--"
 
+destring PCNotValid, replace
+replace PCNotValid = PCNotValid/100
+
 local level 1 2 3 4
 foreach a of local level {
 	destring Lev`a'_percent, replace
 	replace Lev`a'_percent = Lev`a'_percent/100
+	replace Lev`a'_percent = Lev`a'_percent/(1-PCNotValid)
 	gen Lev`a'_count = "--"
 }
 
@@ -94,7 +95,9 @@ gen AssmtType = "Regular"
 
 gen AvgScaleScore = "--"
 
-gen ParticipationRate = "--"
+gen ParticipationRate = 1 - PCNotValid
+
+drop PCNotValid
 
 gen ProficiencyCriteria = "Levels 3-4"
 gen ProficientOrAbove_count = "--"
@@ -120,6 +123,7 @@ drop if _merge == 2
 drop _merge
 
 gen seasch = StateAssignedDistID + "-" + StateAssignedSchID
+replace seasch = "" if DataLevel != 3
 
 merge m:1 seasch using "${NCES}/NCES_2016_School.dta"
 

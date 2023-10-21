@@ -78,8 +78,6 @@ foreach a of local level {
 	gen Lev`a'_count = "--"
 }
 
-drop PctNotValid
-
 gen Lev5_count = ""
 gen Lev5_percent = ""
 
@@ -88,7 +86,8 @@ gen AssmtType = "Regular"
 
 gen AvgScaleScore = "--"
 
-gen ParticipationRate = "--"
+gen ParticipationRate = 1 - PctNotValid
+drop PctNotValid
 
 gen ProficiencyCriteria = "Levels 3-4"
 gen ProficientOrAbove_count = "--"

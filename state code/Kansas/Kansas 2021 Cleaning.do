@@ -32,6 +32,8 @@ tab StudentSubGroup
 drop if strpos(StudentSubGroup, "Disab") | strpos(StudentSubGroup, "only") > 0 & StudentSubGroup != "Self-Paid Lunch only"
 drop if inlist(StudentSubGroup, "Foster Care", "Homeless", "Military Connected Students")
 
+drop if SchName == "State of Kansas"
+
 ** Replacing/generating variables
 
 tostring SchYear, replace
@@ -115,6 +117,7 @@ drop if _merge == 2
 drop _merge
 
 gen seasch = StateAssignedDistID + "-" + StateAssignedSchID
+replace seasch = "" if DataLevel != 3
 
 merge m:1 seasch using "${NCES}/NCES_2020_School.dta"
 

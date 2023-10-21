@@ -112,6 +112,7 @@ drop if _merge == 2
 drop _merge
 
 gen seasch = StateAssignedDistID + "-" + StateAssignedSchID
+replace seasch = "" if DataLevel != 3
 
 merge m:1 seasch using "${NCES}/NCES_2021_School.dta"
 

@@ -31,6 +31,8 @@ drop if inlist(GradeLevel, 10, 11, 13)
 drop if strpos(StudentSubGroup, "Disab") | strpos(StudentSubGroup, "only") > 0 & StudentSubGroup != "Self-Paid Lunch only"
 drop if inlist(StudentSubGroup, "Foster Care", "Homeless", "Military Connected Students")
 
+drop if SchName == "State of Kansas"
+
 ** Replacing/generating variables
 
 tostring SchYear, replace
@@ -115,6 +117,7 @@ drop if _merge == 2
 drop _merge
 
 gen seasch = StateAssignedDistID + "-" + StateAssignedSchID
+replace seasch = "" if DataLevel != 3
 
 merge m:1 seasch using "${NCES}/NCES_2018_School.dta"
 
@@ -131,7 +134,7 @@ gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_read = ""
-gen Flag_CutScoreChange_oth = ""
+gen Flag_CutScoreChange_oth = "Y"
 
 order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 
