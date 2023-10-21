@@ -69,11 +69,16 @@ replace StudentGroup = "Economic Status" if inlist(StudentSubGroup, "Economicall
 gen StudentGroup_TotalTested = "--"
 gen StudentSubGroup_TotalTested = "--"
 
+replace PctNotValid = PctNotValid/100
+
 local level 1 2 3 4
 foreach a of local level {
 	replace Lev`a'_percent = Lev`a'_percent/100
+	replace Lev`a'_percent = Lev`a'_percent/(1-PctNotValid)
 	gen Lev`a'_count = "--"
 }
+
+drop PctNotValid
 
 gen Lev5_count = ""
 gen Lev5_percent = ""
@@ -83,8 +88,7 @@ gen AssmtType = "Regular"
 
 gen AvgScaleScore = "--"
 
-gen ParticipationRate = 1 - PctNotValid/100
-drop PctNotValid
+gen ParticipationRate = "--"
 
 gen ProficiencyCriteria = "Levels 3-4"
 gen ProficientOrAbove_count = "--"

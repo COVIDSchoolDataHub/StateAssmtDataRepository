@@ -7,45 +7,44 @@ global NCES "/Users/maggie/Desktop/Kansas/NCES/Cleaned"
 
 cd "/Users/maggie/Desktop/Kansas"
 
-use "${raw}/KS_AssmtData_2016.dta", clear
+use "${raw}/KS_AssmtData_2019.dta", clear
 
 ** Renaming variables
 
-rename Organization SchName
-rename PCLevel_One Lev1_percent
-rename PCLevel_Two Lev2_percent
-rename PCLevel_Three Lev3_percent
-rename PCLevel_Four Lev4_percent
-rename GroupName StudentSubGroup
-rename GradeName GradeLevel
-rename Building_Number StateAssignedSchID
-rename Org_No StateAssignedDistID
-rename program_year SchYear
+rename OrganizationBuildingStateName SchName
+rename PctLevel1 Lev1_percent
+rename PctLevel2 Lev2_percent
+rename PctLevel3 Lev3_percent
+rename PctLevel4 Lev4_percent
+rename Group StudentSubGroup
+rename Grade GradeLevel
+rename BldgNo StateAssignedSchID
+rename OrgNo StateAssignedDistID
+rename SchoolYear SchYear
 
 ** Dropping entries
 
-drop if Population == "Report Card"
-drop Population
-drop if inlist(GradeLevel, "10", "ALL")
+drop PctNotValid
 
-drop if SchYear == "2015"
+drop if inlist(GradeLevel, 10, 11, 13)
 
-drop if StateAssignedSchID == "District Aggregate" & SchName == "State of Kansas"
-
-drop if strpos(StudentSubGroup, "Mobile") | strpos(StudentSubGroup, "Disab") | strpos(StudentSubGroup, "only") > 0 & StudentSubGroup != "Self-Paid Lunch only"
-drop if inlist(StudentSubGroup, "Homeless", "Migrant")
+drop if strpos(StudentSubGroup, "Disab") | strpos(StudentSubGroup, "only") > 0 & StudentSubGroup != "Self-Paid Lunch only"
+drop if inlist(StudentSubGroup, "Foster Care", "Homeless", "Military Connected Students")
 
 ** Replacing/generating variables
 
-replace SchYear = "2015-16"
+tostring SchYear, replace
+replace SchYear = "2018-19"
 
 replace Subject = strlower(Subject)
+replace Subject = "sci" if Subject == "science"
 
+tostring GradeLevel, replace
 replace GradeLevel = "G0" + GradeLevel
 
 gen DataLevel = "School"
-replace DataLevel = "District" if StateAssignedSchID == "District Aggregate"
-replace DataLevel = "State" if StateAssignedSchID == "State Aggregate"
+replace DataLevel = "District" if StateAssignedSchID == 0
+replace DataLevel = "State" if StateAssignedDistID == "0"
 
 gen DistName = SchName
 sort StateAssignedDistID DataLevel
@@ -54,16 +53,18 @@ replace DistName = DistName[_n-1] if DataLevel == "School"
 replace SchName = "All Schools" if DataLevel != "School"
 replace DistName = "All Districts" if DataLevel == "State"
 
+tostring StateAssignedSchID, replace
+replace StateAssignedSchID = substr(SchName, 1, 4)
 replace StateAssignedSchID = "" if DataLevel != "School"
 replace StateAssignedDistID = "" if DataLevel == "State"
 
 replace StudentSubGroup = strtrim(StudentSubGroup)
 replace StudentSubGroup = "Black or African American" if StudentSubGroup == "African-American Students"
-replace StudentSubGroup = "English Learner" if StudentSubGroup == "ELL Students"
+replace StudentSubGroup = "English Learner" if StudentSubGroup == "English Learner Students"
 replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Free and Reduced Lunch"
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
 replace StudentSubGroup = "Two or More" if StudentSubGroup == "Multi-Racial"
-replace StudentSubGroup = "English Proficient" if StudentSubGroup == "Non-ELL Students"
+replace StudentSubGroup = "English Proficient" if StudentSubGroup == "Non-English Learner Students"
 replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "Self-Paid Lunch only"
 
 gen StudentGroup = "RaceEth"
@@ -74,18 +75,11 @@ replace StudentGroup = "Economic Status" if inlist(StudentSubGroup, "Economicall
 gen StudentGroup_TotalTested = "--"
 gen StudentSubGroup_TotalTested = "--"
 
-destring PCNotValid, replace
-replace PCNotValid = PCNotValid/100
-
 local level 1 2 3 4
 foreach a of local level {
-	destring Lev`a'_percent, replace
 	replace Lev`a'_percent = Lev`a'_percent/100
-	replace Lev`a'_percent = Lev`a'_percent/(1-PCNotValid)
 	gen Lev`a'_count = "--"
 }
-
-drop PCNotValid
 
 gen Lev5_count = ""
 gen Lev5_percent = ""
@@ -111,17 +105,18 @@ rename DataLevel_n DataLevel
 
 ** Merging with NCES
 
-gen State_leaid = StateAssignedDistID
+gen State_leaid = "KS-" + StateAssignedDistID
+replace State_leaid = "" if DataLevel == 1
 
-merge m:1 State_leaid using "${NCES}/NCES_2015_District.dta"
+merge m:1 State_leaid using "${NCES}/NCES_2018_District.dta"
 
 drop if _merge == 1 & DataLevel != 1
 drop if _merge == 2
 drop _merge
 
-gen seasch = StateAssignedSchID
+gen seasch = StateAssignedDistID + "-" + StateAssignedSchID
 
-merge m:1 seasch using "${NCES}/NCES_2015_School.dta"
+merge m:1 seasch using "${NCES}/NCES_2018_School.dta"
 
 drop if _merge == 2
 drop _merge
@@ -142,6 +137,6 @@ order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName Sc
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${output}/KS_AssmtData_2016.dta", replace
+save "${output}/KS_AssmtData_2019.dta", replace
 
-export delimited using "${output}/csv/KS_AssmtData_2016.csv", replace
+export delimited using "${output}/csv/KS_AssmtData_2019.csv", replace
