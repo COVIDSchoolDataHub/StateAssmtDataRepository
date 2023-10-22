@@ -182,10 +182,13 @@ if `year' < 2019 gen StudentSubGroup = "All Students"
 replace StudentSubGroup = "All Students" if strpos(StudentSubGroup, "All") !=0
 replace StudentSubGroup = "American Indian or Alaska Native" if strpos(StudentSubGroup, "Indian") !=0
 replace StudentSubGroup = "Asian" if strpos(StudentSubGroup, "Asian") !=0 //**StudentSubGroup ALSO INCLUDES Native Hawaiian or Pacific Islander	**
-replace StudentSubGroup = "Black or African American" if StudentSubGroup == "Black"
-replace StudentSubGroup = "English Learner" if StudentSubGroup == "EL - Current"
-replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
+replace StudentSubGroup = "Black or African American" if strpos(StudentSubGroup, "Black") !=0
+replace StudentSubGroup = "English Learner" if strpos(StudentSubGroup, "EL - Current") !=0
+replace StudentSubGroup = "Hispanic or Latino" if strpos(StudentSubGroup, "Hispanic") !=0
 replace StudentSubGroup = "Two or More" if strpos(StudentSubGroup, "Two or More") !=0
+replace StudentSubGroup = "White" if strpos(StudentSubGroup, "White") !=0
+replace StudentSubGroup = "Female" if strpos(StudentSubGroup, "Female") !=0
+replace StudentSubGroup = "Male" if strpos(StudentSubGroup, "Male") !=0
 keep if StudentSubGroup == "All Students" | StudentSubGroup == "American Indian or Alaska Native" | StudentSubGroup == "Asian" | StudentSubGroup == "Black or African American" | StudentSubGroup == "Native Hawaiian or Pacific Islander" | StudentSubGroup == "White" | StudentSubGroup == "Hispanic or Latino" | StudentSubGroup == "Not Hispanic or Latino" | StudentSubGroup == "English Learner" | StudentSubGroup == "English Proficient" | StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged" | StudentSubGroup == "Male" | StudentSubGroup == "Female" | StudentSubGroup == "Two or More"
 
 //StudentGroup
