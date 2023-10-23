@@ -171,7 +171,7 @@ foreach y in $years {
 	merge m:1 DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel using "${path}/Semi-Processed Data Files/SC_`y'_group.dta"
 	tab _merge
 	drop _merge
-	drop if StudentSubGroup_TotalTested == ""
+	drop if StudentSubGroup_TotalTested == "0" | StudentSubGroup_TotalTested == ""
 	save "${path}/Semi-Processed Data Files/SC_`y'_all.dta", replace
 	
 	** Standardize StudentSubGroup Data
