@@ -75,9 +75,13 @@ gen DataLevel = "School"
 
 ** Updating 2023 districts
 
-replace DistType = 7 if DistName == "Archway Classical Academy Trivium West"
-replace NCESDistrictID = "0409737" if DistName == "Archway Classical Academy Trivium West"
-replace DistCharter = "Yes" if DistName == "Archway Classical Academy Trivium West"
+replace DistType = 7 if StateAssignedDistID == "90915"
+replace NCESDistrictID = "0400832" if StateAssignedDistID == "90915"
+replace DistCharter = "Yes" if StateAssignedDistID == "90915"
+
+replace DistType = 7 if StateAssignedDistID == "1001937"
+replace NCESDistrictID = "0409737" if StateAssignedDistID == "1001937"
+replace DistCharter = "Yes" if StateAssignedDistID == "1001937"
 
 replace DistType = 7 if DistName == "Legacy Traditional School-San Tan"
 replace NCESDistrictID = "0409736" if DistName == "Legacy Traditional School-San Tan"
@@ -116,8 +120,11 @@ replace NCESSchoolID = "040973603835" if SchName == "Legacy Traditional-San Tan"
 replace SchType = 1 if SchName == "Path to Potential"
 replace NCESSchoolID = "040095303833" if SchName == "Path to Potential"
 
-replace SchType = 1 if SchName == "Sun Valley Elementary School"
-replace NCESSchoolID = "040789003814" if SchName == "Sun Valley Elementary School"
+replace SchType = 1 if NCESDistrictID == "0406250" & StateAssignedSchID == "5004"
+replace NCESSchoolID = "040625001425" if NCESDistrictID == "0406250" & StateAssignedSchID == "5004"
+
+replace SchType = 1 if NCESDistrictID == "0407890" & StateAssignedSchID == "1001915"
+replace NCESSchoolID = "040789003814" if NCESDistrictID == "0407890" & StateAssignedSchID == "1001915"
 
 replace SchType = 1 if SchName == "Washington Elementary School District Online Learning Academy"
 replace NCESSchoolID = "040906003805" if SchName == "Washington Elementary School District Online Learning Academy"
@@ -176,9 +183,13 @@ gen DataLevel = "District"
 
 ** Updating 2023 districts
 
-replace DistType = 7 if DistName == "Archway Classical Academy Trivium West"
-replace NCESDistrictID = "0409737" if DistName == "Archway Classical Academy Trivium West"
-replace DistCharter = "Yes" if DistName == "Archway Classical Academy Trivium West"
+replace DistType = 7 if StateAssignedDistID == "90915"
+replace NCESDistrictID = "0400832" if StateAssignedDistID == "90915"
+replace DistCharter = "Yes" if StateAssignedDistID == "90915"
+
+replace DistType = 7 if StateAssignedDistID == "1001937"
+replace NCESDistrictID = "0409737" if StateAssignedDistID == "1001937"
+replace DistCharter = "Yes" if StateAssignedDistID == "1001937"
 
 replace DistType = 7 if DistName == "Legacy Traditional School-San Tan"
 replace NCESDistrictID = "0409736" if DistName == "Legacy Traditional School-San Tan"
