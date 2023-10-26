@@ -280,6 +280,7 @@ foreach var of varlist Flag* {
 }
 replace Flag_CutScoreChange_ELA = "Y" if `year' == 2022
 replace Flag_CutScoreChange_math = "Y" if `year' == 2022
+replace Flag_CutScoreChange_oth = "Y" if `year' == 2022
 
 //Empty Variables
 gen AvgScaleScore = "--"
