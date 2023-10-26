@@ -278,6 +278,8 @@ foreach var of varlist Flag* {
 	replace `var' = "Y" if ("`var'" == "Flag_AssmtNameChange" | "`var'" == "Flag_CutScoreChange_ELA" | "`var'" == "Flag_CutScoreChange_math" | "`var'" == "Flag_CutScoreChange_oth") & `year' == 2015
 	replace `var' = "Y" if "`var'" == "Flag_CutScoreChange_oth" & `year' == 2019
 }
+replace Flag_CutScoreChange_ELA = "Y" if `year' == 2022
+replace Flag_CutScoreChange_math = "Y" if `year' == 2022
 
 //Empty Variables
 gen AvgScaleScore = "--"
@@ -382,11 +384,10 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 save "`Output'/OR_AssmtData_`year'", replace
 export delimited "`Output'/OR_AssmtData_`year'", replace
 clear
-
-
+}
 do OR_Cleaning_2021
 
 
 
-clear
-}
+
+
