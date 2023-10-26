@@ -1,9 +1,11 @@
 clear
 set more off
 set trace off
+cap log close
 local Original "/Volumes/T7/State Test Project/New Hampshire/Original Data Files"
 local Output "/Volumes/T7/State Test Project/New Hampshire/Output"
 local NCES "/Volumes/T7/State Test Project/NCES"
+log using "`Original'/log", replace
 
 //Converting to dta format
 forvalues year = 2009/2023 {
@@ -172,7 +174,7 @@ replace DistName = "All Districts" if DataLevel == 1
 foreach var of varlist StudentSubGroup_TotalTested Lev* ProficientOrAbove_percent AvgScaleScore ParticipationRate {
 	cap replace `var' = "*" if strpos(`var', "*") !=0
 	cap replace `var' = "--" if `var' == "NULL"
-	cap replace `var' = "--" if `var' == "15-Oct" // Idk what this is about but it seems to appear as a value for some vars... 2019 only it looks like
+	cap replace `var' = "10 - 15" if `var' == "15-Oct" // response to R1... editing what was here previously
 	cap replace `var' = "--" if `var' == "Not Available"
 	if "`var'" == "StudentSubGroup_TotalTested" cap replace `var' = "--" if StudentSubGroup_TotalTested == "43573" & DataLevel ==3 //This value makes no sense at DataLevel == 3 but it seems common
 }
@@ -379,6 +381,20 @@ replace CountyName = "Missing/not reported" if DistName == "Heartwood Public Cha
 replace CountyCode = 0 if DistName == "Heartwood Public Charter School"
 }
 
+//Missing NCES Variables
+label def agency_typedf -1 "Missing/not reported", add
+replace DistType = -1 if missing(DistType) & DataLevel !=1
+
+//Editing Flags and Assessment names in response to R1
+if `year' < 2015 replace AssmtName = "NECAP"
+if `year' == 2015 {
+	replace Flag_AssmtNameChange = "Y" if Subject != "sci"
+	replace Flag_CutScoreChange_ELA = "Y"
+	replace Flag_CutScoreChange_math = "Y"
+	replace Flag_CutScoreChange_oth = "N"
+}
+
+
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
@@ -443,7 +459,7 @@ gen StudentGroup_TotalTested = "--"
 foreach var of varlist StudentSubGroup_TotalTested Lev* ParticipationRate {
 	cap replace `var' = "*" if strpos(`var', "*") !=0
 	cap replace `var' = "--" if `var' == "NULL"
-	cap replace `var' = "--" if `var' == "15-Oct" // Idk what this is about but it seems to appear as a value for some vars... 2019 only it looks like
+	cap replace `var' = "10 - 15" if `var' == "15-Oct" // Edited in response to R1
 	cap replace `var' = "--" if `var' == "Not Available"
 }
 
@@ -481,12 +497,12 @@ drop if _merge == 2
 //Appending Data
 append using "`Output'/NH_AssmtData_`year'"
 
-//Missing NCES Variables
-label def agency_typedf -1 "Missing/not reported", add
-replace DistType = -1 if missing(DistType) & DataLevel !=1
+//Response to R1
+replace NCESDistrictID = "3301710" if NCESDistrictID == "3399939"
 
 //Final Cleaning
 drop if SchName == "MicroSociety Academy Charter School of Southern NH" & `year' == 2017 & missing(StateAssignedSchID) //Not sure whats happening here, but it's not merging and its a duplicate observation, so dropping
+
 order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
@@ -497,7 +513,7 @@ export delimited "`Output'/NH_AssmtData_`year'", replace
 clear	
 
 }
-
+log close
 
 
 

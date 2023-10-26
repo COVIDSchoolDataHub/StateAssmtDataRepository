@@ -344,19 +344,21 @@ drop if DistName=="Accountable to State"
 
 foreach i of varlist NCESDistrictID State_leaid NCESSchoolID seasch DistCharter CountyName {
 	tostring `i', replace 
-	replace `i'="Missing/not reported" if _merge==1 & DistName!="State"
+	replace `i'="Missing/not reported" if _merge==1 & DistName!="State" & DataLevel!=1
+	replace `i'="" if DataLevel!=3 & _merge==1
 }
 
-foreach i of varlist DistType SchType SchLevel SchVirtual CountyCode {
-	replace `i'=-1 if _merge==1 & DistName!="State" 
-	label def `i' -1 "Missing/not reported"
+foreach i of varlist SchType SchLevel SchVirtual DistType {
+	replace `i'=-1 if _merge==1 & DistName!="State" & DataLevel!=1
+	label define `i' -1 "Missing/not reported"
+	replace `i'=. if DataLevel!=3 & _merge==1
 }
 
 foreach v of varlist StudentGroup_TotalTested StudentSubGroup_TotalTested ProficientOrAbove_count ProficientOrAbove_percent {
 	replace `v'="*" if StudentSubGroup_TotalTested=="small N"
 }
 
-foreach v of varlist StudentSubGroup_TotalTested AvgScaleScore Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ParticipationRate Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent {
+foreach v of varlist StudentSubGroup_TotalTested AvgScaleScore Lev1_count Lev2_count Lev3_count ProficientOrAbove_count ParticipationRate Lev1_percent Lev2_percent Lev3_percent ProficientOrAbove_percent {
 	tostring `v', replace
 	replace `v' = "--" if `v' == "" | `v' == "."
 }
@@ -370,6 +372,18 @@ keep if _merge==1 & DataLevel!=1
 export delimited using "${output}/Unmerged/IA_unmerged_2023.csv", replace
 
 use "${int}/IA_AssmtData_school_2023.dta", clear
+
+////////////////////////////////////
+*** Review 2 Edits ***
+////////////////////////////////////
+
+destring ProficientOrAbove_percent, replace force
+replace ProficientOrAbove_percent=ProficientOrAbove_percent/100
+tostring ProficientOrAbove_percent, replace force
+replace ProficientOrAbove_percent="--" if ProficientOrAbove_percent=="."
+
+label define agency_typedf -1 "Missing/not reported", add
+label values DistType agency_typedf
 
 ////////////////////////////////////
 *** Sorting ***
