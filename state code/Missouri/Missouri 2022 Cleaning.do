@@ -36,9 +36,7 @@ drop ACCOUNTABLE NONPARTICIPANTLND NONPARTICIPANTLNDPCT
 
 keep if inlist(GradeLevel, "3", "4", "5", "6", "7", "8")
 
-tab StudentSubGroup
-
-drop if strpos(StudentSubGroup, "IEP") | strpos(StudentSubGroup, "<") | strpos(StudentSubGroup, "EL") | strpos(StudentSubGroup, "Direct Certification") > 0 & StudentSubGroup != "EL Students"
+drop if (strpos(StudentSubGroup, "IEP") | strpos(StudentSubGroup, "<") | strpos(StudentSubGroup, "EL") | strpos(StudentSubGroup, "Direct Certification") > 0) & StudentSubGroup != "EL Students"
 drop if inlist(StudentSubGroup, "Gifted", "High School Vocational", "Migrant", "TitleI")
 
 ** Replacing variables
@@ -66,7 +64,7 @@ replace StateAssignedDistID = "" if DataLevel == 1
 
 replace StudentGroup = "All Students" if StudentGroup == "Total"
 replace StudentGroup = "RaceEth" if StudentGroup == "Race/Ethnicity"
-replace StudentGroup = "EL Status" if StudentSubGroup == "LEP/ELL Students"
+replace StudentGroup = "EL Status" if StudentSubGroup == "EL Students"
 replace StudentGroup = "Economic Status" if strpos(StudentSubGroup, "Free and Reduced Lunch") > 0
 
 replace StudentSubGroup = "All Students" if StudentSubGroup == "Total"
@@ -77,7 +75,7 @@ replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
 replace StudentSubGroup = "Two or More" if StudentSubGroup == "Multiracial"
 replace StudentSubGroup = "Unknown" if StudentSubGroup == "No Response"
 replace StudentSubGroup = "White" if StudentSubGroup == "White (not Hispanic)"
-replace StudentSubGroup = "English Learner" if StudentSubGroup == "LEP/ELL Students"
+replace StudentSubGroup = "English Learner" if StudentSubGroup == "EL Students"
 replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Map Free and Reduced Lunch"
 replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "Non Free and Reduced Lunch"
 
@@ -139,6 +137,8 @@ gen seasch = subinstr(State_leaid, "MO-", "", .) + "-" + StateAssignedSchID + su
 replace seasch = "" if DataLevel != 3
 
 merge m:1 seasch using "${NCES}/NCES_2021_School.dta"
+
+replace SchVirtual = 0 if SchVirtual == . & DataLevel == 3
 
 drop if NCESSchoolID == "" & DataLevel == 3
 drop if _merge == 2

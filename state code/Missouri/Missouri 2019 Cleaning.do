@@ -142,6 +142,11 @@ drop if NCESSchoolID == "" & DataLevel == 3
 drop if _merge == 2
 drop _merge
 
+merge m:1 seasch using "${NCES}/NCES_2020_School.dta", update
+
+drop if _merge == 2
+drop _merge
+
 **
 
 replace StateAbbrev = "MO" if DataLevel == 1

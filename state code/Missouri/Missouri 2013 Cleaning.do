@@ -155,7 +155,7 @@ merge m:1 seasch using "${NCES}/NCES_2013_School.dta", update
 drop if NCESSchoolID == "" & DataLevel == 3
 
 drop if _merge == 2
-drop _merge
+drop _merge agency_charter_indicator
 
 **
 

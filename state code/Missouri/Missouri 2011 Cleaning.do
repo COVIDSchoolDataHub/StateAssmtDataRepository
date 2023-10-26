@@ -135,7 +135,7 @@ merge m:1 State_leaid using "${NCES}/NCES_2010_District.dta"
 drop if NCESDistrictID == "" & DataLevel != 1
 
 drop if _merge == 2
-drop _merge
+drop _merge agency_type_num
 
 gen seasch = StateAssignedSchID + State_leaid
 replace seasch = "" if DataLevel != 3
