@@ -262,7 +262,7 @@ foreach i of varlist DistType SchType SchLevel SchVirtual CountyCode {
 }
 
 foreach v of varlist StudentGroup_TotalTested StudentSubGroup_TotalTested ProficientOrAbove_count ProficientOrAbove_percent {
-	replace `v'="*" if StudentSubGroup_TotalTested=="small N"
+	replace `v'="*" if `v'=="small N"
 }
 
 foreach v of varlist StudentSubGroup_TotalTested AvgScaleScore Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ParticipationRate Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent {
@@ -279,6 +279,23 @@ keep if _merge==1 & DataLevel!=1
 export delimited using "${output}/Unmerged/IA_unmerged_2021.csv", replace
 
 use "${int}/IA_AssmtData_school_2021.dta", clear
+
+////////////////////////////////////
+*** Review 2 Edits ***
+////////////////////////////////////
+
+destring ProficientOrAbove_percent, replace force
+replace ProficientOrAbove_percent=ProficientOrAbove_percent/100
+tostring ProficientOrAbove_percent, replace force
+replace ProficientOrAbove_percent="--" if ProficientOrAbove_percent=="."
+
+label define agency_typedf -1 "Missing/not reported", add
+label values DistType agency_typedf
+
+replace Lev4_count=""
+replace Lev4_percent=""
+
+replace CountyCode=. if CountyCode==-1
 
 ////////////////////////////////////
 *** Sorting ***

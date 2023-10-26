@@ -497,6 +497,23 @@ export delimited using "${output}/Unmerged/IA_unmerged_2018.csv", replace
 use "${int}/IA_AssmtData_school_2018.dta", clear
 
 ////////////////////////////////////
+*** Review 2 Edits ***
+////////////////////////////////////
+
+destring ProficientOrAbove_percent, replace force
+replace ProficientOrAbove_percent=ProficientOrAbove_percent/100
+tostring ProficientOrAbove_percent, replace force
+replace ProficientOrAbove_percent="--" if ProficientOrAbove_percent=="."
+
+label define agency_typedf -1 "Missing/not reported", add
+label values DistType agency_typedf
+
+replace Lev4_count=""
+replace Lev4_percent=""
+
+replace CountyCode=. if CountyCode==-1
+
+////////////////////////////////////
 *** Sorting ***
 ////////////////////////////////////
 

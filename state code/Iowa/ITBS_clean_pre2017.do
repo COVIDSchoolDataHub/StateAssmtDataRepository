@@ -246,6 +246,23 @@ export delimited using "${output}/Unmerged/IA_unmerged_`1'.csv", replace
 use "${int}/IA_AssmtData_school_`1'.dta", clear
 
 ////////////////////////////////////
+*** Review 2 Edits ***
+////////////////////////////////////
+
+destring ProficientOrAbove_percent, replace force
+replace ProficientOrAbove_percent=ProficientOrAbove_percent/100
+tostring ProficientOrAbove_percent, replace force
+replace ProficientOrAbove_percent="--" if ProficientOrAbove_percent=="."
+
+label define agency_typedf -1 "Missing/not reported", add
+label values DistType agency_typedf
+
+replace Lev4_count=""
+replace Lev4_percent=""
+
+replace CountyCode=. if CountyCode==-1
+
+////////////////////////////////////
 *** Sorting ***
 ////////////////////////////////////
 
@@ -277,6 +294,50 @@ rename District1 District
 save "${int}/IA_AssmtData_district_2014.dta", replace
 fileclean6 "2014" "2014" "2013-14"
 
+* 2017 State issue
+use "${output}/IA_AssmtData_all_2017.dta", clear
+replace DataLevel=1 if DistName=="Total"
+
+replace DistName="All Districts" if DataLevel==1
+replace SchName="All Districts" if DataLevel==1
+
+replace SchName="All Schools" if DataLevel==2 | DataLevel==1
+
+foreach i of varlist NCESDistrictID State_leaid CountyName DistCharter {
+	tostring `i', replace 
+	replace `i'="" if DataLevel==1
+}
+
+foreach i of varlist DistType SchType SchLevel SchVirtual CountyCode  {
+	replace `i'=. if DataLevel==1 
+}
+
+save "${output}/IA_AssmtData_all_2017.dta", replace
+
+export delimited using "${output}/IA_AssmtData_2017.csv", replace
+
+
+* 2016 State issue
+use "${output}/IA_AssmtData_all_2016.dta", clear
+replace DataLevel=1 if strpos(DistName, "Total")>0
+
+replace DistName="All Districts" if DataLevel==1
+replace SchName="All Districts" if DataLevel==1
+
+replace SchName="All Schools" if DataLevel==2 | DataLevel==1
+
+foreach i of varlist NCESDistrictID State_leaid CountyName DistCharter {
+	tostring `i', replace 
+	replace `i'="" if DataLevel==1
+}
+
+foreach i of varlist DistType SchType SchLevel SchVirtual CountyCode  {
+	replace `i'=. if DataLevel==1 
+}
+
+save "${output}/IA_AssmtData_all_2016.dta", replace
+
+export delimited using "${output}/IA_AssmtData_2016.csv", replace
 
 /////////////////////////////////////////
 *** 2008-2013 (Data Saving) ***
@@ -1071,7 +1132,7 @@ foreach i of varlist NCESDistrictID State_leaid CountyName DistCharter {
 	replace `i'="Missing/not reported" if _merge==1 & DataLevel!=1
 }
 
-foreach i of varlist DistType SchType SchLevel SchVirtual CountyCode  {
+foreach i of varlist DistType SchType SchLevel SchVirtual CountyCode {
 	replace `i'=-1 if _merge==1 & DataLevel!=1 
 	label def `i' -1 "Missing/not reported"
 }
@@ -1094,6 +1155,23 @@ keep if _merge==1 & DataLevel!=1
 export delimited using "${output}/Unmerged/IA_unmerged_`1'.csv", replace
 
 use "${int}/IA_AssmtData_school_`1'.dta", clear
+
+////////////////////////////////////
+*** Review 2 Edits ***
+////////////////////////////////////
+
+destring ProficientOrAbove_percent, replace force
+replace ProficientOrAbove_percent=ProficientOrAbove_percent/100
+tostring ProficientOrAbove_percent, replace force
+replace ProficientOrAbove_percent="--" if ProficientOrAbove_percent=="."
+
+label define agency_typedf -1 "Missing/not reported", add
+label values DistType agency_typedf
+
+replace Lev4_count=""
+replace Lev4_percent=""
+
+replace CountyCode=. if CountyCode==-1
 
 ////////////////////////////////////
 *** Sorting ***
@@ -1230,6 +1308,23 @@ export delimited using "${output}/Unmerged/IA_unmerged_`1'.csv", replace
 use "${int}/IA_AssmtData_school_`1'.dta", clear
 
 ////////////////////////////////////
+*** Review 2 Edits ***
+////////////////////////////////////
+
+destring ProficientOrAbove_percent, replace force
+replace ProficientOrAbove_percent=ProficientOrAbove_percent/100
+tostring ProficientOrAbove_percent, replace force
+replace ProficientOrAbove_percent="--" if ProficientOrAbove_percent=="."
+
+label define agency_typedf -1 "Missing/not reported", add
+label values DistType agency_typedf
+
+replace Lev4_count=""
+replace Lev4_percent=""
+
+replace CountyCode=. if CountyCode==-1
+
+////////////////////////////////////
 *** Sorting ***
 ////////////////////////////////////
 
@@ -1278,6 +1373,25 @@ foreach a in $years {
 	use "${output}/IA_AssmtData_all_`a'.dta", clear 
 	
 	replace AssmtName="Iowa Assessments"
+	
+	save "${output}/IA_AssmtData_all_`a'.dta", replace
+	
+	export delimited using "${output}/IA_AssmtData_`a'.csv", replace
+	
+}
+
+* ParticipationRate issues
+
+global yearspar 2003 2004 2005 2006 2007 2008 2009 2010 2011 2012
+
+foreach a in $yearspar {
+	
+	use "${output}/IA_AssmtData_all_`a'.dta", clear 
+	
+	destring ParticipationRate, replace force
+replace ParticipationRate=ParticipationRate/100
+tostring ParticipationRate, replace force
+replace ParticipationRate="--" if ParticipationRate=="."
 	
 	save "${output}/IA_AssmtData_all_`a'.dta", replace
 	
