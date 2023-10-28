@@ -106,8 +106,37 @@ drop if _merge == 2
 drop _merge
 
 merge m:1 seasch using "/${NCES}/NCES_2021_School.dta"
+
 drop if _merge == 2
 drop _merge
+
+**** Updating 2023 schools
+
+replace SchType = 1 if schoolname == "Chesterfield Virtual School"
+replace NCESSchoolID = "510084003097" if schoolname == "Chesterfield Virtual School"
+
+replace SchType = 1 if schoolname == "Covington High"
+replace NCESSchoolID = "510015200367" if schoolname == "Covington High"
+
+replace SchType = 1 if schoolname == "Henrico Virtual Academy"
+replace NCESSchoolID = "510189003098" if schoolname == "Henrico Virtual Academy"
+
+replace SchType = 1 if schoolname == "Jeter-Watson Elementary"
+replace NCESSchoolID = "510015200369" if schoolname == "Jeter-Watson Elementary"
+
+replace SchType = 1 if schoolname == "R.I.S.E Academy at the John M. Langston Campus"
+replace NCESSchoolID = "510111002750" if schoolname == "R.I.S.E Academy at the John M. Langston Campus"
+
+replace SchType = 1 if schoolname == "Radford City Virtual"
+replace NCESSchoolID = "510318003095" if schoolname == "Radford City Virtual"
+
+replace SchType = 1 if schoolname == "Virginia Connections Academy"
+replace NCESSchoolID = "510348003096" if schoolname == "Virginia Connections Academy"
+
+replace SchLevel = -1 if schoolname == "Chesterfield Virtual School" | schoolname == "Covington High" | schoolname == "Henrico Virtual Academy" | schoolname == "Jeter-Watson Elementary" | schoolname == "R.I.S.E Academy at the John M. Langston Campus" | schoolname == "Radford City Virtual" | schoolname == "Virginia Connections Academy"
+replace SchVirtual = -1 if schoolname == "Chesterfield Virtual School" | schoolname == "Covington High" | schoolname == "Henrico Virtual Academy" | schoolname == "Jeter-Watson Elementary" | schoolname == "R.I.S.E Academy at the John M. Langston Campus" | schoolname == "Radford City Virtual" | schoolname == "Virginia Connections Academy" 
+label def SchLevel -1 "Missing/not reported"
+label def SchVirtual -1 "Missing/not reported"
 
 
 ////  Rename, reorganize, standardize data
@@ -121,6 +150,7 @@ sort DataLevel_n
 drop DataLevel 
 rename DataLevel_n DataLevel
 
+replace SchName = strupper(schoolname) if SchName == "" & DataLevel == 3
 drop divisionname schoolname
 
 replace DistName = "All Districts" if DataLevel == 1
