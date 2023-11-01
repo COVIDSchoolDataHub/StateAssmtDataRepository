@@ -13,8 +13,8 @@ cd "/Users/maggie/Desktop/Illinois"
 
 *** Sci Participation
 
-use "${output}/IL_AssmtData_2022_sci_Participation_5.dta", clear
-append using "${output}/IL_AssmtData_2022_sci_Participation_8.dta"
+use "${output}/IL_AssmtData_2023_sci_Participation_5.dta", clear
+append using "${output}/IL_AssmtData_2023_sci_Participation_8.dta"
 
 ** Dropping extra variables
 
@@ -69,14 +69,14 @@ replace ParticipationRate = ParticipationRate/100
 tostring ParticipationRate, replace force
 replace ParticipationRate = "*" if ParticipationRate == "."
 
-save "${output}/IL_AssmtData_2022_sci_Participation.dta", replace
+save "${output}/IL_AssmtData_2023_sci_Participation.dta", replace
 
 
 
 *** Sci Performance Levels
 
-use "${output}/IL_AssmtData_2022_sci_5.dta", clear
-append using "${output}/IL_AssmtData_2022_sci_8.dta"
+use "${output}/IL_AssmtData_2023_sci_5.dta", clear
+append using "${output}/IL_AssmtData_2023_sci_8.dta"
 
 ** Dropping extra variables
 
@@ -104,13 +104,9 @@ rename LowIncome ProficientOrAbove_percentDis
 rename NotLowIncome ProficientOrAbove_percentNotDis
 rename AverageScaleScore AvgScaleScore
 
-** Dropping entries
-
-drop if StateAssignedSchID == ""
-
 ** Generating new variables
 
-gen SchYear = "2021-22"
+gen SchYear = "2022-23"
 
 gen AssmtName = "ISA"
 gen AssmtType = "Regular"
@@ -167,7 +163,7 @@ replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
 
 replace AvgScaleScore = "--" if StudentSubGroup != "All Students"
 
-merge 1:1 DataLevel StateAssignedSchID GradeLevel StudentSubGroup using "${output}/IL_AssmtData_2022_sci_Participation.dta"
+merge 1:1 DataLevel StateAssignedSchID GradeLevel StudentSubGroup using "${output}/IL_AssmtData_2023_sci_Participation.dta"
 drop if _merge == 2
 drop _merge
 
@@ -209,21 +205,38 @@ drop if _merge == 2
 drop _merge
 
 merge m:1 seasch using "${NCES}/NCES_2021_School.dta"
+tab seasch if _merge == 1
 drop if _merge == 2
 drop _merge
 
-save "${output}/IL_AssmtData_2022_sci.dta", replace
+** Updating 2023 schools
+
+replace SchType = 1 if SchName == "Big Timber Elementary School"
+replace NCESSchoolID = "170855006869" if SchName == "Big Timber Elementary School"
+
+replace SchType = 1 if seasch == "07016113A2005"
+replace NCESSchoolID = "170729006891" if seasch == "07016113A2005"
+
+replace SchType = 1 if SchName == "Stockton Middle School"
+replace NCESSchoolID = "173798006880" if SchName == "Stockton Middle School"
+
+replace SchLevel = -1 if SchName == "Big Timber Elementary School" | seasch == "07016113A2005" | SchName == "Stockton Middle School"
+replace SchVirtual = -1 if SchName == "Big Timber Elementary School" | seasch == "07016113A2005" | SchName == "Stockton Middle School"
+label def SchLevel -1 "Missing/not reported"
+label def SchVirtual -1 "Missing/not reported"
+
+save "${output}/IL_AssmtData_2023_sci.dta", replace
 
 
 
 
 **** ELA & Math
 
-use "${output}/IL_AssmtData_2022_all.dta", clear
+use "${output}/IL_AssmtData_2023_all.dta", clear
 
 ** Dropping extra variables
 
-drop County City DistrictType DistrictSize SchoolType GradesServed Children* IEP* NonIEP* Homeless* Youth* Migrant* Military* DH DI DJ DK DL DM DN DO DP EG EH EI EJ EL EM EN EO EQ ER ES ET FP FQ FR FS FU FV FW FX FZ GA GB GC GE GF GG GH GJ GK GL GM GO GP GQ GR GT GU GV GW GY GZ HA HB KY KZ LA LB LC LD LE LF LG LH LS LT LU LV LW LX LY LZ MA MB MC MD ME MF MG MH MI MJ MK ML NG NH NI NJ NK NL NM NN NO NP NQ NR NS NT NU NV NW NX NY NZ OA OB OC OD OE OF OG OH OI OJ OK OL OM ON OO OP OQ OR OS OT SQ SR SS ST SU SV SW SX SY SZ TK TL TM TN TO TP TQ TR TS TT TU TV TW TX TY TZ UA UB UC UD UY UZ VA VB VC VD VE VF VG VH VI VJ VK VL VM VN VO VP VQ VR VS VT VU VV VW VX VY VZ WA WB WC WD WE WF WG WH WI WJ WK WL AAI AAJ AAK AAL AAM AAN AAO AAP AAQ AAR ABC ABD ABE ABF ABG ABH ABI ABJ ABK ABL ABM ABN ABO ABP ABQ ABR ABS ABT ABU ABV ACQ ACR ACS ACT ACU ACV ACW ACX ACY ACZ ADA ADB ADC ADD ADE ADF ADG ADH ADI ADJ ADK ADL ADM ADN ADO ADP ADQ ADR ADS ADT ADU ADV ADW ADX ADY ADZ AEA AEB AEC AED AIA AIB AIC AID AIE AIF AIG AIH AII AIJ AIU AIV AIW AIX AIY AIZ AJA AJB AJC AJD AJE AJF AJG AJH AJI AJJ AJK AJL AJM AJN AKI AKJ AKK AKL AKM AKN AKO AKP AKQ AKR AKS AKT AKU AKV AKW AKX AKY AKZ ALA ALB ALC ALD ALE ALF ALG ALH ALI ALJ ALK ALL ALM ALN ALO ALP ALQ ALR ALS ALT ALU ALV APS APT APU APV APW APX APY APZ AQA AQB AQM AQN AQO AQP AQQ AQR AQS AQT AQU AQV AQW AQX AQY AQZ ARA ARB ARC ARD ARE ARF
+drop County City DistrictType DistrictSize SchoolType GradesServed Children* IEP* NonIEP* Homeless* Youth* Migrant* Military* DH-DP EG-ET FP-HB KY-LH LS-ML NG-OT SQ-SZ TK-UD UY-WL AAI-AAR ABC-ABV ACQ-AED AIA-AIJ AIU-AJN AKI-ALV APS-AQB AQM-ARF
 
 ** Rename existing variables
 
@@ -1145,7 +1158,7 @@ replace StudentGroup = "Gender" if StudentSubGroup == "Male" | StudentSubGroup =
 
 ** Generating new variables
 
-gen SchYear = "2021-22"
+gen SchYear = "2022-23"
 
 gen AssmtName = "IAR"
 gen AssmtType = "Regular"
@@ -1197,12 +1210,28 @@ merge m:1 seasch using "${NCES}/NCES_2021_School.dta"
 drop if _merge == 2
 drop _merge
 
+** Updating 2023 schools
+
+replace SchType = 1 if SchName == "Big Timber Elementary School"
+replace NCESSchoolID = "170855006869" if SchName == "Big Timber Elementary School"
+
+replace SchType = 1 if seasch == "07016113A2005"
+replace NCESSchoolID = "170729006891" if seasch == "07016113A2005"
+
+replace SchType = 1 if SchName == "Stockton Middle School"
+replace NCESSchoolID = "173798006880" if SchName == "Stockton Middle School"
+
+replace SchLevel = -1 if SchName == "Big Timber Elementary School" | seasch == "07016113A2005" | SchName == "Stockton Middle School"
+replace SchVirtual = -1 if SchName == "Big Timber Elementary School" | seasch == "07016113A2005" | SchName == "Stockton Middle School"
+label def SchLevel -1 "Missing/not reported"
+label def SchVirtual -1 "Missing/not reported"
+
 
 
 
 **** Appending
 
-append using "${output}/IL_AssmtData_2022_sci.dta"
+append using "${output}/IL_AssmtData_2023_sci.dta"
 
 replace StateAbbrev = "IL" if DataLevel == 1
 replace State = 17 if DataLevel == 1
@@ -1219,11 +1248,11 @@ gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_read = ""
-gen Flag_CutScoreChange_oth = "Y"
+gen Flag_CutScoreChange_oth = "N"
 order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${output}/IL_AssmtData_2022.dta", replace
+save "${output}/IL_AssmtData_2023.dta", replace
 
-export delimited using "${output}/csv/IL_AssmtData_2022.csv", replace
+export delimited using "${output}/csv/IL_AssmtData_2023.csv", replace
