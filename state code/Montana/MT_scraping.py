@@ -2,7 +2,7 @@
 # https://github.com/oxylabs/playwright-web-scraping
 # DOCS: https://playwright.dev/docs/intro
 
-# to use Playwright development GUI: 
+# to use Playwright test development GUI: 
 # python -m playwright codegen https://gems.opi.mt.gov/ 
 
 
@@ -20,6 +20,10 @@ from playwright.sync_api import sync_playwright
 from playwright.sync_api import Playwright, sync_playwright, expect
 import asyncio
 
+
+# workbook = xlsxwriter.Workbook('ricas_math.xlsx')
+# worksheet = workbook.add_worksheet()
+# worksheet.write('R1', 'Subject')
 
 
 
