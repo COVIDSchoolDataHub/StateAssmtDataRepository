@@ -378,17 +378,19 @@ replace CountyName = strproper(CountyName)
 
 replace StudentGroup="All Students" if StudentSubGroup=="All Students"
 replace StudentGroup="RaceEth" if inlist(StudentSubGroup, "American Indian or Alaska Native", "Asian", "Native Hawaiian or Pacific Islander", "Multiple Races", "White", "African American", "Hispanic/Latino")
-replace StudentGroup="RaceEth" if inlist(StudentSubGroup, "American Indian/Alaska Native", "Native Hawaiian/Other Pacific Islander", "Two or More Races", "Black/African American")
+replace StudentGroup="RaceEth" if inlist(StudentSubGroup, "American Indian/Alaska Native", "Native Hawaiian/Other Pacific Islander", "Two or More Races", "Black or African American", "Hispanic or Latino", "Two or more Races")
 replace StudentGroup="Economic Status" if inlist(StudentSubGroup, "Income Eligibility 1 and 2")
+replace StudentGroup = "EL Status" if StudentSubGroup == "Limited English Proficient"
 replace StudentGroup="Gender" if inlist(StudentSubGroup, "Male", "Female")
 drop if StudentGroup == "" & StudentSubGroup != ""
 
 replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "American Indian/Alaska Native"
 replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "Native Hawaiian/Other Pacific Islander"
-replace StudentSubGroup = "Two or More" if StudentSubGroup == "Multiple Races" | StudentSubGroup == "Two or More Races"
-replace StudentSubGroup = "Black or African American" if StudentSubGroup == "Black/African American" | StudentSubGroup == "African American"
+replace StudentSubGroup = "Two or More" if StudentSubGroup == "Two or more Races" | StudentSubGroup == "Two or More Races"
+replace StudentSubGroup = "Black or African American" if StudentSubGroup == "African American"
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic/Latino"
 replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Income Eligibility 1 and 2"
+replace StudentSubGroup = "English Learner" if StudentSubGroup == "Limited English Proficient"
 
 gen StudentSubGroup_TotalTested2 = StudentSubGroup_TotalTested
 destring StudentSubGroup_TotalTested2, replace force

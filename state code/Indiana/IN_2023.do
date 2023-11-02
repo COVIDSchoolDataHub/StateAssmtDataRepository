@@ -2205,7 +2205,7 @@ gen GradeLevel = "G38"
 replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "3"
 replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "4"
 
-gen StudentGroup = "EL Status"
+gen StudentGroup = "Economic Status"
 gen Subject = "ela"
 
 drop if Lev1_count == ""
@@ -2246,7 +2246,7 @@ gen GradeLevel = "G38"
 replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "3"
 replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "4"
 
-gen StudentGroup = "EL Status"
+gen StudentGroup = "Economic Status"
 gen Subject = "math"
 
 drop if Lev1_count == ""
@@ -2287,7 +2287,7 @@ gen GradeLevel = "G38"
 replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "3"
 replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "4"
 
-gen StudentGroup = "EL Status"
+gen StudentGroup = "Economic Status"
 gen Subject = "sci"
 
 drop if Lev1_count == ""
@@ -2328,7 +2328,7 @@ gen GradeLevel = "G38"
 replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "3"
 replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "4"
 
-gen StudentGroup = "EL Status"
+gen StudentGroup = "Economic Status"
 gen Subject = "soc"
 
 drop if Lev1_count == ""
@@ -2369,7 +2369,7 @@ append using "/${output}/State2023.dta"
 
 save "/${output}/IN_2023_appended.dta", replace
 
-////	MERGE NCES
+//// MERGE NCES DISTRICT
 
 gen State_leaid = "IN-" + StateAssignedDistID
 
@@ -2388,6 +2388,30 @@ drop if StateAssignedDistID == "9240"
 drop if _merge==2
 drop _merge
 
+// Including 2023 districts
+
+replace DistType = 7 if DistName == "Liberty Grove Schools"
+replace NCESDistrictID = "1813233" if DistName == "Liberty Grove Schools"
+replace DistCharter = "Yes" if DistName == "Liberty Grove Schools"
+
+replace DistType = 7 if DistName == "Monarca Academy"
+replace NCESDistrictID = "1813234" if DistName == "Monarca Academy"
+replace DistCharter = "Yes" if DistName == "Monarca Academy"
+
+replace DistType = 7 if DistName == "Springville Community Academy"
+replace NCESDistrictID = "1813232" if DistName == "Springville Community Academy"
+replace DistCharter = "Yes" if DistName == "Springville Community Academy"
+
+replace DistType = 7 if DistName == "The Genius School"
+replace NCESDistrictID = "1813231" if DistName == "The Genius School"
+replace DistCharter = "Yes" if DistName == "The Genius School"
+
+replace CountyName = "Missing/not reported" if inlist(DistName, "Liberty Grove Schools", "Monarca Academy", "Springville Community Academy", "The Genius School")
+replace CountyCode = -1 if inlist(DistName, "Liberty Grove Schools", "Monarca Academy", "Springville Community Academy", "The Genius School")
+label def CountyCode -1 "Missing/not reported"
+
+//// MERGE NCES SCHOOL
+
 gen seasch = StateAssignedDistID + "-" + StateAssignedSchID
 
 merge m:1 seasch using "/${NCES}/NCES_2021_School.dta"
@@ -2398,6 +2422,46 @@ drop if SchName == "Sanders School"
 
 drop if _merge==2
 drop _merge
+
+// Including 2023 schools
+
+replace SchType = 1 if SchName == "Crawford County Virtual Academy"
+replace NCESSchoolID = "180244002739" if SchName == "Crawford County Virtual Academy"
+
+replace SchType = 1 if SchName == "Deer Creek Elementary"
+replace NCESSchoolID = "181065002742" if SchName == "Deer Creek Elementary"
+
+replace SchType = 1 if SchName == "EVSC Virtual Academy"
+replace NCESSchoolID = "180345002753" if SchName == "EVSC Virtual Academy"
+
+replace SchType = 1 if SchName == "Liberty Grove Schools"
+replace NCESSchoolID = "181323302756" if SchName == "Liberty Grove Schools"
+
+replace SchType = 1 if SchName == "Monarca Academy"
+replace NCESSchoolID = "181323402757" if SchName == "Monarca Academy"
+
+replace SchType = 1 if SchName == "Muncie Virtual Academy"
+replace NCESSchoolID = "180732002740" if SchName == "Muncie Virtual Academy"
+
+replace SchType = 1 if SchName == "Red Cedars Elementary"
+replace NCESSchoolID = "180435002751" if SchName == "Red Cedars Elementary"
+
+replace SchType = 1 if SchName == "Springville Community Academy"
+replace NCESSchoolID = "181323202755" if SchName == "Springville Community Academy"
+
+replace SchType = 1 if SchName == "The Genius School"
+replace NCESSchoolID = "181323102754" if SchName == "The Genius School"
+
+replace SchType = 1 if SchName == "Trailside Elementary School"
+replace NCESSchoolID = "180283002738" if SchName == "Trailside Elementary School"
+
+replace SchType = 1 if SchName == "Warren Online Academy"
+replace NCESSchoolID = "181236002752" if SchName == "Warren Online Academy"
+
+replace SchLevel = -1 if SchName == "Crawford County Virtual Academy" | SchName == "Deer Creek Elementary" | SchName == "EVSC Virtual Academy" | SchName == "Liberty Grove Schools" | SchName == "Monarca Academy" | SchName == "Muncie Virtual Academy" | SchName == "Red Cedars Elementary" | SchName == "Springville Community Academy" | SchName == "The Genius School" | SchName == "Trailside Elementary School" | SchName == "Warren Online Academy"
+replace SchVirtual = -1 if SchName == "Crawford County Virtual Academy" | SchName == "Deer Creek Elementary" | SchName == "EVSC Virtual Academy" | SchName == "Liberty Grove Schools" | SchName == "Monarca Academy" | SchName == "Muncie Virtual Academy" | SchName == "Red Cedars Elementary" | SchName == "Springville Community Academy" | SchName == "The Genius School" | SchName == "Trailside Elementary School" | SchName == "Warren Online Academy"
+label def SchLevel -1 "Missing/not reported"
+label def SchVirtual -1 "Missing/not reported"
 
 /////	FINISH CLEANING
 

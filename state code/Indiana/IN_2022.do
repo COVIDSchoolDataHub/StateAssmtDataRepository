@@ -2211,7 +2211,7 @@ gen GradeLevel = "G38"
 replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "3"
 replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "4"
 
-gen StudentGroup = "EL Status"
+gen StudentGroup = "Economic Status"
 gen Subject = "ela"
 
 drop if Lev1_count == ""
@@ -2252,7 +2252,7 @@ gen GradeLevel = "G38"
 replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "3"
 replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "4"
 
-gen StudentGroup = "EL Status"
+gen StudentGroup = "Economic Status"
 gen Subject = "math"
 
 drop if Lev1_count == ""
@@ -2293,7 +2293,7 @@ gen GradeLevel = "G38"
 replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "3"
 replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "4"
 
-gen StudentGroup = "EL Status"
+gen StudentGroup = "Economic Status"
 gen Subject = "sci"
 
 drop if Lev1_count == ""
@@ -2334,7 +2334,7 @@ gen GradeLevel = "G38"
 replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "3"
 replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "4"
 
-gen StudentGroup = "EL Status"
+gen StudentGroup = "Economic Status"
 gen Subject = "soc"
 
 drop if Lev1_count == ""

@@ -50,6 +50,23 @@ gen StudentGroup = "RaceEth"
 save "${output}/VA_2012_race.dta", replace
 
 
+//// Import disaggregate economic status data
+
+import delimited "/${raw}/Disaggregate/VA_OriginalData_2012_all_econ.csv", varnames(1) clear
+
+rename disadvantaged StudentSubGroup
+gen StudentGroup = "Economic Status"
+
+tostring divisionnumber, replace
+replace divisionnumber = "" if divisionnumber == "."
+tostring schoolnumber, replace
+replace schoolnumber = "" if schoolnumber == "."
+tostring averagesolscaledscore, replace
+replace averagesolscaledscore = "" if averagesolscaledscore == "."
+
+save "${output}/VA_2012_econ.dta", replace
+
+
 ////	Append aggregate and disaggregate 
 
 use "${output}/VA_2012_base.dta", clear
@@ -57,6 +74,7 @@ use "${output}/VA_2012_base.dta", clear
 append using "${output}/VA_2012_gender.dta"
 append using "${output}/VA_2012_language.dta"
 append using "${output}/VA_2012_race.dta"
+append using "${output}/VA_2012_econ.dta"
 
 
 ////	Prepare for NCES merge
@@ -170,13 +188,13 @@ foreach a of local level{
 	replace Lev`a'_percent = "*" if Lev`a'_percent == "."
 }
 
-replace Lev1_percent = ">0.5" if Lev1_percent == "99.99"
-replace Lev1_percent = "<0.5" if Lev1_percent == "11.11"
+replace Lev1_percent = "0.5-1" if Lev1_percent == "99.99"
+replace Lev1_percent = "0-0.5" if Lev1_percent == "11.11"
 
 rename averagesolscaledscore AvgScaleScore
 replace AvgScaleScore = "*" if AvgScaleScore == " "
 
-gen ProficiencyCriteria = "Pass Proficient and Pass Advanced"
+gen ProficiencyCriteria = "Levels 2-3"
 
 rename passcount ProficientOrAbove_count
 replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "<"
@@ -188,8 +206,8 @@ replace ProficientOrAbove_percent = "1111" if ProficientOrAbove_percent == "<50"
 destring ProficientOrAbove_percent, replace
 replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
 tostring ProficientOrAbove_percent, replace force
-replace ProficientOrAbove_percent = ">0.5" if ProficientOrAbove_percent == "99.99"
-replace ProficientOrAbove_percent = "<0.5" if ProficientOrAbove_percent == "11.11"
+replace ProficientOrAbove_percent = "0.5-1" if ProficientOrAbove_percent == "99.99"
+replace ProficientOrAbove_percent = "0-0.5" if ProficientOrAbove_percent == "11.11"
 
 gen ParticipationRate = "--"
 
@@ -199,14 +217,16 @@ replace StateFips = 51 if DataLevel == 1
 
 replace StudentSubGroup = "Male" if StudentSubGroup == "M"
 replace StudentSubGroup = "Female" if StudentSubGroup == "F"
-replace StudentSubGroup = "English Learner" if StudentSubGroup == "Y"
-replace StudentSubGroup = "English Proficient" if StudentSubGroup == "N"
+replace StudentSubGroup = "English Learner" if StudentSubGroup == "Y" & StudentGroup == "EL Status"
+replace StudentSubGroup = "English Proficient" if StudentSubGroup == "N" & StudentGroup == "EL Status"
 replace StudentSubGroup = "Black or African American" if StudentSubGroup == "Black, not of Hispanic origin"
 replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "Native Hawaiian  or Pacific Islander"
 replace StudentSubGroup = "White" if StudentSubGroup == "White, not of Hispanic origin"
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
 replace StudentSubGroup = "Unknown" if StudentSubGroup == "Unknown - Race/Ethnicity not provided"
 replace StudentSubGroup = "Two or More" if StudentSubGroup == "Non-Hispanic, two or more races"
+replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Y" & StudentGroup == "Economic Status"
+replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "N" & StudentGroup == "Economic Status"
 
 order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 

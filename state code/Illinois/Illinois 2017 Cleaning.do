@@ -130,7 +130,7 @@ replace GradeLevel = "G08" if GradeLevel == ""
 
 ** Dropping extra variables
 
-drop County City
+drop County City G-Z
 
 ** Rename existing variables
 
@@ -536,6 +536,7 @@ replace StateAbbrev = "IL" if DataLevel == 1
 replace State = 17 if DataLevel == 1
 replace StateFips = 17 if DataLevel == 1
 replace State_leaid = "" if DataLevel == 1
+replace StateAssignedDistID = "" if DataLevel == 1
 
 replace SchName = "All Schools" if DataLevel != 3
 replace DistName = "All Districts" if DataLevel == 1

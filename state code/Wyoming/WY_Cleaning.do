@@ -293,9 +293,9 @@ gen Flag_CutScoreChange_read=""
 gen Flag_CutScoreChange_oth = "N"
 
 replace Flag_AssmtNameChange = "Y" if `year' == 2018
-replace Flag_CutScoreChange_ELA = "Y" if `year' == 2018
-replace Flag_CutScoreChange_math = "Y" if `year' == 2018
-replace Flag_CutScoreChange_oth = "Y" if `year' == 2022
+replace Flag_CutScoreChange_ELA = "Y" if `year' == 2018 | `year' == 2015
+replace Flag_CutScoreChange_math = "Y" if `year' == 2018 | `year' == 2015
+replace Flag_CutScoreChange_oth = "Y" if `year' == 2022 | `year' == 2018 | `year' == 2015
 
 
 //Generating Empty/missing Variables

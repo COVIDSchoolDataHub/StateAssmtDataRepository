@@ -18,12 +18,11 @@ append using "${output}/IL_AssmtData_2022_sci_Participation_8.dta"
 
 ** Dropping extra variables
 
-drop County City Migrant IEP NotIEP
+drop County City Migrant IEP NotIEP DIST
 
 ** Rename existing variables
 
 rename RCDTS StateAssignedSchID
-drop DIST
 rename SchoolorDistrictName SchName
 rename Grade GradeLevel
 rename StateDistrictSchool DataLevel
@@ -81,12 +80,11 @@ append using "${output}/IL_AssmtData_2022_sci_8.dta"
 
 ** Dropping extra variables
 
-drop County City Migrant IEP NotIEP
+drop County City Migrant IEP NotIEP DIST
 
 ** Rename existing variables
 
 rename RCDTS StateAssignedSchID
-drop DIST
 rename SchoolorDistrictName SchName
 rename Grade GradeLevel
 rename StateDistrictSchool DataLevel

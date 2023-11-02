@@ -161,8 +161,8 @@ foreach a of local level {
 	replace Lev`a'_percent2 = Lev`a'_percent2/100
 	tostring Lev`a'_percent2, replace force
 	replace Lev`a'_percent = Lev`a'_percent2 if strpos(Lev`a'_percent, "<") == 0 & strpos(Lev`a'_percent, ">") == 0
-	replace Lev`a'_percent = "<" + Lev`a'_percent2 if strpos(Lev`a'_percent, "<") > 0
-	replace Lev`a'_percent = ">" + Lev`a'_percent2 if strpos(Lev`a'_percent, ">") > 0
+	replace Lev`a'_percent = "0-0.05" if strpos(Lev`a'_percent, "<") > 0
+	replace Lev`a'_percent = "0.95-1" if strpos(Lev`a'_percent, ">") > 0
 	replace Lev`a'_percent = "*" if Lev`a'_percent2 == "."
 	drop Lev`a'_percent2
 	}
@@ -170,18 +170,16 @@ foreach a of local level {
 local var ProficientOrAbove_percent ParticipationRate
 
 foreach a of local var {
-gen test = ""
-replace test = "less" if strpos(`a', "<") > 0
-replace test = "greater" if strpos(`a', ">") > 0
-replace `a' = subinstr(`a',"<","",.)
-replace `a' = subinstr(`a',">","",.)
-destring `a', replace force
-replace `a' = `a'/100
-tostring `a', replace force
-replace `a' = "<" + `a' if test == "less"
-replace `a' = ">" + `a' if test == "greater"
-replace `a' = "*" if `a' == "."
-drop test
+	gen test = ""
+	replace test = "less" if strpos(`a', "<") > 0
+	replace test = "greater" if strpos(`a', ">") > 0
+	destring `a', replace force
+	replace `a' = `a'/100
+	tostring `a', replace force
+	replace `a' = "0-0.05" if test == "less"
+	replace `a' = "0.95-1" if test == "greater"
+	replace `a' = "*" if `a' == "."
+	drop test
 }
 
 ** Merging with NCES

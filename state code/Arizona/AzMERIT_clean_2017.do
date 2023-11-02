@@ -383,18 +383,19 @@ rename county_name CountyName
 replace CountyName = strproper(CountyName)
 
 replace StudentGroup="All Students" if StudentSubGroup=="All Students"
-replace StudentGroup="RaceEth" if inlist(StudentSubGroup, "American Indian/Alaska Native","Asian", "Native Hawaiian/Other Pacific", "Two or More Races", "White", "African American", "Hispanic/Latino", "Unknown")
+replace StudentGroup="RaceEth" if inlist(StudentSubGroup, "American Indian/Alaska Native","Asian", "Native Hawaiian/Other Pacific Islander", "Two or More Races", "White", "African American", "Hispanic/Latino")
 replace StudentGroup="EL Status" if inlist(StudentSubGroup, "Limited English Proficient")
-replace StudentGroup="Economic Status" if inlist(StudentSubGroup, "Economically Disadvantaged")
+replace StudentGroup="Economic Status" if inlist(StudentSubGroup, "Economically Disadvantaged", "Economic Disadvantage")
 replace StudentGroup="Gender" if inlist(StudentSubGroup, "Male", "Female")
 drop if StudentGroup == "" & StudentSubGroup != ""
 
 replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "American Indian/Alaska Native"
-replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "Native Hawaiian/Other Pacific"
+replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "Native Hawaiian/Other Pacific Islander"
 replace StudentSubGroup = "Two or More" if StudentSubGroup == "Two or More Races"
 replace StudentSubGroup = "Black or African American" if StudentSubGroup == "African American"
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic/Latino"
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "Limited English Proficient"
+replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Economic Disadvantage"
 
 gen StudentSubGroup_TotalTested2 = StudentSubGroup_TotalTested
 destring StudentSubGroup_TotalTested2, replace force

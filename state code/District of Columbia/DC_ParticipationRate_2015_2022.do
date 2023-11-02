@@ -24,11 +24,23 @@ append using "`temp1'"
 save "`temp1'", replace
 clear
 if `year' < 2017 {
-import excel "`Original'/DC_OriginalData_2016_part", sheet(School) firstrow case(preserve)
+import excel "`Original'/DC_OriginalData_2016_part", sheet(District) firstrow case(preserve) allstring
 }
 
 else {
-import excel "`Original'/DC_OriginalData_`year'_part", sheet(School) firstrow case(preserve)
+import excel "`Original'/DC_OriginalData_`year'_part", sheet(District) firstrow case(preserve) allstring
+}
+
+keep if SchoolYear == "`prevyear'" + "-" + substr("`year'",3,2)
+append using "`temp1'"
+save "`temp1'", replace
+clear
+if `year' < 2017 {
+import excel "`Original'/DC_OriginalData_2016_part", sheet(School) firstrow case(preserve) allstring
+}
+
+else {
+import excel "`Original'/DC_OriginalData_`year'_part", sheet(School) firstrow case(preserve) allstring
 }
 
 keep if SchoolYear == "`prevyear'" + "-" + substr("`year'",3,2)
@@ -36,12 +48,17 @@ append using "`temp1'"
 save "`temp1'", replace
 if `year' == 2019 {
 clear
-import excel "`Original'/DC_OriginalData_`year'_sci_part", sheet(State) firstrow case(preserve)
+import excel "`Original'/DC_OriginalData_`year'_sci_part", sheet(State) firstrow case(preserve) allstring
 gen S = "sci"
 append using "`temp1'"
 save "`temp1'", replace
 clear
-import excel "`Original'/DC_OriginalData_`year'_sci_part", sheet(School) firstrow case(preserve)
+import excel "`Original'/DC_OriginalData_`year'_sci_part", sheet(District) firstrow case(preserve) allstring
+gen S = "sci"
+append using "`temp1'"
+save "`temp1'", replace
+clear
+import excel "`Original'/DC_OriginalData_`year'_sci_part", sheet(School) firstrow case(preserve) allstring
 gen S = "sci"
 append using "`temp1'"
 }
@@ -54,11 +71,12 @@ save "`temp1'", replace
 //Reshaping
 drop ALL HS O V K R
 rename G0E5 G05E
+replace Subgroup = subgroup if missing(Subgroup)
 if `year' == 2018 drop if SchoolCode == "3033"
-if `year' != 2019 reshape long G, i(SchoolName Subgroup) j(GradeLevel, string)
-if `year' == 2019 reshape long G, i(SchoolName Subgroup S) j(GradeLevel, string)
+if `year' != 2019 reshape long G, i(LEAName SchoolName Subgroup) j(GradeLevel, string)
+if `year' == 2019 reshape long G, i(LEAName SchoolName Subgroup S) j(GradeLevel, string)
 rename G ParticipationRate
-
+*save "/Volumes/T7/State Test Project/District of Columbia/Testing/`year'_part"
 //Subject and GradeLevel
 gen Subject = substr(GradeLevel,-1,1)
 replace GradeLevel = "G" + substr(GradeLevel, 1,2)
@@ -69,6 +87,7 @@ replace Subject = "sci" if Subject == "S"
 
 **Prepping for merge
 rename SchoolCode StateAssignedSchID
+rename LEACode StateAssignedDistID
 
 rename Subgroup StudentSubGroup
 replace StudentSubGroup = subinstr(StudentSubGroup, "/", " or ",.)
@@ -81,11 +100,13 @@ replace StudentSubGroup = "White" if strpos(StudentSubGroup, "White") !=0
 replace StudentSubGroup = "Two or More" if StudentSubGroup == "Multiracial"
 replace StudentSubGroup = "Two or More" if StudentSubGroup == "Two or More Races"
 keep if StudentSubGroup == "All Students" | StudentSubGroup == "American Indian or Alaska Native" | StudentSubGroup == "Asian" | StudentSubGroup == "Black or African American" | StudentSubGroup == "Native Hawaiian or Pacific Islander" | StudentSubGroup == "White" | StudentSubGroup == "Hispanic or Latino" | StudentSubGroup == "English Learner" | StudentSubGroup == "English Proficient" | StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged" | StudentSubGroup == "Male" | StudentSubGroup == "Female" | StudentSubGroup == "Two or More"
-save "/Volumes/T7/State Test Project/District of Columbia/Testing/`year'", replace
+
 
 //Merging
 if `year' == 2016 tostring StateAssignedSchID, replace
-if `year' != 2019 merge 1:1 StateAssignedSchID StudentSubGroup GradeLevel Subject using "`Output'/DC_AssmtData_`year'", update
+if `year' == 2016 replace StateAssignedSchID = "" if StateAssignedSchID == "."
+*save "/Volumes/T7/State Test Project/District of Columbia/Testing/`year'_part", replace
+if `year' != 2019 merge 1:1 StateAssignedSchID StateAssignedDistID StudentSubGroup GradeLevel Subject using "`Output'/DC_AssmtData_`year'", update
 if `year' == 2019 { 
 rename S subject1
 tempfile temp2 
@@ -95,7 +116,7 @@ use "`Output'/DC_AssmtData_2019"
 gen subject1 = "sci" if Subject == "sci"
 save "`Output'/DC_AssmtData_2019", replace
 use "`temp2'"
-merge 1:1 StateAssignedSchID StudentSubGroup GradeLevel Subject subject1 using "`Output'/DC_AssmtData_`year'", update
+merge 1:1 StateAssignedSchID StateAssignedDistID StudentSubGroup GradeLevel Subject subject1 using "`Output'/DC_AssmtData_`year'", update
 }
 drop if _merge ==1
 replace ParticipationRate = "--" if _merge ==2 & Subject != "sci"
@@ -133,11 +154,19 @@ import excel "`Original'/DC_OriginalData_2022_part", firstrow case(preserve) she
 append using "`temp1'"
 save "`temp1'", replace
 clear
+import excel "`Original'/DC_OriginalData_2022_part", firstrow case(preserve) sheet(District)
+append using "`temp1'"
+save "`temp1'", replace
+clear
 import excel "`Original'/DC_OriginalData_2022_part", firstrow case(preserve) sheet(School)
 append using "`temp1'"
 save "`temp1'", replace
 clear
 import excel "`Original'/DC_OriginalData_2022_sci_part", firstrow case(preserve) sheet(State)
+append using "`temp1'"
+save "`temp1'", replace
+clear
+import excel "`Original'/DC_OriginalData_2022_sci_part", firstrow case(preserve) sheet(District)
 append using "`temp1'"
 save "`temp1'", replace
 clear
@@ -147,6 +176,7 @@ append using "`temp1'"
 
 //Renaming
 rename SchoolCode StateAssignedSchID
+rename LEACode StateAssignedDistID
 rename GradeofEnrollment GradeLevel
 rename SubgroupValue StudentSubGroup
 rename Percent ParticipationRate
@@ -177,7 +207,7 @@ replace StateAssignedSchID = "" if AggregationLevel == "State"
 
 
 //Merging
-merge 1:1 StateAssignedSchID Subject GradeLevel StudentSubGroup using "`Output'/DC_AssmtData_2022", update
+merge 1:1 StateAssignedSchID StateAssignedDistID Subject GradeLevel StudentSubGroup using "`Output'/DC_AssmtData_2022", update
 drop if _merge ==1
 replace ParticipationRate = "--" if _merge ==2
 

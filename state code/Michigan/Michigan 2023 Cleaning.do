@@ -150,6 +150,22 @@ merge m:1 State_leaid using "${NCES}/NCES_2021_District.dta"
 drop if _merge == 2
 drop _merge
 
+**** Updating 2023 districts
+
+replace DistType = 7 if DistName == "Muskegon Maritime Academy"
+replace NCESDistrictID = "2680996" if DistName == "Muskegon Maritime Academy"
+replace DistCharter = "Yes" if DistName == "Muskegon Maritime Academy"
+
+replace DistType = 7 if DistName == "Pittsfield Acres Academy"
+replace NCESDistrictID = "2680997" if DistName == "Pittsfield Acres Academy"
+replace DistCharter = "Yes" if DistName == "Pittsfield Acres Academy"
+
+replace CountyName = "Missing/not reported" if inlist(DistName, "Muskegon Maritime Academy", "Pittsfield Acres Academy")
+replace CountyCode = -1 if inlist(DistName, "Muskegon Maritime Academy", "Pittsfield Acres Academy")
+label def county_codedf -1 "Missing/not reported", modify
+
+**
+
 tostring seasch, gen(StateAssignedSchID)
 replace StateAssignedSchID = "" if DataLevel != 3
 
@@ -170,6 +186,33 @@ replace seasch = "" if DataLevel != 3
 merge m:1 seasch using "${NCES}/NCES_2021_School.dta"
 drop if _merge == 2
 drop _merge
+
+**** Updating 2023 schools
+
+replace SchType = 4 if SchName == "Covenant School - Spectrum"
+replace NCESSchoolID = "260032209035" if SchName == "Covenant School - Spectrum"
+
+replace SchType = 1 if SchName == "Leonidas School"
+replace NCESSchoolID = "261041009039" if SchName == "Leonidas School"
+
+replace SchType = 4 if SchName == "Muskegon County Juvenile Transition Center"
+replace NCESSchoolID = "260094908615" if SchName == "Muskegon County Juvenile Transition Center"
+
+replace SchType = 1 if SchName == "Muskegon Maritime Academy"
+replace NCESSchoolID = "268099609048" if SchName == "Muskegon Maritime Academy"
+
+replace SchType = 1 if SchName == "North Pointe"
+replace NCESSchoolID = "263234009031" if SchName == "North Pointe"
+
+replace SchType = 1 if SchName == "Pittsfield Acres Academy"
+replace NCESSchoolID = "268099709049" if SchName == "Pittsfield Acres Academy"
+
+replace SchLevel = -1 if SchName == "Covenant School - Spectrum" | SchName == "Leonidas School" | SchName == "Muskegon County Juvenile Transition Center" | SchName == "Muskegon Maritime Academy" | SchName == "North Pointe" | SchName == "Pittsfield Acres Academy"
+replace SchVirtual = -1 if SchName == "Covenant School - Spectrum" | SchName == "Leonidas School" | SchName == "Muskegon County Juvenile Transition Center" | SchName == "Muskegon Maritime Academy" | SchName == "North Pointe" | SchName == "Pittsfield Acres Academy" | SchName == "Explore Academy-Livonia" | SchName == "New Dawn Academy of Warren"
+label def SchLevel -1 "Missing/not reported"
+label def SchVirtual -1 "Missing/not reported"
+
+**
 
 replace StateAbbrev = "MI"
 replace State = 26

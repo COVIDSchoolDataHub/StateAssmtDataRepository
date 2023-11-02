@@ -4,7 +4,7 @@ local Original "/Volumes/T7/State Test Project/District of Columbia/Original Dat
 local Output "/Volumes/T7/State Test Project/District of Columbia/Output"
 local NCES "/Volumes/T7/State Test Project/NCES"
 
-//Importing ELA/Math and some cleaning
+//Importing
 tempfile temp1
 save "`temp1'", emptyok replace
 clear
@@ -12,20 +12,28 @@ import excel "`Original'/DC_OriginalData_2019_ela_mat.xlsx", sheet(School Perfor
 append using "`temp1'"
 save "`temp1'", replace
 clear
-import excel "`Original'/DC_OriginalData_2019_ela_mat.xlsx", sheet(State Performance) firstrow
+import excel "`Original'/DC_OriginalData_2019_ela_mat.xlsx", sheet(LEA Performance) firstrow
 append using "`temp1'"
-replace K = P if !missing(SchoolName)
-drop P
-drop PercentLevel3
-rename K PercentLevel3
 save "`temp1'", replace
 clear
-
+import excel "`Original'/DC_OriginalData_2019_ela_mat.xlsx", sheet(State Performance) firstrow
+append using "`temp1'"
+save "`Original'/2019", replace
+replace K = M if !missing(LEAName) & missing(SchoolName)
+replace K = P if !missing(SchoolName)
+drop P
+drop M
+drop PercentLevel3
+rename K PercentLevel3
 //Importing sci
 tempfile temp2
 save "`temp2'", emptyok replace
 clear
 import excel "`Original'/DC_OriginalData_2019_sci.xlsx", sheet(School Performance) firstrow
+append using "`temp2'"
+save "`temp2'", replace
+clear
+import excel "`Original'/DC_OriginalData_2019_sci.xlsx", sheet(LEA Performance) firstrow
 append using "`temp2'"
 save "`temp2'", replace
 clear
@@ -35,6 +43,7 @@ append using "`temp1'"
 
 save "`Original'/2019", replace
 
+drop if !missing(M) | !missing(P) & Subject != "Science"
 //Standardizing Varnames
 rename AssessmentType AssmtName
 keep if AssmtName == "PARCC" | AssmtName == "DC Science"
@@ -51,21 +60,20 @@ rename LEACode StateAssignedDistID
 rename LEAName DistName
 rename SchoolCode StateAssignedSchID
 rename SchoolName SchName
-
 //DataLevel
 gen DataLevel = ""
 replace DataLevel = "State" if missing(StateAssignedDistID)
-replace DataLevel = "School" if missing(DataLevel)
+replace DataLevel = "District" if !missing(StateAssignedDistID) & missing(StateAssignedSchID)
+replace DataLevel = "School" if !missing(StateAssignedDistID) & !missing(StateAssignedSchID)
 label def DataLevel 1 "State" 2 "District" 3 "School"
 encode DataLevel, gen(DataLevel_n) label(DataLevel)
 sort DataLevel_n 
 drop DataLevel
 rename DataLevel_n DataLevel
 replace DistName = "All Districts" if DataLevel ==1
-replace SchName = "All Schools" if DataLevel ==1
+replace SchName = "All Schools" if DataLevel ==1 | DataLevel ==2
 replace StateAssignedDistID = "" if DataLevel ==1
-replace StateAssignedSchID = "" if DataLevel ==1
-
+replace StateAssignedSchID = "" if DataLevel ==1 | DataLevel ==2
 //StudentSubGroup
 replace StudentSubGroup = subinstr(StudentSubGroup, "/", " or ",.)
 replace StudentSubGroup = "English Learner" if strpos(StudentSubGroup, "Learner") !=0
@@ -113,8 +121,22 @@ replace ProficientOrAbove_percent = string(nProficientOrAbove_percent/100, "%9.4
 //Merging with NCES
 tempfile temp1
 save "`temp1'"
-
+clear
+//District Level
+use "`temp1'"
+keep if DataLevel ==2
+tempfile tempdist
+save "`tempdist'", replace
+clear
+use "`NCES'/NCES_2018_District"
+keep if state_name == 11 | state_location == "DC"
+gen StateAssignedDistID = subinstr(state_leaid, "DC-","",.)
+merge 1:m StateAssignedDistID using "`tempdist'"
+drop if _merge ==1
+save "`tempdist'", replace
+clear
 //School Level
+use "`temp1'"
 keep if DataLevel ==3
 tempfile tempsch
 save "`tempsch'", replace
@@ -131,7 +153,7 @@ save "`tempsch'", replace
 //Appending
 use "`temp1'"
 keep if DataLevel==1
-append using "`tempsch'"
+append using "`tempsch'" "`tempdist'"
 
 //Fixing NCES Variables
 rename state_location StateAbbrev
@@ -183,6 +205,7 @@ replace Lev5_percent = "" if Subject == "sci"
 order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+duplicates drop
 save "`Output'/DC_AssmtData_2019", replace
 export delimited "`Output'/DC_AssmtData_2019", replace
 clear

@@ -1,5 +1,6 @@
 clear
 set more off
+set trace off
 cd "/Volumes/T7/State Test Project/Maine"
 local Output "/Volumes/T7/State Test Project/Maine/Output"
 local NCES_School "/Volumes/T7/State Test Project/NCES/School"
@@ -126,25 +127,101 @@ clear
 
 //Appending to Merged data
 use "`temp2'"
-append using "`tempdist'" "`tempschool'"
+append using "`tempdist'" "`tempschool'"	
+}
 
 //Fixing missing values for all years
-foreach var of varlist Lev* Proficient* ParticipationRate {
+foreach var of varlist Lev* Proficient* ParticipationRate StudentSubGroup_TotalTested {
 	cap replace `var' = "--" if `var' == ""
 }
+replace Flag_CutScoreChange_oth = "Y" if `year' == 2015
 replace SchVirtual = 16 if missing(SchVirtual) & DataLevel ==3
+
+//Fixing Ranges
+foreach var of varlist Lev*_percent ParticipationRate ProficientOrAbove_percent {
+	cap replace `var' = subinstr(`var', "=","",.)
+	cap replace `var' = subinstr(`var',">","",.) + "-1" if strpos(`var', ">") !=0
+	cap replace `var' = subinstr(`var', "<","0-",.) if strpos(`var', "<") !=0
+}
+
+//Fixing Proficiency Levels and Criteria for Science 2022
+if `year' == 2022 {
+replace ProficiencyCriteria = "Levels 3 and 4" if Subject == "sci"
+replace AssmtName = "Maine Science Assessment" if Subject == "sci"
+foreach n in 1 2 3 {
+	destring Lev`n'_percent, gen(nLev`n'_percent) i(*-)
+	destring Lev`n'_count, gen(nLev`n'_count) i(*-)
+}
+gen nLev4_count =.
+gen nLev4_percent=.
+forvalues n = 3(-1)1 {
+local next_n =`=`n'+1'
+replace nLev`next_n'_percent = nLev`n'_percent if Subject == "sci"
+replace nLev`next_n'_count = nLev`n'_count if Subject == "sci"	
+}
+//Calculating Lev1_percent for sci
+replace nLev1_percent = 1-nLev4_percent-nLev3_percent-nLev2_percent if Subject == "sci"
+
+//Reformatting and Correcting Data
+tostring Lev4*, replace
+replace Lev4_count = ""
+replace Lev4_percent = ""
+
+foreach n in 1 2 3 4 {
+	replace Lev`n'_percent = string(nLev`n'_percent, "%9.3g") if Subject == "sci" & Lev`n'_percent != "*"
+	replace Lev`n'_count = string(nLev`n'_count) if Subject == "sci" & Lev`n'_count != "*"
+}
+replace Lev4_count = "*" if Lev4_count == "."
+replace Lev4_percent = "*" if Lev4_percent == "."
+replace Lev1_count = "--" if Subject == "sci"
+
+
+}
+
+//Sci 2021
+if `year' == 2021 {
+	tostring Lev4*, replace
+	replace Lev4_count = ""
+	replace Lev4_percent = ""
+	replace Lev4_count = "--" if Subject == "sci"
+	replace Lev4_percent = "--" if Subject == "sci"
+	replace ProficiencyCriteria = "Levels 3 and 4" if Subject == "sci"
+	
+}
+
+
+//Fixing Flags once and for all
+foreach var of varlist Flag* {
+	if "`var'" != "Flag_CutScoreChange_read" replace `var' = "N"
+}
+replace Flag_AssmtNameChange = "Y" if (`year' == 2015 & Subject != "sci") | (`year' == 2016 & Subject != "sci") | (`year' == 2021) | (`year' == 2022 & Subject == "sci")
+replace Flag_CutScoreChange_ELA = "Y" if `year' == 2015 | `year' == 2016 | `year' == 2021
+replace Flag_CutScoreChange_math = "Y" if `year' == 2015 | `year' == 2016 | `year' == 2021
+replace Flag_CutScoreChange_oth = "Y" if `year' == 2022 | `year' == 2021
+cap replace Flag_CutScoreChange_read = ""
+cap replace Flag_CutScoreChange_read =.
+
+foreach var of varlist _all {
+	cap replace `var' = "--" if `var' == "."
+}
+
+//DATA DECISION: GradeLevel == "--" because high school data is currently included
+replace GradeLevel = "--"
+
+//DATA DECISIONS SCI 2021/ 2022
+if `year' == 2021 {
+	drop if Subject == "sci"
+	replace Flag_CutScoreChange_oth = ""
+}
+if `year' == 2022 {
+	replace Lev1_percent = "--" if Subject == "sci"
+}
 
 
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-
-
-	
-}
-
-
 
 save "`Output'/ME_AssmtData_`year'", replace	
 export delimited "`Output'/ME_AssmtData_`year'", replace 

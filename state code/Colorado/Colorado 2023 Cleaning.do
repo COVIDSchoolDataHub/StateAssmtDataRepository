@@ -220,6 +220,85 @@ merge m:1 seasch using "${NCES}/NCES_2021_School.dta"
 drop if _merge == 2
 drop _merge
 
+**** Updating 2023 schools
+
+replace SchType = 1 if SchName == "Colorado Connections Academy"
+replace NCESSchoolID = "080258006488" if SchName == "Colorado Connections Academy"
+
+replace SchType = 1 if SchName == "Colorado Early Colleges Online Campus"
+replace NCESSchoolID = "080002006867" if SchName == "Colorado Early Colleges Online Campus"
+
+replace SchType = 1 if SchName == "Education reEnvisioned School"
+replace NCESSchoolID = "080028206848" if SchName == "Education reEnvisioned School"
+
+replace SchType = 1 if SchName == "Five Star Online Academy"
+replace NCESSchoolID = "080690006850" if SchName == "Five Star Online Academy"
+
+replace SchType = 1 if SchName == "Gudy Gaskill Elementary"
+replace NCESSchoolID = "080531006854" if SchName == "Gudy Gaskill Elementary"
+
+replace SchType = 1 if SchName == "JeffCo Remote Learning Program"
+replace NCESSchoolID = "080480006852" if SchName == "JeffCo Remote Learning Program"
+
+replace SchType = 1 if SchName == "Leadership Academy of Colorado"
+replace NCESSchoolID = "080028206846" if SchName == "Leadership Academy of Colorado"
+
+replace SchType = 1 if SchName == "Mapleton Online"
+replace NCESSchoolID = "080555006860" if SchName == "Mapleton Online"
+
+replace SchType = 1 if SchName == "Merit Academy"
+replace NCESSchoolID = "080738006844" if SchName == "Merit Academy"
+
+replace SchType = 1 if SchName == "Montbello Middle School"
+replace NCESSchoolID = "080336006849" if SchName == "Montbello Middle School"
+
+replace SchType = 1 if SchName == "Performing Arts School on Broadway"
+replace NCESSchoolID = "080555006862" if SchName == "Performing Arts School on Broadway"
+
+replace SchType = 1 if SchName == "Prospect Academy"
+replace NCESSchoolID = "080002006853" if SchName == "Prospect Academy"
+
+replace SchType = 1 if SchName == "Pueblo Classical Academy"
+replace NCESSchoolID = "080615006841" if SchName == "Pueblo Classical Academy"
+
+replace SchType = 1 if SchName == "Southlawn Elementary School"
+replace NCESSchoolID = "080258006857" if SchName == "Southlawn Elementary School"
+
+replace SchType = 1 if SchName == "Timnath Middle-High School"
+replace NCESSchoolID = "080399006866" if SchName == "Timnath Middle-High School"
+
+replace SchType = 1 if SchName == "Tointon Academy of Pre-Engineering"
+replace NCESSchoolID = "080441006859" if SchName == "Tointon Academy of Pre-Engineering"
+
+replace SchType = 1 if SchName == "Two Rivers Community School"
+replace NCESSchoolID = "080426006635" if SchName == "Two Rivers Community School"
+
+replace SchType = 1 if SchName == "Villa Bella Expeditionary Middle School"
+replace NCESSchoolID = "080615006856" if SchName == "Villa Bella Expeditionary Middle School"
+
+replace SchType = 1 if SchName == "Vision Charter Academy K-8"
+replace NCESSchoolID = "080333006847" if SchName == "Vision Charter Academy K-8"
+
+replace SchType = 1 if SchName == "Weld Re-3J Online Innovations"
+replace NCESSchoolID = "080492006863" if SchName == "Weld Re-3J Online Innovations"
+
+replace SchType = 1 if SchName == "Woodland Elementary School"
+replace NCESSchoolID = "080291006865" if SchName == "Woodland Elementary School"
+
+replace SchType = 1 if SchName == "World Academy Elementary School"
+replace NCESSchoolID = "080354006868" if SchName == "World Academy Elementary School"
+
+replace SchType = 1 if SchName == "World Academy Middle School"
+replace NCESSchoolID = "080354006869" if SchName == "World Academy Middle School"
+
+
+replace SchLevel = -1 if SchName == "Colorado Connections Academy" | SchName == "Colorado Early Colleges Online Campus" | SchName == "Education reEnvisioned School" | SchName == "Five Star Online Academy" | SchName == "Gudy Gaskill Elementary" | SchName == "JeffCo Remote Learning Program" |SchName == "Leadership Academy of Colorado" | SchName == "Mapleton Online" |SchName == "Merit Academy" | SchName == "Montbello Middle School" | SchName == "Performing Arts School on Broadway" | SchName == "Prospect Academy" | SchName == "Pueblo Classical Academy" | SchName == "Southlawn Elementary School" | SchName == "Timnath Middle-High School" | SchName == "Tointon Academy of Pre-Engineering" | SchName == "Two Rivers Community School" | SchName == "Villa Bella Expeditionary Middle School" | SchName == "Vision Charter Academy K-8" | SchName == "Weld Re-3J Online Innovations" | SchName == "Woodland Elementary School" | SchName == "World Academy Elementary School" | SchName == "World Academy Middle School"
+replace SchVirtual = -1 if SchName == "Colorado Connections Academy" | SchName == "Colorado Early Colleges Online Campus" | SchName == "Education reEnvisioned School" | SchName == "Five Star Online Academy" | SchName == "Gudy Gaskill Elementary" | SchName == "JeffCo Remote Learning Program" |SchName == "Leadership Academy of Colorado" | SchName == "Mapleton Online" |SchName == "Merit Academy" | SchName == "Montbello Middle School" | SchName == "Performing Arts School on Broadway" | SchName == "Prospect Academy" | SchName == "Pueblo Classical Academy" | SchName == "Southlawn Elementary School" | SchName == "Timnath Middle-High School" | SchName == "Tointon Academy of Pre-Engineering" | SchName == "Two Rivers Community School" | SchName == "Villa Bella Expeditionary Middle School" | SchName == "Vision Charter Academy K-8" | SchName == "Weld Re-3J Online Innovations" | SchName == "Woodland Elementary School" | SchName == "World Academy Elementary School" | SchName == "World Academy Middle School"
+label def SchLevel -1 "Missing/not reported"
+label def SchVirtual -1 "Missing/not reported"
+
+**
+
 replace StateAbbrev = "CO" if DataLevel == 1
 replace State = 8 if DataLevel == 1
 replace StateFips = 8 if DataLevel == 1

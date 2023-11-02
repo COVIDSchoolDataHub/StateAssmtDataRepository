@@ -259,7 +259,7 @@ rename county_name CountyName
 replace CountyName = strproper(CountyName)
 
 replace StudentGroup="All Students" if StudentSubGroup=="All Students"
-replace StudentGroup="RaceEth" if inlist(StudentSubGroup, "American Indian/Alaska Native","Asian", "Native Hawaiian/Other Pacific Islander", "Two or more Races", "White", "African American", "Hispanic/Latino", "Unknown")
+replace StudentGroup="RaceEth" if inlist(StudentSubGroup, "American Indian/Alaska Native","Asian", "Native Hawaiian/Other Pacific Islander", "Two or more Races", "White", "African American", "Hispanic/Latino")
 replace StudentGroup="EL Status" if inlist(StudentSubGroup, "Limited English Proficient")
 replace StudentGroup="Economic Status" if inlist(StudentSubGroup, "Income Eligibility 1 and 2")
 replace StudentGroup="Gender" if inlist(StudentSubGroup, "Male", "Female")

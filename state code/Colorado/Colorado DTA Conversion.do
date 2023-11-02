@@ -11,7 +11,6 @@ local studentgroup `" "Gender" "Race Ethnicity" "Language Proficiency" "'
 local subject ELA Math Science
 
 ** Converting to dta **
-	
 import excel "${raw}/2023 CMAS ELA and Math District and School Summary Achievement Results", sheet("CMAS ELA and Math") cellrange(A13) firstrow clear
 save "${output}/CO_AssmtData_2023_ela_mat_allstudents.dta", replace
 

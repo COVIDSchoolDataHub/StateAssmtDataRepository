@@ -341,6 +341,20 @@ merge m:1 DistName SchName using "${NCES}/NCES_2020_School.dta", update
 drop if _merge == 2
 drop _merge
 
+**** Updating 2023 schools
+
+replace SchType = 1 if SchName == "CREEKBEND ELEM AND MIDDLE"
+replace NCESSchoolID = "280177001585" if SchName == "CREEKBEND ELEM AND MIDDLE"
+
+replace SchLevel = -1 if SchName == "CREEKBEND ELEM AND MIDDLE" | SchName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
+replace SchVirtual = -1 if SchName == "CREEKBEND ELEM AND MIDDLE" | SchName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
+label def SchLevel -1 "Missing/not reported"
+label def SchVirtual -1 "Missing/not reported"
+
+replace seasch = "Missing/not reported" if SchName == "CREEKBEND ELEM AND MIDDLE" | SchName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
+
+**
+
 replace StateAbbrev = "MS"
 replace State = 28
 replace StateFips = 28
@@ -351,6 +365,15 @@ replace State_leaid = "Missing/not reported" if DistName == "DUBARD SCHOOL FOR L
 gen StateAssignedDistID = State_leaid
 replace seasch = "Missing/not reported" if SchName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
 gen StateAssignedSchID = seasch
+
+replace DistType = -1 if DistName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
+label def agency_typedf -1 "Missing/not reported", add
+
+replace DistCharter = "Missing/not reported" if DistName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
+
+replace CountyName = "Missing/not reported" if DistName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
+replace CountyCode = -1 if DistName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
+label def county_codedf -1 "Missing/not reported", modify
 
 replace NCESDistrictID = "Missing/not reported" if DistName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
 replace NCESSchoolID = "Missing/not reported" if SchName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
