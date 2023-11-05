@@ -150,3 +150,20 @@ save "${output}/IL_AssmtData_2022_sci_Participation_5.dta", replace
 
 import excel "${raw}/IL_OriginalData_2022_sci_Participation.xlsx", sheet("Grade 8") firstrow clear
 save "${output}/IL_AssmtData_2022_sci_Participation_8.dta", replace
+
+** 2023
+
+import excel "${raw}/IL_OriginalData_2023_all.xlsx", sheet("IAR") cellrange(A1:ARZ4706) firstrow clear
+save "${output}/IL_AssmtData_2023_all.dta", replace
+
+import excel "${raw}/IL_OriginalData_2023_sci.xlsx", sheet("Grade 5") firstrow clear
+save "${output}/IL_AssmtData_2023_sci_5.dta", replace
+
+import excel "${raw}/IL_OriginalData_2023_sci.xlsx", sheet("Grade 8") firstrow clear
+save "${output}/IL_AssmtData_2023_sci_8.dta", replace
+
+import excel "${raw}/IL_OriginalData_2023_sci_Participation.xlsx", sheet("Grade 5") firstrow clear
+save "${output}/IL_AssmtData_2023_sci_Participation_5.dta", replace
+
+import excel "${raw}/IL_OriginalData_2023_sci_Participation.xlsx", sheet("Grade 8") firstrow clear
+save "${output}/IL_AssmtData_2023_sci_Participation_8.dta", replace
