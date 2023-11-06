@@ -65,7 +65,6 @@ replace StudentSubGroup = "Asian" if StudentSubGroup == "Asian American"
 replace StudentSubGroup = "Black or African American" if StudentSubGroup == "Black"
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
 replace StudentSubGroup = "English Proficient" if StudentSubGroup == "Non-English Learner"
-replace StudentSubGroup = "Other" if StudentSubGroup == "Former English Learner"
 replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Low Income"
 replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "Non-Low Income"
 drop if StudentSubGroup == "All Others"
@@ -76,13 +75,13 @@ drop if StudentSubGroup == "IEP - Emotional Disturbance" | StudentSubGroup == "N
 drop if StudentSubGroup == "Migrant" | StudentSubGroup == "Non-Migrant"
 drop if StudentSubGroup == "Military" | StudentSubGroup == "Non-Military"
 drop if StudentSubGroup == "Mobile Student " | StudentSubGroup == "Non-Mobile Student"
-drop if StudentSubGroup == "Non-Former English Learner"
+drop if StudentSubGroup == "Former English Learner" | StudentSubGroup == "Non-Former English Learner"
 
 gen StudentGroup = "RaceEth"
 replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
 replace StudentGroup = "Gender" if StudentSubGroup == "Female" | StudentSubGroup == "Male"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged"
-replace StudentGroup = "EL Status" if StudentSubGroup == "English Learner" | StudentSubGroup == "English Proficient" | StudentSubGroup == "Other"
+replace StudentGroup = "EL Status" if StudentSubGroup == "English Learner" | StudentSubGroup == "English Proficient"
 
 //Proficiency Percents
 gen ProfLow = ProficientRangeLow + AdvancedRangeLow
