@@ -126,6 +126,10 @@ replace GradeLevel = "G07" if GradeLevel == "7"
 replace GradeLevel = "G08" if GradeLevel == "8"
 
 //Proficiency Percents
+replace Lev1_percent = 1 - (Lev2_percent + Lev3_percent) if Lev1_percent == -1 & Lev2_percent != -1 & Lev3_percent != -1
+replace Lev2_percent = 1 - (Lev1_percent + Lev3_percent) if Lev2_percent == -1 & Lev1_percent != -1 & Lev3_percent != -1
+replace Lev3_percent = 1 - (Lev1_percent + Lev2_percent) if Lev3_percent == -1 & Lev1_percent != -1 & Lev2_percent != -1
+
 gen ProficientOrAbove_percent = -1
 replace ProficientOrAbove_percent = Lev2_percent + Lev3_percent if Lev2_percent != -1 | Lev3_percent != -1
 replace ProficientOrAbove_percent = . if ProficientOrAbove_percent < 0
@@ -136,6 +140,7 @@ local prof_vars "Lev1_percent Lev2_percent Lev3_percent AvgScaleScore"
 foreach var of local prof_vars {
 	tostring `var', replace format("%6.0g") force
 	replace `var' = "*" if `var' == "-1"
+	replace `var' = "--" if `var' == ""
 }
 
 //Student Groups & SubGroups
