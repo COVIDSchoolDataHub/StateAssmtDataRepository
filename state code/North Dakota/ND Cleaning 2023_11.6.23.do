@@ -86,6 +86,7 @@ replace StudentGroup = "EL Status" if StudentSubGroup == "English Learner" | Stu
 //Proficiency Percents
 gen ProfLow = ProficientRangeLow + AdvancedRangeLow
 gen ProfHigh = ProficientRangeHigh + AdvancedRangeHigh
+replace ProfHigh = 1 if ProfHigh > 1
 
 tostring NoviceRangeLow, replace
 tostring NoviceRangeHigh, replace

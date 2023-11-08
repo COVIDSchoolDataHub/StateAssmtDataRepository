@@ -80,6 +80,7 @@ replace StudentGroup = "EL Status" if StudentSubGroup == "English Learner" | Stu
 //Proficiency Percents
 gen ProfLow = ProficientRangeLow + AdvancedRangeLow
 gen ProfHigh = ProficientRangeHigh + AdvancedRangeHigh
+replace ProfHigh = 1 if ProfHigh > 1
 
 tostring NoviceRangeLow, replace
 tostring NoviceRangeHigh, replace
@@ -163,22 +164,20 @@ replace StateAbbrev = "ND"
 replace StateFips = 38
 replace DistName = lea_name if DataLevel == "School"
 
-replace SchType = . if DataLevel != "School"
-replace SchLevel = . if DataLevel != "School"
-replace SchVirtual = . if DataLevel != "School"
-
 drop state_name year _merge merge2 district_agency_type_num urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type district_agency_type_num school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_lowest_grade_offered dist_highest_grade_offered dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch lea_name agency_charter_indicator dist_agency_charter_indicator
 
 //Unmerged Schools
 replace NCESDistrictID = "3820340" if StateAssignedDistID == "27014"
+replace State_leaid = "NE-27014" if StateAssignedDistID == "27014"
 replace DistType = 1 if StateAssignedDistID == "27014"
 replace DistCharter = "No" if StateAssignedDistID == "27014"
 replace CountyName = "MCKENZIE COUNTY" if StateAssignedDistID == "27014"
 replace CountyCode = 38053 if StateAssignedDistID == "27014"
 replace NCESSchoolID = "382034000714" if SchName == "East Fairview Elementary School"
-replace SchType = 1
-replace SchLevel = 1
-replace SchVirtual = 0
+replace seasch = "27014-27411" if SchName == "East Fairview Elementary School"
+replace SchType = 1 if SchName == "East Fairview Elementary School"
+replace SchLevel = 1 if SchName == "East Fairview Elementary School"
+replace SchVirtual = 0 if SchName == "East Fairview Elementary School"
 replace DistName = "Yellowstone 14" if SchName == "East Fairview Elementary School"
 
 //Label & Organize Variables
