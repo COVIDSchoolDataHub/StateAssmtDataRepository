@@ -108,7 +108,8 @@ drop NoviceRangeLow NoviceRangeHigh PartiallyRangeLow PartiallyRangeHigh Profici
 
 //Fix Formatting & Generate Additional Variables
 replace SchYear = "2015-16"
-gen AssmtName = "North Dakota State Assessment (NDSA)"
+gen AssmtName = "Smarter Balanced"
+replace AssmtName = "North Dakota State Assessment (NDSA)" if Subject == "sci"
 gen StudentGroup_TotalTested = "--"
 gen StudentSubGroup_TotalTested = "--"
 gen Lev1_count = "--"
