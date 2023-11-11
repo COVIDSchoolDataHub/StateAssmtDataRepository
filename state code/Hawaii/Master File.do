@@ -4,7 +4,7 @@ cd "/Volumes/T7/State Test Project/Hawaii"
 local cleaned "/Volumes/T7/State Test Project/Hawaii/Cleaned Data"
 local NCES "/Volumes/T7/State Test Project/NCES/District"
 local Original "/Volumes/T7/State Test Project/Hawaii/Original Data"
-local dofiles Hawaii2013_2014.do hawaii2015-2019_2021-2022.do 
+local dofiles Hawaii2013_2014.do hawaii2015-2019_2021-2022.do HI_2023.do
 foreach file of local dofiles {
 	do `file'
 }
