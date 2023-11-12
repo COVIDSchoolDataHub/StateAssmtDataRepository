@@ -1,74 +1,12 @@
 clear
 set more off
 
-global raw "/Users/mnamgung/Desktop/Iowa/Input"
-global output "/Users/mnamgung/Desktop/Iowa/Output"
-global int "/Users/mnamgung/Desktop/Iowa/Intermediate"
+global raw "/Users/minnamgung/Desktop/SADR/Iowa/Input"
+global output "/Users/minnamgung/Desktop/SADR/Iowa/Output"
+global int "/Users/minnamgung/Desktop/SADR/Iowa/Intermediate"
 
-global nces "/Users/mnamgung/Desktop/NCES"
-global iowa "/Users/mnamgung/Desktop/Iowa/NCES"
-
-/////////////////////////////////////////
-*** NCES Cleaning for IA ***
-/////////////////////////////////////////
-
-* District 
-use "${nces}/District/NCES_2021_District.dta", clear 
-
-keep state_location state_name state_fips ncesdistrictid state_leaid district_agency_type DistCharter county_name county_code lea_name 
-keep if state_fips==19
-	rename state_name State
-	rename state_location StateAbbrev
-	rename state_fips StateFips
-	rename ncesdistrictid NCESDistrictID
-	rename state_leaid State_leaid
-	rename district_agency_type DistType
-	rename lea_name DistName
-	rename county_code CountyCode
-	rename county_name CountyName
-	
-split State_leaid, p(" ")
-drop State_leaid State_leaid2
-rename State_leaid1 State_leaid
-replace State_leaid=substr(State_leaid,-4,.)
-	
-save "${iowa}/NCES_2021_district.dta", replace
-
-* School
-use "${nces}/School/NCES_2021_School.dta", clear
-
-keep ncesschoolid school_name ncesdistrictid lea_name state_leaid state_location state_name state_fips county_name county_code school_type school_id seasch SchLevel SchVirtual district_agency_type DistCharter
-
-keep if state_fips==19
-	rename state_name State
-	rename lea_name DistName
-	rename state_location StateAbbrev
-	rename state_fips StateFips
-	rename district_agency_type DistType
-	rename ncesdistrictid NCESDistrictID
-	rename state_leaid State_leaid
-	rename county_code CountyCode
-	rename county_name CountyName
-	rename ncesschoolid NCESSchoolID
-	rename school_type SchType
-	rename school_name SchName
-
-/*
-replace st_schid=substr(st_schid,-3,.)
-gen StateAssignedSchID="0"+st_schid
-*/
-
-split State_leaid, p(" ")
-		drop State_leaid State_leaid2
-		rename State_leaid1 State_leaid
-		replace State_leaid=substr(State_leaid,-4,.)
-		split seasch, p(" ")
-		drop seasch1
-gen StateAssignedSchID="0"+seasch2
-
-drop if SchName=="Cedar Rapids Virtual Academy" & NCESSchoolID=="190654002272"
-	
-save "${iowa}/NCES_2021_school.dta", replace
+global nces "/Users/minnamgung/Desktop/SADR/NCES"
+global iowa "/Users/minnamgung/Desktop/SADR/Iowa/NCES"
 
 
 /////////////////////////////////////////
@@ -375,6 +313,18 @@ replace Lev4_count=""
 replace Lev4_percent=""
 
 replace CountyCode=. if CountyCode==-1
+
+////////////////////////////////////
+*** Review 3 Edits ***
+////////////////////////////////////
+
+tostring StateAssignedDistID, replace
+tostring State_leaid, replace
+
+decode DataLevel, gen(DataLevel1)
+drop DataLevel
+rename DataLevel1 DataLevel
+
 
 ////////////////////////////////////
 *** Sorting ***

@@ -257,6 +257,9 @@ foreach var of varlist Lev1_count Lev2_count Lev3_count Lev4_count Lev1_percent 
 tostring ParticipationRate, replace force
 replace ParticipationRate = "--" if ParticipationRate == "."
 
+// Fixing Legacy Elementary
+replace StateAssignedSchID = "126911042" if StateAssignedSchID == "126911103"
+
 // Generating missing variables
 gen Lev5_count = ""
 gen Lev5_percent = ""
@@ -294,15 +297,45 @@ save "$output_files/TX_AssmtData_2023.dta", replace
 
 // Merging with NCES School Data
 
-use "$NCES_files/NCES_2021_School.dta", clear
+import delimited "$original_files/TX_Unmerged2023.csv", stringcols(1 5 8 9) clear
+drop seaschmatch
+drop districtmatch
+drop distname
+drop schname
+drop v9
+drop v7
+rename countyname county_name
+rename countycode county_code
 
-keep state_location state_fips district_agency_type school_type ncesdistrictid state_leaid ncesschoolid seasch DistCharter SchLevel SchVirtual county_name county_code
+gen school_type = 1
+replace school_type = 2 if schtype == "Special education school"
+replace school_type = 3 if schtype == "Vocational school"
+replace school_type = 4 if schtype == "Other/alternative school"
+gen SchLevel = -1
+gen SchVirtual = -1
+
+drop schtype
+drop schlevel
+drop schvirtual
+gen state_location = "TX"
+gen state_fips = 48
+
+
+append using "$NCES_files/NCES_2021_School.dta"
+
+
+label def school_typedf 1 "Regular school" 2 "Special education school" 3 "Vocational school" 4 "Other/alternative school", modify
+label values school_type school_typedf
+label def school_leveldf -1 "Missing/not reported", modify
+label values SchLevel school_leveldf
+label def virtualdf -1 "Missing/not reported", modify
+label values SchVirtual virtualdf
+
+keep state_location state_fips school_type ncesschoolid seasch SchLevel SchVirtual county_name county_code
 
 keep if state_location == "TX"
 
-merge 1:m seasch using "${output_files}/TX_AssmtData_2023.dta", keep(match using)
-replace ncesschoolid = "Missing/not reported" if _merge == 2 & DataLevel == 3
-drop _merge
+merge 1:m seasch using "${output_files}/TX_AssmtData_2023.dta", keep(match using) nogenerate
 
 save "$output_files/TX_AssmtData_2023.dta", replace
 
