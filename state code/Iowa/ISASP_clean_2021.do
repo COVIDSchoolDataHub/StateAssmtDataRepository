@@ -1,12 +1,12 @@
 clear
 set more off
 
-global raw "/Users/mnamgung/Desktop/Iowa/Input"
-global output "/Users/mnamgung/Desktop/Iowa/Output"
-global int "/Users/mnamgung/Desktop/Iowa/Intermediate"
+global raw "/Users/minnamgung/Desktop/SADR/Iowa/Input"
+global output "/Users/minnamgung/Desktop/SADR/Iowa/Output"
+global int "/Users/minnamgung/Desktop/SADR/Iowa/Intermediate"
 
-global nces "/Users/mnamgung/Desktop/NCES"
-global iowa "/Users/mnamgung/Desktop/Iowa/NCES"
+global nces "/Users/minnamgung/Desktop/SADR/NCES"
+global iowa "/Users/minnamgung/Desktop/SADR/Iowa/NCES"
 
 /////////////////////////////////////////
 *** NCES Cleaning for IA ***
@@ -296,6 +296,17 @@ replace Lev4_count=""
 replace Lev4_percent=""
 
 replace CountyCode=. if CountyCode==-1
+
+////////////////////////////////////
+*** Review 3 Edits ***
+////////////////////////////////////
+
+tostring StateAssignedDistID, replace
+tostring State_leaid, replace
+
+decode DataLevel, gen(DataLevel1)
+drop DataLevel
+rename DataLevel1 DataLevel
 
 ////////////////////////////////////
 *** Sorting ***

@@ -1,12 +1,12 @@
 clear
 set more off
 
-global raw "/Users/mnamgung/Desktop/Iowa/Input"
-global output "/Users/mnamgung/Desktop/Iowa/Output"
-global int "/Users/mnamgung/Desktop/Iowa/Intermediate"
+global raw "/Users/minnamgung/Desktop/SADR/Iowa/Input"
+global output "/Users/minnamgung/Desktop/SADR/Iowa/Output"
+global int "/Users/minnamgung/Desktop/SADR/Iowa/Intermediate"
 
-global nces "/Users/mnamgung/Desktop/NCES"
-global iowa "/Users/mnamgung/Desktop/Iowa/NCES"
+global nces "/Users/minnamgung/Desktop/SADR/NCES"
+global iowa "/Users/minnamgung/Desktop/SADR/Iowa/NCES"
 
 /////////////////////////////////////////
 *** NCES Cleaning for IA ***
@@ -1392,6 +1392,47 @@ foreach a in $yearspar {
 replace ParticipationRate=ParticipationRate/100
 tostring ParticipationRate, replace force
 replace ParticipationRate="--" if ParticipationRate=="."
+
+////////////////////////////////////
+*** Review 3 Edits ***
+////////////////////////////////////
+
+tostring StateAssignedDistID, replace
+tostring State_leaid, replace
+
+decode DataLevel, gen(DataLevel1)
+drop DataLevel
+rename DataLevel1 DataLevel
+
+keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+
+order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+
+//sort
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+	
+	save "${output}/IA_AssmtData_all_`a'.dta", replace
+	
+	export delimited using "${output}/IA_AssmtData_`a'.csv", replace
+	
+}
+
+
+global yearspar 2003 2004 2005 2006 2007 2008 2009 2010 2011 2012
+
+foreach a in $yearspar {
+	
+	foreach i of varlist StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate {
+		
+		replace `i'="*" if `i'=="Small Cell Size" | `i'=="SCS" | `i'=="small N" | `i'=="Small cell size"
+	}
+
+keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+
+order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+
+//sort
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 	
 	save "${output}/IA_AssmtData_all_`a'.dta", replace
 	
