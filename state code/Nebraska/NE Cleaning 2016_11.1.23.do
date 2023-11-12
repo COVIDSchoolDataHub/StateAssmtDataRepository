@@ -56,6 +56,8 @@ gen Flag_CutScoreChange_read = ""
 gen Flag_CutScoreChange_oth = "N"
 gen ProficiencyCriteria = "Levels 2-3"
 gen ParticipationRate = 1 - nottestedpct
+tostring ParticipationRate, replace format("%6.0g") force
+replace ParticipationRate = "--" if ParticipationRate == "."
 drop dataasof nottested nottestedpct
 
 //School Year
@@ -153,6 +155,7 @@ drop if StudentGroup == "Mobile"
 replace StudentSubGroup = "All Students" if StudentGroup == "All Students"
 replace StudentGroup = "RaceEth" if StudentGroup == "Race/Ethnicity"
 replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "American Indian/Alaska Native"
+replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
 replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "Native Hawaiian or Other Pacific Islander"
 replace StudentSubGroup = "Two or More" if StudentSubGroup == "Two or More Races"
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "English Language Learners"
