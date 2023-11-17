@@ -1035,6 +1035,7 @@ replace GradeLevel = "G07" if GradeLevel == "G7"
 replace GradeLevel = "G08" if GradeLevel == "G8"
 
 replace Subject = "ela" if Subject == "ELA"
+replace Subject="ela" if Subject=="reading"
 replace Subject = "math" if Subject == "Math"
 replace Subject = "sci" if Subject == "Science"
 

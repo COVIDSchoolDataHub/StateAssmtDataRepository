@@ -133,6 +133,10 @@ replace GradeLevel = "G07" if GradeLevel == "7"
 replace GradeLevel = "G08" if GradeLevel == "8"
 
 //Proficiency Percents
+replace Lev1_percent = 1 - (Lev2_percent + Lev3_percent) if Lev1_percent == -1 & Lev2_percent != -1 & Lev3_percent != -1
+replace Lev2_percent = 1 - (Lev1_percent + Lev3_percent) if Lev2_percent == -1 & Lev1_percent != -1 & Lev3_percent != -1
+replace Lev3_percent = 1 - (Lev1_percent + Lev2_percent) if Lev3_percent == -1 & Lev1_percent != -1 & Lev2_percent != -1
+
 gen ProficientOrAbove_percent = -1
 replace ProficientOrAbove_percent = Lev2_percent + Lev3_percent if Lev2_percent != -1 | Lev3_percent != -1
 replace ProficientOrAbove_percent = . if ProficientOrAbove_percent < 0
@@ -143,12 +147,15 @@ local prof_vars "Lev1_percent Lev2_percent Lev3_percent AvgScaleScore"
 foreach var of local prof_vars {
 	tostring `var', replace format("%6.0g") force
 	replace `var' = "*" if `var' == "-1"
+	replace `var' = "--" if `var' == ""
 }
 
 //Student Groups & SubGroups
 drop if StudentGroup == "Mobile"
 replace StudentSubGroup = "All Students" if StudentGroup == "All Students"
 replace StudentGroup = "RaceEth" if StudentGroup == "Race/Ethnicity"
+replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "American Indian/Alaska Native"
+replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
 replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "Native Hawaiian or Other Pacific Islander"
 replace StudentSubGroup = "Two or More" if StudentSubGroup == "Two or More Races"
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "English Language Learners"
@@ -188,6 +195,7 @@ gen State = "Nebraska"
 replace StateAbbrev = "NE"
 replace StateFips = 31
 replace DistName = lea_name if DataLevel == "School"
+replace NCESSchoolID = "" if DataLevel != "School"
 
 drop state_name year _merge merge2 district_agency_type_num urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type district_agency_type_num school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_lowest_grade_offered dist_highest_grade_offered dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch lea_name agency_charter_indicator dist_agency_charter_indicator
 
