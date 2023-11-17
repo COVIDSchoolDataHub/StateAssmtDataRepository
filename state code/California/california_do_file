@@ -1,7 +1,7 @@
 
 cd "/Users/benjaminm/Documents/State_Repository_Research/California"
 
-
+use CA_AssmtData_2021_Stata, clear
 // 2022-23 School Year 
 
 //import delimited "/Users/benjaminm/Documents/State_Repository_Research/California/sb_ca2023_all_csv_v1.txt", delimiter("^") case(preserve) clear 
@@ -96,9 +96,10 @@ replace DistName = "Para Los Ninos Middle" if DistName == "Para Los Niños Middl
 replace DistName = "Shanel Valley Academy" if DistName == "Shanél Valley Academy" 
 
 
-
 replace DistName = ustrtitle(DistName)
 replace CountyName = ustrtitle(CountyName)
+
+replace DistName = "Voices College-Bound Language Academy At" if DistName == "Voices College Bound Language Academy At" 
 
 merge m:m DistName using 1_NCES_2021_District_With_Extra_Districts, force // CHANGED
 rename _merge DistMerge
@@ -783,6 +784,7 @@ export delimited CA_AssmtData_2022.csv, replace
 
 
 // 2020-21 School Year 
+
 
 import delimited sb_ca2021entities_csv.txt, delimiters("^") case(preserve) clear
 save California_School_District_Names_2021, replace
