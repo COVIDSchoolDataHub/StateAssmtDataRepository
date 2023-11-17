@@ -73,7 +73,37 @@ save "${path}/Semi-Processed Data Files/2021_22_NCES_Cleaned_District.dta", repl
 
 ** 2022-23 Proficiency Data
 
-import excel "${path}/Original Data Files/LA_OriginalData_2023.xls", sheet("2023 LEAP SUPPRESSED") cellrange(A3:BH65536) firstrow allstring clear
+import excel "${path}/Original Data Files/LA_OriginalData_2023_state.xlsx", sheet("Grades 3-8") cellrange(A4:AF74738) firstrow clear
+
+rename EnglishLanguageArts Lev5_percentela
+rename I Lev4_percentela
+rename J Lev3_percentela
+rename K Lev2_percentela
+rename L Lev1_percentela
+
+rename Mathematics Lev5_percentmath
+rename N Lev4_percentmath
+rename O Lev3_percentmath
+rename P Lev2_percentmath
+rename Q Lev1_percentmath
+
+rename Science Lev5_percentsci
+rename S Lev4_percentsci
+rename T Lev3_percentsci
+rename U Lev2_percentsci
+rename V Lev1_percentsci
+
+rename SocialStudies Lev5_percentsoc
+rename X Lev4_percentsoc
+rename Y Lev3_percentsoc
+rename Z Lev2_percentsoc
+rename AA Lev1_percentsoc
+
+keep if SchoolSystemName == "Louisiana Statewide"
+
+save "${path}/Semi-Processed Data Files/LA_OriginalData_2023_state.dta", replace
+
+import excel "${path}/Original Data Files/LA_OriginalData_2023_all.xls", sheet("2023 LEAP SUPPRESSED") cellrange(A3:BH65536) firstrow allstring clear
 
 rename ELA AvgScaleScoreela
 rename Math AvgScaleScoremath
@@ -127,6 +157,8 @@ rename BB Lev2_countsoc
 rename BC Lev2_percentsoc
 rename BD Lev1_countsoc
 rename BE Lev1_percentsoc
+
+append using "${path}/Semi-Processed Data Files/LA_OriginalData_2023_state.dta"
 
 ** Reshape Wide to Long
 
@@ -198,7 +230,8 @@ replace StudentGroup = "All Students" if StudentSubGroup=="All Students"
 replace StudentGroup = "Economic Status" if StudentSubGroup=="Economically Disadvantaged" | StudentSubGroup=="Not Economically Disadvantaged"
 keep if StudentGroup == "All Students" | StudentGroup == "EL Status" | StudentGroup == "Economic Status" | StudentGroup == "Gender" | StudentGroup == "RaceEth"
 gen ProficiencyCriteria = "Levels 4 and 5"
-replace AvgScaleScore = "*" if AvgScaleScore == ""
+replace AvgScaleScore = "--" if AvgScaleScore == ""
+replace StudentSubGroup_TotalTested="--" if StudentSubGroup_TotalTested == ""
 
 ** Convert Proficiency Data into Percentages
 
@@ -259,7 +292,7 @@ tostring ProficientOrAbovemin, replace force
 tostring ProficientOrAbovemax, replace force
 gen ProficientOrAbove_count = ProficientOrAbovemin + "-" + ProficientOrAbovemax
 replace ProficientOrAbove_count = ProficientOrAbovemax if ProficientOrAbovemax == ProficientOrAbovemin
-replace ProficientOrAbove_count = "*" if ProficientOrAbove_count=="."
+replace ProficientOrAbove_count = "--" if ProficientOrAbove_count=="."
 replace Lev1_percent = "*" if Lev1_percent=="."
 replace Lev2_percent = "*" if Lev2_percent=="."
 replace Lev3_percent = "*" if Lev3_percent=="."
@@ -270,6 +303,11 @@ replace Lev2_count = "*" if Lev2_count==" "
 replace Lev3_count = "*" if Lev3_count==" "
 replace Lev4_count = "*" if Lev4_count==" "
 replace Lev5_count = "*" if Lev5_count==" "
+replace Lev1_count = "--" if Lev1_count==""
+replace Lev2_count = "--" if Lev2_count==""
+replace Lev3_count = "--" if Lev3_count==""
+replace Lev4_count = "--" if Lev4_count==""
+replace Lev5_count = "--" if Lev5_count==""
 
 ** Merging NCES Variables
 
@@ -444,6 +482,7 @@ rename TotalParticipationRate ParticipationRate
 replace nTotalParticipationRate = nTotalParticipationRate / 100
 tostring nTotalParticipationRate, replace force
 replace ParticipationRate = nTotalParticipationRate if nTotalParticipationRate != "."
+replace ParticipationRate = "--" if ParticipationRate == ""
 
 ** Fix Variable Types
 

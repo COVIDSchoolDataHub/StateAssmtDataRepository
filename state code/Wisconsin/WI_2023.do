@@ -279,7 +279,7 @@ drop copy_id
 
 // Gender
 
-expand 3 if StudentGroup == "Gender"
+expand 4 if StudentGroup == "Gender"
 
 sort n1 DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
@@ -290,6 +290,7 @@ replace copy_id=. if StudentGroup != "Gender"
 replace StudentSubGroup="Male" if copy_id==1
 replace StudentSubGroup="Female" if copy_id==2
 replace StudentSubGroup="Unknown" if copy_id==3
+replace StudentSubGroup="Non-binary" if copy_id==4
 
 drop copy_id
 
