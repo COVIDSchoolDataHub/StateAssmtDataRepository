@@ -1,11 +1,11 @@
 clear
 set more off
 
-cd "/Users/maggie/Desktop/New Mexico"
+global raw "/Users/miramehta/Documents/NM State Testing Data"
+global output "/Users/miramehta/Documents/NM State Testing Data/Output"
+global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
 
-global raw "/Users/maggie/Desktop/New Mexico/Original Data Files"
-global output "/Users/maggie/Desktop/New Mexico/Output"
-global NCES "/Users/maggie/Desktop/New Mexico/NCES/Cleaned"
+cd "/Users/miramehta/Documents/NM State Testing Data"
 
 ** Converting to dta **
 

@@ -1,11 +1,11 @@
 clear
 set more off
 
-cd "/Users/maggie/Desktop/New Mexico"
+cd "/Users/miramehta/Documents/NCES District and School Demographics"
 
-global NCESSchool "/Users/maggie/Desktop/New Mexico/NCES/School"
-global NCESDistrict "/Users/maggie/Desktop/New Mexico/NCES/District"
-global NCES "/Users/maggie/Desktop/New Mexico/NCES/Cleaned"
+global NCESSchool "/Users/miramehta/Documents/NCES District and School Demographics/NCES School Files, Fall 1997-Fall 2021"
+global NCESDistrict "/Users/miramehta/Documents/NCES District and School Demographics/NCES District Files, Fall 1997-Fall 2021"
+global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
 
 global years 2014 2015 2016 2017 2018 2020 2021
 
@@ -29,7 +29,7 @@ foreach a in $years {
                  drop agency_charter_indicator
 				}
 	
-	save "${NCES}/NCES_`a'_District.dta", replace
+	save "${NCES}/NCES_`a'_District_NM.dta", replace
 	
 	use "${NCESSchool}/NCES_`a'_School.dta", clear
 	keep if state_location == "NM"
@@ -53,6 +53,6 @@ foreach a in $years {
                  drop dist_agency_charter_indicator
               }
 	
-	save "${NCES}/NCES_`a'_School.dta", replace
+	save "${NCES}/NCES_`a'_School_NM.dta", replace
 	
 }

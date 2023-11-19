@@ -1,11 +1,11 @@
 clear
 set more off
 
-global raw "/Users/maggie/Desktop/New Mexico/Original Data Files"
-global output "/Users/maggie/Desktop/New Mexico/Output"
-global NCES "/Users/maggie/Desktop/New Mexico/NCES/Cleaned"
+global raw "/Users/miramehta/Documents/NM State Testing Data"
+global output "/Users/miramehta/Documents/NM State Testing Data/Output"
+global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
 
-cd "/Users/maggie/Desktop/New Mexico"
+cd "/Users/miramehta/Documents/NM State Testing Data"
 
 use "${raw}/NM_AssmtData_2018_PARCC.dta", clear
 keep if strpos(Assessment, "Grade") > 0
@@ -31,7 +31,7 @@ replace Subject = "ela" if strpos(Assessment, "ELA") > 0
 replace Subject = "math" if strpos(Assessment, "Math") > 0
 
 gen AssmtName = ""
-replace AssmtName = "SBA" if Subject == "sci"
+replace AssmtName = "NMSBA" if Subject == "sci"
 replace AssmtName = "PARCC" if Subject != "sci"
 
 gen AssmtType = "Regular"
@@ -133,17 +133,18 @@ rename DataLevel_n DataLevel
 
 ** Merging with NCES
 
-merge m:1 State_leaid using "${NCES}/NCES_2017_District.dta"
+merge m:1 State_leaid using "${NCES}/NCES_2017_District_NM.dta"
 drop if _merge == 2
 drop _merge
 
-merge m:1 seasch using "${NCES}/NCES_2017_School.dta"
+merge m:1 seasch using "${NCES}/NCES_2017_School_NM.dta"
 drop if _merge == 2
 drop _merge
 
 replace StateAbbrev = "NM" if DataLevel == 1
 replace State = 35 if DataLevel == 1
 replace StateFips = 35 if DataLevel == 1
+replace CountyName = "Dona Ana County" if CountyName == "DoÃ±a Ana County"
 
 ** Generating new variables
 
@@ -159,4 +160,4 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${output}/NM_AssmtData_2018.dta", replace
 
-export delimited using "${output}/csv/NM_AssmtData_2018.csv", replace
+export delimited "${output}/NM_AssmtData_2018.csv", replace
