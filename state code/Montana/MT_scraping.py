@@ -53,7 +53,7 @@ import time
 
 #         page.screenshot(path="example.png")
 
-# configMathAndELA38 = {"gradeList" : ["3rd Grade", "4th Grade", "5th Grade", "6th Grade", "7th Grade", "8th Grade"]}
+configMathAndELA38 = {"gradeList" : ["3rd Grade", "4th Grade", "5th Grade", "6th Grade", "7th Grade", "8th Grade"]}
 
 def setup(p, sleepTime:int=20, headless:bool=False):
     browser = p.chromium.launch(headless=headless)
@@ -71,7 +71,7 @@ def main():
 
         # FIRST DASHBOARD:
         page.get_by_text("Math and ELA Assessments Dashboard (Grades 3-8)").click(force=True)
-        gradeList = ["3rd Grade", "4th Grade", "5th Grade", "6th Grade", "7th Grade", "8th Grade"]
+        gradeList = configMathAndELA38.get("gradeList")
         geographyLoop(page)
         # gradeLoop(page, gradeList)
 
@@ -144,10 +144,10 @@ def geographyLoop(page):
     for i in range(1,57,1):
         if i < 56:
             page.frame_locator("#OPI_main_content section >> internal:has-text=\"Math and ELA Assessments Dashboard (Grades 3-8) How do Montana students score on\"i >> iframe").frame_locator("iframe").get_by_role("treeitem").nth(i+1).scroll_into_view_if_needed()
-            time.sleep(0.2)
+            time.sleep(0.5)
         else: 
             page.frame_locator("#OPI_main_content section >> internal:has-text=\"Math and ELA Assessments Dashboard (Grades 3-8) How do Montana students score on\"i >> iframe").frame_locator("iframe").get_by_role("treeitem").nth(i).scroll_into_view_if_needed()
-            time.sleep(0.2)
+            time.sleep(0.5)
         page.frame_locator("#OPI_main_content section >> internal:has-text=\"Math and ELA Assessments Dashboard (Grades 3-8) How do Montana students score on\"i >> iframe").frame_locator("iframe").get_by_role("treeitem").nth(i).dispatch_event('click')
         time.sleep(0.5)
         page.frame_locator("#OPI_main_content section >> internal:has-text=\"Math and ELA Assessments Dashboard (Grades 3-8) How do Montana students score on\"i >> iframe").frame_locator("iframe").get_by_role("treeitem").nth(i).dispatch_event('click')

@@ -1,6 +1,9 @@
+cap log close
+log using massachusetts_cleaning.log, replace
+
 cd "/Users/benjaminm/Documents/State_Repository_Research/Massachusetts"
 
-
+// Remaping Raw Data into Standard Format, and appending together
 
 // cleaning district science data
 // r3 added
@@ -32,6 +35,7 @@ rename U SGP_2
 gen ParticipationRate = ""	
 gen AvgScaleScore = ""
 drop CPI
+
 
 order DataLevel SchYear GradeLevel StudentGroup	DistName StateAssignedDistID Subject ProficientOrAbove_count ProficientOrAbove_percent Lev4_count Lev4_percent	Lev3_count	Lev3_percent Lev2_count Lev2_percent Lev1_count	Lev1_percent StudentGroup_TotalTested ParticipationRate AvgScaleScore SGP SGP_2
 
@@ -550,7 +554,7 @@ gen SchYear2 = "2021-22"
 } 
 
 if `a' == 2023 {
-gen SchYear2 = "2023-23"
+gen SchYear2 = "2022-23"
 
 } 
 // add a year here 
