@@ -136,9 +136,19 @@ replace StudentSubGroup_TotalTested = Count if Count != "."
 drop if _merge == 2
 drop STNAM-_merge
 
+merge m:1 DataLevel NCESDistrictID StudentGroup StudentSubGroup GradeLevel Subject using "${EDFacts}/2018/edfactspart2018districtkansas.dta"
+replace ParticipationRate = Participation if Participation != ""
+drop if _merge == 2
+drop STNAM-_merge
+
 merge m:1 DataLevel NCESSchoolID StudentGroup StudentSubGroup GradeLevel Subject using "${EDFacts}/2018/edfactscount2018schoolkansas.dta"
 tostring Count, replace
 replace StudentSubGroup_TotalTested = Count if Count != "."
+drop if _merge == 2
+drop STNAM-_merge
+
+merge m:1 DataLevel NCESSchoolID StudentGroup StudentSubGroup GradeLevel Subject using "${EDFacts}/2018/edfactspart2018schoolkansas.dta"
+replace ParticipationRate = Participation if Participation != ""
 drop if _merge == 2
 drop STNAM-_merge
 
