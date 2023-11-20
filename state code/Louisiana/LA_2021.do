@@ -122,7 +122,7 @@ save "${path}/Semi-Processed Data Files/ParticipationbyDistrict2021.dta", replac
 
 ** 2020-21 Proficiency Data
 
-import excel "${path}/Original Data Files/LA_OriginalData_2021.xls", sheet("2021 LEAP SUPPRESSED") cellrange(A3:BG65536) firstrow allstring clear
+import excel "${path}/Original Data Files/LA_OriginalData_2021_all.xlsx", sheet("2021 LEAP SUPPRESSED") cellrange(A3:BG65536) firstrow allstring clear
 
 rename ELA AvgScaleScoreela
 rename Math AvgScaleScoremath
@@ -374,7 +374,7 @@ tostring nTotalParticipationRate, replace force
 replace TotalParticipationRate = nTotalParticipationRate
 replace TotalParticipationRate = "≥0.99" if ninetynine == 1 
 replace TotalParticipationRate = "≤0.01" if one == 1
-replace ParticipationRate = TotalParticipationRate if ParticipationRate == "--"
+// replace ParticipationRate = TotalParticipationRate if ParticipationRate == "--"
 
 ** Fix Variable Types
 

@@ -82,7 +82,7 @@ save "${path}/Semi-Processed Data Files/ParticipationbyDistrict2022.dta", replac
 
 ** 2021-22 Proficiency Data
 
-import excel "${path}/Original Data Files/LA_OriginalData_2022.xls", sheet("2022 LEAP SUPPRESSED") cellrange(A3:BH65536) firstrow allstring clear
+import excel "${path}/Original Data Files/LA_OriginalData_2022_all.xls", sheet("2022 LEAP SUPPRESSED") cellrange(A3:BH65536) firstrow allstring clear
 
 rename ELA AvgScaleScoreela
 rename Math AvgScaleScoremath
@@ -214,6 +214,7 @@ replace AvgScaleScore = "*" if AvgScaleScore == ""
 merge m:1 StateAssignedDistID using "${path}/Semi-Processed Data Files/ParticipationbyDistrict2022.dta"
 replace ParticipationRate = "--" if DataLevel == "School"
 replace ParticipationRate = "--" if ParticipationRate == ""
+replace ParticipationRate = "--" if StudentGroup != "All Students"
 generate greaterthan99 = 1 if ParticipationRate == ">=99%"
 generate str id = cond(substr(ParticipationRate,-1,.)=="%",subinstr(ParticipationRate,"%","",.),ParticipationRate) if ParticipationRate != "--"
 destring id, replace force
@@ -343,7 +344,7 @@ tostring nTotalParticipationRate, replace force
 replace TotalParticipationRate = nTotalParticipationRate
 replace TotalParticipationRate = "≥0.99" if ninetynine == 1 
 replace TotalParticipationRate = "≤0.01" if one == 1
-replace ParticipationRate = TotalParticipationRate if ParticipationRate == "--"
+// replace ParticipationRate = TotalParticipationRate if ParticipationRate == "--"
 
 ** Fix Variable Types
 
