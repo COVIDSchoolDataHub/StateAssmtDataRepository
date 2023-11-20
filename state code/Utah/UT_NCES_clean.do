@@ -6,6 +6,7 @@ global Arizona "/Users/sarahridley/Desktop/CSDH/Raw/Test Scores/Arizona/NCES"
 
 global NCES "/Users/minnamgung/Desktop/SADR/NCES District and School Demographics-2"
 global Iowa "/Users/minnamgung/Desktop/SADR/Utah/NCES"
+global utah "/Users/minnamgung/Desktop/SADR/Utah"
 
 global years 2014 2015 2016 2017 2018 2019 2020 2021
 
@@ -67,3 +68,8 @@ foreach a in $years {
 	save "${Iowa}/NCES_`a'_School.dta", replace
 	
 }
+
+import excel "/Users/minnamgung/Desktop/SADR/Utah/UT_unmerged_schools.xlsx", sheet("UT unmerged") firstrow clear 
+
+save "/Users/minnamgung/Desktop/SADR/Utah/UT_unmerged_schools1.dta", replace
+
