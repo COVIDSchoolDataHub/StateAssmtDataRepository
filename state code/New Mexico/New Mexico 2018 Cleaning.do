@@ -117,6 +117,8 @@ foreach a of local level {
 gen ProficientOrAbove_percent = Lev3_percent2 + Lev4_percent2 if Subject == "sci"
 replace ProficientOrAbove_percent = Lev4_percent2 + Lev5_percent2 if Subject != "sci"
 tostring ProficientOrAbove_percent, replace format("%9.2g") force
+replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == "." & Subject == "sci" & Lev3_percent != "*" & Lev4_percent != "*"
+replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == "." & Subject != "sci" & Lev4_percent != "*" & Lev5_percent != "*"
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
 
 foreach a of local level {
