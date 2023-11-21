@@ -481,8 +481,9 @@ destring TotalParticipationRate, g(nTotalParticipationRate) force
 rename TotalParticipationRate ParticipationRate
 replace nTotalParticipationRate = nTotalParticipationRate / 100
 tostring nTotalParticipationRate, replace force
-replace ParticipationRate = nTotalParticipationRate if nTotalParticipationRate != "."
-replace ParticipationRate = "--" if ParticipationRate == ""
+// replace ParticipationRate = nTotalParticipationRate if nTotalParticipationRate != "."
+// replace ParticipationRate = "--" if ParticipationRate == ""
+replace ParticipationRate = "--"
 
 ** Fix Variable Types
 

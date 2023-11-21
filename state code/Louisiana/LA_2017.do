@@ -78,7 +78,7 @@ save "${path}/Semi-Processed Data Files/ParticipationbyDistrict2017.dta", replac
 
 ** 2016-17 Proficiency Data
 
-import excel "${path}/Original Data Files/LA_OriginalData_2017.xls", sheet("2017 LEAP SUPPRESSED") cellrange(A3:BH65536) firstrow allstring clear
+import excel "${path}/Original Data Files/LA_OriginalData_2017_all.xls", sheet("2017 LEAP SUPPRESSED") cellrange(A3:BH65536) firstrow allstring clear
 
 rename AverageELAScaleScore AvgScaleScoreela
 rename AverageMathScaleScore AvgScaleScoremath
@@ -192,7 +192,7 @@ gen AssmtName = "LEAP"
 gen AssmtType = "Regular"
 replace StudentSubGroup = "Unknown" if StudentSubGroup=="Invalid"
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup=="Hispanic/Latino"
-replace StudentSubGroup = "Two or More" if StudentSubGroup=="Two or more races"
+replace StudentSubGroup = "Two or More" if StudentSubGroup=="Two or More Races"
 replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup=="Native Hawaiian or Other Pacific Islander"
 replace StudentSubGroup = "All Students" if StudentGroup=="Total Population"
 replace StudentGroup = "All Students" if StudentGroup=="Total Population"
@@ -301,6 +301,7 @@ merge m:1 State_leaid using "${path}/Semi-Processed Data Files/2016_17_NCES_Clea
 rename _merge district_merge
 merge m:1 seasch StateFips using "${path}/Semi-Processed Data Files/2016_17_NCES_Cleaned_School.dta"
 drop if district_merge != 3 & DataLevel != "State"| _merge !=3 & DataLevel == "School"
+drop if SchYear == ""
 
 ** Standardize Non-School Level Data
 
