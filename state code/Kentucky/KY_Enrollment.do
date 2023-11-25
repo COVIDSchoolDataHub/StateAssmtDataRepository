@@ -183,6 +183,28 @@ save "$output_files/KY_Enrollment_2023.dta", replace
 import delimited using "$original_files/KY_AssmtData_2022.csv", case(preserve) stringcols(10 13) clear
 
 merge m:1 NCESDistrictID NCESSchoolID GradeLevel StudentSubGroup using "$output_files/KY_Enrollment_2022.dta"
+drop if _merge == 2
+drop _merge
+bysort NCESDistrictID NCESSchoolID StudentGroup Grade Subject: egen StudentGroup_TotalEnrolled = sum(StudentSubGroup_TotalEnrolled)
+tostring StudentSubGroup_TotalEnrolled, replace force
+tostring StudentGroup_TotalEnrolled, replace force
+replace StudentSubGroup_TotalTested = StudentSubGroup_TotalEnrolled if StudentSubGroup_TotalEnrolled != "."
+drop StudentSubGroup_TotalEnrolled
+replace StudentGroup_TotalTested = StudentGroup_TotalEnrolled if StudentGroup_TotalEnrolled != "."
+drop StudentGroup_TotalEnrolled
+replace StudentGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "--"
+
+// Data Levels
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+sort DataLevel_n 
+drop DataLevel 
+rename DataLevel_n DataLevel 
+
+// Reordering variables and sorting data
+order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${output_files}/KY_AssmtData_2022_enrollment.dta", replace
 export delimited using "$output_files/KY_AssmtData_2022_enrollment.csv", replace
@@ -192,6 +214,28 @@ export delimited using "$output_files/KY_AssmtData_2022_enrollment.csv", replace
 import delimited using "$original_files/KY_AssmtData_2023.csv", case(preserve) stringcols(10 13) clear
 
 merge m:1 NCESDistrictID NCESSchoolID GradeLevel StudentSubGroup using "$output_files/KY_Enrollment_2023.dta"
+drop if _merge == 2
+drop _merge
+bysort NCESDistrictID NCESSchoolID StudentGroup Grade Subject: egen StudentGroup_TotalEnrolled = sum(StudentSubGroup_TotalEnrolled)
+tostring StudentSubGroup_TotalEnrolled, replace force
+tostring StudentGroup_TotalEnrolled, replace force
+replace StudentSubGroup_TotalTested = StudentSubGroup_TotalEnrolled if StudentSubGroup_TotalEnrolled != "."
+drop StudentSubGroup_TotalEnrolled
+replace StudentGroup_TotalTested = StudentGroup_TotalEnrolled if StudentGroup_TotalEnrolled != "."
+drop StudentGroup_TotalEnrolled
+replace StudentGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "--"
+
+// Data Levels
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+sort DataLevel_n 
+drop DataLevel 
+rename DataLevel_n DataLevel 
+
+// Reordering variables and sorting data
+order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${output_files}/KY_AssmtData_2023_enrollment.dta", replace
 export delimited using "$output_files/KY_AssmtData_2023_enrollment.csv", replace
