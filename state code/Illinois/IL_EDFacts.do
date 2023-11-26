@@ -7,7 +7,7 @@ global NCESDistrict "/Users/willtolmie/Documents/State Repository Research/NCES/
 global NCES "/Users/willtolmie/Documents/State Repository Research/NCES/Cleaned"
 global EDFacts "/Users/willtolmie/Documents/State Repository Research/EDFacts"
 
-local edyears1 15 16 17 18
+local edyears1 15 16 17 18 19 21
 local subject math ela
 local datatype count
 local datalevel school
