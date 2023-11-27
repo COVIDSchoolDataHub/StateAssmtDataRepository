@@ -134,7 +134,7 @@ replace ProficientOrAbove_percent = . if ProficientOrAbove_percent < 0
 tostring ProficientOrAbove_percent, replace format("%6.0g") force
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
 
-local prof_vars "Lev1_percent Lev2_percent Lev3_percent AvgScaleScore"
+local prof_vars "Lev1_percent Lev2_percent Lev3_percent Lev1_count Lev2_count Lev3_count AvgScaleScore"
 foreach var of local prof_vars {
 	tostring `var', replace format("%6.0g") force
 	replace `var' = "*" if `var' == "-1"
