@@ -48,6 +48,10 @@ rename Subject GradeLevel
 rename SubjectArea Subject
 rename PercentProficient ProficientOrAbove_percent
 
+replace SchName="WASHINGTON COUNTY ONLINE SCHOOL" if SchName=="UTAH ONLINE K8"
+replace SchName="WASHINGTON COUNTY ONLINE HIGH SCHOOL" if SchName=="UTAH ONLINE 7-12"
+replace SchName="SYRACUSE ARTS ACADEMY" if SchName=="SYRACUSE ARTS ACADEMY - ANTELOPE"
+
 merge 1:1 SchName DistName Subject GradeLevel using "${int}/UT_2015_school.dta"
 
 drop _merge
@@ -469,6 +473,15 @@ replace StateAssignedDistID="UT-"+StateAssignedDistID if strpos(StateAssignedDis
 replace StateAssignedSchID="" if DataLevel!="School"
 replace StateAssignedDistID="" if DataLevel=="State"
 replace State_leaid=StateAssignedDistID
+
+//////////////////////////////////////////
+********* Review 2 Edits ***********
+//////////////////////////////////////////
+
+replace StateAssignedSchID="UT-1432" if SchName=="WASHINGTON COUNTY ONLINE HIGH SCHOOL"
+replace StateAssignedSchID="UT-1161" if SchName=="WASHINGTON COUNTY ONLINE SCHOOL"
+
+replace NCESSchoolID="490006601499" if SchName=="SUMMIT ACADEMY - BLUFFDALE CAMPUS"
 
 keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 

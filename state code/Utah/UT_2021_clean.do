@@ -455,7 +455,7 @@ replace State="Utah"
 replace StateAbbrev="UT"
 replace StateFips=49
 
-foreach i of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent ProficientOrAbove_count {
+foreach i of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent ProficientOrAbove_count StudentGroup_TotalTested {
 	replace `i'="--" if `i'=="null" | `i'=="NULL" | `i'==""| `i'=="-"
 	replace `i'="*" if `i'=="N≤10" | `i'=="n≤10" | `i'=="n<10"| `i'=="N<10"
 	replace `i'="0.1-0.19" if `i'=="10 to 19%"
@@ -532,6 +532,15 @@ replace SchVirtual="Missing/not reported" if missing(SchVirtual) & DataLevel=="S
 
 replace State_leaid="37131" if strpos(SchName, "East Ridge")>0
 replace State_leaid="UT-3J-3J100" if strpos(SchName, "Mountain View Montessori")>0
+
+replace StateAssignedDistID="UT-37" if strpos(SchName, "East Ridge")>0
+replace StateAssignedDistID="UT-3J" if strpos(SchName, "Mountain View Montessori")>0
+
+replace StateAssignedSchID="UT-37-37131" if strpos(SchName, "East Ridge")>0
+replace StateAssignedSchID="UT-3J-3J100" if strpos(SchName, "Mountain View Montessori")>0
+
+
+
 
 //////////////////////////////////////////
 ********* Sorting ***********

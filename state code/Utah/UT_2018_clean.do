@@ -338,7 +338,7 @@ replace State="Utah"
 replace StateAbbrev="UT"
 replace StateFips=49
 
-foreach i of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent {
+foreach i of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent StudentGroup_TotalTested {
 	replace `i'="--" if `i'=="null" | `i'=="NULL" | `i'=="" | `i'=="-"
 	replace `i'="*" if `i'=="N≤10" | `i'=="n≤10" | `i'=="n<10"| `i'=="N<10"
 	replace `i'="0.1-0.19" if `i'=="10 to 19%"
@@ -425,10 +425,19 @@ replace State_leaid="UT-2G" if strpos(DistName, "Vista at Entrada")>0
 replace DistCharter="Yes" if strpos(DistName, "Vista at Entrada")>0
 replace CountyName="Washington County" if strpos(DistName, "Vista at Entrada")>0
 
-foreach i of varlist seasch NCESSchoolID SchLevel SchVirtual {
-	
+foreach i of varlist seasch NCESSchoolID SchLevel SchVirtual SchType {
 	replace `i'="" if DataLevel=="District" & strpos(DistName, "Vista at Entrada")>0
 }
+
+replace CountyCode=49049 if strpos(DistName, "Alpine")>0
+replace CountyName="Utah County" if strpos(DistName, "Alpine")>0
+replace DistType="Regular local school district" if strpos(DistName, "Alpine")>0
+replace NCESDistrictID="4900030" if strpos(DistName, "Alpine")>0
+replace StateAssignedDistID="UT-01" if strpos(DistName, "Alpine")>0
+replace State_leaid="UT-01" if strpos(DistName, "Alpine")>0
+replace DistCharter="No" if strpos(DistName, "Alpine")>0
+
+replace StateAssignedSchID="Missing/not reported" if SchName=="Scera Park" | SchName=="North Sanpete Special Purpose School"
 
 //////////////////////////////////////////
 ********* Sorting ***********

@@ -155,9 +155,7 @@ drop _merge
 destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
 replace StudentSubGroup_TotalTested2 = 0 if StudentSubGroup_TotalTested2 == .
 bysort State_leaid seasch GradeLevel Subject: egen All = max(StudentSubGroup_TotalTested2)
-bysort State_leaid seasch GradeLevel Subject: egen Race = sum(StudentSubGroup_TotalTested2) if StudentGroup == "RaceEth"
 bysort State_leaid seasch GradeLevel Subject: egen Econ = sum(StudentSubGroup_TotalTested2) if StudentGroup == "Economic Status"
-replace StudentSubGroup_TotalTested2 = All - Race if StudentSubGroup == "Native Hawaiian or Pacific Islander"
 replace StudentSubGroup_TotalTested2 = All - Econ if StudentSubGroup == "Not Economically Disadvantaged"
 bysort State_leaid seasch StudentGroup GradeLevel Subject: egen test = min(StudentSubGroup_TotalTested2)
 bysort State_leaid seasch StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested2) if test != 0
@@ -165,7 +163,7 @@ tostring StudentSubGroup_TotalTested2, replace force
 replace StudentSubGroup_TotalTested = StudentSubGroup_TotalTested2 if StudentSubGroup_TotalTested2 != "0"
 tostring StudentGroup_TotalTested, replace force
 replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested == "."
-drop StudentSubGroup_TotalTested2 test All Race Econ
+drop StudentSubGroup_TotalTested2 test All Econ
 
 ** Generating new variables
 

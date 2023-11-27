@@ -333,7 +333,7 @@ replace State="Utah"
 replace StateAbbrev="UT"
 replace StateFips=49
 
-foreach i of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent {
+foreach i of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent StudentGroup_TotalTested {
 	replace `i'="--" if `i'=="null" | `i'=="NULL" | `i'=="" | `i'=="-"
 	replace `i'="*" if `i'=="N≤10" | `i'=="n≤10" | `i'=="n<10"| `i'=="N<10"
 	replace `i'="0.1-0.19" if `i'=="10 to 19%"
@@ -463,7 +463,7 @@ replace State_leaid="UT-4K" if strpos(DistName, "Athenian Eacademy")>0
 replace DistCharter="Yes" if strpos(DistName, "Athenian Eacademy")>0
 replace CountyName="Utah County" if strpos(DistName, "Athenian Eacademy")>0
 
-foreach i of varlist seasch NCESSchoolID SchLevel SchVirtual {
+foreach i of varlist seasch NCESSchoolID SchLevel SchVirtual SchType {
 	
 	replace `i'="" if DataLevel=="District" & strpos(DistName, "Athenian Eacademy")>0
 }
@@ -479,6 +479,8 @@ replace StateAssignedDistID="UT-"+StateAssignedDistID if strpos(StateAssignedDis
 replace StateAssignedSchID="" if DataLevel!="School"
 replace StateAssignedDistID="" if DataLevel=="State"
 replace State_leaid=StateAssignedDistID
+
+replace DistCharter="No" if DistCharter=="NO"
 
 keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 

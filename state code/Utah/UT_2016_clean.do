@@ -330,7 +330,7 @@ replace State="Utah"
 replace StateAbbrev="UT"
 replace StateFips=49
 
-foreach i of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent {
+foreach i of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent StudentGroup_TotalTested {
 	replace `i'="--" if `i'=="null" | `i'=="NULL" | `i'=="" | `i'=="-"
 	replace `i'="*" if `i'=="N≤10" | `i'=="n≤10" | `i'=="n<10"| `i'=="N<10"
 	replace `i'="0.1-0.19" if `i'=="10 to 19%"
