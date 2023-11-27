@@ -249,11 +249,11 @@ replace Subject="ela" if Subject=="English Language Arts" | Subject=="L"
 replace Subject="sci" if Subject=="Science" | Subject=="S"
 
 
-gen Flag_AssmtNameChange="N"
-gen Flag_CutScoreChange_ELA="N"
-gen Flag_CutScoreChange_math="N"
+gen Flag_AssmtNameChange="Y"
+gen Flag_CutScoreChange_ELA="Y"
+gen Flag_CutScoreChange_math="Y"
 gen Flag_CutScoreChange_read=""
-gen Flag_CutScoreChange_oth="N"
+gen Flag_CutScoreChange_oth="Y"
 
 gen AssmtType="Regular"
 //////////////////////////////////////////
@@ -484,6 +484,12 @@ replace StateAssignedDistID="UT-"+StateAssignedDistID if strpos(StateAssignedDis
 replace StateAssignedSchID="" if DataLevel!="School"
 replace StateAssignedDistID="" if DataLevel=="State"
 replace State_leaid=StateAssignedDistID
+
+//////////////////////////////////////////
+********* Review 2 Edits ***********
+//////////////////////////////////////////
+
+drop if strpos(SchName, "CANYON VIEW")>0 & SchType=="Special education school"
 
 keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 

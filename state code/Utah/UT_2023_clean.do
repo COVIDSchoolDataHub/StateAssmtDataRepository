@@ -533,7 +533,9 @@ drop if SchName=="Minersville School" & GradeLevel=="G38"
 
 replace SchVirtual="Missing/not reported" if missing(SchVirtual) & DataLevel=="School"
 
-* replace State_leaid=StateAssignedDistID
+replace StateAssignedDistID="Missing/not reported" if missing(StateAssignedDistID) & DataLevel=="School"
+
+replace State_leaid=StateAssignedDistID if missing(State_leaid) 
 
 //////////////////////////////////////////
 ********* Sorting ***********
