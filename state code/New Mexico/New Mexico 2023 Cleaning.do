@@ -146,6 +146,13 @@ merge m:1 seasch using "${NCES}/NCES_2021_School.dta"
 drop if _merge == 2
 drop _merge
 
+**** Updating 2023 schools
+
+replace SchVirtual = -1 if NCESSchoolID == "350018901166" | NCESSchoolID == "350019001167"
+label def SchVirtual -1 "Missing/not reported"
+
+**
+
 replace StateAbbrev = "NM" if DataLevel == 1
 replace State = 35 if DataLevel == 1
 replace StateFips = 35 if DataLevel == 1
