@@ -1,11 +1,11 @@
 clear
 set more off
 
-global raw "/Users/miramehta/Documents/NM State Testing Data"
-global output "/Users/miramehta/Documents/NM State Testing Data/Output"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+global raw "/Users/maggie/Desktop/New Mexico/Original Data Files"
+global output "/Users/maggie/Desktop/New Mexico/Output"
+global NCES "/Users/maggie/Desktop/New Mexico/NCES/Cleaned"
 
-cd "/Users/miramehta/Documents/NM State Testing Data"
+cd "/Users/maggie/Desktop/New Mexico"
 
 use "${raw}/NM_AssmtData_2017_PARCC.dta", clear
 keep if strpos(Assessment, "Grade") > 0
@@ -137,11 +137,11 @@ rename DataLevel_n DataLevel
 
 ** Merging with NCES
 
-merge m:1 State_leaid using "${NCES}/NCES_2016_District_NM.dta"
+merge m:1 State_leaid using "${NCES}/NCES_2016_District.dta"
 drop if _merge == 2
 drop _merge
 
-merge m:1 seasch using "${NCES}/NCES_2016_School_NM.dta"
+merge m:1 seasch using "${NCES}/NCES_2016_School.dta"
 drop if _merge == 1 & DataLevel == 3
 drop if _merge == 2
 drop _merge
@@ -165,4 +165,4 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${output}/NM_AssmtData_2017.dta", replace
 
-export delimited "${output}/NM_AssmtData_2017.csv", replace
+export delimited using "${output}/csv/NM_AssmtData_2017.csv", replace
