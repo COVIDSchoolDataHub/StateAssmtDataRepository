@@ -180,8 +180,8 @@ drop _merge
 
 **** Updating 2023 schools
 
-replace SchType = 1 if seasch == "20-I026-515"
-replace NCESSchoolID = "400357029861" if seasch == "20-I026-515"
+replace SchType = 1 if seasch == "57-I029-515"
+replace NCESSchoolID = "400357029861" if seasch == "57-I029-515"
 
 replace SchType = 1 if seasch == "72-I001-532"
 replace NCESSchoolID = "403024029863" if seasch == "72-I001-532"
@@ -219,16 +219,16 @@ replace NCESSchoolID = "401059029859" if seasch == "55-I012-195"
 replace SchType = 1 if seasch == "72-I001-577"
 replace NCESSchoolID = "403024029865" if seasch == "72-I001-577"
 
-replace SchLevel = -1 if seasch == "20-I026-515" | seasch == "72-I001-532" | seasch == "20-I026-515" | seasch == "55-Z014-970" | seasch == "72-E018-980" | seasch == "07-I072-130" | seasch == "32-I056-105" | seasch == "37-I007-125" | seasch == "72-I014-510" | seasch == "72-I001-542" | seasch == "55-I089-526" | seasch == "55-I012-195" | seasch == "72-I001-577"
-replace SchVirtual = -1 if seasch == "20-I026-515" | seasch == "72-I001-532" | seasch == "20-I026-515" | seasch == "55-Z014-970" | seasch == "72-E018-980" | seasch == "07-I072-130" | seasch == "32-I056-105" | seasch == "37-I007-125" | seasch == "72-I014-510" | seasch == "72-I001-542" | seasch == "55-I089-526" | seasch == "55-I012-195" | seasch == "72-I001-577"
+replace SchLevel = -1 if seasch == "20-I026-515" | seasch == "72-I001-532" | seasch == "57-I029-515" | seasch == "55-Z014-970" | seasch == "72-E018-980" | seasch == "07-I072-130" | seasch == "32-I056-105" | seasch == "37-I007-125" | seasch == "72-I014-510" | seasch == "72-I001-542" | seasch == "55-I089-526" | seasch == "55-I012-195" | seasch == "72-I001-577"
+replace SchVirtual = -1 if seasch == "20-I026-515" | seasch == "72-I001-532" | seasch == "57-I029-515" | seasch == "55-Z014-970" | seasch == "72-E018-980" | seasch == "07-I072-130" | seasch == "32-I056-105" | seasch == "37-I007-125" | seasch == "72-I014-510" | seasch == "72-I001-542" | seasch == "55-I089-526" | seasch == "55-I012-195" | seasch == "72-I001-577"
 label def SchLevel -1 "Missing/not reported"
 label def SchVirtual -1 "Missing/not reported"
 
 **
 
-replace StateAbbrev = "OK" if DataLevel == 1
-replace State = 40 if DataLevel == 1
-replace StateFips = 40 if DataLevel == 1
+replace StateAbbrev = "OK"
+replace State = 40
+replace StateFips = 40
 
 ** Generating new variables
 
