@@ -8,7 +8,7 @@ local Temp "/Volumes/T7/State Test Project/Hawaii/Temp"
 
 //Importing
 
-forvalues year = 2015/2021 {
+forvalues year = 2015/2023 {
 if `year' == 2020 continue
 foreach data in part count {
 foreach subject in ela math {
@@ -85,9 +85,9 @@ clear
 }
 
 if "`data'" == "count" {
-destring StudentSubGroup_TotalTested, replace
+destring StudentSubGroup_TotalTested, gen(nStudentSubGroup_TotalTested)
 sort Subject GradeLevel StudentSubGroup
-egen StateStudentSubGroup_TotalTested = total(StudentSubGroup_TotalTested), by(StudentSubGroup GradeLevel)
+egen StateStudentSubGroup_TotalTested = total(nStudentSubGroup_TotalTested), by(StudentSubGroup GradeLevel)
 save "`Temp'/`year'_`subject'_`data'_`dl'", replace
 clear
 }
@@ -118,10 +118,10 @@ foreach dl in district school {
 }
 	** EDFACTS Merging **
 use "`Cleaned'/HI_AssmtData_`year'"
-replace StudentSubGroup_TotalTested = ""
-replace StudentGroup_TotalTested = ""
+replace StudentSubGroup_TotalTested = "" if StudentSubGroup_TotalTested == "--"
+replace StudentGroup_TotalTested = "" if StudentGroup_TotalTested == "--"
 replace ParticipationRate = ""
-destring StudentSubGroup_TotalTested StudentGroup_TotalTested, replace
+destring StudentSubGroup_TotalTested, gen(nStudentSubGroup_TotalTested) i(*-)
 merge m:m NCESDistrictID NCESSchoolID GradeLevel Subject StudentSubGroup using "`Temp'/_`year'_count", update
 drop if _merge == 2
 rename _merge _merge1
@@ -140,7 +140,7 @@ tempfile temp2
 save "`temp2'", replace
 merge 1:1 StudentSubGroup GradeLevel Subject using "`tempstate'"
 drop if _merge == 1
-replace StudentSubGroup_TotalTested = StateStudentSubGroup_TotalTested
+replace StudentSubGroup_TotalTested = string(StateStudentSubGroup_TotalTested)
 save "`tempstate'", replace
 use "`temp1'"
 keep if DataLevel !=1
@@ -150,12 +150,13 @@ replace NCESSchoolID = "" if DataLevel == 1
 replace NCESDistrictID = "" if DataLevel == 1
 sort StudentGroup
 drop StudentGroup_TotalTested
-egen StudentGroup_TotalTested = total(StudentSubGroup_TotalTested), by(StudentGroup GradeLevel Subject DataLevel StateAssignedSchID StateAssignedDistID)
-tostring StudentSubGroup_TotalTested, replace
+egen StudentGroup_TotalTested = total(nStudentSubGroup_TotalTested), by(StudentGroup GradeLevel Subject DataLevel StateAssignedSchID StateAssignedDistID)
+replace StudentSubGroup_TotalTested = string(nStudentSubGroup_TotalTested) if !missing(nStudentSubGroup_TotalTested)
 tostring StudentGroup_TotalTested, replace
-replace StudentSubGroup_TotalTested = "--" if Subject == "sci"
-replace StudentSubGroup_TotalTested = "--" if StudentSubGroup == "Filipino" | StudentSubGroup == "Native Hawaiian" | StudentSubGroup == "Pacific Islander"
+*replace StudentSubGroup_TotalTested = "--" if Subject == "sci"
+*replace StudentSubGroup_TotalTested = "--" if StudentSubGroup == "Filipino" | StudentSubGroup == "Native Hawaiian" | StudentSubGroup == "Pacific Islander"
 replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested == "0"
+replace StudentSubGroup_TotalTested = "--" if missing(StudentSubGroup_TotalTested) | StudentSubGroup_TotalTested == "0"
 replace ParticipationRate = "--" if missing(ParticipationRate)
 
 //Dropping if StudentSubGroup_TotalTested ==0
@@ -167,7 +168,7 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName Sch
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "`Output'/HI_AssmtData_`year'", replace
-export delimited "`Output'/HI_AssmtData_`year'"
+export delimited "`Output'/HI_AssmtData_`year'", replace
 clear
 }
 
