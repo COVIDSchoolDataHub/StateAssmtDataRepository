@@ -44,7 +44,7 @@ replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -89,7 +89,7 @@ replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -134,7 +134,7 @@ replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -179,7 +179,7 @@ replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -224,7 +224,7 @@ replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -269,7 +269,7 @@ replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -319,7 +319,7 @@ replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -364,7 +364,7 @@ replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -409,7 +409,7 @@ replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -454,7 +454,7 @@ replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -499,7 +499,7 @@ replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -544,7 +544,7 @@ replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -806,7 +806,7 @@ replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -852,7 +852,7 @@ replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -898,7 +898,7 @@ replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -944,7 +944,7 @@ replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -990,7 +990,7 @@ replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -1036,7 +1036,7 @@ replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -1087,7 +1087,7 @@ replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -1133,7 +1133,7 @@ replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -1179,7 +1179,7 @@ replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -1225,7 +1225,7 @@ replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -1271,7 +1271,7 @@ replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -1317,7 +1317,7 @@ replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -1566,7 +1566,7 @@ replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -1612,7 +1612,7 @@ replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -1658,7 +1658,7 @@ replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -1704,7 +1704,7 @@ replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -1750,7 +1750,7 @@ replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -1796,7 +1796,7 @@ replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -1847,7 +1847,7 @@ replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -1893,7 +1893,7 @@ replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -1939,7 +1939,7 @@ replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -1985,7 +1985,7 @@ replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -2031,7 +2031,7 @@ replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -2077,7 +2077,7 @@ replace StudentGroup = "All Students" if StudentGroup == "TOTAL"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -2323,7 +2323,7 @@ replace StudentGroup = "All Students" if StudentGroup == "Total"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -2367,7 +2367,7 @@ replace StudentGroup = "All Students" if StudentGroup == "Total"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -2411,7 +2411,7 @@ replace StudentGroup = "All Students" if StudentGroup == "Total"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -2455,7 +2455,7 @@ replace StudentGroup = "All Students" if StudentGroup == "Total"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -2499,7 +2499,7 @@ replace StudentGroup = "All Students" if StudentGroup == "Total"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -2543,7 +2543,7 @@ replace StudentGroup = "All Students" if StudentGroup == "Total"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -2592,7 +2592,7 @@ replace StudentGroup = "All Students" if StudentGroup == "Total"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -2636,7 +2636,7 @@ replace StudentGroup = "All Students" if StudentGroup == "Total"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -2680,7 +2680,7 @@ replace StudentGroup = "All Students" if StudentGroup == "Total"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -2724,7 +2724,7 @@ replace StudentGroup = "All Students" if StudentGroup == "Total"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -2768,7 +2768,7 @@ replace StudentGroup = "All Students" if StudentGroup == "Total"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -2812,7 +2812,7 @@ replace StudentGroup = "All Students" if StudentGroup == "Total"
 gen StudentSubGroup_TotalTested = L
 destring L, replace force
 replace L = -1000000 if L == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(L)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -3052,7 +3052,7 @@ replace StudentGroup = "All Students" if StudentGroup == "Total"
 gen StudentSubGroup_TotalTested = K
 destring K, replace force
 replace K = -1000000 if K == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(K)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(K)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -3096,7 +3096,7 @@ replace StudentGroup = "All Students" if StudentGroup == "Total"
 gen StudentSubGroup_TotalTested = K
 destring K, replace force
 replace K = -1000000 if K == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(K)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(K)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -3140,7 +3140,7 @@ replace StudentGroup = "All Students" if StudentGroup == "Total"
 gen StudentSubGroup_TotalTested = K
 destring K, replace force
 replace K = -1000000 if K == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(K)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(K)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -3184,7 +3184,7 @@ replace StudentGroup = "All Students" if StudentGroup == "Total"
 gen StudentSubGroup_TotalTested = K
 destring K, replace force
 replace K = -1000000 if K == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(K)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(K)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -3228,7 +3228,7 @@ replace StudentGroup = "All Students" if StudentGroup == "Total"
 gen StudentSubGroup_TotalTested = K
 destring K, replace force
 replace K = -1000000 if K == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(K)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(K)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -3272,7 +3272,7 @@ replace StudentGroup = "All Students" if StudentGroup == "Total"
 gen StudentSubGroup_TotalTested = K
 destring K, replace force
 replace K = -1000000 if K == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(K)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(K)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -3321,7 +3321,7 @@ replace StudentGroup = "All Students" if StudentGroup == "Total"
 gen StudentSubGroup_TotalTested = K
 destring K, replace force
 replace K = -1000000 if K == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(K)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(K)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -3365,7 +3365,7 @@ replace StudentGroup = "All Students" if StudentGroup == "Total"
 gen StudentSubGroup_TotalTested = K
 destring K, replace force
 replace K = -1000000 if K == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(K)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(K)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -3409,7 +3409,7 @@ replace StudentGroup = "All Students" if StudentGroup == "Total"
 gen StudentSubGroup_TotalTested = K
 destring K, replace force
 replace K = -1000000 if K == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(K)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(K)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -3453,7 +3453,7 @@ replace StudentGroup = "All Students" if StudentGroup == "Total"
 gen StudentSubGroup_TotalTested = K
 destring K, replace force
 replace K = -1000000 if K == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(K)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(K)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -3497,7 +3497,7 @@ replace StudentGroup = "All Students" if StudentGroup == "Total"
 gen StudentSubGroup_TotalTested = K
 destring K, replace force
 replace K = -1000000 if K == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(K)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(K)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -3541,7 +3541,7 @@ replace StudentGroup = "All Students" if StudentGroup == "Total"
 gen StudentSubGroup_TotalTested = K
 destring K, replace force
 replace K = -1000000 if K == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(K)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(K)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -3591,7 +3591,7 @@ replace StudentGroup = "All Students" if StudentGroup == "Total"
 gen StudentSubGroup_TotalTested = K
 destring K, replace force
 replace K = -1000000 if K == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(K)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(K)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -3636,7 +3636,7 @@ replace StudentGroup = "All Students" if StudentGroup == "Total"
 gen StudentSubGroup_TotalTested = K
 destring K, replace force
 replace K = -1000000 if K == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(K)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(K)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -3880,7 +3880,7 @@ replace StudentGroup = "All Students" if StudentGroup == "Total"
 gen StudentSubGroup_TotalTested = K
 destring K, replace force
 replace K = -1000000 if K == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(K)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(K)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -3926,7 +3926,7 @@ replace StudentGroup = "All Students" if StudentGroup == "Total"
 gen StudentSubGroup_TotalTested = K
 destring K, replace force
 replace K = -1000000 if K == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(K)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(K)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -3971,7 +3971,7 @@ replace StudentGroup = "All Students" if StudentGroup == "Total"
 gen StudentSubGroup_TotalTested = K
 destring K, replace force
 replace K = -1000000 if K == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(K)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(K)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -4016,7 +4016,7 @@ replace StudentGroup = "All Students" if StudentGroup == "Total"
 gen StudentSubGroup_TotalTested = K
 destring K, replace force
 replace K = -1000000 if K == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(K)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(K)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -4064,7 +4064,7 @@ replace StudentGroup = "All Students" if StudentGroup == "Total"
 gen StudentSubGroup_TotalTested = K
 destring K, replace force
 replace K = -1000000 if K == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(K)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(K)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -4109,7 +4109,7 @@ replace StudentGroup = "All Students" if StudentGroup == "Total"
 gen StudentSubGroup_TotalTested = K
 destring K, replace force
 replace K = -1000000 if K == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(K)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(K)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -4159,7 +4159,7 @@ replace StudentGroup = "All Students" if StudentGroup == "Total"
 gen StudentSubGroup_TotalTested = K
 destring K, replace force
 replace K = -1000000 if K == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(K)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(K)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -4204,7 +4204,7 @@ replace StudentGroup = "All Students" if StudentGroup == "Total"
 gen StudentSubGroup_TotalTested = K
 destring K, replace force
 replace K = -1000000 if K == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(K)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(K)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -4249,7 +4249,7 @@ replace StudentGroup = "All Students" if StudentGroup == "Total"
 gen StudentSubGroup_TotalTested = K
 destring K, replace force
 replace K = -1000000 if K == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(K)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(K)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -4294,7 +4294,7 @@ replace StudentGroup = "All Students" if StudentGroup == "Total"
 gen StudentSubGroup_TotalTested = K
 destring K, replace force
 replace K = -1000000 if K == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(K)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(K)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -4339,7 +4339,7 @@ replace StudentGroup = "All Students" if StudentGroup == "Total"
 gen StudentSubGroup_TotalTested = K
 destring K, replace force
 replace K = -1000000 if K == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(K)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(K)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -4384,7 +4384,7 @@ replace StudentGroup = "All Students" if StudentGroup == "Total"
 gen StudentSubGroup_TotalTested = K
 destring K, replace force
 replace K = -1000000 if K == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(K)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(K)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -4434,7 +4434,7 @@ replace StudentGroup = "All Students" if StudentGroup == "Total"
 gen StudentSubGroup_TotalTested = K
 destring K, replace force
 replace K = -1000000 if K == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(K)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(K)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
@@ -4479,7 +4479,7 @@ replace StudentGroup = "All Students" if StudentGroup == "Total"
 gen StudentSubGroup_TotalTested = K
 destring K, replace force
 replace K = -1000000 if K == .
-bys SchName StudentGroup: egen StudentGroup_TotalTested = total(K)
+bys SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(K)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."

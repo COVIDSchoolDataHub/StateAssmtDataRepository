@@ -40,7 +40,6 @@ gen Lev4_count = ""
 gen Lev4_percent = ""
 gen Lev5_count = ""
 gen Lev5_percent = ""
-gen ProficientOrAbove_count = "--"
 gen DistName = ""
 gen AssmtName = "Nebraska Student-Centered Assessment System (NSCAS)"
 gen AssmtType = "Regular"
@@ -128,7 +127,7 @@ replace GradeLevel = "G06" if GradeLevel == "6"
 replace GradeLevel = "G07" if GradeLevel == "7"
 replace GradeLevel = "G08" if GradeLevel == "8"
 
-//Proficiency Percents
+//Proficiency Levels
 replace Lev1_percent = 1 - (Lev2_percent + Lev3_percent) if Lev1_percent == -1 & Lev2_percent != -1 & Lev3_percent != -1
 replace Lev2_percent = 1 - (Lev1_percent + Lev3_percent) if Lev2_percent == -1 & Lev1_percent != -1 & Lev3_percent != -1
 replace Lev3_percent = 1 - (Lev1_percent + Lev2_percent) if Lev3_percent == -1 & Lev1_percent != -1 & Lev2_percent != -1
@@ -144,6 +143,15 @@ foreach var of local prof_vars {
 	tostring `var', replace format("%6.0g") force
 	replace `var' = "*" if `var' == "-1"
 	replace `var' = "--" if `var' == ""
+}
+
+gen ProficientOrAbove_count = -1
+replace ProficientOrAbove_count = Lev2_count + Lev3_count if Lev2_count != -1 | Lev3_count != -1
+
+local prof_counts "Lev1_count Lev2_count Lev3_count ProficientOrAbove_count"
+foreach var of local prof_counts {
+	tostring `var', replace
+	replace `var' = "*" if `var' == "-1"
 }
 
 //Student Groups & SubGroups
