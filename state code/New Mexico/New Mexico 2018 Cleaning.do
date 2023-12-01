@@ -1,11 +1,12 @@
 clear
 set more off
 
-global raw "/Users/miramehta/Documents/NM State Testing Data"
-global output "/Users/miramehta/Documents/NM State Testing Data/Output"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+global raw "/Users/maggie/Desktop/New Mexico/Original Data Files"
+global output "/Users/maggie/Desktop/New Mexico/Output"
+global NCES "/Users/maggie/Desktop/New Mexico/NCES/Cleaned"
+global EDFacts "/Users/maggie/Desktop/EDFacts/Datasets"
 
-cd "/Users/miramehta/Documents/NM State Testing Data"
+cd "/Users/maggie/Desktop/New Mexico"
 
 use "${raw}/NM_AssmtData_2018_PARCC.dta", clear
 keep if strpos(Assessment, "Grade") > 0
@@ -73,7 +74,6 @@ replace DistName = "All Districts" if DataLevel == "State"
 gen StudentGroup = "All Students"
 gen StudentSubGroup = "All Students"
 
-gen StudentGroup_TotalTested = "--"
 gen StudentSubGroup_TotalTested = "--"
 
 local level 1 2 3 4 5
@@ -135,11 +135,11 @@ rename DataLevel_n DataLevel
 
 ** Merging with NCES
 
-merge m:1 State_leaid using "${NCES}/NCES_2017_District_NM.dta"
+merge m:1 State_leaid using "${NCES}/NCES_2017_District.dta"
 drop if _merge == 2
 drop _merge
 
-merge m:1 seasch using "${NCES}/NCES_2017_School_NM.dta"
+merge m:1 seasch using "${NCES}/NCES_2017_School.dta"
 drop if _merge == 2
 drop _merge
 
@@ -147,6 +147,26 @@ replace StateAbbrev = "NM" if DataLevel == 1
 replace State = 35 if DataLevel == 1
 replace StateFips = 35 if DataLevel == 1
 replace CountyName = "Dona Ana County" if CountyName == "DoÃ±a Ana County"
+
+** Merging with EDFacts Datasets
+
+merge m:1 DataLevel NCESDistrictID StudentGroup StudentSubGroup GradeLevel Subject using "${EDFacts}/2018/edfactspart2018districtnewmexico.dta"
+replace ParticipationRate = Participation if Participation != ""
+drop if _merge == 2
+drop STNAM-_merge
+
+merge m:1 DataLevel NCESSchoolID StudentGroup StudentSubGroup GradeLevel Subject using "${EDFacts}/2018/edfactscount2018schoolnewmexico.dta"
+tostring Count, replace
+replace StudentSubGroup_TotalTested = Count if Count != "."
+drop if _merge == 2
+drop STNAM-_merge
+
+merge m:1 DataLevel NCESSchoolID StudentGroup StudentSubGroup GradeLevel Subject using "${EDFacts}/2018/edfactspart2018schoolnewmexico.dta"
+replace ParticipationRate = Participation if Participation != ""
+drop if _merge == 2
+drop STNAM-_merge
+
+gen StudentGroup_TotalTested = StudentSubGroup_TotalTested
 
 ** Generating new variables
 
@@ -162,4 +182,4 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${output}/NM_AssmtData_2018.dta", replace
 
-export delimited "${output}/NM_AssmtData_2018.csv", replace
+export delimited using "${output}/csv/NM_AssmtData_2018.csv", replace

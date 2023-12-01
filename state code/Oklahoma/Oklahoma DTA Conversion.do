@@ -56,3 +56,7 @@ import excel "${raw}/OK_OriginalData_2022_all.xlsx", sheet("OK2122MediaRedacted"
 keep Grade OrganizationId Group Administration ELAValidN MathematicsValidN ScienceValidN *MeanOPI *BelowBasicNo *BelowBasic *BasicNo *Basic *ProficientNo *Proficient *AdvancedNo *Advanced
 drop USHistory*
 save "${raw}/OK_AssmtData_2022.dta", replace
+
+import excel "${raw}/OK_OriginalData_2023_all.xlsx", sheet("OKOSTP2223MediaRedacted") firstrow clear
+keep Grade OrganizationId Group ELAValidN MathematicsValidN ScienceValidN *MeanOPI *BelowBasicNo *BelowBasic *BasicNo *Basic *ProficientNo *Proficient *AdvancedNo *Advanced
+save "${raw}/OK_AssmtData_2023.dta", replace
