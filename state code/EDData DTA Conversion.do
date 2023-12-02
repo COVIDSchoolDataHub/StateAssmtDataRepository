@@ -4,7 +4,7 @@ set more off
 cd "/Users/maggie/Desktop/EDFacts"
 
 global raw "/Users/maggie/Desktop/EDFacts/Datasets"
-local year 2015 2016 2017 2018 2019 2021
+local year 2014 2015 2016 2017 2018 2019 2021
 local subject ela math
 local datatype count part
 local datalevel district school
