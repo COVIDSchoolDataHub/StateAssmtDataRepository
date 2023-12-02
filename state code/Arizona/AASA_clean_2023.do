@@ -23,6 +23,20 @@ import excel "${AASA}/AZ_OriginalData_2023_all.xlsx", sheet("State") firstrow cl
 
 save "${AASA}/AZ_AssmtData_state_2023.dta", replace
 
+** 2023 Science
+
+import excel "${AzSci}/AZ_OriginalData_2023_sci.xlsx", sheet("School") firstrow clear
+
+save "${AzSci}/AZ_AssmtData_school_sci_2023.dta", replace
+
+import excel "${AzSci}/AZ_OriginalData_2023_sci.xlsx", sheet("District") firstrow clear
+
+save "${AzSci}/AZ_AssmtData_district_sci_2023.dta", replace
+
+import excel "${AzSci}/AZ_OriginalData_2023_sci.xlsx", sheet("State") firstrow clear
+
+save "${AzSci}/AZ_AssmtData_state_sci_2023.dta", replace
+
 */
 
 ** 2023 School Cleaning 
@@ -62,6 +76,49 @@ tostring StateAssignedDistID, replace
 
 tostring StateAssignedSchID, generate(seasch)
 tostring StateAssignedSchID, replace
+
+save "${output}/AZ_AssmtData_school_2023.dta", replace
+
+
+use "${AzSci}/AZ_AssmtData_school_sci_2023.dta", clear
+
+rename DistrictName DistName
+rename DistrictEntityID StateAssignedDistID
+rename SchoolEntityID StateAssignedSchID
+rename SchoolName SchName
+rename Subgroup StudentSubGroup
+
+rename TestLevel GradeLevel
+
+rename NumberTested StudentSubGroup_TotalTested
+rename PercentProficiencyLevel1 Lev1_percent
+rename PercentProficiencyLevel2 Lev2_percent
+rename PercentProficiencyLevel3 Lev3_percent
+rename PercentProficiencyLevel4 Lev4_percent
+rename PercentPassing ProficientOrAbove_percent
+
+replace Subject="sci"
+
+drop Charter DistrictCTDS SchoolCTDS
+
+** Generate grade observations from TestLevel variable
+drop if strpos(GradeLevel, "Alt") > 0
+replace GradeLevel = "G05" if strpos(GradeLevel, "Grade 5")>0
+replace GradeLevel = "G08" if strpos(GradeLevel, "Grade 8")>0
+
+keep if inlist(GradeLevel, "G03", "G04", "G05", "G06", "G07", "G08")
+
+keep if FAYStatus == "All"
+
+tostring StateAssignedDistID, generate(State_leaid)
+tostring StateAssignedSchID, generate(seasch)
+tostring StateAssignedDistID, replace
+tostring StateAssignedSchID, replace
+
+save "${output}/AZ_AssmtData_2023_school_sci.dta", replace
+
+use "${output}/AZ_AssmtData_school_2023.dta", clear
+append using "${output}/AZ_AssmtData_2023_school_sci.dta"
 
 merge m:1 State_leaid using "${NCES}/NCES_2021_District.dta"
 drop _merge
@@ -174,6 +231,46 @@ keep if inlist(GradeLevel, "G03", "G04", "G05", "G06", "G07", "G08")
 tostring StateAssignedDistID, generate(State_leaid)
 tostring StateAssignedDistID, replace
 
+save "${output}/AZ_AssmtData_district_2023.dta", replace
+
+use "${AzSci}/AZ_AssmtData_district_sci_2023.dta", clear 
+
+rename DistrictName DistName
+rename DistrictEntityID StateAssignedDistID
+rename Subgroup StudentSubGroup
+
+rename TestLevel GradeLevel
+
+rename NumberTested StudentSubGroup_TotalTested
+rename PercentProficiencyLevel1 Lev1_percent
+rename PercentProficiencyLevel2 Lev2_percent
+rename PercentProficiencyLevel3 Lev3_percent
+rename PercentProficiencyLevel4 Lev4_percent
+rename PercentPassing ProficientOrAbove_percent
+
+drop DistrictCTDS
+
+replace Subject="sci"
+
+** Generate grade observations from TestLevel variable
+drop if strpos(GradeLevel, "Alt") > 0
+
+replace GradeLevel = "G05" if strpos(GradeLevel, "Grade 5")>0
+replace GradeLevel = "G08" if strpos(GradeLevel, "Grade 8")>0
+
+keep if inlist(GradeLevel, "G03", "G04", "G05", "G06", "G07", "G08")
+
+keep if FAYStatus == "All"
+
+tostring StateAssignedDistID, generate(State_leaid)
+tostring StateAssignedDistID, replace
+
+save "${output}/AZ_AssmtData_2023_district_sci.dta", replace
+
+use "${output}/AZ_AssmtData_district_2023.dta", clear
+
+append using "${output}/AZ_AssmtData_2023_district_sci.dta"
+
 merge m:1 State_leaid using "${NCES}/NCES_2021_District.dta"
 drop _merge
 drop if DistName == ""
@@ -227,6 +324,46 @@ replace GradeLevel = "G08" if strpos(GradeLevel, "Grade 8")>0
 
 keep if inlist(GradeLevel, "G03", "G04", "G05", "G06", "G07", "G08")
 
+
+save "${output}/AZ_AssmtData_state_2023.dta", replace
+
+use "${AzSci}/AZ_AssmtData_state_sci_2023.dta", clear
+
+rename TestLevel GradeLevel
+rename Subgroup StudentSubGroup
+
+rename NumberTested StudentSubGroup_TotalTested
+rename PercentProficiencyLevel1 Lev1_percent
+rename PercentProficiencyLevel2 Lev2_percent
+rename PercentProficiencyLevel3 Lev3_percent
+rename PercentProficiencyLevel4 Lev4_percent
+rename PercentPassing ProficientOrAbove_percent
+
+replace Subject="sci"
+
+** Generate grade observations from TestLevel variable
+drop if strpos(GradeLevel, "Alt") > 0
+
+tostring GradeLevel, replace
+replace GradeLevel = "G05" if strpos(GradeLevel, "Grade 5")>0
+replace GradeLevel = "G08" if strpos(GradeLevel, "Grade 8")>0
+
+keep if inlist(GradeLevel, "G03", "G04", "G05", "G06", "G07", "G08")
+keep if FAYStatus == "All"
+
+tostring Lev1_percent, replace force
+tostring Lev2_percent, replace force
+tostring Lev3_percent, replace force
+tostring Lev4_percent, replace force
+
+tostring ProficientOrAbove_percent, replace force
+
+save "${output}/AZ_AssmtData_2023_state_sci.dta", replace
+
+use "${output}/AZ_AssmtData_state_2023.dta", clear
+
+append using "${output}/AZ_AssmtData_2023_state_sci.dta"
+
 keep if SchoolType == "All"
 drop SchoolType
 sort GradeLevel Subject
@@ -258,14 +395,15 @@ save "${output}/AZ_AssmtData_2023.dta", replace
 
 keep if FAYStatus == "All"
 
-gen AssmtName = "AASA"
+gen AssmtName="AASA"
+replace AssmtName="AzSci" if Subject == "sci"
 gen AssmtType = "Regular"
 
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_read = ""
-gen Flag_CutScoreChange_oth = ""
+gen Flag_CutScoreChange_oth = "N"
 
 gen AvgScaleScore = "--"
 
