@@ -7,7 +7,7 @@ global NCESSchool "/Users/maggie/Desktop/Colorado/NCES/School"
 global NCESDistrict "/Users/maggie/Desktop/Colorado/NCES/District"
 global NCES "/Users/maggie/Desktop/Colorado/NCES/Cleaned"
 
-local year 2015 2016 2017 2021
+local year 2015 2016 2017 2018 2021
 
 foreach a of local year {
 	

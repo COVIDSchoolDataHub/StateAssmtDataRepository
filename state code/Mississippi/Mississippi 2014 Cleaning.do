@@ -3,6 +3,7 @@ set more off
 
 global output "/Users/maggie/Desktop/Mississippi/Output"
 global NCES "/Users/maggie/Desktop/Mississippi/NCES/Cleaned"
+global EDFacts "/Users/maggie/Desktop/EDFacts/Datasets"
 
 local grade 3 4 5 6 7 8
 local gradesci 5 8
@@ -30,7 +31,7 @@ rename SCHOOL_NAME SchName
 
 foreach grd of local grade {
 	foreach sub of local subject {
-		rename G`grd'`sub'N StudentGroup_TotalTestedG0`grd'Z`sub'
+		rename G`grd'`sub'N StudentSubGroup_TotalTestedG0`grd'Z`sub'
 	}
 }
 
@@ -41,7 +42,7 @@ foreach grd of local grade {
 }
 
 foreach grdsci of local gradesci {
-	rename G`grdsci'SN StudentGroup_TotalTestedG0`grdsci'
+	rename G`grdsci'SN StudentSubGroup_TotalTestedG0`grdsci'
 }
 
 foreach grdsci of local gradesci {
@@ -62,9 +63,9 @@ foreach grdsci of local gradesci {
 	}
 }
 
-reshape long NM NB NP NA PM PB PP PA StudentGroup_TotalTested AvgScaleScore, i(StateAssignedDistID StateAssignedSchID DistName SchName Subject) j(GradeLevel) string
+reshape long NM NB NP NA PM PB PP PA StudentSubGroup_TotalTested AvgScaleScore, i(StateAssignedDistID StateAssignedSchID DistName SchName Subject) j(GradeLevel) string
 
-drop if StudentGroup_TotalTested == ""
+drop if StudentSubGroup_TotalTested == ""
 
 rename NM Lev1_count
 rename NB Lev2_count
@@ -89,30 +90,21 @@ rename GradeLevel1 GradeLevel
 
 ** Generating missing variables
 
-gen SchYear = "2013-14"
-
-gen AssmtName = "MCT2" if Subject != "sci"
-replace AssmtName = "MST" if Subject == "sci"
-gen AssmtType = "Regular"
-
 gen StudentGroup = "All Students"
 gen StudentSubGroup = StudentGroup
-gen StudentSubGroup_TotalTested = StudentGroup_TotalTested
-
-gen ProficiencyCriteria = "Levels 3-4"
 
 gen ParticipationRate = "--"
 
 gen test1 = ""
 gen test2 = ""
 foreach a of local level {
-	gen Lev`a'_count2 = Lev`a'_count
-	destring Lev`a'_count2, replace force
+	destring Lev`a'_count, gen(Lev`a'_count2) force
 	replace test1 = "*" if Lev`a'_count == "*"
-	gen Lev`a'_percent2 = Lev`a'_percent
-	destring Lev`a'_percent2, replace force
+	destring Lev`a'_percent, gen(Lev`a'_percent2) force
+	replace Lev`a'_percent2 = Lev`a'_percent2/100
 	replace test2 = "*" if Lev`a'_percent == "*"
 }
+
 gen ProficientOrAbove_count = Lev3_count2 + Lev4_count2 
 tostring ProficientOrAbove_count, replace force
 replace ProficientOrAbove_count = test1 if test1 != ""
@@ -120,7 +112,10 @@ gen ProficientOrAbove_percent = Lev3_percent2 + Lev4_percent2
 tostring ProficientOrAbove_percent, replace force
 replace ProficientOrAbove_percent = test2 if test2 != ""
 drop test1 test2
+
 foreach a of local level {
+	tostring Lev`a'_percent2, replace force
+	replace Lev`a'_percent = Lev`a'_percent2 if Lev`a'_percent != "*"
 	drop Lev`a'_count2
 	drop Lev`a'_percent2
 }
@@ -159,7 +154,61 @@ merge m:1 seasch using "${NCES}/NCES_2013_School.dta"
 drop if _merge == 2
 drop _merge
 
+** Merging with EDFacts Datasets
+
+gen test = 1
+append using "${EDFacts}/2014/edfactscount2014districtmississippi.dta"
+merge m:1 DataLevel NCESDistrictID StudentGroup StudentSubGroup GradeLevel Subject using "${EDFacts}/2014/edfactspart2014districtmississippi.dta", update
+drop if _merge == 2
+drop _merge
+
+replace SchName = "All Schools" if SchName == ""
+
+append using "${EDFacts}/2014/edfactscount2014schoolmississippi.dta"
+merge m:1 DataLevel NCESSchoolID StudentGroup StudentSubGroup GradeLevel Subject using "${EDFacts}/2014/edfactspart2014schoolmississippi.dta", update
+drop if _merge == 2
+drop _merge
+
+replace test = 2 if test == .
+sort DataLevel NCESDistrictID NCESSchoolID test
+
+replace AvgScaleScore = "--" if AvgScaleScore == ""
+replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == ""
+local level 1 2 3 4
+foreach a of local level {
+	replace Lev`a'_percent = "--" if Lev`a'_percent == ""
+	replace Lev`a'_count = "--" if Lev`a'_count == ""
+}
+replace DistName = DistName[_n-1] if test == 2
+replace SchName = SchName[_n-1] if test == 2
+replace StateAssignedDistID = StateAssignedDistID[_n-1] if StateAssignedDistID == ""
+replace StateAssignedSchID = StateAssignedSchID[_n-1] if StateAssignedSchID == ""
+replace State_leaid = State_leaid[_n-1] if State_leaid == ""
+replace seasch = seasch[_n-1] if seasch == ""
+replace DistType = DistType[_n-1] if DistType == .
+replace SchType = SchType[_n-1] if SchType == .
+replace SchVirtual = SchVirtual[_n-1] if SchVirtual == ""
+replace SchLevel = SchLevel[_n-1] if SchLevel == .
+replace DistCharter = DistCharter[_n-1] if DistCharter == ""
+replace CountyCode = CountyCode[_n-1] if CountyCode == .
+replace CountyName = CountyName[_n-1] if CountyName == ""
+
+destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
+replace StudentSubGroup_TotalTested2 = 0 if StudentSubGroup_TotalTested2 == .
+bysort DistName SchName StudentGroup GradeLevel Subject: egen test2 = min(StudentSubGroup_TotalTested2)
+bysort DistName SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested2) if test2 != 0
+tostring StudentGroup_TotalTested, replace force
+replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
+drop StudentSubGroup_TotalTested2 test test2
+
 ** Generating new variables
+
+gen SchYear = "2013-14"
+
+gen AssmtName = "MCT2" if Subject != "sci"
+replace AssmtName = "MST" if Subject == "sci"
+gen AssmtType = "Regular"
+gen ProficiencyCriteria = "Levels 3-4"
 
 replace State = 28
 replace StateAbbrev = "MS"

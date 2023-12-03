@@ -16,28 +16,65 @@ import delimited "$original_files/MN_OriginalData_2009_mat_rea.tab", clear
 tostring grade, replace
 replace grade = "0" + grade
 drop schoolcountynumber
+drop districtcountynumber
+drop ecsunumber
+drop ecodevrgn
+drop testdate
+drop reportorder
 
 save "${temp_files}/MN_AssmtData_2009_mat_rea.dta", replace
 
 import delimited "$original_files/MN_OriginalData_2009_sci.txt", clear
 
 drop schoolcountynumber
+drop districtcountynumber
+drop ecsunumber
+drop ecodevrgn
+drop testdate
+drop reportorder
 
 save "${temp_files}/MN_AssmtData_2009_sci.dta", replace
 
+import excel "$original_files/MN_OriginalData_2009_sci_state.xlsx", sheet("Public School Districts") firstrow cellrange(A1:AB3) case(lower) clear
+
+drop districtcountynumber
+destring districtnumber, replace
+destring districttype, replace
+destring schoolnumber, replace
+drop ecsunumber
+drop ecodevrgn
+drop testdate
+drop reportorder
+destring counttested, replace
+destring countleveld, replace
+destring countlevelp, replace
+destring countlevelm, replace
+destring countlevele, replace
+destring percentleveld, replace
+destring percentlevelp, replace
+destring percentlevelm, replace
+destring percentlevele, replace
+destring averagescore, replace
+
+rename countleveld countlevel1
+rename countlevelp countlevel2
+rename countlevelm countlevel3
+rename countlevele countlevel4
+rename percentleveld percentlevel1
+rename percentlevelp percentlevel2
+rename percentlevelm percentlevel3
+rename percentlevele percentlevel4
+
+save "${temp_files}/MN_AssmtData_2009_sci_state.dta", replace
+
 clear
 
-append using "${temp_files}/MN_AssmtData_2009_sci.dta" "${temp_files}/MN_AssmtData_2009_mat_rea.dta"
+append using "${temp_files}/MN_AssmtData_2009_sci_state.dta" "${temp_files}/MN_AssmtData_2009_sci.dta" "${temp_files}/MN_AssmtData_2009_mat_rea.dta"
 
 // Dropping extra variables
 
-drop testdate
-drop districtcountynumber
 drop districtcountyname
-drop ecsunumber
-drop ecodevrgn
 drop testname
-drop reportorder
 drop nssaveragescore
 drop pfasaveragescore
 drop dspsaveragescore
