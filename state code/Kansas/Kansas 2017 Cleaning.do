@@ -4,6 +4,7 @@ set more off
 global raw "/Users/maggie/Desktop/Kansas/Original Data Files"
 global output "/Users/maggie/Desktop/Kansas/Output"
 global NCES "/Users/maggie/Desktop/Kansas/NCES/Cleaned"
+global EDFacts "/Users/maggie/Desktop/EDFacts/Datasets"
 
 cd "/Users/maggie/Desktop/Kansas"
 
@@ -73,7 +74,6 @@ replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
 replace StudentGroup = "EL Status" if inlist(StudentSubGroup, "English Learner", "English Proficient")
 replace StudentGroup = "Economic Status" if inlist(StudentSubGroup, "Economically Disadvantaged", "Not Economically Disadvantaged")
 
-gen StudentGroup_TotalTested = "--"
 gen StudentSubGroup_TotalTested = "--"
 
 destring PCNotValid, replace
@@ -133,6 +133,52 @@ drop _merge
 replace StateAbbrev = "KS" if DataLevel == 1
 replace State = 20 if DataLevel == 1
 replace StateFips = 20 if DataLevel == 1
+
+** Merging with EDFacts Datasets
+
+merge m:1 DataLevel NCESDistrictID StudentGroup StudentSubGroup GradeLevel Subject using "${EDFacts}/2017/edfactscount2017districtkansas.dta"
+tostring Count, replace
+replace StudentSubGroup_TotalTested = Count if Count != "."
+drop if _merge == 2
+drop STNAM-_merge
+
+merge m:1 DataLevel NCESSchoolID StudentGroup StudentSubGroup GradeLevel Subject using "${EDFacts}/2017/edfactscount2017schoolkansas.dta"
+tostring Count, replace
+replace StudentSubGroup_TotalTested = Count if Count != "."
+drop if _merge == 2
+drop STNAM-_merge
+
+** State counts
+
+preserve
+keep if DataLevel == 2
+destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
+collapse (sum) StudentSubGroup_TotalTested2, by(StudentSubGroup GradeLevel Subject)
+gen DataLevel = 1
+save "${raw}/KS_AssmtData_2017_State.dta", replace
+restore
+
+merge m:1 DataLevel StudentSubGroup GradeLevel Subject using "${raw}/KS_AssmtData_2017_State.dta"
+tostring StudentSubGroup_TotalTested2, replace
+replace StudentSubGroup_TotalTested = StudentSubGroup_TotalTested2 if StudentSubGroup_TotalTested2 != "0" & StudentSubGroup_TotalTested2 != "."
+drop StudentSubGroup_TotalTested2
+drop if _merge == 2
+drop _merge
+
+destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
+replace StudentSubGroup_TotalTested2 = 0 if StudentSubGroup_TotalTested2 == .
+bysort State_leaid seasch GradeLevel Subject: egen All = max(StudentSubGroup_TotalTested2)
+bysort State_leaid seasch GradeLevel Subject: egen Econ = sum(StudentSubGroup_TotalTested2) if StudentGroup == "Economic Status"
+bysort State_leaid seasch GradeLevel Subject: egen EL = sum(StudentSubGroup_TotalTested2) if StudentGroup == "EL Status"
+replace StudentSubGroup_TotalTested2 = All - Econ if StudentSubGroup == "Not Economically Disadvantaged"
+replace StudentSubGroup_TotalTested2 = All - EL if StudentSubGroup == "English Proficient"
+bysort State_leaid seasch StudentGroup GradeLevel Subject: egen test = min(StudentSubGroup_TotalTested2)
+bysort State_leaid seasch StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested2) if test != 0
+tostring StudentSubGroup_TotalTested2, replace force
+replace StudentSubGroup_TotalTested = StudentSubGroup_TotalTested2 if StudentSubGroup_TotalTested2 != "0"
+tostring StudentGroup_TotalTested, replace force
+replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested == "."
+drop StudentSubGroup_TotalTested2 test All Econ EL
 
 ** Generating new variables
 

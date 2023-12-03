@@ -988,7 +988,9 @@ rename BF G8Proficientmath
 rename BI G8Proficientsci
 
 keep if _n==2
-gen DataLevel="State" 
+gen DataLevel="State"
+gen StudentGroup = "All Students"
+gen StudentSubGroup = "All Students"
 
 reshape long G3Proficient G4Proficient G5Proficient G6Proficient G7Proficient G8Proficient, i(DataLevel) j(Subject) string 
 

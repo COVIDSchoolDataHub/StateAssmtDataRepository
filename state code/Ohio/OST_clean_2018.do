@@ -1010,6 +1010,8 @@ rename BI G8Proficientsci
 
 keep if _n==2
 gen DataLevel="State" 
+gen StudentGroup = "All Students"
+gen StudentSubGroup = "All Students"
 
 foreach v of varlist G3Proficientreading G3Proficientmath G4Proficientreading G4Proficientmath G4Proficientsoc G5Proficientreading G5Proficientmath G5Proficientsci G6Proficientreading G6Proficientmath G6Proficientsoc G7Proficientreading G7Proficientmath G8Proficientreading G8Proficientmath G8Proficientsci {
    tostring `v', replace

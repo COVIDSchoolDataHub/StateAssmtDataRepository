@@ -6,13 +6,13 @@ global data "/Users/miramehta/Documents/NE State Testing Data"
 global NCES "/Users/miramehta/Documents/NCES District and School Demographics"
 
 //Import and Append Subject Files
-import delimited "$data/NE_OriginalData_2019_ela.csv", clear
+import delimited "$data/NE_OriginalData_2022_ela.csv", clear
 save "$data/NE_AssmtData_2019.dta", replace
 
-import delimited "$data/NE_OriginalData_2019_mat.csv", clear
+import delimited "$data/NE_OriginalData_2022_mat.csv", clear
 save "$data/NE_AssmtData_2019_math.dta", replace
 
-import delimited "$data/NE_OriginalData_2019_sci.csv", clear
+import delimited "$data/NE_OriginalData_2022_sci.csv", clear
 save "$data/NE_AssmtData_2019_sci.dta", replace
 
 use "$data/NE_AssmtData_2019.dta", clear
@@ -28,20 +28,18 @@ rename subject Subject
 rename grade GradeLevel
 rename category StudentGroup
 rename studentsubgroup StudentSubGroup
+rename studentcount StudentSubGroup_TotalTested
 rename averagescalescore AvgScaleScore
-rename basicpct Lev1_percent
-rename proficientpct Lev2_percent
+rename developingcount Lev1_count
+rename developingpct Lev1_percent
+rename ontrackcount Lev2_count
+rename ontrackpct Lev2_percent
+rename advancedcount Lev3_count
 rename advancedpct Lev3_percent
-gen Lev1_count = "--"
-gen Lev2_count = "--"
-gen Lev3_count = "--"
 gen Lev4_count = ""
 gen Lev4_percent = ""
 gen Lev5_count = ""
 gen Lev5_percent = ""
-gen ProficientOrAbove_count = "--"
-gen StudentSubGroup_TotalTested = "--"
-gen StudentGroup_TotalTested = "--"
 gen DistName = ""
 gen AssmtName = "Nebraska Student-Centered Assessment System (NSCAS)"
 gen AssmtType = "Regular"
@@ -49,7 +47,7 @@ gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_read = ""
-gen Flag_CutScoreChange_oth = "N"
+gen Flag_CutScoreChange_oth = "Y"
 gen ProficiencyCriteria = "Levels 2-3"
 gen ParticipationRate = 1 - nottestedpct
 drop dataasof nottested nottestedpct
@@ -61,8 +59,8 @@ replace SchYear = "2018-19"
 //Data Levels
 drop if DataLevel == "LC"
 replace DataLevel = "State" if DataLevel == "ST"
-replace DataLevel = "District" if StateAssignedSchID == 0 & DataLevel != "State"
-replace DataLevel = "School" if DataLevel == "SC" & StateAssignedSchID != 0
+replace DataLevel = "District" if DataLevel == "DI"
+replace DataLevel = "School" if DataLevel == "SC"
 replace DistName = SchName if DataLevel == "District"
 replace DistName = "All Districts" if DataLevel == "State"
 replace SchName = "All Schools" if DataLevel != "School"
@@ -122,12 +120,7 @@ replace StateAssignedSchID = "" if DataLevel != "School"
 //Grade Levels
 drop if GradeLevel == 11
 tostring GradeLevel, replace
-replace GradeLevel = "G03" if GradeLevel == "3"
-replace GradeLevel = "G04" if GradeLevel == "4"
-replace GradeLevel = "G05" if GradeLevel == "5"
-replace GradeLevel = "G06" if GradeLevel == "6"
-replace GradeLevel = "G07" if GradeLevel == "7"
-replace GradeLevel = "G08" if GradeLevel == "8"
+replace GradeLevel = "G0" + GradeLevel
 
 //Proficiency Percents
 replace Lev1_percent = 1 - (Lev2_percent + Lev3_percent) if Lev1_percent == -1 & Lev2_percent != -1 & Lev3_percent != -1
@@ -147,6 +140,15 @@ foreach var of local prof_vars {
 	replace `var' = "--" if `var' == ""
 }
 
+gen ProficientOrAbove_count = -1
+replace ProficientOrAbove_count = Lev2_count + Lev3_count if Lev2_count != -1 | Lev3_count != -1
+
+local prof_counts "Lev1_count Lev2_count Lev3_count ProficientOrAbove_count"
+foreach var of local prof_counts {
+	tostring `var', replace
+	replace `var' = "*" if `var' == "-1"
+}
+
 //Student Groups & SubGroups
 drop if StudentGroup == "Mobile"
 replace StudentSubGroup = "All Students" if StudentGroup == "All Students"
@@ -159,6 +161,15 @@ replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "St
 replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "Not Receiving Free or Reduced Lunch"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged"
 drop if StudentGroup == "Misc / Other"
+
+replace StudentSubGroup_TotalTested = -10000000 if StudentSubGroup_TotalTested == -1
+bys SchName DistName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(StudentSubGroup_TotalTested)
+replace StudentGroup_TotalTested = . if StudentGroup_TotalTested < 0
+tostring StudentGroup_TotalTested, replace
+replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
+replace StudentSubGroup_TotalTested = . if StudentSubGroup_TotalTested < 0
+tostring StudentSubGroup_TotalTested, replace
+replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "."
 
 //Subjects
 replace Subject = "ela" if Subject == "English Language Arts"
@@ -191,7 +202,7 @@ replace StateAbbrev = "NE"
 replace StateFips = 31
 replace DistName = lea_name if DataLevel == "School"
 
-drop state_name year _merge merge2 district_agency_type_num urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type district_agency_type_num school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_lowest_grade_offered dist_highest_grade_offered dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch lea_name agency_charter_indicator dist_agency_charter_indicator
+drop state_name year _merge merge2 district_agency_type_num urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type district_agency_type_num school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_lowest_grade_offered dist_highest_grade_offered dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch lea_name
 
 //Variable Types
 decode SchVirtual, gen(SchVirtual_s)
@@ -270,5 +281,3 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 save "$data/NE_AssmtData_2019.dta", replace
 export delimited "$data/NE_AssmtData_2019", replace
 clear
-
-

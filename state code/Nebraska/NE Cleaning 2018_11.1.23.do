@@ -35,16 +35,10 @@ rename averagescalescore AvgScaleScore
 rename basicpct Lev1_percent
 rename proficientpct Lev2_percent
 rename advancedpct Lev3_percent
-gen Lev1_count = "--"
-gen Lev2_count = "--"
-gen Lev3_count = "--"
 gen Lev4_count = ""
 gen Lev4_percent = ""
 gen Lev5_count = ""
 gen Lev5_percent = ""
-gen ProficientOrAbove_count = "--"
-gen StudentSubGroup_TotalTested = "--"
-gen StudentGroup_TotalTested = "--"
 gen DistName = ""
 gen AssmtName = "Nebraska Student-Centered Assessment System (NSCAS)"
 gen AssmtType = "Regular"
@@ -125,30 +119,7 @@ replace StateAssignedSchID = "" if DataLevel != "School"
 //Grade Levels
 drop if GradeLevel == 11
 tostring GradeLevel, replace
-replace GradeLevel = "G03" if GradeLevel == "3"
-replace GradeLevel = "G04" if GradeLevel == "4"
-replace GradeLevel = "G05" if GradeLevel == "5"
-replace GradeLevel = "G06" if GradeLevel == "6"
-replace GradeLevel = "G07" if GradeLevel == "7"
-replace GradeLevel = "G08" if GradeLevel == "8"
-
-//Proficiency Percents
-replace Lev1_percent = 1 - (Lev2_percent + Lev3_percent) if Lev1_percent == -1 & Lev2_percent != -1 & Lev3_percent != -1
-replace Lev2_percent = 1 - (Lev1_percent + Lev3_percent) if Lev2_percent == -1 & Lev1_percent != -1 & Lev3_percent != -1
-replace Lev3_percent = 1 - (Lev1_percent + Lev2_percent) if Lev3_percent == -1 & Lev1_percent != -1 & Lev2_percent != -1
-
-gen ProficientOrAbove_percent = -1
-replace ProficientOrAbove_percent = Lev2_percent + Lev3_percent if Lev2_percent != -1 | Lev3_percent != -1
-replace ProficientOrAbove_percent = . if ProficientOrAbove_percent < 0
-tostring ProficientOrAbove_percent, replace format("%6.0g") force
-replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
-
-local prof_vars "Lev1_percent Lev2_percent Lev3_percent AvgScaleScore"
-foreach var of local prof_vars {
-	tostring `var', replace format("%6.0g") force
-	replace `var' = "*" if `var' == "-1"
-	replace `var' = "--" if `var' == ""
-}
+replace GradeLevel = "G0" + GradeLevel
 
 //Student Groups & SubGroups
 drop if StudentGroup == "Mobile"
@@ -197,6 +168,49 @@ replace StateFips = 31
 replace DistName = lea_name if DataLevel == "School"
 
 drop state_name year _merge merge2 district_agency_type_num urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type district_agency_type_num school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_lowest_grade_offered dist_highest_grade_offered dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch lea_name agency_charter_indicator dist_agency_charter_indicator
+
+//Student Counts
+merge 1:1 SchYear DataLevel seasch State_leaid GradeLevel Subject StudentSubGroup using "$data/NE_StudentCounts.dta"
+replace StudentGroup_TotalTested = "--" if Subject == "sci"
+replace StudentSubGroup_TotalTested = "--" if Subject == "sci"
+drop if _merge == 2
+drop _merge
+
+//Proficiency Levels
+replace Lev1_percent = 1 - (Lev2_percent + Lev3_percent) if Lev1_percent == -1 & Lev2_percent != -1 & Lev3_percent != -1
+replace Lev2_percent = 1 - (Lev1_percent + Lev3_percent) if Lev2_percent == -1 & Lev1_percent != -1 & Lev3_percent != -1
+replace Lev3_percent = 1 - (Lev1_percent + Lev2_percent) if Lev3_percent == -1 & Lev1_percent != -1 & Lev2_percent != -1
+
+gen ProficientOrAbove_percent = -1
+replace ProficientOrAbove_percent = Lev2_percent + Lev3_percent if Lev2_percent != -1 | Lev3_percent != -1
+
+destring StudentSubGroup_TotalTested, gen(num) force
+gen ProficientOrAbove_count = ProficientOrAbove_percent * num
+gen Lev1_count = Lev1_percent * num
+gen Lev2_count = Lev2_percent * num
+gen Lev3_count = Lev3_percent * num
+
+drop num
+
+local prof_counts "Lev1_count Lev2_count Lev3_count ProficientOrAbove_count"
+foreach var of local prof_counts{
+	replace `var' = . if `var' < 0
+	replace `var' = round(`var')
+	tostring `var', replace
+	replace `var' = "*" if `var' == "."
+	replace `var' = "--" if Subject == "sci"
+}
+
+replace ProficientOrAbove_percent = . if ProficientOrAbove_percent < 0
+tostring ProficientOrAbove_percent, replace format("%6.0g") force
+replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
+
+local prof_vars "Lev1_percent Lev2_percent Lev3_percent AvgScaleScore"
+foreach var of local prof_vars {
+	tostring `var', replace format("%6.0g") force
+	replace `var' = "*" if `var' == "-1"
+	replace `var' = "--" if `var' == ""
+}
 
 //Variable Types
 decode SchVirtual, gen(SchVirtual_s)

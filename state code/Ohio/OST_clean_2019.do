@@ -1028,7 +1028,9 @@ rename ScienceStateG5 StateG5Science
 rename ScienceStateG8 StateG8Science
 
 keep if _n==1
-gen DataLevel="State" 
+gen DataLevel="State"
+gen StudentGroup = "All Students"
+gen StudentSubGroup = "All Students"
 
 tostring *State*, replace
 
@@ -1102,6 +1104,10 @@ replace GradeLevel = "G08" if GradeLevel == "G8"
 replace Subject = "ela" if Subject == "ELA"
 replace Subject = "math" if Subject == "Math"
 replace Subject = "sci" if Subject == "Science"
+
+replace StudentSubGroup = "Black or African American" if StudentSubGroup == "BLACK"
+replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "INDIAN"
+replace StudentSubGroup = "White" if StudentSubGroup == "WHITE"
 
 //Variable Types
 decode DistType, gen(DistType_s)

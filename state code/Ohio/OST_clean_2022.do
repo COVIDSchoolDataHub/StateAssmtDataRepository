@@ -1041,7 +1041,9 @@ rename ScienceStateG5 StateG5Science
 rename ScienceStateG8 StateG8Science
 
 keep if _n==1
-gen DataLevel="State" 
+gen DataLevel="State"
+gen StudentGroup = "All Students"
+gen StudentSubGroup = "All Students"
 
 tostring *State*, replace
 

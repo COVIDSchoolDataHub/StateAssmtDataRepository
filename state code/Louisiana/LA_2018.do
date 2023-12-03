@@ -78,7 +78,7 @@ save "${path}/Semi-Processed Data Files/ParticipationbyDistrict2018.dta", replac
 
 ** 2017-18 Proficiency Data
 
-import excel "${path}/Original Data Files/LA_OriginalData_2018.xls", sheet("2018 LEAP SUPPRESSED") cellrange(A3:AY65536) firstrow allstring clear
+import excel "${path}/Original Data Files/LA_OriginalData_2018_all.xls", sheet("2018 LEAP SUPPRESSED") cellrange(A3:AY65536) firstrow allstring clear
 
 rename ELA AvgScaleScoreela
 rename Math AvgScaleScoremath
@@ -178,7 +178,7 @@ gen SchYear = "2017-18"
 gen AssmtName = "LEAP 2025"
 gen AssmtType = "Regular"
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup=="Hispanic/Latino"
-replace StudentSubGroup = "Two or More" if StudentSubGroup=="Two or more races"
+replace StudentSubGroup = "Two or More" if StudentSubGroup=="Two or More Races"
 replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup=="Native Hawaiian or Other Pacific Islander"
 replace StudentSubGroup = "All Students" if StudentGroup=="Total Population"
 replace StudentGroup = "All Students" if StudentGroup=="Total Population"
@@ -190,6 +190,7 @@ replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup=="
 replace StudentGroup = "Economic Status" if StudentGroup=="Economically Disadvantaged"
 replace StudentGroup = "EL Status" if StudentGroup=="English Learner"
 keep if StudentGroup == "All Students" | StudentGroup == "EL Status" | StudentGroup == "Economic Status" | StudentGroup == "Gender" | StudentGroup == "RaceEth"
+replace DataLevel = "District" if DataLevel == "School System"
 gen ProficiencyCriteria = "Levels 4 and 5"
 replace AvgScaleScore = "*" if AvgScaleScore == ""
 
@@ -288,6 +289,7 @@ merge m:1 State_leaid using "${path}/Semi-Processed Data Files/2017_18_NCES_Clea
 rename _merge district_merge
 merge m:1 seasch StateFips using "${path}/Semi-Processed Data Files/2017_18_NCES_Cleaned_School.dta"
 drop if district_merge != 3 & DataLevel != "State"| _merge !=3 & DataLevel == "School"
+drop if SchYear == ""
 
 ** Standardize Non-School Level Data
 

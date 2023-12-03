@@ -4,6 +4,7 @@ set more off
 global raw "/Users/maggie/Desktop/New Mexico/Original Data Files"
 global output "/Users/maggie/Desktop/New Mexico/Output"
 global NCES "/Users/maggie/Desktop/New Mexico/NCES/Cleaned"
+global EDFacts "/Users/maggie/Desktop/EDFacts/Datasets"
 
 cd "/Users/maggie/Desktop/New Mexico"
 
@@ -30,7 +31,7 @@ replace Subject = "ela" if strpos(Assessment, "ELA") > 0
 replace Subject = "math" if strpos(Assessment, "Math") > 0
 
 gen AssmtName = ""
-replace AssmtName = "SBA" if Subject == "sci"
+replace AssmtName = "NMSBA" if Subject == "sci"
 replace AssmtName = "PARCC" if Subject != "sci"
 
 gen AssmtType = "Regular"
@@ -75,7 +76,6 @@ replace DistName = "All Districts" if DataLevel == "State"
 gen StudentGroup = "All Students"
 gen StudentSubGroup = "All Students"
 
-gen StudentGroup_TotalTested = "--"
 gen StudentSubGroup_TotalTested = "--"
 
 local level 1 2 3 4 5
@@ -119,6 +119,8 @@ foreach a of local level {
 gen ProficientOrAbove_percent = Lev3_percent2 + Lev4_percent2 if Subject == "sci"
 replace ProficientOrAbove_percent = Lev4_percent2 + Lev5_percent2 if Subject != "sci"
 tostring ProficientOrAbove_percent, replace format("%9.2g") force
+replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == "." & Subject == "sci" & Lev3_percent != "*" & Lev4_percent != "*"
+replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == "." & Subject != "sci" & Lev4_percent != "*" & Lev5_percent != "*"
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
 
 foreach a of local level {
@@ -147,6 +149,33 @@ drop _merge
 replace StateAbbrev = "NM" if DataLevel == 1
 replace State = 35 if DataLevel == 1
 replace StateFips = 35 if DataLevel == 1
+replace CountyName = "Dona Ana County" if CountyName == "DoÃ±a Ana County"
+
+** Merging with EDFacts Datasets
+
+merge m:1 DataLevel NCESDistrictID StudentGroup StudentSubGroup GradeLevel Subject using "${EDFacts}/2017/edfactscount2017districtnewmexico.dta"
+tostring Count, replace
+replace StudentSubGroup_TotalTested = Count if Count != "."
+drop if _merge == 2
+drop STNAM-_merge
+
+merge m:1 DataLevel NCESDistrictID StudentGroup StudentSubGroup GradeLevel Subject using "${EDFacts}/2017/edfactspart2017districtnewmexico.dta"
+replace ParticipationRate = Participation if Participation != ""
+drop if _merge == 2
+drop STNAM-_merge
+
+merge m:1 DataLevel NCESSchoolID StudentGroup StudentSubGroup GradeLevel Subject using "${EDFacts}/2017/edfactscount2017schoolnewmexico.dta"
+tostring Count, replace
+replace StudentSubGroup_TotalTested = Count if Count != "."
+drop if _merge == 2
+drop STNAM-_merge
+
+merge m:1 DataLevel NCESSchoolID StudentGroup StudentSubGroup GradeLevel Subject using "${EDFacts}/2017/edfactspart2017schoolnewmexico.dta"
+replace ParticipationRate = Participation if Participation != ""
+drop if _merge == 2
+drop STNAM-_merge
+
+gen StudentGroup_TotalTested = StudentSubGroup_TotalTested
 
 ** Generating new variables
 

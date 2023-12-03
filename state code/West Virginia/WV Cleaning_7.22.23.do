@@ -5,6 +5,7 @@ cd "/Users/miramehta/Documents/"
 global data "/Users/miramehta/Documents/WV State Testing Data"
 global NCES "/Users/miramehta/Documents/NCES District and School Demographics"
 global NCES_clean "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+global counts "/Users/miramehta/Documents/EdFacts Data"
 
 //2014-15
 import excel "$data/WV_OriginalData_1521_all.xlsx", sheet("SY15 School & District") clear
@@ -116,50 +117,6 @@ replace GradeLevel = "G08" if GradeLevel == "_G08_sci"
 
 rename ProficientOrAbove_pct ProficientOrAbove_percent
 
-//Convert Percentages to Decimals
-replace Lev1_percent = "--" if Lev1_percent == ""
-replace Lev2_percent = "--" if Lev2_percent == ""
-replace Lev3_percent = "--" if Lev3_percent == ""
-replace Lev4_percent = "--" if Lev4_percent == ""
-replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == ""
-
-gen Lev1_pct = Lev1_percent
-gen Lev2_pct = Lev2_percent
-gen Lev3_pct = Lev3_percent
-gen Lev4_pct = Lev4_percent
-gen Prof_pct = ProficientOrAbove_percent
-
-destring Lev1_percent, replace force
-destring Lev2_percent, replace force
-destring Lev3_percent, replace force
-destring Lev4_percent, replace force
-destring ProficientOrAbove_percent, replace force
-
-replace Lev1_percent = Lev1_percent/100
-replace Lev2_percent = Lev2_percent/100
-replace Lev3_percent = Lev3_percent/100
-replace Lev4_percent = Lev4_percent/100
-replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
-
-tostring Lev1_percent, replace format("%6.0g") force
-tostring Lev2_percent, replace format("%6.0g") force
-tostring Lev3_percent, replace format("%6.0g") force
-tostring Lev4_percent, replace format("%6.0g") force
-tostring ProficientOrAbove_percent, replace format("%6.0g") force
-
-replace Lev1_percent = "*" if Lev1_pct == "**"
-replace Lev1_percent = "--" if Lev1_pct == "--"
-replace Lev2_percent = "*" if Lev2_pct == "**"
-replace Lev2_percent = "--" if Lev2_pct == "--"
-replace Lev3_percent = "*" if Lev3_pct == "**"
-replace Lev3_percent = "--" if Lev3_pct == "--"
-replace Lev4_percent = "*" if Lev4_pct == "**"
-replace Lev4_percent = "--" if Lev4_pct == "--"
-replace ProficientOrAbove_percent = "*" if Prof_pct == "**"
-replace ProficientOrAbove_percent = "--" if Prof_pct == "--"
-
-drop Lev1_pct Lev2_pct Lev3_pct Lev4_pct Prof_pct
-
 //Data Levels
 gen DataLevel = "School"
 replace DataLevel = "District" if StateAssignedSchID == "999"
@@ -175,16 +132,9 @@ gen State = "West Virginia"
 gen SchYear = "2014-15"
 gen AssmtName = "Smarter Balanced Assessment Consortium"
 gen AssmtType = "Regular"
-gen StudentGroup_TotalTested = "--"
-gen StudentSubGroup_TotalTested = "--"
-gen Lev1_count = "--"
-gen Lev2_count = "--"
-gen Lev3_count = "--"
-gen Lev4_count = "--"
 gen Lev5_count = ""
 gen Lev5_percent = ""
 gen ProficiencyCriteria = "Levels 3 + 4"
-gen ProficientOrAbove_count = "--"
 gen ParticipationRate = "--"
 gen AvgScaleScore = "--"
 gen Flag_AssmtNameChange = "N"
@@ -256,6 +206,63 @@ replace SchLevel = 1 if SchName == "South Preston School"
 replace SchType = 1 if SchName == "South Preston School"
 replace seasch = "70106" if SchName == "South Preston School"
 
+//Student Counts
+merge 1:1 NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject using "$counts/WV_edfactscount2015.dta"
+drop if _merge == 2
+rename NUMVALID StudentSubGroup_TotalTested
+replace StudentSubGroup_TotalTested = "--" if _merge == 1
+
+gen num = StudentSubGroup_TotalTested
+destring num, replace force
+gen dummy = num
+replace dummy = 0 if DataLevel != "District"
+bys StudentSubGroup Subject GradeLevel: egen state = total(dummy)
+replace num = state if DataLevel == "State" & state != 0
+replace dummy = state if DataLevel == "State" & state != 0
+tostring dummy, replace
+replace StudentSubGroup_TotalTested = dummy if DataLevel == "State" & num != .
+
+replace num = -1000000 if num == .
+bys SchName DistName StudentGroup Subject GradeLevel: egen StudentGroup_TotalTested = total(num)
+replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
+tostring StudentGroup_TotalTested, replace
+replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested == "."
+drop _merge STNAM FIPST DATE_CUR PCTPROF
+
+//Proficiency Levels
+forvalues n = 1/4 {
+	replace Lev`n'_percent = "--" if Lev`n'_percent == ""
+	gen Lev`n'_pct = Lev`n'_percent
+	destring Lev`n'_percent, replace force
+	replace Lev`n'_percent = Lev`n'_percent/100
+	gen Lev`n'_count = Lev`n'_percent * num
+	replace Lev`n'_count = round(Lev`n'_count)
+	tostring Lev`n'_percent, replace format("%6.0g") force
+	replace Lev`n'_percent = "*" if Lev`n'_pct == "**"
+	replace Lev`n'_percent = "--" if Lev`n'_pct == "--"
+	tostring Lev`n'_count, replace
+	replace Lev`n'_count = "*" if Lev`n'_pct == "**"
+	replace Lev`n'_count = "--" if Lev`n'_pct == "--"
+	replace Lev`n'_count = "--" if StudentSubGroup_TotalTested == "--" & Lev`n'_count != "*"
+}
+
+replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == ""
+gen Prof_pct = ProficientOrAbove_percent
+destring ProficientOrAbove_percent, replace force
+replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
+gen ProficientOrAbove_count = ProficientOrAbove_percent * num
+replace ProficientOrAbove_count = round(ProficientOrAbove_count)
+tostring ProficientOrAbove_percent, replace format("%6.0g") force
+replace ProficientOrAbove_percent = "*" if Prof_pct == "**"
+replace ProficientOrAbove_percent = "--" if Prof_pct == "--"
+tostring ProficientOrAbove_count, replace
+replace ProficientOrAbove_count = "*" if Prof_pct == "**"
+replace ProficientOrAbove_count = "--" if Prof_pct == "--"
+replace ProficientOrAbove_count = "--" if StudentSubGroup_TotalTested == "--" & ProficientOrAbove_count != "*"
+
+drop Lev1_pct Lev2_pct Lev3_pct Lev4_pct Prof_pct num dummy state
+
+//Variable Types
 decode SchVirtual, gen(SchVirtual_s)
 drop SchVirtual
 rename SchVirtual_s SchVirtual
@@ -443,50 +450,6 @@ replace GradeLevel = "G08" if GradeLevel == "_G08_sci"
 
 rename ProficientOrAbove_pct ProficientOrAbove_percent
 
-//Convert Percentages to Decimals
-replace Lev1_percent = "--" if Lev1_percent == ""
-replace Lev2_percent = "--" if Lev2_percent == ""
-replace Lev3_percent = "--" if Lev3_percent == ""
-replace Lev4_percent = "--" if Lev4_percent == ""
-replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == ""
-
-gen Lev1_pct = Lev1_percent
-gen Lev2_pct = Lev2_percent
-gen Lev3_pct = Lev3_percent
-gen Lev4_pct = Lev4_percent
-gen Prof_pct = ProficientOrAbove_percent
-
-destring Lev1_percent, replace force
-destring Lev2_percent, replace force
-destring Lev3_percent, replace force
-destring Lev4_percent, replace force
-destring ProficientOrAbove_percent, replace force
-
-replace Lev1_percent = Lev1_percent/100
-replace Lev2_percent = Lev2_percent/100
-replace Lev3_percent = Lev3_percent/100
-replace Lev4_percent = Lev4_percent/100
-replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
-
-tostring Lev1_percent, replace format("%6.0g") force
-tostring Lev2_percent, replace format("%6.0g") force
-tostring Lev3_percent, replace format("%6.0g") force
-tostring Lev4_percent, replace format("%6.0g") force
-tostring ProficientOrAbove_percent, replace format("%6.0g") force
-
-replace Lev1_percent = "*" if Lev1_pct == "**"
-replace Lev1_percent = "--" if Lev1_pct == "--"
-replace Lev2_percent = "*" if Lev2_pct == "**"
-replace Lev2_percent = "--" if Lev2_pct == "--"
-replace Lev3_percent = "*" if Lev3_pct == "**"
-replace Lev3_percent = "--" if Lev3_pct == "--"
-replace Lev4_percent = "*" if Lev4_pct == "**"
-replace Lev4_percent = "--" if Lev4_pct == "--"
-replace ProficientOrAbove_percent = "*" if Prof_pct == "**"
-replace ProficientOrAbove_percent = "--" if Prof_pct == "--"
-
-drop Lev1_pct Lev2_pct Lev3_pct Lev4_pct Prof_pct
-
 //Data Levels
 gen DataLevel = "School"
 replace DataLevel = "District" if StateAssignedSchID == "999"
@@ -502,16 +465,9 @@ gen State = "West Virginia"
 gen SchYear = "2015-16"
 gen AssmtName = "Smarter Balanced Assessment Consortium"
 gen AssmtType = "Regular"
-gen StudentGroup_TotalTested = "--"
-gen StudentSubGroup_TotalTested = "--"
-gen Lev1_count = "--"
-gen Lev2_count = "--"
-gen Lev3_count = "--"
-gen Lev4_count = "--"
 gen Lev5_count = ""
 gen Lev5_percent = ""
 gen ProficiencyCriteria = "Levels 3 + 4"
-gen ProficientOrAbove_count = "--"
 gen ParticipationRate = "--"
 gen AvgScaleScore = "--"
 gen Flag_AssmtNameChange = "N"
@@ -575,6 +531,63 @@ drop state_name year _merge merge2 district_agency_type_num urban_centric_locale
 replace StateAbbrev = "WV"
 replace StateFips = 54
 
+//Student Counts
+merge 1:1 NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject using "$counts/WV_edfactscount2015.dta"
+drop if _merge == 2
+rename NUMVALID StudentSubGroup_TotalTested
+replace StudentSubGroup_TotalTested = "--" if _merge == 1
+
+gen num = StudentSubGroup_TotalTested
+destring num, replace force
+gen dummy = num
+replace dummy = 0 if DataLevel != "District"
+bys StudentSubGroup Subject GradeLevel: egen state = total(dummy)
+replace num = state if DataLevel == "State" & state != 0
+replace dummy = state if DataLevel == "State" & state != 0
+tostring dummy, replace
+replace StudentSubGroup_TotalTested = dummy if DataLevel == "State" & num != .
+
+replace num = -1000000 if num == .
+bys SchName DistName StudentGroup Subject GradeLevel: egen StudentGroup_TotalTested = total(num)
+replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
+tostring StudentGroup_TotalTested, replace
+replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested == "."
+drop _merge STNAM FIPST DATE_CUR PCTPROF
+
+//Proficiency Levels
+forvalues n = 1/4 {
+	replace Lev`n'_percent = "--" if Lev`n'_percent == ""
+	gen Lev`n'_pct = Lev`n'_percent
+	destring Lev`n'_percent, replace force
+	replace Lev`n'_percent = Lev`n'_percent/100
+	gen Lev`n'_count = Lev`n'_percent * num
+	replace Lev`n'_count = round(Lev`n'_count)
+	tostring Lev`n'_percent, replace format("%6.0g") force
+	replace Lev`n'_percent = "*" if Lev`n'_pct == "**"
+	replace Lev`n'_percent = "--" if Lev`n'_pct == "--"
+	tostring Lev`n'_count, replace
+	replace Lev`n'_count = "*" if Lev`n'_pct == "**"
+	replace Lev`n'_count = "--" if Lev`n'_pct == "--"
+	replace Lev`n'_count = "--" if StudentSubGroup_TotalTested == "--" & Lev`n'_count != "*"
+}
+
+replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == ""
+gen Prof_pct = ProficientOrAbove_percent
+destring ProficientOrAbove_percent, replace force
+replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
+gen ProficientOrAbove_count = ProficientOrAbove_percent * num
+replace ProficientOrAbove_count = round(ProficientOrAbove_count)
+tostring ProficientOrAbove_percent, replace format("%6.0g") force
+replace ProficientOrAbove_percent = "*" if Prof_pct == "**"
+replace ProficientOrAbove_percent = "--" if Prof_pct == "--"
+tostring ProficientOrAbove_count, replace
+replace ProficientOrAbove_count = "*" if Prof_pct == "**"
+replace ProficientOrAbove_count = "--" if Prof_pct == "--"
+replace ProficientOrAbove_count = "--" if StudentSubGroup_TotalTested == "--" & ProficientOrAbove_count != "*"
+
+drop Lev1_pct Lev2_pct Lev3_pct Lev4_pct Prof_pct num dummy state
+
+//Variable Types
 decode SchVirtual, gen(SchVirtual_s)
 drop SchVirtual
 rename SchVirtual_s SchVirtual
@@ -762,50 +775,6 @@ replace GradeLevel = "G08" if GradeLevel == "_G08_sci"
 
 rename ProficientOrAbove_pct ProficientOrAbove_percent
 
-//Convert Percentages to Decimals
-replace Lev1_percent = "--" if Lev1_percent == ""
-replace Lev2_percent = "--" if Lev2_percent == ""
-replace Lev3_percent = "--" if Lev3_percent == ""
-replace Lev4_percent = "--" if Lev4_percent == ""
-replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == ""
-
-gen Lev1_pct = Lev1_percent
-gen Lev2_pct = Lev2_percent
-gen Lev3_pct = Lev3_percent
-gen Lev4_pct = Lev4_percent
-gen Prof_pct = ProficientOrAbove_percent
-
-destring Lev1_percent, replace force
-destring Lev2_percent, replace force
-destring Lev3_percent, replace force
-destring Lev4_percent, replace force
-destring ProficientOrAbove_percent, replace force
-
-replace Lev1_percent = Lev1_percent/100
-replace Lev2_percent = Lev2_percent/100
-replace Lev3_percent = Lev3_percent/100
-replace Lev4_percent = Lev4_percent/100
-replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
-
-tostring Lev1_percent, replace format("%6.0g") force
-tostring Lev2_percent, replace format("%6.0g") force
-tostring Lev3_percent, replace format("%6.0g") force
-tostring Lev4_percent, replace format("%6.0g") force
-tostring ProficientOrAbove_percent, replace format("%6.0g") force
-
-replace Lev1_percent = "*" if Lev1_pct == "**"
-replace Lev1_percent = "--" if Lev1_pct == "--"
-replace Lev2_percent = "*" if Lev2_pct == "**"
-replace Lev2_percent = "--" if Lev2_pct == "--"
-replace Lev3_percent = "*" if Lev3_pct == "**"
-replace Lev3_percent = "--" if Lev3_pct == "--"
-replace Lev4_percent = "*" if Lev4_pct == "**"
-replace Lev4_percent = "--" if Lev4_pct == "--"
-replace ProficientOrAbove_percent = "*" if Prof_pct == "**"
-replace ProficientOrAbove_percent = "--" if Prof_pct == "--"
-
-drop Lev1_pct Lev2_pct Lev3_pct Lev4_pct Prof_pct
-
 //Data Levels
 gen DataLevel = "School"
 replace DataLevel = "District" if StateAssignedSchID == "999"
@@ -821,16 +790,9 @@ gen State = "West Virginia"
 gen SchYear = "2016-17"
 gen AssmtName = "Smarter Balanced Assessment Consortium"
 gen AssmtType = "Regular"
-gen StudentGroup_TotalTested = "--"
-gen StudentSubGroup_TotalTested = "--"
-gen Lev1_count = "--"
-gen Lev2_count = "--"
-gen Lev3_count = "--"
-gen Lev4_count = "--"
 gen Lev5_count = ""
 gen Lev5_percent = ""
 gen ProficiencyCriteria = "Levels 3 + 4"
-gen ProficientOrAbove_count = "--"
 gen ParticipationRate = "--"
 gen AvgScaleScore = "--"
 gen Flag_AssmtNameChange = "N"
@@ -893,6 +855,63 @@ rename state_leaid State_leaid
 
 drop state_name year _merge merge2 district_agency_type_num urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type district_agency_type_num school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_lowest_grade_offered dist_highest_grade_offered dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch lea_name agency_charter_indicator dist_agency_charter_indicator
 
+//Student Counts
+merge 1:1 NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject using "$counts/WV_edfactscount2015.dta"
+drop if _merge == 2
+rename NUMVALID StudentSubGroup_TotalTested
+replace StudentSubGroup_TotalTested = "--" if _merge == 1
+
+gen num = StudentSubGroup_TotalTested
+destring num, replace force
+gen dummy = num
+replace dummy = 0 if DataLevel != "District"
+bys StudentSubGroup Subject GradeLevel: egen state = total(dummy)
+replace num = state if DataLevel == "State" & state != 0
+replace dummy = state if DataLevel == "State" & state != 0
+tostring dummy, replace
+replace StudentSubGroup_TotalTested = dummy if DataLevel == "State" & num != .
+
+replace num = -1000000 if num == .
+bys SchName DistName StudentGroup Subject GradeLevel: egen StudentGroup_TotalTested = total(num)
+replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
+tostring StudentGroup_TotalTested, replace
+replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested == "."
+drop _merge STNAM FIPST DATE_CUR PCTPROF
+
+//Proficiency Levels
+forvalues n = 1/4 {
+	replace Lev`n'_percent = "--" if Lev`n'_percent == ""
+	gen Lev`n'_pct = Lev`n'_percent
+	destring Lev`n'_percent, replace force
+	replace Lev`n'_percent = Lev`n'_percent/100
+	gen Lev`n'_count = Lev`n'_percent * num
+	replace Lev`n'_count = round(Lev`n'_count)
+	tostring Lev`n'_percent, replace format("%6.0g") force
+	replace Lev`n'_percent = "*" if Lev`n'_pct == "**"
+	replace Lev`n'_percent = "--" if Lev`n'_pct == "--"
+	tostring Lev`n'_count, replace
+	replace Lev`n'_count = "*" if Lev`n'_pct == "**"
+	replace Lev`n'_count = "--" if Lev`n'_pct == "--"
+	replace Lev`n'_count = "--" if StudentSubGroup_TotalTested == "--" & Lev`n'_count != "*"
+}
+
+replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == ""
+gen Prof_pct = ProficientOrAbove_percent
+destring ProficientOrAbove_percent, replace force
+replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
+gen ProficientOrAbove_count = ProficientOrAbove_percent * num
+replace ProficientOrAbove_count = round(ProficientOrAbove_count)
+tostring ProficientOrAbove_percent, replace format("%6.0g") force
+replace ProficientOrAbove_percent = "*" if Prof_pct == "**"
+replace ProficientOrAbove_percent = "--" if Prof_pct == "--"
+tostring ProficientOrAbove_count, replace
+replace ProficientOrAbove_count = "*" if Prof_pct == "**"
+replace ProficientOrAbove_count = "--" if Prof_pct == "--"
+replace ProficientOrAbove_count = "--" if StudentSubGroup_TotalTested == "--" & ProficientOrAbove_count != "*"
+
+drop Lev1_pct Lev2_pct Lev3_pct Lev4_pct Prof_pct num dummy state
+
+//Variable Types
 replace StateAbbrev = "WV"
 replace StateFips = 54
 
@@ -1083,50 +1102,6 @@ replace GradeLevel = "G08" if GradeLevel == "_G08_sci"
 
 rename ProficientOrAbove_pct ProficientOrAbove_percent
 
-//Convert Percentages to Decimals
-replace Lev1_percent = "--" if Lev1_percent == ""
-replace Lev2_percent = "--" if Lev2_percent == ""
-replace Lev3_percent = "--" if Lev3_percent == ""
-replace Lev4_percent = "--" if Lev4_percent == ""
-replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == ""
-
-gen Lev1_pct = Lev1_percent
-gen Lev2_pct = Lev2_percent
-gen Lev3_pct = Lev3_percent
-gen Lev4_pct = Lev4_percent
-gen Prof_pct = ProficientOrAbove_percent
-
-destring Lev1_percent, replace force
-destring Lev2_percent, replace force
-destring Lev3_percent, replace force
-destring Lev4_percent, replace force
-destring ProficientOrAbove_percent, replace force
-
-replace Lev1_percent = Lev1_percent/100
-replace Lev2_percent = Lev2_percent/100
-replace Lev3_percent = Lev3_percent/100
-replace Lev4_percent = Lev4_percent/100
-replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
-
-tostring Lev1_percent, replace format("%6.0g") force
-tostring Lev2_percent, replace format("%6.0g") force
-tostring Lev3_percent, replace format("%6.0g") force
-tostring Lev4_percent, replace format("%6.0g") force
-tostring ProficientOrAbove_percent, replace format("%6.0g") force
-
-replace Lev1_percent = "*" if Lev1_pct == "**"
-replace Lev1_percent = "--" if Lev1_pct == "--"
-replace Lev2_percent = "*" if Lev2_pct == "**"
-replace Lev2_percent = "--" if Lev2_pct == "--"
-replace Lev3_percent = "*" if Lev3_pct == "**"
-replace Lev3_percent = "--" if Lev3_pct == "--"
-replace Lev4_percent = "*" if Lev4_pct == "**"
-replace Lev4_percent = "--" if Lev4_pct == "--"
-replace ProficientOrAbove_percent = "*" if Prof_pct == "**"
-replace ProficientOrAbove_percent = "--" if Prof_pct == "--"
-
-drop Lev1_pct Lev2_pct Lev3_pct Lev4_pct Prof_pct
-
 //Data Levels
 gen DataLevel = "School"
 replace DataLevel = "District" if StateAssignedSchID == "999"
@@ -1142,16 +1117,9 @@ gen State = "West Virginia"
 gen SchYear = "2017-18"
 gen AssmtName = "West Virginia General Summative Assessment"
 gen AssmtType = "Regular"
-gen StudentGroup_TotalTested = "--"
-gen StudentSubGroup_TotalTested = "--"
-gen Lev1_count = "--"
-gen Lev2_count = "--"
-gen Lev3_count = "--"
-gen Lev4_count = "--"
 gen Lev5_count = ""
 gen Lev5_percent = ""
 gen ProficiencyCriteria = "Levels 3 + 4"
-gen ProficientOrAbove_count = "--"
 gen ParticipationRate = "--"
 gen AvgScaleScore = "--"
 gen Flag_AssmtNameChange = "Y"
@@ -1215,6 +1183,63 @@ drop state_name year _merge merge2 district_agency_type_num urban_centric_locale
 replace StateAbbrev = "WV"
 replace StateFips = 54
 
+//Student Counts
+merge 1:1 NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject using "$counts/WV_edfactscount2015.dta"
+drop if _merge == 2
+rename NUMVALID StudentSubGroup_TotalTested
+replace StudentSubGroup_TotalTested = "--" if _merge == 1
+
+gen num = StudentSubGroup_TotalTested
+destring num, replace force
+gen dummy = num
+replace dummy = 0 if DataLevel != "District"
+bys StudentSubGroup Subject GradeLevel: egen state = total(dummy)
+replace num = state if DataLevel == "State" & state != 0
+replace dummy = state if DataLevel == "State" & state != 0
+tostring dummy, replace
+replace StudentSubGroup_TotalTested = dummy if DataLevel == "State" & num != .
+
+replace num = -1000000 if num == .
+bys SchName DistName StudentGroup Subject GradeLevel: egen StudentGroup_TotalTested = total(num)
+replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
+tostring StudentGroup_TotalTested, replace
+replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested == "."
+drop _merge STNAM FIPST DATE_CUR PCTPROF
+
+//Proficiency Levels
+forvalues n = 1/4 {
+	replace Lev`n'_percent = "--" if Lev`n'_percent == ""
+	gen Lev`n'_pct = Lev`n'_percent
+	destring Lev`n'_percent, replace force
+	replace Lev`n'_percent = Lev`n'_percent/100
+	gen Lev`n'_count = Lev`n'_percent * num
+	replace Lev`n'_count = round(Lev`n'_count)
+	tostring Lev`n'_percent, replace format("%6.0g") force
+	replace Lev`n'_percent = "*" if Lev`n'_pct == "**"
+	replace Lev`n'_percent = "--" if Lev`n'_pct == "--"
+	tostring Lev`n'_count, replace
+	replace Lev`n'_count = "*" if Lev`n'_pct == "**"
+	replace Lev`n'_count = "--" if Lev`n'_pct == "--"
+	replace Lev`n'_count = "--" if StudentSubGroup_TotalTested == "--" & Lev`n'_count != "*"
+}
+
+replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == ""
+gen Prof_pct = ProficientOrAbove_percent
+destring ProficientOrAbove_percent, replace force
+replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
+gen ProficientOrAbove_count = ProficientOrAbove_percent * num
+replace ProficientOrAbove_count = round(ProficientOrAbove_count)
+tostring ProficientOrAbove_percent, replace format("%6.0g") force
+replace ProficientOrAbove_percent = "*" if Prof_pct == "**"
+replace ProficientOrAbove_percent = "--" if Prof_pct == "--"
+tostring ProficientOrAbove_count, replace
+replace ProficientOrAbove_count = "*" if Prof_pct == "**"
+replace ProficientOrAbove_count = "--" if Prof_pct == "--"
+replace ProficientOrAbove_count = "--" if StudentSubGroup_TotalTested == "--" & ProficientOrAbove_count != "*"
+
+drop Lev1_pct Lev2_pct Lev3_pct Lev4_pct Prof_pct num dummy state
+
+//Variable Types
 decode SchVirtual, gen(SchVirtual_s)
 drop SchVirtual
 rename SchVirtual_s SchVirtual
@@ -1414,50 +1439,6 @@ replace GradeLevel = "G08" if GradeLevel == "_G08_sci"
 
 rename ProficientOrAbove_pct ProficientOrAbove_percent
 
-//Convert Percentages to Decimals
-replace Lev1_percent = "--" if Lev1_percent == ""
-replace Lev2_percent = "--" if Lev2_percent == ""
-replace Lev3_percent = "--" if Lev3_percent == ""
-replace Lev4_percent = "--" if Lev4_percent == ""
-replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == ""
-
-gen Lev1_pct = Lev1_percent
-gen Lev2_pct = Lev2_percent
-gen Lev3_pct = Lev3_percent
-gen Lev4_pct = Lev4_percent
-gen Prof_pct = ProficientOrAbove_percent
-
-destring Lev1_percent, replace force
-destring Lev2_percent, replace force
-destring Lev3_percent, replace force
-destring Lev4_percent, replace force
-destring ProficientOrAbove_percent, replace force
-
-replace Lev1_percent = Lev1_percent/100
-replace Lev2_percent = Lev2_percent/100
-replace Lev3_percent = Lev3_percent/100
-replace Lev4_percent = Lev4_percent/100
-replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
-
-tostring Lev1_percent, replace format("%6.0g") force
-tostring Lev2_percent, replace format("%6.0g") force
-tostring Lev3_percent, replace format("%6.0g") force
-tostring Lev4_percent, replace format("%6.0g") force
-tostring ProficientOrAbove_percent, replace format("%6.0g") force
-
-replace Lev1_percent = "*" if Lev1_pct == "**"
-replace Lev1_percent = "--" if Lev1_pct == "--"
-replace Lev2_percent = "*" if Lev2_pct == "**"
-replace Lev2_percent = "--" if Lev2_pct == "--"
-replace Lev3_percent = "*" if Lev3_pct == "**"
-replace Lev3_percent = "--" if Lev3_pct == "--"
-replace Lev4_percent = "*" if Lev4_pct == "**"
-replace Lev4_percent = "--" if Lev4_pct == "--"
-replace ProficientOrAbove_percent = "*" if Prof_pct == "**"
-replace ProficientOrAbove_percent = "--" if Prof_pct == "--"
-
-drop Lev1_pct Lev2_pct Lev3_pct Lev4_pct Prof_pct
-
 //Data Levels
 gen DataLevel = "School"
 replace DataLevel = "District" if StateAssignedSchID == "999"
@@ -1473,16 +1454,9 @@ gen State = "West Virginia"
 gen SchYear = "2018-19"
 gen AssmtName = "West Virginia General Summative Assessment"
 gen AssmtType = "Regular"
-gen StudentGroup_TotalTested = "--"
-gen StudentSubGroup_TotalTested = "--"
-gen Lev1_count = "--"
-gen Lev2_count = "--"
-gen Lev3_count = "--"
-gen Lev4_count = "--"
 gen Lev5_count = ""
 gen Lev5_percent = ""
 gen ProficiencyCriteria = "Levels 3 + 4"
-gen ProficientOrAbove_count = "--"
 gen ParticipationRate = "--"
 gen AvgScaleScore = "--"
 gen Flag_AssmtNameChange = "N"
@@ -1549,6 +1523,63 @@ drop state_name year _merge merge2 district_agency_type_num urban_centric_locale
 replace StateAbbrev = "WV"
 replace StateFips = 54
 
+//Student Counts
+merge 1:1 NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject using "$counts/WV_edfactscount2015.dta"
+drop if _merge == 2
+rename NUMVALID StudentSubGroup_TotalTested
+replace StudentSubGroup_TotalTested = "--" if _merge == 1
+
+gen num = StudentSubGroup_TotalTested
+destring num, replace force
+gen dummy = num
+replace dummy = 0 if DataLevel != "District"
+bys StudentSubGroup Subject GradeLevel: egen state = total(dummy)
+replace num = state if DataLevel == "State" & state != 0
+replace dummy = state if DataLevel == "State" & state != 0
+tostring dummy, replace
+replace StudentSubGroup_TotalTested = dummy if DataLevel == "State" & num != .
+
+replace num = -1000000 if num == .
+bys SchName DistName StudentGroup Subject GradeLevel: egen StudentGroup_TotalTested = total(num)
+replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
+tostring StudentGroup_TotalTested, replace
+replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested == "."
+drop _merge STNAM FIPST DATE_CUR PCTPROF
+
+//Proficiency Levels
+forvalues n = 1/4 {
+	replace Lev`n'_percent = "--" if Lev`n'_percent == ""
+	gen Lev`n'_pct = Lev`n'_percent
+	destring Lev`n'_percent, replace force
+	replace Lev`n'_percent = Lev`n'_percent/100
+	gen Lev`n'_count = Lev`n'_percent * num
+	replace Lev`n'_count = round(Lev`n'_count)
+	tostring Lev`n'_percent, replace format("%6.0g") force
+	replace Lev`n'_percent = "*" if Lev`n'_pct == "**"
+	replace Lev`n'_percent = "--" if Lev`n'_pct == "--"
+	tostring Lev`n'_count, replace
+	replace Lev`n'_count = "*" if Lev`n'_pct == "**"
+	replace Lev`n'_count = "--" if Lev`n'_pct == "--"
+	replace Lev`n'_count = "--" if StudentSubGroup_TotalTested == "--" & Lev`n'_count != "*"
+}
+
+replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == ""
+gen Prof_pct = ProficientOrAbove_percent
+destring ProficientOrAbove_percent, replace force
+replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
+gen ProficientOrAbove_count = ProficientOrAbove_percent * num
+replace ProficientOrAbove_count = round(ProficientOrAbove_count)
+tostring ProficientOrAbove_percent, replace format("%6.0g") force
+replace ProficientOrAbove_percent = "*" if Prof_pct == "**"
+replace ProficientOrAbove_percent = "--" if Prof_pct == "--"
+tostring ProficientOrAbove_count, replace
+replace ProficientOrAbove_count = "*" if Prof_pct == "**"
+replace ProficientOrAbove_count = "--" if Prof_pct == "--"
+replace ProficientOrAbove_count = "--" if StudentSubGroup_TotalTested == "--" & ProficientOrAbove_count != "*"
+
+drop Lev1_pct Lev2_pct Lev3_pct Lev4_pct Prof_pct num dummy state
+
+//Variable Types
 decode SchVirtual, gen(SchVirtual_s)
 drop SchVirtual
 rename SchVirtual_s SchVirtual
@@ -1749,50 +1780,6 @@ replace GradeLevel = "G08" if GradeLevel == "_G08_sci"
 
 rename ProficientOrAbove_pct ProficientOrAbove_percent
 
-//Convert Percentages to Decimals
-replace Lev1_percent = "--" if Lev1_percent == ""
-replace Lev2_percent = "--" if Lev2_percent == ""
-replace Lev3_percent = "--" if Lev3_percent == ""
-replace Lev4_percent = "--" if Lev4_percent == ""
-replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == ""
-
-gen Lev1_pct = Lev1_percent
-gen Lev2_pct = Lev2_percent
-gen Lev3_pct = Lev3_percent
-gen Lev4_pct = Lev4_percent
-gen Prof_pct = ProficientOrAbove_percent
-
-destring Lev1_percent, replace force
-destring Lev2_percent, replace force
-destring Lev3_percent, replace force
-destring Lev4_percent, replace force
-destring ProficientOrAbove_percent, replace force
-
-replace Lev1_percent = Lev1_percent/100
-replace Lev2_percent = Lev2_percent/100
-replace Lev3_percent = Lev3_percent/100
-replace Lev4_percent = Lev4_percent/100
-replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
-
-tostring Lev1_percent, replace format("%6.0g") force
-tostring Lev2_percent, replace format("%6.0g") force
-tostring Lev3_percent, replace format("%6.0g") force
-tostring Lev4_percent, replace format("%6.0g") force
-tostring ProficientOrAbove_percent, replace format("%6.0g") force
-
-replace Lev1_percent = "*" if Lev1_pct == "**"
-replace Lev1_percent = "--" if Lev1_pct == "--"
-replace Lev2_percent = "*" if Lev2_pct == "**"
-replace Lev2_percent = "--" if Lev2_pct == "--"
-replace Lev3_percent = "*" if Lev3_pct == "**"
-replace Lev3_percent = "--" if Lev3_pct == "--"
-replace Lev4_percent = "*" if Lev4_pct == "**"
-replace Lev4_percent = "--" if Lev4_pct == "--"
-replace ProficientOrAbove_percent = "*" if Prof_pct == "**"
-replace ProficientOrAbove_percent = "--" if Prof_pct == "--"
-
-drop Lev1_pct Lev2_pct Lev3_pct Lev4_pct Prof_pct
-
 //Data Levels
 gen DataLevel = "School"
 replace DataLevel = "District" if StateAssignedSchID == "999"
@@ -1808,16 +1795,9 @@ gen State = "West Virginia"
 gen SchYear = "2020-21"
 gen AssmtName = "West Virginia General Summative Assessment"
 gen AssmtType = "Regular"
-gen StudentGroup_TotalTested = "--"
-gen StudentSubGroup_TotalTested = "--"
-gen Lev1_count = "--"
-gen Lev2_count = "--"
-gen Lev3_count = "--"
-gen Lev4_count = "--"
 gen Lev5_count = ""
 gen Lev5_percent = ""
 gen ProficiencyCriteria = "Levels 3 + 4"
-gen ProficientOrAbove_count = "--"
 gen ParticipationRate = "--"
 gen AvgScaleScore = "--"
 gen Flag_AssmtNameChange = "N"
@@ -1881,6 +1861,63 @@ rename state_leaid State_leaid
 
 drop state_name year _merge merge2 district_agency_type_num urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type district_agency_type_num school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_lowest_grade_offered dist_highest_grade_offered dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch lea_name agency_charter_indicator dist_agency_charter_indicator
 
+//Student Counts
+merge 1:1 NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject using "$counts/WV_edfactscount2015.dta"
+drop if _merge == 2
+rename NUMVALID StudentSubGroup_TotalTested
+replace StudentSubGroup_TotalTested = "--" if _merge == 1
+
+gen num = StudentSubGroup_TotalTested
+destring num, replace force
+gen dummy = num
+replace dummy = 0 if DataLevel != "District"
+bys StudentSubGroup Subject GradeLevel: egen state = total(dummy)
+replace num = state if DataLevel == "State" & state != 0
+replace dummy = state if DataLevel == "State" & state != 0
+tostring dummy, replace
+replace StudentSubGroup_TotalTested = dummy if DataLevel == "State" & num != .
+
+replace num = -1000000 if num == .
+bys SchName DistName StudentGroup Subject GradeLevel: egen StudentGroup_TotalTested = total(num)
+replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
+tostring StudentGroup_TotalTested, replace
+replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested == "."
+drop _merge STNAM FIPST DATE_CUR PCTPROF
+
+//Proficiency Levels
+forvalues n = 1/4 {
+	replace Lev`n'_percent = "--" if Lev`n'_percent == ""
+	gen Lev`n'_pct = Lev`n'_percent
+	destring Lev`n'_percent, replace force
+	replace Lev`n'_percent = Lev`n'_percent/100
+	gen Lev`n'_count = Lev`n'_percent * num
+	replace Lev`n'_count = round(Lev`n'_count)
+	tostring Lev`n'_percent, replace format("%6.0g") force
+	replace Lev`n'_percent = "*" if Lev`n'_pct == "**"
+	replace Lev`n'_percent = "--" if Lev`n'_pct == "--"
+	tostring Lev`n'_count, replace
+	replace Lev`n'_count = "*" if Lev`n'_pct == "**"
+	replace Lev`n'_count = "--" if Lev`n'_pct == "--"
+	replace Lev`n'_count = "--" if StudentSubGroup_TotalTested == "--" & Lev`n'_count != "*"
+}
+
+replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == ""
+gen Prof_pct = ProficientOrAbove_percent
+destring ProficientOrAbove_percent, replace force
+replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
+gen ProficientOrAbove_count = ProficientOrAbove_percent * num
+replace ProficientOrAbove_count = round(ProficientOrAbove_count)
+tostring ProficientOrAbove_percent, replace format("%6.0g") force
+replace ProficientOrAbove_percent = "*" if Prof_pct == "**"
+replace ProficientOrAbove_percent = "--" if Prof_pct == "--"
+tostring ProficientOrAbove_count, replace
+replace ProficientOrAbove_count = "*" if Prof_pct == "**"
+replace ProficientOrAbove_count = "--" if Prof_pct == "--"
+replace ProficientOrAbove_count = "--" if StudentSubGroup_TotalTested == "--" & ProficientOrAbove_count != "*"
+
+drop Lev1_pct Lev2_pct Lev3_pct Lev4_pct Prof_pct num dummy state
+
+//Variable Types
 replace StateAbbrev = "WV"
 replace StateFips = 54
 
@@ -2083,50 +2120,6 @@ replace GradeLevel = "G08" if GradeLevel == "_G08_sci"
 
 rename ProficientOrAbove_pct ProficientOrAbove_percent
 
-//Convert Percentages to Decimals
-replace Lev1_percent = "--" if Lev1_percent == ""
-replace Lev2_percent = "--" if Lev2_percent == ""
-replace Lev3_percent = "--" if Lev3_percent == ""
-replace Lev4_percent = "--" if Lev4_percent == ""
-replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == ""
-
-gen Lev1_pct = Lev1_percent
-gen Lev2_pct = Lev2_percent
-gen Lev3_pct = Lev3_percent
-gen Lev4_pct = Lev4_percent
-gen Prof_pct = ProficientOrAbove_percent
-
-destring Lev1_percent, replace force
-destring Lev2_percent, replace force
-destring Lev3_percent, replace force
-destring Lev4_percent, replace force
-destring ProficientOrAbove_percent, replace force
-
-replace Lev1_percent = Lev1_percent/100
-replace Lev2_percent = Lev2_percent/100
-replace Lev3_percent = Lev3_percent/100
-replace Lev4_percent = Lev4_percent/100
-replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
-
-tostring Lev1_percent, replace format("%6.0g") force
-tostring Lev2_percent, replace format("%6.0g") force
-tostring Lev3_percent, replace format("%6.0g") force
-tostring Lev4_percent, replace format("%6.0g") force
-tostring ProficientOrAbove_percent, replace format("%6.0g") force
-
-replace Lev1_percent = "*" if Lev1_pct == "**"
-replace Lev1_percent = "--" if Lev1_pct == "--"
-replace Lev2_percent = "*" if Lev2_pct == "**"
-replace Lev2_percent = "--" if Lev2_pct == "--"
-replace Lev3_percent = "*" if Lev3_pct == "**"
-replace Lev3_percent = "--" if Lev3_pct == "--"
-replace Lev4_percent = "*" if Lev4_pct == "**"
-replace Lev4_percent = "--" if Lev4_pct == "--"
-replace ProficientOrAbove_percent = "*" if Prof_pct == "**"
-replace ProficientOrAbove_percent = "--" if Prof_pct == "--"
-
-drop Lev1_pct Lev2_pct Lev3_pct Lev4_pct Prof_pct
-
 //Data Levels
 gen DataLevel = "School"
 replace DataLevel = "District" if StateAssignedSchID == "999"
@@ -2142,16 +2135,9 @@ gen State = "West Virginia"
 gen SchYear = "2021-22"
 gen AssmtName = "West Virginia General Summative Assessment"
 gen AssmtType = "Regular"
-gen StudentGroup_TotalTested = "--"
-gen StudentSubGroup_TotalTested = "--"
-gen Lev1_count = "--"
-gen Lev2_count = "--"
-gen Lev3_count = "--"
-gen Lev4_count = "--"
 gen Lev5_count = ""
 gen Lev5_percent = ""
 gen ProficiencyCriteria = "Levels 3 + 4"
-gen ProficientOrAbove_count = "--"
 gen ParticipationRate = "--"
 gen AvgScaleScore = "--"
 gen Flag_AssmtNameChange = "N"
@@ -2220,6 +2206,47 @@ drop state_name year _merge merge2 district_agency_type_num urban_centric_locale
 replace StateAbbrev = "WV"
 replace StateFips = 54
 
+//Student Counts
+merge m:1 StateAssignedDistID StateAssignedSchID GradeLevel StudentSubGroup using "$data/WV_EnrollmentData_2022.dta"
+drop if _merge == 2
+replace StudentSubGroup_TotalTested = "--" if _merge == 1
+gen StudentGroup_TotalTested = StudentSubGroup_TotalTested
+
+//Proficiency Levels
+destring StudentSubGroup_TotalTested, gen(num) force
+forvalues n = 1/4 {
+	replace Lev`n'_percent = "--" if Lev`n'_percent == ""
+	gen Lev`n'_pct = Lev`n'_percent
+	destring Lev`n'_percent, replace force
+	replace Lev`n'_percent = Lev`n'_percent/100
+	gen Lev`n'_count = Lev`n'_percent * num
+	replace Lev`n'_count = round(Lev`n'_count)
+	tostring Lev`n'_percent, replace format("%6.0g") force
+	replace Lev`n'_percent = "*" if Lev`n'_pct == "**"
+	replace Lev`n'_percent = "--" if Lev`n'_pct == "--"
+	tostring Lev`n'_count, replace
+	replace Lev`n'_count = "*" if Lev`n'_pct == "**"
+	replace Lev`n'_count = "--" if Lev`n'_pct == "--"
+	replace Lev`n'_count = "--" if StudentSubGroup_TotalTested == "--" & Lev`n'_count != "*"
+}
+
+replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == ""
+gen Prof_pct = ProficientOrAbove_percent
+destring ProficientOrAbove_percent, replace force
+replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
+gen ProficientOrAbove_count = ProficientOrAbove_percent * num
+replace ProficientOrAbove_count = round(ProficientOrAbove_count)
+tostring ProficientOrAbove_percent, replace format("%6.0g") force
+replace ProficientOrAbove_percent = "*" if Prof_pct == "**"
+replace ProficientOrAbove_percent = "--" if Prof_pct == "--"
+tostring ProficientOrAbove_count, replace
+replace ProficientOrAbove_count = "*" if Prof_pct == "**"
+replace ProficientOrAbove_count = "--" if Prof_pct == "--"
+replace ProficientOrAbove_count = "--" if StudentSubGroup_TotalTested == "--" & ProficientOrAbove_count != "*"
+
+drop Lev1_pct Lev2_pct Lev3_pct Lev4_pct Prof_pct num _merge
+
+//Variable Types
 decode SchVirtual, gen(SchVirtual_s)
 drop SchVirtual
 rename SchVirtual_s SchVirtual
@@ -2419,19 +2446,6 @@ replace GradeLevel = "G08" if GradeLevel == "_G08_sci"
 
 rename ProficientOrAbove_pct ProficientOrAbove_percent
 
-//Missing & Suppressed Data
-replace Lev1_percent = "--" if Lev1_percent == ""
-replace Lev2_percent = "--" if Lev2_percent == ""
-replace Lev3_percent = "--" if Lev3_percent == ""
-replace Lev4_percent = "--" if Lev4_percent == ""
-replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == ""
-
-replace Lev1_percent = "*" if Lev1_percent == "***"
-replace Lev2_percent = "*" if Lev2_percent == "***"
-replace Lev3_percent = "*" if Lev3_percent == "***"
-replace Lev4_percent = "*" if Lev4_percent == "***"
-replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "***"
-
 //Data Levels
 gen DataLevel = "School"
 replace DataLevel = "District" if StateAssignedSchID == "999"
@@ -2447,16 +2461,9 @@ gen State = "West Virginia"
 gen SchYear = "2022-23"
 gen AssmtName = "West Virginia General Summative Assessment"
 gen AssmtType = "Regular"
-gen StudentGroup_TotalTested = "--"
-gen StudentSubGroup_TotalTested = "--"
-gen Lev1_count = "--"
-gen Lev2_count = "--"
-gen Lev3_count = "--"
-gen Lev4_count = "--"
 gen Lev5_count = ""
 gen Lev5_percent = ""
 gen ProficiencyCriteria = "Levels 3 + 4"
-gen ProficientOrAbove_count = "--"
 gen ParticipationRate = "--"
 gen AvgScaleScore = "--"
 gen Flag_AssmtNameChange = "N"
@@ -2559,6 +2566,53 @@ replace seasch = "3300000-33236" if SchName == "Victory Elementary School"
 replace SchLevel = 1 if SchName == "Victory Elementary School"
 replace SchType = 1 if SchName == "Victory Elementary School"
 replace SchVirtual = -1 if SchName == "Victory Elementary School"
+
+//Student Counts
+merge m:1 StateAssignedDistID StateAssignedSchID GradeLevel StudentSubGroup using "$data/WV_EnrollmentData_2023.dta"
+drop if _merge == 2
+replace StudentSubGroup_TotalTested = "--" if _merge == 1
+gen StudentGroup_TotalTested = StudentSubGroup_TotalTested
+
+//Missing & Suppressed Data
+replace Lev1_percent = "--" if Lev1_percent == ""
+replace Lev2_percent = "--" if Lev2_percent == ""
+replace Lev3_percent = "--" if Lev3_percent == ""
+replace Lev4_percent = "--" if Lev4_percent == ""
+replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == ""
+
+replace Lev1_percent = "*" if Lev1_percent == "***"
+replace Lev2_percent = "*" if Lev2_percent == "***"
+replace Lev3_percent = "*" if Lev3_percent == "***"
+replace Lev4_percent = "*" if Lev4_percent == "***"
+replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "***"
+
+//Proficiency Levels
+destring StudentSubGroup_TotalTested, gen(num) force
+forvalues n = 1/4 {
+	gen Lev`n'_pct = Lev`n'_percent
+	destring Lev`n'_pct, replace force
+	gen Lev`n'_count = Lev`n'_pct * num
+	replace Lev`n'_count = round(Lev`n'_count)
+	replace Lev`n'_percent = "--" if Lev`n'_percent == ""
+	replace Lev`n'_percent = "*" if Lev`n'_percent == "***"
+	tostring Lev`n'_count, replace
+	replace Lev`n'_count = "*" if Lev`n'_percent == "*"
+	replace Lev`n'_count = "--" if Lev`n'_percent == "--"
+	replace Lev`n'_count = "--" if StudentSubGroup_TotalTested == "--" & Lev`n'_count != "*"
+}
+
+gen Prof_pct = ProficientOrAbove_percent
+destring Prof_pct, replace force
+gen ProficientOrAbove_count = Prof_pct * num
+replace ProficientOrAbove_count = round(ProficientOrAbove_count)
+replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "***"
+replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == ""
+tostring ProficientOrAbove_count, replace
+replace ProficientOrAbove_count = "*" if ProficientOrAbove_percent == "***"
+replace ProficientOrAbove_count = "--" if ProficientOrAbove_percent == "--"
+replace ProficientOrAbove_count = "--" if StudentSubGroup_TotalTested == "--" & ProficientOrAbove_count != "*"
+
+drop Lev1_pct Lev2_pct Lev3_pct Lev4_pct Prof_pct num _merge
 
 //Variable Types
 decode DistType, gen(DistType_s)

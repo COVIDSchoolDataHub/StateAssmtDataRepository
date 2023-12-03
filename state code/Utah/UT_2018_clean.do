@@ -85,7 +85,7 @@ destring NCESSchoolID, replace
 
 drop _merge 
 
-merge m:1 SchName DistName SchYear using "/Users/minnamgung/Desktop/SADR/Utah/UT_unmerged_schools.dta", update
+merge m:1 SchName DistName SchYear using "/Users/minnamgung/Desktop/SADR/Utah/UT_unmerged_schools1.dta", update
 
 drop if _merge==2 
 
@@ -164,6 +164,27 @@ save "${int}/UT_2018_district.dta", replace
 
 *** UT state ***
 
+* Total Tested
+import excel "${raw}/UT_OriginalData_2018_proficiency.xlsx", sheet("State Results by Test") firstrow allstring clear
+
+
+foreach x of numlist 3/8 {
+	replace Subject="G0`x'" if strpos(Subject, "`x'")>0
+}
+
+drop if inlist(Subject, "G03", "G04", "G05", "G06", "G07", "G08")==0
+
+rename State DataLevel
+rename SchoolYear SchYear
+rename Subject GradeLevel
+rename SubjectArea Subject
+rename NumberTested StudentGroup_TotalTested
+
+drop PercentProficient
+gen StudentSubGroup="AllStudents"
+
+save "${int}/UT_2018_state.dta", replace 
+
 * Proficiency levels
 
 import excel "${raw}/UT_OriginalData_2018_all.xlsx", sheet("State") firstrow allstring clear
@@ -185,16 +206,23 @@ rename HighlyProficient Lev4_percent
 
 gen StudentSubGroup="AllStudents"
 
-save "${int}/UT_2018_state.dta", replace 
+merge m:1 Subject GradeLevel StudentSubGroup using "${int}/UT_2018_state.dta"
+
 
 * Subgroups
 import excel "${raw}/UT_OriginalData_2018_subgroup.xlsx", sheet("StateByTestAndDemographic") firstrow allstring clear
+
+*rename C Test
+*rename A LEAName
+*rename B Subject
 
 foreach i of varlist AllStudents AfAmBlack AmericanIndian Asian HispanicLatino MultipleRaces PacificIslander White LowIncome StudentswDisabilities EnglishLearners {
 	rename `i' subgroup`i'
 }
 
 reshape long subgroup, i(Test) j(StudentSubGroup) string
+
+* replace StudentSubGroup="LowIncome" if StudentSubGroup=="EconomicallyDisadv"
 
 rename subgroup ProficientOrAbove_percent
 
@@ -205,13 +233,11 @@ foreach x of numlist 3/8 {
 drop if inlist(Test, "G03", "G04", "G05", "G06", "G07", "G08")==0
 
 rename Test GradeLevel
-rename SchoolYear SchYear
 rename LEAName DataLevel
 
 merge m:1 StudentSubGroup GradeLevel Subject using "${int}/UT_2018_state.dta"
 
 drop _merge
-
 save "${int}/UT_2018_state.dta", replace 
 
 append using "${int}/UT_2018_district.dta"
@@ -257,12 +283,31 @@ gen Flag_CutScoreChange_oth="N"
 
 gen AssmtType="Regular"
 
-drop StateAssignedDistID
-drop StateAssignedSchID
-gen StateAssignedDistID=State_leaid
-gen StateAssignedSchID=school_id
+//////////////////////////////////////////
+********* Review 1 Edits ***********
+//////////////////////////////////////////
 
-gen StudentGroup_TotalTested=""
+
+foreach i of varlist StateAssignedDistID StateAssignedSchID {
+	
+	gen `i'1=""
+	
+}
+
+replace StateAssignedDistID1=State_leaid
+replace StateAssignedSchID1=school_id
+
+replace State_leaid=StateAssignedDistID if StateAssignedDistID!=""
+
+foreach i of varlist StateAssignedDistID StateAssignedSchID {
+	
+	replace `i'1=`i' if `i'!=""
+	drop `i'
+	rename `i'1 `i'
+	
+}
+
+* gen StudentGroup_TotalTested=""
 gen StudentSubGroup_TotalTested=""
 
 foreach x of numlist 1/4 {
@@ -293,9 +338,9 @@ replace State="Utah"
 replace StateAbbrev="UT"
 replace StateFips=49
 
-foreach i of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent {
-	replace `i'="--" if `i'=="null" | `i'=="NULL"
-	replace `i'="*" if `i'=="N<10"
+foreach i of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent StudentGroup_TotalTested {
+	replace `i'="--" if `i'=="null" | `i'=="NULL" | `i'=="" | `i'=="-"
+	replace `i'="*" if `i'=="N≤10" | `i'=="n≤10" | `i'=="n<10"| `i'=="N<10"
 	replace `i'="0.1-0.19" if `i'=="10 to 19%"
 	replace `i'="0.2-0.29" if `i'=="20 to 29%"
 	replace `i'="0.3-0.39" if `i'=="30 to 39%"
@@ -313,9 +358,9 @@ foreach i of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent Profici
 	replace `i'="0.9-1" if `i'==">= 90%"
 	replace `i'="0.95-1" if `i'==">= 95%"
 	
-	replace `i'="0.1-0.19" if `i'=="10-19%"
-	replace `i'="0.2-0.29" if `i'=="20-29%"
-	replace `i'="0.3-0.39" if `i'=="30-39%"
+	replace `i'="0.1-0.19" if `i'=="10-19%" | `i'=="11-19%"
+	replace `i'="0.2-0.29" if `i'=="20-29%" | `i'=="21-29%"
+	replace `i'="0.3-0.39" if `i'=="30-39%" 
 	replace `i'="0.4-0.49" if `i'=="40-49%"
 	replace `i'="0.5-0.59" if `i'=="50-59%"
 	replace `i'="0.6-0.69" if `i'=="60-69%"
@@ -329,6 +374,20 @@ foreach i of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent Profici
 	replace `i'="0.8-1" if `i'==">=80%"
 	replace `i'="0.9-1" if `i'==">=90%"
 	replace `i'="0.95-1" if `i'==">=95%"
+	
+	replace `i'="0-0.1" if `i'=="≤10%"
+	replace `i'="0-0.2" if `i'=="≤20%"
+	replace `i'="0.8-1" if `i'=="≥80%"
+	replace `i'="0.9-1" if `i'=="≥90%"
+	replace `i'="0.99-1" if `i'=="≥99%"
+	
+	replace `i'="0.98-1" if `i'==">=98%"
+}
+
+foreach i of varlist StudentSubGroup_TotalTested {
+	replace `i'="--" if `i'=="null" | `i'=="NULL" | `i'==""
+	replace `i'="*" if `i'=="N≤10" | `i'=="n≤10" | `i'=="n<10"
+
 }
 
 foreach i of varlist NCESDistrictID State_leaid NCESSchoolID seasch DistCharter CountyName SchType SchLevel SchVirtual DistType {
@@ -336,6 +395,53 @@ foreach i of varlist NCESDistrictID State_leaid NCESSchoolID seasch DistCharter 
 	replace `i'="Missing/not reported" if missing(DistType) &  DataLevel!="State"
 }
 
+//////////////////////////////////////////
+********* Review 1 Edits ***********
+//////////////////////////////////////////
+
+* replace StudentGroup_TotalTested="--"
+replace StudentSubGroup_TotalTested="--"
+
+replace ProficientOrAbove_count="--"
+
+drop if SchName=="Minersville School" & GradeLevel=="G38"
+
+replace SchVirtual="Missing/not reported" if missing(SchVirtual) & DataLevel=="School"
+
+* replace State_leaid=StateAssignedDistID
+
+* replace StateAssignedSchID="UT-37-37179" if strpos(SchName, "Liberty")>0
+* replace State_leaid="UT-37-37179" if strpos(SchName, "Liberty")>0
+
+* replace State_leaid="37131" if strpos(SchName, "East Ridge")>0
+* replace State_leaid="UT-3J-3J100" if strpos(SchName, "Mountain View Montessori")>0
+
+replace CountyCode=49053 if strpos(DistName, "Vista at Entrada")>0
+replace DistType="Charter agency" if strpos(DistName, "Vista at Entrada")>0
+replace SchType="Regular school" if strpos(DistName, "Vista at Entrada")>0
+replace NCESDistrictID="4900141" if strpos(DistName, "Vista at Entrada")>0
+replace StateAssignedDistID="UT-2G" if strpos(DistName, "Vista at Entrada")>0
+replace State_leaid="UT-2G" if strpos(DistName, "Vista at Entrada")>0
+replace DistCharter="Yes" if strpos(DistName, "Vista at Entrada")>0
+replace CountyName="Washington County" if strpos(DistName, "Vista at Entrada")>0
+
+foreach i of varlist seasch NCESSchoolID SchLevel SchVirtual SchType {
+	replace `i'="" if DataLevel=="District" & strpos(DistName, "Vista at Entrada")>0
+}
+
+replace CountyCode=49049 if strpos(DistName, "Alpine")>0
+replace CountyName="Utah County" if strpos(DistName, "Alpine")>0
+replace DistType="Regular local school district" if strpos(DistName, "Alpine")>0
+replace NCESDistrictID="4900030" if strpos(DistName, "Alpine")>0
+replace StateAssignedDistID="UT-01" if strpos(DistName, "Alpine")>0
+replace State_leaid="UT-01" if strpos(DistName, "Alpine")>0
+replace DistCharter="No" if strpos(DistName, "Alpine")>0
+
+replace StateAssignedSchID="Missing/not reported" if SchName=="Scera Park" | SchName=="North Sanpete Special Purpose School"
+
+//////////////////////////////////////////
+********* Sorting ***********
+//////////////////////////////////////////
 
 keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 
