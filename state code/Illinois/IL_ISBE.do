@@ -64,6 +64,7 @@ keep if StudentGroup == "All Students"
 replace StudentGroup_TotalTested = "5" if StudentGroup_TotalTested == "<10"
 destring StudentGroup_TotalTested, replace force
 collapse (sum) StudentGroup_TotalTested, by(GradeLevel)
+replace StudentGroup_TotalTested = round(StudentGroup_TotalTested)
 rename StudentGroup_TotalTested StudentGroup_TotalTestedState
 gen StudentGroup = "All Students"
 gen StudentSubGroup = "All Students"
@@ -213,6 +214,7 @@ keep if StudentGroup == "All Students"
 replace StudentGroup_TotalTested = "5" if StudentGroup_TotalTested == "<10"
 destring StudentGroup_TotalTested, replace force
 collapse (sum) StudentGroup_TotalTested, by(GradeLevel)
+replace StudentGroup_TotalTested = round(StudentGroup_TotalTested)
 rename StudentGroup_TotalTested StudentGroup_TotalTestedState
 gen StudentGroup = "All Students"
 gen StudentSubGroup = "All Students"
