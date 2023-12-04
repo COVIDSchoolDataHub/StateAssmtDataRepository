@@ -3,6 +3,7 @@ set more off
 
 global output "/Users/maggie/Desktop/Mississippi/Output"
 global NCES "/Users/maggie/Desktop/Mississippi/NCES/Cleaned"
+global Request "/Users/maggie/Desktop/Mississippi/Data Request"
 
 local grade 3 4 5 6 7 8
 local gradesci 5 8
@@ -48,7 +49,7 @@ append using "${output}/MS_AssmtData_2022_sci.dta"
 ** Rename existing variables
 
 rename AverageScaleScore AvgScaleScore
-rename TestTakers StudentGroup_TotalTested
+rename TestTakers StudentSubGroup_TotalTested
 
 local level 1 2 3 4 5
 foreach a of local level {
@@ -63,23 +64,12 @@ drop if SchName == "School 500"
 
 ** Generating new variables
 
-gen SchYear = "2021-22"
-
-gen AssmtName = "MAAP"
 gen AssmtType = "Regular"
-
-foreach a of local level {
-	gen Lev`a'_count = "--"
-}
 
 gen StudentGroup = "All Students"
 gen StudentSubGroup = "All Students"
-gen StudentSubGroup_TotalTested = StudentGroup_TotalTested
 
-gen ProficiencyCriteria = "Levels 4-5"
 gen ProficientOrAbove_count = "--"
-
-gen ParticipationRate = "--"
 
 gen test = ""
 foreach a of local level {
@@ -103,10 +93,10 @@ replace DataLevel = "School" if DataLevel == ""
 
 gen DistName = ""
 replace DistName = SchName if DataLevel == "District"
-replace DistName = DistName[_n-1] if missing(DistName)
 replace DistName = "MDHS DIVISION OF YOUTH SERVICES" if DistName == "OAKLEY YOUTH DEVELOPMENT CENTER"
 replace DistName = "Leflore Legacy Academy" if SchName == "LEFLORE LEGACY ACADEMY"
 replace DistName = "REIMAGINE PREP" if SchName == "REIMAGINE PREP"
+replace DistName = DistName[_n-1] if missing(DistName)
 replace DistName = "All Districts" if DataLevel == "State"
 
 replace SchName = "All Schools" if DataLevel != "School"
@@ -296,10 +286,6 @@ merge m:1 DistName SchName using "${NCES}/NCES_2021_School.dta", update
 drop if _merge == 2
 drop _merge
 
-replace StateAbbrev = "MS"
-replace State = 28
-replace StateFips = 28
-
 ** Generating new variables
 
 replace State_leaid = "Missing/not reported" if DistName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
@@ -312,6 +298,62 @@ replace NCESSchoolID = "Missing/not reported" if SchName == "DUBARD SCHOOL FOR L
 
 replace DistName = strproper(DistName)
 replace SchName = strproper(SchName)
+
+** Merging with data request
+
+sort DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel StudentGroup StudentSubGroup
+quietly by DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel StudentGroup StudentSubGroup: gen dup = cond(_N==1,0,_n)
+drop if dup > 1
+drop dup
+
+local subject math ela sci
+local datalevel district school state
+
+foreach sub of local subject {
+	foreach lvl of local datalevel {
+		if (("`sub'" == "math") & ("`lvl'" == "district")) {
+			append using "${Request}/2022/`sub'performance/`lvl'cleaned.dta"
+		}
+		else {
+			append using "${Request}/2022/`sub'performance/`lvl'cleaned.dta"
+			merge 1:1 DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel StudentGroup StudentSubGroup using "${Request}/2022/`sub'participation/`lvl'cleaned.dta", update
+			drop if _merge == 2
+			drop _merge
+		}
+	}
+}
+
+local varlist SchName DistName NCESSchoolID NCESDistrictID seasch State_leaid DistType DistCharter CountyCode CountyName SchVirtual SchType
+
+foreach var of local varlist {
+	replace `var' = `var'[_n-1] if missing(`var') & StateAssignedSchID[_n] == StateAssignedSchID[_n-1]
+}
+foreach a of local level {
+	gen Lev`a'_count = "--"
+	replace Lev`a'_percent = "--" if Lev`a'_percent == ""
+}
+
+replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == ""
+replace AvgScaleScore = "--" if AvgScaleScore == ""
+replace SchYear = "2021-22"
+gen AssmtName = "MAAP"
+gen ProficiencyCriteria = "Levels 4-5"
+gen ParticipationRate = "--"
+replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == ""
+replace StateAbbrev = "MS"
+replace State = 28
+replace StateFips = 28
+
+gen StudentSubGroup_TotalTested2 = StudentSubGroup_TotalTested
+replace StudentSubGroup_TotalTested2 = "-1" if StudentSubGroup_TotalTested2 == "--"
+replace StudentSubGroup_TotalTested2 = "0" if StudentSubGroup_TotalTested2 == "*"
+destring StudentSubGroup_TotalTested2, replace force
+bysort DistName SchName StudentGroup GradeLevel Subject: egen test = min(StudentSubGroup_TotalTested2)
+bysort DistName SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested2) if test != 0 & test != -1
+tostring StudentGroup_TotalTested, replace force
+replace StudentGroup_TotalTested = "*" if test == 0
+replace StudentGroup_TotalTested = "--" if test == -1
+drop StudentSubGroup_TotalTested2 test
 
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
