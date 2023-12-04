@@ -333,6 +333,7 @@ foreach a of local level {
 	replace Lev`a'_percent = "--" if Lev`a'_percent == ""
 }
 
+replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == ""
 replace AvgScaleScore = "--" if AvgScaleScore == ""
 replace SchYear = "2021-22"
 gen AssmtName = "MAAP"
@@ -344,12 +345,14 @@ replace State = 28
 replace StateFips = 28
 
 gen StudentSubGroup_TotalTested2 = StudentSubGroup_TotalTested
+replace StudentSubGroup_TotalTested2 = "-1" if StudentSubGroup_TotalTested2 == "--"
+replace StudentSubGroup_TotalTested2 = "0" if StudentSubGroup_TotalTested2 == "*"
 destring StudentSubGroup_TotalTested2, replace force
-replace StudentSubGroup_TotalTested2 = 0 if StudentSubGroup_TotalTested2 == .
 bysort DistName SchName StudentGroup GradeLevel Subject: egen test = min(StudentSubGroup_TotalTested2)
-bysort DistName SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested2) if test != 0
+bysort DistName SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested2) if test != 0 & test != -1
 tostring StudentGroup_TotalTested, replace force
-replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
+replace StudentGroup_TotalTested = "*" if test == 0
+replace StudentGroup_TotalTested = "--" if test == -1
 drop StudentSubGroup_TotalTested2 test
 
 gen Flag_AssmtNameChange = "N"
