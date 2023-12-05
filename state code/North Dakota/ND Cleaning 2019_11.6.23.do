@@ -83,47 +83,11 @@ replace StudentGroup = "Gender" if StudentSubGroup == "Female" | StudentSubGroup
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged"
 replace StudentGroup = "EL Status" if StudentSubGroup == "English Learner" | StudentSubGroup == "English Proficient"
 
-//Proficiency Percents
-gen ProfLow = ProficientRangeLow + AdvancedRangeLow
-gen ProfHigh = ProficientRangeHigh + AdvancedRangeHigh
-replace ProfHigh = 1 if ProfHigh > 1
-
-tostring NoviceRangeLow, replace
-tostring NoviceRangeHigh, replace
-tostring PartiallyRangeLow, replace
-tostring PartiallyRangeHigh, replace
-tostring ProficientRangeLow, replace
-tostring ProficientRangeHigh, replace
-tostring AdvancedRangeLow, replace
-tostring AdvancedRangeHigh, replace
-tostring ProfLow, replace format("%6.0g") force
-tostring ProfHigh, replace format("%6.0g") force
-
-gen Lev1_percent = NoviceRangeLow + "-" + NoviceRangeHigh
-replace Lev1_percent = NoviceRangeLow if NoviceRangeLow == NoviceRangeHigh
-gen Lev2_percent = PartiallyRangeLow + "-" + PartiallyRangeHigh
-replace Lev2_percent = PartiallyRangeLow if PartiallyRangeLow == PartiallyRangeHigh
-gen Lev3_percent = ProficientRangeLow + "-" + ProficientRangeHigh
-replace Lev3_percent = ProficientRangeLow if ProficientRangeLow == ProficientRangeHigh
-gen Lev4_percent = AdvancedRangeLow + "-" + AdvancedRangeHigh
-replace Lev4_percent = AdvancedRangeLow if AdvancedRangeLow == AdvancedRangeHigh
-gen ProficientOrAbove_percent = ProfLow + "-" + ProfHigh
-replace ProficientOrAbove_percent = ProfLow if ProfLow == ProfHigh
-
-drop NoviceRangeLow NoviceRangeHigh PartiallyRangeLow PartiallyRangeHigh ProficientRangeLow ProficientRangeHigh AdvancedRangeLow AdvancedRangeHigh ProfLow ProfHigh
-
 //Fix Formatting & Generate Additional Variables
 replace SchYear = "2018-19"
 gen AssmtName = "North Dakota State Assessment (NDSA)"
-gen StudentGroup_TotalTested = "--"
-gen StudentSubGroup_TotalTested = "--"
-gen Lev1_count = "--"
-gen Lev2_count = "--"
-gen Lev3_count = "--"
-gen Lev4_count = "--"
 gen Lev5_count = ""
 gen Lev5_percent = ""
-gen ProficientOrAbove_count = "--"
 gen AvgScaleScore = "--"
 gen ProficiencyCriteria = "Levels 3-4"
 gen Flag_AssmtNameChange = "N"
@@ -186,6 +150,87 @@ replace SchType = 1 if SchName == "East Fairview Elementary School"
 replace SchLevel = 1 if SchName == "East Fairview Elementary School"
 replace SchVirtual = 0 if SchName == "East Fairview Elementary School"
 replace DistName = "Yellowstone 14" if SchName == "East Fairview Elementary School"
+
+//Student Counts
+gen SchName1 = SchName
+replace SchName = strupper(SchName)
+gen DistName1 = DistName
+replace DistName = strupper(DistName)
+merge 1:1 NCESDistrictID DistName NCESSchoolID SchName StudentSubGroup GradeLevel Subject using "$counts/ND_edfactscount2019.dta"
+drop if _merge == 2
+rename NUMVALID StudentSubGroup_TotalTested
+replace StudentSubGroup_TotalTested = "--" if _merge == 1
+replace SchName = SchName1
+replace DistName = DistName1
+drop SchName1 DistName1
+
+gen num = StudentSubGroup_TotalTested
+destring num, replace force
+gen dummy = num
+replace dummy = 0 if DataLevel != "District"
+bys StudentSubGroup Subject GradeLevel: egen state = total(dummy)
+replace num = state if DataLevel == "State" & state != 0
+replace dummy = state if DataLevel == "State" & state != 0
+tostring dummy, replace
+replace StudentSubGroup_TotalTested = dummy if DataLevel == "State" & num != .
+
+replace num = -1000000 if num == .
+bys SchName DistName StudentGroup Subject GradeLevel: egen StudentGroup_TotalTested = total(num)
+replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
+tostring StudentGroup_TotalTested, replace
+replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested == "."
+drop _merge STNAM FIPST DATE_CUR PCTPROF dummy state
+
+//Proficiency Levels
+gen ProfLow = ProficientRangeLow + AdvancedRangeLow
+gen ProfHigh = ProficientRangeHigh + AdvancedRangeHigh
+replace ProfHigh = 1 if ProfHigh > 1
+
+rename NoviceRangeLow Lev1_pctLow
+rename NoviceRangeHigh Lev1_pctHigh
+rename PartiallyRangeLow Lev2_pctLow
+rename PartiallyRangeHigh Lev2_pctHigh
+rename ProficientRangeLow Lev3_pctLow
+rename ProficientRangeHigh Lev3_pctHigh
+rename AdvancedRangeLow Lev4_pctLow
+rename AdvancedRangeHigh Lev4_pctHigh
+
+forvalues n = 1/4 {
+	gen Lev`n'_countLow = num * Lev`n'_pctLow
+	replace Lev`n'_countLow = round(Lev`n'_countLow)
+	gen Lev`n'_countHigh = num * Lev`n'_pctHigh
+	replace Lev`n'_countHigh = round(Lev`n'_countHigh)
+	replace Lev`n'_countLow = . if num < 0
+	replace Lev`n'_countHigh = . if num < 0
+}
+
+gen Prof_countLow = Lev3_countLow + Lev4_countLow
+gen Prof_countHigh = Lev3_countHigh + Lev4_countHigh
+
+forvalues n = 1/4 {
+	tostring Lev`n'_countLow, replace
+	tostring Lev`n'_countHigh, replace
+	tostring Lev`n'_pctLow, replace
+	tostring Lev`n'_pctHigh, replace
+	gen Lev`n'_count = Lev`n'_countLow + "-" + Lev`n'_countHigh
+	replace Lev`n'_count = Lev`n'_countLow if Lev`n'_countLow == Lev`n'_countHigh
+	replace Lev`n'_count = "--" if num < 0 
+	gen Lev`n'_percent = Lev`n'_pctLow + "-" + Lev`n'_pctHigh
+	replace Lev`n'_percent = Lev`n'_pctLow if Lev`n'_pctLow == Lev`n'_pctHigh
+	drop Lev`n'_countLow Lev`n'_countHigh Lev`n'_pctLow Lev`n'_pctHigh
+}
+
+tostring ProfLow, replace format("%6.0g") force
+tostring ProfHigh, replace format("%6.0g") force
+gen ProficientOrAbove_percent = ProfLow + "-" + ProfHigh
+replace ProficientOrAbove_percent = ProfLow if ProfLow == ProfHigh
+tostring Prof_countLow, replace
+tostring Prof_countHigh, replace
+gen ProficientOrAbove_count = Prof_countLow + "-" + Prof_countHigh
+replace ProficientOrAbove_count = Prof_countLow if Prof_countLow == Prof_countHigh
+replace ProficientOrAbove_count = "--" if num < 0
+
+drop ProfLow ProfHigh Prof_countLow Prof_countHigh num SCHOOL_YEAR ST_LEAID ST_SCHID
 
 //Label & Organize Variables
 label var State "State name"
