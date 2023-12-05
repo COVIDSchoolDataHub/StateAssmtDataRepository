@@ -634,6 +634,7 @@ foreach y in $years {
 	gen Flag_CutScoreChange_read = ""
 	gen Flag_CutScoreChange_oth = "N"
 	replace Flag_CutScoreChange_oth = "Y" if `y' == 2017
+	replace Flag_CutScoreChange_oth = "Y" if `y' == 2021
 	
 	** Generate Other Variables
 	
