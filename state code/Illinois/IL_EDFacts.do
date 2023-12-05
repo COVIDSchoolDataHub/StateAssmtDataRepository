@@ -223,8 +223,8 @@ foreach year of local edyears1 {
 }
 
 foreach year of local edyears1 {
-	use "${EDFacts}/20`year'/edfacts20`year'eladistrictillinois.dta"
-	append using "${EDFacts}/20`year'/edfacts20`year'mathdistrictillinois.dta" 
+	use "${EDFacts}/20`year'/edfacts20`year'elaschoolillinois.dta"
+	append using "${EDFacts}/20`year'/edfacts20`year'mathschoolillinois.dta" 
 	collapse (sum) StudentSubGroup_TotalTestedNEW, by(Subject GradeLevel StudentSubGroup)
 	gen DataLevel = "State"
 	save tmp.dta, replace
@@ -350,4 +350,26 @@ foreach year of local edyears1 {
 
 	save "${path}/EDFacts Output/IL_AssmtData_20`year'.dta", replace
 	export delimited using "${path}/EDFacts Output/IL_AssmtData_20`year'.csv", replace
+}
+
+forvalues year = 2015/2021 {
+	if `year' == 2020 continue
+import delimited "${path}/EDFacts Output/IL_AssmtData_`year'.csv", case(preserve) encoding(UTF-8)
+replace ParticipationRate = "--" if strpos(ParticipationRate, "n/a") !=0
+
+
+
+//Fixing Ranges
+replace ParticipationRate = subinstr(ParticipationRate, "≥", ">",.)
+replace ParticipationRate = subinstr(ParticipationRate, "≤" , "<",. )
+
+foreach var of varlist ParticipationRate {
+replace `var' = subinstr(`var',">","",.) + "-1" if strpos(`var', ">") !=0
+replace `var' = subinstr(`var', "<","0-",.) if strpos(`var', "<") !=0
+}
+
+
+save IL_AssmtData_`year', replace
+export delimited IL_AssmtData_`year', replace
+clear
 }
