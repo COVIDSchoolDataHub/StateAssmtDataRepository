@@ -54,8 +54,27 @@ save tmp.dta, replace
 import delimited "/Users/willtolmie/Documents/State Repository Research/Illinois/Output/IL_AssmtData_2022.csv", case(preserve) clear 
 merge m:1 DataLevel StateAssignedDistID StateAssignedSchID GradeLevel StudentGroup StudentSubGroup using tmp.dta
 drop if _merge == 2
+drop _merge
 replace StudentGroup_TotalTested = Enrollment if Enrollment != ""
 replace StudentSubGroup_TotalTested = Enrollment if Enrollment != ""
+
+save tmp.dta, replace
+keep if Data == "District"
+keep if StudentGroup == "All Students"
+replace StudentGroup_TotalTested = "5" if StudentGroup_TotalTested == "<10"
+destring StudentGroup_TotalTested, replace force
+collapse (sum) StudentGroup_TotalTested, by(GradeLevel)
+replace StudentGroup_TotalTested = round(StudentGroup_TotalTested)
+rename StudentGroup_TotalTested StudentGroup_TotalTestedState
+gen StudentGroup = "All Students"
+gen StudentSubGroup = "All Students"
+gen DataLevel = "State"
+save tmp2.dta, replace
+use tmp.dta
+merge m:1 DataLevel GradeLevel StudentGroup StudentSubGroup using tmp2.dta
+tostring StudentGroup_TotalTestedState, replace force
+replace StudentGroup_TotalTested = StudentGroup_TotalTestedState if StudentGroup_TotalTestedState != "."
+replace StudentSubGroup_TotalTested = StudentGroup_TotalTestedState if StudentGroup_TotalTestedState != "."
 
 ** Label Variables
 
@@ -185,8 +204,27 @@ save tmp.dta, replace
 import delimited "/Users/willtolmie/Documents/State Repository Research/Illinois/Output/IL_AssmtData_2023.csv", case(preserve) clear 
 merge m:1 DataLevel StateAssignedDistID StateAssignedSchID GradeLevel StudentGroup StudentSubGroup using tmp.dta
 drop if _merge == 2
+drop _merge
 replace StudentGroup_TotalTested = Enrollment if Enrollment != ""
 replace StudentSubGroup_TotalTested = Enrollment if Enrollment != ""
+
+save tmp.dta, replace
+keep if Data == "District"
+keep if StudentGroup == "All Students"
+replace StudentGroup_TotalTested = "5" if StudentGroup_TotalTested == "<10"
+destring StudentGroup_TotalTested, replace force
+collapse (sum) StudentGroup_TotalTested, by(GradeLevel)
+replace StudentGroup_TotalTested = round(StudentGroup_TotalTested)
+rename StudentGroup_TotalTested StudentGroup_TotalTestedState
+gen StudentGroup = "All Students"
+gen StudentSubGroup = "All Students"
+gen DataLevel = "State"
+save tmp2.dta, replace
+use tmp.dta
+merge m:1 DataLevel GradeLevel StudentGroup StudentSubGroup using tmp2.dta
+tostring StudentGroup_TotalTestedState, replace force
+replace StudentGroup_TotalTested = StudentGroup_TotalTestedState if StudentGroup_TotalTestedState != "."
+replace StudentSubGroup_TotalTested = StudentGroup_TotalTestedState if StudentGroup_TotalTestedState != "."
 
 ** Label Variables
 
