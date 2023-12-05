@@ -1,10 +1,10 @@
 clear
 set more off
 
-global output "/Users/maggie/Desktop/Washington/Output"
-global NCES "/Users/maggie/Desktop/Washington/NCES/Cleaned"
+global output "/Users/meghancornacchia/Desktop/DataRepository/Washington"
+global NCES "/Users/meghancornacchia/Desktop/DataRepository/Washington"
 
-cd "/Users/maggie/Desktop/Washington"
+cd "/Users/meghancornacchia/Desktop/DataRepository/Washington"
 
 use "${output}/WA_AssmtData_2021_all.dta", clear
 
@@ -39,7 +39,7 @@ rename PercentLevel4 Lev4_percent
 
 keep if AssmtName == "SBAC" | AssmtName == "WCAS"
 drop if DataLevel == "ESD"
-drop if (strpos(GradeLevel, "All") | strpos(GradeLevel, "12") | strpos(GradeLevel, "11") | strpos(GradeLevel, "9")) > 0
+drop if (strpos(GradeLevel, "All") | strpos(GradeLevel, "12") | strpos(GradeLevel, "11")) > 0
 drop if StudentGroup == "Foster" | StudentGroup == "homeless" | StudentGroup == "Migrant" | StudentGroup == "Military" | StudentGroup == "SWD" | StudentGroup == "s504"
 drop if SchName == "Chief Leschi Schools" | SchName == "Paschal Sherman" | SchName == "Wa He Lut Indian School" | SchName == "Lummi Nation School" | SchName == "Quileute Tribal School" | SchName == "Muckleshoot Tribal School"
 
@@ -62,6 +62,10 @@ replace CountyName = "" if DataLevel == 1
 replace Subject = "ela" if Subject == "ELA" 
 replace Subject = "math" if Subject == "Math"
 replace Subject = "sci" if Subject == "Science"
+
+destring GradeLevel, replace
+replace GradeLevel = GradeLevel - 1
+tostring GradeLevel, replace
 
 replace GradeLevel = "G0" + GradeLevel
 
@@ -173,4 +177,4 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${output}/WA_AssmtData_2021.dta", replace
 
-export delimited using "${output}/csv/WA_AssmtData_2021.csv", replace
+export delimited using "${output}/WA_AssmtData_2021.csv", replace
