@@ -4,6 +4,7 @@ local Original "/Volumes/T7/State Test Project/District of Columbia/Original Dat
 local Output "/Volumes/T7/State Test Project/District of Columbia/Output"
 local NCES "/Volumes/T7/State Test Project/NCES"
 
+/*
 //Importing
 tempfile temp1
 save "`temp1'", replace emptyok
@@ -39,7 +40,41 @@ import excel using "`Original'/DC_OriginalData_2023_State", sheet(Participation)
 replace LEACode = ""
 replace SchoolCode = ""
 append using "`temp1'"
+save "`temp1'", replace
+clear
+import excel using "`Original'/DC_OriginalData_2023_sci_State", sheet(Data) firstrow case(preserve)
+replace LEACode = ""
+replace SchoolCode = ""
+append using "`temp1'"
+save "`temp1'", replace
+clear
+import excel using "`Original'/DC_OriginalData_2023_sci_State", sheet(Participation) firstrow case(preserve)
+replace LEACode = ""
+replace SchoolCode = ""
+append using "`temp1'"
+save "`temp1'", replace
+clear
+import excel using "`Original'/DC_OriginalData_2023_sci_Dist", sheet(Data) firstrow case(preserve)
+replace AggregationLevel = "District"
+append using "`temp1'"
+save "`temp1'", replace
+clear
+import excel using "`Original'/DC_OriginalData_2023_sci_Dist", sheet(Participation) firstrow case(preserve)
+replace AggregationLevel = "District"
+append using "`temp1'"
+save "`temp1'", replace
+clear
+import excel "`Original'/DC_OriginalData_2023_sci_Sch", sheet(Data) firstrow case(preserve)
+append using "`temp1'"
+save "`temp1'", replace
+clear
+import excel "`Original'/DC_OriginalData_2023_sci_Sch", sheet(Participation) firstrow case(preserve)
+append using "`temp1'"
+
 save "`Original'/2023", replace
+*/
+
+use "`Original'/2023"
 
 //Standardizing Varnames
 replace TestedGradeSubject = GradeofEnrollment if Metric == "Participation"
@@ -53,7 +88,7 @@ drop GradeofEnrollment
 keep if AssmtName == "PARCC" | AssmtName == "DC Science"
 rename LEAName DistName
 rename SchoolName SchName
-keep if SchoolFramework == "All"
+keep if SchoolFramework == "All" | missing(SchoolFramework)
 drop SchoolFramework
 
 //GradeLevel
@@ -73,7 +108,7 @@ reshape wide Count Percent TotalCount, i(DataLevel Subject StateAssignedDistID S
 gen StudentSubGroup_TotalTested = ""
 drop TotalCountParticipation
 foreach n in 1 2 3 4 5 {
-	replace StudentSubGroup_TotalTested = TotalCount`n' if TotalCount`n' != "DS" & TotalCount`n' != "n<10"
+	replace StudentSubGroup_TotalTested = TotalCount`n' if TotalCount`n' != "DS" & TotalCount`n' != "n<10" & !missing(TotalCount`n')
 }
 forvalues n = 1/5 {
 	drop TotalCount`n'
@@ -100,6 +135,7 @@ replace SchName = "All Schools" if DataLevel ==1 | DataLevel ==2
 
 //StudentSubGroup
 replace StudentSubGroup = subinstr(StudentSubGroup, "/", " or ",.)
+replace StudentSubGroup = "All Students" if StudentSubGroup == "All"
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "EL Active or Monitored 1-2 yr"
 replace StudentSubGroup = "English Proficient" if StudentSubGroup == "Not EL Active or Monitored 1-2 yr"
 replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Econ Dis"
@@ -140,13 +176,23 @@ foreach n in 1 2 3 4 5 {
 //Subject
 replace Subject = "math" if strpos(Subject, "Math") !=0
 replace Subject = "ela" if strpos(Subject, "ELA") !=0
+replace Subject = "sci" if strpos(Subject, "Science") !=0
 
 //StudentGroup_TotalTested
+
+foreach n in 1 2 3 4 5 {
+	destring Lev`n'_count, gen(nLev`n'_count) i(*-)
+}
+
+replace StudentSubGroup_TotalTested = string(nLev1_count + nLev2_count + nLev3_count + nLev4_count + nLev5_count) if !missing(nLev1_count) & !missing(nLev2_count) & !missing(nLev3_count) & !missing(nLev4_count) & !missing(nLev5_count) & StudentSubGroup_TotalTested != "*"
+
 destring StudentSubGroup_TotalTested, gen(nStudentSubGroup_TotalTested) i(*-)
 sort StudentGroup
 egen StudentGroup_TotalTested = total(nStudentSubGroup_TotalTested), by(StudentGroup GradeLevel Subject DataLevel SchName DistName)
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "0"
+
+
 
 //Merging with NCES
 replace StateAssignedDistID = "" if DataLevel ==1
@@ -227,9 +273,6 @@ gen AssmtType = "Regular"
 gen SchYear = "2022-23"
 
 //ProficientOrAbove_count and Percent
-foreach n in 1 2 3 4 5 {
-	destring Lev`n'_count, gen(nLev`n'_count) i(-*)
-}
 gen ProficientOrAbove_percent = string((nLev4_percent + nLev5_percent)/100, "%9.4g") if Subject != "sci"
 replace ProficientOrAbove_percent = "*" if (Lev4_percent == "*" | Lev5_percent == "*") & Subject != "sci"
 gen ProficientOrAbove_count = string(nLev4_count + nLev5_count, "%9.4g") if Subject != "sci"
