@@ -108,9 +108,6 @@ program filesave10
 
 end
 
-filesave10 "2017" "AP342" "AP342" "xlsx" "A7" "A7" "J O T Y AD AI AJ AK AL AM AN AO AP" "Reading" "Math"
-filesave10 "2016" "AP342" "AP343" "xls" "A5" "A6" "J O T Y AD AI AJ AK AL AM AN AO AP" "Reading" "Math"
-filesave10 "2015" "AP347" "AP347" "xls" "A7" "A7" "J O T Y AD AI AJ AK AL AM AN AO AP" "Reading" "Math"
 filesave10 "2014" "AR349" "AR349" "xlsx" "A3" "A3" "J O T Y AD AI AJ AK AL AM AN AO AP AQ AR" "reading" "math"
 
 
@@ -281,10 +278,6 @@ export delimited using "${output}/IA_AssmtData_`1'.csv", replace
 end
 
 
-fileclean6 "2017" "2016" "2016-17"
-fileclean6 "2016" "2016" "2015-16"
-fileclean6 "2015" "2015" "2014-15"
-
 use "${int}/IA_AssmtData_district_2014.dta", clear
 replace District=Dist if District==.
 drop Dist 
@@ -293,51 +286,6 @@ drop District
 rename District1 District
 save "${int}/IA_AssmtData_district_2014.dta", replace
 fileclean6 "2014" "2014" "2013-14"
-
-* 2017 State issue
-use "${output}/IA_AssmtData_all_2017.dta", clear
-replace DataLevel=1 if DistName=="Total"
-
-replace DistName="All Districts" if DataLevel==1
-replace SchName="All Districts" if DataLevel==1
-
-replace SchName="All Schools" if DataLevel==2 | DataLevel==1
-
-foreach i of varlist NCESDistrictID State_leaid CountyName DistCharter {
-	tostring `i', replace 
-	replace `i'="" if DataLevel==1
-}
-
-foreach i of varlist DistType SchType SchLevel SchVirtual CountyCode  {
-	replace `i'=. if DataLevel==1 
-}
-
-save "${output}/IA_AssmtData_all_2017.dta", replace
-
-export delimited using "${output}/IA_AssmtData_2017.csv", replace
-
-
-* 2016 State issue
-use "${output}/IA_AssmtData_all_2016.dta", clear
-replace DataLevel=1 if strpos(DistName, "Total")>0
-
-replace DistName="All Districts" if DataLevel==1
-replace SchName="All Districts" if DataLevel==1
-
-replace SchName="All Schools" if DataLevel==2 | DataLevel==1
-
-foreach i of varlist NCESDistrictID State_leaid CountyName DistCharter {
-	tostring `i', replace 
-	replace `i'="" if DataLevel==1
-}
-
-foreach i of varlist DistType SchType SchLevel SchVirtual CountyCode  {
-	replace `i'=. if DataLevel==1 
-}
-
-save "${output}/IA_AssmtData_all_2016.dta", replace
-
-export delimited using "${output}/IA_AssmtData_2016.csv", replace
 
 /////////////////////////////////////////
 *** 2008-2013 (Data Saving) ***
@@ -1342,7 +1290,7 @@ save "${output}/IA_AssmtData_all_`1'.dta", replace
 export delimited using "${output}/IA_AssmtData_`1'.csv", replace
 end
 
-cleaner5 "2005" "2004" "2004-05" "Small Cell Size"
+* cleaner5 "2005" "2004" "2004-05" "Small Cell Size"
 cleaner5 "2004" "2003" "2003-04" "Small Cell Size"
 cleaner4 "2003" "2002" "2002-03" "Small Cell Size"
 
@@ -1366,7 +1314,7 @@ export delimited using "${output}/IA_AssmtData_2012.csv", replace
 *** Assessment name change for 2012-2018 ***
 /////////////////////////////////////////
 
-global years 2012 2013 2014 2015 2016 2017 2018
+global years 2012 2013 2014
 
 foreach a in $years {
 	
