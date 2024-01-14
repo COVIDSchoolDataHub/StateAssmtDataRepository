@@ -7,7 +7,7 @@ local nces_school "/Volumes/T7/State Test Project/NCES/School"
 local nces_district "/Volumes/T7/State Test Project/NCES/District"
 
 //ELA
-import delimited "`original'/ELA2021.txt", clear stringcols(2)
+import delimited "`original'/NY_OriginalData_ela_2021.txt", clear stringcols(2)
 drop v1
 rename v2 v1
 rename v3 ENTITY_NAME
@@ -35,7 +35,7 @@ tempfile temp1
 save "`temp1'"
 
 //MATH
-import delimited "`original'/MATH2021.txt", clear stringcols(2)
+import delimited "`original'/NY_OriginalData_mat_2021.txt", clear stringcols(2)
 drop v1
 rename v2 v1
 rename v3 ENTITY_NAME
@@ -70,7 +70,7 @@ tempfile temp2
 save "`temp2'"
 
 //SCIENCE
-import delimited "`original'/SCIENCE2021.txt", clear stringcols(2)
+import delimited "`original'/NY_OriginalData_sci_2021.txt", clear stringcols(2)
 drop v1
 rename v2 v1
 rename v3 ENTITY_NAME
@@ -235,6 +235,7 @@ replace StudentGroup = "EL Status" if StudentSubGroup == "English Proficient" | 
 *tab StudentGroup, missing
 
 //StudentGroup_TotalTested
+duplicates drop
 destring StudentSubGroup_TotalTested, replace
 egen StudentGroup_TotalTested = total(StudentSubGroup_TotalTested), by(StudentGroup GradeLevel Subject DataLevel StateAssignedSchID StateAssignedDistID)
 

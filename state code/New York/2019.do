@@ -9,7 +9,7 @@ local nces_district "/Volumes/T7/State Test Project/NCES/District"
 //Standardizing varnames and combining
 
 //ELA *CROSSWALK IN README IS WRONG*
-import delimited "`original'/ELA2019.txt", clear stringcols(1)
+import delimited "`original'/NY_OriginalData_ela_2019.txt", clear stringcols(1)
 rename v2 ENTITY_NAME
 rename v3 YEAR
 rename v4 ASSESSMENT
@@ -35,7 +35,7 @@ save "`temp1'"
 
 //MATH
 
-import delimited "`original'/MATH2019.txt", clear stringcols(1)
+import delimited "`original'/NY_OriginalData_mat_2019.txt", clear stringcols(1)
 rename v2 ENTITY_NAME
 rename v3 YEAR
 rename v4 ASSESSMENT
@@ -63,7 +63,7 @@ save "`temp2'"
 
 //SCI *CROSSWALK IN README IS WRONG*
 
-import delimited "`original'/SCIENCE2019.txt", clear stringcols(1)
+import delimited "`original'/NY_OriginalData_sci_2019.txt", clear stringcols(1)
 
 rename v2 ENTITY_NAME
 rename v3 YEAR
@@ -84,7 +84,6 @@ rename v17 PER_PROF
 rename v18 TOTAL_SCALE_SCORES
 rename v19 AvgScaleScore
 gen subject = "SCIENCE"
-
 tempfile temp3
 save "`temp3'"
 
@@ -222,6 +221,7 @@ replace StudentGroup = "EL Status" if StudentSubGroup == "English Proficient" | 
 *tab StudentGroup, missing
 
 //StudentGroup_TotalTested
+duplicates drop
 destring StudentSubGroup_TotalTested, replace
 egen StudentGroup_TotalTested = total(StudentSubGroup_TotalTested), by(StudentGroup GradeLevel Subject DataLevel StateAssignedSchID StateAssignedDistID)
 
@@ -268,7 +268,6 @@ replace StateAssignedDistID = StateAssignedSchID if DistCharter == "Yes" | strpo
 
 order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
-duplicates drop State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentSubGroup, force
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "`output'/NY_AssmtData_2019", replace

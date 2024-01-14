@@ -7,7 +7,7 @@ local nces_school "/Volumes/T7/State Test Project/NCES/School"
 local nces_district "/Volumes/T7/State Test Project/NCES/District"
 
 
-foreach year in 2006 2007 2008 2009 2010 2011 2012 2013 2014 2015 2016 2017 {
+foreach year in 2006/2017 {
 local prevyear =`=`year'-1'
 use "`original'/Combined_`year'"
 
@@ -278,8 +278,9 @@ if `year'== 2016 replace SchType = "Regular school" if SchName == "UNION SPRINGS
 if `year'== 2016 replace NCESSchoolID = "362925006575" if SchName == "UNION SPRINGS MIDDLE SCHOOL"
 if `year'== 2016 replace seasch = StateAssignedSchID if SchName == "UNION SPRINGS MIDDLE SCHOOL"
 if `year'== 2016 replace SchLevel = "Middle" if SchName == "UNION SPRINGS MIDDLE SCHOOL"
-if `year'== 2016 replace SchVirtual = "No" if SchName == "UNION SPRINGS MIDDLE SCHOOL"
+if `year'== 2016 replace SchVirtual = 0 if SchName == "UNION SPRINGS MIDDLE SCHOOL"
 
+replace Subject = "math" if Subject == "mat"
 //Final Sorting and dropping extra variables
 
 order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth

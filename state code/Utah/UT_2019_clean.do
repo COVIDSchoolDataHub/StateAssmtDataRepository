@@ -8,6 +8,8 @@ global int "/Users/minnamgung/Desktop/SADR/Utah/Intermediate"
 global nces "/Users/minnamgung/Desktop/SADR/NCES"
 global utah "/Users/minnamgung/Desktop/SADR/Utah/NCES"
 
+global edfacts "/Users/minnamgung/Desktop/EdFacts/Output"
+
 
 *** UT School ***
 
@@ -536,6 +538,34 @@ replace SchVirtual="Missing/not reported" if missing(SchVirtual) & DataLevel=="S
 
 * replace State_leaid="37131" if strpos(SchName, "East Ridge")>0
 * replace State_leaid="UT-3J-3J100" if strpos(SchName, "Mountain View Montessori")>0
+
+save "${output}/UT_AssmtData_2019.dta", replace
+
+use "${output}/UT_AssmtData_2019.dta", clear
+
+//////////////////////////////////////////
+********* EdFacts ***********
+//////////////////////////////////////////
+
+drop _merge
+
+merge m:1 NCESSchoolID Subject GradeLevel StudentSubGroup DataLevel using "${edfacts}/UT_edfact_2019_school.dta", update replace
+
+drop if _merge==2
+
+drop _merge
+
+merge m:1 NCESDistrictID Subject GradeLevel StudentSubGroup DataLevel using "${edfacts}/UT_edfact_2019_district.dta", update replace
+
+drop if _merge==2
+
+drop _merge
+
+merge m:1 Subject GradeLevel StudentSubGroup DataLevel using "${edfacts}/UT_edfact_2019_state.dta", update replace
+
+drop if _merge==2
+
+replace StudentSubGroup_TotalTested="--" if StudentSubGroup_TotalTested==""
 
 //////////////////////////////////////////
 ********* Sorting ***********
