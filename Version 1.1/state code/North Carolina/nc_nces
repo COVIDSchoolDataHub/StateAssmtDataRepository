@@ -1,0 +1,91 @@
+cap log close
+log using nc_nces_cleaning.log, replace
+
+
+
+cd "/Users/benjaminm/Documents/State_Repository_Research/North_Carolina"
+
+//use NCES_2016_School.dta, clear
+// use NCES_2015_School.dta, clear
+
+
+
+// match schools by district and ID
+global years 2013 2014 2015 2016 2017 2018 2019 2020 2021
+
+foreach a in $years {
+	
+	use "NCES_`a'_School.dta", clear
+	keep if state_fips == 37
+	
+	rename state_name State
+	rename state_location StateAbbrev
+	rename state_fips StateFips
+	rename ncesdistrictid NCESDistrictID
+	rename state_leaid State_leaid
+	rename district_agency_type DistType
+	// rename charter Charter
+	rename county_name CountyName
+	rename county_code CountyCode
+	rename ncesschoolid NCESSchoolID
+	rename school_type SchType
+	rename lea_name DistName1
+	// rename virtual Virtual  // Might not work for 2021
+	//rename school_level SchLevel
+
+	if `a' == 2016 | `a' == 2017 | `a' == 2018 | `a' == 2019 | `a' == 2020 | `a' == 2021 {
+
+	
+	replace seasch = substr(seasch, 5, .)
+	
+	replace State_leaid = subinstr(State_leaid, "NC-", "", .)
+	
+	
+	
+	}
+	
+
+	
+keep State StateAbbrev StateFips SchType NCESDistrictID NCESSchoolID State_leaid seasch DistCharter SchLevel SchVirtual CountyName CountyCode DistName1 
+order State StateAbbrev StateFips SchType NCESDistrictID NCESSchoolID State_leaid seasch DistCharter SchLevel SchVirtual CountyName CountyCode DistName1 
+
+	
+save "NCES_`a'_School_NC.dta", replace
+
+keep State_leaid DistName1
+duplicates drop State_leaid, force
+
+save "nc_district_IDs_`a'", replace
+
+
+use NCES_2021_District.dta, clear
+	
+	use "NCES_`a'_District.dta", clear 
+	keep if state_fips == 37
+	
+	rename state_name State
+	rename state_location StateAbbrev
+	rename state_fips StateFips
+	rename ncesdistrictid NCESDistrictID
+	rename state_leaid State_leaid
+	rename district_agency_type DistType
+	rename county_name CountyName
+	rename county_code CountyCode
+	
+	replace State_leaid = subinstr(State_leaid, "NC-", "", .)
+
+	
+keep State StateAbbrev StateFips DistType NCESDistrictID State_leaid DistCharter CountyName CountyCode
+order State StateAbbrev StateFips DistType NCESDistrictID State_leaid DistCharter CountyName CountyCode
+
+
+
+	
+save "NCES_`a'_District_NC.dta", replace
+	
+}
+
+use NCES_2014_School_NC, clear
+duplicates drop State_leaid seasch, force
+
+save NCES_2014_School_NC, replace
