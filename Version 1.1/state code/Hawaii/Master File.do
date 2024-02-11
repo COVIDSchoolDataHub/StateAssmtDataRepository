@@ -4,7 +4,7 @@ cd "/Volumes/T7/State Test Project/Hawaii"
 local cleaned "/Volumes/T7/State Test Project/Hawaii/Cleaned Data"
 local NCES "/Volumes/T7/State Test Project/NCES/District"
 local Original "/Volumes/T7/State Test Project/Hawaii/Original Data"
-local dofiles Hawaii2013_2014.do hawaii2015-2019_2021-2022.do HI_2023.do
+local dofiles hawaii2015-2019_2021-2022.do HI_2023.do
 foreach file of local dofiles {
 	do `file'
 }
@@ -142,8 +142,9 @@ replace StudentSubGroup = "English Learner" if strpos(StudentSubGroup, "English"
 replace StudentSubGroup = "Native Hawaiian" if strpos(StudentSubGroup, "Hawaiian") !=0 
 replace StudentSubGroup = "Pacific Islander" if strpos(StudentSubGroup, "Pacific") !=0
 replace StudentSubGroup = "Filipino" if strpos(StudentSubGroup, "Filipino") !=0
+replace StudentSubGroup = "SWD" if strpos(StudentSubGroup, "SPED") !=0
 }
-keep if StudentSubGroup == "All Students" | StudentSubGroup == "American Indian or Alaska Native" | StudentSubGroup == "Asian" | StudentSubGroup == "Black or African American" | StudentSubGroup == "Native Hawaiian or Pacific Islander" | StudentSubGroup == "White" | StudentSubGroup == "Hispanic or Latino" | StudentSubGroup == "English Learner" | StudentSubGroup == "English Proficient" | StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged" | StudentSubGroup == "Male" | StudentSubGroup == "Female" | StudentSubGroup == "Two or More" | StudentSubGroup == "Native Hawaiian" | StudentSubGroup == "Pacific Islander" | StudentSubGroup == "Filipino"
+keep if StudentSubGroup == "All Students" | StudentSubGroup == "American Indian or Alaska Native" | StudentSubGroup == "Asian" | StudentSubGroup == "Black or African American" | StudentSubGroup == "Native Hawaiian or Pacific Islander" | StudentSubGroup == "White" | StudentSubGroup == "Hispanic or Latino" | StudentSubGroup == "English Learner" | StudentSubGroup == "English Proficient" | StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged" | StudentSubGroup == "Male" | StudentSubGroup == "Female" | StudentSubGroup == "Two or More" | StudentSubGroup == "Native Hawaiian" | StudentSubGroup == "Pacific Islander" | StudentSubGroup == "Filipino" | StudentSubGroup == "SWD" | StudentSubGroup == "Non-SWD" | StudentSubGroup == "Migrant" | StudentSubGroup == "Non-Migrant"
 
 //Student Group
 gen StudentGroup = ""
@@ -152,6 +153,8 @@ replace StudentGroup = "RaceEth" if StudentSubGroup == "American Indian or Alask
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged"
 replace StudentGroup = "Gender" if StudentSubGroup == "Male" | StudentSubGroup == "Female"
 replace StudentGroup = "EL Status" if StudentSubGroup == "English Proficient" | StudentSubGroup == "English Learner"
+replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD" | StudentSubGroup == "Non-SWD"
+replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant" | StudentSubGroup == "Non-Migrant"
 di upper("`year'")
 //reshaping
 if `year' == 2021 | `year' == 2022 {
@@ -205,6 +208,22 @@ replace AssmtName = "Hawaii State Assessment - NGSS" if Subject == "sci" & `year
 replace Flag_CutScoreChange_oth = "Y" if `year'==2021
 replace Flag_AssmtNameChange = "Y" if `year' == 2021 & Subject == "sci"
 
+//NEW S2024 CHANGES:
+gen Flag_CutScoreChange_sci = Flag_CutScoreChange_oth
+replace Flag_CutScoreChange_sci = "N"
+replace Flag_CutScoreChange_sci = "Y" if `year' == 2015 | `year' == 2021
+gen Flag_CutScoreChange_soc = ""
+replace ProficiencyCriteria = "Levels 3-4"
+
+* Deriving ProficientOrAbove_count where missing
+destring ProficientOrAbove_percent, gen(nnProficientOrAbove_percent) i(*-)
+destring StudentSubGroup_TotalTested, gen(nnStudentSubGroup_TotalTested) i(*-)
+replace ProficientOrAbove_count = string(round(nnProficientOrAbove_percent * nnStudentSubGroup_TotalTested,1), "%9.3g") if ProficientOrAbove_count == "--" & ProficientOrAbove_percent != "*" & ProficientOrAbove_percent != "--" & StudentSubGroup_TotalTested != "*" & StudentSubGroup_TotalTested != "--"
+
+*Standardizing ProficientOrAbove_percent decimal
+replace ProficientOrAbove_percent = string(nnProficientOrAbove_percent, "%9.3g") if ProficientOrAbove_percent != "*" & ProficientOrAbove_percent != "--"
+
+
 //Final cleaning
 drop if missing(SchName) // No data for certain schools
 replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == "." | missing(ProficientOrAbove_percent)
@@ -212,8 +231,8 @@ replace ParticipationRate = "--" if ParticipationRate == "."
 drop if missing(DataLevel)
 drop if missing(GradeLevel)
 replace State_leaid = "" if DataLevel ==1
-order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
-keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter SchType SchLevel SchVirtual CountyName CountyCode
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter SchType SchLevel SchVirtual CountyName CountyCode  
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "`cleaned'/HI_AssmtData_`year'.dta", replace
@@ -221,3 +240,5 @@ export delimited "`cleaned'/HI_AssmtData_`year'.csv", replace
 clear
 }
 
+//EDFACTS StudentSubGroup & ParticipationRate
+do HI_EDFACTS.do
