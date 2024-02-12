@@ -13,21 +13,21 @@ set trace off
 
 //CSV Code: 2015-2022
 foreach year in 2015 2016 2017 2018 2019 2021 2022 {
-	import delimited "`Original'/AL_OriginalData_`year'", case(preserve)
+	import delimited "`Original'/AL_OriginalData_counts_`year'", case(preserve)
 	if `year' == 2022 {
 		gen Year = 2022
 	}
 	save "`Original'/AL_OriginalData_`year'", replace
 	clear
 
-	import delimited "`Original'/AL_OriginalLevels_`year'", case(preserve)
+	import delimited "`Original'/AL_OriginalData_percents_`year'", case(preserve)
 	foreach n in 1 2 3 4 {
 		rename Level`n' Lev`n'_percent
 	}
-	save "`Original'/AL_OriginalLevels_`year'", replace
+	save "`Original'/AL_OriginalData_percents_`year'", replace
 	clear
-	use "`Original'/AL_OriginalData_`year'"
-	merge 1:1 SystemCode SchoolCode Subject Grade Gender Race Ethnicity SubPopulation using "`Original'/AL_OriginalLevels_`year'", nogen
+	use "`Original'/AL_OriginalData_counts_`year'"
+	merge 1:1 SystemCode SchoolCode Subject Grade Gender Race Ethnicity SubPopulation using "`Original'/AL_OriginalData_percents_`year'", nogen
 	save "`Original'/AL_OriginalData_`year'",replace
 	clear
 }
