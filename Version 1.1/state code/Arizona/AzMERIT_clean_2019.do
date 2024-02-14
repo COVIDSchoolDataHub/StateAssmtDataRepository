@@ -64,7 +64,7 @@ replace GradeLevel = "G05" if strpos(GradeLevel, "Grade 5")>0
 replace GradeLevel = "G06" if strpos(GradeLevel, "Grade 6")>0
 replace GradeLevel = "G07" if strpos(GradeLevel, "Grade 7")>0
 
-replace GradeLevel = "G08" if strpos(GradeLevel, "Grade 8 Enrolled All Math Assessment")>0
+replace GradeLevel = "G08" if strpos(GradeLevel, "Grade 8 Enrolled Grade 8 Assessment")>0
 replace GradeLevel = "G08" if GradeLevel=="Grade 8"
 
 keep if inlist(GradeLevel, "G03", "G04", "G05", "G06", "G07", "G08")
@@ -166,7 +166,7 @@ replace GradeLevel = "G05" if strpos(GradeLevel, "Grade 5")>0
 replace GradeLevel = "G06" if strpos(GradeLevel, "Grade 6")>0
 replace GradeLevel = "G07" if strpos(GradeLevel, "Grade 7")>0
 
-replace GradeLevel = "G08" if strpos(GradeLevel, "Grade 8 Enrolled All Math Assessment")>0
+replace GradeLevel = "G08" if strpos(GradeLevel, "Grade 8 Enrolled Grade 8 Assessment")>0
 replace GradeLevel = "G08" if GradeLevel=="Grade 8"
 
 keep if inlist(GradeLevel, "G03", "G04", "G05", "G06", "G07", "G08", "G38")
@@ -248,7 +248,7 @@ replace GradeLevel = "G05" if strpos(GradeLevel, "Grade 5")>0
 replace GradeLevel = "G06" if strpos(GradeLevel, "Grade 6")>0
 replace GradeLevel = "G07" if strpos(GradeLevel, "Grade 7")>0
 
-replace GradeLevel = "G08" if strpos(GradeLevel, "Grade 8 Enrolled All Math Assessment")>0
+replace GradeLevel = "G08" if strpos(GradeLevel, "Grade 8 Enrolled Grade 8 Assessment")>0
 replace GradeLevel = "G08" if GradeLevel=="Grade 8"
 
 keep if inlist(GradeLevel, "G03", "G04", "G05", "G06", "G07", "G08", "G38")
@@ -323,16 +323,16 @@ save "${output}/AZ_AssmtData_2019.dta", replace
 ** Generating missing variables
 gen AssmtName="AzMERIT"
 gen Flag_AssmtNameChange="N"
-gen AssmtType="Regular"
+gen AssmtType="Regular and alt"
 
 gen Flag_CutScoreChange_ELA="N"
 gen Flag_CutScoreChange_math="N"
-gen Flag_CutScoreChange_read=""
-gen Flag_CutScoreChange_oth="N"
+gen Flag_CutScoreChange_soc=""
+gen Flag_CutScoreChange_sci = "N"
 
 gen Lev5_percent=""
 
-gen ProficiencyCriteria="Levels 3 and 4"
+gen ProficiencyCriteria="Levels 3-4"
 gen ProficientOrAbove_count="--"
 gen ParticipationRate="--"
 
@@ -387,6 +387,10 @@ replace StudentGroup="RaceEth" if inlist(StudentSubGroup, "American Indian/Alask
 replace StudentGroup="EL Status" if inlist(StudentSubGroup, "English Learner")
 replace StudentGroup="Economic Status" if inlist(StudentSubGroup, "Income Eligibility 1 and 2")
 replace StudentGroup="Gender" if inlist(StudentSubGroup, "Male", "Female")
+replace StudentGroup="Disability Status" if StudentSubGroup == "Students with Disabilities"
+replace StudentGroup="Migrant Status" if StudentSubGroup == "Migrant"
+replace StudentGroup="Homeless Enrolled Status" if StudentSubGroup == "Homeless"
+replace StudentGroup="Military Connected Status" if StudentSubGroup == "Military"
 drop if StudentGroup == "" & StudentSubGroup != ""
 
 replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "American Indian/Alaska Native"
@@ -395,6 +399,7 @@ replace StudentSubGroup = "Two or More" if StudentSubGroup == "Multiple Races" |
 replace StudentSubGroup = "Black or African American" if StudentSubGroup == "Black/African American" | StudentSubGroup == "African American"
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic/Latino"
 replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Income Eligibility 1 and 2"
+replace StudentSubGroup = "SWD" if StudentSubGroup == "Students with Disabilities"
 
 gen StudentSubGroup_TotalTested2 = StudentSubGroup_TotalTested
 destring StudentSubGroup_TotalTested2, replace force
@@ -408,7 +413,7 @@ drop StudentSubGroup_TotalTested2 test
 replace Subject="ela" if Subject=="English Language Arts"
 replace Subject="math" if Subject=="Mathematics"
 replace Subject="sci" if Subject=="Science"
-replace AssmtName = "AIMS Science" if Subject=="sci"
+replace AssmtName = "AIMS Science and AIMS A" if Subject=="sci"
 
 //sort
 label def DataLevel 1 "State" 2 "District" 3 "School"
@@ -419,11 +424,10 @@ rename DataLevel_n DataLevel
 replace SchVirtual = "Missing/not reported" if SchVirtual == "" & DataLevel == 3
 replace SchLevel = "Missing/not reported" if SchLevel == "" & DataLevel == 3
 
-	
 //order
-keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter SchType SchLevel SchVirtual CountyName CountyCode
 
-order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter SchType SchLevel SchVirtual CountyName CountyCode
 
 save "${output}/AZ_AssmtData_2019.dta", replace
 export delimited using "${output}/csv/AZ_AssmtData_2019.csv", replace

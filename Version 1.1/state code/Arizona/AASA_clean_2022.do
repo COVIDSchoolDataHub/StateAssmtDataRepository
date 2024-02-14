@@ -323,12 +323,12 @@ gen AvgScaleScore = "--"
 
 gen Flag_CutScoreChange_ELA="N"
 gen Flag_CutScoreChange_math="N"
-gen Flag_CutScoreChange_read=""
-gen Flag_CutScoreChange_oth="Y"
+gen Flag_CutScoreChange_soc=""
+gen Flag_CutScoreChange_sci = "Y"
 
 gen Lev5_percent=""
 
-gen ProficiencyCriteria="Levels 3 and 4"
+gen ProficiencyCriteria="Levels 3-4"
 gen ProficientOrAbove_count="--"
 gen ParticipationRate="--"
 
@@ -382,6 +382,11 @@ replace StudentGroup="RaceEth" if inlist(StudentSubGroup, "American Indian/Alask
 replace StudentGroup="Economic Status" if inlist(StudentSubGroup, "Income Eligibility 1 and 2")
 replace StudentGroup = "EL Status" if StudentSubGroup == "Limited English Proficient"
 replace StudentGroup="Gender" if inlist(StudentSubGroup, "Male", "Female")
+replace StudentGroup="Disability Status" if StudentSubGroup == "Students with Disabilities"
+replace StudentGroup="Migrant Status" if StudentSubGroup == "Migrant"
+replace StudentGroup="Homeless Enrolled Status" if StudentSubGroup == "Homeless"
+replace StudentGroup="Military Connected Status" if StudentSubGroup == "Military"
+replace StudentGroup="Foster Care Status" if StudentSubGroup == "Foster Care"
 drop if StudentGroup == "" & StudentSubGroup != ""
 
 replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "American Indian/Alaska Native"
@@ -391,6 +396,7 @@ replace StudentSubGroup = "Black or African American" if StudentSubGroup == "Afr
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic/Latino"
 replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Income Eligibility 1 and 2"
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "Limited English Proficient"
+replace StudentSubGroup = "SWD" if StudentSubGroup == "Students with Disabilities"
 
 gen StudentSubGroup_TotalTested2 = StudentSubGroup_TotalTested
 destring StudentSubGroup_TotalTested2, replace force
@@ -415,9 +421,9 @@ replace SchLevel = "Missing/not reported" if SchLevel == "" & DataLevel == 3
 
 	
 //order
-keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter SchType SchLevel SchVirtual CountyName CountyCode
 
-order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter SchType SchLevel SchVirtual CountyName CountyCode
 
 save "${output}/AZ_AssmtData_2022.dta", replace
 export delimited using "${output}/csv/AZ_AssmtData_2022.csv", replace

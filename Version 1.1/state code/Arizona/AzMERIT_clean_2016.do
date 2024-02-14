@@ -309,16 +309,16 @@ save "${output}/AZ_AssmtData_2016.dta", replace
 ** Generating missing variables
 gen AssmtName="AzMERIT"
 gen Flag_AssmtNameChange="N"
-gen AssmtType="Regular"
+gen AssmtType="Regular and alt"
 
 gen Flag_CutScoreChange_ELA="N"
 gen Flag_CutScoreChange_math="N"
-gen Flag_CutScoreChange_read=""
-gen Flag_CutScoreChange_oth="N"
+gen Flag_CutScoreChange_soc=""
+gen Flag_CutScoreChange_sci = "N"
 
 gen Lev5_percent=""
 
-gen ProficiencyCriteria="Levels 3 and 4"
+gen ProficiencyCriteria="Levels 3-4"
 gen ProficientOrAbove_count="--"
 gen ParticipationRate="--"
 
@@ -372,6 +372,9 @@ replace StudentGroup="RaceEth" if inlist(StudentSubGroup, "American Indian/Alask
 replace StudentGroup="EL Status" if inlist(StudentSubGroup, "Limited English Proficient")
 replace StudentGroup="Economic Status" if inlist(StudentSubGroup, "Economically Disadvantaged")
 replace StudentGroup="Gender" if inlist(StudentSubGroup, "Male", "Female")
+replace StudentGroup="Disability Status" if StudentSubGroup == "Students with Disabilities"
+replace StudentGroup="Migrant Status" if StudentSubGroup == "Migrant"
+replace StudentGroup="Homeless Enrolled Status" if StudentSubGroup == "Homeless"
 replace StudentGroup = "All Students" if Subject == "sci"
 replace StudentSubGroup = "All Students" if Subject == "sci"
 drop if StudentGroup == "" & StudentSubGroup != ""
@@ -382,6 +385,7 @@ replace StudentSubGroup = "Two or More" if StudentSubGroup == "Two or More Races
 replace StudentSubGroup = "Black or African American" if StudentSubGroup == "African American"
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic/Latino"
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "Limited English Proficient"
+replace StudentSubGroup = "SWD" if StudentSubGroup == "Students with Disabilities"
 
 destring StudentSubGroup_TotalTested, replace force
 bysort State_leaid seasch StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
@@ -393,7 +397,7 @@ replace StudentSubGroup_TotalTested="--" if StudentSubGroup_TotalTested=="."
 replace Subject="ela" if Subject=="English Language Arts"
 replace Subject="math" if Subject=="Math"
 replace Subject="sci" if Subject=="Science"
-replace AssmtName = "AIMS Science" if Subject=="sci"
+replace AssmtName = "AIMS Science and AIMS A" if Subject=="sci"
 
 replace CountyName = strproper(CountyName)
 
@@ -406,11 +410,10 @@ rename DataLevel_n DataLevel
 replace SchVirtual = "Missing/not reported" if SchVirtual == "" & DataLevel == 3
 replace SchLevel = "Missing/not reported" if SchLevel == "" & DataLevel == 3
 
-	
 //order
-keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter SchType SchLevel SchVirtual CountyName CountyCode
 
-order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter SchType SchLevel SchVirtual CountyName CountyCode
 
 save "${output}/AZ_AssmtData_2016.dta", replace
 export delimited using "${output}/csv/AZ_AssmtData_2016.csv", replace
