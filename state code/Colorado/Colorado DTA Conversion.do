@@ -1,13 +1,13 @@
 clear
 set more off
 
-cd "/Users/maggie/Desktop/Colorado"
+cd "/Users/miramehta/Documents/CO State Testing Data"
 
-global raw "/Users/maggie/Desktop/Colorado/Original Data Files"
-global output "/Users/maggie/Desktop/Colorado/Output"
-global NCES "/Users/maggie/Desktop/Colorado/NCES/Cleaned"
+global raw "/Users/miramehta/Documents/CO State Testing Data/2023"
+global output "/Users/miramehta/Documents/CO State Testing Data/2023"
+global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
 
-local studentgroup `" "Gender" "Race Ethnicity" "Language Proficiency" "'
+local studentgroup `" "Gender" "Race Ethnicity" "Language Proficiency" "Migrant" "IEP" "'
 local subject ELA Math Science
 
 ** Converting to dta **
@@ -34,3 +34,4 @@ foreach sub of local subject {
 	gen Subject = "`sub'"
 	save "${output}/CO_AssmtData_2023_`sub'_Free Reduced Lunch.dta", replace
 }
+
