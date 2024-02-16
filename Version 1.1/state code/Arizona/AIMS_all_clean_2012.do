@@ -324,10 +324,10 @@ keep if DataLevel == 2
 destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
 collapse (sum) StudentSubGroup_TotalTested2, by(StudentSubGroup GradeLevel Subject)
 gen DataLevel = 1
-save "${raw}/AZ_AssmtData_2012_State.dta", replace
+save "${EDFacts}/AZ_AssmtData_2012_State.dta", replace
 restore
 
-merge m:1 DataLevel StudentSubGroup GradeLevel Subject using "${raw}/AZ_AssmtData_2012_State.dta"
+merge m:1 DataLevel StudentSubGroup GradeLevel Subject using "${EDFacts}/AZ_AssmtData_2012_State.dta"
 tostring StudentSubGroup_TotalTested2, replace
 replace StudentSubGroup_TotalTested = StudentSubGroup_TotalTested2 if StudentSubGroup_TotalTested2 != "0" & StudentSubGroup_TotalTested2 != "."
 drop StudentSubGroup_TotalTested2
