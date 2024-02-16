@@ -449,7 +449,7 @@ foreach v of varlist Lev1_count Lev2_count Lev3_count Lev4_count {
 foreach u of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent {
 	destring `u', generate(`u'2) force
 	replace `u'2 = `u'2 / 100
-	tostring `u'2, replace force
+	tostring `u'2, replace format("%9.2g") force
 	replace `u' = `u'2 if `u'2 != "."
 	replace `u' = "0-0.02" if `u' == "<2"
 	replace `u' = "0.98-1" if `u' == ">98"

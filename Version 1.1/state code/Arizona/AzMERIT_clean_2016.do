@@ -358,7 +358,7 @@ foreach v of varlist StudentSubGroup_TotalTested AvgScaleScore Lev1_count Lev2_c
 foreach u of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent {
 	destring `u', replace force
 	replace `u' = `u' / 100
-	tostring `u', replace force
+	tostring `u', replace format("%9.2g") force
 	replace `u' = "*" if `u' == "."
 }
 

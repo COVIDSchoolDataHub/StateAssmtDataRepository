@@ -106,9 +106,11 @@ foreach year of local edyears1 {
 			recast long NCESSchoolID
 			format NCESSchoolID %18.0g
 			tostring NCESSchoolID, replace usedisplayformat
+			replace NCESSchoolID = "0" + NCESSchoolID
 		}
 		rename leaid NCESDistrictID
 		tostring NCESDistrictID, replace
+		replace NCESDistrictID = "0" + NCESDistrictID
 		drop if Count == .
 		gen GradeLevel = "G" + substr(StudentSubGroup, -2, 2)
 		replace StudentSubGroup = subinstr(StudentSubGroup, substr(StudentSubGroup, -2, 2), "", .)
@@ -148,9 +150,11 @@ foreach year of local edyears2 {
 				recast long NCESSchoolID
 				format NCESSchoolID %18.0g
 				tostring NCESSchoolID, replace usedisplayformat
+				replace NCESSchoolID = "0" + NCESSchoolID
 			}
 			rename leaid NCESDistrictID
 			tostring NCESDistrictID, replace
+			replace NCESDistrictID = "0" + NCESDistrictID
 			if ("`type'" == "count") {
 				drop if Count == .
 			}
