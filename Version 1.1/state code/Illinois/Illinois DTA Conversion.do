@@ -1,11 +1,11 @@
 clear
 set more off
 
-cd "/Users/maggie/Desktop/Illinois"
+cd "/Users/benjaminm/Documents/State_Repository_Research/Illinois"
 
-global raw "/Users/maggie/Desktop/Illinois/Original Data Files"
-global output "/Users/maggie/Desktop/Illinois/Output"
-global NCES "/Users/maggie/Desktop/Illinois/NCES/Cleaned"
+global raw "/Users/benjaminm/Documents/State_Repository_Research/Illinois/Original Data Files"
+global output "/Users/benjaminm/Documents/State_Repository_Research/Illinois/Output"
+global NCES "/Users/benjaminm/Documents/State_Repository_Research/Illinois/Cleaned"
 
 ** Converting to dta **
 
@@ -153,8 +153,11 @@ save "${output}/IL_AssmtData_2022_sci_Participation_8.dta", replace
 
 ** 2023
 
-import excel "${raw}/IL_OriginalData_2023_all.xlsx", sheet("IAR") cellrange(A1:ARZ4706) firstrow clear
+import excel "${raw}/IL_OriginalData_2023_all.xlsx", sheet("IAR") cellrange(A1:ATN4706) firstrow clear
 save "${output}/IL_AssmtData_2023_all.dta", replace
+
+
+
 
 import excel "${raw}/IL_OriginalData_2023_sci.xlsx", sheet("Grade 5") firstrow clear
 save "${output}/IL_AssmtData_2023_sci_5.dta", replace
