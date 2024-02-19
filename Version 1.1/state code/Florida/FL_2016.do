@@ -1,10 +1,10 @@
 clear all
 
 // Define file paths
-global original_files "/Users/meghancornacchia/Desktop/DataRepository/Florida/Original_Data_Files"
-global NCES_files "/Users/meghancornacchia/Desktop/DataRepository/NCES_Data_Files"
-global output_files "/Users/meghancornacchia/Desktop/DataRepository/Florida/Output_Data_Files"
-global temp_files "/Users/meghancornacchia/Desktop/DataRepository/Florida/Temporary_Data_Files"
+global original_files "/Volumes/T7/State Test Project/Florida post-launch/Original Data"
+global NCES_files "/Volumes/T7/State Test Project/NCES"
+global output_files "/Volumes/T7/State Test Project/Florida post-launch/Output"
+global temp_files "/Volumes/T7/State Test Project/Florida post-launch/Temp"
 
 // 2015-2016
 
@@ -154,11 +154,11 @@ gen Lev5_count = "--"
 gen ProficiencyCriteria = "Levels 3, 4, 5"
 gen ProficientOrAbove_count = "--"
 gen ParticipationRate = "--"
-gen Flag_AssmtNameChange = "Y"
+gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_read = ""
-gen Flag_CutScoreChange_oth = "N"
+gen Flag_CutScoreChange_oth = "Y"
 
 // Relabelling Data Levels
 label def DataLevel 1 "State" 2 "District" 3 "School"
@@ -236,8 +236,25 @@ replace Lev5_percent = "*" if Lev5_percent == "."
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
 replace AvgScaleScore = "*" if AvgScaleScore == ""
 
+//S2024 Changes
+gen Flag_CutScoreChange_sci = Flag_CutScoreChange_oth
+gen Flag_CutScoreChange_soc = ""
+replace ProficiencyCriteria = "Levels 3-5"
+drop Flag_CutScoreChange_oth Flag_CutScoreChange_read State_leaid seasch
+
+//Reformatting Percents to three Decimal Places
+foreach var of varlist Lev*_percent ProficientOrAbove_percent {
+	destring `var', gen(n`var') i(*-)
+	replace `var' = string(n`var', "%9.3g") if regexm(`var', "[*-]") ==0
+	drop n`var'
+}
+
+//Updates according to crosswalk
+replace Flag_AssmtNameChange = "Y" if Subject == "sci"
+replace Flag_CutScoreChange_sci = "N"
+
 // Reordering variables and sorting data
-order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter SchType SchLevel SchVirtual CountyName CountyCode
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
