@@ -1,7 +1,7 @@
 clear
 set trace off
 
-local original "/Volumes/T7/State Test Project/Delaware/Original/Excel DCAS Datasets"
+local original "/Volumes/T7/State Test Project/Delaware/Original/Excel DCAS Datasets copy"
 local output "/Volumes/T7/State Test Project/Delaware/Original/Combined .dta by DataLevel & Year"
 
 local n = 0
