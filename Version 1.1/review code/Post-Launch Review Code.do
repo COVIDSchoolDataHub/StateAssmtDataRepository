@@ -247,7 +247,7 @@ if GradeLevel== "G38" {
 
 ********"Check values of StudentGroup and StudentSubGroup are correct"********
 
- count if !inlist(StudentGroup, "All Students", "RaceEth", "EL Status", "Gender", "Economic Status", "Disability Status", "Migrant Status", "Homeless Enrolled Status", "Foster Care Status", "Military Connected Status")
+ count if !inlist(StudentGroup, "All Students", "RaceEth", "EL Status", "Gender", "Economic Status") & !inlist(StudentGroup, "Disability Status", "Migrant Status", "Homeless Enrolled Status", "Foster Care Status", "Military Connected Status")
  if r(N)>0 {
  	di as error "Check StudentGroup values. StudentGroup should only contain the following values: 'All Students' 'RaceEth' 'EL Status' 'Gender' 'Economic Status' 'Disability Status' 'Migrant Status' 'Homeless Enrolled Status' 'Foster Care Status' 'Military Connected Status'"
  	tab StudentGroup
@@ -326,7 +326,7 @@ count if StudentGroup=="Military Connected Status" & !inlist(StudentSubGroup, "M
 preserve
 local percentvars = "Lev1_percent Lev2_percent Lev3_percent Lev4_percent Lev5_percent ProficientOrAbove_percent ParticipationRate"
 
-foreach v of percentvars {
+foreach v of local percentvars {
 	destring `v', replace force
 	drop if `v' == .
 	if `v' >1  & !missing(`v') {
