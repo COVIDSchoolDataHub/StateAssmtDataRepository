@@ -1,10 +1,10 @@
 clear
 set more off
 
-global output "/Users/maggie/Desktop/Colorado/Output"
-global NCES "/Users/maggie/Desktop/Colorado/NCES/Cleaned"
+global output "/Users/miramehta/Documents/CO State Testing Data/2023"
+global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
 
-cd "/Users/maggie/Desktop/Colorado"
+cd "/Users/miramehta/Documents/CO State Testing Data"
 
 ** Appending ela & math
 
@@ -37,6 +37,18 @@ append using "${output}/CO_AssmtData_2023_Math_Language Proficiency.dta"
 replace StudentGroup = "EL Status" if StudentGroup == "Language Proficiency"
 replace StudentSubGroup = LanguageProficiency if StudentGroup == "EL Status"
 drop LanguageProficiency
+
+append using "${output}/CO_AssmtData_2023_ELA_Migrant.dta"
+append using "${output}/CO_AssmtData_2023_Math_Migrant.dta"
+replace StudentGroup = "Migrant Status" if StudentGroup == "Migrant"
+replace StudentSubGroup = Migrant if StudentGroup == "Migrant Status"
+drop Migrant
+
+append using "${output}/CO_AssmtData_2023_ELA_IEP.dta"
+append using "${output}/CO_AssmtData_2023_Math_IEP.dta"
+replace StudentGroup = "Disability Status" if StudentGroup == "IEP"
+replace StudentSubGroup = IEPStatus if StudentGroup == "Disability Status"
+drop IEPStatus
 
 replace Subject = "ela" if Subject == "English Language Arts" | Subject == "ELA"
 replace Subject = "math" if Subject == "Mathematics" | Subject == "Math"
@@ -84,6 +96,16 @@ replace StudentGroup = "EL Status" if StudentGroup == "Language Proficiency"
 replace StudentSubGroup = LanguageProficiency if StudentGroup == "EL Status"
 drop LanguageProficiency
 
+append using "${output}/CO_AssmtData_2023_Science_Migrant.dta"
+replace StudentGroup = "Migrant Status" if StudentGroup == "Migrant"
+replace StudentSubGroup = Migrant if StudentGroup == "Migrant Status"
+drop Migrant
+
+append using "${output}/CO_AssmtData_2023_Science_IEP.dta"
+replace StudentGroup = "Disability Status" if StudentGroup == "IEP"
+replace StudentSubGroup = IEPStatus if StudentGroup == "Disability Status"
+drop IEPStatus
+
 replace Subject = "sci"
 
 rename NumberPartiallyMetExpectation Lev1_count
@@ -120,7 +142,7 @@ rename PercentMetorExceededExpectat ProficientOrAbove_percent
 
 drop if DataLevel == ""
 drop if GradeLevel == "All Grades" | GradeLevel == "11"
-drop if StudentSubGroup == "NEP (Not English Proficient)" | StudentSubGroup == "LEP (Limited English Proficient)" | StudentSubGroup == "FEP (Fluent English Proficient), FELL (Former English Language Learner)" | StudentSubGroup == "PHLOTE, NA, Not Reported"
+drop if StudentSubGroup == "NEP (Not English Proficient)" | StudentSubGroup == "LEP (Limited English Proficient)" | StudentSubGroup == "PHLOTE, NA, Not Reported"
 
 ** Changing DataLevel
 
@@ -141,6 +163,7 @@ replace GradeLevel = "G" + GradeLevel
 
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "English Language Proficiency: (NEP/LEP)"
 replace StudentSubGroup = "English Proficient" if StudentSubGroup == "English Language Proficiency: (Not NEP/LEP)"
+replace StudentSubGroup = "EL Exited" if StudentSubGroup == "FEP (Fluent English Proficient), FELL (Former English Language Learner)"
 replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Free/Reduced Lunch Eligible"
 replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "Not Free/Reduced Lunch Eligible"
 replace StudentSubGroup = "Black or African American" if StudentSubGroup == "Black"
@@ -308,13 +331,15 @@ replace StateFips = 8 if DataLevel == 1
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_read = ""
-gen Flag_CutScoreChange_oth = "Y"
+gen Flag_CutScoreChange_soc = ""
+gen Flag_CutScoreChange_sci = "Y"
 
-order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+drop State_leaid seasch
+
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter SchType SchLevel SchVirtual CountyName CountyCode
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${output}/CO_AssmtData_2023.dta", replace
 
-export delimited using "${output}/csv/CO_AssmtData_2023.csv", replace
+export delimited using "${output}/CO_AssmtData_2023.csv", replace

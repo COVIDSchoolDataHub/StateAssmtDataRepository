@@ -1,9 +1,11 @@
 
+clear all
 
-global path "/Users/hayden/Desktop/Research/CO/2015"
-global nces "/Users/hayden/Desktop/Research/NCES"
-global disagg "/Users/hayden/Desktop/Research/CO/Disaggregate/2015"
-global output "/Users/hayden/Desktop/Research/CO/Output"
+cd "/Users/miramehta/Documents"
+
+global path "/Users/miramehta/Documents/CO State Testing Data/2015"
+global nces "/Users/miramehta/Documents/NCES District and School Demographics"
+global output "/Users/miramehta/Documents/CO State Testing Data"
 
 
 ///////// Section 1: Appending Aggregate Data
@@ -15,7 +17,7 @@ global output "/Users/hayden/Desktop/Research/CO/Output"
 	//Imports and saves math/ela
 
 
-import excel "${path}/CO_OriginalData_2015_ela_mat.xlsx", sheet("Achievement Results") cellrange(A3:Y16806) firstrow case(lower) clear
+import excel "${path}/CO_OriginalData_2015_ela&mat.xlsx", sheet("Achievement Results") cellrange(A3:Y16806) firstrow case(lower) clear
 
 	// Rename to append sci/social studies
 
@@ -35,7 +37,7 @@ rename numbermetorexceededexpectati ProficientOrAbove_count
 rename percentmetorexceededexpectat ProficientOrAbove_percent
 
 
-save "${path}/CO_OriginalData_2015_ela&mat.dta", replace
+save "${output}/CO_OriginalData_2015_ela&mat.dta", replace
 
 
 	//imports and saves sci
@@ -66,7 +68,7 @@ rename aj ProficientOrAbove_percent
 drop if subject!="SCI"
 
 
-save "${path}/CO_OriginalData_2015_sci.dta", replace
+save "${output}/CO_OriginalData_2015_sci.dta", replace
 
 
 
@@ -99,19 +101,19 @@ rename aj ProficientOrAbove_percent
 drop if subject!="SS"
 
 
-save "${path}/CO_OriginalData_2015_soc.dta", replace
+save "${output}/CO_OriginalData_2015_soc.dta", replace
 
 
 
 	////Combines math/ela with science and social studies scores
 	
-use "${path}/CO_OriginalData_2015_ela&mat.dta", clear
+use "${output}/CO_OriginalData_2015_ela&mat.dta", clear
 
-append using "${path}/CO_OriginalData_2015_sci.dta"
-append using "${path}/CO_OriginalData_2015_soc.dta"
+append using "${output}/CO_OriginalData_2015_sci.dta"
+append using "${output}/CO_OriginalData_2015_soc.dta"
 
-gen StudentGroup = "All students"
-gen StudentSubGroup = "All students"
+gen StudentGroup = "All Students"
+gen StudentSubGroup = "All Students"
 
 
 rename districtcode districtnumber_int
@@ -147,7 +149,7 @@ replace schoolnumber = "0" + schoolnumber if schoolcodebig==1
 replace schoolnumber = schoolnumber if schoolcodebig==2
 
 
-save "${path}/CO_OriginalData_2015_all.dta", replace
+save "${output}/CO_OriginalData_2015_all.dta", replace
 
 
 
@@ -156,7 +158,7 @@ save "${path}/CO_OriginalData_2015_all.dta", replace
 
 	//// ENGLISH/LANGUAGE ARTS
 
-import excel "${disagg}/CO_2015_ELA_gender.xlsx", sheet("2015 CMAS ELA in Gender") cellrange(A3:H15765) firstrow case(lower) clear
+import excel "${path}/CO_2015_ELA_gender.xlsx", sheet("2015 CMAS ELA in Gender") cellrange(A3:H15765) firstrow case(lower) clear
 
 rename schoolnumber schoolnumber_int
 rename metorexceededexpectati ProficientOrAbove_percent
@@ -192,84 +194,116 @@ replace schoolnumber = schoolnumber if schoolcodebig==2
 rename group StudentSubGroup
 gen StudentGroup = "Gender"
 
-save "${path}/CO_2015_ELA_gender.dta", replace
+save "${output}/CO_2015_ELA_gender.dta", replace
 
 
 
-import excel "${disagg}/CO_2015_ELA_language.xlsx", sheet("2015 CMAS ELA in LEP") cellrange(A3:H15767) firstrow case(lower) clear
+import excel "${path}/CO_2015_ELA_language.xlsx", sheet("2015 CMAS ELA in LEP") cellrange(A3:H15767) firstrow case(lower) clear
 
 rename group StudentSubGroup
 rename metorexceededexpectati ProficientOrAbove_percent
-gen StudentGroup = "EL status"
+gen StudentGroup = "EL Status"
 
-save "${path}/CO_2015_ELA_language.dta", replace
+save "${output}/CO_2015_ELA_language.dta", replace
 
 
 
-import excel "${disagg}/CO_2015_ELA_raceEthnicity.xlsx", sheet("2015 CMAS ELA in Ethnicity") cellrange(A3:H55165) firstrow case(lower) clear
+import excel "${path}/CO_2015_ELA_raceEthnicity.xlsx", sheet("2015 CMAS ELA in Ethnicity") cellrange(A3:H55165) firstrow case(lower) clear
 
 rename group StudentSubGroup
 rename metorexceededexpectati ProficientOrAbove_percent
 gen StudentGroup = "Race"
 
-save "${path}/CO_2015_ELA_raceEthnicity.dta", replace
+save "${output}/CO_2015_ELA_raceEthnicity.dta", replace
 
 
-import excel "${disagg}/CO_2015_ELA_freeReducedLunch.xlsx", sheet("2015 CMAS ELA in FRL") cellrange(A3:H15765) firstrow case(lower) clear
+import excel "${path}/CO_2015_ELA_freeReducedLunch.xlsx", sheet("2015 CMAS ELA in FRL") cellrange(A3:H15765) firstrow case(lower) clear
 
 rename group StudentSubGroup
 rename metorexceededexpectati ProficientOrAbove_percent
 gen StudentGroup = "Economic Status"
 
-save "${path}/CO_2015_ELA_econstatus.dta", replace
+save "${output}/CO_2015_ELA_econstatus.dta", replace
 
 
 
 	//// MATH
 
 
-import excel "${disagg}/CO_2015_.mat_genderxlsx.xlsx", sheet("2015 CMAS Math in Gender") cellrange(A3:H16817) firstrow case(lower) clear
+import excel "${path}/CO_2015_.mat_genderxlsx.xlsx", sheet("2015 CMAS Math in Gender") cellrange(A3:H16817) firstrow case(lower) clear
 
 rename group StudentSubGroup
 rename metorexceededexpectati ProficientOrAbove_percent
 gen StudentGroup = "Gender"
 
-save "${path}/CO_2015_mat_gender.dta", replace
+save "${output}/CO_2015_mat_gender.dta", replace
 
 
 
-import excel "${disagg}/CO_2015_mat_language.xlsx", sheet("2015 CMAS Math in LEP") cellrange(A3:H16819) firstrow case(lower) clear
+import excel "${path}/CO_2015_mat_language.xlsx", sheet("2015 CMAS Math in LEP") cellrange(A3:H16819) firstrow case(lower) clear
 
 rename group StudentSubGroup
 rename metorexceededexpectati ProficientOrAbove_percent
 gen StudentGroup = "EL status"
 
-save "${path}/CO_2015_mat_language.dta", replace
+save "${output}/CO_2015_mat_language.dta", replace
 
 
 
-import excel "${disagg}/CO_2015_mat_raceEthnicity.xlsx", sheet("2015 CMAS Math in Ethnicity") cellrange(A3:H58847) firstrow case(lower) clear
+import excel "${path}/CO_2015_mat_raceEthnicity.xlsx", sheet("2015 CMAS Math in Ethnicity") cellrange(A3:H58847) firstrow case(lower) clear
 
 rename group StudentSubGroup
 rename metorexceededexpectati ProficientOrAbove_percent
 gen StudentGroup = "Race"
 
-save "${path}/CO_2015_mat_raceEthnicity.dta", replace
+save "${output}/CO_2015_mat_raceEthnicity.dta", replace
 
 
-import excel "${disagg}/CO_2015_mat_freeReducedLunch.xlsx", sheet("2015 CMAS Math in FRL") cellrange(A3:H16817) firstrow case(lower) clear
+import excel "${path}/CO_2015_mat_freeReducedLunch.xlsx", sheet("2015 CMAS Math in FRL") cellrange(A3:H16817) firstrow case(lower) clear
 
 rename group StudentSubGroup
 rename metorexceededexpectati ProficientOrAbove_percent
 gen StudentGroup = "Economic Status"
 
-save "${path}/CO_2015_mat_econstatus.dta", replace
+save "${output}/CO_2015_mat_econstatus.dta", replace
+
+import excel "${path}/CO_2015_ELA_migrant.xlsx", sheet("2015 CMAS ELA in Migrant") cellrange(A3:H15763) firstrow case(lower) clear
+
+rename group StudentSubGroup
+rename metorexceededexpectati ProficientOrAbove_percent
+gen StudentGroup = "Migrant Status"
+
+save "${output}/CO_2015_ELA_migrantstatus.dta", replace
+
+import excel "${path}/CO_2015_mat_migrant.xlsx", sheet("2015 CMAS Math in Migrant") cellrange(A3:H16817) firstrow case(lower) clear
+
+rename group StudentSubGroup
+rename metorexceededexpectati ProficientOrAbove_percent
+gen StudentGroup = "Migrant Status"
+
+save "${output}/CO_2015_mat_migrantstatus.dta", replace
+
+import excel "${path}/CO_2015_ELA_IEP.xlsx", sheet("2015 CMAS ELA in IEP") cellrange(A3:H15763) firstrow case(lower) clear
+
+rename group StudentSubGroup
+rename metorexceededexpectati ProficientOrAbove_percent
+gen StudentGroup = "Disability Status"
+
+save "${output}/CO_2015_ELA_disability.dta", replace
+
+import excel "${path}/CO_2015_mat_IEP.xlsx", sheet("2015 CMAS Math in IEP") cellrange(A3:H16817) firstrow case(lower) clear
+
+rename group StudentSubGroup
+rename metorexceededexpectati ProficientOrAbove_percent
+gen StudentGroup = "Disability Status"
+
+save "${output}/CO_2015_mat_disability.dta", replace
 
 
 ///////// Section 3: Appending Disaggregate Data
 
 
-use "${path}/CO_OriginalData_2015_all.dta", clear
+use "${output}/CO_OriginalData_2015_all.dta", clear
 
 
 /// some variables need to be renamed to append correctly
@@ -277,14 +311,18 @@ use "${path}/CO_OriginalData_2015_all.dta", clear
 
 	//Appends subgroups
 	
-append using "${path}/CO_2015_ELA_gender.dta"
-append using "${path}/CO_2015_mat_gender.dta"
-append using "${path}/CO_2015_ELA_language.dta"
-append using "${path}/CO_2015_mat_language.dta"
-append using "${path}/CO_2015_ELA_raceEthnicity.dta"
-append using "${path}/CO_2015_mat_raceEthnicity.dta"
-append using "${path}/CO_2015_ELA_econstatus.dta"
-append using "${path}/CO_2015_mat_econstatus.dta"
+append using "${output}/CO_2015_ELA_gender.dta"
+append using "${output}/CO_2015_mat_gender.dta"
+append using "${output}/CO_2015_ELA_language.dta"
+append using "${output}/CO_2015_mat_language.dta"
+append using "${output}/CO_2015_ELA_raceEthnicity.dta"
+append using "${output}/CO_2015_mat_raceEthnicity.dta"
+append using "${output}/CO_2015_ELA_econstatus.dta"
+append using "${output}/CO_2015_mat_econstatus.dta"
+append using "${output}/CO_2015_ELA_migrantstatus.dta"
+append using "${output}/CO_2015_mat_migrantstatus.dta"
+append using "${output}/CO_2015_ELA_disability.dta"
+append using "${output}/CO_2015_mat_disability.dta"
 
 drop if districtnumber=="* The value for this field is not displayed in order to ensure student privacy."
 drop if districtnumber=="** English Learners include Non English Proficient (NEP) and Limited English Proficient (LEP) students."
@@ -300,53 +338,48 @@ replace grade="G05" if subjectarea=="ELA Grade 05  "
 replace grade="G06" if subjectarea=="ELA Grade 06  "
 replace grade="G07" if subjectarea=="ELA Grade 07  "
 replace grade="G08" if subjectarea=="ELA Grade 08  "
-replace grade="G09" if subjectarea=="ELA Grade 09  "
-replace grade="G10" if subjectarea=="ELA Grade 10  "
-replace grade="G11" if subjectarea=="ELA Grade 11  "
+drop if subjectarea=="ELA Grade 09  "
+drop if subjectarea=="ELA Grade 10  "
+drop if subjectarea=="ELA Grade 11  "
 replace grade="G03" if subjectarea=="Math Grade 03 "
 replace grade="G04" if subjectarea=="Math Grade 04 "
 replace grade="G05" if subjectarea=="Math Grade 05 "
 replace grade="G06" if subjectarea=="Math Grade 06 "
 replace grade="G07" if subjectarea=="Math Grade 07 "
 replace grade="G08" if subjectarea=="Math Grade 08 "
-replace grade="G10" if subjectarea=="Integrated II "
-replace grade="G10" if subjectarea=="Integrated I  "
-replace grade="G09" if subjectarea=="Algebra I     "
-replace grade="G11" if subjectarea=="Algebra II    "
-replace grade="G11" if subjectarea=="Integrated III"
-replace grade="G10" if subjectarea=="Geometry      "
+drop if subjectarea=="Integrated II "
+drop if subjectarea=="Integrated I  "
+drop if subjectarea=="Algebra I     "
+drop if subjectarea=="Algebra II    "
+drop if subjectarea=="Integrated III"
+drop if subjectarea=="Geometry      "
 
 
 
 ///////// Section 4: Merging NCES Variables
 
 
-gen state_leaidnumber =.
-gen state_leaid = string(state_leaidnumber)
-replace state_leaid = districtnumber
+gen state_leaid = districtnumber
 
-gen seaschnumber=.
-gen seasch = string(seaschnumber)
-replace seasch = schoolnumber
+gen seasch = schoolnumber
 
 
-save "${path}/CO_OriginalData_2015_all.dta", replace
+save "${output}/CO_OriginalData_2015_all.dta", replace
 
 
 
 	// Merges district variables from NCES
 
-use "${nces}/NCES_2014_District.dta"
+use "${nces}/NCES District Files, Fall 1997-Fall 2021/NCES_2014_District.dta"
 drop if state_fips != 8
 rename year year_int
 gen year = string(year_int)
-save "${path}/CO_NCES_2014_District.dta", replace
+save "${nces}/Cleaned NCES Data/CO_NCES_2015_District.dta", replace
 
 
-use "${path}/CO_OriginalData_2015_all.dta", clear
+use "${output}/CO_OriginalData_2015_all.dta", clear
 
-merge m:1 state_leaid using "${path}/CO_NCES_2014_District.dta"
-
+merge m:1 state_leaid using "${nces}/Cleaned NCES Data/CO_NCES_2015_District.dta"
 
 rename _merge district_merge
 
@@ -354,20 +387,20 @@ replace state_fips=8 if state_fips==.
 drop if state_fips != 8
 
 
-save "${path}/CO_OriginalData_2015_all.dta", replace
+save "${output}/CO_OriginalData_2015_all.dta", replace
 	// Merges school variables from NCES
 
-use "${nces}/NCES_2014_School.dta"
+use "${nces}/NCES School Files, Fall 1997-Fall 2021/NCES_2014_School.dta"
 drop if state_fips != 8
 rename year year_int
 gen year = string(year_int)
-save "${path}/CO_NCES_2014_School.dta", replace
+save "${nces}/Cleaned NCES Data/CO_NCES_2015_School.dta", replace
 
 
-use "${path}/CO_OriginalData_2015_all.dta", clear	
+use "${output}/CO_OriginalData_2015_all.dta", clear	
 	
 	
-merge m:1 seasch state_fips using "${path}/CO_NCES_2014_School.dta"
+merge m:1 seasch state_fips using "${nces}/Cleaned NCES Data/CO_NCES_2015_School.dta"
 drop if state_fips != 8
 
 
@@ -451,10 +484,10 @@ gen AssmtName="Colorado Measures of Academic Success"
 gen Flag_AssmtNameChange="N"
 gen Flag_CutScoreChange_ELA="N"
 gen Flag_CutScoreChange_math="N"
-gen Flag_CutScoreChange_read=""
-gen Flag_CutScoreChange_oth="N"
+gen Flag_CutScoreChange_sci="N"
+gen Flag_CutScoreChange_soc="N"
 gen AssmtType = "Regular"
-gen ProficiencyCriteria = "Lev3 or Lev4"
+gen ProficiencyCriteria = "Levels 3-4"
 rename year SchYear
 replace SchYear="2014-15" if SchYear=="2015"
 
@@ -480,22 +513,12 @@ replace Subject="ela" if Subject=="ELA Grade 05  "
 replace Subject="ela" if Subject=="ELA Grade 06  "
 replace Subject="ela" if Subject=="ELA Grade 07  "
 replace Subject="ela" if Subject=="ELA Grade 08  "
-replace Subject="ela" if Subject=="ELA Grade 09  "
-replace Subject="ela" if Subject=="ELA Grade 10  "
-replace Subject="ela" if Subject=="ELA Grade 11  "
 replace Subject="math" if Subject=="Math Grade 03 "
 replace Subject="math" if Subject=="Math Grade 04 "
 replace Subject="math" if Subject=="Math Grade 05 "
 replace Subject="math" if Subject=="Math Grade 06 "
 replace Subject="math" if Subject=="Math Grade 07 "
 replace Subject="math" if Subject=="Math Grade 08 "
-replace Subject="math" if Subject=="Geometry      "
-replace Subject="math" if Subject=="Algebra I     "
-replace Subject="math" if Subject=="Integrated III"
-replace Subject="math" if Subject=="Integrated I  "
-replace Subject="math" if Subject=="Algebra II    "
-replace Subject="math" if Subject=="Integrated II "
-
 
 tab StudentSubGroup
 replace StudentSubGroup="Black or African American" if StudentSubGroup=="Black"
@@ -506,6 +529,16 @@ replace StudentSubGroup="Hispanic or Latino" if StudentSubGroup=="Hispanic"
 replace StudentSubGroup="Unknown" if StudentSubGroup=="Unreported"
 replace StudentSubGroup="Unknown" if StudentSubGroup=="Not Reported"
 replace StudentSubGroup="Unknown" if StudentSubGroup=="Unreported/ Not Applicable"
+replace StudentSubGroup="White" if StudentSubGroup=="White           "
+replace StudentSubGroup="American Indian or Alaska Native" if StudentSubGroup=="American Indian "
+replace StudentSubGroup="Black or African American" if StudentSubGroup=="Black           "
+replace StudentSubGroup="Two or More" if StudentSubGroup=="Multiracial     "
+replace StudentSubGroup="Asian" if StudentSubGroup=="Asian           "
+replace StudentSubGroup="Hispanic or Latino" if StudentSubGroup=="Hispanic        "
+replace StudentSubGroup="Male" if StudentSubGroup=="Male  "
+replace StudentSubGroup = "Migrant" if StudentSubGroup == "Migrant    "
+replace StudentSubGroup = "SWD" if StudentSubGroup == "IEP   "
+replace StudentSubGroup = "Non-SWD" if StudentSubGroup == "Non-IEP"
 replace DataLevel="School" if DataLevel=="SCHOOL"
 replace DataLevel="State" if DataLevel=="STATE"
 replace DataLevel="District" if DataLevel=="DISTRICT"
@@ -517,19 +550,12 @@ replace StateAssignedDistID="0000" if StateAssignedDistID=="000"
 replace StateAssignedSchID="0000" if StateAssignedSchID=="000"
 replace StateAbbrev="CO" if StateAbbrev==""
 replace State=StateFips
-replace StudentSubGroup="White" if StudentSubGroup=="White           "
-replace StudentSubGroup="American Indian or Alaska Native" if StudentSubGroup=="American Indian "
-replace StudentSubGroup="Black or African American" if StudentSubGroup=="Black           "
-replace StudentSubGroup="Two or More" if StudentSubGroup=="Multiracial     "
-replace StudentSubGroup="Asian" if StudentSubGroup=="Asian           "
-replace StudentSubGroup="Hispanic or Latino" if StudentSubGroup=="Hispanic        "
-replace StudentSubGroup="Male" if StudentSubGroup=="Male  "
 
 
 
 replace SchYear="2014-15"
 
-replace SchName="ALL SCHOOLS" if SchName=="ALL SCHOOLS                                       "
+replace SchName="All Schools" if SchName=="ALL SCHOOLS                                       "
 
 	//	Reformat grade level indicators
 
@@ -542,7 +568,7 @@ replace GradeLevel="G05" if GradeLevel=="ELA Grade 05"
 replace GradeLevel="G06" if GradeLevel=="ELA Grade 06"
 replace GradeLevel="G07" if GradeLevel=="ELA Grade 07"
 replace GradeLevel="G08" if GradeLevel=="ELA Grade 08"
-replace GradeLevel="G09" if GradeLevel=="ELA Grade 09"
+drop if GradeLevel=="ELA Grade 09"
 replace GradeLevel="G03" if GradeLevel=="English Language Arts Grade 03"
 replace GradeLevel="G04" if GradeLevel=="English Language Arts Grade 04"
 replace GradeLevel="G05" if GradeLevel=="English Language Arts Grade 05"
@@ -561,21 +587,21 @@ replace GradeLevel="G05" if GradeLevel=="Math Grade 05"
 replace GradeLevel="G06" if GradeLevel=="Math Grade 06"
 replace GradeLevel="G07" if GradeLevel=="Math Grade 07"
 replace GradeLevel="G08" if GradeLevel=="Math Grade 08"
-replace GradeLevel="G09" if GradeLevel=="Integrated I"
-replace GradeLevel="G10" if GradeLevel=="Integrated II"
-replace GradeLevel="G11" if GradeLevel=="Integrated III"
-replace GradeLevel="G09" if GradeLevel=="Algebra I"
-replace GradeLevel="G10" if GradeLevel=="Geometry"
-replace GradeLevel="G11" if GradeLevel=="Algebra II"
+drop if GradeLevel=="Integrated I"
+drop if GradeLevel=="Integrated II"
+drop if GradeLevel=="Integrated III"
+drop if GradeLevel=="Algebra I"
+drop if GradeLevel=="Geometry"
+drop if GradeLevel=="Algebra II"
 replace GradeLevel="G05" if GradeLevel=="Science Grade 05"
 replace GradeLevel="G08" if GradeLevel=="Science Grade 08"
-replace GradeLevel="G10" if GradeLevel=="Science HS      "
+drop if GradeLevel=="Science HS      "
 replace GradeLevel="G04" if GradeLevel=="04"
 replace GradeLevel="G05" if GradeLevel=="05"
 replace GradeLevel="G07" if GradeLevel=="07"
 replace GradeLevel="G08" if GradeLevel=="08"
-replace GradeLevel="G10" if GradeLevel=="ELA Grade 10"
-replace GradeLevel="G11" if GradeLevel=="ELA Grade 11"
+drop if GradeLevel=="ELA Grade 10"
+drop if GradeLevel=="ELA Grade 11"
 
 replace DataLevel="District" if DataLevel=="DIST"
 replace DataLevel="School" if DataLevel=="SCH"
@@ -589,8 +615,10 @@ replace DataLevel="District" if StateAssignedDistID!="0000" & StateAssignedSchID
 replace DataLevel="School" if StateAssignedDistID!="0000" & StateAssignedSchID!="0000"
 replace DataLevel="State" if StateAssignedDistID=="0000" & StateAssignedSchID=="0000"
 
-replace StudentSubGroup="English learner" if StudentSubGroup=="English Learner (Not English Proficient/Limited English Proficient)**"
-replace StudentSubGroup="English proficient" if StudentSubGroup=="Non-English Learner***    "
+replace StudentSubGroup="English Learner" if StudentSubGroup=="English Learner (Not English Proficient/Limited English Proficient)**"
+replace StudentSubGroup="English Proficient" if StudentSubGroup=="Non-English Learner***    "
+replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Free/Reduced Lunch Eligible   "
+replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "Non-Free/Reduced Lunch Eligible"
 
 tab GradeLevel
 	
@@ -606,25 +634,15 @@ replace AvgScaleScore="*" if AvgScaleScore==""
 replace ProficientOrAbove_count="*" if ProficientOrAbove_count==""
 replace ProficientOrAbove_percent="*" if ProficientOrAbove_percent==""
 replace ParticipationRate="*" if ParticipationRate==""
-	
-	
-	
-	// Drops observations that aren't grades 3 through 8	
-	
-drop if GradeLevel=="G09"
-drop if GradeLevel=="G10"
-drop if GradeLevel=="G11"
 
 	// Drops observations that aren't K-12 schools (none report test scores)
 	
 	//Colorado Virtual Academy
-drop if NCESSchoolID=="80270001944"
+drop if NCESSchoolID=="080270001944"
 
 	//Colorado Springs Youth Services Center
-drop if NCESSchoolID=="80453006342"
+drop if NCESSchoolID=="080453006342"
 
-
-export delimited using "${path}/CO_2015_Data_Unmerged.csv", replace
 
 drop if district_merge==2
 drop if _merge==2
@@ -633,9 +651,9 @@ drop district_merge
 
 drop numberoftotalrecords numberofnoscores lea_name
 
-replace StudentGroup_TotalTested="" if StudentGroup_TotalTested=="n < 16"
-replace StudentGroup_TotalTested="" if StudentGroup_TotalTested=="<16"
-destring StudentGroup_TotalTested ProficientOrAbove_percent, replace ignore(",* %NA<>=-")
+replace StudentGroup_TotalTested="0-16" if StudentGroup_TotalTested=="n < 16"
+replace StudentGroup_TotalTested="0-16" if StudentGroup_TotalTested=="<16"
+destring StudentGroup_TotalTested ProficientOrAbove_percent, replace ignore(",* %NA=-")
 
 
 destring Lev1_percent Lev2_percent Lev3_percent Lev4_percent Lev5_percent, replace ignore(",* %NA<>=-")
@@ -719,8 +737,8 @@ replace StudentGroup_TotalTested="*" if StudentGroup_TotalTested=="999999999"
 replace AvgScaleScore="*" if AvgScaleScore=="NA"
 replace ProficientOrAbove_count="*" if ProficientOrAbove_count=="NA"
 
-replace ProficiencyCriteria="Lev4 or Lev5" if Subject=="math"
-replace ProficiencyCriteria="Lev4 or Lev5" if Subject=="ela"
+replace ProficiencyCriteria="Levels 4-5" if Subject=="math"
+replace ProficiencyCriteria="Levels 4-5" if Subject=="ela"
 
 
 ////
@@ -733,47 +751,17 @@ replace StateAssignedSchID="" if StateAssignedSchID=="0000"
 replace seasch="" if seasch=="0000"
 replace State_leaid="" if State_leaid=="0000"
 
-drop if NCESSchoolID=="80453006342"
-drop if NCESSchoolID=="80270001944"
-
-replace StudentSubGroup="All Students" if StudentSubGroup=="All students"
-replace StudentSubGroup="Black or African American" if StudentSubGroup=="Black"
-replace StudentSubGroup="Native Hawaiian or Pacific Islander" if StudentSubGroup=="Hawaiian/Pacific Islander"
-replace StudentSubGroup="Hispanic or Latino" if StudentSubGroup=="Hispanic"
-replace StudentSubGroup="English Learner" if StudentSubGroup=="English learner"
-replace StudentSubGroup="English Proficient" if StudentSubGroup=="English proficient"
-replace StudentSubGroup="Two or More" if StudentSubGroup=="Two or More Races"
-replace StudentSubGroup="Unknown" if StudentSubGroup=="Unreported"
-replace StudentSubGroup="Unknown" if StudentSubGroup=="Unreported/ Not Applicable"
-
 replace StudentGroup="All Students" if StudentGroup=="All students"
 replace StudentGroup="EL Status" if StudentGroup=="EL status"
 replace StudentGroup="RaceEth" if StudentGroup=="Race"
 
-keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
-
-order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc
 
 replace SchName="All Schools" if DataLevel=="State"
 replace SchName="All Schools" if DataLevel=="District"
 
-
-replace DataLevel="0" if DataLevel=="State"
-replace DataLevel="1" if DataLevel=="District"
-replace DataLevel="2" if DataLevel=="School"
-
-destring DataLevel, replace force
-
-label define LevelIndicator 0 "State" 1 "District" 2 "School"
-label values DataLevel LevelIndicator
-
-sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-
 tostring NCESDistrictID, replace force
 tostring NCESSchoolID, replace force
-
-replace StudentSubGroup="Economically Disadvantaged" if StudentSubGroup=="Free/Reduced Lunch Eligible"
-replace StudentSubGroup="Not Economically Disadvantaged" if StudentSubGroup=="Non-Free/Reduced Lunch Eligible"
 
 replace Lev1_count="*" if Lev1_count=="-"
 replace Lev2_count="*" if Lev2_count=="-"
@@ -799,10 +787,17 @@ replace ProficientOrAbove_count="*" if ProficientOrAbove_count=="NA"
 
 drop if StateAssignedDistID=="* The values for this field is not displayed in order to ensure student privacy."
 
-drop if SchName=="COLORADO VIRTUAL ACADEMY (COVA)"
-drop if SchName=="SPRING CREEK YOUTH SERVICES CENTER"
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+sort DataLevel_n 
+drop DataLevel 
+rename DataLevel_n DataLevel
 
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter SchType SchLevel SchVirtual CountyName CountyCode
 
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
+save "${output}/CO_AssmtData_2015.dta", replace
 export delimited using "${output}/CO_AssmtData_2015.csv", replace
 
 
