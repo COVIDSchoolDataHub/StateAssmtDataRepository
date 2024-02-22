@@ -1,11 +1,10 @@
 clear all
 
 // Define file paths
-global original_files "/Users/meghancornacchia/Desktop/DataRepository/Florida/Original_Data_Files"
-global NCES_files "/Users/meghancornacchia/Desktop/DataRepository/NCES_Data_Files"
-global output_files "/Users/meghancornacchia/Desktop/DataRepository/Florida/Output_Data_Files"
-global temp_files "/Users/meghancornacchia/Desktop/DataRepository/Florida/Temporary_Data_Files"
-
+global original_files "/Volumes/T7/State Test Project/Florida post-launch/Original Data"
+global NCES_files "/Volumes/T7/State Test Project/NCES"
+global output_files "/Volumes/T7/State Test Project/Florida post-launch/Output"
+global temp_files "/Volumes/T7/State Test Project/Florida post-launch/Temp"
 // 2022-2023
 
 
@@ -253,9 +252,24 @@ label def school_leveldf -1 "Missing/not reported", modify
 replace SchVirtual = -1 if NCESSchoolID == "Missing/not reported"
 label def virtualdf -1 "Missing/not reported", modify
 
+//S2024 Changes
+gen Flag_CutScoreChange_sci = Flag_CutScoreChange_oth
+gen Flag_CutScoreChange_soc = ""
+replace ProficiencyCriteria = "Levels 3-5"
+drop Flag_CutScoreChange_oth Flag_CutScoreChange_read State_leaid seasch
+
+//Reformatting Percents to three Decimal Places
+foreach var of varlist Lev*_percent ProficientOrAbove_percent {
+	destring `var', gen(n`var') i(*-)
+	replace `var' = string(n`var', "%9.3g") if regexm(`var', "[*-]") ==0
+	drop n`var'
+}
+
+//Incorporating Crosswalk updates
+replace Flag_AssmtNameChange = "N" if Subject == "sci"
 
 // Reordering variables and sorting data
-order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter SchType SchLevel SchVirtual CountyName CountyCode
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 

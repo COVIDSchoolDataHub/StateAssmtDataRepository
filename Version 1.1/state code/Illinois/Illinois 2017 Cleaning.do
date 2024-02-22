@@ -1,11 +1,10 @@
 clear
 set more off
 
-global output "/Users/maggie/Desktop/Illinois/Output"
-global NCES "/Users/maggie/Desktop/Illinois/NCES/Cleaned"
+global output "/Users/benjaminm/Documents/State_Repository_Research/Illinois/Output"
+global NCES "/Users/benjaminm/Documents/State_Repository_Research/Illinois/NCES/Cleaned"
 
-cd "/Users/maggie/Desktop/Illinois"
-
+cd "/Users/benjaminm/Documents/State_Repository_Research/Illinois"
 
 
 
@@ -15,7 +14,8 @@ use "${output}/IL_AssmtData_2015-2017_all_state.dta", clear
 
 ** Dropping extra variables
 
-drop Migrant IEP NotIEP
+// drop Migrant IEP NotIEP // DO NOT DROP THESE IMMEDIATELY // 
+drop IEP NotIEP // DO NOT DROP THESE IMMEDIATELY //not dropping migrant
 
 ** Rename existing variables
 
@@ -36,6 +36,7 @@ rename LEP ProficientOrAbove_percentLearner
 rename NotLEP ProficientOrAbove_percentProf
 rename LowIncome ProficientOrAbove_percentDis
 rename NotLowIncome ProficientOrAbove_percentNotDis
+rename Migrant ProficientOrAbove_percentMigrant
 
 ** Dropping entries
 
@@ -99,12 +100,15 @@ replace StudentSubGroup = "English Learner" if StudentSubGroup == "Learner"
 replace StudentSubGroup = "English Proficient" if StudentSubGroup == "Prof"
 replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Dis"
 replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "NotDis"
+replace StudentSubGroup = "Migrant" if StudentSubGroup == "Migrant"
 
 gen StudentGroup = "RaceEth"
 replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
 replace StudentGroup = "EL Status" if StudentSubGroup == "English Learner" | StudentSubGroup == "English Proficient"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged"
 replace StudentGroup = "Gender" if StudentSubGroup == "Male" | StudentSubGroup == "Female"
+replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant"
+
 
 gen StudentSubGroup_TotalTested = "--"
 replace StudentSubGroup_TotalTested = StudentGroup_TotalTested if StudentGroup == "All Students"
@@ -164,7 +168,8 @@ replace GradeLevel = "G08" if GradeLevel == ""
 
 ** Dropping extra variables
 
-drop County City Migrant IEP NotIEP
+// drop County City Migrant IEP NotIEP
+drop County City IEP NotIEP
 
 ** Rename existing variables
 
@@ -185,6 +190,7 @@ rename EL ParticipationRateLearner
 rename NotEL ParticipationRateProf
 rename LowIncome ParticipationRateDis
 rename NotLowIncome ParticipationRateNotDis
+rename Migrant ParticipationRateMigrant
 
 ** Reshaping
 
@@ -200,12 +206,15 @@ replace StudentSubGroup = "English Learner" if StudentSubGroup == "Learner"
 replace StudentSubGroup = "English Proficient" if StudentSubGroup == "Prof"
 replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Dis"
 replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "NotDis"
+replace StudentSubGroup = "Migrant" if StudentSubGroup == "Migrant" 
 
 gen StudentGroup = "RaceEth"
 replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
 replace StudentGroup = "EL Status" if StudentSubGroup == "English Learner" | StudentSubGroup == "English Proficient"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged"
 replace StudentGroup = "Gender" if StudentSubGroup == "Male" | StudentSubGroup == "Female"
+replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant"
+
 
 replace ParticipationRate = ParticipationRate/100
 tostring ParticipationRate, replace force
@@ -227,7 +236,8 @@ replace GradeLevel = "G08" if GradeLevel == ""
 
 ** Dropping extra variables
 
-drop County City Migrant IEP NotIEP
+// drop County City Migrant IEP NotIEP
+drop County City IEP NotIEP
 
 ** Rename existing variables
 
@@ -248,6 +258,7 @@ rename EL ProficientOrAbove_percentLearner
 rename NotEL ProficientOrAbove_percentProf
 rename LowIncome ProficientOrAbove_percentDis
 rename NotLowIncome ProficientOrAbove_percentNotDis
+rename Migrant ProficientOrAbove_percentMigrant
 
 ** Dropping entries
 
@@ -290,12 +301,14 @@ replace StudentSubGroup = "English Learner" if StudentSubGroup == "Learner"
 replace StudentSubGroup = "English Proficient" if StudentSubGroup == "Prof"
 replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Dis"
 replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "NotDis"
+replace StudentSubGroup = "Migrant" if StudentSubGroup == "Migrant" 
 
 gen StudentGroup = "RaceEth"
 replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
 replace StudentGroup = "EL Status" if StudentSubGroup == "English Learner" | StudentSubGroup == "English Proficient"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged"
 replace StudentGroup = "Gender" if StudentSubGroup == "Male" | StudentSubGroup == "Female"
+replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant"
 
 gen StudentSubGroup_TotalTested = "--"
 gen StudentGroup_TotalTested = "--"
@@ -546,13 +559,101 @@ replace DistName = "All Districts" if DataLevel == 1
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_read = ""
-gen Flag_CutScoreChange_oth = "N"
+gen Flag_CutScoreChange_sci = "N"
+gen Flag_CutScoreChange_soc = ""
 
-order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+drop State_leaid seasch
+
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter SchType SchLevel SchVirtual CountyName CountyCode
+ 
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter SchType SchLevel SchVirtual CountyName CountyCode
+
+// gen Flag_AssmtNameChange = "N"
+// gen Flag_CutScoreChange_ELA = "N"
+// gen Flag_CutScoreChange_math = "N"
+// gen Flag_CutScoreChange_read = ""
+// gen Flag_CutScoreChange_oth = "N"
+//
+// order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
+save "${output}/IL_AssmtData_2017_1.dta", replace
+
+export delimited using "${output}/csv/IL_AssmtData_2017_1.csv", replace
+
+
+////////// EDFACTS ADDENDUM
+
+
+use "${output}/IL_AssmtData_2017_1.dta", clear
+
+merge m:1 DataLevel NCESDistrictID StudentGroup StudentSubGroup GradeLevel Subject using "${EDFacts}/2017/edfactscount2017districtillinois.dta"
+tostring Count, replace
+replace StudentSubGroup_TotalTested = Count if Count != "."
+drop if _merge == 2
+drop STNAM-_merge
+
+merge m:1 DataLevel NCESDistrictID StudentGroup StudentSubGroup GradeLevel Subject using "${EDFacts}/2017/edfactspart2017districtillinois.dta"
+replace ParticipationRate = Participation if Participation != ""
+drop if _merge == 2
+drop STNAM-_merge
+
+merge m:1 DataLevel NCESSchoolID StudentGroup StudentSubGroup GradeLevel Subject using "${EDFacts}/2017/edfactscount2017schoolillinois.dta"
+tostring Count, replace
+replace StudentSubGroup_TotalTested = Count if Count != "."
+drop if _merge == 2
+drop STNAM-_merge
+
+merge m:1 DataLevel NCESSchoolID StudentGroup StudentSubGroup GradeLevel Subject using "${EDFacts}/2017/edfactspart2017schoolillinois.dta"
+replace ParticipationRate = Participation if Participation != ""
+drop if _merge == 2
+drop STNAM-_merge
+
+preserve
+keep if DataLevel == 2
+destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
+collapse (sum) StudentSubGroup_TotalTested2, by(StudentSubGroup GradeLevel Subject)
+gen DataLevel = 1
+save "IL_AssmtData_2017_State.dta", replace
+restore
+
+merge m:1 DataLevel StudentSubGroup GradeLevel Subject using "IL_AssmtData_2017_State.dta"
+tostring StudentSubGroup_TotalTested2, replace
+replace StudentSubGroup_TotalTested = StudentSubGroup_TotalTested2 if StudentSubGroup_TotalTested2 != "0" & StudentSubGroup_TotalTested2 != "."
+drop StudentSubGroup_TotalTested2
+drop if _merge == 2
+drop _merge
+
+
+destring ProficientOrAbove_percent StudentSubGroup_TotalTested ProficientOrAbove_count, replace force
+replace ProficientOrAbove_count = round(ProficientOrAbove_percent*StudentSubGroup_TotalTested, 1)
+tostring ProficientOrAbove_percent StudentSubGroup_TotalTested ProficientOrAbove_count, replace force
+replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == "."
+replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == "."
+replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
+
+drop StudentGroup_TotalTested
+gen StudentGroup_TotalTested = StudentSubGroup_TotalTested 
+destring StudentGroup_TotalTested, replace force ignore(",")
+// replace StudentGroup_TotalTested = -1000000 if StudentGroup_TotalTested == .
+bys StudentGroup Subject GradeLevel DistName SchName: egen StudentGroup_TotalTested1 = total(StudentGroup_TotalTested)
+replace StudentGroup_TotalTested1 =. if StudentGroup_TotalTested1 < 0
+tostring StudentGroup_TotalTested1, replace
+replace StudentGroup_TotalTested1 = "*" if StudentGroup_TotalTested1 == "."
+drop StudentGroup_TotalTested
+rename StudentGroup_TotalTested1 StudentGroup_TotalTested
+replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested == "0"
+
+
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter SchType SchLevel SchVirtual CountyName CountyCode
+ 
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter SchType SchLevel SchVirtual CountyName CountyCode
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${output}/IL_AssmtData_2017.dta", replace
 
 export delimited using "${output}/csv/IL_AssmtData_2017.csv", replace
+
+
