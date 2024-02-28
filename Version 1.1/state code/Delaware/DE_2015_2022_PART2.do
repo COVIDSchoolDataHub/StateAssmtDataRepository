@@ -3,11 +3,11 @@ set more off
 set trace off
 cap log close
 
-log using "/Users/joshuasilverman/Desktop/observe.log", replace
-
 //NOTE: IF YOU'RE RECREATING CLEANING PROCESS, RUN DE_2015_2022 CODE FIRST. Check all sections to set directories before running.
 
-local data "/Volumes/T7/State Test Project/Delaware/Original/Combined .dta by DataLevel & Year"
+//NOTE: To convert excel files to dta., please run Excel DCAS file do FIRST before running this code.
+
+local data "/Users/minnamgung/Desktop/SADR/Delaware/Original Data Files/Combined .dta by DataLevel & Year"
 
 foreach year in 2015 2016 2017 {
 	di as error "`year'"
@@ -188,11 +188,15 @@ foreach year in 2015 2016 2017 {
 	
 	
 	}
+	
+	
+	
+	
 
 //Additional Cleaning- SET ADDITIONAL FILE DIRECTORIES
 
-local data "/Volumes/T7/State Test Project/Delaware/Original/Combined .dta by DataLevel & Year"
-local cleaned "/Volumes/T7/State Test Project/Delaware/Cleaned"
+local data "/Users/minnamgung/Desktop/SADR/Delaware/Original Data Files/Combined .dta by DataLevel & Year"
+local cleaned "/Users/minnamgung/Desktop/SADR/Delaware/Output"
 	foreach year in 2015 2016 2017 {
 		use "`data'/Combined_`year'"
 		
@@ -243,13 +247,15 @@ local cleaned "/Volumes/T7/State Test Project/Delaware/Cleaned"
 		replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
 		replace StudentSubGroup = "English Learner" if StudentSubGroup == "ELL"
 		replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Low-Income"
-		drop if StudentSubGroup == "Student Gap Group" | StudentSubGroup == "Students with Disability"
+		replace StudentSubGroup = "SWD" if StudentSubGroup == "Students With Disability"
+		drop if StudentSubGroup == "Student Gap Group" 
 		
 		//StudentGroup
 		gen StudentGroup = ""
 		replace StudentGroup = "RaceEth" if StudentSubGroup == "Black or African American" | StudentSubGroup == "American Indian or Alaska Native" | StudentSubGroup == "Asian" | StudentSubGroup == "Two or More" | StudentSubGroup == "Hispanic or Latino" | StudentSubGroup == "White" | StudentSubGroup == "Native Hawaiian or Pacific Islander"
 		replace StudentGroup = "EL Status" if StudentSubGroup == "English Learner"
 		replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged"
+		replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD"
 		replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
 		*count if StudentGroup == "" & School != "All Schools"
 		
@@ -289,8 +295,8 @@ local cleaned "/Volumes/T7/State Test Project/Delaware/Cleaned"
 		save "`idk'"
 //Change Directory for NCES School data below
 		local prevyear =`=`year'-1'
-		local NCES "/Volumes/T7/State Test Project/NCES/School/"
-		use "`NCES'NCES_`prevyear'_School.dta", clear
+		local NCES "/Users/minnamgung/Desktop/SADR/NCESOld"
+		use "`NCES'/NCES_`prevyear'_School.dta", clear
 		rename school_name SchName
 		drop if state_fips != 10
 		rename ncesschoolid NCESSchoolID
@@ -421,7 +427,7 @@ local cleaned "/Volumes/T7/State Test Project/Delaware/Cleaned"
 		gen SchYear = "`prevyear'"+ "-" + substr("`year'",-2,2)
 		gen AssmtName = "DCAS Assessment"
 		gen AssmtType = "Regular"
-		gen ProficiencyCriteria = "Level 3 or 4"
+		gen ProficiencyCriteria = "Level 3-4"
 		gen ProficientOrAbove_count = "--"
 		gen Flag_AssmtNameChange = "N"
 		gen Flag_CutScoreChange_ELA = "N"

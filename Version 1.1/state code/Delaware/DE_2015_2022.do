@@ -2,23 +2,49 @@ clear
 set more off
 set trace off
 
-global original "/Volumes/T7/State Test Project/Delaware/Original"
-global output "/Volumes/T7/State Test Project/Delaware/Cleaned"
-global nces_school "/Volumes/T7/State Test Project/Delaware/NCESNew/School"
-global nces_dist "/Volumes/T7/State Test Project/Delaware/NCESNew/District"
-global PART2 "/Volumes/T7/State Test Project/Delaware/DE_2015_2022_PART2.do" //Set filepath for second do file
-foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 { //2020 data would be empty, is thus not included
+global original "/Users/minnamgung/Desktop/SADR/Delaware/Original Data Files"
+global output "/Users/minnamgung/Desktop/SADR/Delaware/Output"
+global nces "/Users/minnamgung/Desktop/SADR/Delaware/NCESNew"
+global PART2 "/Users/minnamgung/Documents/GitHub/StateAssmtDataRepository/Version 1.1/state code/Delaware/DE_2015_2022_PART2.do" //Set filepath for second do file
 
-import excel "${original}/DE_OriginalData_`year'_all.xlsx", sheet("Sheet1") firstrow
+// foreach year in 2015 2016 2017 2018 2019 2021 2022 2023
+foreach year in 2023 { //2020 data would be empty, is thus not included
 
+if `year' >= 2019 {
+	import excel "${original}/DE_OriginalData_`year'_all.xlsx", sheet("Sheet1") firstrow allstring clear
+}
 
+if `year' < 2019 & `year' != 2015 {
+	import excel "${original}/DE_OriginalData_`year'_SMARTER.xlsx", sheet("Sheet1") firstrow allstring clear
+}
 
+if `year' == 2015 {
+	import excel "${original}/DE_OriginalData_`year'_SMARTER.xlsx", sheet("Sheet1") allstring clear
+	rename A SchoolYear	
+	rename B DistrictCode	
+	rename C District	
+	rename D SchoolCode	
+	rename E Organization	
+	rename F AssessmentName	
+	rename G ContentArea	
+	rename H Race	
+	rename I Gender	
+	rename J Grade	
+	rename K SpecialDemo	
+	rename L Geography	
+	rename M SubGroup	
+	rename N RowStatus	
+	rename O Tested	
+	rename P Proficient	
+	rename Q PctProficient	
+	rename R ScaleScoreAvg
+}
 
 //Defining DataLevel
 gen DataLevel =""
-replace DataLevel = "School" if SchoolCode != 0 & DistrictCode !=0
-replace DataLevel = "District" if DistrictCode !=0 & SchoolCode==0
-replace DataLevel = "State" if DistrictCode==0
+replace DataLevel = "School" if SchoolCode != "0" & DistrictCode !="0"
+replace DataLevel = "District" if DistrictCode !="0" & SchoolCode=="0"
+replace DataLevel = "State" if DistrictCode=="0"
 label def DataLevel 1 "State" 2 "District" 3 "School"
 encode DataLevel, gen(DataLevel_n) label(DataLevel)
 sort DataLevel_n 
@@ -32,12 +58,12 @@ rename SchoolCode StateAssignedSchID
 local prevyear =`=`year'-1'
 if `year' != 2023 {
 tostring StateAssignedSchID, replace
-merge m:1 StateAssignedSchID using "${nces_school}/NCES_`prevyear'_school.dta", force
+merge m:1 StateAssignedSchID using "${nces}/NCES_`prevyear'_school.dta", force
 drop _merge
 }
 if `year' == 2023 {
 	tostring StateAssignedSchID, replace
-	merge m:1 StateAssignedSchID using "${nces_school}/NCES_2021_school.dta", force
+	merge m:1 StateAssignedSchID using "${nces}/NCES_2021_school.dta", force
 	drop _merge
 }
 
@@ -45,13 +71,13 @@ if `year' !=2023 {
 
 rename DistrictCode StateAssignedDistID
 tostring StateAssignedDistID, replace
-merge m:1 StateAssignedDistID using "${nces_dist}/NCES_`prevyear'_district.dta", force
+merge m:1 StateAssignedDistID using "${nces}/NCES_`prevyear'_district.dta", force
 drop _merge
 }
 if `year' == 2023 {
 	rename DistrictCode StateAssignedDistID
 	tostring StateAssignedDistID, replace
-	merge m:1 StateAssignedDistID using "${nces_dist}/NCES_2021_district.dta", force
+	merge m:1 StateAssignedDistID using "${nces}/NCES_2021_district.dta", force
 	drop _merge
 }
 
@@ -90,17 +116,26 @@ replace not_all_students = not_all_students + 1 if Gender != "All Students"
 replace not_all_students = not_all_students + 1 if SpecialDemo != "All Students"
 drop if not_all_students > 1
 
-keep if inlist(SpecialDemo, "Active EL Students", "All Students", "Low-Income")
+// keep if inlist(SpecialDemo, "Active EL Students", "All Students", "Low-Income")
 replace SpecialDemo = "Economically Disadvantaged" if SpecialDemo== "Low-Income"
-replace SpecialDemo = "English Learners" if SpecialDemo== "Active EL Students"
+replace SpecialDemo = "Not Economically Disadvantaged" if SpecialDemo== "Non Low-Income"
+replace SpecialDemo = "English Learner" if SpecialDemo== "Active EL Students"
+replace SpecialDemo = "English Proficient" if SpecialDemo== "Non-EL Students"
+replace SpecialDemo = "Military" if SpecialDemo== "Military Connected Youth"
+replace SpecialDemo = "SWD" if SpecialDemo== "Students with Disabilities"
+
 
 * Create the StudentGroup variable
 gen StudentGroup = "" 
 
 replace StudentGroup = "RaceEth" if Race != "All Students"
 replace StudentGroup = "Gender" if Gender != "All Students"
-replace StudentGroup = "Economic Status" if SpecialDemo == "Economically Disadvantaged"
-replace StudentGroup = "EL Status" if SpecialDemo == "English Learners"
+replace StudentGroup = "Economic Status" if SpecialDemo == "Economically Disadvantaged" | SpecialDemo == "Not Economically Disadvantaged"
+replace StudentGroup = "EL Status" if SpecialDemo == "English Learner" | SpecialDemo == "English Proficient"
+replace StudentGroup = "Disability Status" if SpecialDemo == "SWD" | SpecialDemo == "Non-SWD"
+replace StudentGroup = "Homeless Enrolled Status" if SpecialDemo == "Homeless" | SpecialDemo == "Non-Homeless"
+replace StudentGroup = "Foster Care Status" if SpecialDemo == "Foster Care" | SpecialDemo == "Non-Foster Care"
+replace StudentGroup = "Military Connected Status" if SpecialDemo == "Military" 
 replace StudentGroup = "All Students" if Race == "All Students" & Gender == "All Students" & SpecialDemo == "All Students"
 
 * Create the StudentSubGroup variable
@@ -108,7 +143,7 @@ gen StudentSubGroup = ""
 
 replace StudentSubGroup = Race if StudentGroup == "RaceEth"
 replace StudentSubGroup = Gender if StudentGroup == "Gender"
-replace StudentSubGroup = SpecialDemo if StudentGroup == "Economic Status" | StudentGroup == "EL Status"
+replace StudentSubGroup = SpecialDemo if StudentGroup == "Economic Status" | StudentGroup == "EL Status" | StudentGroup == "Disability Status" | StudentGroup == "Homeless Enrolled Status" | StudentGroup == "Foster Care Status" | StudentGroup == "Military Connected Status"
 replace StudentSubGroup = "All Students" if StudentGroup == "All Students"
 
 
@@ -168,9 +203,9 @@ gen Flag_AssmtNameChange="N"
 *replace Flag_AssmtNameChange = "Y" if `year'==2019 & (Subject== "sci" | Subject == "soc")
 gen Flag_CutScoreChange_ELA="N"
 gen Flag_CutScoreChange_math="N"
-gen Flag_CutScoreChange_read=""
 gen Flag_CutScoreChange_oth="N"
-replace Flag_CutScoreChange_oth = "" if `year' == 2018
+gen Flag_CutScoreChange_read="N"
+*replace Flag_CutScoreChange_oth = "" if `year' == 2018
 *replace Flag_CutScoreChange_oth = "Y" if `year'==2019 & Subject== "sci"
 *replace Flag_AssmtNameChange = "Y" if `year' == 2018 & Subject== "sci"
 
@@ -179,24 +214,28 @@ replace Flag_CutScoreChange_oth = "" if `year' == 2018
 //More formatting
 rename ScaleScoreAvg AvgScaleScore
 rename Proficient ProficientOrAbove_count
+destring PctProficient, replace
 gen ProficientOrAbove_percent = (PctProficient/100)
 tostring ProficientOrAbove_percent, replace force
 drop PctProficient
 replace ProficientOrAbove_percent = substr(ProficientOrAbove_percent,1,4)
 recast str4 ProficientOrAbove_percent
-replace SchVirtual = "Missing/not reported" if SchVirtual == ""
+replace SchVirtual = "Missing/not reported" if SchVirtual == "" 
 
 //SUPPRESSED DATA 
 tostring StudentGroup_TotalTested, replace
 tostring StudentSubGroup_TotalTested, replace
+/*
 if `year' ==2023 {
-gen AvgScore = string(AvgScaleScore, "%10.0g")
+gen AvgScore = string(AvgScaleScore, "%10.0f")
 drop AvgScaleScore
 rename AvgScore AvgScaleScore
 gen profcount = string(ProficientOrAbove_count, "%10.0g")
 drop ProficientOrAbove_count
 rename profcount ProficientOrAbove_count
 }
+*/
+
 replace StudentGroup_TotalTested = "*" if RowStatus== "REDACTED" & (StudentGroup_TotalTested == "0" | StudentGroup_TotalTested== "." )
 replace StudentSubGroup_TotalTested = "*" if RowStatus== "REDACTED" & (StudentSubGroup_TotalTested == "0" | StudentSubGroup_TotalTested == "." )
 replace AvgScaleScore = "*" if RowStatus== "REDACTED"
@@ -206,12 +245,12 @@ replace ProficientOrAbove_percent = "*" if RowStatus== "REDACTED"
 
 
 //Proficiency Criteria
-gen ProficiencyCriteria = "Level 3 or 4"
+gen ProficiencyCriteria = "Level 3-4"
 
 
 //Ordering, Sorting, Dropping Alternative Assessments
 drop if AssmtName != "Smarter Balanced Summative Assessment" & (Subject== "ela" | Subject == "math")
-if `year' == 2019 | `year' == 2021 | `year' == 2022 {
+if `year' == 2019 | `year' == 2021 | `year' == 2022 | `year' == 2023 {
 	drop if AssmtName== "DeSSA Alternate Assessment"
 }
 
@@ -241,7 +280,7 @@ replace DistCharter = "No" if DistName == "Dept. of Svs. for Children Youth & Th
 replace SchVirtual = "" if DataLevel !=3
 replace StateAssignedDistID = "" if DataLevel ==1
 replace StateAssignedSchID = "" if DataLevel !=3
-replace StudentSubGroup = "English Learner" if StudentSubGroup == "English Learners"
+* replace StudentSubGroup = "English Learner" if StudentSubGroup == "English Learners"
 
 if `year' == 2018 {
 	drop if AssmtName != "Smarter Balanced Summative Assessment"
@@ -263,7 +302,11 @@ clear
 do "${PART2}"
 
 //RESPONSE TO R3
+
+// foreach year in 2015 2016 2017 2018 2019 2021 2022 2023
 foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 {
+	
+clear 
 
 use "${output}/DE_AssmtData_`year'"
 
@@ -271,7 +314,7 @@ use "${output}/DE_AssmtData_`year'"
 	drop if DistName == "Dept. of Svs. for Children Youth & Their Families"
 	replace SchType = "Missing/not reported" if SchType == "MISSING"
 	if `year' == 2015 | `year' == 2016 {
-	replace State_leaid = "DE-" + State_leaid if DataLevel !=1
+	* replace State_leaid = "DE-" + State_leaid if DataLevel !=1
 	}
 	replace NCESSchoolID = "Missing/not reported" if NCESSchoolID == "MISSING"
 	if `year' == 2019 {
@@ -280,6 +323,66 @@ use "${output}/DE_AssmtData_`year'"
 	}
 	replace SchLevel = "Missing/not reported" if SchLevel == "MISSING"
 	replace CountyName = proper(CountyName)
+	save "${output}/DE_AssmtData_`year'", replace
+	export delimited using "${output}/DE_AssmtData_`year'.csv", replace
+	clear
+}
+
+// for tracking reference 
+/*
+"ELA/Math
+• 2014-15 to 2022-23: Smarter Balanced Summative Assessment
+
+Science
+• 2014-15 to 2016-17: Delaware Comprehensive Assessment System (DCAS)
+• 2017-18: No science assessment (due to field testing)
+• 2018-19 to 2021-23: Delaware System of Student Assessment - Science (DeSSA)
+
+Social Studies:
+• 2014-15 to 2015-16: DCAS Statewide Assessment
+• 2016-17 to 2017-18: No social studies assessment (due to field testing)
+• 2018-19 to 2021-22: Delaware System of Student Assessment - Social Studies (DeSSA)
+• 2022-23: No Summative (non-alternate) Assessment"
+*/
+
+// 2024 updates
+// Subgroup testing is edited in the original loop
+
+foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 {
+
+use "${output}/DE_AssmtData_`year'", clear
+
+	replace ProficiencyCriteria = "Levels 3-4"
+	
+	if `year' < 2017  | `year' < 2017 == 2023 {
+	
+		drop Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+	
+	}
+	
+	gen Flag_CutScoreChange_sci="N"
+	gen Flag_CutScoreChange_soc="N"
+	
+	if `year' == 2017 {
+	replace Flag_CutScoreChange_soc=""
+	}
+	
+	if `year' == 2018 {
+	replace Flag_CutScoreChange_sci=""
+	replace Flag_CutScoreChange_soc=""
+	}
+	
+	if `year' == 2019 {
+	replace Flag_CutScoreChange_sci="Y"
+	replace Flag_CutScoreChange_soc="Y"
+	}
+	
+	keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter SchType SchLevel SchVirtual CountyName CountyCode
+	
+	order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter SchType SchLevel SchVirtual CountyName CountyCode
+	
+	sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
 	save "${output}/DE_AssmtData_`year'", replace
 	export delimited using "${output}/DE_AssmtData_`year'.csv", replace
 	clear

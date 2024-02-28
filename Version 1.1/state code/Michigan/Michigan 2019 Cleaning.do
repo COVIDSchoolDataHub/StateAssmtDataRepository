@@ -1,10 +1,10 @@
 clear
 set more off
 
-global output "/Users/maggie/Desktop/Michigan/Output"
-global NCES "/Users/maggie/Desktop/Michigan/NCES/Cleaned"
+global output "/Users/minnamgung/Desktop/SADR/Michigan/Output"
+global NCES "/Users/minnamgung/Desktop/SADR/Michigan/NCES"
 
-cd "/Users/maggie/Desktop/Michigan"
+cd "/Users/minnamgung/Desktop/SADR/Michigan"
 
 use "${output}/MI_AssmtData_2019_all.dta", clear
 
@@ -35,7 +35,7 @@ rename AvgSS AvgScaleScore
 
 keep if AssmtName == "M-STEP" | AssmtName == "PSAT"
 drop if ISDName != "Statewide" & DistName == "All Districts"
-drop if StudentSubGroup == "Students With Disabilities" | StudentSubGroup == "Students Without Disabilities"
+/// drop if StudentSubGroup == "Students With Disabilities" | StudentSubGroup == "Students Without Disabilities"
 
 ** Dropping extra variables
 
@@ -76,6 +76,8 @@ replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic o
 replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "Native Hawaiian or Other Pacific Islander"
 replace StudentSubGroup = "English Proficient" if StudentSubGroup == "Not English Learners"
 replace StudentSubGroup = "Two or More" if StudentSubGroup == "Two or More Races"
+replace StudentSubGroup = "SWD" if StudentSubGroup == "Students With Disabilities"
+replace StudentSubGroup = "Non-SWD" if StudentSubGroup == "Students Without Disabilities"
 
 ** Generating new variables
 
@@ -86,6 +88,7 @@ replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
 replace StudentGroup = "EL Status" if StudentSubGroup == "English Learner" | StudentSubGroup == "English Proficient"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged"
 replace StudentGroup = "Gender" if StudentSubGroup == "Female" | StudentSubGroup == "Male"
+replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD" | StudentSubGroup == "Non-SWD"
 
 gen StudentSubGroup_TotalTested2 = StudentSubGroup_TotalTested
 destring StudentSubGroup_TotalTested2, replace force
@@ -197,9 +200,11 @@ drop _merge
 
 replace SchVirtual = 0 if NCESSchoolID == "260112608888"
 
-replace StateAbbrev = "MI" if DataLevel == 1
-replace State = 26 if DataLevel == 1
-replace StateFips = 26 if DataLevel == 1
+drop State
+replace StateAbbrev = "MI"
+gen State = "Michigan"
+destring StateFips, replace
+replace StateFips = 26
 
 ** Generating new variables
 
@@ -209,11 +214,20 @@ gen Flag_CutScoreChange_ELA = "N"
 replace Flag_CutScoreChange_ELA = "Y" if AssmtName == "PSAT"
 gen Flag_CutScoreChange_math = "N"
 replace Flag_CutScoreChange_math = "Y" if AssmtName == "PSAT"
-gen Flag_CutScoreChange_read = ""
-gen Flag_CutScoreChange_oth = "N"
+/// gen Flag_CutScoreChange_read = ""
+gen Flag_CutScoreChange_sci = ""
+gen Flag_CutScoreChange_soc = "N"
 
-order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+foreach v of varlist SchType SchLevel SchVirtual {
+		decode `v', generate(`v'1)
+		drop `v' 
+		rename `v'1 `v'
+	}
 
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+	
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+	
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${output}/MI_AssmtData_2019.dta", replace

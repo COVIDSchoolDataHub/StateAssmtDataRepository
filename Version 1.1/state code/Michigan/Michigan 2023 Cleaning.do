@@ -1,10 +1,10 @@
 clear
 set more off
 
-global output "/Users/maggie/Desktop/Michigan/Output"
-global NCES "/Users/maggie/Desktop/Michigan/NCES/Cleaned"
+global output "/Users/minnamgung/Desktop/SADR/Michigan/Output"
+global NCES "/Users/minnamgung/Desktop/SADR/Michigan/NCES"
 
-cd "/Users/maggie/Desktop/Michigan"
+cd "/Users/minnamgung/Desktop/SADR/Michigan"
 
 use "${output}/MI_AssmtData_2023_all.dta", clear
 
@@ -35,7 +35,7 @@ rename AvgSS AvgScaleScore
 
 keep if AssmtName == "M-STEP" | AssmtName == "PSAT"
 drop if ISDName != "Statewide" & DistName == "All Districts"
-drop if StudentSubGroup == "Students With Disabilities" | StudentSubGroup == "Students Without Disabilities"
+/// drop if StudentSubGroup == "Students With Disabilities" | StudentSubGroup == "Students Without Disabilities"
 
 ** Dropping extra variables
 
@@ -72,6 +72,8 @@ replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic o
 replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "Native Hawaiian or Other Pacific Islander"
 replace StudentSubGroup = "English Proficient" if StudentSubGroup == "Not English Learners"
 replace StudentSubGroup = "Two or More" if StudentSubGroup == "Two or More Races"
+replace StudentSubGroup = "SWD" if StudentSubGroup == "Students With Disabilities"
+replace StudentSubGroup = "Non-SWD" if StudentSubGroup == "Students Without Disabilities"
 
 ** Generating new variables
 
@@ -82,6 +84,7 @@ replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
 replace StudentGroup = "EL Status" if StudentSubGroup == "English Learner" | StudentSubGroup == "English Proficient"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged"
 replace StudentGroup = "Gender" if StudentSubGroup == "Female" | StudentSubGroup == "Male"
+replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD" | StudentSubGroup == "Non-SWD"
 
 gen StudentSubGroup_TotalTested2 = StudentSubGroup_TotalTested
 destring StudentSubGroup_TotalTested2, replace force
@@ -146,17 +149,17 @@ replace State_leaid = "MI-" + State_leaid
 replace State_leaid = "MI-33020" if SchName == "Ingham Academy/Family Center"
 replace State_leaid = "" if DataLevel == 1
 
-merge m:1 State_leaid using "${NCES}/NCES_2021_District.dta"
+merge m:1 State_leaid using "${NCES}/NCES_2022_District.dta"
 drop if _merge == 2
 drop _merge
 
 **** Updating 2023 districts
 
-replace DistType = 7 if DistName == "Muskegon Maritime Academy"
+replace DistType = "Independent charter district" if DistName == "Muskegon Maritime Academy"
 replace NCESDistrictID = "2680996" if DistName == "Muskegon Maritime Academy"
 replace DistCharter = "Yes" if DistName == "Muskegon Maritime Academy"
 
-replace DistType = 7 if DistName == "Pittsfield Acres Academy"
+replace DistType = "Independent charter district" if DistName == "Pittsfield Acres Academy"
 replace NCESDistrictID = "2680997" if DistName == "Pittsfield Acres Academy"
 replace DistCharter = "Yes" if DistName == "Pittsfield Acres Academy"
 
@@ -183,39 +186,39 @@ replace seasch = State_leaid + "-" + seasch
 replace seasch = subinstr(seasch,"MI-","",.)
 replace seasch = "" if DataLevel != 3
 
-merge m:1 seasch using "${NCES}/NCES_2021_School.dta"
+merge m:1 seasch using "${NCES}/NCES_2022_School.dta"
 drop if _merge == 2
 drop _merge
 
 **** Updating 2023 schools
 
-replace SchType = 4 if SchName == "Covenant School - Spectrum"
+replace SchType = "Alternative School" if SchName == "Covenant School - Spectrum"
 replace NCESSchoolID = "260032209035" if SchName == "Covenant School - Spectrum"
 
-replace SchType = 1 if SchName == "Leonidas School"
+replace SchType = "Regular School" if SchName == "Leonidas School"
 replace NCESSchoolID = "261041009039" if SchName == "Leonidas School"
 
-replace SchType = 4 if SchName == "Muskegon County Juvenile Transition Center"
+replace SchType = "Alternative School" if SchName == "Muskegon County Juvenile Transition Center"
 replace NCESSchoolID = "260094908615" if SchName == "Muskegon County Juvenile Transition Center"
 
-replace SchType = 1 if SchName == "Muskegon Maritime Academy"
+replace SchType = "Regular School" if SchName == "Muskegon Maritime Academy"
 replace NCESSchoolID = "268099609048" if SchName == "Muskegon Maritime Academy"
 
-replace SchType = 1 if SchName == "North Pointe"
+replace SchType = "Regular School" if SchName == "North Pointe"
 replace NCESSchoolID = "263234009031" if SchName == "North Pointe"
 
-replace SchType = 1 if SchName == "Pittsfield Acres Academy"
+replace SchType = "Regular School" if SchName == "Pittsfield Acres Academy"
 replace NCESSchoolID = "268099709049" if SchName == "Pittsfield Acres Academy"
 
-replace SchLevel = -1 if SchName == "Covenant School - Spectrum" | SchName == "Leonidas School" | SchName == "Muskegon County Juvenile Transition Center" | SchName == "Muskegon Maritime Academy" | SchName == "North Pointe" | SchName == "Pittsfield Acres Academy"
-replace SchVirtual = -1 if SchName == "Covenant School - Spectrum" | SchName == "Leonidas School" | SchName == "Muskegon County Juvenile Transition Center" | SchName == "Muskegon Maritime Academy" | SchName == "North Pointe" | SchName == "Pittsfield Acres Academy" | SchName == "Explore Academy-Livonia" | SchName == "New Dawn Academy of Warren"
-label def SchLevel -1 "Missing/not reported"
-label def SchVirtual -1 "Missing/not reported"
+replace SchLevel = "Missing/not reported" if SchName == "Covenant School - Spectrum" | SchName == "Leonidas School" | SchName == "Muskegon County Juvenile Transition Center" | SchName == "Muskegon Maritime Academy" | SchName == "North Pointe" | SchName == "Pittsfield Acres Academy"
+replace SchVirtual = "Missing/not reported" if SchName == "Covenant School - Spectrum" | SchName == "Leonidas School" | SchName == "Muskegon County Juvenile Transition Center" | SchName == "Muskegon Maritime Academy" | SchName == "North Pointe" | SchName == "Pittsfield Acres Academy" | SchName == "Explore Academy-Livonia" | SchName == "New Dawn Academy of Warren"
 
 **
 
+rename StateName State
 replace StateAbbrev = "MI"
-replace State = 26
+replace State = "Michigan"
+destring StateFips, replace
 replace StateFips = 26
 
 ** Generating new variables
@@ -223,11 +226,14 @@ replace StateFips = 26
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_read = ""
-gen Flag_CutScoreChange_oth = "N"
+/// gen Flag_CutScoreChange_read = ""
+gen Flag_CutScoreChange_soc = "N"
+gen Flag_CutScoreChange_sci = "N"
 
-order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
-
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+	
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+	
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${output}/MI_AssmtData_2023.dta", replace

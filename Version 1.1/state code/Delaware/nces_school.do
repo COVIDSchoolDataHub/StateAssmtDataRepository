@@ -1,8 +1,8 @@
 clear
 set more off
 
-global NCESOLD "G:\Test Score Repository Project\NCES\School"
-global NCESNEW "G:\Test Score Repository Project\Delaware\NCESNew"
+global NCESOLD "/Users/minnamgung/Desktop/SADR/NCESOld"
+global NCESNEW "/Users/minnamgung/Desktop/SADR/Delaware/NCESNew"
 
 foreach year in 2014 2015 2016 2017 2018 2019 2020 2021 { 
 
