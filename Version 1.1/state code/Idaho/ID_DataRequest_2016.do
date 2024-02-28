@@ -97,6 +97,8 @@ rename DataLevel_n DataLevel
 replace DistName = "All Districts" if DataLevel ==1
 replace SchName = "All Schools" if DataLevel !=3
 
+//Derive Missing Student Counts
+replace StudentSubGroup_TotalTested = Lev1_count + Lev2_count + Lev3_count + Lev4_count if StudentSubGroup_TotalTested == .
 
 //Proficient or above percent and Dealing with ranges
 gen missing = ""
@@ -141,6 +143,8 @@ replace ParticipationRate = ParticipationRate + "-1" if PartRange == "Y"
 drop PartRange
 
 generate ProficientOrAbove_count = Lev3_count + Lev4_count
+replace ProficientOrAbove_count = StudentSubGroup_TotalTested - (Lev1_count + Lev2_count) if ProficientOrAbove_count == .
+
 foreach n in 1 2 3 4 {
 replace Lev`n'_percent = "--" if Lev`n'_percent == "*" & (Suppressed1 != Suppressed2 | Suppressed3 != Suppressed4 | Suppressed2 != Suppressed3)
 tostring Lev`n'_count, replace force
@@ -148,9 +152,11 @@ replace Lev`n'_count = "*" if Lev`n'_count == "."
 replace Lev`n'_count = "--" if Lev`n'_percent == "--"
 }
 tostring ProficientOrAbove_count, replace force
-replace ProficientOrAbove_count = "*" if Lev3_count == "*" | Lev4_count == "*"
+replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "." & Lev3_count == "*"
+replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "." & Lev4_count == "*"
 replace ParticipationRate = "--" if Lev1_percent == "--" & Lev2_percent == "--" & Lev3_percent == "--" & Lev4_percent == "--"
-replace ProficientOrAbove_count = "--" if Lev3_percent == "--" | Lev4_percent == "--"
+replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == "." & Lev3_percent == "--"
+replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == "." & Lev4_percent == "--"
 drop Part
 
 // Subject
@@ -177,8 +183,12 @@ gen AssmtType = "Regular"
 gen state_leaid = StateAssignedDistID
 gen seasch = StateAssignedSchID
 
-// Generating Student Group Counts
+// Generating + Formatting Student Group Counts
 bysort state_leaid seasch StudentGroup Grade Subject: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
+tostring StudentSubGroup_TotalTested, replace
+replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "."
+tostring StudentGroup_TotalTested, replace
+replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
 
 // Saving transformed data
 save "${output_files}/ID_AssmtData_2016.dta", replace
