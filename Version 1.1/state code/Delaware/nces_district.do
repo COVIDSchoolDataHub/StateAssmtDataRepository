@@ -2,8 +2,8 @@ clear
 set trace off
 set more off
 
-local old "G:\Test Score Repository Project\NCES\District"
-local new "G:\Test Score Repository Project\Delaware\NCESNew"
+local old "/Users/minnamgung/Desktop/SADR/NCESOld"
+local new "/Users/minnamgung/Desktop/SADR/Delaware/NCESNew"
 
 foreach year in 2014 2015 2016 2017 2018 2019 2020 2021 {
 use "`old'/NCES_`year'_district.dta"
