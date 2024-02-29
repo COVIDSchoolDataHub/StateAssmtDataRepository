@@ -4,11 +4,14 @@ clear
 set more off
 set trace off
 cap log close
-cd "/Volumes/T7/State Test Project/Connecticut"
-local Original "/Volumes/T7/State Test Project/Connecticut/Original Data Files"
-local Output "/Volumes/T7/State Test Project/Connecticut/Output"
-local NCES_School "/Volumes/T7/State Test Project/NCES/School"
-local NCES_District "/Volumes/T7/State Test Project/NCES/District"
+cd "/Users/meghancornacchia/Desktop/DataRepository/Connecticut"
+local Original "/Users/meghancornacchia/Desktop/DataRepository/Connecticut/Original_Data_Files"
+local Output "/Users/meghancornacchia/Desktop/DataRepository/Connecticut/Output_Data_Files"
+local NCES_School "/Users/meghancornacchia/Desktop/DataRepository/NCES_Data_Files"
+local NCES_District "/Users/meghancornacchia/Desktop/DataRepository/NCES_Data_Files"
+
+
+**** Need to install labutil for labelling to work properly. Type search labutil into Stata terminal and install first result. 
 
 //Unhide Below code on first run
 /*
@@ -76,15 +79,26 @@ replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup ==
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "English Learners"
 replace StudentSubGroup = "English Proficient" if StudentSubGroup == "Non-English Learners"
 replace StudentSubGroup = "All Students" if StudentSubGroup == "All"
-keep if StudentSubGroup == "All Students" | StudentSubGroup == "American Indian or Alaska Native" | StudentSubGroup == "Asian" | StudentSubGroup == "Black or African American" | StudentSubGroup == "Native Hawaiian or Pacific Islander" | StudentSubGroup == "White" | StudentSubGroup == "Hispanic or Latino" | StudentSubGroup == "English Learner" | StudentSubGroup == "English Proficient" | StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged" | StudentSubGroup == "Male" | StudentSubGroup == "Female" | StudentSubGroup == "Two or More"
+replace StudentSubGroup = "Military" if StudentGroup == "Military Family"
+replace StudentSubGroup = "Non-Foster Care" if StudentGroup == "Not Foster Care"
+replace StudentSubGroup = "Non-Military" if StudentGroup == "Not Military Family"
+replace StudentSubGroup = "Non-Homeless" if StudentGroup == "Not Homeless"
+replace StudentSubGroup = "SWD" if StudentGroup == "Students with Disabilities"
+replace StudentSubGroup = "Non-SWD" if StudentGroup == "Students without Disabilities"
+replace StudentSubGroup = "Gender X" if StudentGroup == "N"
+keep if StudentSubGroup == "All Students" | StudentSubGroup == "American Indian or Alaska Native" | StudentSubGroup == "Asian" | StudentSubGroup == "Black or African American" | StudentSubGroup == "Native Hawaiian or Pacific Islander" | StudentSubGroup == "White" | StudentSubGroup == "Hispanic or Latino" | StudentSubGroup == "English Learner" | StudentSubGroup == "English Proficient" | StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged" | StudentSubGroup == "Male" | StudentSubGroup == "Female" | StudentSubGroup == "Two or More" | StudentSubGroup == "Foster Care" | StudentSubGroup == "Homeless" | StudentSubGroup == "Military" | StudentSubGroup == "Non-Foster Care" | StudentSubGroup == "Non-Military" | StudentSubGroup == "Non-Homeless" | StudentSubGroup == "SWD" | StudentSubGroup == "Non-SWD" | StudentSubGroup == "Gender X" 
 
 //StudentGroup
 replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
 replace StudentGroup = "RaceEth" if StudentSubGroup == "American Indian or Alaska Native" | StudentSubGroup == "Asian" | StudentSubGroup == "Black or African American" | StudentSubGroup == "White" | StudentSubGroup == "Two or More" | StudentSubGroup == "Native Hawaiian or Pacific Islander"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged"
-replace StudentGroup = "Gender" if StudentSubGroup == "Male" | StudentSubGroup == "Female"
+replace StudentGroup = "Gender" if StudentSubGroup == "Male" | StudentSubGroup == "Female" | StudentSubGroup == "Gender X" 
 replace StudentGroup = "EL Status" if StudentSubGroup == "English Proficient" | StudentSubGroup == "English Learner"
 replace StudentGroup = "RaceEth" if StudentSubGroup == "Hispanic or Latino"
+replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD" | StudentSubGroup == "Non-SWD"
+replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless" | StudentSubGroup == "Non-Homeless"
+replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Foster Care" | StudentSubGroup == "Non-Foster Care"
+replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Military" | StudentSubGroup == "Non-Military"
 
 //Subject
 replace Subject = lower(Subject)
@@ -126,7 +140,7 @@ tempfile tempdist
 save "`tempdist'", replace
 clear
 use "`NCES_District'/NCES_2020_District"
-keep if state_name == 9 | state_location == "CT"
+keep if state_name == "Connecticut" | state_location == "CT"
 gen StateAssignedDistID2 = subinstr(state_leaid,"CT-","",.)
 merge 1:m StateAssignedDistID2 using "`tempdist'"
 drop if _merge ==1
@@ -139,7 +153,7 @@ keep if DataLevel==3
 tempfile tempschool
 save "`tempschool'", replace
 use "`NCES_School'/NCES_2020_School"
-keep if state_name == 9 | state_location == "CT"
+keep if state_name == "Connecticut" | state_location == "CT"
 gen StateAssignedSchID2 = seasch 
 merge 1:m StateAssignedSchID2 using "`tempschool'"
 drop if _merge ==1
@@ -152,10 +166,10 @@ keep if DataLevel==1
 append using "`tempdist'" "`tempschool'"
 
 //Fixing NCES Variables
+rename district_agency_type DistTypeLabels
 rename state_location StateAbbrev
 rename state_fips StateFips
-rename district_agency_type DistType
-rename school_type SchType
+rename district_agency_type_num DistType
 rename ncesdistrictid NCESDistrictID
 rename state_leaid State_leaid
 rename ncesschoolid NCESSchoolID
@@ -174,7 +188,7 @@ replace DistType = 4 if SchName == "Mill Academy" & missing(NCESSchoolID)
 replace SchLevel = -1 if SchName == "Mill Academy" & missing(NCESSchoolID)
 replace SchVirtual = -1 if SchName == "Mill Academy" & missing(NCESSchoolID)
 replace CountyName = "New Haven County" if SchName == "Mill Academy" & missing(NCESSchoolID)
-replace CountyCode = 9009 if SchName == "Mill Academy" & missing(NCESSchoolID)
+replace CountyCode = "9009" if SchName == "Mill Academy" & missing(NCESSchoolID)
 
 replace State_leaid = "CT-" + StateAssignedDistID if SchName == "Coleytown Middle School" & missing(NCESSchoolID)
 replace SchType = 1 if SchName == "Coleytown Middle School" & missing(NCESSchoolID)
@@ -186,14 +200,14 @@ replace DistType = 1 if SchName == "Coleytown Middle School" & missing(NCESSchoo
 replace SchLevel = 2 if SchName == "Coleytown Middle School" & missing(NCESSchoolID)
 replace SchVirtual = 0 if SchName == "Coleytown Middle School" & missing(NCESSchoolID)
 replace CountyName = "Fairfield County" if SchName == "Coleytown Middle School" & missing(NCESSchoolID)
-replace CountyCode = 9001 if SchName == "Coleytown Middle School" & missing(NCESSchoolID)
+replace CountyCode = "9001" if SchName == "Coleytown Middle School" & missing(NCESSchoolID)
 
 replace State_leaid = "CT-2440014" if DistName == "Area Cooperative Educational Services"
 replace NCESDistrictID = "0900070" if DistName == "Area Cooperative Educational Services"
 replace DistCharter = "No" if DistName == "Area Cooperative Educational Services"
 replace DistType = 9 if DistName == "Area Cooperative Educational Services"
 replace CountyName = "New Haven County" if DistName == "Area Cooperative Educational Services"
-replace CountyCode = 9009 if DistName == "Area Cooperative Educational Services"
+replace CountyCode = "9009" if DistName == "Area Cooperative Educational Services"
 replace seasch = StateAssignedDistID + "-" + StateAssignedSchID if _merge == 2
 
 //Dropping Unmerged with no data available and unmerged bilingual
@@ -207,7 +221,7 @@ replace DistCharter = "Missing/not reported" if missing(DistCharter) & DataLevel
 replace SchType =-1 if missing(SchType) & DataLevel ==3
 replace SchLevel = -1 if missing(SchLevel) & DataLevel ==3
 replace CountyName = "Missing/not reported" if missing(CountyName) & DataLevel !=1
-replace CountyCode = 0 if missing(CountyCode) & DataLevel !=1
+replace CountyCode = "Missing/not reported" if missing(CountyCode) & DataLevel !=1
 replace SchVirtual = -1 if missing(SchVirtual) & DataLevel ==3
 replace NCESDistrictID = "Missing/not reported" if missing(NCESDistrictID) & DataLevel !=1
 replace NCESSchoolID = "Missing/not reported" if missing(NCESSchoolID) & DataLevel ==3
@@ -215,7 +229,7 @@ replace State_leaid = "Missing/not reported" if missing(State_leaid) & DataLevel
 replace seasch = "Missing/not reported" if missing(seasch) & DataLevel ==3
 
 //Proficiency Criteria
-gen ProficiencyCriteria = "Levels 3 and 4"
+gen ProficiencyCriteria = "Levels 3-4"
 
 //AssmtName
 gen AssmtName = "Smarter Balanced Assessment"
@@ -231,8 +245,8 @@ gen AssmtType = "Regular"
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "Y"
 gen Flag_CutScoreChange_math = "Y"
-gen Flag_CutScoreChange_read=""
-gen Flag_CutScoreChange_oth = "Y"
+gen Flag_CutScoreChange_sci = "Y"
+gen Flag_CutScoreChange_soc = ""
 
 //Missing/empty Variables
 gen Lev5_count = ""
@@ -252,15 +266,18 @@ replace AvgScaleScore = "--" if AvgScaleScore == "N/A"
 //Dropping specific schools in response to R1
 drop if StateAssignedSchID == "2449414" | StateAssignedSchID == "2440214"
 
+
+// Apply DistType labels
+labmask DistType, values(DistTypeLabels)
+
 //Final Cleaning
 recast str80 SchName
-order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
-keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "`Output'/CT_AssmtData_2021", replace
 export delimited "`Output'/CT_AssmtData_2021", replace
-clear
 
 
 
