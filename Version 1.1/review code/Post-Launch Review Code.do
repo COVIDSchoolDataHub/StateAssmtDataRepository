@@ -16,17 +16,17 @@ destring NCESDistrictID, replace force
 destring NCESSchoolID, replace force
 */
 
-local variables "State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter SchType SchLevel SchVirtual CountyName CountyCode"
+local variables "State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode"
 
 
 ** Checks number of variables, if variables exist, and checks if capitalization matches
 
 qui describe _all
 di r(k)
-if r(k) >46 {
+if r(k) >47 {
 	di as error "Too many variables"
 }
-if r(k)<46 {
+if r(k)<47 {
 	di as error "Missing variables" 
 }
 
@@ -97,7 +97,7 @@ foreach var of local nomissing {
 
 
 ** District and School levels
-local distsch_nomiss "DistType NCESDistrictID StateAssignedDistID DistCharter CountyCode CountyName"
+local distsch_nomiss "DistType NCESDistrictID StateAssignedDistID DistCharter DistLocale CountyCode CountyName"
 
 foreach var of local distsch_nomiss {
 	count if missing(`var') & DataLevel != 1
