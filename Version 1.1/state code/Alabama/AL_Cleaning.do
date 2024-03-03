@@ -4,7 +4,7 @@ local Original "/Users/miramehta/Documents/AL State Testing Data"
 local NCES_District "/Users/miramehta/Documents/NCES District and School Demographics/NCES District Files, Fall 1997-Fall 2022"
 local NCES_School "/Users/miramehta/Documents/NCES District and School Demographics/NCES School Files, Fall 1997-Fall 2022"
 local Output "/Users/miramehta/Documents/AL State Testing Data/Output"
-local AlabamaMain "/Users/miramehta/Documents/AL State Testing Data"
+local AlabamaMain "/Users/miramehta/Documents/Github/StateAssmtDataRepository/Version 1.1/State Code/Alabama"
 set trace off
 
 //Unhide code below on first run to convert to DTA format
@@ -409,4 +409,4 @@ save "`Output'/AL_AssmtData_`year'", replace
 export delimited "`Output'/AL_AssmtData_`year'", replace
 clear
 }
-do "/Users/miramehta/Documents/Github/StateAssmtDataRepository/Version 1.1/State Code/Alabama/Fixing Unmerged.do"
+do "`AlabamaMain'/Fixing Unmerged.do"
