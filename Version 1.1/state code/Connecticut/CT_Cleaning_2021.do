@@ -190,10 +190,9 @@ replace SchVirtual = -1 if SchName == "Mill Academy" & missing(NCESSchoolID)
 replace CountyName = "New Haven County" if SchName == "Mill Academy" & missing(NCESSchoolID)
 replace CountyCode = "9009" if SchName == "Mill Academy" & missing(NCESSchoolID)
 
+replace DistTypeLabels = "Regular local school district" if SchName == "Coleytown Middle School"
 replace State_leaid = "CT-" + StateAssignedDistID if SchName == "Coleytown Middle School" & missing(NCESSchoolID)
 replace SchType = 1 if SchName == "Coleytown Middle School" & missing(NCESSchoolID)
-replace NCESDistrictID = "0905040" if SchName == "Coleytown Middle School" & missing(NCESSchoolID)
-replace NCESSchoolID = "090504001052" if SchName == "Coleytown Middle School" & missing(NCESSchoolID)
 replace seasch = StateAssignedDistID + "-" + StateAssignedSchID if SchName == "Coleytown Middle School" & missing(NCESSchoolID)
 replace DistCharter = "No" if SchName == "Coleytown Middle School" & missing(NCESSchoolID)
 replace DistType = 1 if SchName == "Coleytown Middle School" & missing(NCESSchoolID)
@@ -201,6 +200,9 @@ replace SchLevel = 2 if SchName == "Coleytown Middle School" & missing(NCESSchoo
 replace SchVirtual = 0 if SchName == "Coleytown Middle School" & missing(NCESSchoolID)
 replace CountyName = "Fairfield County" if SchName == "Coleytown Middle School" & missing(NCESSchoolID)
 replace CountyCode = "9001" if SchName == "Coleytown Middle School" & missing(NCESSchoolID)
+replace DistLocale = "Suburb, large" if SchName == "Coleytown Middle School" & missing(NCESSchoolID)
+replace NCESDistrictID = "0905040" if SchName == "Coleytown Middle School" & missing(NCESSchoolID)
+replace NCESSchoolID = "090504001052" if SchName == "Coleytown Middle School" & missing(NCESSchoolID)
 
 replace State_leaid = "CT-2440014" if DistName == "Area Cooperative Educational Services"
 replace NCESDistrictID = "0900070" if DistName == "Area Cooperative Educational Services"
@@ -279,6 +281,6 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 save "`Output'/CT_AssmtData_2021", replace
 export delimited "`Output'/CT_AssmtData_2021", replace
 
-
+do CT_2021_EDFACTS
 
 

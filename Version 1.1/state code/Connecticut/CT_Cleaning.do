@@ -873,11 +873,11 @@ replace StateFips = 9
 replace StateAbbrev = "CT"
 
 //Fixing Unmerged with Data where possible
-replace DistTypeLabels = "Regular local school district" if DistName == "Geraldine Claytor Magnet Academy"
+replace DistTypeLabels = "Regular local school district" if SchName == "Geraldine Claytor Magnet Academy"
 replace State_leaid = "0150011" if SchName == "Geraldine Claytor Magnet Academy" & `year' == 2017
 replace SchType = 1 if SchName == "Geraldine Claytor Magnet Academy" & `year' == 2017
-replace NCESDistrictID = "900450" if SchName == "Geraldine Claytor Magnet Academy" & `year' == 2017
-replace NCESSchoolID = "90045001918" if SchName == "Geraldine Claytor Magnet Academy" & `year' == 2017
+replace NCESDistrictID = "0900450" if SchName == "Geraldine Claytor Magnet Academy" & `year' == 2017
+replace NCESSchoolID = "090045001918" if SchName == "Geraldine Claytor Magnet Academy" & `year' == 2017
 replace seasch = "31" if SchName == "Geraldine Claytor Magnet Academy" & `year' == 2017
 replace DistCharter = "No" if SchName == "Geraldine Claytor Magnet Academy" & `year' == 2017
 replace DistType = 1 if SchName == "Geraldine Claytor Magnet Academy" & `year' == 2017
@@ -886,11 +886,9 @@ replace SchVirtual = 0 if SchName == "Geraldine Claytor Magnet Academy" & `year'
 replace CountyName = "Fairfield County" if SchName == "Geraldine Claytor Magnet Academy" & `year' == 2017
 replace CountyCode = "9001" if SchName == "Geraldine Claytor Magnet Academy" & `year' == 2017
 
-replace DistTypeLabels = "Regional education service agency" if DistName == "Mill Academy"
+replace DistTypeLabels = "Regional education service agency" if SchName == "Mill Academy"
 replace State_leaid = "CT-244" if SchName == "Mill Academy" & missing(NCESSchoolID)
 replace SchType = 4 if SchName == "Mill Academy" & missing(NCESSchoolID)
-replace NCESDistrictID = "900070" if SchName == "Mill Academy" & missing(NCESSchoolID)
-replace NCESSchoolID = "90007001505" if SchName == "Mill Academy" & missing(NCESSchoolID)
 replace seasch = "244-94" if SchName == "Mill Academy" & missing(NCESSchoolID)
 replace DistCharter = "No" if SchName == "Mill Academy" & missing(NCESSchoolID)
 replace DistType = 4 if SchName == "Mill Academy" & missing(NCESSchoolID)
@@ -898,12 +896,12 @@ replace SchLevel = -1 if SchName == "Mill Academy" & missing(NCESSchoolID)
 replace SchVirtual = -1 if SchName == "Mill Academy" & missing(NCESSchoolID)
 replace CountyName = "New Haven County" if SchName == "Mill Academy" & missing(NCESSchoolID)
 replace CountyCode = "9009" if SchName == "Mill Academy" & missing(NCESSchoolID)
+replace NCESDistrictID = "0900070" if SchName == "Mill Academy" & missing(NCESSchoolID)
+replace NCESSchoolID = "090007001505" if SchName == "Mill Academy" & missing(NCESSchoolID)
 
-replace DistTypeLabels = "Regular local school district" if DistName == "Enlightenment School"
+replace DistTypeLabels = "Regular local school district" if SchName == "Enlightenment School"
 replace State_leaid = "CT-1510011" if SchName == "Enlightenment School" & missing(NCESSchoolID)
 replace SchType = 1 if SchName == "Enlightenment School" & missing(NCESSchoolID)
-replace NCESDistrictID = "904830" if SchName == "Enlightenment School" & missing(NCESSchoolID)
-replace NCESSchoolID = "90483001418" if SchName == "Enlightenment School" & missing(NCESSchoolID)
 replace seasch = "1510011-1519111" if SchName == "Enlightenment School" & missing(NCESSchoolID)
 replace DistCharter = "No" if SchName == "Enlightenment School" & missing(NCESSchoolID)
 replace DistType = 1 if SchName == "Enlightenment School" & missing(NCESSchoolID)
@@ -911,12 +909,13 @@ replace SchLevel = 4 if SchName == "Enlightenment School" & missing(NCESSchoolID
 replace SchVirtual = 0 if SchName == "Enlightenment School" & missing(NCESSchoolID)
 replace CountyName = "New Haven County" if SchName == "Enlightenment School" & missing(NCESSchoolID)
 replace CountyCode = "9009" if SchName == "Enlightenment School" & missing(NCESSchoolID)
+replace DistLocale = "Suburb, midsize" if SchName == "Enlightenment School" & missing(NCESSchoolID)
+replace NCESDistrictID = "0904830" if SchName == "Enlightenment School" & missing(NCESSchoolID)
+replace NCESSchoolID = "090483001418" if SchName == "Enlightenment School" & missing(NCESSchoolID)
 
-replace DistTypeLabels = "Local school district that is a component of a supervisory union" if DistName == "Woodland School"
+replace DistTypeLabels = "Local school district that is a component of a supervisory union" if SchName == "Woodland School" & missing(NCESSchoolID)
 replace State_leaid = "CT-0430011" if SchName == "Woodland School" & missing(NCESSchoolID)
 replace SchType = 2 if SchName == "Woodland School" & missing(NCESSchoolID)
-replace NCESDistrictID = "901260" if SchName == "Woodland School" & missing(NCESSchoolID)
-replace NCESSchoolID = "90126000205" if SchName == "Woodland School" & missing(NCESSchoolID)
 replace seasch = "0430011-0439011" if SchName == "Woodland School" & missing(NCESSchoolID)
 replace DistCharter = "No" if SchName == "Woodland School" & missing(NCESSchoolID)
 replace DistType = 2 if SchName == "Woodland School" & missing(NCESSchoolID)
@@ -924,6 +923,9 @@ replace SchLevel = 4 if SchName == "Woodland School" & missing(NCESSchoolID)
 replace SchVirtual = -1 if SchName == "Woodland School" & missing(NCESSchoolID)
 replace CountyName = "Hartford County" if SchName == "Woodland School" & missing(NCESSchoolID)
 replace CountyCode = "9003" if SchName == "Woodland School" & missing(NCESSchoolID)
+replace DistLocale = "City, small" if SchName == "Woodland School" & missing(NCESSchoolID)
+replace NCESDistrictID = "0901260" if SchName == "Woodland School" & missing(NCESSchoolID)
+replace NCESSchoolID = "090126000205" if SchName == "Woodland School" & missing(NCESSchoolID)
 
 replace DistTypeLabels = "Specialized public school district" if DistName == "Area Cooperative Educational Services"
 replace State_leaid = "CT-2440014" if DistName == "Area Cooperative Educational Services"
@@ -1014,6 +1016,6 @@ clear
 clear	
 }
 log close
-/*
+
 do CT_Cleaning_2021
 
