@@ -2,7 +2,7 @@
 clear all
 
 cd "/Users/miramehta/Documents"
-global path "/Users/miramehta/Documents/CO State Testing Data/CMAS Aggregate Data"
+local path "/Users/miramehta/Documents/CO State Testing Data/2014"
 global nces "/Users/miramehta/Documents/NCES District and School Demographics"
 global output "/Users/miramehta/Documents/CO State Testing Data"
 
@@ -113,7 +113,7 @@ save "${output}/CO_OriginalData_2014_all.dta", replace
 
 	// Merges district variables from NCES
 
-use "${nces}/NCES District Files, Fall 1997-Fall 2021/NCES_2013_District.dta"
+use "${nces}/NCES District Files, Fall 1997-Fall 2022/NCES_2013_District.dta"
 drop if state_fips != 8
 save "${nces}/Cleaned NCES Data/CO_NCES_2014_District.dta", replace
 
@@ -131,7 +131,7 @@ drop if state_fips != 8
 save "${output}/CO_OriginalData_2014_all.dta", replace
 	// Merges school variables from NCES
 
-use "${nces}/NCES School Files, Fall 1997-Fall 2021/NCES_2013_School.dta"
+use "${nces}/NCES School Files, Fall 1997-Fall 2022/NCES_2013_School.dta"
 drop if state_fips != 8
 save "${nces}/Cleaned NCES Data/CO_NCES_2014_School.dta", replace
 
@@ -171,8 +171,6 @@ rename district_agency_type DistType
 rename state_location StateAbbrev
 rename county_name CountyName
 rename county_code CountyCode
-rename school_type SchType
-
 
 //	Create new variables
 
@@ -186,8 +184,7 @@ gen AssmtType = "Regular"
 gen ProficiencyCriteria = "Levels 3-4"
 gen Lev5_count = "--" 
 gen Lev5_percent= "--"
-gen SchYear = string(year)
-replace SchYear="2013-14" if SchYear=="2014"
+gen SchYear="2013-14"
 drop year
 
 gen StudentSubGroup_TotalTested=StudentGroup_TotalTested
@@ -210,7 +207,7 @@ tab Subject
 replace Subject="sci" if Subject=="SCI"
 replace Subject="soc" if Subject=="SS"
 
-replace SchName = "All Schools" if DataLevel == "District"
+replace SchName = "All Schools" if DataLevel != "School"
 replace DistName = "All Districts" if DataLevel == "State"
 
 replace seasch="0000-0000" if seasch=="000-000"
@@ -218,7 +215,7 @@ replace State_leaid="CO-0000" if State_leaid=="CO-000"
 replace StateAssignedDistID="0000" if StateAssignedDistID=="000"
 replace StateAssignedSchID="0000" if StateAssignedSchID=="000"
 replace StateAbbrev="CO" if StateAbbrev==""
-replace State=StateFips
+replace State = "Colorado"
 
 replace SchYear="2013-14"
 
@@ -263,7 +260,7 @@ replace StateAssignedSchID="" if StateAssignedSchID=="0000"
 
 //// Reorder and drop variables
 
-keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 tostring NCESDistrictID, replace force
 tostring NCESSchoolID, replace force
@@ -286,8 +283,7 @@ sort DataLevel_n
 drop DataLevel 
 rename DataLevel_n DataLevel
 
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter SchType SchLevel SchVirtual CountyName CountyCode
-
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 

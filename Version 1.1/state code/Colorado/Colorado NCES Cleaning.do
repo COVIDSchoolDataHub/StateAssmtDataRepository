@@ -3,8 +3,8 @@ set more off
 
 cd "/Users/miramehta/Documents"
 
-global NCESSchool "/Users/miramehta/Documents/NCES District and School Demographics/NCES School Files, Fall 1997-Fall 2021"
-global NCESDistrict "/Users/miramehta/Documents/NCES District and School Demographics/NCES District Files, Fall 1997-Fall 2021"
+global NCESSchool "/Users/miramehta/Documents/NCES District and School Demographics/NCES School Files, Fall 1997-Fall 2022"
+global NCESDistrict "/Users/miramehta/Documents/NCES District and School Demographics/NCES District Files, Fall 1997-Fall 2022"
 global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
 
 local year 2015 2016 2017 2018 2021
@@ -23,7 +23,7 @@ foreach a of local year {
 	rename county_name CountyName
 	rename county_code CountyCode
 	rename lea_name DistName
-	drop year district_agency_type_num urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte
+	drop year district_agency_type_num urban_centric_locale supervisory_union_number boundary_change_indicator number_of_schools teachers_total_fte staff_total_fte
 	
 	save "${NCES}/NCES_`a'_District.dta", replace
 	
@@ -41,8 +41,7 @@ foreach a of local year {
 	rename lea_name DistName	
 	rename ncesschoolid NCESSchoolID
 	rename school_name SchName
-	rename school_type SchType
-	drop year district_agency_type_num school_id school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_lowest_grade_offered dist_highest_grade_offered dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch
+	drop year district_agency_type_num school_id school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_supervisory_union_number dist_boundary_change_indicator dist_teachers_total_fte dist_staff_total_fte sch_bureau_indian_education sch_charter sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch
 	drop if seasch == ""
 	
 	save "${NCES}/NCES_`a'_School.dta", replace

@@ -1,14 +1,15 @@
 clear
 set more off
 
-global output "/Users/miramehta/Documents/CO State Testing Data/2023"
+local path "/Users/miramehta/Documents/CO State Testing Data/2023"
 global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+global output "/Users/miramehta/Documents/CO State Testing Data"
 
 cd "/Users/miramehta/Documents/CO State Testing Data"
 
 ** Appending ela & math
 
-use "${output}/CO_AssmtData_2023_ela_mat_allstudents.dta", clear
+use "${path}/CO_AssmtData_2023_ela_mat_allstudents.dta", clear
 drop NumberofTotalRecords NumberofNoScores ParticipationRate2022 ParticipationRate2019 StandardDeviation AB AC Change20232022 AE
 gen StudentGroup = "All Students"
 gen StudentSubGroup = "All Students"
@@ -16,36 +17,36 @@ rename Content Subject
 rename AA PercentMetorExceededExpectat
 rename ParticipationRate2023 ParticipationRate
 
-append using "${output}/CO_AssmtData_2023_ELA_Gender.dta"
+append using "${path}/CO_AssmtData_2023_ELA_Gender.dta"
 append using "${output}/CO_AssmtData_2023_Math_Gender.dta"
 replace StudentSubGroup = Gender if StudentGroup == "Gender"
 drop Gender
 
-append using "${output}/CO_AssmtData_2023_ELA_Race Ethnicity.dta"
-append using "${output}/CO_AssmtData_2023_Math_Race Ethnicity.dta"
+append using "${path}/CO_AssmtData_2023_ELA_Race Ethnicity.dta"
+append using "${path}/CO_AssmtData_2023_Math_Race Ethnicity.dta"
 replace StudentGroup = "RaceEth" if StudentGroup == "Race Ethnicity"
 replace StudentSubGroup = RaceEthnicity if StudentGroup == "RaceEth"
 drop RaceEthnicity
 
-append using "${output}/CO_AssmtData_2023_ELA_Free Reduced Lunch.dta"
-append using "${output}/CO_AssmtData_2023_Math_Free Reduced Lunch.dta"
+append using "${path}/CO_AssmtData_2023_ELA_Free Reduced Lunch.dta"
+append using "${path}/CO_AssmtData_2023_Math_Free Reduced Lunch.dta"
 replace StudentSubGroup = FreeReducedLunchStatus if StudentGroup == "Economic Status"
 drop FreeReducedLunchStatus
 
-append using "${output}/CO_AssmtData_2023_ELA_Language Proficiency.dta"
-append using "${output}/CO_AssmtData_2023_Math_Language Proficiency.dta"
+append using "${path}/CO_AssmtData_2023_ELA_Language Proficiency.dta"
+append using "${path}/CO_AssmtData_2023_Math_Language Proficiency.dta"
 replace StudentGroup = "EL Status" if StudentGroup == "Language Proficiency"
 replace StudentSubGroup = LanguageProficiency if StudentGroup == "EL Status"
 drop LanguageProficiency
 
-append using "${output}/CO_AssmtData_2023_ELA_Migrant.dta"
-append using "${output}/CO_AssmtData_2023_Math_Migrant.dta"
+append using "${path}/CO_AssmtData_2023_ELA_Migrant.dta"
+append using "${path}/CO_AssmtData_2023_Math_Migrant.dta"
 replace StudentGroup = "Migrant Status" if StudentGroup == "Migrant"
 replace StudentSubGroup = Migrant if StudentGroup == "Migrant Status"
 drop Migrant
 
-append using "${output}/CO_AssmtData_2023_ELA_IEP.dta"
-append using "${output}/CO_AssmtData_2023_Math_IEP.dta"
+append using "${path}/CO_AssmtData_2023_ELA_IEP.dta"
+append using "${path}/CO_AssmtData_2023_Math_IEP.dta"
 replace StudentGroup = "Disability Status" if StudentGroup == "IEP"
 replace StudentSubGroup = IEPStatus if StudentGroup == "Disability Status"
 drop IEPStatus
@@ -67,41 +68,41 @@ rename PercentExceededExpectations Lev5_percent
 
 gen ProficiencyCriteria = "Levels 4-5"
 
-save "${output}/CO_AssmtData_2023_ela_math.dta", replace
+save "${path}/CO_AssmtData_2023_ela_math.dta", replace
 
 ** Appending science
 
-use "${output}/CO_AssmtData_2023_sci_allstudents.dta", replace
+use "${path}/CO_AssmtData_2023_sci_allstudents.dta", replace
 drop NumberofTotalRecords NumberofNoScores StandardDeviation W
 gen StudentGroup = "All Students"
 gen StudentSubGroup = "All Students"
 gen Subject = "sci"
 rename ParticpationRate ParticipationRate
 
-append using "${output}/CO_AssmtData_2023_Science_Gender.dta"
+append using "${path}/CO_AssmtData_2023_Science_Gender.dta"
 replace StudentSubGroup = Gender if StudentGroup == "Gender"
 drop Gender
 
-append using "${output}/CO_AssmtData_2023_Science_Race Ethnicity.dta"
+append using "${path}/CO_AssmtData_2023_Science_Race Ethnicity.dta"
 replace StudentGroup = "RaceEth" if StudentGroup == "Race Ethnicity"
 replace StudentSubGroup = RaceEthnicity if StudentGroup == "RaceEth"
 drop RaceEthnicity
 
-append using "${output}/CO_AssmtData_2023_Science_Free Reduced Lunch.dta"
+append using "${path}/CO_AssmtData_2023_Science_Free Reduced Lunch.dta"
 replace StudentSubGroup = FreeReducedLunchStatus if StudentGroup == "Economic Status"
 drop FreeReducedLunchStatus
 
-append using "${output}/CO_AssmtData_2023_Science_Language Proficiency.dta"
+append using "${path}/CO_AssmtData_2023_Science_Language Proficiency.dta"
 replace StudentGroup = "EL Status" if StudentGroup == "Language Proficiency"
 replace StudentSubGroup = LanguageProficiency if StudentGroup == "EL Status"
 drop LanguageProficiency
 
-append using "${output}/CO_AssmtData_2023_Science_Migrant.dta"
+append using "${path}/CO_AssmtData_2023_Science_Migrant.dta"
 replace StudentGroup = "Migrant Status" if StudentGroup == "Migrant"
 replace StudentSubGroup = Migrant if StudentGroup == "Migrant Status"
 drop Migrant
 
-append using "${output}/CO_AssmtData_2023_Science_IEP.dta"
+append using "${path}/CO_AssmtData_2023_Science_IEP.dta"
 replace StudentGroup = "Disability Status" if StudentGroup == "IEP"
 replace StudentSubGroup = IEPStatus if StudentGroup == "Disability Status"
 drop IEPStatus
@@ -119,11 +120,11 @@ rename PercentExceededExpectations Lev4_percent
 
 gen ProficiencyCriteria = "Levels 3-4"
 
-save "${output}/CO_AssmtData_2023_sci.dta", replace
+save "${path}/CO_AssmtData_2023_sci.dta", replace
 
 ** Appending all subjects
 
-append using "${output}/CO_AssmtData_2023_ela_math.dta"
+append using "${path}/CO_AssmtData_2023_ela_math.dta"
 
 ** Rename existing variables
 
@@ -317,13 +318,11 @@ replace NCESSchoolID = "080354006869" if SchName == "World Academy Middle School
 
 replace SchLevel = -1 if SchName == "Colorado Connections Academy" | SchName == "Colorado Early Colleges Online Campus" | SchName == "Education reEnvisioned School" | SchName == "Five Star Online Academy" | SchName == "Gudy Gaskill Elementary" | SchName == "JeffCo Remote Learning Program" |SchName == "Leadership Academy of Colorado" | SchName == "Mapleton Online" |SchName == "Merit Academy" | SchName == "Montbello Middle School" | SchName == "Performing Arts School on Broadway" | SchName == "Prospect Academy" | SchName == "Pueblo Classical Academy" | SchName == "Southlawn Elementary School" | SchName == "Timnath Middle-High School" | SchName == "Tointon Academy of Pre-Engineering" | SchName == "Two Rivers Community School" | SchName == "Villa Bella Expeditionary Middle School" | SchName == "Vision Charter Academy K-8" | SchName == "Weld Re-3J Online Innovations" | SchName == "Woodland Elementary School" | SchName == "World Academy Elementary School" | SchName == "World Academy Middle School"
 replace SchVirtual = -1 if SchName == "Colorado Connections Academy" | SchName == "Colorado Early Colleges Online Campus" | SchName == "Education reEnvisioned School" | SchName == "Five Star Online Academy" | SchName == "Gudy Gaskill Elementary" | SchName == "JeffCo Remote Learning Program" |SchName == "Leadership Academy of Colorado" | SchName == "Mapleton Online" |SchName == "Merit Academy" | SchName == "Montbello Middle School" | SchName == "Performing Arts School on Broadway" | SchName == "Prospect Academy" | SchName == "Pueblo Classical Academy" | SchName == "Southlawn Elementary School" | SchName == "Timnath Middle-High School" | SchName == "Tointon Academy of Pre-Engineering" | SchName == "Two Rivers Community School" | SchName == "Villa Bella Expeditionary Middle School" | SchName == "Vision Charter Academy K-8" | SchName == "Weld Re-3J Online Innovations" | SchName == "Woodland Elementary School" | SchName == "World Academy Elementary School" | SchName == "World Academy Middle School"
-label def SchLevel -1 "Missing/not reported"
-label def SchVirtual -1 "Missing/not reported"
 
 **
 
 replace StateAbbrev = "CO" if DataLevel == 1
-replace State = 8 if DataLevel == 1
+replace State = "Colorado" if DataLevel == 1
 replace StateFips = 8 if DataLevel == 1
 
 ** Generating new variables
@@ -334,9 +333,9 @@ gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_soc = ""
 gen Flag_CutScoreChange_sci = "Y"
 
-drop State_leaid seasch
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter SchType SchLevel SchVirtual CountyName CountyCode
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
