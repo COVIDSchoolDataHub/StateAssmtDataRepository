@@ -121,14 +121,14 @@ sort StateAssignedSchID GradeLevel Subject
 tostring StateAssignedDistID, replace
 
 merge m:1 State_leaid using "${NCES}/NCES_2021_District.dta", force
+drop if _merge == 2
 drop _merge
-
 replace lea_name = strproper(lea_name)
 replace DistName = lea_name if DistName == ""
 
 merge m:1 seasch NCESDistrictID using "${NCES}/NCES_2021_School.dta", force
+drop if _merge == 2
 drop _merge
-drop if SchName == ""
 
 sort NCESSchoolID GradeLevel Subject
 gen DataLevel="School"
@@ -209,10 +209,8 @@ use "${output}/AZ_AssmtData_district_2022.dta", clear
 append using "${output}/AZ_AssmtData_2022_district_sci.dta"
 
 merge m:1 State_leaid using "${NCES}/NCES_2021_District.dta"
-
-drop if _merge == 1
+keep if _merge == 3
 drop _merge
-drop if StateAssignedDistID == ""
 
 replace lea_name = strproper(lea_name)
 replace DistName = lea_name if DistName == ""
@@ -339,16 +337,12 @@ replace DistName = "All Districts" if DataLevel == "State"
 //Fixing types
 tostring StateAssignedSchID, replace
 replace StateAssignedSchID = "" if StateAssignedSchID == "."
-decode DistType, generate(new)
-drop DistType
-rename new DistType
 decode SchLevel, generate(new)
 drop SchLevel
 rename new SchLevel
 decode SchType, generate(new)
 drop SchType
 rename new SchType
-recast int CountyCode
 decode SchVirtual, generate(new)
 drop SchVirtual
 rename new SchVirtual
@@ -421,9 +415,12 @@ replace SchLevel = "Missing/not reported" if SchLevel == "" & DataLevel == 3
 
 	
 //order
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter SchType SchLevel SchVirtual CountyName CountyCode
 
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter SchType SchLevel SchVirtual CountyName CountyCode
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${output}/AZ_AssmtData_2022.dta", replace
 export delimited using "${output}/csv/AZ_AssmtData_2022.csv", replace

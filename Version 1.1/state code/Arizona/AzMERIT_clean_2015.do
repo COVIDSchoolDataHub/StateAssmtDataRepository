@@ -4,6 +4,7 @@ set more off
 global AzMERIT "/Users/maggie/Desktop/Arizona/AzMERIT"
 global output "/Users/maggie/Desktop/Arizona/Output"
 global NCES "/Users/maggie/Desktop/Arizona/NCES/Cleaned"
+global EDFacts "/Users/maggie/Desktop/EDFacts/Datasets"
 
 /*
 ** 2015 ELA and Math
@@ -122,14 +123,15 @@ sort StateAssignedSchID GradeLevel Subject
 tostring StateAssignedDistID, replace
 
 merge m:1 State_leaid using "${NCES}/NCES_2014_District.dta", force
+drop if _merge == 2
 drop _merge
 
 replace lea_name = strproper(lea_name)
 replace DistName = lea_name if DistName == ""
 
 merge m:1 seasch NCESDistrictID using "${NCES}/NCES_2014_School.dta", force
+drop if _merge == 2
 drop _merge
-drop if SchName == ""
 
 sort NCESSchoolID GradeLevel Subject
 gen DataLevel="School"
@@ -211,8 +213,8 @@ use "${output}/AZ_AssmtData_district_2015.dta", clear
 append using "${output}/AZ_AssmtData_2015_district_sci.dta"
 
 merge m:1 State_leaid using "${NCES}/NCES_2014_District.dta"
+drop if _merge == 2
 drop _merge
-drop if StateAssignedDistID == ""
 
 replace lea_name = strproper(lea_name)
 replace DistName = lea_name if DistName == ""
@@ -342,16 +344,12 @@ replace DistName = "All Districts" if DataLevel == "State"
 //Fixing types
 tostring StateAssignedSchID, replace
 replace StateAssignedSchID = "" if StateAssignedSchID == "."
-decode DistType, generate(new)
-drop DistType
-rename new DistType
 decode SchLevel, generate(new)
 drop SchLevel
 rename new SchLevel
 decode SchType, generate(new)
 drop SchType
 rename new SchType
-recast int CountyCode
 decode SchVirtual, generate(new)
 drop SchVirtual
 rename new SchVirtual
@@ -399,13 +397,6 @@ replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic/L
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "Limited English Proficient"
 replace StudentSubGroup = "SWD" if StudentSubGroup == "Students with Disabilities"
 
-destring StudentSubGroup_TotalTested, replace force
-bysort State_leaid seasch StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
-tostring StudentGroup_TotalTested, replace
-tostring StudentSubGroup_TotalTested, replace
-replace StudentGroup_TotalTested="--" if StudentGroup_TotalTested=="0"
-replace StudentSubGroup_TotalTested="--" if StudentSubGroup_TotalTested=="."
-
 replace Subject="ela" if Subject=="English Language Arts"
 replace Subject="math" if Subject=="Math"
 replace Subject="sci" if Subject=="Science"
@@ -421,11 +412,47 @@ drop DataLevel
 rename DataLevel_n DataLevel 
 replace SchVirtual = "Missing/not reported" if SchVirtual == "" & DataLevel == 3
 replace SchLevel = "Missing/not reported" if SchLevel == "" & DataLevel == 3
+
+** Merging with EDFacts Datasets
+
+merge m:1 DataLevel NCESDistrictID StudentGroup StudentSubGroup GradeLevel Subject using "${EDFacts}/2015/edfactscount2015districtarizona.dta"
+tostring Count, replace
+replace StudentSubGroup_TotalTested = Count if Count != "."
+drop if _merge == 2
+drop stnam-_merge
+
+merge m:1 DataLevel NCESDistrictID StudentGroup StudentSubGroup GradeLevel Subject using "${EDFacts}/2015/edfactspart2015districtarizona.dta"
+replace ParticipationRate = Participation if Participation != ""
+drop if _merge == 2
+drop stnam-_merge
+
+merge m:1 DataLevel NCESSchoolID StudentGroup StudentSubGroup GradeLevel Subject using "${EDFacts}/2015/edfactscount2015schoolarizona.dta"
+tostring Count, replace
+replace StudentSubGroup_TotalTested = Count if Count != "."
+drop if _merge == 2
+drop stnam-_merge
+
+merge m:1 DataLevel NCESSchoolID StudentGroup StudentSubGroup GradeLevel Subject using "${EDFacts}/2015/edfactspart2015schoolarizona.dta"
+replace ParticipationRate = Participation if Participation != ""
+drop if _merge == 2
+drop stnam-_merge
+
+destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
+replace StudentSubGroup_TotalTested2 = 0 if StudentSubGroup_TotalTested2 == .
+bysort State_leaid seasch StudentGroup GradeLevel Subject: egen test = min(StudentSubGroup_TotalTested2)
+bysort State_leaid seasch StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested2) if test != 0
+tostring StudentSubGroup_TotalTested2, replace force
+replace StudentSubGroup_TotalTested = StudentSubGroup_TotalTested2 if StudentSubGroup_TotalTested2 != "0"
+tostring StudentGroup_TotalTested, replace force
+replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested == "."
+drop StudentSubGroup_TotalTested2 test
 	
 //order
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter SchType SchLevel SchVirtual CountyName CountyCode
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter SchType SchLevel SchVirtual CountyName CountyCode
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${output}/AZ_AssmtData_2015.dta", replace
 export delimited using "${output}/csv/AZ_AssmtData_2015.csv", replace

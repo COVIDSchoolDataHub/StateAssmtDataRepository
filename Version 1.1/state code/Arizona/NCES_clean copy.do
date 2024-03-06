@@ -18,7 +18,10 @@ foreach a in $years {
 	rename state_leaid State_leaid
 	rename county_code CountyCode
 	rename ncesschoolid NCESSchoolID
-	rename school_type SchType
+	
+	if `a' == 2009 {
+		drop _merge
+	}
 	
 	if `a' == 2016 | `a' == 2017 | `a' == 2017 | `a' == 2018 | `a' == 2020 | `a' == 2021 {
 		split State_leaid, p(-)
