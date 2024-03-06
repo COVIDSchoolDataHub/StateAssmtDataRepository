@@ -2,9 +2,10 @@ clear
 
 // Define file paths
 
-global original_files "/Users/meghancornacchia/Desktop/DataRepository/Minnesota/Original_Data_Files"
-global NCES_files "/Users/meghancornacchia/Desktop/DataRepository/NCES_Data_Files"
-global output_files "/Users/meghancornacchia/Desktop/DataRepository/Minnesota/Output_Data_Files"
+global original_files "/Volumes/T7/State Test Project/Minnesota post launch/Original Data"
+global NCES_files "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global output_files "/Volumes/T7/State Test Project/Minnesota post launch/Output"
+global temp_files "/Volumes/T7/State Test Project/Minnesota post launch/Temp"
 
 // 1999-2000
 
@@ -73,7 +74,7 @@ drop numLev4_count
 drop numLev5_count
 
 foreach var of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent Lev5_percent {
-	tostring num`var', replace force
+	tostring num`var', replace force format("%9.3g")
 	replace `var' = num`var' if `var' != "--"
 	drop num`var'
 }
@@ -91,13 +92,13 @@ gen AssmtName = "Minnesota Comprehensive Assessment"
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_read = ""
-gen Flag_CutScoreChange_oth = "N"
+gen Flag_CutScoreChange_sci = "N"
+gen Flag_CutScoreChange_soc = ""
 gen AssmtType = "Regular"
 gen StudentGroup = "All Students"
 gen StudentSubGroup = "All Students"
-gen ProficiencyCriteria = "Levels 3, 4, 5"
-gen ParticipationRate = ""
+gen ProficiencyCriteria = "Levels 3-5"
+gen ParticipationRate = "--"
 
 // Data Levels
 gen DataLevel = "School"
@@ -129,7 +130,7 @@ keep if substr(ncesschoolid, 1, 2) == "27"
 
 drop if ncesschoolid=="270012902783"
 
-keep state_location state_fips district_agency_type school_type ncesdistrictid state_leaid ncesschoolid seasch DistCharter SchLevel SchVirtual county_name county_code
+keep state_location state_fips district_agency_type SchType ncesdistrictid state_leaid ncesschoolid seasch DistCharter SchLevel SchVirtual county_name county_code DistLocale
 
 merge 1:m seasch using "${output_files}/MN_AssmtData_2000.dta", keep(match using) nogenerate
 
@@ -141,7 +142,7 @@ use "$NCES_files/NCES_1999_District.dta", clear
 
 keep if substr(ncesdistrictid, 1, 2) == "27"
 
-keep state_location state_fips district_agency_type ncesdistrictid state_leaid DistCharter county_name county_code
+keep state_location state_fips district_agency_type ncesdistrictid state_leaid DistCharter county_name county_code DistLocale
 
 merge 1:m state_leaid using "${output_files}/MN_AssmtData_2000.dta", keep(match using) nogenerate
 
@@ -158,7 +159,7 @@ rename state_leaid State_leaid
 rename state_location StateAbbrev
 generate State = "Minnesota"
 rename county_code CountyCode
-rename school_type SchType
+*rename school_type SchType
 rename state_fips StateFips
 rename county_name CountyName
 
@@ -174,8 +175,8 @@ replace seasch = "" if DataLevel != 3
 replace State_leaid = "" if DataLevel == 1
 
 // Reordering variables and sorting data
-order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
-
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+drop State_leaid seasch
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 // Saving and exporting transformed data

@@ -121,32 +121,32 @@ use "${output}/AZ_AssmtData_school_2023.dta", clear
 append using "${output}/AZ_AssmtData_2023_school_sci.dta"
 
 merge m:1 State_leaid using "${NCES}/NCES_2021_District.dta"
+drop if _merge == 2
 drop _merge
 
 merge m:1 seasch NCESDistrictID using "${NCES}/NCES_2021_School.dta"
+drop if _merge == 2
 drop _merge
-drop if SchName == ""
 
 sort NCESSchoolID GradeLevel Subject
 gen DataLevel = "School"
 
 ** Updating 2023 districts
 
-replace DistType = 7 if StateAssignedDistID == "90915"
+replace DistType = "Charter agency" if StateAssignedDistID == "90915"
 replace NCESDistrictID = "0400832" if StateAssignedDistID == "90915"
 replace DistCharter = "Yes" if StateAssignedDistID == "90915"
 
-replace DistType = 7 if StateAssignedDistID == "1001937"
+replace DistType = "Charter agency" if StateAssignedDistID == "1001937"
 replace NCESDistrictID = "0409737" if StateAssignedDistID == "1001937"
 replace DistCharter = "Yes" if StateAssignedDistID == "1001937"
 
-replace DistType = 7 if DistName == "Legacy Traditional School-San Tan"
+replace DistType = "Charter agency" if DistName == "Legacy Traditional School-San Tan"
 replace NCESDistrictID = "0409736" if DistName == "Legacy Traditional School-San Tan"
 replace DistCharter = "Yes" if DistName == "Legacy Traditional School-San Tan"
 
 replace county_name = "Missing/not reported" if inlist(DistName, "Archway Classical Academy Trivium West", "Legacy Traditional School-San Tan")
-replace CountyCode = -1 if inlist(DistName, "Archway Classical Academy Trivium West", "Legacy Traditional School-San Tan")
-label def county_codedf -1 "Missing/not reported", modify
+replace CountyCode = "Missing/not reported" if inlist(DistName, "Archway Classical Academy Trivium West", "Legacy Traditional School-San Tan")
 
 **** Updating 2023 schools
 
@@ -188,8 +188,6 @@ replace NCESSchoolID = "040906003805" if SchName == "Washington Elementary Schoo
 
 replace SchLevel = -1 if SchName == "Bravie T. Soto Elementary School" | SchName == "Crismon High School" | SchName == "Desert Sunset Elementary School" | SchName == "Great Hearts Online - Arizona" | SchName == "Inspiration Mountain School" | SchName == "La Paloma Academy Marana" | SchName == "Leading Edge Academy Flagstaff" | SchName == "Legacy Traditional-San Tan" | SchName == "Path to Potential" | SchName == "Sun Valley Elementary School" | SchName == "Washington Elementary School District Online Learning Academy"
 replace SchVirtual = -1 if SchName == "Bravie T. Soto Elementary School" | SchName == "Crismon High School" | SchName == "Desert Sunset Elementary School" | SchName == "Great Hearts Online - Arizona" | SchName == "Inspiration Mountain School" | SchName == "La Paloma Academy Marana" | SchName == "Leading Edge Academy Flagstaff" | SchName == "Legacy Traditional-San Tan" | SchName == "Path to Potential" | SchName == "Sun Valley Elementary School" | SchName == "Washington Elementary School District Online Learning Academy"
-label def SchLevel -1 "Missing/not reported"
-label def SchVirtual -1 "Missing/not reported"
 
 save "${output}/AZ_AssmtData_school_2023.dta", replace
 
@@ -272,29 +270,28 @@ use "${output}/AZ_AssmtData_district_2023.dta", clear
 append using "${output}/AZ_AssmtData_2023_district_sci.dta"
 
 merge m:1 State_leaid using "${NCES}/NCES_2021_District.dta"
+drop if _merge == 2
 drop _merge
-drop if DistName == ""
 
 sort NCESDistrictID GradeLevel Subject
 gen DataLevel = "District"
 
 ** Updating 2023 districts
 
-replace DistType = 7 if StateAssignedDistID == "90915"
+replace DistType = "Charter agency" if StateAssignedDistID == "90915"
 replace NCESDistrictID = "0400832" if StateAssignedDistID == "90915"
 replace DistCharter = "Yes" if StateAssignedDistID == "90915"
 
-replace DistType = 7 if StateAssignedDistID == "1001937"
+replace DistType = "Charter agency" if StateAssignedDistID == "1001937"
 replace NCESDistrictID = "0409737" if StateAssignedDistID == "1001937"
 replace DistCharter = "Yes" if StateAssignedDistID == "1001937"
 
-replace DistType = 7 if DistName == "Legacy Traditional School-San Tan"
+replace DistType = "Charter agency" if DistName == "Legacy Traditional School-San Tan"
 replace NCESDistrictID = "0409736" if DistName == "Legacy Traditional School-San Tan"
 replace DistCharter = "Yes" if DistName == "Legacy Traditional School-San Tan"
 
 replace county_name = "Missing/not reported" if inlist(DistName, "Archway Classical Academy Trivium West", "Legacy Traditional School-San Tan")
-replace CountyCode = -1 if inlist(DistName, "Archway Classical Academy Trivium West", "Legacy Traditional School-San Tan")
-label def county_codedf -1 "Missing/not reported", modify
+replace CountyCode = "Missing/not reported" if inlist(DistName, "Archway Classical Academy Trivium West", "Legacy Traditional School-San Tan")
 
 save "${output}/AZ_AssmtData_district_2023.dta", replace
 
@@ -420,16 +417,12 @@ replace DistName = "All Districts" if DataLevel == "State"
 //Fixing types
 tostring StateAssignedSchID, replace
 replace StateAssignedSchID = "" if StateAssignedSchID == "."
-decode DistType, generate(new)
-drop DistType
-rename new DistType
 decode SchLevel, generate(new)
 drop SchLevel
 rename new SchLevel
 decode SchType, generate(new)
 drop SchType
 rename new SchType
-recast int CountyCode
 decode SchVirtual, generate(new)
 drop SchVirtual
 rename new SchVirtual
@@ -500,9 +493,12 @@ replace SchVirtual = "Missing/not reported" if SchVirtual == "" & DataLevel == 3
 
 	
 //order
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter SchType SchLevel SchVirtual CountyName CountyCode
 
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter SchType SchLevel SchVirtual CountyName CountyCode
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${output}/AZ_AssmtData_2023.dta", replace
 export delimited using "${output}/csv/AZ_AssmtData_2023.csv", replace
