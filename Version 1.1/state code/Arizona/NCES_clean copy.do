@@ -1,14 +1,15 @@
 clear
 set more off
 
-global NCES "/Users/maggie/Desktop/Arizona/NCES"
-global Arizona "/Users/maggie/Desktop/Arizona/NCES/Cleaned"
+global NCESSchool "/Users/maggie/Desktop/Arizona/NCES/School"
+global NCESDistrict "/Users/maggie/Desktop/Arizona/NCES/District"
+global NCES "/Users/maggie/Desktop/Arizona/NCES/Cleaned"
 
 global years 2009 2010 2011 2012 2013 2014 2015 2016 2017 2018 2020 2021
 
 foreach a in $years {
 	
-	use "${NCES}/School/NCES_`a'_School.dta", clear
+	use "${NCESSchool}/NCES_`a'_School.dta", clear
 	keep if state_fips==4
 	
 	rename state_name State
@@ -34,9 +35,9 @@ foreach a in $years {
 	
 	drop if NCESDistrictID == ""
 	
-	save "${Arizona}/NCES_`a'_School.dta", replace
+	save "${NCES}/NCES_`a'_School.dta", replace
 	
-	use "${NCES}/District/NCES_`a'_District.dta", clear 
+	use "${NCESDistrict}/NCES_`a'_District.dta", clear 
 	keep if state_fips==4
 	
 	rename state_name State
@@ -54,7 +55,7 @@ foreach a in $years {
 	}
 	
 	
-	save "${Arizona}/NCES_`a'_District.dta", replace
+	save "${NCES}/NCES_`a'_District.dta", replace
 	
 }
 	
