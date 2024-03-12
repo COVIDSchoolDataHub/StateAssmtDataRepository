@@ -1,0 +1,14 @@
+IA Readme 
+
+This was last updated on 3/12/24
+
+You should only run three do files in the following order: 
+Iowa_NCES_clean.do,
+ITBS_clean_pre2017.do,
+IA_post2015_clean.do
+
+Download all data files form the Google Drive, and sort them into folders according to the file paths in the do files. 
+
+Benjamin Moshes was the last editor, feel free to contact him at benjamin_moshes@brown.edu
+
+
