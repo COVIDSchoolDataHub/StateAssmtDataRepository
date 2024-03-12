@@ -8,6 +8,7 @@ global NCESDistrict "/Users/maggie/Desktop/Mississippi/NCES/District"
 global NCES "/Users/maggie/Desktop/Mississippi/NCES/Cleaned"
 global EDFacts "/Users/maggie/Desktop/EDFacts/Datasets"
 
+/*
 ** Preparing EDFacts files
 
 local edyears1 14 15 16 17 18
@@ -287,36 +288,14 @@ foreach year of local edyears2 {
 		}
 	}
 }
+*/
 
 ** Preparing NCES files
 
-global years 2013 2014 2015 2016 2017 2018 2020 2021
+local ncesyears 2013 2014 2015 2016 2017 2018 2020 2021
+use "${NCESDistrict}/NCES_2013_District.dta", clear
 
-foreach a in $years {
-	
-	use "${NCESDistrict}/NCES_`a'_District.dta", clear 
-	keep if state_fips == 28
-	
-	rename state_name State
-	rename state_location StateAbbrev
-	rename state_fips StateFips
-	rename ncesdistrictid NCESDistrictID
-	rename state_leaid State_leaid
-	rename district_agency_type DistType
-	rename county_name CountyName
-	rename county_code CountyCode
-	rename lea_name DistName
-	drop year district_agency_type_num urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte
-	
-	if(`a' == 2021){
-		drop if NCESDistrictID == "2800960"
-	}
-	
-	if(`a' != 2021){
-                 drop agency_charter_indicator
-				}
-	
-	save "${NCES}/NCES_`a'_District.dta", replace
+foreach a of local ncesyears {
 	
 	use "${NCESSchool}/NCES_`a'_School.dta", clear
 	keep if state_fips == 28
@@ -326,19 +305,19 @@ foreach a in $years {
 	rename state_fips StateFips
 	rename ncesdistrictid NCESDistrictID
 	rename state_leaid State_leaid
-	rename district_agency_type DistType	
-	rename county_name CountyName
 	rename county_code CountyCode
-	rename lea_name DistName	
 	rename ncesschoolid NCESSchoolID
+	rename lea_name DistName
+	rename district_agency_type DistType
 	rename school_name SchName
-	rename school_type SchType
-	drop year district_agency_type_num school_id school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_lowest_grade_offered dist_highest_grade_offered dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch
-	
+	rename county_name CountyName
+	keep State StateFips NCESDistrictID State_leaid StateAbbrev DistName DistType NCESSchoolID SchName seasch CountyName CountyCode DistCharter SchLevel SchVirtual SchType DistLocale
+		
 	if(`a' == 2021){
 		drop if NCESDistrictID == "2800960"
 	}
 	
+		
 	if(`a' > 2019){
 		sort DistName SchName
 		quietly by DistName SchName: gen dup = cond(_N == 1, 0,_n)
@@ -346,10 +325,25 @@ foreach a in $years {
 		drop dup
 	}
 	
-	if(`a' != 2021){
-                 drop dist_agency_charter_indicator
-              }
-	
 	save "${NCES}/NCES_`a'_School.dta", replace
 	
+	use "${NCESDistrict}/NCES_`a'_District.dta", clear 
+	keep if state_fips == 28
+	
+	rename state_name State
+	rename state_location StateAbbrev
+	rename state_fips StateFips
+	rename ncesdistrictid NCESDistrictID
+	rename state_leaid State_leaid
+	rename *agency_type DistType
+	rename county_code CountyCode
+	rename lea_name DistName
+	rename county_name CountyName
+	keep State StateFips NCESDistrictID State_leaid DistName DistType DistCharter DistLocale CountyCode CountyName StateAbbrev
+	
+	if(`a' == 2021){
+		drop if NCESDistrictID == "2800960"
+	}
+	
+	save "${NCES}/NCES_`a'_District.dta", replace
 }

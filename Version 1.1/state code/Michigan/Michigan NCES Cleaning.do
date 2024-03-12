@@ -3,8 +3,7 @@ set more off
 
 cd "/Users/minnamgung/Desktop/SADR/Michigan"
 
-global NCESSchool "/Users/minnamgung/Desktop/SADR/Michigan/NCES/School"
-global NCESDistrict "/Users/minnamgung/Desktop/SADR/Michigan/NCES/District"
+global NCESNew "/Users/minnamgung/Desktop/SADR/Michigan/NCES"
 global NCESOld "/Users/minnamgung/Desktop/SADR/NCESOld"
 
 
@@ -46,7 +45,7 @@ foreach a in $years {
                  drop agency_charter_indicator
 				}
 	
-	save "${NCESDistrict}/NCES_`a'_District.dta", replace
+	save "${NCESNew}/NCES_`a'_District.dta", replace
 	
 	use "${NCESOld}/NCES_`a'_School.dta", clear
 	keep if state_location == "MI"
@@ -78,7 +77,7 @@ foreach a in $years {
                  drop dist_agency_charter_indicator
               }
 	
-	save "${NCESSchool}/NCES_`a'_School.dta", replace
+	save "${NCESNew}/NCES_`a'_School.dta", replace
 	
 }
 
@@ -110,7 +109,7 @@ replace CountyCode=. if _merge==1
 drop if _merge==2
 drop _merge SchYear sy_status_text st_schid schid
 
-save "${NCESSchool}/NCES_2022_School.dta", replace
+save "${NCESNew}/NCES_2022_School.dta", replace
 
 
 /// District
@@ -132,4 +131,4 @@ replace CountyCode=. if _merge==1
 drop if _merge==2
 drop _merge SchYear effective_date updated_status_text
 
-save "${NCESDistrict}/NCES_2022_District.dta", replace
+save "${NCESNew}/NCES_2022_District.dta", replace

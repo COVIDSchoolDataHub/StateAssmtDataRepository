@@ -10,7 +10,7 @@ global Request "/Users/maggie/Desktop/Mississippi/Data Request"
 
 ** Preparing data request files
 
-local requestyear 2015 2016 2017 2018 2019 2021 2022
+local requestyear 2015 2016 2017 2018 2019 2021 2022 2023
 local subject math ela sci
 local datalevel district school state
 local datatype performance participation
@@ -19,7 +19,7 @@ foreach year of local requestyear {
 	foreach sub of local subject {
 		foreach type of local datatype {
 			foreach lvl of local datalevel {
-				import excel "${Request}/`year'/`sub'`type'/`lvl'.xlsx", firstrow clear
+				import excel "${Request}/`year'/`sub'`type'/`lvl'.xlsx", cellrange(A2) firstrow clear
 				save "${Request}/`year'/`sub'`type'/`lvl'.dta", replace
 			}
 		}

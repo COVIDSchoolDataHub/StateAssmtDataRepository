@@ -407,7 +407,6 @@ gen AvgScaleScore = "--"
 gen Lev5_percent = ""
 
 gen ProficiencyCriteria = "Levels 3-4"
-gen ProficientOrAbove_count = "--"
 gen ParticipationRate = "--"
 
 //District wide
@@ -449,8 +448,14 @@ foreach u of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent Profici
 	drop `u'2
 }
 
-rename county_name CountyName
+destring ProficientOrAbove_percent, gen(ProficientOrAbove_percent2) force
+destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
+gen ProficientOrAbove_count = round(ProficientOrAbove_percent2 * StudentSubGroup_TotalTested2)
+tostring ProficientOrAbove_count, replace force
+replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
+drop ProficientOrAbove_percent2 StudentSubGroup_TotalTested2
 
+rename county_name CountyName
 replace CountyName = strproper(CountyName)
 
 replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
