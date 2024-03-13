@@ -144,39 +144,6 @@ replace ParticipationRate = Participation if _merge == 3 & Participation != ""
 drop if _merge == 2
 drop state _merge PctProf2 Participation2
 
-** Pull in gender subgroup data
-preserve
-keep SchName StateAssignedSchID StateAssignedDistID DistName DataLevel SchYear State StateAbbrev StateFips NCESDistrictID NCESSchoolID DistType DistCharter DistLocale CountyCode CountyName seasch SchLevel SchVirtual SchType GradeLevel Subject AssmtName AssmtType ProficiencyCriteria 
-duplicates drop
-expand 2, gen(indicator)
-gen StudentSubGroup = "Female"
-replace StudentSubGroup = "Male" if indicator == 1
-gen StudentGroup = "Gender"
-gen StudentSubGroup_TotalTested = "--"
-gen AvgScaleScore = "--"
-forvalues n = 1/4{
-	gen Lev`n'_count = "--"
-	gen Lev`n'_percent = .
-}
-gen Lev5_count = ""
-gen Lev5_percent = ""
-gen ProficientOrAbove_count = "--"
-gen ProficientOrAbove_percent = "--"
-gen ParticipationRate = "--"
-
-merge m:1 DataLevel NCESDistrictID NCESSchoolID StudentGroup StudentSubGroup GradeLevel Subject using "${EDFacts}/2022/edfacts2022kansas.dta"
-replace StudentSubGroup_TotalTested = string(Count) if string(Count) != "." & string(Count) != ""
-rename Count Count_n
-replace ProficientOrAbove_percent = PctProf if _merge == 3
-replace ParticipationRate = Participation if _merge == 3 & Participation != ""
-drop if _merge == 2
-drop state _merge PctProf2 Participation2
-
-save "${raw}/KS_AssmtData_2022_Gender.dta", replace
-restore
-
-append using "${raw}/KS_AssmtData_2022_Gender.dta"
-
 ** Deriving More SubGroup Counts
 bysort State_leaid seasch GradeLevel Subject: egen All = max(Count_n)
 bysort State_leaid seasch GradeLevel Subject: egen Econ = sum(Count_n) if StudentGroup == "Economic Status"
