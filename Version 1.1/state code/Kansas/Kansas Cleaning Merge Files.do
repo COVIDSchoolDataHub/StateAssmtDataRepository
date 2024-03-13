@@ -14,7 +14,7 @@ local edyears1 15 16 17 18
 local subject math ela
 local datatype count part
 local datalevel school district
-/*
+
 foreach year of local edyears1 {
 	foreach sub of local subject {
 		foreach type of local datatype {
@@ -281,7 +281,7 @@ foreach year of local edyears2 {
 		}
 	}
 }
-*/
+
 
 ** EdFacts 2022 Cleaning
 local lev "state district school"
@@ -398,7 +398,7 @@ rename DataLevel_n DataLevel
 rename CountPerformance Count
 save "${EDFacts}/2022/edfacts2022kansas.dta", replace
 
-/*
+
 ** Preparing NCES files
 
 global years 2014 2015 2016 2017 2018 2020 2021
@@ -439,4 +439,4 @@ foreach a in $years {
 	save "${NCES}/NCES_`a'_School_KS.dta", replace
 	
 }
-*/
+
