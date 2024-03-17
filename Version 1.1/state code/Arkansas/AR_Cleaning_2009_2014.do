@@ -1,9 +1,6 @@
 clear
 set more off
 set trace off
-local Original "/Volumes/T7/State Test Project/Arkansas/Original Data"
-local Output "/Volumes/T7/State Test Project/Arkansas/Output"
-local NCES "/Volumes/T7/State Test Project/NCES"
 
 forvalues year = 2009/2014 {
 local prevyear =`=`year'-1'
@@ -11,7 +8,7 @@ tempfile temp1
 save "`temp1'", emptyok
 clear
 forvalues grade = 3/8 {
-	import excel "`Original'/AR_OriginalData_`year'", sheet("Grade `grade'") allstring
+	import excel "${Original}/AR_OriginalData_`year'", sheet("Grade `grade'") allstring
 	if `year' >= 2012 {
 		drop in 1/5
 	}
@@ -25,7 +22,7 @@ forvalues grade = 3/8 {
 	
 }
 use "`temp1'"
-save "`Original'/`year'", replace
+save "${Original}/`year'", replace
 if `year' < 2012 {
 //Varnames
 drop A
@@ -120,8 +117,8 @@ keep if DataLevel == 2
 tempfile tempdist
 save "`tempdist'"
 clear
-use "`NCES'/NCES_`prevyear'_District"
-keep if state_name == 5 | state_location == "AR"
+use "${NCES}/NCES_`prevyear'_District"
+keep if state_name == "Arkansas" | state_location == "AR"
 gen StateAssignedDistID1 = substr(state_leaid,1,4)
 duplicates drop StateAssignedDistID, force 
 merge 1:m StateAssignedDistID1 using "`tempdist'"
@@ -135,8 +132,8 @@ keep if DataLevel == 3
 tempfile tempsch
 save "`tempsch'"
 clear
-use "`NCES'/NCES_`prevyear'_School"
-keep if state_name == 5 | state_location == "AR"
+use "${NCES}/NCES_`prevyear'_School"
+keep if state_name == "Arkansas" | state_location == "AR"
 gen StateAssignedSchID1 = seasch
 if `year' == 2010 replace StateAssignedSchID1 = "5802005" if StateAssignedSchID1 == "5802009"
 merge 1:m StateAssignedSchID1 using "`tempsch'"
@@ -153,7 +150,7 @@ append using "`tempdist'" "`tempsch'"
 rename state_location StateAbbrev
 rename state_fips StateFips
 rename district_agency_type DistType
-rename school_type SchType
+*rename school_type SchType
 rename ncesdistrictid NCESDistrictID
 rename state_leaid State_leaid
 rename ncesschoolid NCESSchoolID
@@ -192,11 +189,11 @@ gen State = "Arkansas"
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_oth = "N"
-gen Flag_CutScoreChange_read = ""
-gen ProficiencyCriteria = "Levels 3 and 4"
-gen Lev5_percent = ""
-gen Lev5_count = ""
+gen Flag_CutScoreChange_sci = "N"
+gen Flag_CutScoreChange_soc = ""
+gen ProficiencyCriteria = "Levels 3-4"
+gen Lev5_percent = "--"
+gen Lev5_count = "--"
 gen AssmtType = "Regular"
 gen AssmtName = "Augmented Benchmark"
 gen SchYear = "`prevyear'" + "-" + substr("`year'",-2,2)
@@ -218,11 +215,11 @@ replace NCESDistrictID = "0509000" if SchName == "Cloverdale Middle School"
 replace State_leaid = "6001000" if SchName == "Cloverdale Middle School"
 replace seasch = "6001077" if SchName == "Cloverdale Middle School"
 replace SchType = 1 if SchName == "Cloverdale Middle School"
-replace DistType = 1 if SchName == "Cloverdale Middle School"
+replace DistType = "Regular local school district" if SchName == "Cloverdale Middle School"
 replace CountyName = "PULASKI COUNTY" if SchName == "Cloverdale Middle School"
-replace CountyCode = 5119 if SchName == "Cloverdale Middle School"
+replace CountyCode = "5119" if SchName == "Cloverdale Middle School"
 replace DistCharter = "No" if SchName == "Cloverdale Middle School"
-replace SchVirtual = "Missing/not reported" if SchName == "Cloverdale Middle School"
+replace SchVirtual = -1 if SchName == "Cloverdale Middle School"
 replace SchLevel = 2 if SchName == "Cloverdale Middle School"
 drop if SchName == "Cloverdale Middle School"
 }
@@ -232,10 +229,11 @@ drop if SchName == "Cloverdale Middle School"
 if `year' == 2009 drop if SchName == "ALT LEARNING ENVIRON" & missing(NCESSchoolID)
 
 //Missing NCES Data
-label def agency_typedf 16 "Missing/not reported", add
-label def school_typedf 16 "Missing/not reported", add
-replace DistType = 16 if missing(DistType) & DataLevel !=1
-replace SchType = 16 if missing(SchType) & DataLevel ==3
+*label def agency_typedf 16 "Missing/not reported", add
+*label def school_typedf 16 "Missing/not reported", add
+replace DistType = "Missing/not reported" if missing(DistType) & DataLevel !=1
+label def SchType -1 "Missing/not reported", add
+replace SchType = -1 if missing(SchType) & DataLevel ==3
 
 //Replacing StateAssignedSchID with StateAssignedDistIDStateAssignedSchID in 2009 & 2010
 if `year' <2011 replace StateAssignedSchID = StateAssignedDistID + StateAssignedSchID if DataLevel ==3
@@ -245,11 +243,11 @@ drop if Subject == "sci" & !inlist(GradeLevel, "G05", "G07")
 
 
 //Final Cleaning
-order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
-keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "`Output'/AR_AssmtData_`year'", replace
-export delimited "`Output'/AR_AssmtData_`year'", replace
+save "${Output}/AR_AssmtData_`year'", replace
+export delimited "${Output}/AR_AssmtData_`year'", replace
 clear
 }
