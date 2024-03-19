@@ -1,11 +1,11 @@
 clear
 set more off
 
-cd "/Users/maggie/Desktop/Missouri"
+cd "/Users/miramehta/Documents/"
 
-global NCESSchool "/Users/maggie/Desktop/Missouri/NCES/School"
-global NCESDistrict "/Users/maggie/Desktop/Missouri/NCES/District"
-global NCES "/Users/maggie/Desktop/Missouri/NCES/Cleaned"
+global NCESSchool "/Users/miramehta/Documents/NCES District and School Demographics/NCES School Files, Fall 1997-Fall 2022"
+global NCESDistrict "/Users/miramehta/Documents/NCES District and School Demographics/NCES District Files, Fall 1997-Fall 2022"
+global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
 	
 global years 2009 2010 2011 2012
 
@@ -22,17 +22,8 @@ foreach a in $years {
 	rename county_name CountyName
 	rename county_code CountyCode
 	rename lea_name DistName
-	drop year urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte
-	
-	if (`a' != 2010) {
-		rename district_agency_type DistType
-		drop district_agency_type_num
-	}
-	if (`a' == 2010) {
-		rename agency_type DistType
-	}
 		
-	save "${NCES}/NCES_`a'_District.dta", replace
+	save "${NCES}/NCES_`a'_District_MO.dta", replace
 	
 	use "${NCESSchool}/NCES_`a'_School.dta", clear
 	keep if state_location == "MO"
@@ -48,10 +39,8 @@ foreach a in $years {
 	rename lea_name DistName	
 	rename ncesschoolid NCESSchoolID
 	rename school_name SchName
-	rename school_type SchType
-	drop year district_agency_type_num school_id school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_lowest_grade_offered dist_highest_grade_offered dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch
 	
-	save "${NCES}/NCES_`a'_School.dta", replace
+	save "${NCES}/NCES_`a'_School_MO.dta", replace
 	
 }
 	
@@ -71,15 +60,10 @@ foreach a in $years {
 	rename county_name CountyName
 	rename county_code CountyCode
 	rename lea_name DistName
-	drop year district_agency_type_num urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte
-	
-	if(`a' != 2021){
-                 drop agency_charter_indicator
-				}
 				
 	drop if DistName == ""
 	
-	save "${NCES}/NCES_`a'_District.dta", replace
+	save "${NCES}/NCES_`a'_District_MO.dta", replace
 	
 	use "${NCESSchool}/NCES_`a'_School.dta", clear
 	keep if state_location == "MO"
@@ -95,14 +79,41 @@ foreach a in $years {
 	rename lea_name DistName	
 	rename ncesschoolid NCESSchoolID
 	rename school_name SchName
-	rename school_type SchType
-	drop year district_agency_type_num school_id school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_lowest_grade_offered dist_highest_grade_offered dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch
 	drop if seasch == ""
 	
-	if(`a' != 2021){
-                 drop dist_agency_charter_indicator
-              }
-	
-	save "${NCES}/NCES_`a'_School.dta", replace
-	
+	save "${NCES}/NCES_`a'_School_MO.dta", replace
 }
+
+//Fall 2022 NCES Data
+
+import excel "${NCESSchool}/NCES_2022_School.xlsx", clear
+gen State = "Missouri"
+drop if C != "MO"
+rename C StateAbbrev
+rename D StateFips
+destring state_fips, replace force
+rename E DistName
+rename F NCESDistrictID
+rename G State_leaid
+rename N seasch
+replace seasch = subinstr(seasch, "MO-", "", .)
+rename I NCESSchoolID
+rename J SchType
+rename K SchVirtual
+rename L SchLevel
+rename M SchName
+merge 1:1 NCESDistrictID NCESSchoolID using "${NCES}/NCES_2021_School_MO.dta", keepusing (DistLocale CountyCode CountyName district_agency_type)
+drop if _merge == 2
+drop _merge
+save "${NCES}/NCES_2022_School_MO.dta", replace
+		
+import excel "${NCESDistrict}/NCES_2022_District.xlsx", clear
+drop if C != "MO"
+rename E DistName
+rename G State_leaid
+rename F NCESDistrictID
+rename H DistType
+merge 1:1 NCESDistrictID using "${NCES}/NCES_2021_District_MO.dta", keepusing (DistLocale CountyCode CountyName DistCharter)
+drop if _merge == 2
+drop _merge
+save "${NCES}/NCES_2022_District_MO.dta", replace

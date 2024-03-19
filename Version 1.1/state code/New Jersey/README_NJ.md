@@ -33,4 +33,4 @@ global NCESClean "/Users/miramehta/Documents/NCES District and School Demographi
 ```
 ## Updates
 
-03/15/2024: Updated to incorporate post-launch file format changes (including new subgroups) and dervie level and proficiency counts based on percents and student counts.
+03/15/2024: Updated to incorporate post-launch file format changes (including new subgroups) and derive level and proficiency counts based on percents and student counts.
