@@ -58,7 +58,7 @@ forvalues year = 2010/2014{
 	rename MEAN_SCALE_SCORE AvgScaleScore
 	
 	** Drop unncessary variables and entries
-	drop COUNTY_DISTRICT_SCHOOL_CODE SUMMARY_LEVEL ACCOUNTABLE PARTICIPANT LEVEL_NOT_DETERMINED LEVEL_NOT_DETERMINED_PCT BOTTOM_TWO_LEVELS BOTTOM_TWO_LEVELS_PCT MAP_INDEX MEDIAN_SCALE_SCORE MEDIAN_TERRANOVA
+	drop COUNTY_DISTRICT_SCHOOL_CODE SUMMARY_LEVEL ACCOUNTABLE PARTICIPANT LEVEL_NOT_DETERMINED BOTTOM_TWO_LEVELS BOTTOM_TWO_LEVELS_PCT MAP_INDEX MEDIAN_SCALE_SCORE MEDIAN_TERRANOVA
 	
 	keep if SchYear == `year'
 	
@@ -135,7 +135,12 @@ forvalues year = 2010/2014{
 	
 	gen ProficiencyCriteria = "Levels 3-4"
 
-	gen ParticipationRate = "--"
+	gen ParticipationRate = 100 - LEVEL_NOT_DETERMINED_PCT
+	replace ParticipationRate = ParticipationRate/100
+	tostring ParticipationRate, replace format("%9.2g") force
+	replace ParticipationRate = "*" if ParticipationRate == "."
+	
+	** Merge NCES Data
 	
 	gen State_leaid = StateAssignedDistID
 	replace State_leaid = "0" + State_leaid if substr(State_leaid, 5, 1) == ""

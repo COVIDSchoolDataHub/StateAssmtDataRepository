@@ -135,7 +135,14 @@ forvalues year = 2018/2023{
 	gen ProficiencyCriteria = "Levels 3-4"
 
 	gen AvgScaleScore = "--"
-	gen ParticipationRate = "--"
+	if `year' == 2022 {
+		rename NONPARTICIPANTLNDPCT LEVEL_NOT_DETERMINED_PCT
+	}
+	destring LEVEL_NOT_DETERMINED_PCT, replace force
+	gen ParticipationRate = 100 - LEVEL_NOT_DETERMINED_PCT
+	replace ParticipationRate = ParticipationRate/100
+	tostring ParticipationRate, replace format("%9.2g") force
+	replace ParticipationRate = "*" if ParticipationRate == "."
 	
 	** Merge with NCES
 	gen State_leaid = StateAssignedDistID

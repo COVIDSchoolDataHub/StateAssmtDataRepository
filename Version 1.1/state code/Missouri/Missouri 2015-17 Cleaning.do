@@ -38,7 +38,7 @@ forvalues year = 2015/2017{
 	rename ADVANCED_PCT Lev4_percent
 	
 	** Drop unncessary variables and entries
-	drop ACCOUNTABLE LEVEL_NOT_DETERMINED LEVEL_NOT_DETERMINED_PCT
+	drop ACCOUNTABLE LEVEL_NOT_DETERMINED
 	
 	keep if SchYear == `year'
 	
@@ -133,7 +133,10 @@ forvalues year = 2015/2017{
 	gen ProficiencyCriteria = "Levels 3-4"
 
 	gen AvgScaleScore = "--"
-	gen ParticipationRate = "--"
+	gen ParticipationRate = 100 - LEVEL_NOT_DETERMINED_PCT
+	replace ParticipationRate = ParticipationRate/100
+	tostring ParticipationRate, replace format("%9.2g") force
+	replace ParticipationRate = "*" if ParticipationRate == "."
 	
 	** Merge with NCES
 	gen State_leaid = StateAssignedDistID
