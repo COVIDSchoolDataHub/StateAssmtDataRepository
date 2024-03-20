@@ -1,11 +1,11 @@
 
+
 cap log close
 log using massachusetts_cleaning.log, replace
 
 cd "/Users/benjaminm/Documents/State_Repository_Research/Massachusetts"
 
 // Remaping Raw Data into Standard Format, and appending together
-
 // import excel "mass_districts_old_mcas", clear
 // save mass_districts_old_mcas
 use mass_districts_old_mcas, clear 
@@ -130,11 +130,6 @@ use mass_districts_old_mcas_in_progress_1, clear
 
 
 
-
-
-
-
-
 // importing district participation data and merging
 
 // r3 changed
@@ -249,10 +244,6 @@ save mass_districts_old_mcas_in_progress_3, replace
 
 
 
-
-
-
-
 // Loop to merge with NCES data, separate into individual years and add necessary variables
 
 global years2 2010 2011 2012 2013 2014
@@ -271,7 +262,7 @@ replace StateAssignedDistID = "0445" if DistName == "Abby Kelley Foster Charter 
 
 rename StateAssignedDistID State_leaid
 
-merge m:1 State_leaid using 1_NCES_`prevyear'_District_Mass
+merge m:1 State_leaid using 2_NCES_`prevyear'_District_Mass
 rename _merge DistMerge
 drop if DistMerge == 2 // dropping unmerge districts from NCES
 
@@ -300,7 +291,7 @@ replace SchName = "All Schools" if DataLevel == 2
 // NEW ADDED
 
 rename StateAssignedSchID seasch
-merge m:1 seasch using 1_NCES_`prevyear'_School_Mass
+merge m:1 seasch using 2_NCES_`prevyear'_School_Mass
 rename _merge SchoolMerge
 drop if SchoolMerge == 2 // dropping unmerge districts from NCES
 
@@ -317,12 +308,19 @@ gen StateAbbrev = "MA"
 gen StateFips = 25 // CHANGED
 
 
+// gen Flag_AssmtNameChange = "N"
+// gen Flag_CutScoreChange_ELA = "N"
+// gen Flag_CutScoreChange_math = "N"
+// gen Flag_CutScoreChange_oth = "Y"
+// gen Flag_CutScoreChange_read = ""
+
+// updated 
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_read = ""
-gen Flag_CutScoreChange_oth = "N"
- 
+gen Flag_CutScoreChange_sci = "N" 
+gen Flag_CutScoreChange_soc = ""
+// updated 
 
 
 if `a' == 2010 {
@@ -398,12 +396,17 @@ replace StudentSubGroup = "Hispanic or Latino" if StudentGroup == "Hispanic/Lati
 replace StudentSubGroup = "White" if StudentGroup == "White"
 
 replace StudentSubGroup = "English Learner" if StudentGroup == "EL"
+replace StudentSubGroup = "EL Monit or Recently Ex" if StudentGroup == "Former EL"
+replace StudentSubGroup = "EL and Monit or Recently Ex" if StudentGroup == "EL and Former EL"
+replace StudentSubGroup = "Ever EL" if StudentGroup == "Ever EL"
 
 replace StudentSubGroup = "Economically Disadvantaged" if StudentGroup == "Low income"
 replace StudentSubGroup = "Not Economically Disadvantaged" if StudentGroup == "Non-Low Income"
 
 replace StudentSubGroup = "Male" if StudentGroup == "Male"
 replace StudentSubGroup = "Female" if StudentGroup == "Female"
+replace StudentSubGroup = "SWD" if StudentGroup == "Students w/disabilities"
+replace StudentSubGroup = "Non-SWD" if StudentGroup == "Non-Disabled"
 
 
 drop if StudentSubGroup == ""
@@ -420,6 +423,9 @@ replace StudentGroup = "RaceEth" if StudentSubGroup == "Hispanic or Latino"
 replace StudentGroup = "RaceEth" if StudentSubGroup == "White"
 
 replace StudentGroup = "EL Status" if StudentSubGroup == "English Learner"
+replace StudentGroup = "EL Status" if StudentSubGroup == "EL Monit or Recently Ex"
+replace StudentGroup = "EL Status" if StudentSubGroup == "EL and Monit or Recently Ex" 
+replace StudentGroup = "EL Status" if StudentSubGroup == "Ever EL" 
 
 replace StudentGroup = "Gender" if StudentSubGroup == "Male"
 replace StudentGroup = "Gender" if StudentSubGroup == "Female"
@@ -427,6 +433,8 @@ replace StudentGroup = "Gender" if StudentSubGroup == "Female"
 
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Not Economically Disadvantaged"
+replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD"
+replace StudentGroup = "Disability Status" if StudentSubGroup == "Non-SWD"
 //CHANGED
 
 
@@ -434,8 +442,8 @@ gen ProficiencyCriteria = "Levels 3 and 4"
 gen seasch = StateAssignedSchID // CHANGED //r3 changed
 
 // Empty Count Vars 
-gen Lev5_count = "-" //r3 changed
-gen Lev5_percent = "-" //r3 changed
+gen Lev5_count = "--" //r3 changed
+gen Lev5_percent = "--" //r3 changed
 
 // Empty Count Vars 
 gen AvgScaleScore = ""
@@ -467,9 +475,9 @@ replace StudentSubGroup_TotalTested = subinstr(StudentSubGroup_TotalTested, ",",
 
 
 
-decode DistType, gen (DistType1)
-drop DistType
-rename DistType1 DistType
+//decode DistType, gen (DistType1)
+//drop DistType
+//rename DistType1 DistType
 
 decode SchType, gen (SchType1)
 drop SchType
@@ -483,6 +491,11 @@ rename SchLevel1 SchLevel
 
 // NEW ADDED
 
+decode SchVirtual, gen (SchVirtual1)
+drop SchVirtual
+rename SchVirtual1 SchVirtual
+
+
 // Missing Data on Resiliency Middle School Added
 replace NCESSchoolID = "250483002838" if SchName == "Resiliency Middle School" 
 replace SchVirtual = "Missing/not reported" if SchName == "Resiliency Middle School"  
@@ -491,13 +504,24 @@ replace SchType = "Regular school" if SchName == "Resiliency Middle School" // N
 
 
 
-// NEW EDITED
-order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth 
+// keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+//
+// order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read 
 
 
-keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth 
-// NEW EDITED
+// updated 
+drop State_leaid seasch
 
+
+// real 
+ order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+// 
+
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+//order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter SchType SchLevel SchVirtual CountyName CountyCode
+
+//keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter SchType SchLevel SchVirtual CountyName CountyCode
 
 
 destring Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate AvgScaleScore, replace force ignore(",")  // CHANGED // r3 changed (no lev 5)
@@ -517,7 +541,7 @@ replace ParticipationRate = ParticipationRate/100
 // missing data = - 
 tostring ParticipationRate, replace force
 
-replace ParticipationRate = "-" if ParticipationRate == "."
+replace ParticipationRate = "--" if ParticipationRate == "."
 // r3 changed 
 
 
