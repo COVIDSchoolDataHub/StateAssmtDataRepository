@@ -1,33 +1,57 @@
 clear
 set more off
 
-global output "/Users/maggie/Desktop/Mississippi/Output"
-global NCES "/Users/maggie/Desktop/Mississippi/NCES/Cleaned"
-
-local grade 3 4 5 6 7 8
-local level 1 2 3 4 5
-
 cd "/Users/maggie/Desktop/Mississippi"
 
-use "${output}/MS_AssmtData_2015_all.dta", clear
+global raw "/Users/maggie/Desktop/Mississippi/Original Data Files"
+global output "/Users/maggie/Desktop/Mississippi/Output"
+global NCES "/Users/maggie/Desktop/Mississippi/NCES/Cleaned"
+global Request "/Users/maggie/Desktop/Mississippi/Data Request"
 
-** Dropping extra variables
+local subject math ela sci
+local datatype performance participation
+local datalevel district school state
 
-drop NCESDistrictID NCESSchoolID Levels13PCT
-
-** Rename existing variables
-
-rename Grade GradeLevel
-rename District DistName
-rename StateAssignedDistrictID StateAssignedDistID
-rename SchoolName SchName
-rename StateAssignedSchoolID StateAssignedSchID
-rename TestTakers StudentGroup_TotalTested
-
-foreach a of local level {
-	rename Level`a'PCT Lev`a'_percent
+foreach sub of local subject {
+	use "${Request}/2015/`sub'performance/statecleaned.dta", clear
+	append using "${Request}/2015/`sub'performance/districtcleaned.dta"
+	append using "${Request}/2015/`sub'performance/schoolcleaned.dta"
+	save "${Request}/2015/`sub'performance.dta", replace
 }
-rename Levels45PCT ProficientOrAbove_percent
+
+foreach sub of local subject {
+	use "${Request}/2015/`sub'participation/statecleaned.dta", clear
+	append using "${Request}/2015/`sub'participation/districtcleaned.dta"
+	append using "${Request}/2015/`sub'participation/schoolcleaned.dta"
+	save "${Request}/2015/`sub'participation.dta", replace
+}
+
+foreach sub of local subject {
+	use "${Request}/2015/`sub'participation.dta", clear
+	merge 1:1 StateAssignedDistID StateAssignedSchID Subject GradeLevel StudentGroup StudentSubGroup using "${Request}/2015/`sub'performance.dta"
+	drop if _merge == 1
+	drop _merge
+	save "${Request}/2015/`sub'.dta", replace
+}
+
+use "${Request}/2015/ela.dta", clear
+append using "${Request}/2015/math.dta"
+append using "${Request}/2015/sci.dta"
+
+foreach v of numlist 1/5 {
+	replace Lev`v'_count = "0" if Lev`v'_count == ""
+	replace Lev5_count = "" if Subject == "sci"
+}
+
+gen State_leaid = StateAssignedDistID
+merge m:1 State_leaid using "${NCES}/NCES_2014_District.dta"
+drop if _merge == 2
+drop _merge
+
+gen seasch = StateAssignedSchID
+merge m:1 seasch using "${NCES}/NCES_2014_School.dta"
+drop if _merge == 2
+drop _merge
 
 ** Changing DataLevel
 
@@ -37,7 +61,9 @@ sort DataLevel_n
 drop DataLevel 
 rename DataLevel_n DataLevel
 
-** Replace existing variables
+** Creating variables
+
+replace SchYear = "2014-15"
 
 replace DistName = "All Districts" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel != 3
@@ -45,116 +71,74 @@ replace SchName = "All Schools" if DataLevel != 3
 replace StateAssignedDistID = "" if DataLevel == 1
 replace StateAssignedSchID = "" if DataLevel != 3
 
-replace Subject = lower(Subject)
+gen AssmtName = "PARCC" if Subject != "sci"
+replace AssmtName = "MST2" if Subject == "sci"
 
-tostring GradeLevel, replace
-foreach grd of local grade {
-	replace GradeLevel = "G0`grd'" if GradeLevel == "`grd'"
-}
-
-** Generating missing variables
-
-gen SchYear = "2014-15"
-
-gen AssmtName = "PARCC"
-
-gen AssmtType = "Regular"
-
-gen StudentGroup = "All Students"
-gen StudentSubGroup = "All Students"
-
-gen StudentSubGroup_TotalTested = StudentGroup_TotalTested
-
-foreach a of local level {
-	gen Lev`a'_count = "--"
-}
-
-gen ProficiencyCriteria = "Levels 4-5"
-gen ProficientOrAbove_count = "--"
+gen ProficiencyCriteria = "Levels 4-5" if Subject != "sci"
+replace ProficiencyCriteria = "Levels 3-4" if Subject == "sci"
 
 gen AvgScaleScore = "--"
 
 gen ParticipationRate = "--"
 
-** Merging Rows
+gen Flag_AssmtNameChange = "Y" if Subject != "sci"
+replace Flag_AssmtNameChange = "N" if Subject == "sci"
+gen Flag_CutScoreChange_ELA = "Y"
+gen Flag_CutScoreChange_math = "Y"
+gen Flag_CutScoreChange_sci = "N"
+gen Flag_CutScoreChange_soc = ""
 
-replace DataType = "Proficient" if strpos(DataType, "Aggregated") > 0
-
-sort DataLevel DistName SchName GradeLevel Subject DataType
-replace ProficientOrAbove_percent = ProficientOrAbove_percent[_n+1] if missing(ProficientOrAbove_percent)
-
-drop if DataType == "Proficient"
-drop DataType
-
-** Dividing Level Percents
-
-foreach a of local level {
-	destring Lev`a'_percent, replace force
-	replace Lev`a'_percent = Lev`a'_percent/100
-	tostring Lev`a'_percent, replace force
-	replace Lev`a'_percent = "*" if Lev`a'_percent == "."
-}
-
-destring ProficientOrAbove_percent, replace force
-replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
-tostring ProficientOrAbove_percent, replace force
-replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
-
-** Merging with NCES
-
-replace StateAssignedDistID = "0616" if SchName == "It Montgomery Elementary School" | SchName == "John F Kennedy High School"
-replace StateAssignedDistID = "6711" if SchName == "Carver Elementary (Sunflower)" | SchName == "Robert L Merritt Mid"
-replace StateAssignedDistID = "0618" if SchName == "Mcevans School" | SchName == "Ray Brooks School"
-replace StateAssignedDistID = "2562" if strpos(DistName, "Human Services") > 0
-replace StateAssignedDistID = "Missing/not reported" if DistName == "University Of Southern Mississippi"
-
-gen State_leaid = StateAssignedDistID
-
-merge m:1 State_leaid using "${NCES}/NCES_2014_District.dta"
-
-drop if _merge == 2
-drop _merge
-
-replace StateAssignedSchID = "6711006" if SchName == "Carver Elementary (Sunflower)"
-replace StateAssignedSchID = "1700092" if SchName == "Desoto Co Alternative Center"
-replace StateAssignedSchID = "3800094" if SchName == "Lauderdale County Education Skills Center"
-replace StateAssignedSchID = "6100092" if SchName == "Learning Center Alternative School"
-replace StateAssignedSchID = "0618014" if SchName == "Mcevans School"
-replace StateAssignedSchID = "0130027" if SchName == "Morgantown College Prep"
-replace StateAssignedSchID = "0130026" if SchName == "Morgantown Leadership Academy"
-replace StateAssignedSchID = "0130045" if SchName == "Natchez Freshman Academy"
-replace StateAssignedSchID = "0618010" if SchName == "Ray Brooks School"
-replace StateAssignedSchID = "6711014" if SchName == "Robert L Merritt Mid"
-replace StateAssignedSchID = "7620068" if SchName == "Weston Sr H"
-replace StateAssignedSchID = "2562008" if SchName == "Williams School"
-replace StateAssignedSchID = "Missing/not reported" if SchName == "Dubard School For Language Disorders"
-
-gen seasch = StateAssignedSchID
-
-merge m:1 seasch using "${NCES}/NCES_2014_School.dta"
-
-drop if _merge == 2
-drop _merge
-
-replace State = 28
+replace State = "Mississippi"
 replace StateAbbrev = "MS"
 replace StateFips = 28
 
-** Generating new variables
+** Replacing student counts to sum of level counts
 
-replace NCESDistrictID = "Missing/not reported" if DistName == "University Of Southern Mississippi"
-replace NCESSchoolID = "Missing/not reported" if SchName == "Dubard School For Language Disorders"
+foreach v of numlist 1/5 {
+	destring Lev`v'_count, gen(Lev`v'_count2) force
+}
+destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
+gen sum = Lev1_count2 + Lev2_count2 + Lev3_count2 + Lev4_count2 + Lev5_count2 if Subject != "sci"
+replace sum = Lev1_count2 + Lev2_count2 + Lev3_count2 + Lev4_count2 if Subject == "sci"
+gen diff = StudentSubGroup_TotalTested2 - sum if Subject != "sci"
+replace diff = StudentSubGroup_TotalTested2 - sum if Subject == "sci"
+tostring sum, replace force
+replace StudentSubGroup_TotalTested = sum if !inlist(diff, 0, .)
+drop StudentSubGroup_TotalTested2 sum diff
 
-replace DistName = strproper(DistName)
-replace SchName = strproper(SchName)
+** Generating student group total counts
 
-gen Flag_AssmtNameChange = "Y"
-gen Flag_CutScoreChange_ELA = "Y"
-gen Flag_CutScoreChange_math = "Y"
-gen Flag_CutScoreChange_read = ""
-gen Flag_CutScoreChange_oth = ""
+destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
+replace StudentSubGroup_TotalTested2 = 0 if StudentSubGroup_TotalTested2 == .
+bysort StateAssignedDistID StateAssignedSchID StudentGroup GradeLevel Subject: egen test = min(StudentSubGroup_TotalTested2)
+bysort StateAssignedDistID StateAssignedSchID StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested2) if test != 0
+tostring StudentGroup_TotalTested, replace force
+replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
 
-order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+** Generating level percents
+
+foreach v of numlist 1/5 {
+	gen Lev`v'_percent = Lev`v'_count2/StudentSubGroup_TotalTested2
+	tostring Lev`v'_percent, replace format("%9.4g") force
+	replace Lev`v'_percent = "*" if Lev`v'_percent == "."
+	replace Lev`v'_percent = "0" if Lev`v'_count == "0"
+}
+replace Lev5_percent = "" if Subject == "sci"
+
+** Generating proficiencies
+
+gen ProficientOrAbove_count = Lev4_count2 + Lev5_count2 if Subject != "sci"
+replace ProficientOrAbove_count = Lev3_count2 + Lev4_count2 if Subject == "sci"
+gen ProficientOrAbove_percent = ProficientOrAbove_count/StudentSubGroup_TotalTested2
+tostring ProficientOrAbove_count, replace force
+tostring ProficientOrAbove_percent, replace format("%9.4g") force
+replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
+replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
+replace ProficientOrAbove_percent = "0" if ProficientOrAbove_count == "0"
+
+drop StudentSubGroup_TotalTested2 test *_count2
+
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
