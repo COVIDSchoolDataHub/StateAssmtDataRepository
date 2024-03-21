@@ -86,7 +86,7 @@ replace Flag_AssmtNameChange = "N" if Subject == "sci"
 gen Flag_CutScoreChange_ELA = "Y"
 gen Flag_CutScoreChange_math = "Y"
 gen Flag_CutScoreChange_sci = "N"
-gen Flag_CutScoreChange_soc = ""
+gen Flag_CutScoreChange_soc = "Not applicable"
 
 replace State = "Mississippi"
 replace StateAbbrev = "MS"
@@ -124,6 +124,8 @@ replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
 replace ProficientOrAbove_percent = "0" if ProficientOrAbove_count == "0"
 
 drop StudentSubGroup_TotalTested2 test *_count2
+
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
