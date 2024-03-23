@@ -191,6 +191,7 @@ replace SchType = SchType[_n-1] if SchType == .
 replace SchVirtual = SchVirtual[_n-1] if SchVirtual == .
 replace SchLevel = SchLevel[_n-1] if SchLevel == .
 replace DistCharter = DistCharter[_n-1] if DistCharter == ""
+replace DistLocale = DistLocale[_n-1] if DistLocale == ""
 replace CountyCode = CountyCode[_n-1] if CountyCode == ""
 replace CountyName = CountyName[_n-1] if CountyName == ""
 
