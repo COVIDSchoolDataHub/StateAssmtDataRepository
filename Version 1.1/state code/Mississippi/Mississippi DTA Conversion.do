@@ -15,7 +15,6 @@ local subject math ela sci
 local datatype performance participation
 local datalevel district school state
 
-/*
 // converting to dta
 foreach year of local requestyear {
 	foreach sub of local subject {
@@ -42,7 +41,6 @@ foreach year of local requestyear {
 		}
 	}
 }
-*/
 
 // cleaning variables
 foreach year of local requestyear {
