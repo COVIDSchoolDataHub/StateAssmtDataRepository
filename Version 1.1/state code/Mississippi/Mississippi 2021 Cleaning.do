@@ -8,6 +8,7 @@ global output "/Users/maggie/Desktop/Mississippi/Output"
 global NCES "/Users/maggie/Desktop/Mississippi/NCES/Cleaned"
 global Request "/Users/maggie/Desktop/Mississippi/Data Request"
 
+/*
 ** Data Request files (proficient counts and student counts w/ subgroups)
 
 local subject math ela sci
@@ -127,7 +128,7 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 save "${output}/MS_AssmtData_2021.dta", replace
 export delimited using "${output}/csv/MS_AssmtData_2021.csv", replace
 
-/*
+*/
 
 ** Original raw data files (level percents w/o subgroups)
 
@@ -171,7 +172,7 @@ append using "${raw}/MS_AssmtData_2021_sci.dta"
 ** Rename existing variables
 
 rename AverageScaleScore AvgScaleScore
-rename TestTakers teststudentcount
+rename TestTakers StudentSubGroup_TotalTested
 local level 1 2 3 4 5
 foreach a of local level {
 	rename Level`a'PCT Lev`a'_percent
@@ -188,14 +189,25 @@ drop if SchName == "School 500"
 gen AssmtType = "Regular"
 gen StudentGroup = "All Students"
 gen StudentSubGroup = "All Students"
+gen StudentGroup_TotalTested = StudentSubGroup_TotalTested
 
+destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
 foreach a of local level {
-	destring Lev`a'_percent, gen(Lev`a'_percent2) force
+	destring Lev`a'_percent, replace force
+	gen Lev`a'_count = round(StudentSubGroup_TotalTested2 * Lev`a'_percent)
+	tostring Lev`a'_count, replace force
+	replace Lev`a'_count = "*" if Lev`a'_count == "."
 }
-gen testprofcount = Lev4_percent2 + Lev5_percent2
-tostring testprofcount, replace force
-replace testprofcount = "*" if testprofcount == "."
-drop *_percent2
+gen ProficientOrAbove_percent = Lev4_percent + Lev5_percent
+gen ProficientOrAbove_count = round(StudentSubGroup_TotalTested2 * ProficientOrAbove_percent)
+tostring ProficientOrAbove_percent, replace format("%9.4g") force
+tostring ProficientOrAbove_count, replace force
+replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
+replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
+foreach a of local level {
+	tostring Lev`a'_percent, replace format("%9.4g") force
+	replace Lev`a'_percent = "*" if Lev`a'_percent == "."
+}
 
 replace SchName = strupper(SchName)
 gen DataLevel = ""
@@ -401,14 +413,9 @@ gen StateAssignedSchID = "Missing/not reported" if SchName == "DUBARD SCHOOL FOR
 replace NCESDistrictID = "Missing/not reported" if DistName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
 replace NCESSchoolID = "Missing/not reported" if SchName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
 
-** Merging with data request
-
-merge 1:1 DataLevel NCESDistrictID NCESSchoolID Subject GradeLevel StudentGroup StudentSubGroup using "${output}/MS_AssmtData_2021.dta", update
-drop _merge
-
 ** Creating variables
 
-replace SchYear = "2020-21"
+gen SchYear = "2020-21"
 
 replace DistName = "All Districts" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel != 3
@@ -416,31 +423,21 @@ replace SchName = "All Schools" if DataLevel != 3
 replace StateAssignedDistID = "" if DataLevel == 1
 replace StateAssignedSchID = "" if DataLevel != 3
 
-replace AssmtName = "MAAP"
+gen AssmtName = "MAAP"
 
-replace ProficiencyCriteria = "Levels 4-5"
+gen ProficiencyCriteria = "Levels 4-5"
 
-replace ParticipationRate = "--"
+gen ParticipationRate = "--"
 
-replace Flag_AssmtNameChange = "N"
-replace Flag_CutScoreChange_ELA = "N"
-replace Flag_CutScoreChange_math = "N"
-replace Flag_CutScoreChange_sci = "N"
-replace Flag_CutScoreChange_soc = ""
+gen Flag_AssmtNameChange = "N"
+gen Flag_CutScoreChange_ELA = "N"
+gen Flag_CutScoreChange_math = "N"
+gen Flag_CutScoreChange_sci = "N"
+gen Flag_CutScoreChange_soc = ""
 
 replace State = "Mississippi"
 replace StateAbbrev = "MS"
 replace StateFips = 28
-
-destring teststudentcount, gen(teststudentcount2) force
-destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
-gen diff1 = teststudentcount2 - StudentSubGroup_TotalTested2
-tab diff1
-
-destring testprofcount, gen(testprofcount2) force
-destring ProficientOrAbove_percent, gen(ProficientOrAbove_percent2) force
-gen diff2 = testprofcount2 - ProficientOrAbove_percent2
-tab diff2 if diff2 > 0.05 | diff2 < -0.05
 
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
