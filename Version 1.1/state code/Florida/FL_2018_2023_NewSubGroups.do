@@ -9,7 +9,7 @@ global NCES "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
 
 //Run below code when first cleaning 
 
-
+/*
 
 foreach dl in State District School {
 	foreach sg in AllStudents Disability Econ ELcode ELstatus Gender Homeless Migrant Military Race {
@@ -93,6 +93,9 @@ clear
 }
 
 
+*/
+
+//Run above code when first cleaning or if you need to incorporate additional data
 
 
 //Looping Through Years
@@ -135,8 +138,8 @@ replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Ec
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
 replace StudentSubGroup = "English Proficient" if StudentSubGroup == "Not Current ELL"
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "Current ELL"
-replace StudentSubGroup = "EL Exited" if StudentSubGroup == "LZ"
 replace StudentSubGroup = "EL Monit or Recently Ex" if StudentSubGroup == "LF"
+drop if StudentSubGroup == "LZ" //Not directly codeable, dropping
 drop if StudentSubGroup == "LA" //This is a category for Students who exited the EL program 3-4 years ago after being in "LF." Dropping for now as there is no direct mapping in our categories. For more details, read the ELL Codes in the Data Documentation Folder.
 drop if StudentSubGroup == "LP" //This is a category for Students who are pending proficiency designation. For more details, read the ELL Codes in the Data Documentation Folder.
 drop if StudentSubGroup == "LY" | StudentSubGroup == "ZZ" //These Categories are similar to categories described in ELstatus dataset, dropped
@@ -176,6 +179,20 @@ replace SchName = "All Schools" if DataLevel == 1 | DataLevel == 2
 //StudentGroup_TotalTested
 destring StudentSubGroup_TotalTested, replace
 egen StudentGroup_TotalTested = total(StudentSubGroup_TotalTested), by(StudentGroup GradeLevel Subject DataLevel StateAssignedSchID StateAssignedDistID)
+replace StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "EL Monit or Recently Ex"
+
+/*
+	//Fixing For EL Status:
+	gen StudentSubGroup_TotalTested1 = StudentSubGroup_TotalTested
+	replace StudentSubGroup_TotalTested1 = 0 if StudentSubGroup == "EL Monit or Recently Ex"
+	egen StudentGroup_TotalTested1 = total(StudentSubGroup_TotalTested1), by(StudentGroup GradeLevel Subject DataLevel StateAssignedSchID StateAssignedDistID)
+	replace StudentGroup_TotalTested = StudentGroup_TotalTested1 if StudentGroup == "EL Status"
+	drop StudentSubGroup_TotalTested1 StudentGroup_TotalTested1
+	replace StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "EL Monit or Recently Ex"
+*/
+
+//Code above effectively substracts EL Monitored or Ex StudentGroup_TotalTested from the rest of EL Status. Decided not to do.
+
 
 //StudentSubGroup_TotalTested
 drop if missing(StudentSubGroup_TotalTested) | StudentSubGroup_TotalTested == 0 //I would guess these values are suppressed, but the data just has them missing. Tranforming assuming StudentSubGroup_TotalTested == 0
@@ -250,7 +267,7 @@ gen AssmtName = "FSA"
 replace AssmtName = "Statewide Science Assessment" if Subject == "sci"
 if `year' == 2023 replace AssmtName = "FAST" if Subject == "ela" | Subject == "math"
 if `year' == 2023 {
-	replace Flag_AssmtNameChange = "Y"
+	replace Flag_AssmtNameChange = "Y" if Subject != "sci"
 	replace Flag_CutScoreChange_math = "Y"
 	replace Flag_CutScoreChange_sci = "N"
 }
