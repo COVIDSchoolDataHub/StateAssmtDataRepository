@@ -1,11 +1,14 @@
 clear all
 set more off
 
-cd "/Users/miramehta/Documents"
-global data "/Users/miramehta/Documents/ND State Testing Data"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics"
-global NCES_clean "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
-global counts "/Users/miramehta/Documents/EdFacts Data"
+cd "/Users/maggie/Desktop/North Dakota"
+
+global data "/Users/maggie/Desktop/North Dakota/Original Data Files"
+global NCESSchool "/Users/maggie/Desktop/North Dakota/NCES/School"
+global NCESDistrict "/Users/maggie/Desktop/North Dakota/NCES/District"
+global NCES "/Users/maggie/Desktop/North Dakota/NCES/Cleaned"
+global EDFacts "/Users/maggie/Desktop/EDFacts/Datasets"
+
 
 //Import & Rename Variables
 import excel "$data/ND_EnrollmentData_1421.xlsx", clear
