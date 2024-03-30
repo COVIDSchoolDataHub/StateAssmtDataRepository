@@ -126,6 +126,60 @@ foreach v in $screadyyears {
 	save "${path}/Intermediate/SC_OriginalData_`v'_all.dta", replace
 }
 
+foreach v in $screadyyears { 
+	import excel "${path}/Original Data Files/SC_OriginalData_`v'_soc_sci.xlsx", sheet("`v' SCPASS STATE") firstrow allstring clear
+	gen DataLevel = "State"
+	save "${path}/Intermediate/SC_OriginalData_`v'_state_soc_sci.dta", replace
+	import excel "${path}/Original Data Files/SC_OriginalData_`v'_soc_sci.xlsx", sheet("`v' SCPASS DISTRICT") firstrow allstring clear
+	gen DataLevel = "District"
+	save "${path}/Intermediate/SC_OriginalData_`v'_dist_soc_sci.dta", replace
+	import excel "${path}/Original Data Files/SC_OriginalData_`v'_soc_sci.xlsx", sheet("`v' SCPASS SCHOOL") firstrow allstring clear
+	gen DataLevel = "School"
+	append using "${path}/Intermediate/SC_OriginalData_`v'_dist_soc_sci.dta" "${path}/Intermediate/SC_OriginalData_`v'_state_soc_sci.dta"
+	
+	drop if missing(schoolname)
+	
+	rename scipct1 Lev1_percentsci
+	rename scipct2 Lev2_percentsci
+	rename scipct3 Lev3_percentsci
+	
+	if `v' == 2017 {
+		rename scipct4 Lev4_percentsci
+	}
+	
+	rename socpct1 Lev1_percentsoc
+	rename socpct2 Lev2_percentsoc
+	rename socpct3 Lev3_percentsoc
+	
+	foreach y of varlist Lev*_percent* {
+		destring `y', replace 
+	}
+	
+	if `v' == 2017 {
+		gen ProficientOrAbove_percentsci = Lev3_percentsci + Lev4_percentsci
+	}
+	
+	if `v' == 2016 {
+		gen ProficientOrAbove_percentsci = Lev2_percentsci + Lev3_percentsci
+	}
+	
+	
+	destring Lev2_percentsoc, replace
+	destring Lev3_percentsoc, replace
+	gen ProficientOrAbove_percentsoc = Lev2_percentsoc + Lev3_percentsoc
+	
+	rename sciN StudentSubGroup_TotalTestedsci
+	rename socN StudentSubGroup_TotalTestedsoc
+	rename sciMEAN AvgScaleScoresci
+	rename socMEAN AvgScaleScoresoc
+	
+	foreach v of varlist Lev*_percent* ProficientOrAbove_percent* {
+		tostring `v', replace force
+	}
+	
+	save "${path}/Intermediate/SC_OriginalData_`v'_soc_sci.dta", replace
+}
+
 global lateryears 2018 2019 2021 2022 2023
 foreach v in $lateryears { 
 	import excel "${path}/Original Data Files/SC_OriginalData_`v'.xlsx", sheet("State") firstrow allstring clear
@@ -154,6 +208,38 @@ foreach v in $lateryears {
 	save "${path}/Intermediate/SC_OriginalData_`v'_all.dta", replace
 }
 
+global latersciyears 2018 2019 2021 2022
+foreach v in $latersciyears {
+	
+	import excel "${path}/Original Data Files/SC_OriginalData_`v'_soc_sci.xlsx", sheet("State") firstrow allstring clear
+	gen DataLevel = "State"
+	save "${path}/Intermediate/SC_OriginalData_`v'_state_soc_sci.dta", replace
+	import excel "${path}/Original Data Files/SC_OriginalData_`v'_soc_sci.xlsx", sheet("District") firstrow allstring clear
+	gen DataLevel = "District"
+	save "${path}/Intermediate/SC_OriginalData_`v'_dist_soc_sci.dta", replace
+	import excel "${path}/Original Data Files/SC_OriginalData_`v'_soc_sci.xlsx", sheet("School") firstrow allstring clear
+	gen DataLevel = "School"
+	append using "${path}/Intermediate/SC_OriginalData_`v'_dist_soc_sci.dta" "${path}/Intermediate/SC_OriginalData_`v'_state_soc_sci.dta"
+	
+	rename SciN StudentSubGroup_TotalTestedsci
+	rename SocN StudentSubGroup_TotalTestedsoc
+	rename SciMEAN AvgScaleScoresci
+	rename SocMEAN AvgScaleScoresoc
+
+	rename Scipct1 Lev1_percentsci
+	rename Scipct2 Lev2_percentsci
+	rename Scipct3 Lev3_percentsci
+	rename Scipct4 Lev4_percentsci
+	rename Scipct34 ProficientOrAbove_percentsci
+	rename Socpct1 Lev1_percentsoc
+	rename Socpct2 Lev2_percentsoc
+	rename Socpct3 Lev3_percentsoc
+	rename Socpct23 ProficientOrAbove_percentsoc
+	
+	save "${path}/Intermediate/SC_OriginalData_`v'_soc_sci.dta", replace
+	
+}
+
 use "${path}/Intermediate/SC_OriginalData_2023_all.dta"
 rename Scipct1 Lev1_percentsci
 rename Scipct2 Lev2_percentsci
@@ -163,6 +249,22 @@ rename Scipct34 ProficientOrAbove_percentsci
 rename SciN StudentSubGroup_TotalTestedsci
 rename SciMean AvgScaleScoresci
 save "${path}/Intermediate/SC_OriginalData_2023_all.dta", replace
+
+** Merge subject files together
+
+global years 2016 2017 2018 2019 2021 2022 
+foreach y in $years { 
+	
+	use "${path}/Intermediate/SC_OriginalData_`y'_all.dta", clear
+	
+	merge m:1 districtname schoolname DataLevel demoID testgrade using "${path}/Intermediate/SC_OriginalData_`y'_soc_sci.dta"
+	
+	drop _merge
+	
+	save "${path}/Intermediate/SC_OriginalData_`y'_all.dta", replace
+
+}
+
 
 ** Data cleaning process
 
@@ -351,6 +453,13 @@ foreach y in $years {
 	replace DistCharter = "" if DataLevel == "State"
 	replace seasch = "" if DataLevel == "State" | DataLevel == "District"
 
+	** Fix AssmtName & Proficiency Criteria 
+	
+	replace AssmtName = "SC PASS" if (Subject=="sci" & `y' < 2023) | (Subject=="soc" & `y' < 2023)
+	
+	replace ProficiencyCriteria = "Levels 2-3" if Subject=="sci" & `y' == 2016
+	replace ProficiencyCriteria = "Levels 2-3" if Subject=="soc" 
+	
 	** Relabel GradeLevel Values
 
 	tostring GradeLevel, replace
