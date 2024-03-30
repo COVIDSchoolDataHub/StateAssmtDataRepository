@@ -1,4 +1,8 @@
 
+cap log close
+log using north_carolina_cleaning.log, replace 
+
+
 cd "/Users/benjaminm/Documents/State_Repository_Research/North_Carolina"
 
 // imports all years and converts to dta files 
@@ -8,11 +12,11 @@ import delimited Disag_20`a'_Data.txt, clear
 save NC_OriginalData_`a'
 	
 }
-	
+
+
 
 
 local years1  "13-14 14-15 15-16 16-17 17-18 18-19 20-21 21-22 22-23"
-// 14-15 15-16 16-17 17-18 21-22 22-23 //18-19 20-21
 
 
 foreach a in `years1' {
@@ -20,9 +24,11 @@ foreach a in `years1' {
 local prevyear = "20" + substr("`a'", 1, 2)
 local current = "20" + substr("`a'", 4, 5)
 
-
+display "`a'"
 
 use "NC_OriginalData_`a'", clear 
+
+
 
 
 rename school_code Code // will need to seprate in district/school
@@ -111,17 +117,45 @@ replace StudentSubGroup2 = "Two or More" if StudentSubGroup == "MULT"
 replace StudentSubGroup2 = "Hispanic or Latino" if StudentSubGroup == "HISP"
 replace StudentSubGroup2 = "White" if StudentSubGroup == "WHTE"
 
+
+display "El Early"
+if "`a'" == "13-14" | "`a'" == "14-15" | "`a'" == "15-16" | "`a'" == "16-17" {
+replace StudentSubGroup2 = "English Learner" if StudentSubGroup == "LEP"
+replace StudentSubGroup2 = "English Proficient" if StudentSubGroup== "NOT_LEP"
+}
+
+display "El Late"
 replace StudentSubGroup2 = "English Learner" if StudentSubGroup == "ELS"
-replace StudentSubGroup2 = "English Proficient" if StudentSubGroup== "NOT_ELS"
+replace StudentSubGroup2 = "English Proficient" if StudentSubGroup == "NOT_ELS"
 
 replace StudentSubGroup2 = "Economically Disadvantaged" if StudentSubGroup == "EDS"
 replace StudentSubGroup2 = "Not Economically Disadvantaged" if StudentSubGroup== "NOT_EDS"
 
 replace StudentSubGroup2 = "Male" if StudentSubGroup == "MALE"
 replace StudentSubGroup2 = "Female" if StudentSubGroup == "FEM"
+
+display "Homeless"
+replace StudentSubGroup2 = "Homeless" if StudentSubGroup == "HMS"
+replace StudentSubGroup2 = "Non-Homeless" if StudentSubGroup == "NOT_HMS"
+display "Military"
+replace StudentSubGroup2 = "Military" if StudentSubGroup == "MIL"
+replace StudentSubGroup2 = "Non-Military" if StudentSubGroup == "NOT_MIL"
+display "Migrant"
+replace StudentSubGroup2 = "Migrant" if StudentSubGroup == "MIG"
+replace StudentSubGroup2 = "Non-Migrant" if StudentSubGroup == "NOT_MIG"
+display "SWD"
+replace StudentSubGroup2 = "SWD" if StudentSubGroup == "SWD"
+replace StudentSubGroup2 = "Non-SWD" if StudentSubGroup == "NOT_SWD"
+display "Foster Care"
+replace StudentSubGroup2 = "Foster Care" if StudentSubGroup == "FCS"
+replace StudentSubGroup2 = "Non-Foster Care" if StudentSubGroup == "NOT_FCS"
+
+
 drop if StudentSubGroup2 == ""
 drop StudentSubGroup
 rename StudentSubGroup2 StudentSubGroup
+
+
 
 
 
@@ -146,6 +180,15 @@ replace StudentGroup = "Gender" if StudentSubGroup == "Female"
 
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Not Economically Disadvantaged"
+
+replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD" | StudentSubGroup == "Non-SWD"
+replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless" | StudentSubGroup == "Non-Homeless" 
+replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Military" | StudentSubGroup == "Non-Military" 
+replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant" | StudentSubGroup == "Non-Migrant"
+replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Foster Care" | StudentSubGroup == "Non-Foster Care"
+
+
+
 
 
 // proficiency level 
@@ -209,12 +252,12 @@ replace StateAssignedSchID = substr(StateAssignedSchID, 4, .)
 rename StateAssignedDistID State_leaid
 
 if "`a'" == "22-23" {
-merge m:1 State_leaid using nc_district_IDs_2021
+merge m:1 State_leaid using 1_nc_district_IDs_2022
 } 
 
 
 if "`a'" != "22-23" {
-merge m:1 State_leaid using nc_district_IDs_`prevyear'
+merge m:1 State_leaid using 1_nc_district_IDs_`prevyear'
 } 
 
 drop DistName 
@@ -226,7 +269,7 @@ drop _merge
 
 
 if "`a'" == "22-23" {
-merge m:1 State_leaid using NCES_2021_District_NC // CHANGED
+merge m:1 State_leaid using 1_NCES_2022_District_NC // CHANGED
 rename _merge DistMerge
 drop if DistMerge == 2
 
@@ -241,7 +284,7 @@ drop DistMerge
 
 
 if "`a'" != "22-23" {
-merge m:1 State_leaid using "NCES_`prevyear'_District_NC" // CHANGED
+merge m:1 State_leaid using "1_NCES_`prevyear'_District_NC" // CHANGED
 rename _merge DistMerge
 drop if DistMerge == 2
 
@@ -256,19 +299,19 @@ drop DistMerge
 
 if "`a'" == "22-23" {	
 rename StateAssignedSchID seasch
-merge m:1 State_leaid seasch using NCES_2021_School_NC // CHANGED 
+merge m:1 State_leaid seasch using 1_NCES_2022_School_NC // CHANGED 
 rename _merge SchoolMerge
 drop if SchoolMerge == 2
 } 
 
 if "`a'" != "22-23" {	
 rename StateAssignedSchID seasch
-merge m:1 State_leaid seasch using "NCES_`prevyear'_School_NC" // CHANGED 
+merge m:1 State_leaid seasch using "1_NCES_`prevyear'_School_NC" // CHANGED 
 rename _merge SchoolMerge
 drop if SchoolMerge == 2
 } 
 
-
+display "merge"
 
 
 
@@ -284,13 +327,14 @@ gen State = "North Carolina"
 gen StateAbbrev = "NC"
 gen StateFips = 37 // CHANGED
 
+
+
 // flags // FLAGSSSSS
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_read = ""
-gen Flag_CutScoreChange_oth = "N"
-
+gen Flag_CutScoreChange_sci = "N" 
+gen Flag_CutScoreChange_soc = ""
 
 if "`a'" == "18-19" {
 
@@ -298,10 +342,10 @@ replace Flag_CutScoreChange_math = "Y"
 
 }
 
-if "`a'" == "21-22" {
+if "`a'" == "20-21" {
 
 replace Flag_CutScoreChange_ELA = "Y"
-replace Flag_CutScoreChange_oth = "Y"
+replace Flag_CutScoreChange_sci = "Y" 
 
 }
 
@@ -355,9 +399,9 @@ gen SchYear = "2022-23"
 // decoding to create strings here
 
 if "`a'" != "13-14" {
-decode DistType, gen (DistType1)
-drop DistType
-rename DistType1 DistType
+//decode DistType, gen (DistType1)
+//drop DistType
+//rename DistType1 DistType
 
 decode SchType, gen (SchType1)
 drop SchType
@@ -514,6 +558,11 @@ replace ProficientOrAbove_count = ">.95" if ProficientOrAbove_count  == "950000"
 } 
 
 
+// NEWWWWW
+if "`a'" == "21-22" {
+replace Lev1_percent = "-" if Lev1_percent == "-100000"
+}
+
 if "`a'" == "20-21" | "`a'" == "18-19" |  "`a'" == "17-18" | "`a'" == "16-17" | "`a'" == "15-16" | "`a'" == "14-15" | "`a'" == "13-14"  {
 replace Lev1_percent = "*" if Lev1_percent == "-1000"
 replace Lev1_percent = "<.05" if Lev1_percent == "50000"
@@ -573,28 +622,48 @@ replace DistCharter = DistCharter1 if DistCharter == "" & DataLevel == 3
 replace DistType = DistType1 if DistType == "" & DataLevel == 3
 drop DistName1 DistCharter1 DistType1 
 
+tostring CountyCode1, replace
+
 replace NCESSchoolID = NCESSchoolID1 if NCESSchoolID == "" & DataLevel == 3
 replace SchType = SchType1 if SchType == "" & DataLevel == 3
 replace SchLevel = SchLevel1 if SchLevel == "" & DataLevel == 3
 replace CountyName = CountyName1 if CountyName == "" & DataLevel == 3
-replace CountyCode = CountyCode1 if CountyCode == . & DataLevel == 3
+replace CountyCode = CountyCode1 if CountyCode == "" & DataLevel == 3
 replace SchVirtual = SchVirtual1 if SchVirtual == "" & DataLevel == 3
 drop NCESSchoolID1 SchType1 SchLevel1 CountyName1 CountyCode1 SchVirtual1
 }
 
 
+// NEWWWWW
+
+if "`a'" == "20-21" | "`a'" == "18-19" { 
+	
+	replace Lev1_count = "" if Lev1_percent == "."
+    replace Lev1_percent = "" if Lev1_count == ""
+
+}
 
 
-order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth 
+if "`a'" == "22-23" | "`a'" == "21-22" {
+
+	replace Lev1_count = "" if Lev1_percent == "-"
+    replace Lev1_percent = "" if Lev1_count == ""
+
+}
+	
+drop State_leaid seasch
 
 
-keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth 
+ order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+// 
+
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+// 2024 update
 
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save NC_AssmtData_`current'_Stata, replace
 export delimited NC_AssmtData_`current'.csv, replace
-
 
 }
