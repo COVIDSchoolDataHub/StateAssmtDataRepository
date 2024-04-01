@@ -1,11 +1,13 @@
 clear
 
 // Define file paths
-
+/*
 global original_files "/Volumes/T7/State Test Project/Minnesota post launch/Original Data"
 global NCES_files "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
 global output_files "/Volumes/T7/State Test Project/Minnesota post launch/Output"
 global temp_files "/Volumes/T7/State Test Project/Minnesota post launch/Temp"
+*/
+
 
 // 2022-23
 
@@ -390,9 +392,10 @@ gen state_leaid = "MN-" + DistrictTypeCode + StateAssignedDistID
 // Generating Student Group Counts
 bysort seasch StudentGroup Grade Subject: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
 
+/*
 // Fixing Unmerged Schools
 
-save "${temp_files}/MN_AssmtData_2023", replace
+
 keep if inlist(SchName, "New Century School Secondary Program", "NLA-Carlton", "Laker Online", "Aspen House Education Program","Wheaton Area Schools ESY" ) | seasch == "010621-010621047" | SchName == "STEP Academy Kg-5th - Burnsville" | SchName == "Futures Sun" | SchName == "Universal Academy Middle/High"
 save "${temp_files}/MN_AssmtData_2023_unmerged", replace
 clear
@@ -421,6 +424,7 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 save "${temp_files}/MN_AssmtData_2023_unmerged", replace
 clear
 
+
 //Preparing for Merge
 use "${temp_files}/MN_AssmtData_2023"
 
@@ -434,38 +438,45 @@ drop if SchName == "STEP Academy Kg-5th - Burnsville" | SchName == "Futures Sun"
 
 // Saving transformed data
 save "${output_files}/MN_AssmtData_2023.dta", replace
+*/
 
 // Merging with NCES School Data
+save "${temp_files}/MN_AssmtData_2023", replace
+clear
+use "${NCES_files}/NCES_2022_School.dta", clear
 
-use "$NCES_files/NCES_2021_School.dta", clear
-
-keep state_location state_fips district_agency_type SchType ncesdistrictid state_leaid ncesschoolid seasch DistCharter SchLevel SchVirtual county_name county_code DistLocale
+keep state_location state_fips district_agency_type school_type ncesdistrictid state_leaid ncesschoolid seasch DistCharter SchLevel SchVirtual county_name county_code DistLocale
 
 keep if substr(ncesschoolid, 1, 2) == "27"
-
-merge 1:m seasch using "${output_files}/MN_AssmtData_2023.dta", keep(match using)
+foreach var of varlist district_agency_type SchLevel SchVirtual school_type {
+	decode `var', gen(`var'_x)
+	drop `var'
+	rename `var'_x `var'
+}
+merge 1:m seasch using "${temp_files}/MN_AssmtData_2023.dta", keep(match using)
 
 replace ncesschoolid = "Missing" if _merge == 2 & DataLevel == 3
 drop _merge
 
-save "${output_files}/MN_AssmtData_2023.dta", replace
+
+save "${temp_files}/MN_AssmtData_2023.dta", replace
 
 // Merging with NCES District Data
 
-use "$NCES_files/NCES_2021_District.dta", clear 
-
+use "${NCES_files}/NCES_2021_District.dta", clear 
+tostring _all, replace force
+destring state_fips, replace
 keep state_location state_fips district_agency_type ncesdistrictid state_leaid DistCharter county_name county_code DistLocale
 
 keep if substr(ncesdistrictid, 1, 2) == "27"
 
-merge 1:m state_leaid using "${output_files}/MN_AssmtData_2023.dta", keep(match using) nogenerate
+merge 1:m state_leaid using "${temp_files}/MN_AssmtData_2023.dta", keep(match using) nogenerate
 
 // Reformatting IDs
 replace StateAssignedDistID = StateAssignedDistID+"-"+DistrictTypeCode
 replace StateAssignedSchID = StateAssignedDistID+"-"+StateAssignedSchID
 
 // Removing extra variables and renaming NCES variables
-drop DistrictTypeCode
 rename district_agency_type DistType
 rename ncesschoolid NCESSchoolID
 rename ncesdistrictid NCESDistrictID
@@ -473,7 +484,7 @@ rename state_leaid State_leaid
 rename state_location StateAbbrev
 generate State = "Minnesota"
 rename county_code CountyCode
-*rename school_type SchType
+rename school_type SchType
 rename state_fips StateFips
 rename county_name CountyName
 
@@ -488,6 +499,7 @@ replace StateAssignedSchID = "" if DataLevel != 3
 replace seasch = "" if DataLevel != 3
 replace State_leaid = "" if DataLevel == 1
 
+/*
 // Fixing more unmerged schools
 *replace NCESSchoolID = "Missing/not reported" if SchName == "STEP Academy Kg-5th - Burnsville" | SchName == "Futures Sun" | SchName == "Universal Academy Middle/High"
 decode SchType, gen(sSchType)
@@ -497,6 +509,7 @@ decode SchLevel, gen(sSchLevel)
 drop SchLevel
 rename sSchLevel SchLevel
 append using "${temp_files}/MN_AssmtData_2023_unmerged"
+*/
 
 // Reordering variables and sorting data
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
@@ -506,5 +519,5 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 // Saving and exporting transformed data
 
 save "${output_files}/MN_AssmtData_2023.dta", replace
-export delimited using "$output_files/MN_AssmtData_2023.csv", replace
+export delimited using "${output_files}/MN_AssmtData_2023.csv", replace
 
