@@ -29,6 +29,7 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 //Dropping Blank Rows
 drop if Lev1_percent == "--" & Lev3_percent == "--" & Lev4_percent== "--" & ProficientOrAbove_percent == "--"
+drop if missing(State)
 
 save "${Output}/AR_AssmtData_`year'", replace
 }
