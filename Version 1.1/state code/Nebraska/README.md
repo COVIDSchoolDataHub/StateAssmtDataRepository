@@ -7,11 +7,12 @@ This is a ReadMe for Nebraska's data cleaning process, from 2016 to 2023.
 Create a folder for Nebraska. Inside that folder, create a folder for the original data and the cleaned data.
 
 1.  Download do-files and place them in the folder.
-2.  Set file directories at the top of each do file:
-3.  Download original data from drive and place it in the original data folder.
-4.  Make sure to have updated NCES data downloaded and EDFacts data downloaded
+2.  Download original data from drive and place it in the original data folder.
+3.  Make sure to have updated NCES data downloaded and EDFacts data downloaded
+4.  Set file directories at the top of each file.
 
-```         
+```
+cd "/Volumes/T7/State Test Project/Nebraska"     
 global data "/Volumes/T7/State Test Project/Nebraska/Original Data Files"
 global NCES "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
 global counts "/Volumes/T7/State Test Project/EDFACTS"
