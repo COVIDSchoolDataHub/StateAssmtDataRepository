@@ -8,7 +8,7 @@ This is a ReadMe for New York's data cleaning process, from 2006 to 2023.
 Create a folder for New York. Inside that folder, create three more folders: 
 "Original", "NCES", and "Output"
 
-1. Download do-files and place them in the Arkansas folder.
+1. Download do-files and place them in the New York folder.
 2. Download "2006-2018" folder as one and place it in the "Original" folder
 3. Download the files inside the "2019-2023" folder and place them in the "Original" folder
 4. Download NCES Data if you haven't already. **NOTE: The new 2022 NCES file is incompatible with the 2022 file used to clean this data. The 2022 NCES file used has been uploaded to the drive. (Preliminary NCES data was used rather than the updated data).It can be found inside the Data Documentation Folder
