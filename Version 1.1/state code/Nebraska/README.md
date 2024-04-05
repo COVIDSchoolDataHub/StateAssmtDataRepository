@@ -4,10 +4,12 @@ This is a ReadMe for Nebraska's data cleaning process, from 2016 to 2023.
 
 ## Setup
 
-Create a folder for Nebraska. Inside that folder, create three more folders: "Original", "NCES", and "Output"
+Create a folder for Nebraska. Inside that folder, create a folder for the original data and the cleaned data.
 
 1.  Download do-files and place them in the folder.
 2.  Set file directories at the top of each do file:
+3.  Download original data from drive and place it in the original data folder.
+4.  Make sure to have updated NCES data downloaded and EDFacts data downloaded
 
 ```         
 global data "/Volumes/T7/State Test Project/Nebraska/Original Data Files"
@@ -27,7 +29,7 @@ global output "/Volumes/T7/State Test Project/Nebraska/Output"
 2.  Run NE Student Counts 2018_12.1.23.do second
 3.  Run other files in any order you like
 
-### Optional: Use NE_MASTER do-file to clean all files at once after setting directories in each do-file
+### Optional: Use NE_MASTER do-file to clean all files at once after setting directories in each do-file.
 
 -   Inside the NE_MASTER do-file, change the directory `global dir "/Volumes/T7/State Test Project/Nebraska"`
 -   Run the do-file. This is a simple file to run all do files in the correct order.
