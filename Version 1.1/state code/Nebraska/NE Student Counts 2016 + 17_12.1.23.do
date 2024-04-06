@@ -1,10 +1,10 @@
 clear all
 set more off
 
-cd "/Users/miramehta/Documents"
-global data "/Users/miramehta/Documents/NE State Testing Data"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics"
-global counts "/Users/miramehta/Documents/EdFacts Data"
+cd "/Volumes/T7/State Test Project/Nebraska"
+global data "/Volumes/T7/State Test Project/Nebraska/Original Data Files"
+global NCES "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global counts "/Volumes/T7/State Test Project/EDFACTS"
 
 forvalues year = 2016/2017 {
 	
@@ -37,6 +37,9 @@ replace CATEGORY = "Economically Disadvantaged" if CATEGORY == "ECD"
 replace CATEGORY = "Female" if CATEGORY == "F"
 replace CATEGORY = "Male" if CATEGORY == "M"
 replace CATEGORY = "English Learner" if CATEGORY == "LEP"
+replace CATEGORY = "Migrant" if CATEGORY == "MIG"
+replace CATEGORY = "SWD" if CATEGORY == "CWD"
+replace CATEGORY = "Homeless" if CATEGORY == "HOM"
 rename CATEGORY StudentSubGroup
 save "$counts/NE_edfactscount`year'.dta", replace
 

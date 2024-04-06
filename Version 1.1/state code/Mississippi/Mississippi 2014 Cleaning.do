@@ -1,6 +1,9 @@
 clear
 set more off
 
+cd "/Users/maggie/Desktop/Mississippi"
+
+global raw "/Users/maggie/Desktop/Mississippi/Original Data Files"
 global output "/Users/maggie/Desktop/Mississippi/Output"
 global NCES "/Users/maggie/Desktop/Mississippi/NCES/Cleaned"
 global EDFacts "/Users/maggie/Desktop/EDFacts/Datasets"
@@ -11,10 +14,8 @@ local level 1 2 3 4
 local subject L M
 local levelname NM NB NP NA PM PB PP PA
 
-cd "/Users/maggie/Desktop/Mississippi"
-
-use "${output}/MS_AssmtData_2014_ela_mat.dta", clear
-append using "${output}/MS_AssmtData_2014_sci.dta"
+use "${raw}/MS_AssmtData_2014_ela_mat.dta", clear
+append using "${raw}/MS_AssmtData_2014_sci.dta"
 
 ** Dropping extra variables
 
@@ -109,12 +110,12 @@ gen ProficientOrAbove_count = Lev3_count2 + Lev4_count2
 tostring ProficientOrAbove_count, replace force
 replace ProficientOrAbove_count = test1 if test1 != ""
 gen ProficientOrAbove_percent = Lev3_percent2 + Lev4_percent2
-tostring ProficientOrAbove_percent, replace force
+tostring ProficientOrAbove_percent, replace format("%9.4g") force
 replace ProficientOrAbove_percent = test2 if test2 != ""
 drop test1 test2
 
 foreach a of local level {
-	tostring Lev`a'_percent2, replace force
+	tostring Lev`a'_percent2, replace format("%9.4g") force
 	replace Lev`a'_percent = Lev`a'_percent2 if Lev`a'_percent != "*"
 	drop Lev`a'_count2
 	drop Lev`a'_percent2
@@ -185,12 +186,13 @@ replace StateAssignedDistID = StateAssignedDistID[_n-1] if StateAssignedDistID =
 replace StateAssignedSchID = StateAssignedSchID[_n-1] if StateAssignedSchID == ""
 replace State_leaid = State_leaid[_n-1] if State_leaid == ""
 replace seasch = seasch[_n-1] if seasch == ""
-replace DistType = DistType[_n-1] if DistType == .
+replace DistType = DistType[_n-1] if DistType == ""
 replace SchType = SchType[_n-1] if SchType == .
-replace SchVirtual = SchVirtual[_n-1] if SchVirtual == ""
+replace SchVirtual = SchVirtual[_n-1] if SchVirtual == .
 replace SchLevel = SchLevel[_n-1] if SchLevel == .
 replace DistCharter = DistCharter[_n-1] if DistCharter == ""
-replace CountyCode = CountyCode[_n-1] if CountyCode == .
+replace DistLocale = DistLocale[_n-1] if DistLocale == ""
+replace CountyCode = CountyCode[_n-1] if CountyCode == ""
 replace CountyName = CountyName[_n-1] if CountyName == ""
 
 destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
@@ -210,17 +212,19 @@ replace AssmtName = "MST" if Subject == "sci"
 gen AssmtType = "Regular"
 gen ProficiencyCriteria = "Levels 3-4"
 
-replace State = 28
+replace State = "Mississippi"
 replace StateAbbrev = "MS"
 replace StateFips = 28
 
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_read = ""
-gen Flag_CutScoreChange_oth = "N"
+gen Flag_CutScoreChange_sci = "N"
+gen Flag_CutScoreChange_soc = "Not applicable"
 
-order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 

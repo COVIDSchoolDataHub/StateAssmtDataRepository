@@ -52,5 +52,5 @@ forvalues year = 2006/2017 {
         }
     }
     use "`thisyear'", clear
-    save "/Volumes/T7/State Test Project/New York/Original/Combined_`year'.dta", replace
+    save "${original}/Combined_`year'.dta", replace
 }

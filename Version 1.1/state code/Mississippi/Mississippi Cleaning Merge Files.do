@@ -292,14 +292,14 @@ foreach year of local edyears2 {
 
 ** Preparing NCES files
 
-local ncesyears 2013 2014 2015 2016 2017 2018 2020 2021
+local ncesyears 2013 2014 2015 2016 2017 2018 2020 2021 2022
 use "${NCESDistrict}/NCES_2013_District.dta", clear
 
 foreach a of local ncesyears {
 	
 	use "${NCESSchool}/NCES_`a'_School.dta", clear
+
 	keep if state_fips == 28
-	
 	rename state_name State
 	rename state_location StateAbbrev
 	rename state_fips StateFips
@@ -311,12 +311,17 @@ foreach a of local ncesyears {
 	rename district_agency_type DistType
 	rename school_name SchName
 	rename county_name CountyName
+	
+	if(`a' == 2022){
+		rename school_type SchType
+	}
+	
+	
 	keep State StateFips NCESDistrictID State_leaid StateAbbrev DistName DistType NCESSchoolID SchName seasch CountyName CountyCode DistCharter SchLevel SchVirtual SchType DistLocale
-		
+			
 	if(`a' == 2021){
 		drop if NCESDistrictID == "2800960"
 	}
-	
 		
 	if(`a' > 2019){
 		sort DistName SchName
@@ -328,8 +333,8 @@ foreach a of local ncesyears {
 	save "${NCES}/NCES_`a'_School.dta", replace
 	
 	use "${NCESDistrict}/NCES_`a'_District.dta", clear 
+
 	keep if state_fips == 28
-	
 	rename state_name State
 	rename state_location StateAbbrev
 	rename state_fips StateFips
@@ -339,6 +344,13 @@ foreach a of local ncesyears {
 	rename county_code CountyCode
 	rename lea_name DistName
 	rename county_name CountyName
+	
+	if(`a' == 2022){
+		labmask district_agency_type_num, values(DistType)
+		drop DistType
+		rename district_agency_type_num DistType
+	}
+	
 	keep State StateFips NCESDistrictID State_leaid DistName DistType DistCharter DistLocale CountyCode CountyName StateAbbrev
 	
 	if(`a' == 2021){

@@ -1,9 +1,10 @@
 clear all
 set more off
 
-cd "/Users/miramehta/Documents"
-global data "/Users/miramehta/Documents/NE State Testing Data"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics"
+cd "/Volumes/T7/State Test Project/Nebraska"
+global data "/Volumes/T7/State Test Project/Nebraska/Original Data Files"
+global NCES "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global counts "/Volumes/T7/State Test Project/EDFACTS"
 
 //Import and Append Subject Files
 import delimited "$data/NE_OriginalData_2021_ela.csv", clear
@@ -25,9 +26,8 @@ rename subject Subject
 rename grade GradeLevel
 rename category StudentGroup
 rename studentsubgroup StudentSubGroup
-rename studentcount StudentSubGroup_TotalTested
 gen DistName = ""
-drop dataasof nottested nottestedpct averagescalescore basicpct proficientpct advancedpct
+drop dataasof nottestedpct averagescalescore basicpct proficientpct advancedpct
 
 //School Year
 drop if SchYear != "2017-2018"
@@ -110,16 +110,32 @@ replace StudentGroup = "EL Status" if StudentSubGroup == "English Learner"
 replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Students eligible for free and reduced lunch"
 replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "Not Receiving Free or Reduced Lunch"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged"
-drop if StudentGroup == "Misc / Other"
+replace StudentSubGroup = "Military" if StudentSubGroup == "Parent in Military"
+replace StudentSubGroup = "Migrant" if StudentSubGroup == "Students served in migrant programs"
+replace StudentSubGroup = "SWD" if StudentSubGroup == "Special Education Students"
+replace StudentSubGroup = "Non-SWD" if StudentSubGroup == "Not in Special Education"
+replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Military"
+replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant"
+replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD" | StudentSubGroup == "Non-SWD"
+replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Foster Care"
+replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless"
+drop if StudentSubGroup == "Special Education Students - Alternate Assessment"
 
-replace StudentSubGroup_TotalTested = -10000000 if StudentSubGroup_TotalTested == -1
-bys SchName DistName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(StudentSubGroup_TotalTested)
-replace StudentGroup_TotalTested = . if StudentGroup_TotalTested < 0
-tostring StudentGroup_TotalTested, replace
-replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
-replace StudentSubGroup_TotalTested = . if StudentSubGroup_TotalTested < 0
-tostring StudentSubGroup_TotalTested, replace
+//StudentSubGroup_TotalTested & StudentGroup_TotalTested
+gen StudentSubGroup_TotalTested = studentcount - nottested
+replace StudentSubGroup_TotalTested =. if StudentSubGroup_TotalTested <0
+egen StudentGroup_TotalTested = total(StudentSubGroup_TotalTested), by(StudentGroup GradeLevel Subject DataLevel seasch StateAssignedDistID DistName SchName)
+tostring StudentGroup_TotalTested StudentSubGroup_TotalTested, replace
 replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "."
+
+//DataLevel
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+sort DataLevel_n 
+drop DataLevel 
+rename DataLevel_n DataLevel
+
+
 
 //Subjects
 replace Subject = "ela" if Subject == "English Language Arts"

@@ -1,53 +1,68 @@
 clear
-global path "/Users/willtolmie/Documents/State Repository Research/South Carolina"
-global nces "/Users/willtolmie/Documents/State Repository Research/NCES"
+global path "/Users/minnamgung/Desktop/SADR/South Carolina"
+global nces "/Users/minnamgung/Desktop/SADR/NCESOld"
 
-global ncesyears 2015 2016 2017 2018 2020 2021
+** Clean NCES data for SC
+
+global ncesyears 2015 2016 2017 2018 2020 2021 2022
 foreach n in $ncesyears {
 	
 	** NCES School Data
 
-	use "${nces}/School/NCES_`n'_School.dta"
+	use "${nces}/NCES_`n'_School.dta"
 
 	** Rename Variables
-
+	
+	if `n' == 2022 {
+		drop DistLocale
+	}
+	
+	rename state_location StateAbbrev
 	rename state_fips StateFips
 	rename ncesdistrictid NCESDistrictID
 	rename state_leaid State_leaid
+	rename district_agency_type DistType
+	rename county_name CountyName
+	rename county_code CountyCode
 	rename ncesschoolid NCESSchoolID
 	rename school_type SchType
+	rename dist_urban_centric_locale DistLocale
 	
 	** Fix Variable Types
 	
-	decode SchLevel, gen(SchLevel2)
-	decode SchType, gen(SchType2)
-	decode SchVirtual, gen(SchVirtual2)
-	drop SchLevel SchType SchVirtual
-	rename SchLevel2 SchLevel 
-	rename SchType2 SchType 
-	rename SchVirtual2 SchVirtual
+	foreach v of varlist SchLevel SchType DistType DistLocale SchVirtual {
+		decode `v', generate(`v'1)
+		drop `v' 
+		rename `v'1 `v'
+	}
+	
 	replace seasch = State_leaid + seasch  if `n' < 2016
 	replace seasch = subinstr(seasch, "-", "", .)
 	replace State_leaid = "SC-" + State_leaid if `n' < 2016
 
-	** Isolate Tennessee Data
+	** Isolate SC Data
 
 	drop if StateFips != 45
 	
 	** Drop Excess Variables
 
-	keep StateFips school_name NCESDistrictID State_leaid DistCharter NCESSchoolID seasch SchVirtual SchLevel SchType
+	keep StateFips school_name NCESDistrictID State_leaid DistCharter NCESSchoolID seasch SchVirtual SchLevel SchType DistLocale DistType
 	local m = `n' - 1999
 	
-	save "${path}/Semi-Processed Data Files/`n'_`m'_NCES_Cleaned_School.dta", replace
+	save "${path}/Intermediate/`n'_`m'_NCES_Cleaned_School.dta", replace
 
 	** NCES District Data
 
 	clear
-	use "${nces}/District/NCES_`n'_District.dta"
+	use "${nces}/NCES_`n'_District.dta"
 
 	** Rename Variables
+	
+	if `n' == 2022 {
+		drop DistLocale
+	}
 
+	rename urban_centric_locale DistLocale
 	rename district_agency_type DistType
 	rename ncesdistrictid NCESDistrictID
 	rename state_leaid State_leaid
@@ -57,19 +72,28 @@ foreach n in $ncesyears {
 	
 	** Fix Variable Types
 	
-	decode DistType, gen(DistType2)
-	drop DistType
-	rename DistType2 DistType
+	if `n' != 2022 {
+		
+		decode DistType, gen(DistType2)
+		drop DistType
+		rename DistType2 DistType
+		
+		decode DistLocale, gen(DistLocale2)
+		drop DistLocale
+		rename DistLocale2 DistLocale
+		
+	}
+	
 	replace State_leaid = "SC-" + State_leaid if `n' < 2016
 
 	** Drop Excess Variables
 
-	keep StateFips NCESDistrictID State_leaid DistCharter CountyCode CountyName DistType lea_name
+	keep StateFips NCESDistrictID State_leaid DistCharter CountyCode CountyName DistType lea_name DistLocale
 
-	* Isolate Rhode Island Data
+	* Isolate SC Data
 
 	drop if StateFips != 45
-	save "${path}/Semi-Processed Data Files/`n'_`m'_NCES_Cleaned_District.dta", replace
+	save "${path}/Intermediate/`n'_`m'_NCES_Cleaned_District.dta", replace
 }
 
 ** Import Data
@@ -78,13 +102,13 @@ global screadyyears 2016 2017
 foreach v in $screadyyears { 
 	import excel "${path}/Original Data Files/SC_OriginalData_`v'.xlsx", sheet("`v' SC READY STATE") firstrow allstring clear
 	gen DataLevel = "State"
-	save "${path}/Semi-Processed Data Files/SC_OriginalData_`v'_state.dta", replace
+	save "${path}/Intermediate/SC_OriginalData_`v'_state.dta", replace
 	import excel "${path}/Original Data Files/SC_OriginalData_`v'.xlsx", sheet("`v' SC READY DISTRICT") firstrow allstring clear
 	gen DataLevel = "District"
-	save "${path}/Semi-Processed Data Files/SC_OriginalData_`v'_dist.dta", replace
+	save "${path}/Intermediate/SC_OriginalData_`v'_dist.dta", replace
 	import excel "${path}/Original Data Files/SC_OriginalData_`v'.xlsx", sheet("`v' SC READY SCHOOL") firstrow allstring clear
 	gen DataLevel = "School"
-	append using "${path}/Semi-Processed Data Files/SC_OriginalData_`v'_dist.dta" "${path}/Semi-Processed Data Files/SC_OriginalData_`v'_state.dta"
+	append using "${path}/Intermediate/SC_OriginalData_`v'_dist.dta" "${path}/Intermediate/SC_OriginalData_`v'_state.dta"
 	rename elapct1 Lev1_percentela
 	rename elapct2 Lev2_percentela
 	rename elapct3 Lev3_percentela
@@ -99,20 +123,74 @@ foreach v in $screadyyears {
 	rename mathN StudentSubGroup_TotalTestedmath
 	rename elaMEAN AvgScaleScoreela
 	rename mathMEAN AvgScaleScoremath
-	save "${path}/Semi-Processed Data Files/SC_OriginalData_`v'_all.dta", replace
+	save "${path}/Intermediate/SC_OriginalData_`v'_all.dta", replace
+}
+
+foreach v in $screadyyears { 
+	import excel "${path}/Original Data Files/SC_OriginalData_`v'_soc_sci.xlsx", sheet("`v' SCPASS STATE") firstrow allstring clear
+	gen DataLevel = "State"
+	save "${path}/Intermediate/SC_OriginalData_`v'_state_soc_sci.dta", replace
+	import excel "${path}/Original Data Files/SC_OriginalData_`v'_soc_sci.xlsx", sheet("`v' SCPASS DISTRICT") firstrow allstring clear
+	gen DataLevel = "District"
+	save "${path}/Intermediate/SC_OriginalData_`v'_dist_soc_sci.dta", replace
+	import excel "${path}/Original Data Files/SC_OriginalData_`v'_soc_sci.xlsx", sheet("`v' SCPASS SCHOOL") firstrow allstring clear
+	gen DataLevel = "School"
+	append using "${path}/Intermediate/SC_OriginalData_`v'_dist_soc_sci.dta" "${path}/Intermediate/SC_OriginalData_`v'_state_soc_sci.dta"
+	
+	drop if missing(schoolname)
+	
+	rename scipct1 Lev1_percentsci
+	rename scipct2 Lev2_percentsci
+	rename scipct3 Lev3_percentsci
+	
+	if `v' == 2017 {
+		rename scipct4 Lev4_percentsci
+	}
+	
+	rename socpct1 Lev1_percentsoc
+	rename socpct2 Lev2_percentsoc
+	rename socpct3 Lev3_percentsoc
+	
+	foreach y of varlist Lev*_percent* {
+		destring `y', replace 
+	}
+	
+	if `v' == 2017 {
+		gen ProficientOrAbove_percentsci = Lev3_percentsci + Lev4_percentsci
+	}
+	
+	if `v' == 2016 {
+		gen ProficientOrAbove_percentsci = Lev2_percentsci + Lev3_percentsci
+	}
+	
+	
+	destring Lev2_percentsoc, replace
+	destring Lev3_percentsoc, replace
+	gen ProficientOrAbove_percentsoc = Lev2_percentsoc + Lev3_percentsoc
+	
+	rename sciN StudentSubGroup_TotalTestedsci
+	rename socN StudentSubGroup_TotalTestedsoc
+	rename sciMEAN AvgScaleScoresci
+	rename socMEAN AvgScaleScoresoc
+	
+	foreach v of varlist Lev*_percent* ProficientOrAbove_percent* {
+		tostring `v', replace force
+	}
+	
+	save "${path}/Intermediate/SC_OriginalData_`v'_soc_sci.dta", replace
 }
 
 global lateryears 2018 2019 2021 2022 2023
 foreach v in $lateryears { 
 	import excel "${path}/Original Data Files/SC_OriginalData_`v'.xlsx", sheet("State") firstrow allstring clear
 	gen DataLevel = "State"
-	save "${path}/Semi-Processed Data Files/SC_OriginalData_`v'_state.dta", replace
+	save "${path}/Intermediate/SC_OriginalData_`v'_state.dta", replace
 	import excel "${path}/Original Data Files/SC_OriginalData_`v'.xlsx", sheet("District") firstrow allstring clear
 	gen DataLevel = "District"
-	save "${path}/Semi-Processed Data Files/SC_OriginalData_`v'_dist.dta", replace
+	save "${path}/Intermediate/SC_OriginalData_`v'_dist.dta", replace
 	import excel "${path}/Original Data Files/SC_OriginalData_`v'.xlsx", sheet("School") firstrow allstring clear
 	gen DataLevel = "School"
-	append using "${path}/Semi-Processed Data Files/SC_OriginalData_`v'_dist.dta" "${path}/Semi-Processed Data Files/SC_OriginalData_`v'_state.dta"
+	append using "${path}/Intermediate/SC_OriginalData_`v'_dist.dta" "${path}/Intermediate/SC_OriginalData_`v'_state.dta"
 	rename ELApct1 Lev1_percentela
 	rename ELApct2 Lev2_percentela
 	rename ELApct3 Lev3_percentela
@@ -127,10 +205,42 @@ foreach v in $lateryears {
 	rename MathN StudentSubGroup_TotalTestedmath
 	rename ELAMEAN AvgScaleScoreela
 	rename MathMEAN AvgScaleScoremath
-	save "${path}/Semi-Processed Data Files/SC_OriginalData_`v'_all.dta", replace
+	save "${path}/Intermediate/SC_OriginalData_`v'_all.dta", replace
 }
 
-use "${path}/Semi-Processed Data Files/SC_OriginalData_2023_all.dta"
+global latersciyears 2018 2019 2021 2022
+foreach v in $latersciyears {
+	
+	import excel "${path}/Original Data Files/SC_OriginalData_`v'_soc_sci.xlsx", sheet("State") firstrow allstring clear
+	gen DataLevel = "State"
+	save "${path}/Intermediate/SC_OriginalData_`v'_state_soc_sci.dta", replace
+	import excel "${path}/Original Data Files/SC_OriginalData_`v'_soc_sci.xlsx", sheet("District") firstrow allstring clear
+	gen DataLevel = "District"
+	save "${path}/Intermediate/SC_OriginalData_`v'_dist_soc_sci.dta", replace
+	import excel "${path}/Original Data Files/SC_OriginalData_`v'_soc_sci.xlsx", sheet("School") firstrow allstring clear
+	gen DataLevel = "School"
+	append using "${path}/Intermediate/SC_OriginalData_`v'_dist_soc_sci.dta" "${path}/Intermediate/SC_OriginalData_`v'_state_soc_sci.dta"
+	
+	rename SciN StudentSubGroup_TotalTestedsci
+	rename SocN StudentSubGroup_TotalTestedsoc
+	rename SciMEAN AvgScaleScoresci
+	rename SocMEAN AvgScaleScoresoc
+
+	rename Scipct1 Lev1_percentsci
+	rename Scipct2 Lev2_percentsci
+	rename Scipct3 Lev3_percentsci
+	rename Scipct4 Lev4_percentsci
+	rename Scipct34 ProficientOrAbove_percentsci
+	rename Socpct1 Lev1_percentsoc
+	rename Socpct2 Lev2_percentsoc
+	rename Socpct3 Lev3_percentsoc
+	rename Socpct23 ProficientOrAbove_percentsoc
+	
+	save "${path}/Intermediate/SC_OriginalData_`v'_soc_sci.dta", replace
+	
+}
+
+use "${path}/Intermediate/SC_OriginalData_2023_all.dta"
 rename Scipct1 Lev1_percentsci
 rename Scipct2 Lev2_percentsci
 rename Scipct3 Lev3_percentsci
@@ -138,11 +248,29 @@ rename Scipct4 Lev4_percentsci
 rename Scipct34 ProficientOrAbove_percentsci
 rename SciN StudentSubGroup_TotalTestedsci
 rename SciMean AvgScaleScoresci
-save "${path}/Semi-Processed Data Files/SC_OriginalData_2023_all.dta", replace
+save "${path}/Intermediate/SC_OriginalData_2023_all.dta", replace
+
+** Merge subject files together
+
+global years 2016 2017 2018 2019 2021 2022 
+foreach y in $years { 
+	
+	use "${path}/Intermediate/SC_OriginalData_`y'_all.dta", clear
+	
+	merge m:1 districtname schoolname DataLevel demoID testgrade using "${path}/Intermediate/SC_OriginalData_`y'_soc_sci.dta"
+	
+	drop _merge
+	
+	save "${path}/Intermediate/SC_OriginalData_`y'_all.dta", replace
+
+}
+
+
+** Data cleaning process
 
 global years 2016 2017 2018 2019 2021 2022 2023
 foreach y in $years { 
-	use "${path}/Semi-Processed Data Files/SC_OriginalData_`y'_all.dta"
+	use "${path}/Intermediate/SC_OriginalData_`y'_all.dta", clear
 	
 	** Reshape Wide to Long
 	
@@ -161,18 +289,18 @@ foreach y in $years {
 	
 	** Generate StudentGroup_TotalTested Data
 	
-	save "${path}/Semi-Processed Data Files/SC_`y'_nogroup.dta", replace
+	save "${path}/Intermediate/SC_`y'_nogroup.dta", replace
 	keep if StudentSubGroup=="01ALL"
 	keep DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel StudentSubGroup_TotalTested
 	rename StudentSubGroup_TotalTested StudentGroup_TotalTested
-	save "${path}/Semi-Processed Data Files/SC_`y'_group.dta", replace
+	save "${path}/Intermediate/SC_`y'_group.dta", replace
 	clear
-	use "${path}/Semi-Processed Data Files/SC_`y'_nogroup.dta"
-	merge m:1 DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel using "${path}/Semi-Processed Data Files/SC_`y'_group.dta"
+	use "${path}/Intermediate/SC_`y'_nogroup.dta"
+	merge m:1 DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel using "${path}/Intermediate/SC_`y'_group.dta"
 	tab _merge
 	drop _merge
 	drop if StudentSubGroup_TotalTested == "0" | StudentSubGroup_TotalTested == ""
-	save "${path}/Semi-Processed Data Files/SC_`y'_all.dta", replace
+	save "${path}/Intermediate/SC_`y'_all.dta", replace
 	
 	** Standardize StudentSubGroup Data
 	
@@ -186,17 +314,41 @@ foreach y in $years {
 	replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "08P"
 	replace StudentSubGroup = "White" if StudentSubGroup == "09W"
 	replace StudentSubGroup = "Two or More" if StudentSubGroup == "10M"
+	
+	replace StudentSubGroup = "SWD" if StudentSubGroup == "11SWD"
+	replace StudentSubGroup = "Non-SWD" if StudentSubGroup == "12NSWD"
+	
+	replace StudentSubGroup = "Migrant" if StudentSubGroup == "13MIG"
+	replace StudentSubGroup = "Non-Migrant" if StudentSubGroup == "14NMIG"
+	
 	replace StudentSubGroup = "English Learner" if StudentSubGroup == "15LEP"
 	replace StudentSubGroup = "English Proficient" if StudentSubGroup == "16NLEP"
 	replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "17SIP" | StudentSubGroup == "17PIP"
 	replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "18NSIP" | StudentSubGroup == "18NPIP"
+	
+	replace StudentSubGroup = "Homeless" if StudentSubGroup == "24Hl"
+	replace StudentSubGroup = "Non-Homeless" if StudentSubGroup == "25NHl"
+	
+	replace StudentSubGroup = "Foster Care" if StudentSubGroup == "26F"
+	replace StudentSubGroup = "Non-Foster Care" if StudentSubGroup == "27NF"
+	
+	replace StudentSubGroup = "Military" if StudentSubGroup == "28Mil"
+	replace StudentSubGroup = "Non-Military" if StudentSubGroup == "29NMil"
+	
+	
 	gen StudentGroup = ""
 	replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
 	replace StudentGroup="RaceEth" if StudentSubGroup== "Black or African American" | StudentSubGroup=="Native Hawaiian or Pacific Islander" | StudentSubGroup=="Asian" | StudentSubGroup=="Hispanic or Latino" | StudentSubGroup=="White" | StudentSubGroup=="American Indian or Alaska Native" |  StudentSubGroup=="Two or More"
 	replace StudentGroup="Economic Status" if StudentSubGroup=="Economically Disadvantaged" | StudentSubGroup=="Not Economically Disadvantaged"
 	replace StudentGroup="Gender" if StudentSubGroup=="Male" | StudentSubGroup=="Female"
 	replace StudentGroup="EL Status" if StudentSubGroup=="English Learner" | StudentSubGroup=="English Proficient" | StudentSubGroup=="Other"
-	keep if StudentGroup == "All Students" | StudentGroup == "EL Status" | StudentGroup == "Economic Status" | StudentGroup == "Gender" | StudentGroup == "RaceEth"
+	replace StudentGroup="Homeless Enrolled Status" if StudentSubGroup=="Homeless" | StudentSubGroup=="Non-Homeless" 
+	replace StudentGroup="Disability Status" if StudentSubGroup=="SWD" | StudentSubGroup=="Non-SWD"
+	replace StudentGroup="Foster Care Status" if StudentSubGroup=="Foster Care" | StudentSubGroup=="Non-Foster Care"
+	replace StudentGroup="Migrant Status" if StudentSubGroup=="Migrant" | StudentSubGroup=="Non-Migrant"
+	replace StudentGroup="Military Connected Status" if StudentSubGroup=="Military" | StudentSubGroup=="Non-Military"
+	
+	keep if StudentGroup=="Military Connected Status" | StudentGroup=="All Students" | StudentGroup=="Disability Status" | StudentGroup=="EL Status" | StudentGroup=="Economic Status" | StudentGroup=="Foster Care Status" | StudentGroup=="Gender" | StudentGroup=="Homeless Enrolled Status" | StudentGroup=="Migrant Status" | StudentGroup=="RaceEth"
 	
 	** Generate Flags
 
@@ -205,9 +357,10 @@ foreach y in $years {
 	replace Flag_CutScoreChange_ELA = "Y" if `y' == 2017
 	gen Flag_CutScoreChange_math = "N"
 	replace Flag_CutScoreChange_math = "Y" if `y' == 2017
-	gen Flag_CutScoreChange_read = ""
-	gen Flag_CutScoreChange_oth = ""
-	replace Flag_CutScoreChange_oth = "N" if `y' == 2023
+	
+	gen Flag_CutScoreChange_soc = "N"
+	gen Flag_CutScoreChange_sci = "N"
+	replace Flag_CutScoreChange_soc = "Not applicable" if `y' >= 2018
 	
 	** Generate Other Variables
 	
@@ -216,7 +369,7 @@ foreach y in $years {
 	gen SchYear = "`z'-`x'"
 	gen AssmtName = "SC Ready"
 	gen AssmtType = "Regular"
-	gen ProficiencyCriteria = "Levels 3 and 4"
+	gen ProficiencyCriteria = "Levels 3-4"
 	
 	** Convert Proficiency Data into Percentages
 
@@ -257,39 +410,34 @@ foreach y in $years {
 	replace State_leaid = "SC-0" + StateAssignedDistID if strlen(StateAssignedDistID)==3  & `y' < 2018
 	replace seasch = "0" + StateAssignedSchID if strlen(StateAssignedSchID)==6  & `y' < 2018
 	replace seasch = "5208003" if SchName == "Detention Center School"
-	save "${path}/Semi-Processed Data Files/SC_`y'_unmerged.dta", replace
+	save "${path}/Intermediate/SC_`y'_unmerged.dta", replace
 }
-	
-clear
-use "${path}/Semi-Processed Data Files/SC_2023_unmerged.dta"
-merge m:1 State_leaid using "${path}/Semi-Processed Data Files/2021_22_NCES_Cleaned_District.dta"
-rename _merge district_merge
-merge m:1 State_leaid seasch using "${path}/Semi-Processed Data Files/2021_22_NCES_Cleaned_School.dta"
-rename _merge school_merge
-tab DistName if district_merge == 1 & DataLevel != "State"
-tab SchName if school_merge == 1 & DataLevel == "School" & district_merge == 3
-drop if district_merge != 3 & DataLevel != "State" | school_merge !=3 & DataLevel == "School"
-save "${path}/Semi-Processed Data Files/SC_2023_merged.dta", replace
 
-global oldyears 2016 2017 2018 2019 2021 2022
+** NCES merging
+
+global oldyears 2016 2017 2018 2019 2021 2022 2023
 foreach y in $oldyears { 
 	clear
 	local z = `y' - 1
 	local x = `y' - 2000
-	use "${path}/Semi-Processed Data Files/SC_`y'_unmerged.dta"
-	merge m:1 State_leaid using "${path}/Semi-Processed Data Files/`z'_`x'_NCES_Cleaned_District.dta"
+	use "${path}/Intermediate/SC_`y'_unmerged.dta"
+	merge m:1 State_leaid using "${path}/Intermediate/`z'_`x'_NCES_Cleaned_District.dta"
 	rename _merge district_merge
-	merge m:1 State_leaid seasch using "${path}/Semi-Processed Data Files/`z'_`x'_NCES_Cleaned_School.dta"
+	merge m:1 State_leaid seasch using "${path}/Intermediate/`z'_`x'_NCES_Cleaned_School.dta"
 	rename _merge school_merge
 	tab DistName if district_merge == 1 & DataLevel != "State"
 	tab SchName if school_merge == 1 & DataLevel == "School" & district_merge == 3
 	drop if district_merge != 3 & DataLevel != "State" | school_merge !=3 & DataLevel == "School"
-	save "${path}/Semi-Processed Data Files/SC_`y'_merged.dta", replace
+	save "${path}/Intermediate/SC_`y'_merged.dta", replace
 }
 
 foreach y in $years { 
 	clear
-	use "${path}/Semi-Processed Data Files/SC_`y'_merged.dta"
+	use "${path}/Intermediate/SC_`y'_merged.dta"
+	
+	if `y' == 2023 {
+		destring CountyCode, replace
+	}
 	
 	** Standardize Non-School Level Data
 
@@ -305,6 +453,13 @@ foreach y in $years {
 	replace DistCharter = "" if DataLevel == "State"
 	replace seasch = "" if DataLevel == "State" | DataLevel == "District"
 
+	** Fix AssmtName & Proficiency Criteria 
+	
+	replace AssmtName = "SC PASS" if (Subject=="sci" & `y' < 2023) | (Subject=="soc" & `y' < 2023)
+	
+	replace ProficiencyCriteria = "Levels 2-3" if Subject=="sci" & `y' == 2016
+	replace ProficiencyCriteria = "Levels 2-3" if Subject=="soc" 
+	
 	** Relabel GradeLevel Values
 
 	tostring GradeLevel, replace
@@ -371,21 +526,24 @@ foreach y in $years {
 	label var SchType "School type as defined by NCES"
 	label var SchVirtual "Virtual school indicator"
 	label var SchLevel "School level"
+	label var DistLocale "District locale as defined by NCES"
 	label var Flag_AssmtNameChange "Flag denoting a change in the assessment's name from the prior year only."
 	label var Flag_CutScoreChange_ELA "Flag denoting a change in scoring determinations in ELA from the prior year only."
 	label var Flag_CutScoreChange_math "Flag denoting a change in scoring determinations in math from the prior year only."
-	label var Flag_CutScoreChange_read "Flag denoting a change in scoring determinations in reading from the prior year only."
+	label var Flag_CutScoreChange_soc "Flag denoting a change in scoring determinations in math from the prior year only."
+	label var Flag_CutScoreChange_sci "Flag denoting a change in scoring determinations in math from the prior year only."
+	
 
 	** Fix Variable Order 
 
-	keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
-
-	order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+	keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+	
+	order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 	sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 	** Export Assessment Data
 
-	save "${path}/Semi-Processed Data Files/SC_AssmtData_`y'.dta", replace
+	save "${path}/Intermediate/SC_AssmtData_`y'.dta", replace
 	export delimited using "${path}/Output/SC_AssmtData_`y'.csv", replace
 }

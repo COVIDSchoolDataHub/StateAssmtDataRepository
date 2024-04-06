@@ -1,23 +1,30 @@
+//FILE CREATED 11.1.23
+
 clear all
 set more off
 
-cd "/Users/miramehta/Documents"
-global data "/Users/miramehta/Documents/NE State Testing Data"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics"
-global counts "/Users/miramehta/Documents/EdFacts Data"
+cd "/Volumes/T7/State Test Project/Nebraska"
+global data "/Volumes/T7/State Test Project/Nebraska/Original Data Files"
+global NCES "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global counts "/Volumes/T7/State Test Project/EDFACTS"
+global output "/Volumes/T7/State Test Project/Nebraska/Output"
 
 //Import and Append Subject Files
-import delimited "$data/NE_OriginalData_2017_ela.csv", clear
-save "$data/NE_AssmtData_2017.dta", replace
+import delimited "$data/NE_OriginalData_2016_rea.csv", clear
+save "$data/NE_AssmtData_2016.dta", replace
 
-import delimited "$data/NE_OriginalData_2017_mat.csv", clear
-save "$data/NE_AssmtData_2017_math.dta", replace
+import delimited "$data/NE_OriginalData_2016_wri.csv", clear
+save "$data/NE_AssmtData_2016_wri.dta", replace
 
-import delimited "$data/NE_OriginalData_2017_sci.csv", clear
-save "$data/NE_AssmtData_2017_sci.dta", replace
 
-use "$data/NE_AssmtData_2017.dta", clear
-append using "$data/NE_AssmtData_2017_math.dta" "$data/NE_AssmtData_2017_sci.dta"
+import delimited "$data/NE_OriginalData_2016_mat.csv", clear
+save "$data/NE_AssmtData_2016_math.dta", replace
+
+import delimited "$data/NE_OriginalData_2016_sci.csv", clear
+save "$data/NE_AssmtData_2016_sci.dta", replace
+
+use "$data/NE_AssmtData_2016.dta", clear
+append using "$data/NE_AssmtData_2016_wri.dta" "$data/NE_AssmtData_2016_math.dta" "$data/NE_AssmtData_2016_sci.dta"
 
 //Rename & Generate Variables
 rename schoolyear SchYear
@@ -41,20 +48,20 @@ gen DistName = ""
 gen AssmtName = "Nebraska State Accountability test (NeSA)"
 gen AssmtType = "Regular"
 gen Flag_AssmtNameChange = "N"
-gen Flag_CutScoreChange_ELA = "Y"
+gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_read = ""
-gen Flag_CutScoreChange_oth = "N"
+gen Flag_CutScoreChange_soc = "Not Applicable"
+gen Flag_CutScoreChange_sci = "N"
 gen ProficiencyCriteria = "Levels 2-3"
-destring nottestedpct, gen(notpct) force
-gen ParticipationRate = 1 - notpct
+gen ParticipationRate = 1 - nottestedpct
 tostring ParticipationRate, replace format("%6.0g") force
-replace ParticipationRate = "*" if ParticipationRate == "."
-drop dataasof nottested nottestedpct notpct
+replace ParticipationRate = "--" if ParticipationRate == "."
+drop dataasof nottested nottestedpct
+
 
 //School Year
-drop if SchYear != "2016-2017"
-replace SchYear = "2016-17"
+drop if SchYear != "2015-2016"
+replace SchYear = "2015-16"
 
 //Data Levels
 drop if DataLevel == "LC"
@@ -109,9 +116,6 @@ replace state_leaid = "0" + county + StateAssignedDistID + "000" if countyl == 1
 replace state_leaid = county + StateAssignedDistID + "000" if countyl == 2 & StateAssignedDistIDl == 4
 replace state_leaid = "" if DataLevel == "State"
 
-replace seasch = state_leaid + "-" + seasch if DataLevel == "School"
-replace state_leaid = "NE-" + state_leaid if DataLevel != "State"
-
 drop county countyl StateAssignedDistIDl StateAssignedSchIDl
 
 replace StateAssignedDistID = "" if DataLevel == "State"
@@ -126,31 +130,50 @@ replace GradeLevel = "G0" + GradeLevel
 drop if StudentGroup == "Mobile"
 replace StudentSubGroup = "All Students" if StudentGroup == "All Students"
 replace StudentGroup = "RaceEth" if StudentGroup == "Race/Ethnicity"
-replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "American Indian/Alaska Native"
-replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
 replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "Native Hawaiian or Other Pacific Islander"
 replace StudentSubGroup = "Two or More" if StudentSubGroup == "Two or More Races"
+replace StudentSubGroup = subinstr(StudentSubGroup, "/", " or ",.)
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "English Language Learners"
 replace StudentGroup = "EL Status" if StudentSubGroup == "English Learner"
 replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Students eligible for free and reduced lunch"
 replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "Not Receiving Free or Reduced Lunch"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged"
-drop if StudentGroup == "Misc / Other"
+replace StudentSubGroup = "Military" if StudentSubGroup == "Parent in Military"
+replace StudentSubGroup = "Migrant" if StudentSubGroup == "Students served in migrant programs"
+replace StudentSubGroup = "SWD" if StudentSubGroup == "Special Education Students"
+replace StudentSubGroup = "Non-SWD" if StudentSubGroup == "Not in Special Education"
+replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Military"
+replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant"
+replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD" | StudentSubGroup == "Non-SWD"
+replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Foster Care"
+replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless"
+drop if StudentSubGroup == "Special Education Students - Alternate Assessment"
 
 //Subjects
-replace Subject = "ela" if Subject == "English Language Arts"
+replace Subject = "ela" if Subject == "Reading"
 replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "sci" if Subject == "Science"
+replace Subject = "wri" if Subject == "Writing"
 
-save "$data/NE_AssmtData_2017.dta", replace
+save "$data/NE_AssmtData_2016.dta", replace
+
+//Clean NCES Data
+use "$NCES/NCES_2015_District.dta", clear
+drop if state_location != "NE"
+save "$data/NCES_2016_District_NE.dta", replace
+
+use "$NCES/NCES_2015_School.dta", clear
+drop if state_location != "NE"
+save "$data/NCES_2016_School_NE.dta", replace
 
 //Merge NCES Data
-merge m:1 state_leaid using "$NCES/NCES District Files, Fall 1997-Fall 2021/NCES_2016_District.dta"
+use "$data/NE_AssmtData_2016.dta", clear
+merge m:1 state_leaid using "$data/NCES_2016_District_NE.dta"
 drop if _merge == 2
 
-merge m:1 seasch state_leaid using "$NCES/NCES School Files, Fall 1997-Fall 2021/NCES_2016_School.dta", gen (merge2)
+merge m:1 seasch state_leaid using "$data/NCES_2016_School_NE.dta", gen (merge2)
 drop if merge2 == 2
-save "$data/NE_AssmtData_2017.dta", replace
+save "$data/NE_AssmtData_2016.dta", replace
 
 //Clean Merged Data
 rename state_location StateAbbrev
@@ -160,32 +183,44 @@ rename district_agency_type DistType
 rename county_name CountyName
 rename county_code CountyCode
 rename ncesschoolid NCESSchoolID
-rename school_type SchType
+*rename school_type SchType
 rename state_leaid State_leaid
 
 gen State = "Nebraska"
 replace StateAbbrev = "NE"
 replace StateFips = 31
 replace DistName = lea_name if DataLevel == "School"
-replace NCESSchoolID = "" if DataLevel != "School"
 
+/*
 drop state_name year _merge merge2 district_agency_type_num urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type district_agency_type_num school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_lowest_grade_offered dist_highest_grade_offered dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch lea_name agency_charter_indicator dist_agency_charter_indicator
+*/
 
 //Student Counts
-merge 1:1 NCESDistrictID DistName NCESSchoolID SchName Subject GradeLevel StudentSubGroup using "$counts/NE_edfactscount2017.dta"
-drop if _merge == 2
+merge 1:1 NCESDistrictID DistName NCESSchoolID SchName Subject GradeLevel StudentSubGroup using "$counts/NE_edfactscount2016.dta", gen(merge3)
+drop if merge3 == 2
 rename NUMVALID StudentSubGroup_TotalTested
-replace StudentSubGroup_TotalTested = "--" if _merge == 1
+replace StudentSubGroup_TotalTested = "--" if merge3 == 1
 replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
 
-gen num = StudentSubGroup_TotalTested
-destring num, replace force
-replace num = -1000000 if num == .
-bys SchName DistName StudentGroup Subject GradeLevel: egen StudentGroup_TotalTested = total(num)
-replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
+destring StudentSubGroup_TotalTested, gen(num) force
+egen StudentGroup_TotalTested = total(num), by(StudentGroup GradeLevel Subject DataLevel seasch StateAssignedDistID DistName SchName)
+
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested == "."
+replace StudentGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "--"
 drop _merge STNAM FIPST DATE_CUR PCTPROF
+
+**NEW Convention: All Students StudentGroup_TotalTested used when 1 or more members of StudentSubGroup suppressed
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+gen Suppressed = 0
+replace Suppressed = 1 if StudentSubGroup_TotalTested == "*"
+egen StudentGroup_Suppressed = max(Suppressed), by(StudentGroup GradeLevel Subject DataLevel seasch StateAssignedDistID DistName SchName)
+drop Suppressed
+gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
+replace StudentGroup_TotalTested = AllStudents_Tested if StudentGroup_Suppressed == 1
+drop AllStudents_Tested StudentGroup_Suppressed
+replace StudentGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "--"
 
 //Proficiency Levels
 replace Lev1_percent = 1 - (Lev2_percent + Lev3_percent) if Lev1_percent == -1 & Lev2_percent != -1 & Lev3_percent != -1
@@ -222,23 +257,6 @@ foreach var of local prof_vars {
 	replace `var' = "--" if `var' == ""
 }
 
-//Variable Types
-decode SchVirtual, gen(SchVirtual_s)
-drop SchVirtual
-rename SchVirtual_s SchVirtual
-
-decode SchLevel, gen(SchLevel_s)
-drop SchLevel
-rename SchLevel_s SchLevel
-
-decode SchType, gen (SchType_s)
-drop SchType
-rename SchType_s SchType
-
-decode DistType, gen (DistType_s)
-drop DistType
-rename DistType_s DistType
-
 //Label & Organize Variables
 label var State "State name"
 label var StateAbbrev "State abbreviation"
@@ -258,7 +276,7 @@ label var AssmtName "Name of state assessment"
 label var Flag_AssmtNameChange "Flag denoting a change in the assessment's name from the prior year only"
 label var Flag_CutScoreChange_ELA "Flag denoting a change in scoring determinations in ELA from the prior year only"
 label var Flag_CutScoreChange_math "Flag denoting a change in scoring determinations in math from the prior year only"
-label var Flag_CutScoreChange_read "Flag denoting a change in scoring determinations in reading from the prior year only"
+*label var Flag_CutScoreChange_read "Flag denoting a change in scoring determinations in reading from the prior year only"
 label var AssmtType "Assessment type"
 label var DataLevel "Level at which the data are reported"
 label var DistName "District name"
@@ -293,9 +311,19 @@ sort DataLevel_n
 drop DataLevel 
 rename DataLevel_n DataLevel
 
-order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType  Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+//Weird Lev*_percent Values
+foreach var of varlist Lev*_percent {
+local count = subinstr("`var'", "percent", "count",.)	
+replace `var' = "*" if `count' == "*" & strpos(`var',"e") !=0
+replace `var' = "0" if `count' == "0" & strpos(`var', "e") !=0
+replace `var' = "--" if `count' == "--" & strpos(`var', "e") !=0
+}
+
+//Final Cleaning
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "$data/NE_AssmtData_2017.dta", replace
-export delimited "$data/NE_AssmtData_2017", replace
+save "$output/NE_AssmtData_2016.dta", replace
+export delimited "$output/NE_AssmtData_2016", replace
 clear
