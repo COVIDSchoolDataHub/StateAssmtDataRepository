@@ -1,12 +1,14 @@
 clear
 set more off
 
-global raw "/Users/minnamgung/Desktop/SADR/Utah/Original Data Files"
-global output "/Users/minnamgung/Desktop/SADR/Utah/Output"
-global int "/Users/minnamgung/Desktop/SADR/Utah/Intermediate"
+global raw "/Users/miramehta/Documents/UT State Testing Data/Original Data"
+global output "/Users/miramehta/Documents/UT State Testing Data/Output"
+global int "/Users/miramehta/Documents/UT State Testing Data/Intermediate"
 
-global nces "/Users/minnamgung/Desktop/SADR/NCES"
-global utah "/Users/minnamgung/Desktop/SADR/Utah/NCES"
+global nces "/Users/miramehta/Documents/NCES District and School Demographics"
+global utah "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+
+global edfacts "/Users/miramehta/Documents/EdFacts"
 
 
 *** UT School ***
@@ -15,45 +17,86 @@ global utah "/Users/minnamgung/Desktop/SADR/Utah/NCES"
 
 import excel "${raw}/UT_OriginalData_2023_all.xlsx", sheet("School Prof Levels by Test") firstrow allstring clear
 
-keep if strpos(AssessmentType, "RISE")>0
-
-save "${int}/UT_2023_levels_school.dta", replace 
-
-* Append aggregated school data
-import excel "${raw}/UT_OriginalData_2023_all.xlsx", sheet("School Prof Levels by Subject") firstrow allstring clear
-
-keep if strpos(AssessmentType, "RISE")>0
-
-gen TestName=SubjectArea+" All"
-
-append using "${int}/UT_2023_levels_school.dta"
-
-foreach x of numlist 3/8 {
-	replace TestName="G0`x'" if strpos(TestName, "`x'")>0
-}
-
-replace TestName="G38" if strpos(TestName, "All")>0
-
-drop if strpos(TestName, "Secondary")>0
-
 rename SchoolYear SchYear
-rename ReportingLevel DataLevel
 rename TestName GradeLevel
 rename SubjectArea Subject
-rename AssessmentType AssmtName 
 rename BelowProficient Lev1_percent
 rename ApproachingProficient Lev2_percent 
 rename Proficient Lev3_percent 
 rename HighlyProficient Lev4_percent
 rename LEAName DistName
-rename SchoolName SchName
+rename School SchName
+
+keep if strpos(AssessmentType, "RISE")>0
+
+save "${int}/UT_2023_levels_school.dta", replace 
+
+import excel "${raw}/UT_OriginalData_2023_proficiency.xlsx", sheet("School Results by Test") firstrow allstring clear
+
+rename SchoolYear SchYear
+rename TestName GradeLevel
+rename SubjectArea Subject
+rename LEADistrictorCharter DistName
+rename School SchName
+rename PercentProficient ProficientOrAbove_percent
+
+keep if strpos(AssessmentType, "RISE")>0
+
+merge 1:1 DistName SchName GradeLevel Subject using "${int}/UT_2023_levels_school.dta"
+
+drop _merge
+
+save "${int}/UT_2023_levels_school.dta", replace
+
+* Append aggregated school data
+import excel "${raw}/UT_OriginalData_2023_all.xlsx", sheet("School Prof Levels by Subject") firstrow allstring clear
+
+rename SchoolYear SchYear
+rename SubjectArea Subject
+rename BelowProficient Lev1_percent
+rename ApproachingProficient Lev2_percent 
+rename Proficient Lev3_percent 
+rename HighlyProficient Lev4_percent
+rename LEAName DistName
+rename School SchName
+
+keep if strpos(AssessmentType, "RISE")>0
+
+save "${int}/UT_2023_levels_school_all.dta", replace
+
+import excel "${raw}/UT_OriginalData_2023_proficiency.xlsx", sheet("Overall School Results") firstrow allstring clear
+
+rename SchoolYear SchYear
+rename SubjectArea Subject
+rename LEADistrictorCharter DistName
+rename School SchName
+rename PercentProficient ProficientOrAbove_percent
+
+keep if strpos(AssessmentType, "RISE")>0
+
+merge 1:1 DistName SchName Subject using "${int}/UT_2023_levels_school_all.dta"
+
+gen GradeLevel=Subject +" All"
+
+append using "${int}/UT_2023_levels_school.dta"
+
+foreach x of numlist 3/8 {
+	replace GradeLevel="G0`x'" if strpos(GradeLevel, "`x'")>0
+}
+
+replace GradeLevel="G38" if strpos(GradeLevel, "All")>0
+
+drop if strpos(GradeLevel, "Secondary")>0
+
+drop ReportingLevel
 
 foreach i of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent {
 	replace `i'="--" if `i'==""
 	replace `i'="*" if `i'=="N < 10"
 }
 
-gen StudentSubGroup="AllStudents"
+gen StudentSubGroup = "All Students"
+gen StudentGroup = "All Students"
 
 save "${int}/UT_2023_levels_school.dta", replace 
 
@@ -64,8 +107,9 @@ keep if strpos(AssessmentType, "RISE")>0
 
 save "${int}/UT_2023_subgroup_school.dta", replace 
 
-* Append aggregated state data
+* Append aggregated school data
 import excel "${raw}/UT_OriginalData_2023_subgroup.xlsx", sheet("School by Subject") firstrow allstring clear
+drop AllStudents
 
 keep if strpos(AssessmentType, "RISE")>0
 
@@ -73,7 +117,7 @@ gen TestName=SubjectArea+" All"
 
 append using "${int}/UT_2023_subgroup_school.dta"
 
-foreach i of varlist AllStudents AfAmBlack AmericanIndian Asian HispanicLatino MultipleRaces PacificIslander White LowIncome StudentswDisabilities EnglishLearners {
+foreach i of varlist AfAmBlack AmericanIndian Asian HispanicLatino MultipleRaces PacificIslander White LowIncome StudentswDisabilities EnglishLearners {
 	rename `i' subgroup`i'
 }
 
@@ -101,85 +145,133 @@ rename SchoolName SchName
 
 save "${int}/UT_2023_subgroup_school.dta", replace 
 
-merge m:1 SchName DistName StudentSubGroup GradeLevel Subject using "${int}/UT_2023_levels_school.dta"
-
-replace DistName="Intech Collegiate Academy" if strpos(DistName, "InTech")>0
-replace SchName="Mt. Nebo Middle" if strpos(SchName, "Mt. Nebo Middle")>0
-
-replace SchName="Minersville School (Middle)" if SchName=="Minersville School" & (GradeLevel=="G03" | GradeLevel=="G04" | GradeLevel=="G05")
-	replace SchName="Minersville School (Primary)" if SchName=="Minersville School" & (GradeLevel=="G06" | GradeLevel=="G07" | GradeLevel=="G08")
-
+append using "${int}/UT_2023_levels_school.dta"
 drop _merge
 
-merge m:1 SchName DistName using "${utah}/NCES_2021_School.dta"
+replace DistName="Intech Collegiate Academy" if strpos(DistName, "InTech")>0
+replace SchName = strtrim(SchName)
 
-replace DataLevel="School"
+merge m:1 SchName DistName using "${utah}/NCES_2022_School.dta"
 
-drop if _merge==2
+gen DataLevel=3
 
-destring NCESDistrictID, replace
-destring NCESSchoolID, replace
-
+drop if _merge!= 3
 drop _merge 
 
-merge m:1 SchName DistName SchYear using "/Users/minnamgung/Desktop/SADR/Utah/UT_unmerged_schools1.dta", update
+gen StateAssignedDistID = State_leaid
+gen StateAssignedSchID = st_schid
 
-drop if _merge==2 | _merge==5
+** Preliminary Cleaning
+replace Subject = "ela" if Subject == "English Language Arts"
+replace Subject = "math" if Subject == "Mathematics"
+replace Subject = "sci" if Subject == "Science"
 
-replace SchName="Minersville School" if strpos(SchName, "Minersville")>0
+gen ParticipationRate = "--"
 
-format NCESSchoolID %12.0f
-tostring NCESSchoolID, replace usedisplayformat
-tostring NCESDistrictID, replace
+replace StudentSubGroup="All Students" if StudentSubGroup=="AllStudents"
+replace StudentSubGroup="Black or African American" if StudentSubGroup=="AfAmBlack"
+replace StudentSubGroup="American Indian or Alaska Native" if StudentSubGroup=="AmericanIndian"
+replace StudentSubGroup="English Learner" if StudentSubGroup=="EnglishLearners"
+replace StudentSubGroup="Economically Disadvantaged" if StudentSubGroup=="LowIncome"
+replace StudentSubGroup="Two or More" if StudentSubGroup=="MultipleRaces"
+replace StudentSubGroup="Hispanic or Latino" if StudentSubGroup=="HispanicLatino"
+replace StudentSubGroup="Native Hawaiian or Pacific Islander" if StudentSubGroup=="PacificIslander"
+replace StudentSubGroup="SWD" if StudentSubGroup=="StudentswDisabilities"
 
+replace StudentGroup="RaceEth" if StudentGroup == ""
+replace StudentGroup="All Students" if StudentSubGroup=="All Students"
+replace StudentGroup="EL Status" if StudentSubGroup=="English Learner"
+replace StudentGroup="Economic Status" if StudentSubGroup=="Economically Disadvantaged"
+replace StudentGroup="Disability Status" if StudentSubGroup=="SWD"
+
+*** Merge Enrollment Data
+merge m:1 DataLevel NCESDistrictID NCESSchoolID GradeLevel StudentSubGroup using "${raw}/UT_Enrollment_School_2023.dta"
+replace StudentSubGroup_TotalTested = "--" if _merge == 1
+drop if _merge == 2
+drop _merge
 save "${int}/UT_2023_school.dta", replace 
-
-
-
 
 *** UT Districts ***
 
 * Proficiency levels
 import excel "${raw}/UT_OriginalData_2023_all.xlsx", sheet("LEA Prof Levels by Test") firstrow allstring clear
 
-keep if strpos(AssessmentType, "RISE")>0
-
-save "${int}/UT_2023_levels_district.dta", replace 
-
-* Append aggregated district data
-import excel "${raw}/UT_OriginalData_2023_all.xlsx", sheet("LEA Prof Levels by Subject") firstrow allstring clear
-
-keep if strpos(AssessmentType, "RISE")>0
-
-gen TestName=SubjectArea+" All"
-
-append using "${int}/UT_2023_levels_district.dta"
-
-foreach x of numlist 3/8 {
-	replace TestName="G0`x'" if strpos(TestName, "`x'")>0
-}
-
-replace TestName="G38" if strpos(TestName, "All")>0
-
-drop if strpos(TestName, "Secondary")>0
-
 rename SchoolYear SchYear
-rename ReportingLevel DataLevel
 rename TestName GradeLevel
 rename SubjectArea Subject
-rename AssessmentType AssmtName 
 rename BelowProficient Lev1_percent
 rename ApproachingProficient Lev2_percent 
 rename Proficient Lev3_percent 
 rename HighlyProficient Lev4_percent
 rename LEAName DistName
 
+keep if strpos(AssessmentType, "RISE")>0
+
+save "${int}/UT_2023_levels_district.dta", replace
+
+import excel "${raw}/UT_OriginalData_2023_proficiency.xlsx", sheet("LEA Results by Test") firstrow allstring clear
+
+rename SchoolYear SchYear
+rename TestName GradeLevel
+rename SubjectArea Subject
+rename LEADistrictorCharter DistName
+rename PercentProficient ProficientOrAbove_percent
+
+keep if strpos(AssessmentType, "RISE")>0
+drop if SchYear != "2023"
+
+merge 1:1 DistName GradeLevel Subject using "${int}/UT_2023_levels_district.dta"
+
+drop _merge
+
+save "${int}/UT_2023_levels_district.dta", replace
+
+* Append aggregated district data
+import excel "${raw}/UT_OriginalData_2023_all.xlsx", sheet("LEA Prof Levels by Subject") firstrow allstring clear
+
+rename SchoolYear SchYear
+rename SubjectArea Subject
+rename BelowProficient Lev1_percent
+rename ApproachingProficient Lev2_percent 
+rename Proficient Lev3_percent 
+rename HighlyProficient Lev4_percent
+rename LEAName DistName
+
+keep if strpos(AssessmentType, "RISE")>0
+
+save "${int}/UT_2023_levels_district_all.dta", replace
+
+import excel "${raw}/UT_OriginalData_2023_proficiency.xlsx", sheet("Overall LEA Results") firstrow allstring clear
+
+rename SchoolYear SchYear
+rename SubjectArea Subject
+rename LEADistrictorCharter DistName
+rename PercentProficient ProficientOrAbove_percent
+
+keep if strpos(AssessmentType, "RISE")>0
+
+merge 1:1 DistName Subject using "${int}/UT_2023_levels_district_all.dta"
+drop _merge
+
+gen GradeLevel=Subject +" All"
+
+append using "${int}/UT_2023_levels_district.dta"
+
+foreach x of numlist 3/8 {
+	replace GradeLevel="G0`x'" if strpos(GradeLevel, "`x'")>0
+}
+
+replace GradeLevel="G38" if strpos(GradeLevel, "All")>0
+
+drop if strpos(GradeLevel, "Secondary")>0
+
 foreach i of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent {
-	replace `i'="--" if `i'==""
+	replace `i'="--" if `i'=="" | `i'=="null"
 	replace `i'="*" if `i'=="N < 10"
 }
 
-gen StudentSubGroup="AllStudents"
+gen StudentSubGroup="All Students"
+gen StudentGroup = "All Students"
 
 save "${int}/UT_2023_levels_district.dta", replace 
 
@@ -190,16 +282,16 @@ keep if strpos(AssessmentType, "RISE")>0
 
 save "${int}/UT_2023_subgroup_district.dta", replace 
 
-* Append aggregated state data
+* Append aggregated subgroup data
 import excel "${raw}/UT_OriginalData_2023_subgroup.xlsx", sheet("LEA by Subject") firstrow allstring clear
-
+drop AllStudents
 keep if strpos(AssessmentType, "RISE")>0
 
 gen TestName=SubjectArea+" All"
 
 append using "${int}/UT_2023_subgroup_district.dta"
 
-foreach i of varlist AllStudents AfAmBlack AmericanIndian Asian HispanicLatino MultipleRaces PacificIslander White LowIncome StudentswDisabilities EnglishLearners {
+foreach i of varlist AfAmBlack AmericanIndian Asian HispanicLatino MultipleRaces PacificIslander White LowIncome StudentswDisabilities EnglishLearners {
 	rename `i' subgroup`i'
 }
 
@@ -216,7 +308,7 @@ replace TestName="G38" if strpos(TestName, "All")>0
 drop if strpos(TestName, "Secondary")>0
 
 replace ProficientOrAbove_percent="--" if ProficientOrAbove_percent==""
-replace ProficientOrAbove_percent="*" if ProficientOrAbove_percent=="n<10"
+replace ProficientOrAbove_percent="*" if ProficientOrAbove_percent=="N<10"
 
 rename TestName GradeLevel
 rename SubjectArea Subject
@@ -226,90 +318,122 @@ rename LEAName DistName
 
 save "${int}/UT_2023_subgroup_district.dta", replace 
 
-merge m:1 DistName StudentSubGroup GradeLevel Subject using "${int}/UT_2023_levels_district.dta"
+append using "${int}/UT_2023_levels_district.dta"
 
 replace DistName="Intech Collegiate Academy" if strpos(DistName, "InTech")>0
-* replace SchName="Mt. Nebo Middle" if strpos(SchName, "Mt. Nebo Middle")>0
 
+merge m:1 DistName using "${utah}/NCES_2022_District.dta"
+drop if _merge==2
 drop _merge
 
-merge m:1 DistName using "${utah}/NCES_2021_District.dta"
+gen DataLevel = 2
+gen StateAssignedDistID = State_leaid
 
-replace DataLevel="District"
+** Preliminary Cleaning
+replace Subject = "ela" if Subject == "English Language Arts"
+replace Subject = "math" if Subject == "Mathematics"
+replace Subject = "sci" if Subject == "Science"
 
-drop if _merge==2
+gen ParticipationRate = "--"
 
+replace StudentSubGroup="All Students" if StudentSubGroup=="AllStudents"
+replace StudentSubGroup="Black or African American" if StudentSubGroup=="AfAmBlack"
+replace StudentSubGroup="American Indian or Alaska Native" if StudentSubGroup=="AmericanIndian"
+replace StudentSubGroup="English Learner" if StudentSubGroup=="EnglishLearners"
+replace StudentSubGroup="Economically Disadvantaged" if StudentSubGroup=="LowIncome"
+replace StudentSubGroup="Two or More" if StudentSubGroup=="MultipleRaces"
+replace StudentSubGroup="Hispanic or Latino" if StudentSubGroup=="HispanicLatino"
+replace StudentSubGroup="Native Hawaiian or Pacific Islander" if StudentSubGroup=="PacificIslander"
+replace StudentSubGroup="SWD" if StudentSubGroup=="StudentswDisabilities"
+
+replace StudentGroup="RaceEth" if StudentGroup == ""
+replace StudentGroup="All Students" if StudentSubGroup=="All Students"
+replace StudentGroup="EL Status" if StudentSubGroup=="English Learner"
+replace StudentGroup="Economic Status" if StudentSubGroup=="Economically Disadvantaged"
+replace StudentGroup="Disability Status" if StudentSubGroup=="SWD"
+
+*** Merge Enrollment Data
+merge m:1 DataLevel NCESDistrictID GradeLevel StudentSubGroup using "${raw}/UT_Enrollment_LEA_2023.dta"
+replace StudentSubGroup_TotalTested = "--" if _merge == 1
+drop if _merge == 2
+drop _merge
 save "${int}/UT_2023_district.dta", replace 
 
-
-
 *** UT state ***
-
-*** UT state ***
-
-* Total Tested
-import excel "${raw}/UT_OriginalData_2023_proficiency.xlsx", sheet("State Results by Test") firstrow allstring clear
-
-
-foreach x of numlist 3/8 {
-	replace TestName="G0`x'" if strpos(TestName, "`x'")>0
-}
-
-drop if inlist(TestName, "G03", "G04", "G05", "G06", "G07", "G08")==0
-
-rename ResultsLevel DataLevel
-rename SchoolYear SchYear
-rename TestName GradeLevel
-rename SubjectArea Subject
-rename NumberTested StudentGroup_TotalTested
-rename NumberProficient ProficientOrAbove_count
-rename AssessmentType AssmtName
-
-drop PercentProficient TestSubjectID
-gen StudentSubGroup="AllStudents"
-
-save "${int}/UT_2023_state.dta", replace 
-
 * Proficiency levels
 
 import excel "${raw}/UT_OriginalData_2023_all.xlsx", sheet("State Prof Levels by Test") firstrow allstring clear
 
+rename SchoolYear SchYear
+rename TestName GradeLevel
+rename SubjectArea Subject
+rename BelowProficient Lev1_percent
+rename ApproachingProficient Lev2_percent 
+rename Proficient Lev3_percent 
+rename HighlyProficient Lev4_percent
+
 keep if strpos(AssessmentType, "RISE")>0
+
+save "${int}/UT_2023_levels_state.dta", replace 
+
+import excel "${raw}/UT_OriginalData_2023_proficiency.xlsx", sheet("State Results by Test") firstrow allstring clear
+
+rename SchoolYear SchYear
+rename TestName GradeLevel
+rename SubjectArea Subject
+rename NumberTested StudentSubGroup_TotalTested
+rename NumberProficient ProficientOrAbove_count
+rename PercentProficient ProficientOrAbove_percent
+
+keep if strpos(AssessmentType, "RISE")>0
+
+merge 1:1 GradeLevel Subject using "${int}/UT_2023_levels_state.dta"
+drop _merge
 
 save "${int}/UT_2023_levels_state.dta", replace 
 
 * Append aggregated state data
 import excel "${raw}/UT_OriginalData_2023_all.xlsx", sheet("State Prof Levels by Subject") firstrow allstring clear
 
-keep if strpos(AssessmentType, "RISE")>0
-
-gen TestName=SubjectArea+" All"
-
-append using "${int}/UT_2023_levels_state.dta"
-
-foreach x of numlist 3/8 {
-	replace TestName="G0`x'" if strpos(TestName, "`x'")>0
-}
-
-replace TestName="G38" if strpos(TestName, "All")>0
-
-drop if strpos(TestName, "Secondary")>0
-
 rename SchoolYear SchYear
-rename ReportingLevel DataLevel
-rename TestName GradeLevel
 rename SubjectArea Subject
-rename AssessmentType AssmtName 
 rename BelowProficient Lev1_percent
 rename ApproachingProficient Lev2_percent 
 rename Proficient Lev3_percent 
 rename HighlyProficient Lev4_percent
 
-gen StudentSubGroup="AllStudents"
+keep if strpos(AssessmentType, "RISE")>0
 
-merge m:1 Subject GradeLevel StudentSubGroup using "${int}/UT_2022_state.dta"
+save "${int}/UT_2023_levels_state_all.dta", replace
 
+import excel "${raw}/UT_OriginalData_2023_proficiency.xlsx", sheet("Overall State Results") firstrow allstring clear
+
+rename SchoolYear SchYear
+rename SubjectArea Subject
+rename NumberTested StudentSubGroup_TotalTested
+rename NumberProficient ProficientOrAbove_count
+rename PercentProficient ProficientOrAbove_percent
+
+keep if strpos(AssessmentType, "RISE")>0
+drop H I J
+
+merge 1:1 Subject using "${int}/UT_2023_levels_state_all.dta"
 drop _merge
+
+gen GradeLevel=Subject +" All"
+
+append using "${int}/UT_2023_levels_state.dta"
+
+foreach x of numlist 3/8 {
+	replace GradeLevel="G0`x'" if strpos(GradeLevel, "`x'")>0
+}
+
+replace GradeLevel="G38" if strpos(GradeLevel, "All")>0
+
+drop if strpos(GradeLevel, "Secondary")>0
+
+gen StudentSubGroup="All Students"
+gen StudentGroup = "All Students"
 
 save "${int}/UT_2023_levels_state.dta", replace
 
@@ -323,13 +447,16 @@ save "${int}/UT_2023_subgroup_state.dta", replace
 * Append aggregated state data
 import excel "${raw}/UT_OriginalData_2023_subgroup.xlsx", sheet("State by Subject") firstrow allstring clear
 
+drop AllStudents
+
 keep if strpos(AssessmentType, "RISE")>0
 
 gen TestName=SubjectArea+" All"
 
 append using "${int}/UT_2023_subgroup_state.dta"
+drop AllStudents
 
-foreach i of varlist AllStudents AfAmBlack AmericanIndian Asian HispanicLatino MultipleRaces PacificIslander White LowIncome StudentswDisabilities EnglishLearners {
+foreach i of varlist AfAmBlack AmericanIndian Asian HispanicLatino MultipleRaces PacificIslander White LowIncome StudentswDisabilities EnglishLearners {
 	rename `i' subgroup`i'
 }
 
@@ -355,23 +482,11 @@ rename SchoolYear SchYear
 
 save "${int}/UT_2023_subgroup_state.dta", replace 
 
-merge m:1 StudentSubGroup GradeLevel Subject using "${int}/UT_2023_levels_state.dta"
+append using "${int}/UT_2023_levels_state.dta"
 
-drop _merge
-
-replace DataLevel="State"
-
-save "${int}/UT_2023_state.dta", replace 
-
-append using "${int}/UT_2023_district.dta"
-
-append using "${int}/UT_2023_school.dta"
-
-
-
-
-
-* Clean everything 
+replace Subject = "ela" if Subject == "English Language Arts"
+replace Subject = "math" if Subject == "Mathematics"
+replace Subject = "sci" if Subject == "Science"
 
 replace StudentSubGroup="All Students" if StudentSubGroup=="AllStudents"
 replace StudentSubGroup="Black or African American" if StudentSubGroup=="AfAmBlack"
@@ -381,35 +496,42 @@ replace StudentSubGroup="Economically Disadvantaged" if StudentSubGroup=="LowInc
 replace StudentSubGroup="Two or More" if StudentSubGroup=="MultipleRaces"
 replace StudentSubGroup="Hispanic or Latino" if StudentSubGroup=="HispanicLatino"
 replace StudentSubGroup="Native Hawaiian or Pacific Islander" if StudentSubGroup=="PacificIslander"
+replace StudentSubGroup="SWD" if StudentSubGroup=="StudentswDisabilities"
 
-drop if StudentSubGroup=="StudentswDisabilities"
-
-gen StudentGroup=""
-
+replace StudentGroup="RaceEth" if StudentGroup==""
 replace StudentGroup="All Students" if StudentSubGroup=="All Students"
 replace StudentGroup="EL Status" if StudentSubGroup=="English Learner"
 replace StudentGroup="Economic Status" if StudentSubGroup=="Economically Disadvantaged"
-replace StudentGroup="RaceEth" if StudentGroup==""
+replace StudentGroup="Disability Status" if StudentSubGroup=="SWD"
 
+gen DataLevel= 1
+
+save "${int}/UT_2023_state.dta", replace 
+
+append using "${int}/UT_2023_district.dta"
+
+append using "${int}/UT_2023_school.dta"
+
+*** Other Cleaning
 replace AssmtName="RISE"
-
-replace Subject="math" if Subject=="Mathematics"
-replace Subject="ela" if Subject=="English Language Arts"
-replace Subject="sci" if Subject=="Science"
-
-
-gen Flag_AssmtNameChange="N"
-gen Flag_CutScoreChange_ELA="N"
-gen Flag_CutScoreChange_math="N"
-gen Flag_CutScoreChange_read=""
-gen Flag_CutScoreChange_oth="N"
-
 gen AssmtType="Regular"
+gen AvgScaleScore = "--"
+gen ProficiencyCriteria = "Levels 3-4"
 
-//////////////////////////////////////////
-********* Review 1 Edits ***********
-//////////////////////////////////////////
+gen Flag_AssmtNameChange = "N"
+gen Flag_CutScoreChange_ELA = "N"
+gen Flag_CutScoreChange_math = "N"
+gen Flag_CutScoreChange_sci = "N"
+gen Flag_CutScoreChange_soc = "Not applicable"
 
+rename StateName State
+destring StateFips, replace
+rename SchoolType SchType
+
+replace SchYear = "2022-23"
+replace State = "Utah"
+replace StateAbbrev = "UT"
+replace StateFips = 49
 
 foreach i of varlist StateAssignedDistID StateAssignedSchID {
 	
@@ -417,157 +539,134 @@ foreach i of varlist StateAssignedDistID StateAssignedSchID {
 	
 }
 
-replace StateAssignedDistID1=State_leaid
-replace StateAssignedSchID1=school_id
+replace SchName = "All Schools" if DataLevel != 3
+replace DistName = "All Districts" if DataLevel == 1
+replace StateAssignedSchID = "" if DataLevel != 3
+replace StateAssignedDistID = "" if DataLevel == 1
 
-foreach i of varlist StateAssignedDistID StateAssignedSchID {
+** Proficiency Values
+gen Count_n = StudentSubGroup_TotalTested
+destring Count_n, replace force
+
+forvalues i = 1/4 {
+	gen Lev`i'_count = "--"
 	
-	replace `i'1=`i' if `i'!=""
-	drop `i'
-	rename `i'1 `i'
+	replace Lev`i'_percent = "--" if inlist(Lev`i'_percent, "null", "NULL", "", "-")
+	replace Lev`i'_percent ="*" if inlist(Lev`i'_percent, "N≤10", "n≤10", "n<10", "N<10")
 	
+	replace Lev`i'_percent = subinstr(Lev`i'_percent, " to ", "-", 1)
+	replace Lev`i'_percent = subinstr(Lev`i'_percent, "%", "", 1)
+	gen Below = 0
+	replace Below = 1 if strpos(Lev`i'_percent, "<") > 0
+	replace Below = 1 if strpos(Lev`i'_percent, "≤") > 0
+	gen Above = 0
+	replace Above = 1 if strpos(Lev`i'_percent, ">") > 0
+	replace Above = 1 if strpos(Lev`i'_percent, "≥") > 0
+	replace Lev`i'_percent = subinstr(Lev`i'_percent, "< ", "", 1)
+	replace Lev`i'_percent = subinstr(Lev`i'_percent, "<= ", "", 1)
+	replace Lev`i'_percent = subinstr(Lev`i'_percent, "≤", "", 1)
+	replace Lev`i'_percent = subinstr(Lev`i'_percent, "> ", "", 1)
+	replace Lev`i'_percent = subinstr(Lev`i'_percent, ">= ", "", 1)
+	replace Lev`i'_percent = subinstr(Lev`i'_percent, "≥", "", 1)
+	replace Lev`i'_percent = subinstr(Lev`i'_percent, "<", "", 1)
+	replace Lev`i'_percent = subinstr(Lev`i'_percent, ">", "", 1)
+	gen Lev`i'_percent1 = Lev`i'_percent
+	destring Lev`i'_percent1, replace force
+	replace Lev`i'_percent1 = Lev`i'_percent1/100 if Below == 1 | Above == 1
+	gen Lev`i'_percent_count = .
+	replace Lev`i'_percent_count = round(Lev`i'_percent1 * Count_n) if Below == 0 & Above == 0
+	replace Lev`i'_count = string(Lev`i'_percent_count) if DataLevel != 1 & Lev`i'_percent_count != .
+	tostring Lev`i'_percent1, replace format("%9.2g") force
+	replace Lev`i'_percent = "0-" + Lev`i'_percent1 if Below == 1
+	replace Lev`i'_percent = Lev`i'_percent1 + "-1" if Above == 1
+	drop Lev`i'_percent1
+	
+	split Lev`i'_percent, parse("-")
+	replace Lev`i'_percent1 = "" if Lev`i'_percent == Lev`i'_percent1
+	destring Lev`i'_percent1, replace force
+	destring Lev`i'_percent2, replace force
+	replace Lev`i'_percent1 = Lev`i'_percent1/100 if Above == 0 & Below == 0
+	replace Lev`i'_percent2 = Lev`i'_percent2/100 if Above == 0 & Below == 0
+	gen Lev`i'_count1 = round(Lev`i'_percent1 * Count_n)
+	gen Lev`i'_count2 = round(Lev`i'_percent2 * Count_n)
+	tostring Lev`i'_count1, replace
+	tostring Lev`i'_count2, replace
+	replace Lev`i'_count1 = "" if Lev`i'_count1 == "."
+	replace Lev`i'_count = Lev`i'_count1 + "-" + Lev`i'_count2 if Lev`i'_count1 != "" & Lev`i'_count2 != "."
+	tostring Lev`i'_percent1, replace format("%9.2g") force
+	tostring Lev`i'_percent2, replace format("%9.2g") force
+	replace Lev`i'_percent = Lev`i'_percent1 + "-" + Lev`i'_percent2 if !inlist(Lev`i'_percent1, "", ".")
+	drop Lev`i'_percent1 Lev`i'_percent2 Lev`i'_count1 Lev`i'_count2 Lev`i'_percent_count Above Below
+	
+	replace Lev`i'_count = "--" if Lev`i'_count == ""
+	replace Lev`i'_count = "--" if Lev`i'_percent == "--"
+	replace Lev`i'_count = "*" if Lev`i'_percent == "*"
 }
 
-//////////////////////////////////////////
-********* Review 1 Edits ***********
-//////////////////////////////////////////
-
-* gen StudentGroup_TotalTested=""
-gen StudentSubGroup_TotalTested=""
-
-foreach x of numlist 1/4 {
-    generate Lev`x'_count = "--"
-    label variable Lev`x'_count "Count of students within subgroup performing at Level `x'."
-}
-
-gen Lev5_count=""
-gen Lev5_percent=""
-
-gen AvgScaleScore="--"
-
-gen ProficiencyCriteria="Levels 3-4"
-* gen ProficientOrAbove_count=""
-gen ParticipationRate="--"
-
-foreach i of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent {
-	replace `i'="--" if `i'==""
-}
-
-replace DistName="All Districts" if DataLevel=="State"
-replace SchName="All Schools" if DataLevel!="School"
-
-replace SchYear="2022-23"
-
-tostring State, replace force
-replace State="Utah"
-replace StateAbbrev="UT"
-replace StateFips=49
-
-foreach i of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent ProficientOrAbove_count StudentGroup_TotalTested {
-	replace `i'="--" if `i'=="null" | `i'=="NULL" | `i'=="" | `i'=="-"
-	replace `i'="*" if `i'=="N≤10" | `i'=="n≤10" | `i'=="n<10"
-	replace `i'="0.1-0.19" if `i'=="10 to 19%"
-	replace `i'="0.2-0.29" if `i'=="20 to 29%"
-	replace `i'="0.3-0.39" if `i'=="30 to 39%"
-	replace `i'="0.4-0.49" if `i'=="40 to 49%"
-	replace `i'="0.5-0.59" if `i'=="50 to 59%"
-	replace `i'="0.6-0.69" if `i'=="60 to 69%"
-	replace `i'="0.7-0.79" if `i'=="70 to 79%"
-	replace `i'="0.8-0.89" if `i'=="80 to 89%"
-	replace `i'="0-0.1" if `i'=="< 10%"
-	replace `i'="0-0.01" if `i'=="< 1%"
-	replace `i'="0-0.02" if `i'=="< 2%"
-	replace `i'="0-0.2" if `i'=="< 20%"
-	replace `i'="0-0.05" if `i'=="< 5%"
-	replace `i'="0.8-1" if `i'==">= 80%"
-	replace `i'="0.9-1" if `i'==">= 90%"
-	replace `i'="0.95-1" if `i'==">= 95%"
+replace ProficientOrAbove_percent = "--" if inlist(ProficientOrAbove_percent, "null", "NULL", "", "-")
+replace ProficientOrAbove_percent ="*" if inlist(ProficientOrAbove_percent, "N≤10", "n≤10", "n<10", "N<10")
+replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, " to ", "-", 1)
+replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, "%", "", 1)
+gen Below = 0
+replace Below = 1 if strpos(ProficientOrAbove_percent, "<") > 0
+replace Below = 1 if strpos(ProficientOrAbove_percent, "≤") > 0
+gen Above = 0
+replace Above = 1 if strpos(ProficientOrAbove_percent, ">") > 0
+replace Above = 1 if strpos(ProficientOrAbove_percent, "≥") > 0
+replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, "< ", "", 1)
+replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, "<= ", "", 1)
+replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, "≤", "", 1)
+replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, "> ", "", 1)
+replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, ">= ", "", 1)
+replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, "≥", "", 1)
+replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, "<", "", 1)
+replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, ">", "", 1)
+gen ProficientOrAbove_percent1 = ProficientOrAbove_percent
+destring ProficientOrAbove_percent1, replace force
+replace ProficientOrAbove_percent1 = ProficientOrAbove_percent1/100 if Below == 1 | Above == 1
+gen ProfCount = .
+replace ProfCount = round(ProficientOrAbove_percent1 * Count_n) if Below == 0 & Above == 0
+replace ProficientOrAbove_count = string(ProfCount) if DataLevel != 1 & ProfCount != .
+tostring ProficientOrAbove_percent1, replace format("%9.2g") force
+replace ProficientOrAbove_percent = "0-" + ProficientOrAbove_percent1 if Below == 1
+replace ProficientOrAbove_percent = ProficientOrAbove_percent1 + "-1" if Above == 1
+drop ProficientOrAbove_percent1
 	
-	replace `i'="0.1-0.19" if `i'=="10-19%" | `i'=="11-19%"
-	replace `i'="0.2-0.29" if `i'=="20-29%" | `i'=="21-29%"
-	replace `i'="0.3-0.39" if `i'=="30-39%" 
-	replace `i'="0.4-0.49" if `i'=="40-49%"
-	replace `i'="0.5-0.59" if `i'=="50-59%"
-	replace `i'="0.6-0.69" if `i'=="60-69%"
-	replace `i'="0.7-0.79" if `i'=="70-79%"
-	replace `i'="0.8-0.89" if `i'=="80-89%"
-	
-	replace `i'="0-0.1" if `i'=="<10%"
-	replace `i'="0-0.02" if `i'=="<2%"
-	replace `i'="0-0.2" if `i'=="<20%"
-	replace `i'="0-0.05" if `i'=="<5%"
-	replace `i'="0.8-1" if `i'==">=80%"
-	replace `i'="0.9-1" if `i'==">=90%"
-	replace `i'="0.95-1" if `i'==">=95%"
-	
-	replace `i'="0-0.1" if `i'=="≤10%"
-	replace `i'="0-0.2" if `i'=="≤20%"
-	replace `i'="0.8-1" if `i'=="≥80%"
-	replace `i'="0.9-1" if `i'=="≥90%"
-	replace `i'="0.99-1" if `i'=="≥99%"
-	
-	replace `i'="0.98-1" if `i'==">=98%"
-}
+split ProficientOrAbove_percent, parse("-")
+replace ProficientOrAbove_percent1 = "" if ProficientOrAbove_percent == ProficientOrAbove_percent1
+destring ProficientOrAbove_percent1, replace force
+destring ProficientOrAbove_percent2, replace force
+replace ProficientOrAbove_percent1 = ProficientOrAbove_percent1/100 if Above == 0 & Below == 0
+replace ProficientOrAbove_percent2 = ProficientOrAbove_percent2/100 if Above == 0 & Below == 0
+gen ProficientOrAbove_count1 = round(ProficientOrAbove_percent1 * Count_n)
+gen ProficientOrAbove_count2 = round(ProficientOrAbove_percent2 * Count_n)
+tostring ProficientOrAbove_count1, replace
+tostring ProficientOrAbove_count2, replace
+replace ProficientOrAbove_count1 = "" if ProficientOrAbove_count1 == "."
+replace ProficientOrAbove_count = ProficientOrAbove_count1 + "-" + ProficientOrAbove_count2 if ProficientOrAbove_count1 != "" & ProficientOrAbove_count2 != "."
+tostring ProficientOrAbove_percent1, replace format("%9.2g") force
+tostring ProficientOrAbove_percent2, replace format("%9.2g") force
+replace ProficientOrAbove_percent = ProficientOrAbove_percent1 + "-" + ProficientOrAbove_percent2 if !inlist(ProficientOrAbove_percent1, "", ".")
+drop ProficientOrAbove_percent1 ProficientOrAbove_percent2 ProficientOrAbove_count1 ProficientOrAbove_count2
 
-foreach i of varlist StudentSubGroup_TotalTested {
-	replace `i'="--" if `i'=="null" | `i'=="NULL" | `i'==""
-	replace `i'="*" if `i'=="N≤10" | `i'=="n≤10" | `i'=="n<10"
+replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == ""
+replace ProficientOrAbove_count = "--" if ProficientOrAbove_percent == "--"
+replace ProficientOrAbove_count = "*" if ProficientOrAbove_percent == "*"
 
-}
+gen Lev5_count = ""
+gen Lev5_percent = ""
 
-foreach i of varlist NCESDistrictID State_leaid NCESSchoolID seasch DistCharter CountyName SchType SchLevel SchVirtual DistType {
-	* tostring `i', replace 
-	replace `i'="Missing/not reported" if missing(DistType) &  DataLevel!="State"
-}
+** StudentGroup_TotalTested
+replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == ""
+gen StudentGroup_TotalTested = StudentSubGroup_TotalTested
 
-//////////////////////////////////////////
-********* Review 1 Edits ***********
-//////////////////////////////////////////
+*** Clean up variables & save file
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
-* replace StudentGroup_TotalTested="--"
-replace StudentSubGroup_TotalTested="--"
+label def DataLevel_l 1 "State" 2 "District" 3 "School"
+label values DataLevel DataLevel_l
 
-* replace ProficientOrAbove_count="--"
-
-drop if SchName=="Minersville School" & GradeLevel=="G38"
-
-replace SchVirtual="Missing/not reported" if missing(SchVirtual) & DataLevel=="School"
-
-replace StateAssignedDistID="Missing/not reported" if missing(StateAssignedDistID) & DataLevel=="School"
-
-replace State_leaid=StateAssignedDistID if missing(State_leaid) 
-
-//////////////////////////////////////////
-********* EdFacts ***********
-//////////////////////////////////////////
-
-drop _merge
-
-merge m:1 DistName SchName GradeLevel StudentGroup DataLevel using "${raw}/UT_Enrollment_School_2023.dta", update replace
-
-drop if _merge==2
-
-drop _merge
-
-merge m:1 DistName GradeLevel StudentGroup DataLevel using "${raw}/UT_Enrollment_LEA_2023.dta", update replace
-
-drop if _merge==2
-
-drop _merge
-
-merge m:1 GradeLevel StudentGroup DataLevel using "${raw}/UT_Enrollment_State_2023.dta", update replace
-
-drop if _merge==2
-
-replace StudentSubGroup_TotalTested="--" if StudentSubGroup_TotalTested==""
-
-//////////////////////////////////////////
-********* Sorting ***********
-//////////////////////////////////////////
-
-keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth 
-
-order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth 
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 

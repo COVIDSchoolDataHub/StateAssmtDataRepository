@@ -1,19 +1,21 @@
 clear
 set more off
 
-global NCES "/Users/sarahridley/Desktop/CSDH/Raw/NCES"
-global Arizona "/Users/sarahridley/Desktop/CSDH/Raw/Test Scores/Arizona/NCES"
+global raw "/Users/miramehta/Documents/UT State Testing Data/Original Data"
+global output "/Users/miramehta/Documents/UT State Testing Data/Output"
+global int "/Users/miramehta/Documents/UT State Testing Data/Intermediate"
 
-global NCES "/Users/minnamgung/Desktop/SADR/NCES District and School Demographics-2"
-global Iowa "/Users/minnamgung/Desktop/SADR/Utah/NCES"
-global utah "/Users/minnamgung/Desktop/SADR/Utah"
+global nces "/Users/miramehta/Documents/NCES District and School Demographics"
+global utah "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
 
-global years 2014 2015 2016 2017 2018 2019 2020 2021
+global edfacts "/Users/miramehta/Documents/EdFacts/Output"
+
+global years 2013 2014 2015 2016 2017 2018 2019 2020 2021
 
 foreach a in $years {
 	
-	use "${NCES}/NCES District Files, Fall 1997-Fall 2021/NCES_`a'_District.dta", clear 
-	keep if state_fips==49
+	use "${nces}/NCES District Files, Fall 1997-Fall 2022/NCES_`a'_District.dta", clear 
+	keep if state_location == "UT"
 	
 	rename state_name State
 	rename state_location StateAbbrev
@@ -26,16 +28,10 @@ foreach a in $years {
 	
 	rename lea_name DistName
 	
-	foreach i of varlist DistType {
-	decode `i', gen(`i'1)
-	drop `i'
-	rename `i'1 `i'
-}
+	save "${utah}/NCES_`a'_District.dta", replace
 	
-	save "${Iowa}/NCES_`a'_District.dta", replace
-	
-	use "${NCES}/NCES School Files, Fall 1997-Fall 2021/NCES_`a'_School.dta", clear
-	keep if state_fips==49
+	use "${nces}/NCES School Files, Fall 1997-Fall 2022/NCES_`a'_School.dta", clear
+	keep if state_location == "UT"
 	
 	rename state_name State
 	rename state_location StateAbbrev
@@ -46,7 +42,6 @@ foreach a in $years {
 	rename county_name CountyName
 	rename *agency_type DistType
 	rename ncesschoolid NCESSchoolID
-	rename school_type SchType
 	
 	rename school_name SchName
 	rename lea_name DistName
@@ -59,17 +54,40 @@ foreach a in $years {
 	replace SchName="MINERSVILLE SCHOOL (Primary)" if SchName=="MINERSVILLE SCHOOL" & SchLevel==1
 	replace SchName="MINERSVILLE SCHOOL (Middle)" if SchName=="MINERSVILLE SCHOOL" & SchLevel==2
 	
-	foreach i of varlist SchType SchLevel SchVirtual DistType {
-	decode `i', gen(`i'1)
-	drop `i'
-	rename `i'1 `i'
-}
+	replace SchName="CANYON VIEW SCHOOL (Primary)" if SchName=="CANYON VIEW SCHOOL" & SchLevel==1
+	replace SchName="CANYON VIEW SCHOOL (Middle)" if SchName=="CANYON VIEW SCHOOL" & SchLevel==2
 	
-	save "${Iowa}/NCES_`a'_School.dta", replace
+	replace SchName="Canyon View School (Primary)" if SchName=="Canyon View School" & SchLevel==1
+	replace SchName="Canyon View School (Middle)" if SchName=="Canyon View School" & SchLevel==2
+	
+	if `a' == 2016 {
+		drop if SchName == "Canyon View School"
+	}
+	
+	replace SchName=strproper(SchName)
+	replace DistName=strproper(DistName)
+	
+	save "${utah}/NCES_`a'_School.dta", replace
 	
 }
 
-import excel "/Users/minnamgung/Desktop/SADR/Utah/UT_unmerged_schools.xlsx", sheet("UT unmerged") firstrow clear 
+import excel "${nces}/NCES School Files, Fall 1997-Fall 2022/NCES_2022_School.xlsx", firstrow allstring clear
+drop if StateAbbrev != "UT"
+replace SchName="Minersville School (Primary)" if SchName=="Minersville School" & SchLevel=="Primary"
+replace SchName="Minersville School (Middle)" if SchName=="Minersville School" & SchLevel=="Middle"
+merge 1:1 NCESDistrictID NCESSchoolID using "${utah}/NCES_2021_School.dta", keepusing (DistLocale CountyCode CountyName district_agency_type)
+drop if _merge == 2
+drop _merge
+save "${utah}/NCES_2022_School.dta", replace
 
-save "/Users/minnamgung/Desktop/SADR/Utah/UT_unmerged_schools1.dta", replace
+import excel "${nces}/NCES District Files, Fall 1997-Fall 2022/NCES_2022_District.xlsx", firstrow allstring clear
+drop if StateAbbrev != "UT"
+rename ncesdistrictid NCESDistrictID
+merge 1:1 NCESDistrictID using "${utah}/NCES_2021_District.dta", keepusing (DistLocale CountyCode CountyName DistCharter)
+drop if _merge == 2
+drop _merge
+save "${utah}/NCES_2022_District.dta", replace
 
+import excel "${raw}/UT_unmerged_schools.xlsx", sheet("UT unmerged") firstrow clear 
+tostring CountyCode, replace
+save "${raw}/UT_unmerged_schools.dta", replace

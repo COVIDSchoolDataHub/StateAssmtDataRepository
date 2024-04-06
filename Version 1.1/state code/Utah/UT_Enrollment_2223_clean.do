@@ -1,18 +1,18 @@
 clear
 set more off
 
-global raw "/Users/minnamgung/Desktop/SADR/Utah/Original Data Files"
-global output "/Users/minnamgung/Desktop/SADR/Utah/Output"
-global int "/Users/minnamgung/Desktop/SADR/Utah/Intermediate"
+global raw "/Users/miramehta/Documents/UT State Testing Data/Original Data"
+global output "/Users/miramehta/Documents/UT State Testing Data/Output"
+global int "/Users/miramehta/Documents/UT State Testing Data/Intermediate"
 
-global nces "/Users/minnamgung/Desktop/SADR/NCES"
-global utah "/Users/minnamgung/Desktop/SADR/Utah/NCES"
+global nces "/Users/miramehta/Documents/NCES District and School Demographics"
+global utah "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
 
-global edfacts "/Users/minnamgung/Desktop/EdFacts/Output"
+global edfacts "/Users/miramehta/Documents/EdFacts"
 
-import excel "/Users/minnamgung/Desktop/SADR/Utah/UT_Enrollment_Unmerged_2022_2023.xlsx", firstrow allstring clear
+*import excel "${raw}/UT_Enrollment_Unmerged_2022_2023.xlsx", firstrow allstring clear
 
-save "${raw}/UT_Enrollment_Unmerged_2022_2023.dta", replace
+*save "${raw}/UT_Enrollment_Unmerged_2022_2023.dta", replace
 
 foreach year in 2022 2023 {
 	
@@ -31,7 +31,7 @@ foreach year in 2022 2023 {
 			rename LEAName DistName
 			rename SchoolName SchName
 			rename Grade GradeLevel
-			rename Grade_ StudentGroup_TotalTested
+			rename Grade_ StudentSubGroup_TotalTested
 
 			tostring GradeLevel, replace
 
@@ -39,8 +39,12 @@ foreach year in 2022 2023 {
 				replace GradeLevel="G0`x'" if strpos(GradeLevel, "`x'")>0
 			}
 
-			gen DataLevel="School"
-			gen StudentGroup="All Students"
+			gen DataLevel=3
+			gen StudentSubGroup="All Students"
+			
+			merge m:1 SchName DistName using "${utah}/NCES_2022_School.dta"
+			drop if _merge != 3
+			drop _merge
 
 			save "${raw}/UT_Enrollment_`dl'_`year'.dta", replace
 			
@@ -54,7 +58,7 @@ foreach year in 2022 2023 {
 
 			rename LEAName DistName
 			rename Grade GradeLevel
-			rename Grade_ StudentGroup_TotalTested
+			rename Grade_ StudentSubGroup_TotalTested
 
 			tostring GradeLevel, replace
 
@@ -62,8 +66,12 @@ foreach year in 2022 2023 {
 				replace GradeLevel="G0`x'" if strpos(GradeLevel, "`x'")>0
 			}
 
-			gen DataLevel="District"
-			gen StudentGroup="All Students"
+			gen DataLevel=2
+			gen StudentSubGroup="All Students"
+			
+			merge m:1 DistName using "${utah}/NCES_2022_District.dta"
+			drop if _merge != 3
+			drop _merge
 
 			save "${raw}/UT_Enrollment_`dl'_`year'.dta", replace
 			
@@ -80,7 +88,7 @@ foreach year in 2022 2023 {
 	reshape long Grade_, i(SchoolYear) j(Grade)
 	
 	rename Grade GradeLevel
-	rename Grade_ StudentGroup_TotalTested
+	rename Grade_ StudentSubGroup_TotalTested
 	
 	tostring GradeLevel, replace
 
@@ -88,8 +96,8 @@ foreach year in 2022 2023 {
 				replace GradeLevel="G0`x'" if strpos(GradeLevel, "`x'")>0
 			}
 
-			gen DataLevel="State"
-			gen StudentGroup="All Students"
+			gen DataLevel=1
+			gen StudentSubGroup="All Students"
 
 			save "${raw}/UT_Enrollment_State_`year'.dta", replace
 	
