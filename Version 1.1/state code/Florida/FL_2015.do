@@ -240,6 +240,8 @@ replace Flag_CutScoreChange_sci = "Y"
 //Post Launch Review Response
 replace DistName = proper(DistName)
 replace SchName = proper(SchName)
+replace DistName = "St. Johns" if DistName=="St Johns"
+replace DistName = "St. Lucie" if DistName=="St Lucie"
 
 **Updating CountyName and CountyCode of Select Districts
 replace CountyName = "Duval County" if NCESSchoolID == "120008410710" | NCESSchoolID == "120008410711" 
