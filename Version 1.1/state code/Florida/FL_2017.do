@@ -1,8 +1,8 @@
 clear all
 
 // Define file paths
-global original_files "/Volumes/T7/State Test Project/Florida post-launch/Original Data"
-global NCES_files "/Volumes/T7/State Test Project/NCES"
+global original_files "/Volumes/T7/State Test Project/Florida post-launch/Original Data/FL_OriginalData_1999_2017"
+global NCES_files "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
 global output_files "/Volumes/T7/State Test Project/Florida post-launch/Output"
 global temp_files "/Volumes/T7/State Test Project/Florida post-launch/Temp"
 
@@ -178,7 +178,7 @@ save "$output_files/FL_AssmtData_2017.dta", replace
 
 use "$NCES_files/NCES_2016_School.dta", clear 
 
-keep state_location state_fips district_agency_type school_type ncesdistrictid state_leaid ncesschoolid seasch DistCharter SchLevel SchVirtual county_name county_code
+keep state_location state_fips district_agency_type SchType ncesdistrictid state_leaid ncesschoolid seasch DistCharter SchLevel SchVirtual county_name county_code DistLocale
 
 keep if state_location == "FL"
 
@@ -193,7 +193,7 @@ save "$output_files/FL_AssmtData_2017.dta", replace
 
 use "$NCES_files/NCES_2016_District.dta", clear 
 
-keep state_location state_fips district_agency_type ncesdistrictid state_leaid DistCharter county_name county_code
+keep state_location state_fips district_agency_type ncesdistrictid state_leaid DistCharter county_name county_code DistLocale
 
 keep if state_location == "FL"
 
@@ -207,7 +207,7 @@ rename state_leaid State_leaid
 rename state_location StateAbbrev
 generate State = "Florida"
 rename county_code CountyCode
-rename school_type SchType
+*rename school_type SchType
 rename state_fips StateFips
 rename county_name CountyName
 
@@ -223,7 +223,7 @@ replace StateAssignedDistID = "" if DataLevel == 1
 
 //S2024 Changes
 gen Flag_CutScoreChange_sci = Flag_CutScoreChange_oth
-gen Flag_CutScoreChange_soc = ""
+gen Flag_CutScoreChange_soc = "Not Applicable"
 replace ProficiencyCriteria = "Levels 3-5"
 drop Flag_CutScoreChange_oth Flag_CutScoreChange_read State_leaid seasch
 
@@ -233,9 +233,20 @@ foreach var of varlist Lev*_percent ProficientOrAbove_percent {
 	replace `var' = string(n`var', "%9.3g") if regexm(`var', "[*-]") ==0
 	drop n`var'
 }
+//Post Launch Review Response
+replace DistName = proper(DistName)
+replace SchName = proper(SchName)
+
+**Updating CountyName and CountyCode of Select Districts
+replace CountyName = "Duval County" if NCESSchoolID == "120008410710" | NCESSchoolID == "120008410711" 
+replace CountyName = "Hillsborough County" if NCESSchoolID == "120008410712" | NCESSchoolID == "120008410714"
+replace CountyCode = "12031" if NCESSchoolID == "120008410710" | NCESSchoolID == "120008410711" 
+replace CountyCode = "12057" if NCESSchoolID == "120008410712" | NCESSchoolID == "120008410714"
+replace CountyName = "Hidalgo County" if NCESDistrictID == "1200084" & DataLevel == 2
+replace CountyCode = "48215" if NCESDistrictID == "1200084" & DataLevel == 2
 
 // Reordering variables and sorting data
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter SchType SchLevel SchVirtual CountyName CountyCode
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
