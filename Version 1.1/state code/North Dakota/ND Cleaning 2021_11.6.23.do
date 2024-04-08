@@ -76,7 +76,7 @@ replace StudentSubGroup = "SWD" if StudentSubGroup == "IEP (student with disabil
 replace StudentSubGroup = "Non-SWD" if StudentSubGroup == "Non-IEP"
 drop if StudentSubGroup == "All Others"
 drop if StudentSubGroup == "IEP - Emotional Disturbance" | StudentSubGroup == "Non-IEP - Emotional Disturbance"
-drop if StudentSubGroup == "Mobile Student" | StudentSubGroup == "Non-Mobile Student"
+drop if StudentSubGroup == "Mobile Student " | StudentSubGroup == "Non-Mobile Student"
 drop if StudentSubGroup == "Non-Former English Learner"
 
 gen StudentGroup = "RaceEth"
@@ -132,6 +132,14 @@ replace SchType = 1 if SchName == "East Fairview Elementary School"
 replace SchLevel = 1 if SchName == "East Fairview Elementary School"
 replace SchVirtual = 0 if SchName == "East Fairview Elementary School"
 replace DistName = "Yellowstone 14" if SchName == "East Fairview Elementary School"
+replace DistLocale = "Rural, remote" if SchName == "East Fairview Elementary School"
+
+//Renaming district/schools
+replace DistName = "Hope-Page 85" if DistName == "Hope Page 85"
+replace DistName = "May-Port CG 14" if DistName == "May-Port Cg 14"
+replace DistName = "McClusky 19" if DistName == "Mcclusky 19"
+replace DistName = "McKenzie Co 1" if DistName == "Mckenzie Co 1"
+replace DistName = "TGU 60" if DistName == "Tgu 60"
 
 //Merging with EDFacts Datasets
 label def DataLevel 1 "State" 2 "District" 3 "School"
