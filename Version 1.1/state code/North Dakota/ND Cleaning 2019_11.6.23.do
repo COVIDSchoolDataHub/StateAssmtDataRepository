@@ -168,6 +168,22 @@ tostring state, replace force
 replace StudentSubGroup_TotalTested = state if DataLevel == 1 & state != "." & state != "0"
 drop dummy
 
+** Deriving More SubGroup Counts
+bysort SchName DistName Subject GradeLevel: egen All = max(num)
+bysort SchName DistName Subject GradeLevel: egen Econ = sum(num) if StudentGroup == "Economic Status"
+bysort SchName DistName Subject GradeLevel: egen Disability = sum(num) if StudentGroup == "Disability Status"
+bysort SchName DistName Subject GradeLevel: egen EL = sum(num) if StudentGroup == "EL Status"
+bysort SchName DistName Subject GradeLevel: egen Foster = sum(num) if StudentGroup == "Foster Care Status"
+bysort SchName DistName Subject GradeLevel: egen Homeless = sum(num) if StudentGroup == "Homeless Enrolled Status"
+bysort SchName DistName Subject GradeLevel: egen Military = sum(num) if StudentGroup == "Military Connected Status"
+replace num = All - Econ if StudentSubGroup == "Not Economically Disadvantaged" & Econ != 0
+replace num = All - Disability if StudentSubGroup == "Non-SWD" & Disability != 0
+replace num = All - EL if StudentSubGroup == "English Proficient" & EL != 0
+replace num = All - Foster if StudentSubGroup == "Non-Foster Care" & Foster != 0
+replace num = All - Homeless if StudentSubGroup == "Non-Homeless" & Homeless != 0
+replace num = All - Military if StudentSubGroup == "Non-Military" & Military != 0
+replace StudentSubGroup_TotalTested = string(num) if inlist(StudentSubGroup, "Not Economically Disadvantaged", "Non-SWD", "English Proficient", "Non-Foster Care", "Non-Homeless", "Non-Military") & num != .
+
 replace num = -1000000 if num == .
 bys SchName DistName StudentGroup Subject GradeLevel: egen StudentGroup_TotalTested = total(num)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0

@@ -143,6 +143,21 @@ merge m:1 DataLevel NCESDistrictID NCESSchoolID StudentGroup StudentSubGroup Gra
 drop if _merge == 2
 drop state schoolyear-_merge
 
+** Deriving More SubGroup Counts
+bysort SchName DistName Subject GradeLevel: egen All = max(StudentSubGroup_TotalTested)
+bysort SchName DistName Subject GradeLevel: egen Econ = sum(StudentSubGroup_TotalTested) if StudentGroup == "Economic Status"
+bysort SchName DistName Subject GradeLevel: egen Disability = sum(StudentSubGroup_TotalTested) if StudentGroup == "Disability Status"
+bysort SchName DistName Subject GradeLevel: egen Foster = sum(StudentSubGroup_TotalTested) if StudentGroup == "Foster Care Status"
+bysort SchName DistName Subject GradeLevel: egen Homeless = sum(StudentSubGroup_TotalTested) if StudentGroup == "Homeless Enrolled Status"
+bysort SchName DistName Subject GradeLevel: egen Military = sum(StudentSubGroup_TotalTested) if StudentGroup == "Military Connected Status"
+bysort SchName DistName Subject GradeLevel: egen Migrant = sum(StudentSubGroup_TotalTested) if StudentGroup == "Migrant Status"
+replace StudentSubGroup_TotalTested = All - Econ if StudentSubGroup == "Not Economically Disadvantaged" & Econ != 0
+replace StudentSubGroup_TotalTested = All - Disability if StudentSubGroup == "Non-SWD" & Disability != 0
+replace StudentSubGroup_TotalTested = All - Foster if StudentSubGroup == "Non-Foster Care" & Foster != 0
+replace StudentSubGroup_TotalTested = All - Homeless if StudentSubGroup == "Non-Homeless" & Homeless != 0
+replace StudentSubGroup_TotalTested = All - Military if StudentSubGroup == "Non-Military" & Military != 0
+replace StudentSubGroup_TotalTested = All - Migrant if StudentSubGroup == "Non-Migrant" & Military != 0
+
 //Proficiency Levels, Participation Rates, and Cleaning Student Counts
 gen ProfLow = ProficientRangeLow + AdvancedRangeLow
 gen ProfHigh = ProficientRangeHigh + AdvancedRangeHigh

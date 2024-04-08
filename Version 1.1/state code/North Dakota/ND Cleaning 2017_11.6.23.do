@@ -164,6 +164,16 @@ tostring state, replace force
 replace StudentSubGroup_TotalTested = state if DataLevel == 1 & state != "." & state != "0"
 drop dummy
 
+** Deriving More SubGroup Counts
+bysort SchName DistName Subject GradeLevel: egen All = max(num)
+bysort SchName DistName Subject GradeLevel: egen Econ = sum(num) if StudentGroup == "Economic Status"
+bysort SchName DistName Subject GradeLevel: egen Disability = sum(num) if StudentGroup == "Disability Status"
+bysort SchName DistName Subject GradeLevel: egen EL = sum(num) if StudentGroup == "EL Status"
+replace num = All - Econ if StudentSubGroup == "Not Economically Disadvantaged" & Econ != 0
+replace num = All - Disability if StudentSubGroup == "Non-SWD" & Disability != 0
+replace num = All - EL if StudentSubGroup == "English Proficient" & EL != 0
+replace StudentSubGroup_TotalTested = string(num) if inlist(StudentSubGroup, "Not Economically Disadvantaged", "Non-SWD", "English Proficient") & num != .
+
 replace num = -1000000 if num == .
 bys SchName DistName StudentGroup Subject GradeLevel: egen StudentGroup_TotalTested = total(num)
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
