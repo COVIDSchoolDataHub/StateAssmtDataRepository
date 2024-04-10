@@ -138,11 +138,11 @@ keep if DataLevel == 2
 tempfile tempdist
 save "`tempdist'", replace
 clear
-if `year' <2023 use "${NCES}/NCES_`prevyear'_District"
-if `year' == 2023 use "${NCES}/NCES_2021_District"
+use "${NCES}/NCES_`prevyear'_District"
 keep if state_name == "Arkansas" | state_location == "AR"
 gen StateAssignedDistID = subinstr(state_leaid, "AR-","",.)
 duplicates drop StateAssignedDistID, force
+if `year' == 2023 tostring _all, replace force
 merge 1:m StateAssignedDistID using "`tempdist'"
 drop if _merge ==1
 save "`tempdist'", replace
@@ -154,19 +154,29 @@ keep if DataLevel ==3
 tempfile tempsch
 save "`tempsch'", replace
 clear
-if `year' <2023 use "${NCES}/NCES_`prevyear'_School"
-if `year' == 2023 use "${NCES}/NCES_2021_School"
+use "${NCES}/NCES_`prevyear'_School"
 keep if state_name == "Arkansas" | state_location == "AR"
 gen StateAssignedSchID1 = seasch
  if `year' ==2019 replace StateAssignedSchID1 = "6061700-6061702" if ncesschoolid == "050042301657"
- if `year' == 2023 {
+if `year' == 2023 {
  	
 replace StateAssignedSchID1 = "3201000-3201702" if ncesschoolid == "050001900042"
 replace StateAssignedSchID1 = "0442700-0442703" if ncesschoolid == "050040901606"
  }
+
+if `year' == 2023 {
+foreach var of varlist year district_agency_type SchLevel SchVirtual school_type {
+	decode `var', gen(`var'_x)
+	drop `var'
+	rename `var'_x `var'
+}
+tostring _all, replace force
+}
 duplicates drop StateAssignedSchID, force
 merge 1:m StateAssignedSchID1 using "`tempsch'"
 drop if _merge ==1
+
+
 save "`tempsch'", replace
 
 //Appending
@@ -176,7 +186,7 @@ append using "`tempdist'" "`tempsch'"
 
 //Fixing NCES Variables
 rename state_location StateAbbrev
-rename state_fips StateFips
+drop state_fips
 rename district_agency_type DistType
 *rename school_type SchType
 rename ncesdistrictid NCESDistrictID
@@ -184,9 +194,11 @@ rename state_leaid State_leaid
 rename ncesschoolid NCESSchoolID
 rename county_name CountyName
 rename county_code CountyCode
-replace StateFips = 5
+gen StateFips = 5
 replace StateAbbrev = "AR"
+if `year' == 2023 rename school_type SchType
 
+/*
 
 //2023 Unmerged Using 2022 NCES preliminary
 tempfile temp2
@@ -220,6 +232,9 @@ use "`temp2'"
 drop if missing(NCESSchoolID) & DataLevel == 3
 append using "${Temp}/Unmerged_2023"
 }
+
+*/
+
 
 //Generating additional variables
 gen State = "Arkansas"

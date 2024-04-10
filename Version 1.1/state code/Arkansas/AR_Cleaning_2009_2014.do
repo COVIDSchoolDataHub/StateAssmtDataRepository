@@ -190,7 +190,7 @@ gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_sci = "N"
-gen Flag_CutScoreChange_soc = ""
+gen Flag_CutScoreChange_soc = "Not Applicable"
 gen ProficiencyCriteria = "Levels 3-4"
 gen Lev5_percent = "--"
 gen Lev5_count = "--"
@@ -240,6 +240,25 @@ if `year' <2011 replace StateAssignedSchID = StateAssignedDistID + StateAssigned
 
 //Dropping Extra Sci tests in response to R1
 drop if Subject == "sci" & !inlist(GradeLevel, "G05", "G07")
+
+//Update Mar 30 2024: Changing StateAssignedDistID to State_leaid
+replace StateAssignedDistID = State_leaid
+
+//Response to Post-Launch Review: Getting rid of hyphins in StateAssignedDistID
+replace StateAssignedDistID = subinstr(StateAssignedDistID, "-","",.)
+replace StateAssignedSchID = subinstr(StateAssignedSchID, "-", "",.)
+
+//Post-Launch Change: proper(CountyName)
+replace CountyName = proper(CountyName)
+
+//Deriving ProficientOrAbove_percent where possible
+replace ProficientOrAbove_percent = string(1-(real(Lev1_percent) + real(Lev2_percent)), "%9.3g") if regexm(Lev1_percent, "[0-9]") !=0 & regexm(Lev2_percent, "[0-9]") !=0 & regexm(ProficientOrAbove_percent, "[0-9]") ==0
+
+//Deriving Counts
+foreach var of varlist Lev*_percent ProficientOrAbove_percent {
+	local count = subinstr("`var'","percent","count",.)
+replace `count' = string(round(real(`var')*real(StudentSubGroup_TotalTested))) if regexm(`var', "[0-9]") !=0 & regexm(StudentSubGroup_TotalTested, "[0-9]") !=0	
+}
 
 
 //Final Cleaning

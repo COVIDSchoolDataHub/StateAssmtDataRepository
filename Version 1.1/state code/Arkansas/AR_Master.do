@@ -31,15 +31,30 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 drop if Lev1_percent == "--" & Lev3_percent == "--" & Lev4_percent== "--" & ProficientOrAbove_percent == "--"
 drop if missing(State)
 
+	** Post Launch Review **
+//NCESSchoolID for 2019
+if `year' == 2019 replace NCESSchoolID = "050042401683" if StateAssignedSchID == "6061702" 
+
+//Deriving ProficientOrAbove_percent where possible
+replace ProficientOrAbove_percent = string(1-(real(Lev1_percent) + real(Lev2_percent)), "%9.3g") if regexm(Lev1_percent, "[0-9]") !=0 & regexm(Lev2_percent, "[0-9]") !=0 & regexm(ProficientOrAbove_percent, "[0-9]") ==0
+
+//Updating Flags
+if `year' == 2016 replace Flag_CutScoreChange_sci = "Y"
+if `year' == 2018 replace Flag_CutScoreChange_sci = "N"
+replace Flag_CutScoreChange_soc = "Not Applicable"
+
 save "${Output}/AR_AssmtData_`year'", replace
 }
 
 
 //EDfacts Merging
 do AR_EDFacts_2016_2023
+
+
+//Stable Names Across Years
+*do AR_StableNames
+
 /*
-
-
 
 		**	Notes on data structures and do-files	**
 

@@ -199,6 +199,7 @@ append using "`tempela'" "`tempmath'"
 replace ParticipationRate = "--" if missing(ParticipationRate)
 
 save "${Temp}/Testing", replace
+
 //Aggregating StudentSubGroup_TotalTested and StudentGroup_TotalTested to State Level
 tempfile temp3
 save "`temp3'", replace
@@ -220,6 +221,18 @@ drop if DataLevel ==1
 append using "`temp4'"
 replace StudentSubGroup_TotalTested = string(StateStudentSubGroup_TotalTested) if !missing(StateStudentSubGroup_TotalTested) & StudentSubGroup_TotalTested == "--" & DataLevel ==1
 replace StudentGroup_TotalTested = string(StateStudentGroup_TotalTested) if !missing(StateStudentGroup_TotalTested) & StudentGroup_TotalTested == "--" & DataLevel ==1
+
+//Response to Post-Launch review
+if `year' == 2019 replace NCESDistrictID = "0500424" if StateAssignedDistID == "6061700"
+replace StateAssignedDistID = StateAssignedDistID[_n-1] if missing(StateAssignedDistID) & DataLevel == 3
+
+//Deriving Counts
+foreach var of varlist Lev*_percent ProficientOrAbove_percent {
+	local count = subinstr("`var'","percent","count",.)
+replace `count' = string(round(real(`var')*real(StudentSubGroup_TotalTested))) if regexm(`var', "[0-9]") !=0 & regexm(StudentSubGroup_TotalTested, "[0-9]") !=0	
+}
+
+
 
 //Final Cleaning
 drop if missing(State)
