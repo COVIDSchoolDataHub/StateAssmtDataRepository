@@ -104,6 +104,7 @@ replace StudentGroup = "Gender" if StudentSubGroup == "Male" | StudentSubGroup =
 replace StudentGroup = "EL Status" if StudentSubGroup == "English Proficient" | StudentSubGroup == "English Learner"
 replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD" | StudentSubGroup == "Non-SWD"
 replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant" | StudentSubGroup == "Non-Migrant"
+replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Military" | StudentSubGroup == "Non-Military"
 
 //DataLevel
 label def DataLevel 1 "State" 2 "District" 3 "School"
@@ -118,7 +119,9 @@ rename Prof_ ProficientOrAbove_percent
 replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == "N/A"
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "RV"
 destring ProficientOrAbove_percent, gen(nProficientOrAbove_percent) i(*-)
+
 replace ProficientOrAbove_percent = string(nProficientOrAbove_percent, "%9.3g") if ProficientOrAbove_percent != "--" & ProficientOrAbove_percent != "*"
+if `year' >2021 replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == "." //ela G03 is missing in 2022 and 2023. Setting these observations to "--".
 drop nProficientOrAbove_percent
 
 //Merging with NCES
@@ -130,11 +133,11 @@ keep if DataLevel == 2
 tempfile tempdist
 save "`tempdist'", replace
 clear
-if `year' <= 2022 use "${NCES}/NCES_`prevyear'_District.dta"
-if `year' == 2023 use "${NCES}/NCES_2021_District.dta"
+use "${NCES}/NCES_`prevyear'_District.dta"
 keep if state_name == "Arkansas"
 if `year' == 2016 gen StateAssignedDistID = state_leaid
 if `year' > 2016 gen StateAssignedDistID = subinstr(state_leaid, "AR-","",.)
+if `year' == 2023 tostring _all, replace force
 merge 1:m StateAssignedDistID using "`tempdist'"
 drop if _merge == 1
 drop _merge
@@ -147,13 +150,20 @@ keep if DataLevel == 3
 tempfile tempsch
 save "`tempsch'", replace
 clear
-if `year' <= 2022 use "${NCES}/NCES_`prevyear'_School.dta"
-if `year' == 2023 use "${NCES}/NCES_2021_School.dta"
+use "${NCES}/NCES_`prevyear'_School.dta"
 label def SchType -1 "Missing/not reported", add
 keep if state_name == "Arkansas"
 if `year' == 2016 gen StateAssignedSchID = seasch
 if `year' > 2016 gen StateAssignedSchID = substr(seasch, strpos(seasch, "-")+1, 10)
 duplicates drop StateAssignedSchID, force
+if `year' == 2023 {
+foreach var of varlist year district_agency_type SchLevel SchVirtual school_type {
+	decode `var', gen(`var'_x)
+	drop `var'
+	rename `var'_x `var'
+}
+tostring _all, replace force
+}
 merge 1:m StateAssignedSchID using "`tempsch'"
 drop if _merge ==1
 drop _merge
@@ -163,6 +173,7 @@ append using "`tempdist'"
 tempfile temp2
 save "`temp2'", replace
 
+/*
 //Fixing 2023 Unmerged
 if `year' == 2023 {	
 keep if missing(ncesschoolid) & DataLevel == 3
@@ -194,6 +205,8 @@ drop if missing(ncesschoolid) & DataLevel == 3
 append using "${Temp}/Unmerged_2023"
 }
 
+*/
+
 
 //Fixing NCES Variables for all years
 rename district_agency_type DistType
@@ -203,6 +216,7 @@ rename ncesdistrictid NCESDistrictID
 rename ncesschoolid NCESSchoolID
 rename county_name CountyName
 rename county_code CountyCode
+if `year' == 2023 rename school_type SchType
 
 //Saving Before Moving on to State Level Cleaning
 save "${Temp}/DistSch_`year'_temp", replace
@@ -248,15 +262,18 @@ replace StudentSubGroup = "English Learner" if StudentSubGroup == "English Learn
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
 replace StudentSubGroup = "SWD" if StudentSubGroup == "Students with Disabilities"
 
-//StudentGroup
+//StudentGroupx
 gen StudentGroup = ""
 replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
-replace StudentGroup = "RaceEth" if StudentSubGroup == "American Indian or Alaska Native" | StudentSubGroup == "Asian" | StudentSubGroup == "Black or African American" | StudentSubGroup == "Hispanic or Latino" | StudentSubGroup == "White" | StudentSubGroup == "Two or More" | StudentSubGroup == "Native Hawaiian or Pacific Islander" | StudentSubGroup == "Native Hawaiian" | StudentSubGroup == "Pacific Islander" | StudentSub == "Filipino"
+replace StudentGroup = "RaceEth" if StudentSubGroup == "American Indian or Alaska Native" | StudentSubGroup == "Asian" | StudentSubGroup == "Black or African American" | StudentSubGroup == "Hispanic or Latino" | StudentSubGroup == "White" | StudentSubGroup == "Two or More" | StudentSubGroup == "Native Hawaiian or Pacific Islander"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged"
-replace StudentGroup = "Gender" if StudentSubGroup == "Male" | StudentSubGroup == "Female"
-replace StudentGroup = "EL Status" if StudentSubGroup == "English Proficient" | StudentSubGroup == "English Learner"
+replace StudentGroup = "Gender" if StudentSubGroup == "Male" | StudentSubGroup == "Female" | StudentSubGroup == "Gender X"
+replace StudentGroup = "EL Status" if StudentSubGroup == "English Proficient" | StudentSubGroup == "English Learner" | StudentSubGroup == "EL Exited" | StudentSubGroup == "EL Monit or Recently Ex"
 replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD" | StudentSubGroup == "Non-SWD"
 replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant" | StudentSubGroup == "Non-Migrant"
+replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless" | StudentSubGroup == "Non-Homeless"
+replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Foster Care" | StudentSubGroup == "Non-Foster Care"
+replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Military" | StudentSubGroup == "Non-Military"
 
 //GradeLevel
 replace GradeLevel = "G0" + substr(GradeLevel, strpos(GradeLevel, ":")-1,1)

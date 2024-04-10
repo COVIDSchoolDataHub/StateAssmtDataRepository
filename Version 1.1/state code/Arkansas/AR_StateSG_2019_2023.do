@@ -69,7 +69,7 @@ replace StudentGroup = "EL Status" if StudentSubGroup == "English Proficient" | 
 replace StudentGroup = "RaceEth" if StudentSubGroup == "Hispanic or Latino" | StudentSubGroup == "Not Hispanic or Latino"
 replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD"
 replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless"
-replace StudentGroup = "Military Status" if StudentSubGroup == "Military"
+replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Military"
 replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Foster Care"
 replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant"
 

@@ -115,7 +115,7 @@ replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Dis
 replace StudentGroup = "Gender" if StudentSubGroup == "Male" | StudentSubGroup == "Female"
 replace StudentGroup = "EL Status" if StudentSubGroup == "English Proficient" | StudentSubGroup == "English Learner"
 replace StudentGroup = "RaceEth" if StudentSubGroup == "Hispanic or Latino" | StudentSubGroup == "Not Hispanic or Latino"
-replace StudentGroup = "Diasability Status" if StudentSubGroup == "SWD" | StudentSubGroup == "Non-SWD"
+replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD" | StudentSubGroup == "Non-SWD"
 
 //Missing or suppressed data
 foreach var of varlist _all {
@@ -150,6 +150,7 @@ replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "0"
 
 **Merging**
 replace StateAssignedDistID = StateAssignedDistID + "000" if Subject == "sci" & DataLevel !=1
+replace StateAssignedDistID = "1702000" if DistName == "CEDARVILLE SCHOOL DISTRICT"
 tempfile temp1
 save "`temp1'", replace
 clear
@@ -157,7 +158,6 @@ clear
 //District
 use "`temp1'"
 keep if DataLevel == 2
-replace StateAssignedDistID = "1702000" if DistName == "CEDARVILLE SCHOOL DISTRICT"
 tempfile tempdist
 save "`tempdist'", replace
 clear
@@ -205,10 +205,11 @@ replace StateAbbrev = "AR"
 //Generating additional variables
 gen State = "Arkansas"
 gen Flag_AssmtNameChange = "Y"
+replace Flag_AssmtNameChange = "N" if Subject == "sci"
 gen Flag_CutScoreChange_ELA = "Y"
 gen Flag_CutScoreChange_math = "Y"
 gen Flag_CutScoreChange_sci = "N"
-gen Flag_CutScoreChange_soc = ""
+gen Flag_CutScoreChange_soc = "Not Applicable"
 gen ProficiencyCriteria = "Levels 4-5"
 replace ProficiencyCriteria = "Levels 3-4" if Subject == "sci"
 gen AssmtType = "Regular"
@@ -236,6 +237,37 @@ drop if DataLevel ==2 & missing(NCESDistrictID)
 
 //Cloverdale Aerospace Tech Charter / Cloverdale Middle School
 replace SchName = "CLOVERDALE AEROSPACE TECH CHARTER" if NCESSchoolID == "050900001387"
+
+//Post Launch Review Response
+replace CountyName = proper(CountyName)
+
+//Deriving ProficientOrAbove_percent Where Possible
+replace ProficientOrAbove_percent = string(1-(real(Lev1_percent) + real(Lev2_percent) + real(Lev3_percent)), "%9.3g") if regexm(Lev1_percent, "[0-9]") !=0 & regexm(Lev2_percent, "[0-9]") !=0 & regexm(Lev3_percent, "[0-9]") !=0 & regexm(ProficientOrAbove_percent, "[0-9]") ==0 & Subject != "sci"
+replace ProficientOrAbove_percent = string(1-(real(Lev1_percent) + real(Lev2_percent)), "%9.3g") if regexm(Lev1_percent, "[0-9]") !=0 & regexm(Lev2_percent, "[0-9]") !=0 & regexm(ProficientOrAbove_percent, "[0-9]") ==0 & Subject == "sci"
+
+
+//Deriving Counts
+foreach var of varlist Lev*_percent ProficientOrAbove_percent {
+	local count = subinstr("`var'","percent","count",.)
+replace `count' = string(round(real(`var')*StudentSubGroup_TotalTested)) if regexm(`var', "[0-9]") !=0
+}
+*Making StudentSubGroup and StudentGroup Strings by Adding Rows
+tostring StudentSubGroup_TotalTested, replace
+tempfile temp1
+save "`temp1'", replace
+keep if DataLevel == 1 & Subject == "sci"
+expand 3
+drop in 1/2
+replace StudentGroup = "Gender"
+replace StudentSubGroup = "Male" if mod(_n,2) == 0
+replace StudentSubGroup = "Female" if mod(_n,2) != 0
+foreach var of varlist Lev* ProficientOrAbove* StudentGroup_TotalTested StudentSubGroup_TotalTested AvgScaleScore {
+	replace `var' = "--"
+}
+append using "`temp1'"
+
+
+
 
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode

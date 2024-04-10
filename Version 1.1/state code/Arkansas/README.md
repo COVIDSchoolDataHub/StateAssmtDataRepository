@@ -10,14 +10,15 @@ Original, NCES, Output, Temp, and EDFacts.
 
 Download do-files and place them in the Arkansas folder.
 
-Download the original .xlsx files and place them into the "Original" folder. Download the EDFacts data in Long .dta format and place them in the EDfacts folder. Download updated NCES files and place them in the NCES folder.
+Download the original .xlsx files and place them into the "Original" folder. Download the EDFacts data in Long .dta format and place them in the EDfacts folder. Download updated NCES files and place them in the NCES folder. Download ar_full-dist-sch-stable-list_through2023.xlsx and place it in the main folder.
 
 ## Explanation of cleaning process
 Each do-file cleans data that has a very similar structure. The data each do-file cleans is outlined below.
 
 
 ## Description of do-files
-There are 7 do-files:
+There are 8 do-files:
+
 AR_Cleaning_2009_2014 - this do-file cleans all original data from 2009-2014.
 
 AR_Cleaning_2015 - this do-file cleans all original data from 2015
@@ -31,6 +32,8 @@ AR_StateSG_2019_2023 - this do-file cleans all SubGroup data at the State level 
 
 AR_EDfacts_2016_2023 - this do-file cleans EDfacts data, merges StudentSubGroup_TotalTested and ParticipationRate where possible for District and School level subgroup data, and aggregates district level StudentSubGroup_TotalTested to the state level.
 
+AR_StableNames - this do-file runs after all other do-files and replaces DistNames and SchNames across years with consistent names.
+
 AR_Master - Runs all do files, sets file paths for all do-files, combines and sorts cleaned files for 2016-2023.
 
 ## Re-creating cleaning process
@@ -41,7 +44,7 @@ To recreate cleaning for all years, use only the AR_Master do-file.
 
 Run this do-file. 
 
-To recreate cleaning for 2009-2014 only, run the AR_Cleaning_2009_2014 do-file.
-To recreate cleaning for 2015 only, run the AR_Cleaning_2015 do-file
+To recreate cleaning for 2009-2014 only, run the AR_Cleaning_2009_2014 do-file and the AR_StableNames do-file.
+To recreate cleaning for 2015 only, run the AR_Cleaning_2015 do-file and the AR_StableNames do-file.
 To recreate cleaning for 2016-2023, just run the master file. 2009-2015 doesn't take much time and 2016-2023 relies on many data sources which need to be appended and then merged with EDFacts. If you really want to only clean 2016-2023, delete AR_Cleaning_2009_2014 and AR_Cleaning_2015 froom the local "dofiles" macro.
 
