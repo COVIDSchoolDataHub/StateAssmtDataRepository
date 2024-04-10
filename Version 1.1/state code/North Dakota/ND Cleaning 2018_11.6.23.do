@@ -99,6 +99,7 @@ gen Lev5_percent = ""
 gen AvgScaleScore = "--"
 gen ProficiencyCriteria = "Levels 3-4"
 gen Flag_AssmtNameChange = "Y"
+replace Flag_AssmtNameChange = "N" if Subject == "sci"
 gen Flag_CutScoreChange_ELA = "Y"
 gen Flag_CutScoreChange_math = "Y"
 gen Flag_CutScoreChange_sci = "N"
@@ -134,6 +135,13 @@ replace SchLevel = 1 if SchName == "East Fairview Elementary School"
 replace SchVirtual = 0 if SchName == "East Fairview Elementary School"
 replace DistName = "Yellowstone 14" if SchName == "East Fairview Elementary School"
 
+//Renaming district/schools
+replace DistName = "Hope-Page 85" if DistName == "Hope Page 85"
+replace DistName = "May-Port CG 14" if DistName == "May-Port Cg 14"
+replace DistName = "McClusky 19" if DistName == "Mcclusky 19"
+replace DistName = "McKenzie Co 1" if DistName == "Mckenzie Co 1"
+replace DistName = "TGU 60" if DistName == "Tgu 60"
+
 //Merging with EDFacts Datasets
 label def DataLevel 1 "State" 2 "District" 3 "School"
 encode DataLevel, gen(DataLevel_n) label(DataLevel)
@@ -161,6 +169,22 @@ replace num = state if DataLevel == 1 & state != 0 & state != .
 tostring state, replace force
 replace StudentSubGroup_TotalTested = state if DataLevel == 1 & state != "." & state != "0"
 drop dummy
+
+** Deriving More SubGroup Counts
+bysort SchName DistName Subject GradeLevel: egen All = max(num)
+bysort SchName DistName Subject GradeLevel: egen Econ = sum(num) if StudentGroup == "Economic Status"
+bysort SchName DistName Subject GradeLevel: egen Disability = sum(num) if StudentGroup == "Disability Status"
+bysort SchName DistName Subject GradeLevel: egen EL = sum(num) if StudentGroup == "EL Status"
+bysort SchName DistName Subject GradeLevel: egen Foster = sum(num) if StudentGroup == "Foster Care Status"
+bysort SchName DistName Subject GradeLevel: egen Homeless = sum(num) if StudentGroup == "Homeless Enrolled Status"
+bysort SchName DistName Subject GradeLevel: egen Military = sum(num) if StudentGroup == "Military Connected Status"
+replace num = All - Econ if StudentSubGroup == "Not Economically Disadvantaged" & Econ != 0
+replace num = All - Disability if StudentSubGroup == "Non-SWD" & Disability != 0
+replace num = All - EL if StudentSubGroup == "English Proficient" & EL != 0
+replace num = All - Foster if StudentSubGroup == "Non-Foster Care" & Foster != 0
+replace num = All - Homeless if StudentSubGroup == "Non-Homeless" & Homeless != 0
+replace num = All - Military if StudentSubGroup == "Non-Military" & Military != 0
+replace StudentSubGroup_TotalTested = string(num) if inlist(StudentSubGroup, "Not Economically Disadvantaged", "Non-SWD", "English Proficient", "Non-Foster Care", "Non-Homeless", "Non-Military") & num != .
 
 replace num = -1000000 if num == .
 bys SchName DistName StudentGroup Subject GradeLevel: egen StudentGroup_TotalTested = total(num)

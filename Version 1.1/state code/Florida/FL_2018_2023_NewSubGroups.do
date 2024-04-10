@@ -269,6 +269,7 @@ if `year' == 2023 replace AssmtName = "FAST" if Subject == "ela" | Subject == "m
 if `year' == 2023 {
 	replace Flag_AssmtNameChange = "Y" if Subject != "sci"
 	replace Flag_CutScoreChange_math = "Y"
+	replace Flag_CutScoreChange_ELA = "Y"
 	replace Flag_CutScoreChange_sci = "N"
 }
 gen StateAbbrev = "FL"
@@ -289,6 +290,20 @@ replace AvgScaleScore = "--" if AvgScaleScore == "."
 
 //Dropping Online Unmerged School for 2023
 if `year' == 2023 drop if DataLevel ==3 & missing(NCESSchoolID) & SchName == "Hendry Online Learning School-7006"
+
+//Post Launch review response
+replace DistName = subinstr(DistName, substr(DistName, 1, strpos(DistName, "-")),"",.)
+replace SchName = proper(SchName)
+
+**Updating CountyName and CountyCode of Select Districts
+replace CountyName = "Duval County" if NCESSchoolID == "120008410710" | NCESSchoolID == "120008410711" 
+replace CountyName = "Hillsborough County" if NCESSchoolID == "120008410712" | NCESSchoolID == "120008410714"
+replace CountyCode = "12031" if NCESSchoolID == "120008410710" | NCESSchoolID == "120008410711" 
+replace CountyCode = "12057" if NCESSchoolID == "120008410712" | NCESSchoolID == "120008410714"
+replace CountyName = "Hidalgo County" if NCESDistrictID == "1200084" & DataLevel == 2
+replace CountyCode = "48215" if NCESDistrictID == "1200084" & DataLevel == 2
+
+
 
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode

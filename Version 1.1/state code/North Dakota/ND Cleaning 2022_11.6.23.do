@@ -125,16 +125,38 @@ replace SchLevel = 1 if SchName == "East Fairview Elementary School"
 replace SchVirtual = 0 if SchName == "East Fairview Elementary School"
 replace DistName = "Yellowstone 14" if SchName == "East Fairview Elementary School"
 
-//Merge Student Counts
-merge m:1 SchYear StateAssignedDistID StateAssignedSchID SchName StudentSubGroup GradeLevel using "$data/ND_EnrollmentData_2223.dta"
-drop if _merge == 2
+//Renaming district/schools
+replace DistName = "Hope-Page 85" if DistName == "Hope Page 85"
+replace DistName = "May-Port CG 14" if DistName == "May-Port Cg 14"
+replace DistName = "McClusky 19" if DistName == "Mcclusky 19"
+replace DistName = "McKenzie Co 1" if DistName == "Mckenzie Co 1"
+replace DistName = "TGU 60" if DistName == "Tgu 60"
 
-destring Enrolled, replace
-gen StudentSubGroup_TotalTested = PercentTestedRangeLow * Enrolled
-replace StudentSubGroup_TotalTested = round(StudentSubGroup_TotalTested)
-gen StudentSubGroup_TotalTestedH = PercentTestedRangeHigh * Enrolled
-replace StudentSubGroup_TotalTestedH = round(StudentSubGroup_TotalTestedH)
-replace StudentSubGroup_TotalTested = . if _merge == 1 | Enrolled == . | mergep == 1
+//Merging with EDFacts Datasets
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+sort DataLevel_n 
+drop DataLevel 
+rename DataLevel_n DataLevel
+
+merge m:1 DataLevel NCESDistrictID NCESSchoolID StudentGroup StudentSubGroup GradeLevel Subject using "${EDFacts}/2022/edfacts2022northdakota.dta"
+drop if _merge == 2
+drop state schoolyear-_merge
+
+** Deriving More SubGroup Counts
+bysort SchName DistName Subject GradeLevel: egen All = max(StudentSubGroup_TotalTested)
+bysort SchName DistName Subject GradeLevel: egen Econ = sum(StudentSubGroup_TotalTested) if StudentGroup == "Economic Status"
+bysort SchName DistName Subject GradeLevel: egen Disability = sum(StudentSubGroup_TotalTested) if StudentGroup == "Disability Status"
+bysort SchName DistName Subject GradeLevel: egen Foster = sum(StudentSubGroup_TotalTested) if StudentGroup == "Foster Care Status"
+bysort SchName DistName Subject GradeLevel: egen Homeless = sum(StudentSubGroup_TotalTested) if StudentGroup == "Homeless Enrolled Status"
+bysort SchName DistName Subject GradeLevel: egen Military = sum(StudentSubGroup_TotalTested) if StudentGroup == "Military Connected Status"
+bysort SchName DistName Subject GradeLevel: egen Migrant = sum(StudentSubGroup_TotalTested) if StudentGroup == "Migrant Status"
+replace StudentSubGroup_TotalTested = All - Econ if StudentSubGroup == "Not Economically Disadvantaged" & Econ != 0
+replace StudentSubGroup_TotalTested = All - Disability if StudentSubGroup == "Non-SWD" & Disability != 0
+replace StudentSubGroup_TotalTested = All - Foster if StudentSubGroup == "Non-Foster Care" & Foster != 0
+replace StudentSubGroup_TotalTested = All - Homeless if StudentSubGroup == "Non-Homeless" & Homeless != 0
+replace StudentSubGroup_TotalTested = All - Military if StudentSubGroup == "Non-Military" & Military != 0
+replace StudentSubGroup_TotalTested = All - Migrant if StudentSubGroup == "Non-Migrant" & Military != 0
 
 //Proficiency Levels, Participation Rates, and Cleaning Student Counts
 gen ProfLow = ProficientRangeLow + AdvancedRangeLow
@@ -153,17 +175,19 @@ rename AdvancedRangeHigh Lev4_pctHigh
 forvalues n = 1/4 {
 	gen Lev`n'_countLow = StudentSubGroup_TotalTested * Lev`n'_pctLow
 	replace Lev`n'_countLow = round(Lev`n'_countLow)
-	gen Lev`n'_countHigh = StudentSubGroup_TotalTestedH * Lev`n'_pctHigh
+	gen Lev`n'_countHigh = StudentSubGroup_TotalTested * Lev`n'_pctHigh
 	replace Lev`n'_countHigh = round(Lev`n'_countHigh)
 	replace Lev`n'_countLow = . if StudentSubGroup_TotalTested == .
 	replace Lev`n'_countHigh = . if StudentSubGroup_TotalTested == .
 }
 
-tostring StudentSubGroup_TotalTested, replace
-tostring StudentSubGroup_TotalTestedH, replace
-replace StudentSubGroup_TotalTested = StudentSubGroup_TotalTested + "-" + StudentSubGroup_TotalTestedH if StudentSubGroup_TotalTested != StudentSubGroup_TotalTestedH
-replace StudentSubGroup_TotalTested = "--" if mergep == 1 | _merge == 1 | StudentSubGroup_TotalTested == "."
-gen StudentGroup_TotalTested = StudentSubGroup_TotalTested
+replace StudentSubGroup_TotalTested = 0 if StudentSubGroup_TotalTested == .
+bys SchName DistName StudentGroup Subject GradeLevel: egen test = min(StudentSubGroup_TotalTested)
+bys SchName DistName StudentGroup Subject GradeLevel: egen StudentGroup_TotalTested = total(StudentSubGroup_TotalTested)
+tostring StudentGroup_TotalTested, replace
+replace StudentGroup_TotalTested = "--" if test == 0
+tostring StudentSubGroup_TotalTested, replace force
+replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "0"
 
 tostring PercentTestedRangeLow, replace force
 tostring PercentTestedRangeHigh, replace force
@@ -172,7 +196,7 @@ gen ParticipationRate = PercentTestedRangeLow + "-" + PercentTestedRangeHigh
 replace ParticipationRate = PercentTestedRangeLow if PercentTestedRangeLow == PercentTestedRangeHigh
 replace ParticipationRate = "--" if mergep == 1
 
-drop Enrolled StudentSubGroup_TotalTestedH PercentTestedRangeLow PercentTestedRangeHigh mergep _merge
+drop PercentTestedRangeLow PercentTestedRangeHigh mergep
 
 gen Prof_countLow = Lev3_countLow + Lev4_countLow
 gen Prof_countHigh = Lev3_countHigh + Lev4_countHigh
@@ -250,12 +274,6 @@ label var ProficiencyCriteria "Levels included in determining proficiency status
 label var ProficientOrAbove_count "Count of students achieving proficiency or above on the state assessment"
 label var ProficientOrAbove_percent "Percent of students achieving proficiency or above on the state assessment"
 label var ParticipationRate "Participation rate"
-
-label def DataLevel 1 "State" 2 "District" 3 "School"
-encode DataLevel, gen(DataLevel_n) label(DataLevel)
-sort DataLevel_n 
-drop DataLevel 
-rename DataLevel_n DataLevel
 
 replace CountyName = strproper(CountyName)
 

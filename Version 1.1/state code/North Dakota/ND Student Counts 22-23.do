@@ -76,12 +76,12 @@ foreach v of local lev{
 		replace `var'1 = `var'1/100
 		tostring `var'1, replace format("%9.2g") force
 		if DataLevel != "State" {
-		destring `var'2, replace force
-		replace `var'2 = `var'2/100			
-		tostring `var'2, replace format("%9.2g") force
-		replace `var' = `var'1 + "-" + `var'2 if `var'1 != "." & `var'2 != "."
-		replace `var' = `var'1 if `var'1 != "." & `var'2 == "."
-		drop `var'2
+			destring `var'2, replace force
+			replace `var'2 = `var'2/100			
+			tostring `var'2, replace format("%9.2g") force
+			replace `var' = `var'1 + "-" + `var'2 if `var'1 != "." & `var'2 != "."
+			replace `var' = `var'1 if `var'1 != "." & `var'2 == "."
+			drop `var'2
 		}
 		gen inequality = 1 if strpos(`var', ">") > 0
 		replace inequality = -1 if strpos(`var', "<") > 0
@@ -118,4 +118,10 @@ encode DataLevel, gen(DataLevel_n) label(DataLevel)
 sort DataLevel_n 
 drop DataLevel 
 rename DataLevel_n DataLevel
+tostring NCESDistrictID, replace force
+replace NCESDistrictID = "" if DataLevel == 1
+recast long NCESSchoolID
+format NCESSchoolID %18.0g
+tostring NCESSchoolID, replace usedisplayformat
+replace NCESSchoolID = "" if DataLevel != 3
 save "${EDFacts}/2022/edfacts2022northdakota.dta", replace

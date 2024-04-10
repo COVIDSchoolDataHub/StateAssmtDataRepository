@@ -127,6 +127,14 @@ replace SchType = 1 if SchName == "East Fairview Elementary School"
 replace SchLevel = 1 if SchName == "East Fairview Elementary School"
 replace SchVirtual = 0 if SchName == "East Fairview Elementary School"
 replace DistName = "Yellowstone 14" if SchName == "East Fairview Elementary School"
+replace DistLocale = "Rural, remote" if SchName == "East Fairview Elementary School"
+
+//Renaming district/schools
+replace DistName = "Hope-Page 85" if DistName == "Hope Page 85"
+replace DistName = "May-Port CG 14" if DistName == "May-Port Cg 14"
+replace DistName = "McClusky 19" if DistName == "Mcclusky 19"
+replace DistName = "McKenzie Co 1" if DistName == "Mckenzie Co 1"
+replace DistName = "TGU 60" if DistName == "Tgu 60"
 
 // Merging with EDFacts Datasets
 
@@ -156,6 +164,16 @@ replace num = state if DataLevel == 1 & state != 0 & state != .
 tostring state, replace force
 replace StudentSubGroup_TotalTested = state if DataLevel == 1 & state != "." & state != "0"
 drop dummy
+
+** Deriving More SubGroup Counts
+bysort SchName DistName Subject GradeLevel: egen All = max(num)
+bysort SchName DistName Subject GradeLevel: egen Econ = sum(num) if StudentGroup == "Economic Status"
+bysort SchName DistName Subject GradeLevel: egen Disability = sum(num) if StudentGroup == "Disability Status"
+bysort SchName DistName Subject GradeLevel: egen EL = sum(num) if StudentGroup == "EL Status"
+replace num = All - Econ if StudentSubGroup == "Not Economically Disadvantaged" & Econ != 0
+replace num = All - Disability if StudentSubGroup == "Non-SWD" & Disability != 0
+replace num = All - EL if StudentSubGroup == "English Proficient" & EL != 0
+replace StudentSubGroup_TotalTested = string(num) if inlist(StudentSubGroup, "Not Economically Disadvantaged", "Non-SWD", "English Proficient") & num != .
 
 replace num = -1000000 if num == .
 bys SchName DistName StudentGroup Subject GradeLevel: egen StudentGroup_TotalTested = total(num)

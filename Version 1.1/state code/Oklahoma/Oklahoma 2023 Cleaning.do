@@ -149,85 +149,21 @@ gen State_leaid = "OK-" + substr(StateAssignedDistID, 1, 2) + "-" + substr(State
 replace State_leaid = "" if DataLevel == 1
 drop if DistName == "Jones Academy" | DistName == "Riverside Indian School" // BIE Schools
 
-merge m:1 State_leaid using "${NCES}/NCES_2021_District.dta"
+merge m:1 State_leaid using "${NCES}/NCES_2022_District.dta"
 
 drop if _merge == 2
 drop _merge
-
-**** Updating 2023 districts
-
-replace DistType = 7 if DistName == "Epic Charter School"
-replace NCESDistrictID = "4000777" if DistName == "Epic Charter School"
-replace DistCharter = "Yes" if DistName == "Epic Charter School"
-replace CountyName = "Oklahoma County" if DistName == "Epic Charter School"
-replace CountyCode = 40109 if DistName == "Epic Charter School"
-
-replace DistType = 1 if DistName == "Graham-Dustin"
-replace NCESDistrictID = "4000782" if DistName == "Graham-Dustin"
-replace DistCharter = "No" if DistName == "Graham-Dustin"
-replace CountyName = "Okfuskee County" if DistName == "Graham-Dustin"
-replace CountyCode = 40107 if DistName == "Graham-Dustin"
-
-**
 
 gen seasch = substr(StateAssignedSchID, 1, 2) + "-" + substr(StateAssignedSchID, 3, 4) + "-" + substr(StateAssignedSchID, 7, 3)
 replace seasch = "" if DataLevel != 3
 
-merge m:1 seasch using "${NCES}/NCES_2021_School.dta"
+merge m:1 seasch using "${NCES}/NCES_2022_School.dta"
 
 drop if _merge == 2
 drop _merge
 
-**** Updating 2023 schools
-
-replace SchType = 1 if seasch == "57-I029-515"
-replace NCESSchoolID = "400357029861" if seasch == "57-I029-515"
-
-replace SchType = 1 if seasch == "72-I001-532"
-replace NCESSchoolID = "403024029863" if seasch == "72-I001-532"
-
-replace SchType = 1 if seasch == "20-I026-515"
-replace NCESSchoolID = "403207029857" if seasch == "20-I026-515"
-
-replace SchType = 1 if seasch == "55-Z014-970"
-replace NCESSchoolID = "400077702741" if seasch == "55-Z014-970"
-
-replace SchType = 1 if seasch == "72-E018-980"
-replace NCESSchoolID = "400079229862" if seasch == "72-E018-980"
-
-replace SchType = 1 if seasch == "07-I072-130"
-replace NCESSchoolID = "401035029856" if seasch == "07-I072-130"
-
-replace SchType = 1 if seasch == "32-I056-105"
-replace NCESSchoolID = "400078200608" if seasch == "32-I056-105"
-
-replace SchType = 1 if seasch == "37-I007-125"
-replace NCESSchoolID = "401656029858" if seasch == "37-I007-125"
-
-replace SchType = 1 if seasch == "72-I014-510"
-replace NCESSchoolID = "401776029866" if seasch == "72-I014-510"
-
-replace SchType = 1 if seasch == "72-I001-542"
-replace NCESSchoolID = "403024029864" if seasch == "72-I001-542"
-
-replace SchType = 1 if seasch == "55-I089-526"
-replace NCESSchoolID = "402277029860" if seasch == "55-I089-526"
-
-replace SchType = 1 if seasch == "55-I012-195"
-replace NCESSchoolID = "401059029859" if seasch == "55-I012-195"
-
-replace SchType = 1 if seasch == "72-I001-577"
-replace NCESSchoolID = "403024029865" if seasch == "72-I001-577"
-
-replace SchLevel = -1 if seasch == "20-I026-515" | seasch == "72-I001-532" | seasch == "57-I029-515" | seasch == "55-Z014-970" | seasch == "72-E018-980" | seasch == "07-I072-130" | seasch == "32-I056-105" | seasch == "37-I007-125" | seasch == "72-I014-510" | seasch == "72-I001-542" | seasch == "55-I089-526" | seasch == "55-I012-195" | seasch == "72-I001-577"
-replace SchVirtual = -1 if seasch == "20-I026-515" | seasch == "72-I001-532" | seasch == "57-I029-515" | seasch == "55-Z014-970" | seasch == "72-E018-980" | seasch == "07-I072-130" | seasch == "32-I056-105" | seasch == "37-I007-125" | seasch == "72-I014-510" | seasch == "72-I001-542" | seasch == "55-I089-526" | seasch == "55-I012-195" | seasch == "72-I001-577"
-label def SchLevel -1 "Missing/not reported"
-label def SchVirtual -1 "Missing/not reported"
-
-**
-
 replace StateAbbrev = "OK"
-replace State = 40
+replace State = "Oklahoma"
 replace StateFips = 40
 
 ** Generating new variables
@@ -235,10 +171,12 @@ replace StateFips = 40
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_read = ""
-gen Flag_CutScoreChange_oth = "N"
+gen Flag_CutScoreChange_sci = "N"
+gen Flag_CutScoreChange_soc = "Not applicable"
 
-order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
