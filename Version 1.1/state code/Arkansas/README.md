@@ -18,6 +18,7 @@ Each do-file cleans data that has a very similar structure. The data each do-fil
 
 ## Description of do-files
 There are 8 do-files:
+
 AR_Cleaning_2009_2014 - this do-file cleans all original data from 2009-2014.
 
 AR_Cleaning_2015 - this do-file cleans all original data from 2015
