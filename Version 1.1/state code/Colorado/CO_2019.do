@@ -3,7 +3,7 @@ set more off
 
 cd "/Users/miramehta/Documents"
 
-local path "/Users/miramehta/Documents/CO State Testing Data/2019"
+global path "/Users/miramehta/Documents/CO State Testing Data/2019"
 global nces "/Users/miramehta/Documents/NCES District and School Demographics"
 global output "/Users/miramehta/Documents/CO State Testing Data"
 
@@ -522,7 +522,7 @@ replace SchName = strproper(SchName)
 replace StateAssignedDistID = "" if DataLevel == "State"
 gen State_leaid = "CO-" + StateAssignedDistID if DataLevel != "State"
 	
-merge m:1 State_leaid using "${nces}/Cleaned NCES Data/NCES_2018_District.dta"
+merge m:1 State_leaid using "${nces}/Cleaned NCES Data/NCES_2018_District_CO.dta"
 
 drop if _merge == 2
 drop _merge	
@@ -530,7 +530,7 @@ drop _merge
 replace StateAssignedSchID = "" if DataLevel != "School"
 gen seasch = StateAssignedDistID + "-" + StateAssignedSchID if DataLevel == "School"
 	
-merge m:1 seasch using "${nces}/Cleaned NCES Data/NCES_2018_School.dta"
+merge m:1 seasch using "${nces}/Cleaned NCES Data/NCES_2018_School_CO.dta"
 
 drop if _merge == 2
 drop _merge
@@ -564,6 +564,9 @@ replace AvgScaleScore = "*" if AvgScaleScore == "- -"
 replace StudentSubGroup_TotalTested = strtrim(StudentSubGroup_TotalTested)
 replace StudentSubGroup_TotalTested = subinstr(StudentSubGroup_TotalTested, " ", "", .)
 replace StudentSubGroup_TotalTested = subinstr(StudentSubGroup_TotalTested, ",", "", .)
+
+replace DistName = strtrim(DistName)
+replace SchName = strtrim(SchName)
 
 
 //Converting to decimal
@@ -601,7 +604,7 @@ gen AssmtName="Colorado Measures of Academic Success"
 gen Flag_AssmtNameChange="N"
 gen Flag_CutScoreChange_ELA="N"
 gen Flag_CutScoreChange_math="N"
-gen Flag_CutScoreChange_soc=""
+gen Flag_CutScoreChange_soc="Not applicable"
 gen Flag_CutScoreChange_sci="N"
 gen AssmtType = "Regular"
 gen SchYear="2018-19"
@@ -615,9 +618,11 @@ replace Subject = "ela" if Subject == "English Language Arts"
 gen ProficiencyCriteria = "Levels 3-4" if Subject == "sci"
 replace ProficiencyCriteria = "Levels 4-5" if Subject != "sci"
 
-drop if strpos(GradeLevel, "HS") | strpos(GradeLevel, "All") > 0
+drop if GradeLevel == "HS"
 
-replace GradeLevel = "G" + GradeLevel
+replace GradeLevel = "G38" if GradeLevel == "All Grades"
+replace GradeLevel = "G" + GradeLevel if GradeLevel != "G38"
+drop if GradeLevel == "G38" & Subject == "sci"
 
 drop if inlist(StudentSubGroup, "EL: LEP (Limited English Proficient)", "EL: NEP (Not English Proficient)", "Not EL: PHLOTE, NA, Not Reported")
 
@@ -627,6 +632,10 @@ replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
 replace StudentSubGroup = "Two or More" if StudentSubGroup == "Two or More Races"
 replace StudentSubGroup = "Unknown" if StudentSubGroup ==  "Not Reported"
 
+replace StudentSubGroup = "SWD" if StudentSubGroup == "IEP"
+replace StudentSubGroup = "Non-SWD" if StudentSubGroup == "No IEP"
+replace StudentSubGroup = "Non-Migrant" if StudentSubGroup == "Not Migrant"
+
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "English Learner (EL)"
 replace StudentSubGroup = "English Proficient" if StudentSubGroup == "Not English Learner (Not EL)"
 replace StudentSubGroup = "EL Exited" if StudentSubGroup == "Not EL: FEP (Fluent English Proficient), FELL (Former English Language Learner)"
@@ -634,13 +643,43 @@ replace StudentSubGroup = "EL Exited" if StudentSubGroup == "Not EL: FEP (Fluent
 replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Free/Reduced Lunch Eligible"
 replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "Not Free/Reduced Lunch Eligible"
 
-destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
+//Aggregating Total Tested
+replace StudentGroup = "EL Exited" if StudentSubGroup == "EL Exited"
+replace StudentSubGroup_TotalTested = "1-15" if StudentSubGroup_TotalTested == "<16"
+split StudentSubGroup_TotalTested, parse("-")
+destring StudentSubGroup_TotalTested1, replace force
+destring StudentSubGroup_TotalTested2, replace force
+replace StudentSubGroup_TotalTested1 = 0 if StudentSubGroup_TotalTested1 == .
 replace StudentSubGroup_TotalTested2 = 0 if StudentSubGroup_TotalTested2 == .
-bysort DistName SchName StudentGroup GradeLevel Subject: egen test = min(StudentSubGroup_TotalTested2)
-bysort DistName SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested2) if test != 0
+bysort DistName SchName StudentGroup GradeLevel Subject: egen test = min(StudentSubGroup_TotalTested1)
+bysort DistName SchName StudentGroup GradeLevel Subject: egen test2 = min(StudentSubGroup_TotalTested2)
+bysort DistName SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested1) if test != 0
+bysort DistName SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested2 = sum(StudentSubGroup_TotalTested2) if test2 != 0
 tostring StudentGroup_TotalTested, replace force
-replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
-drop StudentSubGroup_TotalTested2 test
+tostring StudentGroup_TotalTested2, replace force
+replace StudentGroup_TotalTested = StudentGroup_TotalTested + "-" + StudentGroup_TotalTested2 if !inlist(StudentGroup_TotalTested2, ".", "0")
+replace StudentGroup_TotalTested = "*" if strpos(StudentGroup_TotalTested, ".") > 0
+drop StudentSubGroup_TotalTested1 StudentSubGroup_TotalTested2 StudentGroup_TotalTested2 test
+replace StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+gen Suppressed = 0
+replace Suppressed = 1 if inlist(StudentSubGroup_TotalTested, "--", "*")
+egen StudentGroup_Suppressed = max(Suppressed), by(StudentGroup GradeLevel Subject DataLevel seasch StateAssignedDistID DistName SchName)
+drop Suppressed
+gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
+replace StudentGroup_TotalTested = AllStudents_Tested if StudentGroup_Suppressed == 1
+replace StudentGroup_TotalTested = AllStudents_Tested if AllStudents_Tested == "1-15"
+drop AllStudents_Tested StudentGroup_Suppressed
+replace StudentGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "--"
+replace StudentGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "*"
+replace StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "EL Exited"
+replace StudentGroup = "EL Status" if StudentSubGroup == "EL Exited"
+
+////
+replace Lev5_percent = "" if Subject == "sci"
+replace Lev5_count = "" if Subject == "sci"
 
 ////
 

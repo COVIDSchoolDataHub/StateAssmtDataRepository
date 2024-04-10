@@ -3,7 +3,7 @@ set more off
 
 cd "/Users/miramehta/Documents"
 
-local path "/Users/miramehta/Documents/CO State Testing Data/2022"
+global path "/Users/miramehta/Documents/CO State Testing Data/2022"
 global nces "/Users/miramehta/Documents/NCES District and School Demographics"
 global output "/Users/miramehta/Documents/CO State Testing Data"
 
@@ -45,7 +45,7 @@ import excel "${path}/2022 CMAS ELA School and District Achievement Results - Di
 
 
 rename languageproficiency StudentSubGroup
-gen StudentGroup = "EL status"
+gen StudentGroup = "EL Status"
 gen subject="ela"
 
 save "${output}/CO_2022_ELA_language.dta", replace
@@ -107,7 +107,7 @@ import excel "${path}/2022 CMAS Math School and District Achievement Results - D
 
 
 rename languageproficiency StudentSubGroup
-gen StudentGroup = "EL status"
+gen StudentGroup = "EL Status"
 gen subject="math"
 
 save "${output}/CO_2022_mat_language.dta", replace
@@ -198,11 +198,11 @@ save "${path}/CO_OriginalData_2022_all.dta", replace
 	
 use "${nces}/NCES District Files, Fall 1997-Fall 2022/NCES_2021_District.dta"
 drop if state_fips != 8
-save "${nces}/Cleaned NCES Data/CO_NCES_2021_District.dta", replace
+save "${nces}/Cleaned NCES Data/NCES_2021_District_CO.dta", replace
 
 
 use "${path}/CO_OriginalData_2022_all.dta"
-merge m:1 state_leaid using "${nces}/Cleaned NCES Data/CO_NCES_2021_District.dta"
+merge m:1 state_leaid using "${nces}/Cleaned NCES Data/NCES_2021_District_CO.dta"
 
 rename _merge district_merge
 
@@ -216,12 +216,11 @@ save "${path}/CO_OriginalData_2022_all.dta", replace
 	
 use "${nces}/NCES School Files, Fall 1997-Fall 2022/NCES_2021_School.dta"
 drop if state_fips != 8
-save "${nces}/Cleaned NCES Data/CO_NCES_2021_School.dta", replace
-
+save "${nces}/Cleaned NCES Data/NCES_2021_School_CO.dta", replace
 
 use "${path}/CO_OriginalData_2022_all.dta", clear
-	
-merge m:1 seasch state_fips using "${nces}/Cleaned NCES Data/CO_NCES_2021_School.dta"
+
+merge m:1 seasch using "${nces}/Cleaned NCES Data/NCES_2021_School_CO.dta"	
 drop if state_fips != 8
 
 
@@ -238,7 +237,7 @@ rename schoolcode StateAssignedSchID
 rename schoolname SchName
 rename subject Subject
 rename grade GradeLevel
-rename numberoftotalrecords StudentGroup_TotalTested
+rename numberofvalidscores StudentSubGroup_TotalTested
 rename participationrate ParticipationRate
 rename meanscalescore AvgScaleScore
 rename state_name State
@@ -272,14 +271,17 @@ gen AssmtName="Colorado Measures of Academic Success"
 gen Flag_AssmtNameChange="N"
 gen Flag_CutScoreChange_ELA="N"
 gen Flag_CutScoreChange_math="N"
-gen Flag_CutScoreChange_soc=""
-gen Flag_CutScoreChange_sci=""
+gen Flag_CutScoreChange_soc="Not applicable"
+gen Flag_CutScoreChange_sci="Not applicable"
 gen AssmtType = "Regular"
 gen ProficiencyCriteria = "Levels 4-5"
 gen SchYear="2021-22"
 
 
 // Relabel variable values
+
+replace DistName = strtrim(DistName)
+replace SchName = strtrim(SchName)
 
 tab Subject
 replace Subject="math" if Subject=="Mathematics"
@@ -328,149 +330,96 @@ tab GradeLevel
 replace GradeLevel = "G38" if GradeLevel == "All Grades"
 replace GradeLevel = "G" + GradeLevel if GradeLevel != "G38"
 
+drop if GradeLevel=="G38"
+
 drop if district_merge==2
 drop if _merge==2
 drop _merge
 drop district_merge
 
 
-destring StudentGroup_TotalTested ParticipationRate, replace ignore(",* %NA<>=-")
+destring ParticipationRate, replace ignore(",* %NA<>=-")
 replace ParticipationRate=ParticipationRate/100
 tostring ParticipationRate, replace force
 replace ParticipationRate="*" if ParticipationRate=="."
 
+//// ADJUST PERCENTS AND COUNTS
+forvalues n = 1/5{
+	replace Lev`n'_count = subinstr(Lev`n'_count, ",", "", 1)
+	replace Lev`n'_count = strtrim(Lev`n'_count)
+	destring Lev`n'_percent, replace force
+	replace Lev`n'_percent = Lev`n'_percent/100
+	tostring Lev`n'_percent, replace format("%9.2g") force
+	replace Lev`n'_percent = "*" if Lev`n'_percent == "."
+	replace Lev`n'_count = "*" if Lev`n'_count == "- -"
+}
 
+replace ProficientOrAbove_count = subinstr(ProficientOrAbove_count, ",", "", 1)
+replace ProficientOrAbove_count = strtrim(ProficientOrAbove_count)
+destring ProficientOrAbove_percent, replace force
+replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
+tostring ProficientOrAbove_percent, replace format("%9.2g") force
+replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
+replace ProficientOrAbove_count="*" if ProficientOrAbove_count=="- -"
+replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == ""
 
-//// ADJUST PERCENTS
+destring Lev4_count, gen(Lev4) force
+destring Lev5_count, gen(Lev5) force
+gen Prof = Lev4 + Lev5
+replace ProficientOrAbove_count = string(Prof) if inlist(ProficientOrAbove_count, "*", "") & Prof !=.
+drop Lev4 Lev5 Prof
 
-destring Lev1_percent Lev2_percent Lev3_percent Lev4_percent Lev5_percent ProficientOrAbove_percent, replace ignore(",* %NA<>=-")
+//Aggregating Total Tested
+replace StudentGroup = "EL Exited" if StudentSubGroup == "EL Exited"
+replace StudentSubGroup_TotalTested = strtrim(StudentSubGroup_TotalTested)
+replace StudentSubGroup_TotalTested = subinstr(StudentSubGroup_TotalTested, ",", "", 1)
+replace StudentSubGroup_TotalTested = "1-15" if StudentSubGroup_TotalTested == "< 16"
+split StudentSubGroup_TotalTested, parse("-")
+destring StudentSubGroup_TotalTested1, replace force
+destring StudentSubGroup_TotalTested2, replace force
+replace StudentSubGroup_TotalTested1 = 0 if StudentSubGroup_TotalTested1 == .
+replace StudentSubGroup_TotalTested2 = 0 if StudentSubGroup_TotalTested2 == .
+bysort DistName SchName StudentGroup GradeLevel Subject: egen test = min(StudentSubGroup_TotalTested1)
+bysort DistName SchName StudentGroup GradeLevel Subject: egen test2 = min(StudentSubGroup_TotalTested2)
+bysort DistName SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested1) if test != 0
+bysort DistName SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested2 = sum(StudentSubGroup_TotalTested2) if test2 != 0
+tostring StudentGroup_TotalTested, replace force
+tostring StudentGroup_TotalTested2, replace force
+replace StudentGroup_TotalTested = StudentGroup_TotalTested + "-" + StudentGroup_TotalTested2 if !inlist(StudentGroup_TotalTested2, ".", "0")
+replace StudentGroup_TotalTested = "*" if strpos(StudentGroup_TotalTested, ".") > 0
+drop StudentSubGroup_TotalTested1 StudentSubGroup_TotalTested2 StudentGroup_TotalTested2 test
+replace StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
 
-replace Lev1_percent=Lev1_percent/100
-replace Lev2_percent=Lev2_percent/100
-replace Lev3_percent=Lev3_percent/100
-replace Lev4_percent=Lev4_percent/100
-replace Lev5_percent=Lev5_percent/100
-replace ProficientOrAbove_percent=ProficientOrAbove_percent/100
-
-
-tostring Lev1_percent Lev2_percent Lev3_percent Lev4_percent Lev5_percent ProficientOrAbove_percent, replace force
-
-replace Lev1_percent="*" if Lev1_percent=="."
-replace Lev2_percent="*" if Lev2_percent=="."
-replace Lev3_percent="*" if Lev3_percent=="."
-replace Lev4_percent="*" if Lev4_percent=="."
-replace Lev5_percent="*" if Lev5_percent=="."
-replace ProficientOrAbove_percent="*" if ProficientOrAbove_percent=="."
-
-
-
-//// Generates SubGroup totals
-
-rename StudentGroup_TotalTested StudentSubGroup_TotalTested
-
-gen intGrade=.
-gen intStudentGroup=.
-gen intSubject=. 
-
-replace intGrade=3 if GradeLevel=="G03"
-replace intGrade=4 if GradeLevel=="G04"
-replace intGrade=5 if GradeLevel=="G05"
-replace intGrade=6 if GradeLevel=="G06"
-replace intGrade=7 if GradeLevel=="G07"
-replace intGrade=8 if GradeLevel=="G08"
-replace intGrade=9 if GradeLevel=="G38"
-
-replace intSubject=1 if Subject=="math"
-replace intSubject=2 if Subject=="ela"
-replace intSubject=3 if Subject=="soc"
-replace intSubject=4 if Subject=="sci"
-
-replace intStudentGroup=1 if StudentGroup=="All Students"
-replace intStudentGroup=2 if StudentGroup=="Gender"
-replace intStudentGroup=3 if StudentGroup=="Race"
-replace intStudentGroup=4 if StudentGroup=="EL status"
-replace intStudentGroup=5 if StudentGroup=="Economic Status"
-replace intStudentGroup=6 if StudentGroup=="Migrant Status"
-replace intStudentGroup=7 if StudentGroup=="Disability Status"
-
-
-replace StudentSubGroup_TotalTested=999999999 if StudentSubGroup_TotalTested==.
-
-
-// Flag
-
-save "${output}/CO_2022_base.dta", replace
-
-
-
-collapse (sum) StudentSubGroup_TotalTested, by(NCESDistrictID NCESSchoolID intGrade intStudentGroup intSubject)
-
-rename StudentSubGroup_TotalTested StudentGroup_TotalTested
-
-
-// Flag
-
-save "${output}/CO_2022_studentgrouptotals.dta", replace
-
-
-// Flag
-
-use "${output}/CO_2022_base.dta", replace
-
-
-// Flag
-
-merge m:1 NCESDistrictID NCESSchoolID intGrade intSubject intStudentGroup using "${output}/CO_2022_studentgrouptotals.dta"
-
-tostring StudentSubGroup_TotalTested, replace
-replace StudentSubGroup_TotalTested="*" if StudentSubGroup_TotalTested=="999999999"
-
-replace StudentGroup_TotalTested=999999999 if StudentGroup_TotalTested>=10000000
-tostring StudentGroup_TotalTested, replace
-replace StudentGroup_TotalTested="*" if StudentGroup_TotalTested=="999999999"
-
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+gen Suppressed = 0
+replace Suppressed = 1 if inlist(StudentSubGroup_TotalTested, "--", "*")
+egen StudentGroup_Suppressed = max(Suppressed), by(StudentGroup GradeLevel Subject DataLevel seasch StateAssignedDistID DistName SchName)
+drop Suppressed
+gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
+replace StudentGroup_TotalTested = AllStudents_Tested if StudentGroup_Suppressed == 1
+replace StudentGroup_TotalTested = AllStudents_Tested if AllStudents_Tested == "1-15"
+drop AllStudents_Tested StudentGroup_Suppressed
+replace StudentGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "--"
+replace StudentGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "*"
+replace StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "EL Exited"
+replace StudentGroup = "EL Status" if StudentSubGroup == "EL Exited"
 
 ////
-
 replace StateAbbrev="CO" if StateAbbrev==""
 replace StateAssignedSchID="" if StateAssignedSchID=="0000"
 
-drop if GradeLevel=="G38" & Subject=="math"
-
 replace StateAssignedSchID="" if StateAssignedSchID=="0000"
-replace StudentSubGroup="All Students" if StudentSubGroup=="All students"
-replace StudentSubGroup="Black or African American" if StudentSubGroup=="Black"
-replace StudentSubGroup="Native Hawaiian or Pacific Islander" if StudentSubGroup=="Hawaiian/Pacific Islander"
-replace StudentSubGroup="Hispanic or Latino" if StudentSubGroup=="Hispanic"
-replace StudentSubGroup="English Learner" if StudentSubGroup=="English learner"
-replace StudentSubGroup="English Proficient" if StudentSubGroup=="English proficient"
-replace StudentSubGroup="Two or More" if StudentSubGroup=="Two or More Races"
-replace StudentSubGroup="Unknown" if StudentSubGroup=="Unreported"
-replace StudentSubGroup="Unknown" if StudentSubGroup=="Unreported/ Not Applicable"
-
-replace StudentGroup="All Students" if StudentGroup=="All students"
-replace StudentGroup="EL Status" if StudentGroup=="EL status"
-replace StudentGroup="RaceEth" if StudentGroup=="Race"
 
 tostring NCESDistrictID, replace force
 tostring NCESSchoolID, replace force
 
-replace Lev1_count="*" if Lev1_count=="- -"
-replace Lev2_count="*" if Lev2_count=="- -"
-replace Lev3_count="*" if Lev3_count=="- -"
-replace Lev4_count="*" if Lev4_count=="- -"
-replace Lev5_count="*" if Lev5_count=="- -"
-replace Lev1_percent="*" if Lev1_percent=="- -"
-replace Lev2_percent="*" if Lev2_percent=="- -"
-replace Lev3_percent="*" if Lev3_percent=="- -"
-replace Lev4_percent="*" if Lev4_percent=="- -"
-replace Lev5_percent="*" if Lev5_percent=="- -"
 replace AvgScaleScore="*" if AvgScaleScore=="- -"
-replace ProficientOrAbove_count="*" if ProficientOrAbove_count=="- -"
-replace ProficientOrAbove_percent="*" if ProficientOrAbove_percent=="- -"
-replace ParticipationRate="*" if ParticipationRate=="- -"
 
+replace StateAssignedSchID="" if DataLevel != "School"
+replace SchName = "All Schools" if DataLevel != "School"
 replace StateAssignedDistID="" if DataLevel=="State"
+replace DistName = "All Districts" if DataLevel=="State"
 
 replace Lev5_count="*" if Lev5_count==""
 replace ProficientOrAbove_count="*" if ProficientOrAbove_count==""
@@ -490,6 +439,4 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${output}/CO_AssmtData_2022.dta", replace
 export delimited using "${output}/CO_AssmtData_2022.csv", replace
-
-
 

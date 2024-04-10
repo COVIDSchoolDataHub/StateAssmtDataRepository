@@ -3,7 +3,7 @@ set more off
 
 cd "/Users/miramehta/Documents/CO State Testing Data"
 
-local path "/Users/miramehta/Documents/CO State Testing Data/2023"
+global path "/Users/miramehta/Documents/CO State Testing Data/2023"
 global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
 
 local studentgroup `" "Gender" "Race Ethnicity" "Language Proficiency" "Migrant" "IEP" "'
@@ -33,4 +33,3 @@ foreach sub of local subject {
 	gen Subject = "`sub'"
 	save "${path}/CO_AssmtData_2023_`sub'_Free Reduced Lunch.dta", replace
 }
-
