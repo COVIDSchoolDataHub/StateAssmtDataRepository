@@ -10,7 +10,7 @@ Original, NCES, Output, Temp, and EDFacts.
 
 Download do-files and place them in the Arkansas folder.
 
-Download the original .xlsx files and place them into the "Original" folder. Download the EDFacts data in Long .dta format and place them in the EDfacts folder. Download updated NCES files and place them in the NCES folder. Download ar_full-dist-sch-stable-list_through2023.xlsx and place it in the maine folder.
+Download the original .xlsx files and place them into the "Original" folder. Download the EDFacts data in Long .dta format and place them in the EDfacts folder. Download updated NCES files and place them in the NCES folder. Download ar_full-dist-sch-stable-list_through2023.xlsx and place it in the main folder.
 
 ## Explanation of cleaning process
 Each do-file cleans data that has a very similar structure. The data each do-file cleans is outlined below.
