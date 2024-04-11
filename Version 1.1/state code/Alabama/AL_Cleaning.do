@@ -30,7 +30,7 @@ foreach year in 2015 2016 2017 2018 2019 2021 2022 {
 	merge 1:1 SystemCode SchoolCode Subject Grade Gender Race Ethnicity SubPopulation using "`Original'/AL_OriginalData_percents_`year'", nogen
 	save "`Original'/AL_OriginalData_`year'",replace
 	clear
-}
+
 //Excel Code: 2023
 foreach Subject in ela math sci {
 	import excel "`Original'/AL_OriginalData`Subject'_2023", firstrow case(preserve)
@@ -80,8 +80,8 @@ save "`Original'/AL_OriginalData_`year'", replace
 clear
 }
 
-
 */
+
 
 forvalues year = 2015/2023 {
 	if `year' == 2020 {
@@ -125,7 +125,7 @@ replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD" | Student
 replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant"
 replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless"
 replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Military"
-replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Foster"
+replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Foster Care"
 
 //Derive Missing StudentSubGroup Counts where Possible
 if `year' !=2023 {
@@ -336,10 +336,10 @@ replace StateAbbrev = "AL"
 gen State = "Alabama"
 gen AvgScaleScore = "--"
 gen Flag_AssmtNameChange = "N"
-gen Flag_CutScoreChange_ELA = ""
+gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_sci = "N"
-gen Flag_CutScoreChange_soc = ""
+gen Flag_CutScoreChange_soc = "Not applicable"
 gen ProficiencyCriteria = "Levels 3-4"
 gen Lev5_percent =.
 gen Lev5_count =.
@@ -386,17 +386,20 @@ if `year' >=2021 {
 
 //Flags
 replace Flag_AssmtNameChange = "Y" if `year' == 2018 | `year' == 2021
-replace Flag_CutScoreChange_ELA = "Y" if `year' == 2021
-replace Flag_CutScoreChange_ELA = "N" if `year' > 2021
+replace Flag_CutScoreChange_ELA = "Y" if `year' == 2018 | `year' == 2021
 replace Flag_CutScoreChange_sci = "Y" if `year' == 2018 | `year' == 2021
 replace Flag_CutScoreChange_math = "Y" if `year' == 2018 | `year' == 2021
 
 //Changes fall 2023:
 replace Subject = "ela" if Subject == "read"
 
-//Response to R2
+//Response to Reviews
 drop if StudentSubGroup_TotalTested == "0"
 drop if Lev1_percent == "0" & Lev2_percent == "0" & Lev3_percent == "0" & Lev4_percent == "0"
+
+replace CountyName = strproper(CountyName)
+
+drop if `year' == 2016 & SchName == "Envision Virtual Academy"
 
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode

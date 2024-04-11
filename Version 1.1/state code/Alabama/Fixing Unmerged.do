@@ -17,17 +17,18 @@ rename state_leaid State_leaid
 rename ncesschoolid NCESSchoolID
 rename county_name CountyName
 rename county_code CountyCode
+merge 1:m StateAssignedSchID using AL_AssmtData_2016, nogen
+save "AL_AssmtData_2016", replace
+clear
+
+use AL_AssmtData_2016
+
 drop SchType
 rename SchType_str SchType
 drop SchLevel
 rename SchLevel_str SchLevel
 drop SchVirtual
 rename SchVirtual_str SchVirtual
-merge 1:m StateAssignedSchID using AL_AssmtData_2016, nogen
-save "AL_AssmtData_2016", replace
-clear
-
-use AL_AssmtData_2016
 
 foreach var of varlist NCESSchoolID NCESDistrictID DistType DistCharter SchType SchVirtual SchLevel CountyName State_leaid seasch {
  replace `var' = "Missing/not reported" if StateAssignedSchID == "049-0266"
