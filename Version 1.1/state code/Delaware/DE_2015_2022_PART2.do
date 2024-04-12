@@ -7,12 +7,12 @@ cap log close
 
 //NOTE: To convert excel files to dta., please run Excel DCAS file do FIRST before running this code.
 
-local data "/Users/minnamgung/Desktop/SADR/Delaware/Original Data Files/Combined .dta by DataLevel & Year"
+global data "/Users/minnamgung/Desktop/SADR/Delaware/Original Data Files/Excel DCAS Datasets"
 
 foreach year in 2015 2016 2017 {
 	di as error "`year'"
 //State
-	use "`data'/State_`year'_DCAS.dta", clear
+	import excel "${data}/State_`year'_DCAS.xlsx", sheet("Sheet1") firstrow clear
 	if `year' == 2017 {
 		rename PercentProficient PercentProficiency
 	}
@@ -46,7 +46,7 @@ foreach year in 2015 2016 2017 {
 	
 	
 //District 
-	use "`data'/District_`year'_DCAS.dta", clear
+	import excel "${data}/District_`year'_DCAS.xlsx", sheet("Sheet1") firstrow clear
 	if `year' != 2017 {
 	drop G PercentProficient I
 	}
@@ -91,7 +91,7 @@ foreach year in 2015 2016 2017 {
 	save "`District_`year''"
 
 //School
-	use "`data'/School_`year'_DCAS.dta", clear
+	import excel "${data}/School_`year'_DCAS.xlsx", sheet("Sheet1") firstrow clear
 	if `year' != 2017 {
 	drop G PercentProficient I
 	}
@@ -132,7 +132,7 @@ foreach year in 2015 2016 2017 {
 	save "`School_`year''"
 //Charter (for 2016 & 17)
 	if `year' != 2015 {
-	use "`data'/Charter_`year'_DCAS.dta"
+	import excel "${data}/Charter_`year'_DCAS.xlsx", sheet("Sheet1") firstrow clear
 	rename School SchoolName
 	if `year' != 2017 {
 	drop G H I
@@ -177,11 +177,11 @@ foreach year in 2015 2016 2017 {
 	}
 	if `year' == 2015 {
 	append using "`State_`year''" "`District_`year''" "`School_`year''"
-	save "`data'/Combined_`year'", replace
+	save "${data}/Combined_`year'", replace
 	}
 	else {
 	append using "`State_`year''" "`District_`year''"  "`School_`year''" "`Charter_`year''"
-	save "`data'/Combined_`year'", replace
+	save "${data}/Combined_`year'", replace
 	}
 	
 	clear
@@ -195,10 +195,10 @@ foreach year in 2015 2016 2017 {
 
 //Additional Cleaning- SET ADDITIONAL FILE DIRECTORIES
 
-local data "/Users/minnamgung/Desktop/SADR/Delaware/Original Data Files/Combined .dta by DataLevel & Year"
-local cleaned "/Users/minnamgung/Desktop/SADR/Delaware/Output"
+global data "/Users/minnamgung/Desktop/SADR/Delaware/Original Data Files/Excel DCAS Datasets"
+global cleaned "/Users/minnamgung/Desktop/SADR/Delaware/Output"
 	foreach year in 2015 2016 2017 {
-		use "`data'/Combined_`year'"
+		use "${data}/Combined_`year'", clear
 		
 		//getting rid of extra grades
 		keep if Grade == "G04" | Grade == "G05" | Grade == "G07" | Grade == "G08"
@@ -247,7 +247,7 @@ local cleaned "/Users/minnamgung/Desktop/SADR/Delaware/Output"
 		replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
 		replace StudentSubGroup = "English Learner" if StudentSubGroup == "ELL"
 		replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Low-Income"
-		replace StudentSubGroup = "SWD" if StudentSubGroup == "Students With Disability"
+		replace StudentSubGroup = "SWD" if StudentSubGroup == "Students with Disability"
 		drop if StudentSubGroup == "Student Gap Group" 
 		
 		//StudentGroup
@@ -267,9 +267,9 @@ local cleaned "/Users/minnamgung/Desktop/SADR/Delaware/Output"
 		clear
 		
 		//Using already cleaned ELA and Math data to get data for each scool and district
-		use "`cleaned'/DE_AssmtData_`year'.dta"
+		use "${cleaned}/DE_AssmtData_`year'.dta"
 		drop if DataLevel !=3
-		keep NCESDistrictID DistType State_leaid StateAssignedDistID NCESSchoolID StateAssignedSchID seasch SchLevel SchVirtual CountyName CountyCode SchName DistName SchType DistCharter
+		keep NCESDistrictID DistType  StateAssignedDistID NCESSchoolID StateAssignedSchID SchLevel SchVirtual CountyName CountyCode SchName DistName SchType DistLocale DistCharter
 		duplicates drop
 		duplicates drop SchName, force
 		merge 1:m SchName using "`CombinedSCISOC_`year''"
@@ -279,9 +279,9 @@ local cleaned "/Users/minnamgung/Desktop/SADR/Delaware/Output"
 		tempfile School
 		save "`School'"
 		clear
-		use "`cleaned'/DE_AssmtData_`year'.dta"
+		use "${cleaned}/DE_AssmtData_`year'.dta"
 		drop if DataLevel !=2
-		keep NCESDistrictID StateAssignedDistID DistType State_leaid CountyName CountyCode DistName DistCharter
+		keep NCESDistrictID StateAssignedDistID DistType CountyName CountyCode DistName DistLocale DistCharter
 		duplicates drop DistName, force
 		merge 1:m DistName using "`CombinedSCISOC_`year''"
 		drop if DistName == "Dept. of Svs. for Children Youth & Their Families" //Not in Sci / Soc data
@@ -309,9 +309,13 @@ local cleaned "/Users/minnamgung/Desktop/SADR/Delaware/Output"
 		rename county_code CountyCode
 		rename county_name CountyName
 		rename district_agency_type DistType
+		rename dist_urban_centric_locale DistLocale
 		decode DistType, gen(temp)
 		drop DistType
 		rename temp DistType
+		decode DistLocale, gen(temp)
+		drop DistLocale
+		rename temp DistLocale
 		decode SchLevel, gen(temp)
 		drop SchLevel
 		rename temp SchLevel
@@ -321,7 +325,7 @@ local cleaned "/Users/minnamgung/Desktop/SADR/Delaware/Output"
 		decode SchType, gen(temp)
 		drop SchType
 		rename temp SchType
-		keep NCESSchoolID SchName NCESDistrictID StateAssignedSchID DistName StateAssignedDistID SchType CountyCode CountyName DistType DistCharter SchType seasch SchLevel SchVirtual State_leaid
+		keep NCESSchoolID SchName NCESDistrictID StateAssignedSchID DistName StateAssignedDistID SchType CountyCode CountyName DistType DistCharter DistLocale SchType seasch SchLevel SchVirtual State_leaid
 		keep if SchName == "Carver (G.W.) Educational Center" | SchName == "Central School (The)" | SchName == "Douglass School" | SchName == "First State School" | SchName == "Kent County Secondary ILC" | SchName == "Penn (William) High School" | SchName == "Delaware School for the Deaf" | SchName == "Sussex Consortium" | SchName == "Richardson Park Learning Center" | SchName == "Family Foundations Academy" | SchName == "Sussex Academy of Arts and Sciences"
 		replace SchName = "Delaware School for the Deaf School (DSD)" if SchName == "Delaware School for the Deaf" 
 		merge 1:m SchName using "`idk'"
@@ -446,7 +450,7 @@ local cleaned "/Users/minnamgung/Desktop/SADR/Delaware/Output"
 		save "`final_`year''"
 		clear
 
-		use "`cleaned'/DE_AssmtData_`year'.dta"
+		use "${cleaned}/DE_AssmtData_`year'.dta"
 		drop if Subject == "sci" | Subject == "soc"
 		
 		
@@ -466,12 +470,13 @@ replace ParticipationRate = range_part + ParticipationRate
 
 		
 		//Cleaning and Sorting:
-		order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
-keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
-duplicates report State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentSubGroup, force
-sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-		save "`cleaned'/DE_AssmtData_`year'.dta", replace
-		export delimited using "`cleaned'/DE_AssmtData_`year'.csv", replace
+		keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+	
+	order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+	sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+		save "${cleaned}/DE_AssmtData_`year'.dta", replace
+		export delimited using "${cleaned}/DE_AssmtData_`year'.csv", replace
 		
 		
 		clear

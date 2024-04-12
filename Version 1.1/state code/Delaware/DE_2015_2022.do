@@ -8,7 +8,7 @@ global nces "/Users/minnamgung/Desktop/SADR/Delaware/NCESNew"
 global PART2 "/Users/minnamgung/Documents/GitHub/StateAssmtDataRepository/Version 1.1/state code/Delaware/DE_2015_2022_PART2.do" //Set filepath for second do file
 
 // foreach year in 2015 2016 2017 2018 2019 2021 2022 2023
-foreach year in 2023 { //2020 data would be empty, is thus not included
+foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 { //2020 data would be empty, is thus not included
 
 if `year' >= 2019 {
 	import excel "${original}/DE_OriginalData_`year'_all.xlsx", sheet("Sheet1") firstrow allstring clear
@@ -89,6 +89,7 @@ replace DistCharter = DistCharter1 if DataLevel==2 //For some reason, NCES has D
 replace CountyName = CountyName1 if DataLevel==2
 replace CountyCode = CountyCode1 if DataLevel==2
 replace DistType = DistType1 if DataLevel==2
+replace DistLocale = DistLocale1 if DataLevel==2
 
 
 
@@ -105,7 +106,6 @@ replace GradeLevel="G08" if GradeLevel=="8th Grade"
 
 //Dropping High School Data
 keep if inlist(GradeLevel, "G03", "G04", "G05", "G06", "G07", "G08")
-
 
 //Fixing StudentGroup and StudentSubGroup 
 
@@ -169,7 +169,7 @@ replace StateFips= 10
 recast int StateFips
 drop DistName
 rename District DistName
-rename Organization SchName
+replace SchName = Organization if SchName == ""
 replace DistName= "All Districts" if DataLevel==1
 replace SchName = "All Schools" if DataLevel==1
 replace SchName= "All Schools" if DataLevel==2
@@ -203,8 +203,8 @@ gen Flag_AssmtNameChange="N"
 *replace Flag_AssmtNameChange = "Y" if `year'==2019 & (Subject== "sci" | Subject == "soc")
 gen Flag_CutScoreChange_ELA="N"
 gen Flag_CutScoreChange_math="N"
-gen Flag_CutScoreChange_oth="N"
-gen Flag_CutScoreChange_read="N"
+gen Flag_CutScoreChange_soc="N"
+gen Flag_CutScoreChange_sci="N"
 *replace Flag_CutScoreChange_oth = "" if `year' == 2018
 *replace Flag_CutScoreChange_oth = "Y" if `year'==2019 & Subject== "sci"
 *replace Flag_AssmtNameChange = "Y" if `year' == 2018 & Subject== "sci"
@@ -245,7 +245,7 @@ replace ProficientOrAbove_percent = "*" if RowStatus== "REDACTED"
 
 
 //Proficiency Criteria
-gen ProficiencyCriteria = "Level 3-4"
+gen ProficiencyCriteria = "Levels 3-4"
 
 
 //Ordering, Sorting, Dropping Alternative Assessments
@@ -289,9 +289,11 @@ if `year' == 2023 {
 	drop if AssmtName == "DeSSA Alternate Assessment"
 }
 
-order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
-keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
-sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+	
+	order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+	sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 //Exporting
 save "${output}/DE_AssmtData_`year'.dta", replace
@@ -354,27 +356,102 @@ use "${output}/DE_AssmtData_`year'", clear
 
 	replace ProficiencyCriteria = "Levels 3-4"
 	
-	if `year' < 2017  | `year' < 2017 == 2023 {
-	
-		drop Flag_CutScoreChange_sci Flag_CutScoreChange_soc
-	
-	}
-	
-	gen Flag_CutScoreChange_sci="N"
-	gen Flag_CutScoreChange_soc="N"
+	replace Flag_CutScoreChange_sci="N"
+	replace Flag_CutScoreChange_soc="N"
 	
 	if `year' == 2017 {
-	replace Flag_CutScoreChange_soc=""
+	replace Flag_CutScoreChange_soc="Not applicable"
 	}
 	
 	if `year' == 2018 {
-	replace Flag_CutScoreChange_sci=""
-	replace Flag_CutScoreChange_soc=""
+	replace Flag_CutScoreChange_sci="Not applicable"
+	replace Flag_CutScoreChange_soc="Not applicable"
 	}
 	
 	if `year' == 2019 {
 	replace Flag_CutScoreChange_sci="Y"
 	replace Flag_CutScoreChange_soc="Y"
+	}
+	
+	if `year' == 2015 | `year' == 2016 {
+	
+		drop if Subject == "sci" & DataLevel == 1 & Lev1_count == "--" & Lev1_percent == "--"
+		drop if Subject == "soc" & DataLevel == 1 & Lev1_count == "--" & Lev1_percent == "--"
+		
+		replace StudentGroup_TotalTested = StudentSubGroup_TotalTested if Subject == "sci" & DataLevel == 1 & StudentGroup != "RaceEth"
+		replace StudentGroup_TotalTested = StudentSubGroup_TotalTested if Subject == "soc" & DataLevel == 1 & StudentGroup != "RaceEth"
+		
+		destring StudentGroup_TotalTested, gen(totaltest1) force
+		replace totaltest1 = totaltest1 / 2
+		tostring totaltest1, replace
+		
+		replace StudentGroup_TotalTested = totaltest1 if Subject == "sci" & DataLevel == 1 & StudentGroup == "RaceEth"
+		replace StudentGroup_TotalTested = totaltest1 if Subject == "soc" & DataLevel == 1 & StudentGroup == "RaceEth"
+		drop totaltest1
+		
+		replace SchLevel = "Other" if SchName == "The Wallace Wallin School"
+		replace SchVirtual = "No" if SchName == "The Wallace Wallin School"
+
+	}
+	
+	if `year' == 2015 | `year' == 2016 | `year' == 2017 {
+		replace StudentSubGroup_TotalTested = "1-16" if StudentSubGroup_TotalTested == "<= 15"
+		
+		replace Lev1_count="*" if Subject=="sci" & Lev1_percent=="<0.01" & `year' == 2015
+		replace Lev1_percent="*" if Subject=="sci" & Lev1_percent=="<0.01" & `year' == 2015
+		
+		replace ParticipationRate=".99-1" if ParticipationRate==">0.99"
+		replace ParticipationRate=".95-1" if ParticipationRate==">0.95"
+		
+		destring ProficientOrAbove_percent, gen(profpercent) ignore("*" & "--")
+		destring StudentSubGroup_TotalTested, gen(totaltested) ignore("*" & "--")
+		
+		replace totaltested=0 if totaltested==116
+		
+		gen profcount = profpercent * totaltested 
+		
+		format profcount %4.0f
+		tostring profcount, replace format("%4.0f") force
+		
+		replace ProficientOrAbove_count = profcount if ProficientOrAbove_count=="--" & AssmtName == "DCAS Assessment" 
+		replace ProficientOrAbove_count = "*" if ProficientOrAbove_count=="0" & AssmtName == "DCAS Assessment" & StudentSubGroup_TotalTested == "1-16"
+		replace ProficientOrAbove_count = "--" if ProficientOrAbove_count=="." & AssmtName == "DCAS Assessment" & StudentSubGroup_TotalTested == "--"
+		drop profcount totaltested profpercent
+	}
+	
+	if `year' < 2022 {
+	
+		foreach v of varlist ProficientOrAbove_count AvgScaleScore {
+			replace `v' = "999999" if `v'=="*"
+			replace `v' = "888888" if `v'=="--"
+			
+			destring `v', generate(`v'_new) ignore(",")
+			drop `v'
+			
+			tostring `v'_new, gen(`v')
+			drop `v'_new
+			
+			replace `v' = "*" if `v'=="999999"
+			replace `v' = "--" if `v'=="888888"
+
+		}
+		
+	}
+	
+	if `year' == 2017 {
+		destring Lev1_percent, generate(Lev1_p) ignore("*" & "--") 
+		destring Lev2_percent, generate(Lev2_p) ignore("*" & "--")
+		destring Lev3_percent, generate(Lev3_p) ignore("*" & "--")
+		
+		replace Lev4_percent = "999999999" if Lev4_percent == "<0.05"
+		destring Lev4_percent, generate(Lev4_p) ignore("*" & "--")
+		
+		replace Lev4_p = 1 - Lev1_p - Lev2_p - Lev3_p if Lev4_p == 999999999
+		
+		tostring Lev4_p, replace force
+		
+		replace Lev4_percent = Lev4_p if Lev4_percent == "999999999"
+
 	}
 	
 	keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter SchType SchLevel SchVirtual CountyName CountyCode
