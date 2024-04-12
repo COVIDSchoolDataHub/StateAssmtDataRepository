@@ -47,7 +47,7 @@ gen DistName = ""
 gen AssmtName = "Nebraska Student-Centered Assessment System (NSCAS)"
 gen AssmtType = "Regular"
 gen Flag_AssmtNameChange = "N"
-gen Flag_CutScoreChange_ELA = "N"
+gen Flag_CutScoreChange_ELA = "Y"
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_soc = "Not Applicable"
 gen Flag_CutScoreChange_sci = "Y"
@@ -259,53 +259,6 @@ replace DistName = lea_name if DataLevel == 3
 drop state_name year _merge merge2 district_agency_type_num urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type district_agency_type_num school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_lowest_grade_offered dist_highest_grade_offered dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch lea_name
 */
 
-//Label & Organize Variables
-label var State "State name"
-label var StateAbbrev "State abbreviation"
-label var StateFips "State FIPS Id"
-label var NCESDistrictID "NCES district ID"
-label var State_leaid "State LEA ID"
-label var DistType "District type as defined by NCES"
-label var DistCharter "Charter indicator"
-label var CountyName "County in which the district or school is located"
-label var CountyCode "County code in which the district or school is located, also referred to as the county-level FIPS code"
-label var NCESSchoolID "NCES school ID"
-label var SchType "School type as defined by NCES"
-label var SchVirtual "Virtual school indicator"
-label var SchLevel "School level"
-label var SchYear "School year in which the data were reported"
-label var AssmtName "Name of state assessment"
-label var Flag_AssmtNameChange "Flag denoting a change in the assessment's name from the prior year only"
-label var Flag_CutScoreChange_ELA "Flag denoting a change in scoring determinations in ELA from the prior year only"
-label var Flag_CutScoreChange_math "Flag denoting a change in scoring determinations in math from the prior year only"
-*label var Flag_CutScoreChange_read "Flag denoting a change in scoring determinations in reading from the prior year only"
-label var AssmtType "Assessment type"
-label var DataLevel "Level at which the data are reported"
-label var DistName "District name"
-label var StateAssignedDistID "State-assigned district ID"
-label var SchName "School name"
-label var StateAssignedSchID "State-assigned school ID"
-label var Subject "Assessment subject area"
-label var GradeLevel "Grade tested"
-label var StudentGroup "Student demographic group"
-label var StudentGroup_TotalTested "Number of students in the designated StudentGroup who were tested"
-label var StudentSubGroup "Student demographic subgroup"
-label var StudentSubGroup_TotalTested "Number of students in the designated Student Sub-Group who were tested"
-label var Lev1_count "Count of students within subgroup performing at Level 1"
-label var Lev1_percent "Percent of students within subgroup performing at Level 1"
-label var Lev2_count "Count of students within subgroup performing at Level 2"
-label var Lev2_percent "Percent of students within subgroup performing at Level 2"
-label var Lev3_count "Count of students within subgroup performing at Level 3"
-label var Lev3_percent "Percent of students within subgroup performing at Level 3"
-label var Lev4_count "Count of students within subgroup performing at Level 4"
-label var Lev4_percent "Percent of students within subgroup performing at Level 4"
-label var Lev5_count "Count of students within subgroup performing at Level 5"
-label var Lev5_percent "Percent of students within subgroup performing at Level 5"
-label var AvgScaleScore "Avg scale score within subgroup"
-label var ProficiencyCriteria "Levels included in determining proficiency status"
-label var ProficientOrAbove_count "Count of students achieving proficiency or above on the state assessment"
-label var ProficientOrAbove_percent "Percent of students achieving proficiency or above on the state assessment"
-label var ParticipationRate "Participation rate"
 
 
 //Weird Lev*_percent Values
@@ -314,6 +267,7 @@ local count = subinstr("`var'", "percent", "count",.)
 replace `var' = "*" if `count' == "*" & strpos(`var',"e") !=0
 replace `var' = "0" if `count' == "0" & strpos(`var', "e") !=0
 replace `var' = "--" if `count' == "--" & strpos(`var', "e") !=0
+replace `var' = "0" if real(`var') < 0 & `var' != "*" & `var' != "--" //Rounding sometimes leads to negative numbers for level percents
 }
 
 //Deriving Lev* counts where possible
@@ -321,6 +275,23 @@ foreach var of varlist Lev*_count ProficientOrAbove_count {
 local percent = subinstr("`var'", "count", "percent",.)
 	replace `var' = string(round(real(`percent') * real(StudentSubGroup_TotalTested))) if regexm(StudentSubGroup_TotalTested, "[0-9]") !=0 & regexm(`percent', "[0-9]") !=0 & `var' == "*"
 }
+
+//Response to Post-Launch Review
+//Fixing StateAssignedDistID
+replace StateAssignedDistID = subinstr(State_leaid, "NE-","",.)
+
+//Deriving ProficientOrAbove_percent and ProficientOrAbove_count when we have Lev1_percent
+replace ProficientOrAbove_percent = string(1-real(Lev1_percent), "%9.3g") if regexm(Lev1_percent, "[0-9]") !=0 & regexm(ProficientOrAbove_percent, "[0-9]") ==0 
+replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent) * real(StudentSubGroup_TotalTested))) if regexm(ProficientOrAbove_count, "[0-9]") == 0 & regexm(ProficientOrAbove_percent, "[0-9]") !=0 & regexm(StudentSubGroup_TotalTested, "[0-9]") !=0
+
+//Getting ParticipationRate as string for easy combining
+gen sParticipationRate = string(ParticipationRate, "%9.3g")
+drop ParticipationRate
+rename sParticipationRate ParticipationRate
+**Process: Setting the ParticipationRate to "*" for the last observation where all values are suppressed
+egen allsuppressed = max(_n) if StudentSubGroup_TotalTested == "*" & Lev1_count == "*" & Lev1_percent == "*" & Lev2_count == "*" & Lev2_percent == "*" & Lev3_count == "*" & Lev3_percent == "*" & ProficientOrAbove_count == "*" & ProficientOrAbove_percent == "*" & AvgScaleScore == "*"
+levelsof allsuppressed, local(max_n_suppressed)
+replace ParticipationRate = "*" in `max_n_suppressed'
 
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
