@@ -1,5 +1,6 @@
 # Nebraska Data Cleaning
-Updated as of 4/7/24 pre-review
+Updated 4/7/24; pre-review
+
 This is a ReadMe for Nebraska's data cleaning process, from 2016 to 2023.
 
 ## Setup
