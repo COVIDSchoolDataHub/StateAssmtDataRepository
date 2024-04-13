@@ -106,12 +106,15 @@ gen ProficiencyCriteria = "Levels 3-4"
 local level 1 2 3 4
 
 foreach a of local level {
+	destring Lev`a'_count, gen(Lev`a'_count2) force
 	destring Lev`a'_percent, gen(Lev`a'_percent2) force
 	replace Lev`a'_percent2 = Lev`a'_percent2/100
 	}
 
 gen ProficientOrAbove_percent = Lev3_percent2 + Lev4_percent2
+replace ProficientOrAbove_percent = 1 - (Lev1_percent2 + Lev2_percent2) if ProficientOrAbove_percent == .
 tostring ProficientOrAbove_percent, replace format("%9.2g") force
+replace ProficientOrAbove_percent = "0" if strpos(ProficientOrAbove_percent, "-") > 0
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
 
 foreach a of local level{
@@ -121,14 +124,14 @@ foreach a of local level{
 	drop Lev`a'_percent2
 }
 
-destring Lev3_count, gen(Lev3_count2) force
-destring Lev4_count, gen(Lev4_count2) force
+destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
 
 gen ProficientOrAbove_count = Lev3_count2 + Lev4_count2
+replace ProficientOrAbove_count = StudentSubGroup_TotalTested2 - (Lev1_count2 + Lev2_count2) if ProficientOrAbove_count == .
 tostring ProficientOrAbove_count, replace force
 replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
 
-drop *count2
+drop *2
 
 ** Changing DataLevel
 

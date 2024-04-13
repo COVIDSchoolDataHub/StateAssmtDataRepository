@@ -111,12 +111,15 @@ gen ProficiencyCriteria = "Levels 3-4"
 local level 1 2 3 4
 
 foreach a of local level {
+	destring Lev`a'_count, gen(Lev`a'_count2) force
 	destring Lev`a'_percent, gen(Lev`a'_percent2) force
 	replace Lev`a'_percent2 = Lev`a'_percent2/100
 	}
 
 gen ProficientOrAbove_percent = Lev3_percent2 + Lev4_percent2
+replace ProficientOrAbove_percent = 1 - (Lev1_percent2 + Lev2_percent2) if ProficientOrAbove_percent == .
 tostring ProficientOrAbove_percent, replace format("%9.2g") force
+replace ProficientOrAbove_percent = "0" if strpos(ProficientOrAbove_percent, "-") > 0
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
 
 foreach a of local level{
@@ -126,14 +129,14 @@ foreach a of local level{
 	drop Lev`a'_percent2
 }
 
-destring Lev3_count, gen(Lev3_count2) force
-destring Lev4_count, gen(Lev4_count2) force
+destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
 
 gen ProficientOrAbove_count = Lev3_count2 + Lev4_count2
+replace ProficientOrAbove_count = StudentSubGroup_TotalTested2 - (Lev1_count2 + Lev2_count2) if ProficientOrAbove_count == .
 tostring ProficientOrAbove_count, replace force
 replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
 
-drop *count2
+drop *2
 
 ** Changing DataLevel
 
@@ -165,6 +168,37 @@ drop _merge
 replace StateAbbrev = "OK"
 replace State = "Oklahoma"
 replace StateFips = 40
+
+** OKLAHOMA District Name Standardizing
+
+replace DistName="Dove Schools of Tulsa" if NCESDistrictID=="4000753" //2017
+replace DistName="Dove Schools of OKC" if NCESDistrictID=="4000799" //2018 to 2021
+replace DistName="Cherokee Immersion Charter Sch" if NCESDistrictID=="4000755" //2021 
+replace DistName="Deborah Brown (Charter)" if NCESDistrictID=="4000751" //2021 
+replace DistName="eSchool Virtual Charter Acad" if NCESDistrictID=="4000804" //2021 
+replace DistName="Epic Blended Learning Charter" if NCESDistrictID=="4000800" //2021 
+replace DistName="Insight School of Oklahoma" if NCESDistrictID=="4000785" //2021 
+replace DistName="OKC Charter: Independence Middle School" if NCESDistrictID=="4000781" // 2021
+replace DistName="Tulsa Legacy Charter School" if NCESDistrictID=="4000769" // 2021
+replace DistName="Tulsa Charter: Kipp Tulsa" if NCESDistrictID=="4000780" //2021
+replace DistName="Olustee-Eldorado Public School" if NCESDistrictID=="4000797" //2021
+replace DistName="Astec Charters" if NCESDistrictID=="4000783" // 2021
+replace DistName="Santa Fe South Charter Schools" if NCESDistrictID=="4000796" // 2017 to 2021
+replace DistName="John Rex Charter School" if NCESDistrictID=="4000787" //2017 to 2021 
+replace DistName="Epic Charter School" if NCESDistrictID=="4000777" //2017 to 2022 
+replace DistName="KIPP OKC College Prep" if NCESDistrictID=="4000766" //2017 to 2022 
+replace DistName="LeMonde International Charter" if NCESDistrictID=="4000801" //2019 to 2023
+replace DistName="McCord " if NCESDistrictID=="4019500" // 2017 to 2023 (not 2021)
+replace DistName="McCurtain" if NCESDistrictID=="4019410" // 2017 to 2023 (not 2021)
+replace DistName="McAlester" if NCESDistrictID=="4019440" // 2017 to 2023 (not 2021)
+replace DistName="McLoud" if NCESDistrictID=="4019560" // 2017 to 2023 (not 2021)
+replace DistName="Oklahoma Virtual Charter Academy" if NCESDistrictID=="4000778" // 2017 to 2023 (not 2021)
+replace DistName="Thomas-Fay-Custer Unified District" if NCESDistrictID=="4000015"  // 2017 to 2023 (not 2021)
+replace DistName="Tulsa Charter: School of Arts and Sciences" if NCESDistrictID=="4000774" // 2017 to 2023 (not 2021)
+replace DistName="OKC Charter: Hupfeld Academy at Western Village" if NCESDistrictID=="4000775" // 2017 to 2023 (not 2021)
+replace DistName="Sankofa Middle School (Charter)" if NCESDistrictID=="4000772" // All yrs - 2017 to 2023
+replace DistName="Dove Virtual Academy" if NCESDistrictID=="4000806" //2021 and 2022
+replace DistName="Panola" if NCESDistrictID=="4023400" //2022
 
 ** Generating new variables
 
