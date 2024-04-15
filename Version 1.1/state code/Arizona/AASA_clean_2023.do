@@ -120,74 +120,16 @@ save "${output}/AZ_AssmtData_2023_school_sci.dta", replace
 use "${output}/AZ_AssmtData_school_2023.dta", clear
 append using "${output}/AZ_AssmtData_2023_school_sci.dta"
 
-merge m:1 State_leaid using "${NCES}/NCES_2021_District.dta"
+merge m:1 State_leaid using "${NCES}/NCES_2022_District.dta"
 drop if _merge == 2
 drop _merge
 
-merge m:1 seasch NCESDistrictID using "${NCES}/NCES_2021_School.dta"
+merge m:1 seasch NCESDistrictID using "${NCES}/NCES_2022_School.dta"
 drop if _merge == 2
 drop _merge
 
 sort NCESSchoolID GradeLevel Subject
 gen DataLevel = "School"
-
-** Updating 2023 districts
-
-replace DistType = "Charter agency" if StateAssignedDistID == "90915"
-replace NCESDistrictID = "0400832" if StateAssignedDistID == "90915"
-replace DistCharter = "Yes" if StateAssignedDistID == "90915"
-
-replace DistType = "Charter agency" if StateAssignedDistID == "1001937"
-replace NCESDistrictID = "0409737" if StateAssignedDistID == "1001937"
-replace DistCharter = "Yes" if StateAssignedDistID == "1001937"
-
-replace DistType = "Charter agency" if DistName == "Legacy Traditional School-San Tan"
-replace NCESDistrictID = "0409736" if DistName == "Legacy Traditional School-San Tan"
-replace DistCharter = "Yes" if DistName == "Legacy Traditional School-San Tan"
-
-replace county_name = "Missing/not reported" if inlist(DistName, "Archway Classical Academy Trivium West", "Legacy Traditional School-San Tan")
-replace CountyCode = "Missing/not reported" if inlist(DistName, "Archway Classical Academy Trivium West", "Legacy Traditional School-San Tan")
-
-**** Updating 2023 schools
-
-replace SchType = 1 if SchName == "Bravie T. Soto Elementary School"
-replace NCESSchoolID = "040789003813" if SchName == "Bravie T. Soto Elementary School"
-
-replace SchType = 1 if SchName == "Crismon High School"
-replace NCESSchoolID = "040681003802" if SchName == "Crismon High School"
-
-replace SchType = 4 if SchName == "Desert Sunset Elementary School"
-replace NCESSchoolID = "040717003804" if SchName == "Desert Sunset Elementary School"
-
-replace SchType = 1 if SchName == "Great Hearts Online - Arizona"
-replace NCESSchoolID = "040973703762" if SchName == "Great Hearts Online - Arizona"
-
-replace SchType = 1 if SchName == "Inspiration Mountain School"
-replace NCESSchoolID = "040775003803" if SchName == "Inspiration Mountain School"
-
-replace SchType = 1 if SchName == "La Paloma Academy Marana"
-replace NCESSchoolID = "040019003824" if SchName == "La Paloma Academy Marana"
-
-replace SchType = 1 if SchName == "Leading Edge Academy Flagstaff"
-replace NCESSchoolID = "040039503826" if SchName == "Leading Edge Academy Flagstaff"
-
-replace SchType = 4 if SchName == "Legacy Traditional-San Tan"
-replace NCESSchoolID = "040973603835" if SchName == "Legacy Traditional-San Tan"
-
-replace SchType = 1 if SchName == "Path to Potential"
-replace NCESSchoolID = "040095303833" if SchName == "Path to Potential"
-
-replace SchType = 1 if NCESDistrictID == "0406250" & StateAssignedSchID == "5004"
-replace NCESSchoolID = "040625001425" if NCESDistrictID == "0406250" & StateAssignedSchID == "5004"
-
-replace SchType = 1 if NCESDistrictID == "0407890" & StateAssignedSchID == "1001915"
-replace NCESSchoolID = "040789003814" if NCESDistrictID == "0407890" & StateAssignedSchID == "1001915"
-
-replace SchType = 1 if SchName == "Washington Elementary School District Online Learning Academy"
-replace NCESSchoolID = "040906003805" if SchName == "Washington Elementary School District Online Learning Academy"
-
-replace SchLevel = -1 if SchName == "Bravie T. Soto Elementary School" | SchName == "Crismon High School" | SchName == "Desert Sunset Elementary School" | SchName == "Great Hearts Online - Arizona" | SchName == "Inspiration Mountain School" | SchName == "La Paloma Academy Marana" | SchName == "Leading Edge Academy Flagstaff" | SchName == "Legacy Traditional-San Tan" | SchName == "Path to Potential" | SchName == "Sun Valley Elementary School" | SchName == "Washington Elementary School District Online Learning Academy"
-replace SchVirtual = -1 if SchName == "Bravie T. Soto Elementary School" | SchName == "Crismon High School" | SchName == "Desert Sunset Elementary School" | SchName == "Great Hearts Online - Arizona" | SchName == "Inspiration Mountain School" | SchName == "La Paloma Academy Marana" | SchName == "Leading Edge Academy Flagstaff" | SchName == "Legacy Traditional-San Tan" | SchName == "Path to Potential" | SchName == "Sun Valley Elementary School" | SchName == "Washington Elementary School District Online Learning Academy"
 
 save "${output}/AZ_AssmtData_school_2023.dta", replace
 
@@ -269,29 +211,12 @@ use "${output}/AZ_AssmtData_district_2023.dta", clear
 
 append using "${output}/AZ_AssmtData_2023_district_sci.dta"
 
-merge m:1 State_leaid using "${NCES}/NCES_2021_District.dta"
+merge m:1 State_leaid using "${NCES}/NCES_2022_District.dta"
 drop if _merge == 2
 drop _merge
 
 sort NCESDistrictID GradeLevel Subject
 gen DataLevel = "District"
-
-** Updating 2023 districts
-
-replace DistType = "Charter agency" if StateAssignedDistID == "90915"
-replace NCESDistrictID = "0400832" if StateAssignedDistID == "90915"
-replace DistCharter = "Yes" if StateAssignedDistID == "90915"
-
-replace DistType = "Charter agency" if StateAssignedDistID == "1001937"
-replace NCESDistrictID = "0409737" if StateAssignedDistID == "1001937"
-replace DistCharter = "Yes" if StateAssignedDistID == "1001937"
-
-replace DistType = "Charter agency" if DistName == "Legacy Traditional School-San Tan"
-replace NCESDistrictID = "0409736" if DistName == "Legacy Traditional School-San Tan"
-replace DistCharter = "Yes" if DistName == "Legacy Traditional School-San Tan"
-
-replace county_name = "Missing/not reported" if inlist(DistName, "Archway Classical Academy Trivium West", "Legacy Traditional School-San Tan")
-replace CountyCode = "Missing/not reported" if inlist(DistName, "Archway Classical Academy Trivium West", "Legacy Traditional School-San Tan")
 
 save "${output}/AZ_AssmtData_district_2023.dta", replace
 
@@ -399,7 +324,7 @@ gen AssmtType = "Regular"
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_soc = ""
+gen Flag_CutScoreChange_soc = "Not applicable"
 gen Flag_CutScoreChange_sci = "N"
 
 gen AvgScaleScore = "--"
@@ -455,7 +380,6 @@ tostring ProficientOrAbove_count, replace force
 replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
 drop ProficientOrAbove_percent2 StudentSubGroup_TotalTested2
 
-rename county_name CountyName
 replace CountyName = strproper(CountyName)
 
 replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
@@ -496,7 +420,9 @@ rename DataLevel_n DataLevel
 
 replace SchVirtual = "Missing/not reported" if SchVirtual == "" & DataLevel == 3
 
-	
+replace DistName = "Archway Classical Academy Trivium West - Online (1001937)" if NCESDistrictID == "0409737"
+replace DistName = "Archway Classical Academy Trivium West (90915)" if NCESDistrictID == "0400832"
+
 //order
 
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode

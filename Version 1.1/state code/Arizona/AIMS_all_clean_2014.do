@@ -71,8 +71,8 @@ tostring StateAssignedDistID, generate(State_leaid)
 tostring StateAssignedDistID, replace
 
 merge m:1 State_leaid using "${NCES}/NCES_2013_District.dta", force
+drop if _merge == 2
 drop _merge
-drop if State == ""
 
 replace lea_name = strproper(lea_name)
 replace DistName = lea_name if DistName == ""
@@ -236,7 +236,7 @@ gen Flag_AssmtNameChange="N"
 
 gen Flag_CutScoreChange_ELA="N"
 gen Flag_CutScoreChange_math="N"
-gen Flag_CutScoreChange_soc=""
+gen Flag_CutScoreChange_soc="Not applicable"
 gen Flag_CutScoreChange_sci="N"
 
 gen Lev5_percent=""
