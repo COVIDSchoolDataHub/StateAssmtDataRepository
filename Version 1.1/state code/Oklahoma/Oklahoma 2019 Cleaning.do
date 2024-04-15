@@ -200,6 +200,9 @@ replace DistName="Sankofa Middle School (Charter)" if NCESDistrictID=="4000772" 
 replace DistName="Dove Virtual Academy" if NCESDistrictID=="4000806" //2021 and 2022
 replace DistName="Panola" if NCESDistrictID=="4023400" //2022
 
+replace SchLevel = 2 if NCESSchoolID == "400495000422" 
+replace SchVirtual = 0 if NCESSchoolID == "400495000422" 
+
 ** Generating new variables
 
 gen Flag_AssmtNameChange = "N"

@@ -74,7 +74,6 @@ gen StudentGroup = "RaceEth"
 replace StudentGroup = "All Students" if StudentSubGroup == "all"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "econ_disad"
 replace StudentGroup = "EL Status" if StudentSubGroup == "ell"
-replace StudentGroup = "Ethnicity" if StudentSubGroup == "hisp"
 
 replace StudentSubGroup = "All Students" if StudentSubGroup == "all"
 replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "econ_disad"
@@ -100,11 +99,8 @@ gen StudentSubGroup_TotalTested = round(n_student * prop_ * ParticipationRate)
 
 drop n_student prop_
 
-replace StudentSubGroup_TotalTested = 0 if StudentSubGroup_TotalTested == .
-bysort StateAssignedDistID StudentGroup GradeLevel Subject: egen test = min(StudentSubGroup_TotalTested)
-bysort StateAssignedDistID StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested) if test != 0
-replace StudentGroup_TotalTested = . if test == 0
-replace StudentSubGroup_TotalTested = . if test == 0
+bysort StateAssignedDistID GradeLevel Subject: gen max = StudentSubGroup_TotalTested if StudentGroup == "All Students"
+bysort StateAssignedDistID GradeLevel Subject: egen StudentGroup_TotalTested = max(max)
 
 ** Converting to string
 
