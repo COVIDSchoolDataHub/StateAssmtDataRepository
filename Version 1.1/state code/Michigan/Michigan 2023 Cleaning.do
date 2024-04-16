@@ -213,8 +213,6 @@ replace NCESSchoolID = "268099709049" if SchName == "Pittsfield Acres Academy"
 replace SchLevel = "Missing/not reported" if SchName == "Covenant School - Spectrum" | SchName == "Leonidas School" | SchName == "Muskegon County Juvenile Transition Center" | SchName == "Muskegon Maritime Academy" | SchName == "North Pointe" | SchName == "Pittsfield Acres Academy"
 replace SchVirtual = "Missing/not reported" if SchName == "Covenant School - Spectrum" | SchName == "Leonidas School" | SchName == "Muskegon County Juvenile Transition Center" | SchName == "Muskegon Maritime Academy" | SchName == "North Pointe" | SchName == "Pittsfield Acres Academy" | SchName == "Explore Academy-Livonia" | SchName == "New Dawn Academy of Warren"
 
-**
-
 rename StateName State
 replace StateAbbrev = "MI"
 replace State = "Michigan"
@@ -229,6 +227,24 @@ gen Flag_CutScoreChange_math = "N"
 /// gen Flag_CutScoreChange_read = ""
 gen Flag_CutScoreChange_soc = "N"
 gen Flag_CutScoreChange_sci = "N"
+
+** 2024 Pre-review edit
+
+replace NCESSchoolID = "268052007963" if SchName== "Ingham Academy/Family Center"
+
+replace DistLocale = "City, small" if SchName=="Muskegon Maritime Academy"
+replace SchLevel = "Primary" if SchName=="Muskegon Maritime Academy"
+replace SchVirtual = "No" if SchName=="Muskegon Maritime Academy"
+replace CountyCode = 26121 if SchName=="Muskegon Maritime Academy"
+replace CountyName = "Muskegon County" if SchName=="Muskegon Maritime Academy"
+
+replace DistLocale = "Suburb, large" if SchName=="Pittsfield Acres Academy"
+replace SchLevel = "Primary" if SchName=="Pittsfield Acres Academy"
+replace SchVirtual = "No" if SchName=="Pittsfield Acres Academy"
+replace CountyCode = 26161 if SchName=="Pittsfield Acres Academy"
+replace CountyName = "Washtenaw County" if SchName=="Pittsfield Acres Academy"
+
+drop if SchName == "Ingham Academy/Family Center" // No studentcount for all groups/subgroups
 
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 	
