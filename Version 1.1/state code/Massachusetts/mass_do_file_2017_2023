@@ -1,95 +1,99 @@
 cap log close
 log using massachusetts_cleaning.log, replace
-cd "/Users/benjaminm/Documents/State_Repository_Research/Massachusetts"
+
+
+
+
 
 //import delimited "mass_new.csv", clear case(preserve)  
 //save "mass_new", replace 
 
 
-// USE THIS CODE FOR 2024 DATA FROM E2C WHEN IT COMES OUT
+// USE THIS CODE FOR 2024 DATA FROM E2C
 // cleaning new mass data which was not scraped 
-use mass_new, clear
-
-replace DIST_NAME = "" if DIST_CODE == 0
-replace ORG_NAME = "" if ORG_CODE == 0
-
-
-rename SY SchYear	
-rename DIST_CODE StateAssignedDistID 	
-rename DIST_NAME DistName
-rename ORG_CODE StateAssignedSchID	
-rename ORG_NAME SchName
-rename ORG_TYPE DataLevel
-rename TEST_GRADE GradeLevel	
-rename SUBJECT Subject
-rename STUGRP StudentGroup	
-rename M_PLUS_E_CNT ProficientOrAbove_count	
-rename M_PLUS_E_PCT ProficientOrAbove_percent	
-rename E_CNT Lev4_count	
-rename E_PCT Lev4_percent	
-rename M_CNT Lev3_count
-rename M_PCT Lev3_percent	
-rename PM_CNT Lev2_count		
-rename PM_PCT Lev2_percent				
-rename NM_CNT Lev1_count	
-rename NM_PCT Lev1_percent
-rename STU_CNT StudentGroup_TotalTested	
-rename STU_PART_PCT ParticipationRate 
-rename AVG_SCALED_SCORE AvgScaleScore 
-
-order DataLevel SchYear GradeLevel StudentGroup	DistName StateAssignedDistID Subject ProficientOrAbove_count ProficientOrAbove_percent Lev4_count Lev4_percent	Lev3_count Lev3_percent Lev2_count Lev2_percent Lev1_count	Lev1_percent StudentGroup_TotalTested ParticipationRate AvgScaleScore DISTRICT_AND_SCHOOL
-
-keep DataLevel SchYear GradeLevel StudentGroup	DistName StateAssignedDistID Subject ProficientOrAbove_count ProficientOrAbove_percent Lev4_count Lev4_percent	Lev3_count Lev3_percent Lev2_count Lev2_percent Lev1_count	Lev1_percent StudentGroup_TotalTested ParticipationRate AvgScaleScore DISTRICT_AND_SCHOOL
-
-replace DataLevel = "School" if DataLevel == "Charter School" | DataLevel == "Public School"
-replace DataLevel = "District" if DataLevel == "Charter District" | DataLevel == "Public School District"
-
-tostring SchYear, replace 
-tostring ProficientOrAbove_count, replace
-tostring ProficientOrAbove_percent, replace force 
-tostring Lev4_count Lev4_percent Lev3_count Lev3_percent Lev2_count Lev2_percent Lev1_count Lev1_percent StudentGroup_TotalTested ParticipationRate AvgScaleScore , replace force
-
-gen AssmtName = "NextGen MCAS"
-replace AssmtName = "Legacy MCAS" if Subject == "SCI"
-
-keep if SchYear == "2022" | SchYear == "2023"
-keep if StudentGroup == "Low Income" | StudentGroup ==  "Non-Low Income"
-
-split DISTRICT_AND_SCHOOL, parse(" - ")
-
-tab DISTRICT_AND_SCHOOL3
-tab DISTRICT_AND_SCHOOL4
-
-egen long_district_name = concat(DISTRICT_AND_SCHOOL1 DISTRICT_AND_SCHOOL2), punct(" - ") 
-egen long_school_name = concat(DISTRICT_AND_SCHOOL3 DISTRICT_AND_SCHOOL4), punct(" - ")
-
-replace DISTRICT_AND_SCHOOL1 = long_district_name if long_district_name == "Community Day Charter Public School - Gateway (District)"
-replace DISTRICT_AND_SCHOOL1 = long_district_name if long_district_name == "Community Day Charter Public School - R. Kingman Webster (District)"
-replace DISTRICT_AND_SCHOOL1 = long_district_name if long_district_name == "Community Day Charter Public School - Prospect (District)"
-replace DISTRICT_AND_SCHOOL1 = long_district_name if long_district_name == "Excel Academy Charter School - Chelsea (District)"
-replace DISTRICT_AND_SCHOOL1 = long_district_name if long_district_name == "Excel Academy Charter School - Boston II (District)"
-
-replace DISTRICT_AND_SCHOOL2 = long_school_name if long_school_name == "Community Day Charter Public School - Gateway"
-replace DISTRICT_AND_SCHOOL2 = long_school_name if long_school_name == "Community Day Charter Public School - R. Kingman Webster"
-replace DISTRICT_AND_SCHOOL2 = long_school_name if long_school_name == "Community Day Charter Public School - Prospect"
-replace DISTRICT_AND_SCHOOL2 = long_school_name if long_school_name == "Excel Academy Charter School - Boston II"
-replace DISTRICT_AND_SCHOOL2 = long_school_name if long_school_name == "Excel Academy Charter School - Chelsea"
-
-
-drop DISTRICT_AND_SCHOOL3 DISTRICT_AND_SCHOOL4
-drop long_district_name
-drop long_school_name
-
- 
-drop DISTRICT_AND_SCHOOL1  
-rename DISTRICT_AND_SCHOOL2 SchName
-
-save mass_new_cleaned, replace 
-
-
+// use mass_new, clear
+//
+// replace DIST_NAME = "" if DIST_CODE == 0
+// replace ORG_NAME = "" if ORG_CODE == 0
+//
+//
+// rename SY SchYear	
+// rename DIST_CODE StateAssignedDistID 	
+// rename DIST_NAME DistName
+// rename ORG_CODE StateAssignedSchID	
+// rename ORG_NAME SchName
+// rename ORG_TYPE DataLevel
+// rename TEST_GRADE GradeLevel	
+// rename SUBJECT Subject
+// rename STUGRP StudentGroup	
+// rename M_PLUS_E_CNT ProficientOrAbove_count	
+// rename M_PLUS_E_PCT ProficientOrAbove_percent	
+// rename E_CNT Lev4_count	
+// rename E_PCT Lev4_percent	
+// rename M_CNT Lev3_count
+// rename M_PCT Lev3_percent	
+// rename PM_CNT Lev2_count		
+// rename PM_PCT Lev2_percent				
+// rename NM_CNT Lev1_count	
+// rename NM_PCT Lev1_percent
+// rename STU_CNT StudentGroup_TotalTested	
+// rename STU_PART_PCT ParticipationRate 
+// rename AVG_SCALED_SCORE AvgScaleScore 
+//
+// order DataLevel SchYear GradeLevel StudentGroup	DistName StateAssignedDistID Subject ProficientOrAbove_count ProficientOrAbove_percent Lev4_count Lev4_percent	Lev3_count Lev3_percent Lev2_count Lev2_percent Lev1_count	Lev1_percent StudentGroup_TotalTested ParticipationRate AvgScaleScore DISTRICT_AND_SCHOOL
+//
+// keep DataLevel SchYear GradeLevel StudentGroup	DistName StateAssignedDistID Subject ProficientOrAbove_count ProficientOrAbove_percent Lev4_count Lev4_percent	Lev3_count Lev3_percent Lev2_count Lev2_percent Lev1_count	Lev1_percent StudentGroup_TotalTested ParticipationRate AvgScaleScore DISTRICT_AND_SCHOOL
+//
+// replace DataLevel = "School" if DataLevel == "Charter School" | DataLevel == "Public School"
+// replace DataLevel = "District" if DataLevel == "Charter District" | DataLevel == "Public School District"
+//
+// tostring SchYear, replace 
+// tostring ProficientOrAbove_count, replace
+// tostring ProficientOrAbove_percent, replace force 
+// tostring Lev4_count Lev4_percent Lev3_count Lev3_percent Lev2_count Lev2_percent Lev1_count Lev1_percent StudentGroup_TotalTested ParticipationRate AvgScaleScore , replace force
+//
+// gen AssmtName = "NextGen MCAS"
+// replace AssmtName = "Legacy MCAS" if Subject == "SCI"
+//
+// keep if SchYear == "2022" | SchYear == "2023"
+// keep if StudentGroup == "Low Income" | StudentGroup ==  "Non-Low Income"
+//
+// split DISTRICT_AND_SCHOOL, parse(" - ")
+//
+// tab DISTRICT_AND_SCHOOL3
+// tab DISTRICT_AND_SCHOOL4
+//
+// egen long_district_name = concat(DISTRICT_AND_SCHOOL1 DISTRICT_AND_SCHOOL2), punct(" - ") 
+// egen long_school_name = concat(DISTRICT_AND_SCHOOL3 DISTRICT_AND_SCHOOL4), punct(" - ")
+//
+// replace DISTRICT_AND_SCHOOL1 = long_district_name if long_district_name == "Community Day Charter Public School - Gateway (District)"
+// replace DISTRICT_AND_SCHOOL1 = long_district_name if long_district_name == "Community Day Charter Public School - R. Kingman Webster (District)"
+// replace DISTRICT_AND_SCHOOL1 = long_district_name if long_district_name == "Community Day Charter Public School - Prospect (District)"
+// replace DISTRICT_AND_SCHOOL1 = long_district_name if long_district_name == "Excel Academy Charter School - Chelsea (District)"
+// replace DISTRICT_AND_SCHOOL1 = long_district_name if long_district_name == "Excel Academy Charter School - Boston II (District)"
+//
+// replace DISTRICT_AND_SCHOOL2 = long_school_name if long_school_name == "Community Day Charter Public School - Gateway"
+// replace DISTRICT_AND_SCHOOL2 = long_school_name if long_school_name == "Community Day Charter Public School - R. Kingman Webster"
+// replace DISTRICT_AND_SCHOOL2 = long_school_name if long_school_name == "Community Day Charter Public School - Prospect"
+// replace DISTRICT_AND_SCHOOL2 = long_school_name if long_school_name == "Excel Academy Charter School - Boston II"
+// replace DISTRICT_AND_SCHOOL2 = long_school_name if long_school_name == "Excel Academy Charter School - Chelsea"
+//
+//
+// drop DISTRICT_AND_SCHOOL3 DISTRICT_AND_SCHOOL4
+// drop long_district_name
+// drop long_school_name
+//
+// 
+// drop DISTRICT_AND_SCHOOL1  
+// rename DISTRICT_AND_SCHOOL2 SchName
+//
+// save mass_new_cleaned, replace 
 
 
 
+
+
+cd "/Users/benjaminm/Documents/State_Repository_Research/Massachusetts"
 
 
 // Remaping Raw Data into Standard Format, and appending together
@@ -123,7 +127,7 @@ rename T SGP
 rename U SGP_2 
 gen ParticipationRate = ""	
 gen AvgScaleScore = ""
-drop CPIs
+drop CPI
 
 
 order DataLevel SchYear GradeLevel StudentGroup	DistName StateAssignedDistID Subject ProficientOrAbove_count ProficientOrAbove_percent Lev4_count Lev4_percent	Lev3_count	Lev3_percent Lev2_count Lev2_percent Lev1_count	Lev1_percent StudentGroup_TotalTested ParticipationRate AvgScaleScore SGP SGP_2
@@ -480,7 +484,7 @@ use mass_districts_new_mcas_in_progress_3_n, clear
 
 // Loop to merge with NCES data, separate into individual years and add necessary variables
 
-global years1  2022 2023 // 2017 2018 2019 2021 2022 
+global years1  2017 2018 2019 2021 2022 2023 
 
 foreach a in $years1 {
 	
@@ -615,7 +619,7 @@ gen Flag_AssmtNameChange = "Y"
 gen Flag_CutScoreChange_ELA = "Y"
 gen Flag_CutScoreChange_math = "Y"
 gen Flag_CutScoreChange_sci = "Y" 
-gen Flag_CutScoreChange_soc = ""
+gen Flag_CutScoreChange_soc = "Not applicable"
 
 }
 
@@ -631,7 +635,7 @@ gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_sci = "N" 
-gen Flag_CutScoreChange_soc = ""
+gen Flag_CutScoreChange_soc = "Not applicable"
 // updated 
 
 
@@ -783,7 +787,7 @@ replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Foster Care"
 
 
 
-gen ProficiencyCriteria = "Levels 3 and 4"
+gen ProficiencyCriteria = "Levels 3-4"
 gen seasch = StateAssignedSchID // CHANGED //r3 changed
 
 // Empty Count Vars 
@@ -891,67 +895,4 @@ export delimited MA_AssmtData_`a'.csv, replace
 
 
 }
-
-
-
-
-use MA_AssmtData_2022_Stata, clear
-
-
-
-
-// EXRTA 
-
-
-years4 2017 2018 2019 2021 2022 2023
-
-foreach year in years4
-  
-tab DataLevel if StudentSubGroup == "Migrant"
-
-local years 2010 2011 2012 2013 2014 2015 2016 2017 2018 2019 2021 2022 2023 
-
-foreach a in `years' {
-	display(`a')
-use MA_AssmtData_`a'_Stata, replace
-tab ParticipationRate if DataLevel == 1
-	
-}
-
-//
-// codebook State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth 
-
-//
-// global years1 2023 /// 2017 2018 2019 2021 2022 
-//
-// global blah 2010 2011 2012 2013 2014 2015 2016 2017 2018 2019 2021 2022
-
-// foreach a in $blah {
-// 	use MA_AssmtData_`a'_Stata, clear
-// 	tab SchType 
-// }
-//	
-//	
-// use MA_AssmtData_2014_Stata, clear
-// tab SchType 
-// tab SchName if SchType == "Regular School"
-	
-
-
-
-// decode DistrictType, gen (DistrictType1)
-// drop DistrictType
-// rename DistrictType1 DistrictType
-
-// gen DistCharter = ""
-// replace DistCharter = "Yes" if DistrictType == "Charter agency"
-// replace DistCharter = "No" if DistrictType == "Regular local school district"
-
-
-
-//decode StateAssignedSchID, gen(StateAssignedSchID1)
-//drop StateAssignedSchID
-//rename StateAssignedSchID1 StateAssignedSchID 
-
-
 
