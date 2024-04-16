@@ -140,6 +140,13 @@ duplicates tag State_leaid, gen(test)
 duplicates drop State_leaid,force
 save "${iowa}/NCES_2004_district.dta", replace
 
+use "${iowa}/NCES_2005_district.dta", clear
+gsort -boundary_change_indicator
+duplicates tag State_leaid, gen(test)
+duplicates drop State_leaid,force
+save "${iowa}/NCES_2005_district.dta", replace
+
+
 use "${iowa}/NCES_2014_school.dta", clear
 gsort -school_status
 duplicates tag State_leaid SchName, gen(test)
