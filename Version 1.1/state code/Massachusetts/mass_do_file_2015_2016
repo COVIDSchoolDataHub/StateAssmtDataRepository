@@ -481,7 +481,7 @@ gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_sci = "N" 
-gen Flag_CutScoreChange_soc = ""
+gen Flag_CutScoreChange_soc = "Not applicable"
 }
 
 
@@ -497,7 +497,7 @@ gen Flag_AssmtNameChange = "Y"
 gen Flag_CutScoreChange_ELA = "Y"
 gen Flag_CutScoreChange_math = "Y"
 gen Flag_CutScoreChange_sci = "Y" 
-gen Flag_CutScoreChange_soc = ""
+gen Flag_CutScoreChange_soc = "Not applicable"
 
 }
 
@@ -643,8 +643,8 @@ drop if StudentSubGroup == ""
 
 
 // r3 change
-gen ProficiencyCriteria = "Levels 4 and 5"
-replace ProficiencyCriteria = "Levels 3 and 4" if AssmtName == "Legacy MCAS"
+gen ProficiencyCriteria = "Levels 4-5"
+replace ProficiencyCriteria = "Levels 3-4" if AssmtName == "Legacy MCAS"
 // r3 change
 
 
@@ -795,8 +795,8 @@ gen AssmtName = "PARCC" if Subject == "math"
 replace AssmtName = "PARCC" if Subject == "ela"
 replace AssmtName = "Legacy MCAS" if Subject == "sci"
 
-gen ProficiencyCriteria = "Levels 3 and 4"
-replace ProficiencyCriteria = "Levels 4 and 5" if AssmtName == "PARCC" 
+gen ProficiencyCriteria = "Levels 3-4"
+replace ProficiencyCriteria = "Levels 4-5" if AssmtName == "PARCC" 
 
 replace Lev5_count = "--" if AssmtName == "Legacy MCAS" 
 
@@ -853,8 +853,8 @@ rename DataLevel_n DataLevel
 
 gen AssmtName = "PARCC"
 
-gen ProficiencyCriteria = "Levels 3 and 4"
-replace ProficiencyCriteria = "Levels 4 and 5" if AssmtName == "PARCC" 
+gen ProficiencyCriteria = "Levels 3-4"
+replace ProficiencyCriteria = "Levels 4-5" if AssmtName == "PARCC" 
 
 save MA_2016_State_All_Grade, replace
 
@@ -899,4 +899,9 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 save MA_AssmtData_2016_Stata, replace 
 use MA_AssmtData_2016_Stata, clear 
 export delimited MA_AssmtData_2016.csv, replace
+
+
+
+
+
 
