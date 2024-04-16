@@ -18,6 +18,25 @@ global output "/Users/benjaminm/Documents/State_Repository_Research/Iowa/Output"
 
 //cd "/Users/benjaminm/Documents/State_Repository_Research/NCES"
 
+import excel "${raw}/Iowa_Unmerged.xlsx", firstrow clear
+// save "${raw}/IA_Unmerged.dta", replace
+
+// precleanign of unmerged data 
+use "${raw}/IA_Unmerged.dta", clear
+
+tostring DistType, replace
+tostring SchType, replace 
+
+replace DistType = "Regular local school district" if DistType == "1"
+replace DistType = "Independent charter district" if DistType == "7"
+
+replace SchType = "Regular school" if SchType == "1"
+replace SchType = "" if SchType == "."
+
+tostring CountyCode, replace 
+
+save "${raw}/IA_Unmerged_1.dta", replace
+
 
 foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 {
 	
@@ -42,7 +61,10 @@ save "${output}/IA_AssmtData_`year'_NEW.dta", replace
 
 }
 
+use "${output}/IA_AssmtData_2023_NEW.dta", replace
+//	use "${output}/IA_AssmtData_2022_NEW.dta", clear
 
+// set trace on
 
 foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 {
 	
@@ -95,11 +117,11 @@ foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 {
 	replace StudentSubGroup="Two or More" if StudentSubGroup=="Multi-Racial"
 	replace StudentSubGroup="Hispanic or Latino" if StudentSubGroup=="Hispanic"
 	replace StudentSubGroup="Native Hawaiian or Pacific Islander" if StudentSubGroup=="Pacific Islander"
-	replace StudentSubGroup="Other" if StudentSubGroup=="Non-Binary"
+	replace StudentSubGroup="Gender X" if StudentSubGroup=="Non-Binary"
 
 	gen StudentGroup="All Students"
 	replace StudentGroup="RaceEth" if inlist(StudentSubGroup, "American Indian or Alaska Native", "Asian", "Black or African American", "Hispanic or Latino", "Native Hawaiian or Pacific Islander", "Two or More", "White")
-	replace StudentGroup="Gender" if inlist(StudentSubGroup, "Male", "Female", "Other")
+	replace StudentGroup="Gender" if inlist(StudentSubGroup, "Male", "Female", "Gender X")
 	replace StudentGroup="EL Status" if inlist(StudentSubGroup, "English Learner", "English Proficient")
 	replace StudentGroup="Economic Status" if inlist(StudentSubGroup, "Not Economically Disadvantaged", "Economically Disadvantaged")
 
@@ -121,6 +143,8 @@ foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 {
 
 	
 	
+// 	replace SchName="All Schools" if DataLevel=="District" | DataLevel=="State"
+// 	replace DistName="All Districts" if DataLevel=="State"
 	
 	gen State_leaid=StateAssignedDistID
 
@@ -212,8 +236,8 @@ foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 {
 		gen Flag_AssmtNameChange = "N"
 		gen Flag_CutScoreChange_ELA = "N"
 		gen Flag_CutScoreChange_math = "N"
-		gen Flag_CutScoreChange_sci = "" 
-		gen Flag_CutScoreChange_soc = ""
+		gen Flag_CutScoreChange_sci = "Not applicable" 
+		gen Flag_CutScoreChange_soc = "Not applicable"
 		
 		}
 
@@ -228,7 +252,7 @@ foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 {
 		gen Flag_CutScoreChange_ELA = "Y"
 		gen Flag_CutScoreChange_math = "Y"
 		gen Flag_CutScoreChange_sci = "Y" 
-		gen Flag_CutScoreChange_soc = ""
+		gen Flag_CutScoreChange_soc = "Not applicable"
 	}
 	
 	if "`year'"=="2021" | "`year'"=="2022" | "`year'"=="2023" {
@@ -242,7 +266,7 @@ foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 {
 		gen Flag_CutScoreChange_ELA = "N"
 		gen Flag_CutScoreChange_math = "N"
 		gen Flag_CutScoreChange_sci = "N" 
-		gen Flag_CutScoreChange_soc = ""
+		gen Flag_CutScoreChange_soc = "Not applicable"
 	}
 	
 	gen AvgScaleScore="--"
@@ -358,4 +382,5 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 	export delimited using "${output}/IA_AssmtData_`year'.csv", replace
 }
+
 
