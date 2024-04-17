@@ -42,3 +42,5 @@ local AlabamaMain "/Users/miramehta/Documents/Github/StateAssmtDataRepository/Ve
 ## Updates
 
 03/02/2024: Updated new StudentGroup/StudentSubGroup labels; Derived values for StudentSubGroup_TotalTested where possible; Derived more vlaues for ProficientOrAbove count and percent where possbile; New variable order/sort; New flag variables; Variable type conversion.
+
+4/16/24: Response to post launch review: Switched 2023 to use report card database; derived more counts and percents where we had a combination of count and percent (for instance, Lev1_count and Lev1_percent); misc changes/fixes
