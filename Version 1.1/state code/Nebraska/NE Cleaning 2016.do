@@ -6,7 +6,7 @@ set more off
 cd "/Volumes/T7/State Test Project/Nebraska"
 global data "/Volumes/T7/State Test Project/Nebraska/Original Data Files"
 global NCES "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
-global counts "/Volumes/T7/State Test Project/EDFACTS"
+global counts "/Volumes/T7/State Test Project/Nebraska/Counts_2016_2017"
 global output "/Volumes/T7/State Test Project/Nebraska/Output"
 
 //Import and Append Subject Files
@@ -147,6 +147,7 @@ replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant"
 replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD" | StudentSubGroup == "Non-SWD"
 replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Foster Care"
 replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless"
+replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
 drop if StudentSubGroup == "Special Education Students - Alternate Assessment"
 
 //Subjects
@@ -195,32 +196,42 @@ replace DistName = lea_name if DataLevel == "School"
 drop state_name year _merge merge2 district_agency_type_num urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type district_agency_type_num school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_lowest_grade_offered dist_highest_grade_offered dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch lea_name agency_charter_indicator dist_agency_charter_indicator
 */
 
+//DataLevel
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+sort DataLevel_n 
+drop DataLevel 
+rename DataLevel_n DataLevel
+
 //Student Counts
-merge 1:1 NCESDistrictID DistName NCESSchoolID SchName Subject GradeLevel StudentSubGroup using "$counts/NE_edfactscount2016.dta", gen(merge3)
+merge 1:1 State_leaid seasch GradeLevel Subject StudentSubGroup using "$counts/NE_Counts_2016", update gen(merge3)
 drop if merge3 == 2
-rename NUMVALID StudentSubGroup_TotalTested
 replace StudentSubGroup_TotalTested = "--" if merge3 == 1
 replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
 
 destring StudentSubGroup_TotalTested, gen(num) force
 egen StudentGroup_TotalTested = total(num), by(StudentGroup GradeLevel Subject DataLevel seasch StateAssignedDistID DistName SchName)
 
-tostring StudentGroup_TotalTested, replace
-replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested == "."
-replace StudentGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "--"
-drop _merge STNAM FIPST DATE_CUR PCTPROF
 
-**NEW Convention: All Students StudentGroup_TotalTested used when 1 or more members of StudentSubGroup suppressed
+//Deriving StudentSubGroup_TotalTested where possible
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-gen Suppressed = 0
-replace Suppressed = 1 if StudentSubGroup_TotalTested == "*"
-egen StudentGroup_Suppressed = max(Suppressed), by(StudentGroup GradeLevel Subject DataLevel seasch StateAssignedDistID DistName SchName)
-drop Suppressed
 gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
 replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
-replace StudentGroup_TotalTested = AllStudents_Tested if StudentGroup_Suppressed == 1
+gen ind = 1 if StudentGroup == "Gender" & StudentSubGroup_TotalTested == "*" & StudentGroup_TotalTested !=0
+replace StudentSubGroup_TotalTested = string(real(AllStudents_Tested) - StudentGroup_TotalTested) if StudentGroup == "Gender" & StudentSubGroup_TotalTested == "*" & StudentGroup_TotalTested !=0
+replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "."
+
+**NEW Convention: All Students StudentGroup_TotalTested used when 1 or more members of StudentSubGroup suppressed
+gen Suppressed = 0
+replace Suppressed = 1 if StudentSubGroup_TotalTested == "*" | ind ==1
+egen StudentGroup_Suppressed = max(Suppressed), by(StudentGroup GradeLevel Subject DataLevel seasch StateAssignedDistID DistName SchName)
+drop Suppressed
+replace StudentGroup_TotalTested = real(AllStudents_Tested) if StudentGroup_Suppressed == 1
 drop AllStudents_Tested StudentGroup_Suppressed
+
+tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "--"
+replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested == "."
 
 //Proficiency Levels
 replace Lev1_percent = 1 - (Lev2_percent + Lev3_percent) if Lev1_percent == -1 & Lev2_percent != -1 & Lev3_percent != -1
@@ -257,59 +268,8 @@ foreach var of local prof_vars {
 	replace `var' = "--" if `var' == ""
 }
 
-//Label & Organize Variables
-label var State "State name"
-label var StateAbbrev "State abbreviation"
-label var StateFips "State FIPS Id"
-label var NCESDistrictID "NCES district ID"
-label var State_leaid "State LEA ID"
-label var DistType "District type as defined by NCES"
-label var DistCharter "Charter indicator"
-label var CountyName "County in which the district or school is located"
-label var CountyCode "County code in which the district or school is located, also referred to as the county-level FIPS code"
-label var NCESSchoolID "NCES school ID"
-label var SchType "School type as defined by NCES"
-label var SchVirtual "Virtual school indicator"
-label var SchLevel "School level"
-label var SchYear "School year in which the data were reported"
-label var AssmtName "Name of state assessment"
-label var Flag_AssmtNameChange "Flag denoting a change in the assessment's name from the prior year only"
-label var Flag_CutScoreChange_ELA "Flag denoting a change in scoring determinations in ELA from the prior year only"
-label var Flag_CutScoreChange_math "Flag denoting a change in scoring determinations in math from the prior year only"
-*label var Flag_CutScoreChange_read "Flag denoting a change in scoring determinations in reading from the prior year only"
-label var AssmtType "Assessment type"
-label var DataLevel "Level at which the data are reported"
-label var DistName "District name"
-label var StateAssignedDistID "State-assigned district ID"
-label var SchName "School name"
-label var StateAssignedSchID "State-assigned school ID"
-label var Subject "Assessment subject area"
-label var GradeLevel "Grade tested"
-label var StudentGroup "Student demographic group"
-label var StudentGroup_TotalTested "Number of students in the designated StudentGroup who were tested"
-label var StudentSubGroup "Student demographic subgroup"
-label var StudentSubGroup_TotalTested "Number of students in the designated Student Sub-Group who were tested"
-label var Lev1_count "Count of students within subgroup performing at Level 1"
-label var Lev1_percent "Percent of students within subgroup performing at Level 1"
-label var Lev2_count "Count of students within subgroup performing at Level 2"
-label var Lev2_percent "Percent of students within subgroup performing at Level 2"
-label var Lev3_count "Count of students within subgroup performing at Level 3"
-label var Lev3_percent "Percent of students within subgroup performing at Level 3"
-label var Lev4_count "Count of students within subgroup performing at Level 4"
-label var Lev4_percent "Percent of students within subgroup performing at Level 4"
-label var Lev5_count "Count of students within subgroup performing at Level 5"
-label var Lev5_percent "Percent of students within subgroup performing at Level 5"
-label var AvgScaleScore "Avg scale score within subgroup"
-label var ProficiencyCriteria "Levels included in determining proficiency status"
-label var ProficientOrAbove_count "Count of students achieving proficiency or above on the state assessment"
-label var ProficientOrAbove_percent "Percent of students achieving proficiency or above on the state assessment"
-label var ParticipationRate "Participation rate"
 
-label def DataLevel 1 "State" 2 "District" 3 "School"
-encode DataLevel, gen(DataLevel_n) label(DataLevel)
-sort DataLevel_n 
-drop DataLevel 
-rename DataLevel_n DataLevel
+
 
 //Weird Lev*_percent Values
 foreach var of varlist Lev*_percent {
@@ -317,7 +277,25 @@ local count = subinstr("`var'", "percent", "count",.)
 replace `var' = "*" if `count' == "*" & strpos(`var',"e") !=0
 replace `var' = "0" if `count' == "0" & strpos(`var', "e") !=0
 replace `var' = "--" if `count' == "--" & strpos(`var', "e") !=0
+replace `var' = "0" if real(`var') < 0 & `var' != "*" & `var' != "--" //Rounding sometimes leads to negative numbers for level percents
 }
+
+**Post Launch Response to review
+replace DistName = "SOUTHERN SCHOOL DISTRICT 1" if NCESDistrictID == "3177180"
+replace DistName = "WINNEBAGO PUBLIC SCHOOLS DISTRICT 17" if NCESDistrictID == "3178810"
+replace DistName = "WEST KEARNEY HIGH SCHOOL" if NCESDistrictID == "3100046"
+replace DistName = "PAPILLION LA VISTA COMMUNITY SCHOOLS" if NCESDistrictID == "3175270"
+replace DistName = "HAMPTON PUBLIC SCHOOL" if NCESDistrictID == "3171370"
+replace DistName = "ISANTI COMMUNITY SCHOOL" if NCESDistrictID == "3176400"
+
+//Fixing StateAssignedDistID
+replace StateAssignedDistID = subinstr(State_leaid, "NE-","",.)
+
+
+//Deriving ProficientOrAbove_percent and ProficientOrAbove_count when we have Lev1_percent
+replace ProficientOrAbove_percent = string(1-real(Lev1_percent), "%9.3g") if regexm(Lev1_percent, "[0-9]") !=0 & regexm(ProficientOrAbove_percent, "[0-9]") ==0 
+replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent) * real(StudentSubGroup_TotalTested))) if regexm(ProficientOrAbove_count, "[0-9]") == 0 & regexm(ProficientOrAbove_percent, "[0-9]") !=0 & regexm(StudentSubGroup_TotalTested, "[0-9]") !=0
+
 
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode

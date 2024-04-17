@@ -326,14 +326,14 @@ foreach y in $years {
 	replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "17SIP" | StudentSubGroup == "17PIP"
 	replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "18NSIP" | StudentSubGroup == "18NPIP"
 	
-	replace StudentSubGroup = "Homeless" if StudentSubGroup == "24Hl"
-	replace StudentSubGroup = "Non-Homeless" if StudentSubGroup == "25NHl"
+	replace StudentSubGroup = "Homeless" if StudentSubGroup == "24Hl" | StudentSubGroup == "Homeless"
+	replace StudentSubGroup = "Non-Homeless" if StudentSubGroup == "25NHl" | StudentSubGroup == "NHomeless"
 	
-	replace StudentSubGroup = "Foster Care" if StudentSubGroup == "26F"
-	replace StudentSubGroup = "Non-Foster Care" if StudentSubGroup == "27NF"
+	replace StudentSubGroup = "Foster Care" if StudentSubGroup == "26F" | StudentSubGroup == "Foster"
+	replace StudentSubGroup = "Non-Foster Care" if StudentSubGroup == "27NF" | StudentSubGroup == "NFoster"
 	
-	replace StudentSubGroup = "Military" if StudentSubGroup == "28Mil"
-	replace StudentSubGroup = "Non-Military" if StudentSubGroup == "29NMil"
+	replace StudentSubGroup = "Military" if StudentSubGroup == "28Mil" | StudentSubGroup == "Military"
+	replace StudentSubGroup = "Non-Military" if StudentSubGroup == "29NMil" | StudentSubGroup == "NMilitary"
 	
 	
 	gen StudentGroup = ""
@@ -547,3 +547,187 @@ foreach y in $years {
 	save "${path}/Intermediate/SC_AssmtData_`y'.dta", replace
 	export delimited using "${path}/Output/SC_AssmtData_`y'.csv", replace
 }
+
+
+** 2024 review updates 
+
+global years 2016 2017 2018 2019 2021 2022 2023
+foreach y in $years {
+	
+	use "${path}/Intermediate/SC_AssmtData_`y'.dta", clear
+	
+	** generate Lev*_counts
+
+destring StudentSubGroup_TotalTested, gen(total_count) ignore("*" "--")
+
+global a 1 2 3 4
+	foreach a in $a {
+		destring Lev`a'_percent, gen(n`a'_percent) ignore("*" "--")
+		gen n`a'_count = total_count*n`a'_percent
+		replace n`a'_count = trunc(n`a'_count)
+		tostring n`a'_count, replace
+		replace Lev`a'_count = n`a'_count
+	
+		replace Lev`a'_count = "*" if Lev`a'_percent == "*"
+	}
+	
+gen n_profabove = . 
+gen subject_flag = 0
+
+if `y' >= 2017 {
+	
+	replace subject_flag = 1 if Subject == "ela" | Subject == "math" | Subject == "sci"
+}
+
+if `y' == 2016 {
+	
+	replace subject_flag = 1 if Subject == "ela" | Subject == "math" 
+	
+}
+
+replace n_profabove = n3_percent + n4_percent if Lev3_percent != "*" & Lev4_percent != "*" & subject_flag == 1
+	
+replace n_profabove = 1-(n1_percent + n2_percent) if Lev3_percent == "*" & subject_flag == 1
+replace n_profabove = 1-(n1_percent + n2_percent) if Lev4_percent == "*" & subject_flag == 1
+
+replace n_profabove = n3_percent + n2_percent if Lev2_percent != "*" & Lev3_percent != "*" & subject_flag == 0
+replace n_profabove = 1-(n1_percent) if Lev2_percent == "*" & subject_flag == 0
+replace n_profabove = 1-(n1_percent) if Lev3_percent == "*" & subject_flag == 0
+
+replace Lev4_percent = "" if ProficiencyCriteria == "Levels 2-3"
+replace Lev4_count = "" if ProficiencyCriteria == "Levels 2-3"
+
+gen nprof_count = total_count*n_profabove
+		
+replace nprof_count = trunc(nprof_count)
+tostring nprof_count, replace
+replace ProficientOrAbove_count = nprof_count
+		
+replace n_profabove = 1 if n_profabove > 1
+tostring n_profabove, replace force
+replace ProficientOrAbove_percent = n_profabove
+		
+drop n_profabove 
+		
+replace ProficientOrAbove_count = "*" if Lev1_percent == "*" & Lev2_percent == "*" & Lev3_percent == "*" & Lev4_percent == "*" & ProficiencyCriteria == "Levels 3-4"
+replace ProficientOrAbove_count = "*" if Lev1_percent == "*" & Lev2_percent == "*" & Lev3_percent == "*" & ProficiencyCriteria == "Levels 2-3"
+replace ProficientOrAbove_percent = "*" if ProficientOrAbove_count == "*"
+	
+	** fix assmtname
+	replace AssmtName="SC Pass" if `y' == 2023 & Subject =="sci"
+	
+	** flag issues
+	replace Flag_CutScoreChange_ELA="N" if `y' == 2017
+	replace Flag_CutScoreChange_math="N" if `y' == 2017
+	replace Flag_CutScoreChange_sci="Y" if `y' == 2017
+	replace Flag_CutScoreChange_soc="Not applicable" if `y' == 2017 | `y' == 2016
+	
+	** standardize district names
+	
+	destring NCESDistrictID, replace
+	
+replace DistName="Abbeville 60" if NCESDistrictID==4500690
+replace DistName="Aiken 01" if NCESDistrictID==4500720
+replace DistName="Allendale 01" if NCESDistrictID==4500750
+
+replace DistName="Anderson 01" if NCESDistrictID==4500780
+replace DistName="Anderson 02" if NCESDistrictID==4500810
+replace DistName="Anderson 03" if NCESDistrictID==4500840
+replace DistName="Anderson 04" if NCESDistrictID==4500870
+replace DistName="Anderson 05" if NCESDistrictID==4500900
+
+replace DistName="Bamberg 01" if NCESDistrictID==4500930
+replace DistName="Bamberg 02" if NCESDistrictID==4500960
+
+replace DistName="Beaufort 01" if NCESDistrictID==4501110
+replace DistName="Berkeley 01" if NCESDistrictID==4501170
+replace DistName="Calhoun 01" if NCESDistrictID==4501250
+replace DistName="Charleston 01" if NCESDistrictID==4501440
+replace DistName="Cherokee 01" if NCESDistrictID==4501500
+replace DistName="Chester 01" if NCESDistrictID==4501530
+replace DistName="Chesterfield 01" if NCESDistrictID==4501560
+replace DistName="Clarendon 01" if NCESDistrictID==4501740
+replace DistName="Clarendon 02" if NCESDistrictID==4501770
+replace DistName="Clarendon 03" if NCESDistrictID==4501800
+
+replace DistName="Colleton 01" if NCESDistrictID==4501830
+replace DistName="Darlington 01" if NCESDistrictID==4501860
+replace DistName="Dept Of Juvenile Justice" if NCESDistrictID==4503420
+replace DistName="Dillon 03" if NCESDistrictID==4501950
+replace DistName="Dillon 04" if NCESDistrictID==4501920
+replace DistName="Dorchester 02" if NCESDistrictID==4502010
+replace DistName="Dorchester 04" if NCESDistrictID==4500002
+
+replace DistName="Edgefield 01" if NCESDistrictID==4502070
+replace DistName="Fairfield 01" if NCESDistrictID==4502100
+replace DistName="Florence 01" if NCESDistrictID==4502130
+replace DistName="Florence 02" if NCESDistrictID==4502160
+replace DistName="Florence 03" if NCESDistrictID==4502190
+replace DistName="Florence 04" if NCESDistrictID==4502220
+replace DistName="Florence 05" if NCESDistrictID==4502250
+replace DistName="Georgetown 01" if NCESDistrictID==4502280
+replace DistName="Greenville 01" if NCESDistrictID==4502310
+
+replace DistName="Hampton 01" if NCESDistrictID==4502430
+replace DistName="Hampton 02" if NCESDistrictID==4502460
+replace DistName="Hampton" if NCESDistrictID==4503912
+replace DistName="Horry 01" if NCESDistrictID==4502490
+replace DistName="Jasper 01" if NCESDistrictID==4502520
+replace DistName="Kershaw 01" if NCESDistrictID==4502550
+replace DistName="Lancaster 01" if NCESDistrictID==4502580
+replace DistName="Lee 01" if NCESDistrictID==4502670
+
+replace DistName="Lexington 01" if NCESDistrictID==4502700
+replace DistName="Lexington 02" if NCESDistrictID==4502730
+replace DistName="Lexington 03" if NCESDistrictID==4502760
+replace DistName="Lexington 04" if NCESDistrictID==4502790
+replace DistName="Lexington 05" if NCESDistrictID==4502820
+
+replace DistName="Marlboro 01" if NCESDistrictID==4502970
+replace DistName="McCormick 01" if NCESDistrictID==4503000
+replace DistName="Newberry 01" if NCESDistrictID==4503030
+replace DistName="Oconee 01" if NCESDistrictID==4503060
+replace DistName="Orangeburg 03" if NCESDistrictID==4503150
+replace DistName="Orangeburg 04" if NCESDistrictID==4503180
+replace DistName="Orangeburg 05" if NCESDistrictID==4503210
+
+replace DistName="Pickens 01" if NCESDistrictID==4503330
+replace DistName="Richland 01" if NCESDistrictID==4503360
+replace DistName="Richland 02" if NCESDistrictID==4503390
+
+replace DistName="Saluda 01" if NCESDistrictID==4503460
+replace DistName="Spartanburg 01" if NCESDistrictID==4503480
+replace DistName="Spartanburg 02" if NCESDistrictID==4503510
+replace DistName="Spartanburg 03" if NCESDistrictID==4503540
+replace DistName="Spartanburg 04" if NCESDistrictID==4503570
+replace DistName="Spartanburg 05" if NCESDistrictID==4503600
+replace DistName="Spartanburg 06" if NCESDistrictID==4503630
+replace DistName="Spartanburg 07" if NCESDistrictID==4503660
+replace DistName="Sumter 01" if NCESDistrictID==4503902
+replace DistName="Union 01" if NCESDistrictID==4503750
+replace DistName="Williamsburg 01" if NCESDistrictID==4503780
+replace DistName="York 01" if NCESDistrictID==4503810
+replace DistName="York 02" if NCESDistrictID==4503840
+replace DistName="York 03" if NCESDistrictID==4503870
+replace DistName="York 04" if NCESDistrictID==4503900
+replace DistName="SC School for Deaf and Blind" if NCESDistrictID==4500004
+
+tostring NCESDistrictID, replace
+
+** Fix Variable Order 
+
+	keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+	
+	order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+	sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
+	** Export Assessment Data
+
+	save "${path}/Output/SC_AssmtData_`y'.dta", replace
+	export delimited using "${path}/Output/SC_AssmtData_`y'.csv", replace
+	
+}
+
+
+

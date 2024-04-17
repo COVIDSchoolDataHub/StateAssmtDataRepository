@@ -2,26 +2,26 @@ clear
 set more off
 set trace off
 cd "/Users/minnamgung/Desktop/SADR/Kentucky"
-local Original "/Users/minnamgung/Desktop/SADR/Kentucky/Original Data Files"
-local Output "/Users/minnamgung/Desktop/SADR/Kentucky/Output"
-local NCES "/Users/minnamgung/Desktop/SADR/NCESOld"
+global Original "/Users/minnamgung/Desktop/SADR/Kentucky/Original Data Files"
+global Output "/Users/minnamgung/Desktop/SADR/Kentucky/Output"
+global NCES "/Users/minnamgung/Desktop/SADR/NCESOld"
 
 //Importing (unhide on first run)
 
 /*
 forvalues year = 2012/2017 {
-	import excel "`Original'/KY_OriginalData_`year'_all", firstrow case(preserve) allstring
-	save "`Original'/KY_OriginalData_`year'", replace
+	import excel "${Original}/KY_OriginalData_`year'_all", firstrow case(preserve) allstring
+	save "${Original}/KY_OriginalData_`year'", replace
 	clear
 }
 foreach year in 2018 2019 {
-	import excel "`Original'/KY_OriginalData_`year'_all", firstrow case(preserve) allstring sheet(DATA)
-	save "`Original'/KY_OriginalData_`year'", replace
+	import excel "${Original}/KY_OriginalData_`year'_all", firstrow case(preserve) allstring sheet(DATA)
+	save "${Original}/KY_OriginalData_`year'", replace
 	clear
 }
 foreach year in 2021 2022 2023 {
-	import delimited "`Original'/KY_OriginalData_`year'_all", case(preserve) stringcols(_all)
-	save "`Original'/KY_OriginalData_`year'", replace
+	import delimited "${Original}/KY_OriginalData_`year'_all", case(preserve) stringcols(_all)
+	save "${Original}/KY_OriginalData_`year'", replace
 	clear
 }
 
@@ -34,7 +34,7 @@ foreach year in 2021 2022 2023 {
 
 forvalues year = 2012/2022 {
 	if `year' == 2020 continue
-use "`Original'/KY_OriginalData_`year'", clear
+use "${Original}/KY_OriginalData_`year'", clear
 local prevyear =`=`year'-1'
 
 //Renaming and dropping
@@ -276,7 +276,7 @@ keep if DataLevel == 2
 tempfile tempdist 
 save "`tempdist'", replace
 clear
-use "`NCES'/NCES_`prevyear'_District"
+use "${NCES}/NCES_`prevyear'_District"
 keep if state_location == "KY" | state_name == 21
 gen StateAssignedDistID = subinstr(state_leaid, "KY-","",.)
 replace StateAssignedDistID = substr(StateAssignedDistID, 4,3)
@@ -286,7 +286,7 @@ drop if _merge == 1
 save "`tempdist'", replace
 clear
 if `year' > 2022 {
-use "`NCES'/NCES_2022_District"
+use "${NCES}/NCES_2022_District"
 keep if StateAbbrev == "KY" | StateFips == "21"
 gen StateAssignedDistID = subinstr(State_leaid, "KY-","",.)
 replace StateAssignedDistID = substr(StateAssignedDistID, 4,3)
@@ -304,7 +304,7 @@ keep if DataLevel == 3
 tempfile tempsch
 save "`tempsch'", replace
 clear
-use "`NCES'/NCES_`prevyear'_School"
+use "${NCES}/NCES_`prevyear'_School"
 keep if state_location == "KY" | state_name == 21
 gen StateAssignedSchID = substr(seasch, strpos(seasch, "-")+1,10)
 replace StateAssignedSchID = substr(StateAssignedSchID, 4,6)
@@ -317,7 +317,7 @@ drop _merge
 save "`tempsch'", replace
 clear
 if `year' > 2022 {
-use "`NCES'/NCES_2022_School"
+use "${NCES}/NCES_2022_School"
 keep if StateAbbrev == "KY" | StateFips == "21"
 gen seasch = substr(st_schid, "KY-", "", .)
 gen StateAssignedSchID = substr(seasch, strpos(seasch, "-")+1,10)
@@ -534,8 +534,8 @@ if `year' < 2015 {
 
 	sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "`Output'/KY_AssmtData_`year'", replace
-export delimited "`Output'/KY_AssmtData_`year'", replace
+save "${Output}/KY_AssmtData_`year'", replace
+export delimited "${Output}/KY_AssmtData_`year'", replace
 clear	
 	
 }
@@ -547,7 +547,7 @@ local NCES "/Users/minnamgung/Desktop/SADR/NCESOld"
 // This is for 2023 
 // When new NCES file release, adapt section and insert into the loop above
 
-use "`Original'/KY_OriginalData_2023", clear
+use "${Original}/KY_OriginalData_2023", clear
 
 //Renaming and dropping
 drop SCHOOLYEAR
@@ -682,7 +682,7 @@ save "`tempdist'", replace
 clear
 
 // District
-use "`NCES'/NCES_2022_District"
+use "${NCES}/NCES_2022_District"
 keep if StateAbbrev == "KY" | StateFips == "21"
 gen StateAssignedDistID = subinstr(State_leaid, "KY-","",.)
 replace StateAssignedDistID = substr(StateAssignedDistID, 4,3)
@@ -700,7 +700,7 @@ tempfile tempsch
 save "`tempsch'", replace
 clear
 
-use "`NCES'/NCES_2022_School"
+use "${NCES}/NCES_2022_School"
 keep if StateAbbrev == "KY" | StateFips == "21"
 gen seasch = subinstr(st_schid, "KY-", "", .)
 gen StateAssignedSchID = substr(seasch, strpos(seasch, "-")+1,10)
@@ -725,7 +725,7 @@ drop NCESDistrictID
 drop _merge
 
 local NCES "/Users/minnamgung/Desktop/SADR/NCESOld"
-merge m:1 ncesdistrictid using "`NCES'/NCES_2022_District", keepusing(DistType) update
+merge m:1 ncesdistrictid using "${NCES}/NCES_2022_District", keepusing(DistType) update
 
 drop if _merge==2
 drop _merge
@@ -734,7 +734,7 @@ tempfile temp2
 save "`temp2'", replace
 clear
 
-use "`NCES'/NCES_2021_District"
+use "${NCES}/NCES_2021_District"
 keep if state_location == "KY" 
 decode urban_centric_locale, generate(DistLocale)
 tempfile templocale
@@ -859,6 +859,7 @@ replace CountyName = "Daviess County" if SchName == "Virtual Academy"
 replace CountyCode = 21059 if SchName == "Virtual Academy"
 replace SchVirtual = "No" if SchName == "Patriot Academy"
 
+
 cap replace SchVirtual = "Missing/not reported" if missing(SchVirtual) & DataLevel == 3
 
 gen StudentGroup_TotalTested = "--"
@@ -869,14 +870,14 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 
 	sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 	
-save "`Output'/KY_AssmtData_2023", replace
-export delimited "`Output'/KY_AssmtData_2023", replace
+save "${Output}/KY_AssmtData_2023", replace
+export delimited "${Output}/KY_AssmtData_2023", replace
 
 
 // Merging in Edfacts data for 2022 and 2023
 forvalues year = 2022/2023 {
 	
-	use "`Output'/KY_AssmtData_`year'", clear
+	use "${Output}/KY_AssmtData_`year'", clear
 	
 	destring NCESDistrictID, replace force
 	destring NCESSchoolID, replace force
@@ -920,6 +921,72 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 
 	sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 	
-	save "`Output'/KY_AssmtData_`year'", replace
-export delimited "`Output'/KY_AssmtData_`year'", replace
+	save "${Output}/KY_AssmtData_`year'", replace
+export delimited "${Output}/KY_AssmtData_`year'", replace
+}
+
+
+// all year edits
+
+foreach year in 2012 2013 2014 2015 2016 2017 2018 2019 2021 2022 2023 {
+	
+	use "${Output}/KY_AssmtData_`year'", clear
+	
+	if `year' >= 2022 {
+		tostring NCESDistrictID, replace
+	}
+	tostring NCESSchoolID, replace format("%13.0f")
+	
+	replace DistName = "Kentucky School for the Blind District" if NCESDistrictID=="2100094"
+	replace DistName = "Kentucky School for the Deaf District" if NCESDistrictID=="2100095"
+	
+	replace DistType="State-operated agency" if `year' == 2023 & DistType == "State operated agency"
+	
+	replace StudentGroup="Military Connected Status" if strpos(StudentGroup, "Military")
+	
+	destring StudentGroup_TotalTested, gen(total_count) ignore("--" "*")
+	bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen All = max(total_count)
+	
+	* drop if StudentGroup=="All Students" & All ==.
+destring StudentSubGroup_TotalTested, gen(Count_n) ignore("--" "*")
+replace Count_n=0 if StudentSubGroup_TotalTested == "--" | StudentSubGroup_TotalTested == "*"
+* drop All total_count
+
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen Econ = sum(Count_n) if StudentGroup == "Economic Status"
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen Disability = sum(Count_n) if StudentGroup == "Disability Status"
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen Eng = sum(Count_n) if StudentGroup == "EL Status"
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen Migrant = sum(Count_n) if StudentGroup == "Migrant Status"
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen Homeless = sum(Count_n) if StudentGroup == "Homeless Enrolled Status"
+
+gen not_count=.
+
+replace not_count = All - Econ if StudentSubGroup == "Economically Disadvantaged"
+replace not_count = All - Disability if StudentSubGroup == "SWD"
+replace not_count = All - Eng if StudentSubGroup == "English Learner"
+replace not_count = All - Migrant if StudentSubGroup == "Migrant"
+replace not_count = All - Homeless if StudentSubGroup == "Homeless"
+
+tostring not_count, replace
+
+replace StudentSubGroup_TotalTested=not_count if StudentSubGroup_TotalTested=="--" & StudentSubGroup == "Economically Disadvantaged"
+replace StudentSubGroup_TotalTested=not_count if StudentSubGroup_TotalTested=="--" & StudentSubGroup == "SWD"
+replace StudentSubGroup_TotalTested=not_count if StudentSubGroup_TotalTested=="--" & StudentSubGroup == "English Learner"
+replace StudentSubGroup_TotalTested=not_count if StudentSubGroup_TotalTested=="--" & StudentSubGroup == "Migrant"
+replace StudentSubGroup_TotalTested=not_count if StudentSubGroup_TotalTested=="--" & StudentSubGroup == "Homeless"
+	
+	tostring All, replace	
+	replace StudentGroup_TotalTested=All if StudentGroup_TotalTested=="--"
+	replace StudentGroup_TotalTested="--" if StudentGroup_TotalTested=="."
+	
+	replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested=="."
+	
+	keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+	
+	order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+	sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+	
+	save "${Output}/KY_AssmtData_`year'", replace
+export delimited "${Output}/KY_AssmtData_`year'", replace
+	
 }

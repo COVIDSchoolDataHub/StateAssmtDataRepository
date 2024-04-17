@@ -328,7 +328,7 @@ gen AssmtType="Regular and alt"
 
 gen Flag_CutScoreChange_ELA="Y"
 gen Flag_CutScoreChange_math="Y"
-gen Flag_CutScoreChange_soc=""
+gen Flag_CutScoreChange_soc="Not applicable"
 gen Flag_CutScoreChange_sci = "N"
 
 gen Lev5_percent=""

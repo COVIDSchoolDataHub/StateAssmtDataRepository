@@ -1,11 +1,11 @@
 clear
 set more off
 set trace off
-cd "/Users/miramehta/Documents/AL State Testing Data/Output"
-local NCES "/Users/miramehta/Documents/NCES District and School Demographics/NCES School Files, Fall 1997-Fall 2022"
+cd "/Volumes/T7/State Test Project/Alabama/Output"
+global NCES "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
 
 
-use "`NCES'/NCES_2014_School"
+use "${NCES}/NCES_2014_School"
 keep if state_fips==1
 keep if strpos(school_name, "Eichold") !=0
 gen StateAssignedSchID = "049-0506"
@@ -22,19 +22,17 @@ save "AL_AssmtData_2016", replace
 clear
 
 use AL_AssmtData_2016
-
-drop SchType
-rename SchType_str SchType
-drop SchLevel
-rename SchLevel_str SchLevel
-drop SchVirtual
-rename SchVirtual_str SchVirtual
+foreach var of varlist SchType SchVirtual SchLevel {
+	decode `var', gen(temp)
+	drop `var'
+	rename temp `var'
+}
 
 foreach var of varlist NCESSchoolID NCESDistrictID DistType DistCharter SchType SchVirtual SchLevel CountyName State_leaid seasch {
  replace `var' = "Missing/not reported" if StateAssignedSchID == "049-0266"
 }
 replace CountyCode = "0" if StateAssignedSchID == "049-0266"
-
+replace CountyName = "Mobile County" if CountyCode == "1097"
 
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
@@ -90,7 +88,6 @@ replace CountyName = "Coffee County" if StateAssignedSchID == "016-0045"
 replace CountyName = "Baldwin County" if StateAssignedSchID == "002-0141"
 replace CountyName = "Lauderdale County" if StateAssignedDistID == "039"
 
-
 //CountyCode
 replace CountyCode = "0" if missing(CountyCode) & DataLevel !=1
 replace CountyCode = "1003" if StateAssignedSchID == "002-0141"
@@ -131,6 +128,20 @@ replace SchVirtual = 0 if StateAssignedSchID == "801-0020"
 //District Level Data
 replace SchVirtual = . if DataLevel == 2
 replace SchLevel = . if DataLevel == 2
+
+//Fixing CountyNames & Codes
+replace CountyName = "Sumter County" if NCESDistrictID== "100199"
+replace CountyCode = "1119" if NCESDistrictID== "100199"
+replace CountyName = "Jefferson County" if NCESDistrictID== "100390"
+replace CountyCode = "1073" if NCESDistrictID== "100390"
+replace CountyName = "Baldwin County" if NCESDistrictID== "103581"
+replace CountyCode = "1003" if NCESDistrictID== "103581"
+replace CountyName = "Jefferson County" if NCESDistrictID== "103582"
+replace CountyCode = "1073" if NCESDistrictID== "103582"
+
+//Coffee County CountyCode
+replace CountyCode = "1031" if CountyName == "Coffee County"
+
 
 //Exporting
 save "AL_AssmtData_2023", replace

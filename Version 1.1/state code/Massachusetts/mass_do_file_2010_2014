@@ -319,7 +319,7 @@ gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_sci = "N" 
-gen Flag_CutScoreChange_soc = ""
+gen Flag_CutScoreChange_soc = "Not applicable"
 // updated 
 
 
@@ -438,7 +438,7 @@ replace StudentGroup = "Disability Status" if StudentSubGroup == "Non-SWD"
 //CHANGED
 
 
-gen ProficiencyCriteria = "Levels 3 and 4"
+gen ProficiencyCriteria = "Levels 3-4"
 gen seasch = StateAssignedSchID // CHANGED //r3 changed
 
 // Empty Count Vars 

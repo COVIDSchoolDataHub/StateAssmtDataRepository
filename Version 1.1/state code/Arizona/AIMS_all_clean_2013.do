@@ -229,7 +229,7 @@ gen Flag_AssmtNameChange="N"
 
 gen Flag_CutScoreChange_ELA="N"
 gen Flag_CutScoreChange_math="N"
-gen Flag_CutScoreChange_soc=""
+gen Flag_CutScoreChange_soc="Not applicable"
 gen Flag_CutScoreChange_sci="N"
 
 gen Lev5_percent=""
@@ -351,6 +351,10 @@ replace StudentSubGroup_TotalTested = StudentSubGroup_TotalTested2 if StudentSub
 tostring StudentGroup_TotalTested, replace force
 replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested == "."
 drop StudentSubGroup_TotalTested2 test
+
+**
+
+drop if strpos(DistName, "Ombudsman") > 0
 	
 //order
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode

@@ -203,6 +203,10 @@ tostring StudentGroup_TotalTested, replace force
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
 drop StudentSubGroup_TotalTested2 test test2
 
+replace NCESDistrictID = "2801190" if StateAssignedDistID == "2561"
+replace NCESDistrictID = "2803600" if StateAssignedDistID == "5020"
+replace NCESDistrictID = "2803150" if StateAssignedDistID == "5100"
+
 ** Generating new variables
 
 gen SchYear = "2013-14"

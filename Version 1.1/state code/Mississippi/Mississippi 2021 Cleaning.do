@@ -222,8 +222,9 @@ replace DistName = "REIMAGINE PREP" if SchName == "REIMAGINE PREP"
 replace DistName = "GREENWOOD-LEFLORE CONS SCH DISTRICT" if DistName == "GREENWOOD-LEFLORE CONSOLIDATED SD"
 replace DistName = "JOEL E. SMILLOW PREP" if strpos(DistName, "SMILOW PREP") > 0
 replace DistName = DistName[_n-1] if missing(DistName)
-replace DistName = "All Districts" if DataLevel == "State"
+drop if DistName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
 
+replace DistName = "All Districts" if DataLevel == "State"
 replace SchName = "All Schools" if DataLevel != "School"
 
 ** Changing DataLevel
@@ -404,16 +405,10 @@ merge m:1 DistName SchName using "${NCES}/NCES_2021_School.dta", update
 drop if _merge == 2
 drop _merge
 
-** Generating new variables
-
-replace CountyCode = "Missing/not reported" if DistName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
-replace CountyName = "Missing/not reported" if DistName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
-gen StateAssignedDistID = "Missing/not reported" if SchName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
-gen StateAssignedSchID = "Missing/not reported" if SchName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
-replace NCESDistrictID = "Missing/not reported" if DistName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
-replace NCESSchoolID = "Missing/not reported" if SchName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
-
 ** Creating variables
+
+rename State_leaid StateAssignedDistID
+rename seasch StateAssignedSchID
 
 gen SchYear = "2020-21"
 

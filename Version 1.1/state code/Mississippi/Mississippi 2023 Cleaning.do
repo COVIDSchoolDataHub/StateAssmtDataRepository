@@ -226,6 +226,7 @@ replace DistName = "JOEL E. SMILLOW PREP" if strpos(DistName, "SMILOW PREP") > 0
 replace DistName = DistName[_n-1] if missing(DistName)
 replace DistName = "All Districts" if DataLevel == "State"
 replace DistName = strtrim(DistName)
+drop if DistName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
 
 replace SchName = "All Schools" if DataLevel != "School"
 
@@ -444,25 +445,10 @@ replace StateAbbrev = "MS"
 replace State = "Mississippi"
 replace StateFips = 28
 
-** Generating new variables
-
-replace CountyCode = "Missing/not reported" if DistName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
-replace CountyName = "Missing/not reported" if DistName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
-gen StateAssignedDistID = "Missing/not reported" if SchName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
-gen StateAssignedSchID = "Missing/not reported" if SchName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
-
-replace DistType = -1 if DistName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
-label def agency_typedf -1 "Missing/not reported", add
-
-replace DistCharter = "Missing/not reported" if DistName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
-
-replace CountyName = "Missing/not reported" if DistName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
-replace CountyCode = "Missing/not reported" if DistName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
-
-replace NCESDistrictID = "Missing/not reported" if DistName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
-replace NCESSchoolID = "Missing/not reported" if SchName == "DUBARD SCHOOL FOR LANGUAGE DISORDERS"
-
 ** Creating variables
+
+rename State_leaid StateAssignedDistID
+rename seasch StateAssignedSchID
 
 gen SchYear = "2022-23"
 

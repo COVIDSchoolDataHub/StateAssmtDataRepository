@@ -1,25 +1,16 @@
 
-# Connecticut Data Cleaning
+# Louisiana Data Cleaning
 
-This is a ReadMe for Connecticut's data cleaning process, from 2015 to 2023.
-
-
-
+This is a ReadMe for Louisiana's data cleaning process, from 2015 to 2023.
 
 
 ## Setup
 
 There are four folders you need to create: 
-Original Data Files, NCES, Output, and Temp. 
+Original Data Files, NCES, Output, and Temporary Data Files. 
 
-Download the original files from the drive in all inidividual year folders and the "Additional Subgroup" folder. Place them in the "Original Data Files" folder. 
+Download all of the files from the LA "Original Data Files for Version 1.1." Place them in the "Original Data Files" folder. The code works with the NCES .dta files.
 
-There are 3 .do files. 
+## Code
 
-Run them in the following order:
-
-CT_Cleaning.do; 
-
-CT_Cleaning_2021.do; 
-
-CT_2021_EDFACTS.do.
+Each year from 2015 to 2023 has its own do file which can be run in any order. The only update needed to the do files are to the file paths at the top.
