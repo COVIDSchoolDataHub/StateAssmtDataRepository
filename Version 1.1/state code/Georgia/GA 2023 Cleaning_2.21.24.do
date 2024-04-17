@@ -32,12 +32,18 @@ gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_soc = "N"
 gen Flag_CutScoreChange_sci = "N"
 gen AssmtType = "Regular"
+gen AvgScaleScore = "--"
+gen Lev5_count = ""
+gen Lev5_percent = ""
+gen ParticipationRate = "--"
+
+//Data Levels
 gen DataLevel = "School"
 replace DataLevel = "District" if StateAssignedSchID == "ALL"
 replace DataLevel = "State" if StateAssignedDistID == "ALL"
-gen AvgScaleScore =.
-gen Lev5_count = ""
-gen Lev5_percent = ""
+
+replace SchName = "All Schools" if DataLevel != "School"
+replace DistName = "All Districts" if DataLevel == "State"
 
 //Groups & SubGroups
 replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "American Indian or Alaskan Native"
@@ -68,9 +74,6 @@ replace StudentGroup = "RaceEth" if StudentSubGroup == "Native Hawaiian or Pacif
 replace StudentGroup = "RaceEth" if StudentSubGroup == "White"
 replace StudentGroup = "RaceEth" if StudentSubGroup == "Two or More"
 
-replace SchName = "All Schools" if DataLevel != "School"
-replace DistName = "All Districts" if DataLevel == "State"
-
 gen StudentSubGroup_TotalTested = num_tested_cnt
 destring num_tested_cnt, replace force
 replace num_tested_cnt = -1000000 if num_tested_cnt == .
@@ -79,7 +82,18 @@ replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
 replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "TFS"
-drop num_tested_cnt
+
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+gen Suppressed = 0
+replace Suppressed = 1 if StudentSubGroup_TotalTested == "*"
+egen StudentGroup_Suppressed = max(Suppressed), by(StudentGroup GradeLevel Subject DataLevel StateAssignedSchID StateAssignedDistID DistName SchName)
+drop Suppressed
+gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
+replace StudentGroup_TotalTested = AllStudents_Tested if StudentGroup_Suppressed == 1
+replace StudentGroup_TotalTested = AllStudents_Tested if inlist(StudentGroup, "Homeless Enrolled Status", "Military Connected Status", "Foster Care Status")
+drop AllStudents_Tested StudentGroup_Suppressed
+replace StudentGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "*"
 
 //Missing & Suppressed Data
 replace Lev1_count = "--" if Lev1_count == ""
@@ -115,7 +129,21 @@ replace Lev3_percent = Lev3_percent/100
 replace Lev4_percent = Lev4_percent/100
 replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
 
-gen ParticipationRate =.
+//Deriving Additional Proficiency Information
+forvalues n = 1/4{
+	gen Lev`n' = Lev`n'_percent * num_tested_cnt
+	replace Lev`n' = . if Lev`n' < 0
+	replace Lev`n' = round(Lev`n')
+	tostring Lev`n', replace
+	replace Lev`n'_count = Lev`n' if inlist(Lev`n'_count, "*", "--") & Lev`n' != "."
+	drop Lev`n'
+}
+
+replace ProficientOrAbove_count = ProficientOrAbove_percent * num_tested_cnt if ProficientOrAbove_count == . & ProficientOrAbove_percent != .
+replace ProficientOrAbove_count = . if ProficientOrAbove_count < 0
+replace ProficientOrAbove_count = round(ProficientOrAbove_count)
+
+drop num_tested_cnt
 
 //Missing Data (Part II)
 tostring ProficientOrAbove_count, replace
@@ -351,6 +379,12 @@ replace DistCharter = "Yes" if DistName == "State Charter Schools II- Resurgence
 replace DistLocale = "Suburb, large" if DistName == "State Charter Schools II- Resurgence Hall Middle Academy"
 replace CountyName = "Fulton County" if DistName == "State Charter Schools II- Resurgence Hall Middle Academy"
 replace CountyCode = "13121" if DistName == "State Charter Schools II- Resurgence Hall Middle Academy"
+
+replace SchVirtual = "Yes" if NCESSchoolID == "130585304460"
+replace DistCharter = "Yes" if NCESDistrictID == "1305853"
+replace DistLocale = "Suburb, large" if NCESDistrictID == "1305853"
+replace CountyName = "Cobb County" if NCESDistrictID == "1305853"
+replace CountyCode = "13067" if NCESDistrictID == "1305853"
 
 //Label & Organize Variables
 label var State "State name"

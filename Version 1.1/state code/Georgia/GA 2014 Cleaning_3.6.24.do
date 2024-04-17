@@ -38,14 +38,23 @@ gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_sci = "N"
 gen Flag_CutScoreChange_soc = "N"
 gen AssmtType = "Regular"
-gen DataLevel = "School"
-replace DataLevel = "District" if StateAssignedSchID == "ALL"
-replace DataLevel = "State" if StateAssignedDistID == "ALL"
-gen AvgScaleScore =.
+gen AvgScaleScore = "--"
 gen Lev4_count = ""
 gen Lev4_percent = ""
 gen Lev5_count = ""
 gen Lev5_percent = ""
+gen ParticipationRate = "--"
+
+//Data Levels
+gen DataLevel = "School"
+replace DataLevel = "District" if StateAssignedSchID == "ALL"
+replace DataLevel = "State" if StateAssignedDistID == "ALL"
+
+replace SchName = "All Schools" if DataLevel != "School"
+replace DistName = "All Districts" if DataLevel == "State"
+
+replace StateAssignedSchID = "" if DataLevel != "School"
+replace StateAssignedDistID = "" if DataLevel == "State"
 
 //Groups & SubGroups
 replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "American Indian or Alaskan Native"
@@ -75,10 +84,23 @@ replace StudentGroup = "Economic Status" if StudentSubGroup == "Not Economically
 replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD" | StudentSubGroup == "Non-SWD"
 replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant" | StudentSubGroup == "Non-Migrant"
 
-replace SchName = "All Schools" if DataLevel != "School"
-replace DistName = "All Districts" if DataLevel == "State"
+replace StudentSubGroup_TotalTested = . if StudentSubGroup_TotalTested == 1
+bys DataLevel DistName SchName Subject GradeLevel StudentGroup: egen StudentGroup_TotalTested = total(StudentSubGroup_TotalTested)
+tostring StudentSubGroup_TotalTested, replace
+replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "."
+tostring StudentGroup_TotalTested, replace
+replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
 
-bys SchName DistName Subject GradeLevel StudentGroup: egen StudentGroup_TotalTested = total(StudentSubGroup_TotalTested)
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+gen Suppressed = 0
+replace Suppressed = 1 if StudentSubGroup_TotalTested == "*"
+egen StudentGroup_Suppressed = max(Suppressed), by(StudentGroup GradeLevel Subject DataLevel StateAssignedSchID StateAssignedDistID DistName SchName)
+drop Suppressed
+gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
+replace StudentGroup_TotalTested = AllStudents_Tested if StudentGroup_Suppressed == 1
+drop AllStudents_Tested StudentGroup_Suppressed
+replace StudentGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "*"
 
 //Passing Rates & Percentages
 gen ProficiencyCriteria = "Levels 2-3"
@@ -90,8 +112,6 @@ replace Lev1_percent = Lev1_percent/100
 replace Lev2_percent = Lev2_percent/100
 replace Lev3_percent = Lev3_percent/100
 replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
-
-gen ParticipationRate =.
 
 //Missing Data
 tostring Lev1_count, replace
@@ -120,10 +140,6 @@ replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "read" if Subject == "Reading"
 replace Subject = "sci" if Subject == "Science"
 replace Subject = "soc" if Subject == "Social Studies"
-
-//Statewide Data
-replace StateAssignedSchID = "" if DataLevel != "School"
-replace StateAssignedDistID = "" if DataLevel == "State"
 
 save "$GAdata/GA_AssmtData_2014.dta", replace
 
@@ -173,6 +189,11 @@ tostring StateAssignedSchID, replace
 tostring StateAssignedDistID, replace
 replace StateAssignedSchID = "" if DataLevel != "School"
 replace StateAssignedDistID = "" if DataLevel == "State"
+
+replace CountyName = strproper(CountyName)
+replace CountyName = "DeKalb County" if CountyName == "Dekalb County"
+replace CountyName = "McDuffie County" if CountyName == "Mcduffie County"
+replace CountyName = "McIntosh County" if CountyName == "Mcintosh County"
 
 //Label & Organize Variables
 label var State "State name"

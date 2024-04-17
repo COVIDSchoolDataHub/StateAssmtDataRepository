@@ -30,6 +30,10 @@ global NCES: File containing all NCES files (with subfolders for original state 
 global GAdata "/Users/miramehta/Documents/GA State Testing Data"
 global NCES "/Users/miramehta/Documents/NCES District and School Demographics"
 ```
+
+## General Note
+Broadly, the initial file format (and therefore the cleaning code structure) are the same for 2015 and 2019-2023.  All other years have an initial file format that matches each other, but is different from 2015 and 2019-2023.
+
 ## Updates
 
-03/06/2024: Updated to include DistLocale and correctly pull in NCES data for 2023.
+04/17/2024: Updated to derive more level and proficiency counts where possible, change the case of CountyName prior to 2015, and match new StudentGroup_TotalTested convention for suppressed subgroup counts/categories where only one applicable subgroup is reported.
