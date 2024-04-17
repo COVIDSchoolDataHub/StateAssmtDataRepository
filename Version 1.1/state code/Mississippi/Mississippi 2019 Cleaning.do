@@ -3,6 +3,7 @@ set more off
 
 cd "/Users/maggie/Desktop/Mississippi"
 
+global MS "/Users/maggie/Desktop/Mississippi"
 global raw "/Users/maggie/Desktop/Mississippi/Original Data Files"
 global output "/Users/maggie/Desktop/Mississippi/Output"
 global NCES "/Users/maggie/Desktop/Mississippi/NCES/Cleaned"
@@ -49,16 +50,12 @@ use "${Request}/2019/ela.dta", clear
 append using "${Request}/2019/math.dta"
 append using "${Request}/2019/sci.dta"
 
-drop if StudentSubGroup_TotalTested == "0"
+drop if StudentSubGroup_TotalTested == "0" | (Lev1_count == "0" & Lev2_count == "0" & Lev3_count == "0" & Lev4_count == "0" & Lev5_count == "0")
+replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == ""
 
 foreach v of numlist 1/5 {
 	replace Lev`v'_count = "0" if Lev`v'_count == ""
 }
-gen flag = Lev1_count == "0" & Lev2_count == "0" & Lev3_count == "0" & Lev4_count == "0" & Lev5_count == "0"
-foreach v of numlist 1/5 {
-	replace Lev`v'_count = "*" if flag == 1
-}
-drop flag
 
 gen State_leaid = StateAssignedDistID
 merge m:1 State_leaid using "${NCES}/NCES_2018_District.dta"
@@ -85,7 +82,9 @@ replace SchYear = "2018-19"
 replace DistName = "All Districts" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel != 3
 
+replace StateAssignedDistID = subinstr(StateAssignedDistID, "MS-", "", .)
 replace StateAssignedDistID = "" if DataLevel == 1
+replace StateAssignedSchID = substr(StateAssignedSchID, 6, 7)
 replace StateAssignedSchID = "" if DataLevel != 3
 
 gen AssmtName = "MAAP"
@@ -115,7 +114,7 @@ destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
 gen sum = Lev1_count2 + Lev2_count2 + Lev3_count2 + Lev4_count2 + Lev5_count2
 gen diff = StudentSubGroup_TotalTested2 - sum
 tostring sum, replace force
-replace StudentSubGroup_TotalTested = sum if !inlist(diff, 0, .)
+replace StudentSubGroup_TotalTested = sum if diff != 0 & sum != "."
 drop StudentSubGroup_TotalTested2 sum diff
 
 ** Generating student group total counts
@@ -136,9 +135,14 @@ foreach v of numlist 1/5 {
 	replace Lev`v'_percent = "0" if Lev`v'_count == "0"
 }
 
+drop StudentSubGroup_TotalTested2
+
 ** Generating proficiencies
 
-gen ProficientOrAbove_count = Lev4_count2 + Lev5_count2
+destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
+
+gen ProficientOrAbove_count = Lev4_count2 + Lev5_count2 
+replace ProficientOrAbove_count = StudentSubGroup_TotalTested2 - (Lev1_count2 + Lev2_count2 + Lev3_count2) if ProficientOrAbove_count == .
 gen ProficientOrAbove_percent = ProficientOrAbove_count/StudentSubGroup_TotalTested2
 tostring ProficientOrAbove_count, replace force
 tostring ProficientOrAbove_percent, replace format("%9.4g") force
@@ -147,6 +151,19 @@ replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
 replace ProficientOrAbove_percent = "0" if ProficientOrAbove_count == "0"
 
 drop StudentSubGroup_TotalTested2 test *_count2
+
+** Merging with standardized name file
+
+merge m:1 NCESDistrictID using "${MS}/standarddistnames.dta"
+replace DistName = newdistname if _merge != 1
+drop if _merge == 2 
+drop newdistname _merge
+
+merge m:1 NCESSchoolID using "${MS}/standardschnames.dta"
+replace SchName = newschname if _merge != 1
+drop if DataLevel == 3 & _merge == 1
+drop if _merge == 2
+drop newdistname newschname _merge
 
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 

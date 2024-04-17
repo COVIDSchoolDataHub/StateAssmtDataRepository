@@ -3,12 +3,12 @@ set more off
 
 cd "/Users/maggie/Desktop/Mississippi"
 
+global MS "/Users/maggie/Desktop/Mississippi"
 global raw "/Users/maggie/Desktop/Mississippi/Original Data Files"
 global output "/Users/maggie/Desktop/Mississippi/Output"
 global NCES "/Users/maggie/Desktop/Mississippi/NCES/Cleaned"
 global Request "/Users/maggie/Desktop/Mississippi/Data Request"
 
-/*
 ** Data Request files (proficient counts and student counts w/ subgroups)
 
 local subject math ela sci
@@ -43,6 +43,7 @@ append using "${Request}/2023/sci.dta"
 
 drop if StudentSubGroup_TotalTested == "0"
 replace ProficientOrAbove_count = "0" if ProficientOrAbove_count == ""
+drop if StudentGroup == "All Students"
 
 foreach v of numlist 1/5 {
 	gen Lev`v'_count = "--"
@@ -74,7 +75,9 @@ replace SchYear = "2022-23"
 replace DistName = "All Districts" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel != 3
 
+replace StateAssignedDistID = subinstr(StateAssignedDistID, "MS-", "", .)
 replace StateAssignedDistID = "" if DataLevel == 1
+replace StateAssignedSchID = substr(StateAssignedSchID, 6, 7)
 replace StateAssignedSchID = "" if DataLevel != 3
 
 gen AssmtName = "MAAP"
@@ -114,6 +117,18 @@ replace ProficientOrAbove_percent = "0" if ProficientOrAbove_count == "0"
 
 drop StudentSubGroup_TotalTested2 test *_count2
 
+** Merging with standardized name file
+
+merge m:1 NCESDistrictID using "${MS}/standarddistnames.dta"
+replace DistName = newdistname if _merge != 1
+drop if _merge == 2 
+drop newdistname _merge
+
+merge m:1 NCESSchoolID using "${MS}/standardschnames.dta"
+replace SchName = newschname if _merge != 1
+drop if _merge == 2
+drop newdistname newschname _merge
+
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
@@ -121,9 +136,6 @@ order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistric
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${output}/MS_AssmtData_2023.dta", replace
-export delimited using "${output}/csv/MS_AssmtData_2023.csv", replace
-
-*/
 
 ** Original raw data files (level percents w/o subgroups)
 
@@ -201,12 +213,16 @@ foreach a of local level {
 	tostring Lev`a'_count, replace force
 	replace Lev`a'_count = "*" if Lev`a'_count == "."
 }
+
 gen ProficientOrAbove_percent = Lev4_percent + Lev5_percent
+replace ProficientOrAbove_percent = StudentSubGroup_TotalTested2 - (Lev1_percent + Lev2_percent + Lev3_percent) if ProficientOrAbove_percent == .
 gen ProficientOrAbove_count = round(StudentSubGroup_TotalTested2 * ProficientOrAbove_percent)
 tostring ProficientOrAbove_percent, replace format("%9.4g") force
 tostring ProficientOrAbove_count, replace force
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
 replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
+replace ProficientOrAbove_count = "0" if ProficientOrAbove_percent == "0"
+
 foreach a of local level {
 	tostring Lev`a'_percent, replace format("%9.4g") force
 	replace Lev`a'_percent = "*" if Lev`a'_percent == "."
@@ -307,7 +323,7 @@ drop _merge
 replace SchName = subinstr(SchName," ELEMENTARY"," ELEM",.) if NCESSchoolID == "" & DataLevel == 3
 replace SchName = "A. W. WATSON  ELEMENTARY" if strpos(SchName, "WATSON") > 0 & NCESSchoolID == ""
 replace SchName = "Ambition Preparatory Charter School" if SchName == "AMBITION PREPARATORY CHARTER"
-replace SchName = "AMITE COUNTY HIGH SCHOOL" if SchName == "AMITE COUNTY MIDDLE"
+replace SchName = "AMITE COUNTY MIDDLE SCHOOL" if SchName == "AMITE COUNTY MIDDLE"
 replace SchName = "ARLINGTON HEIGHTS ELEM SCHOOL" if SchName == "ARLINGTON HEIGHTS ELEM"
 replace SchName = "ARMSTRONG JUNIOR HIGH SCHOOL" if SchName == "ARMSTRONG MIDDLE"
 replace SchName = "ASHLAND MIDDLE-HIGH SCHOOL" if SchName == "ASHLAND HIGH"
@@ -315,8 +331,7 @@ replace SchName = "BAY SPRINGS ELEM SCH" if SchName == "BAY SPRINGS ELEM"
 replace SchName = "BAY SPRINGS MIDDLE SCH" if SchName == "BAY SPRINGS MIDDLE"
 replace SchName = "Bay Waveland Middle School" if SchName == "BAY WAVELAND MIDDLE"
 replace SchName = "BELL ELEMENTARY SCHOOL" if SchName == "BELL ACADEMY"
-replace SchName = "OAK GROVE LOWER ELEMENTARY" if SchName == "BELLEVUE ELEM" & GradeLevel == "G03"
-replace SchName = "OAK GROVE UPPER  ELEMENTARY" if SchName == "BELLEVUE ELEM"
+replace SchName = "BELLEVUE ELEMENTARY SCHOOL" if SchName == "BELLEVUE ELEM"
 replace SchName = "BELMONT SCHOOL" if SchName == "BELMONT HIGH"
 replace SchName = "BILOXI JUNIOR HIGH" if SchName == "BILOXI JR HIGH"
 replace SchName = "BLUE MOUNTAIN HIGH SCHOOL" if SchName == "BLUE MOUNTAIN"
@@ -350,7 +365,7 @@ replace SchName = "HEIDELBERG SCHOOL MATH & SCIENCE" if SchName == "HEIDELBERG M
 replace SchName = "HENDERSON/WARD-STEWART ELEMENTARY" if SchName == "HENDERSON WARD-STEWART ELEM"
 replace SchName = "JEFFERSON CO ELEM SCHOOL" if SchName == "JEFFERSON CO ELEM" | SchName == "JEFFERSON COUNTY ELEM"
 replace SchName = "JEFFERSON CO JR HI" if SchName == "JEFFERSON COUNTY JR HIGH"
-replace SchName = "JDC HIGH SCHOOL" if SchName == "JEFFERSON DAVIS COUNTY MIDDLE"
+replace SchName = "JDC MIDDLE SCHOOL" if SchName == "JEFFERSON DAVIS COUNTY MIDDLE"
 replace SchName = "Joel E Smilow Collegiate" if SchName == "JOEL E SMILOW COLLEGIATE"
 replace SchName = "JOEL E. SMILOW PREP" if SchName == "JOEL E. SMILLOW PREP"
 replace SchName = "JUMPERTOWN HIGH SCHOOL" if SchName == "JUMPERTOWN ATTENDANCE CENTER"
@@ -376,10 +391,10 @@ replace SchName = "MC NEAL ELEMENTARY SCHOOL" if SchName == "MCNEAL ELEM"
 replace SchName = "MIDTOWN PUBLIC CHARTER SCHOOL" if SchName == "MIDTOWN PUBLIC"
 replace SchName = "MS SCHOOL FOR THE BLIND" if SchName == "MISSISSIPPI FOR THE BLIND"
 replace SchName = "MS SCHOOL FOR THE DEAF" if SchName == "MISSISSIPPI FOR THE DEAF"
-replace SchName = "JOSEPH L FRAZIER ELEMENTARY" if SchName == "MORGANTOWN ELEM"
+replace SchName = "MORGANTOWN ELEMENTARY" if SchName == "MORGANTOWN ELEM"
 replace SchName = "MOORHEAD CENTRAL SCHOOL" if strpos(SchName, "MOORHEAD CENTRAL") & NCESSchoolID == ""
 replace SchName = "NANIH WAIYA ATTENDANCE CENTER" if SchName == "NANIH WAIYA"
-replace SchName = "NATCHEZ HIGH SCHOOL" if SchName == "NATCHEZ MIDDLE"
+replace SchName = "NATCHEZ MIDDLE SCHOOL" if SchName == "NATCHEZ MIDDLE"
 replace SchName = "NORTH GULFPORT ELEMENTARY AND MIDDL" if SchName == "NORTH GULFPORT ELEM AND MIDDLE"
 replace SchName = "NORTH PANOLA MIDDLE SCHOOL" if SchName == "NORTH PANOLA JR HIGH"
 replace SchName = "NORTH PIKE UPPER ELEMENTARY SCHOOL" if SchName == "NORTH PIKE UPPER ELEM"
@@ -412,7 +427,7 @@ replace SchName = "S V MARSHALL MIDDLE SCHOOL" if SchName == "S. V. MARSHALL MID
 replace SchName = "SAND HILL ELEMENTARY SCHOOL" if SchName == "SAND HILL ATTENDANCE CENTER"
 replace SchName = "SCOTT CENTRAL ATTENDANCE CENTER" if SchName == "SCOTT CENTRAL ATTENDANCE CTR"
 replace SchName = "SHIRLEY D. SIMMONS MIDDLE SCHOOL" if SchName == "SHIRLEY SIMMONS MIDDLE"
-replace SchName = "SIMMONS HIGH SCHOOL" if SchName == "SIMMONS JR HIGH"
+replace SchName = "SIMMONS JR HIGH SCHOOL" if SchName == "SIMMONS JR HIGH"
 replace SchName = "SMITHVILLE HIGH SCHOOL" if SchName == "SMITHVILLE ATTENDANCE CENTER"
 replace SchName = "South Pontotoc Elementary School" if SchName == "SOUTH PONTOTOC ELEM"
 replace SchName = "South Pontotoc Middle School" if SchName == "SOUTH PONTOTOC MIDDLE"
@@ -445,10 +460,23 @@ replace StateAbbrev = "MS"
 replace State = "Mississippi"
 replace StateFips = 28
 
+** Merging with standardized name file
+
+merge m:1 NCESDistrictID using "${MS}/standarddistnames.dta"
+replace DistName = newdistname if _merge != 1
+drop if _merge == 2 
+drop newdistname _merge
+
+merge m:1 NCESSchoolID using "${MS}/standardschnames.dta"
+replace SchName = newschname if _merge != 1
+drop if DataLevel == 3 & _merge == 1
+drop if _merge == 2
+drop newdistname newschname _merge
+
 ** Creating variables
 
-rename State_leaid StateAssignedDistID
-rename seasch StateAssignedSchID
+gen StateAssignedDistID = subinstr(State_leaid, "MS-", "", .)
+gen StateAssignedSchID = substr(seasch, 6, 7)
 
 gen SchYear = "2022-23"
 
@@ -468,11 +496,15 @@ gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_sci = "N"
-gen Flag_CutScoreChange_soc = ""
+gen Flag_CutScoreChange_soc = "Not applicable"
 
 replace State = "Mississippi"
 replace StateAbbrev = "MS"
 replace StateFips = 28
+
+append using "${output}/MS_AssmtData_2023.dta"
+
+replace SchName = "Jdc Middle School" if NCESSchoolID == "280225001587"
 
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 

@@ -3,12 +3,12 @@ set more off
 
 cd "/Users/maggie/Desktop/Mississippi"
 
+global MS "/Users/maggie/Desktop/Mississippi"
 global raw "/Users/maggie/Desktop/Mississippi/Original Data Files"
 global output "/Users/maggie/Desktop/Mississippi/Output"
 global NCES "/Users/maggie/Desktop/Mississippi/NCES/Cleaned"
 global Request "/Users/maggie/Desktop/Mississippi/Data Request"
 
-/*
 ** Data Request files (proficient counts and student counts w/ subgroups)
 
 local subject math ela sci
@@ -43,6 +43,7 @@ append using "${Request}/2021/sci.dta"
 
 drop if StudentSubGroup_TotalTested == "0"
 replace ProficientOrAbove_count = "0" if ProficientOrAbove_count == ""
+drop if StudentGroup == "All Students"
 
 foreach v of numlist 1/5 {
 	gen Lev`v'_count = "--"
@@ -78,7 +79,9 @@ replace SchYear = "2020-21"
 replace DistName = "All Districts" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel != 3
 
+replace StateAssignedDistID = subinstr(StateAssignedDistID, "MS-", "", .)
 replace StateAssignedDistID = "" if DataLevel == 1
+replace StateAssignedSchID = substr(StateAssignedSchID, 6, 7)
 replace StateAssignedSchID = "" if DataLevel != 3
 
 gen AssmtName = "MAAP"
@@ -119,6 +122,19 @@ replace ProficientOrAbove_percent = "0" if ProficientOrAbove_count == "0"
 
 drop StudentSubGroup_TotalTested2 test *_count2
 
+** Merging with standardized name file
+
+merge m:1 NCESDistrictID using "${MS}/standarddistnames.dta"
+replace DistName = newdistname if _merge != 1
+drop if _merge == 2 
+drop newdistname _merge
+
+merge m:1 NCESSchoolID using "${MS}/standardschnames.dta"
+replace SchName = newschname if _merge != 1
+drop if DataLevel == 3 & _merge == 1
+drop if _merge == 2
+drop newdistname newschname _merge
+
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
@@ -126,9 +142,6 @@ order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistric
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${output}/MS_AssmtData_2021.dta", replace
-export delimited using "${output}/csv/MS_AssmtData_2021.csv", replace
-
-*/
 
 ** Original raw data files (level percents w/o subgroups)
 
@@ -198,12 +211,16 @@ foreach a of local level {
 	tostring Lev`a'_count, replace force
 	replace Lev`a'_count = "*" if Lev`a'_count == "."
 }
+
 gen ProficientOrAbove_percent = Lev4_percent + Lev5_percent
+replace ProficientOrAbove_percent = StudentSubGroup_TotalTested2 - (Lev1_percent + Lev2_percent + Lev3_percent) if ProficientOrAbove_percent == .
 gen ProficientOrAbove_count = round(StudentSubGroup_TotalTested2 * ProficientOrAbove_percent)
 tostring ProficientOrAbove_percent, replace format("%9.4g") force
 tostring ProficientOrAbove_count, replace force
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
 replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
+replace ProficientOrAbove_count = "0" if ProficientOrAbove_percent == "0"
+
 foreach a of local level {
 	tostring Lev`a'_percent, replace format("%9.4g") force
 	replace Lev`a'_percent = "*" if Lev`a'_percent == "."
@@ -405,10 +422,23 @@ merge m:1 DistName SchName using "${NCES}/NCES_2021_School.dta", update
 drop if _merge == 2
 drop _merge
 
+** Merging with standardized name file
+
+merge m:1 NCESDistrictID using "${MS}/standarddistnames.dta"
+replace DistName = newdistname if _merge != 1
+drop if _merge == 2 
+drop newdistname _merge
+
+merge m:1 NCESSchoolID using "${MS}/standardschnames.dta"
+replace SchName = newschname if _merge != 1
+drop if DataLevel == 3 & _merge == 1
+drop if _merge == 2
+drop newdistname newschname _merge
+
 ** Creating variables
 
-rename State_leaid StateAssignedDistID
-rename seasch StateAssignedSchID
+gen StateAssignedDistID = subinstr(State_leaid, "MS-", "", .)
+gen StateAssignedSchID = substr(seasch, 6, 7)
 
 gen SchYear = "2020-21"
 
@@ -428,11 +458,13 @@ gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_sci = "N"
-gen Flag_CutScoreChange_soc = ""
+gen Flag_CutScoreChange_soc = "Not applicable"
 
 replace State = "Mississippi"
 replace StateAbbrev = "MS"
 replace StateFips = 28
+
+append using "${output}/MS_AssmtData_2021.dta"
 
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 

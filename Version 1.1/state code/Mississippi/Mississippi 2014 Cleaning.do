@@ -3,6 +3,7 @@ set more off
 
 cd "/Users/maggie/Desktop/Mississippi"
 
+global MS "/Users/maggie/Desktop/Mississippi"
 global raw "/Users/maggie/Desktop/Mississippi/Original Data Files"
 global output "/Users/maggie/Desktop/Mississippi/Output"
 global NCES "/Users/maggie/Desktop/Mississippi/NCES/Cleaned"
@@ -72,13 +73,11 @@ rename NM Lev1_count
 rename NB Lev2_count
 rename NP Lev3_count
 rename NA Lev4_count
-gen Lev5_count = ""
 
 rename PM Lev1_percent
 rename PB Lev2_percent
 rename PP Lev3_percent
 rename PA Lev4_percent
-gen Lev5_percent = ""
 
 split GradeLevel, parse("Z") generate(GradeLevel)
 
@@ -96,23 +95,23 @@ gen StudentSubGroup = StudentGroup
 
 gen ParticipationRate = "--"
 
-gen test1 = ""
-gen test2 = ""
 foreach a of local level {
 	destring Lev`a'_count, gen(Lev`a'_count2) force
-	replace test1 = "*" if Lev`a'_count == "*"
 	destring Lev`a'_percent, gen(Lev`a'_percent2) force
 	replace Lev`a'_percent2 = Lev`a'_percent2/100
-	replace test2 = "*" if Lev`a'_percent == "*"
 }
 
+destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
+
 gen ProficientOrAbove_count = Lev3_count2 + Lev4_count2 
+replace ProficientOrAbove_count = StudentSubGroup_TotalTested2 - (Lev1_count2 + Lev2_count2) if ProficientOrAbove_count == .
 tostring ProficientOrAbove_count, replace force
-replace ProficientOrAbove_count = test1 if test1 != ""
+replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
 gen ProficientOrAbove_percent = Lev3_percent2 + Lev4_percent2
+replace ProficientOrAbove_percent = 1 - (Lev1_percent2 + Lev2_percent2) if ProficientOrAbove_percent == .
 tostring ProficientOrAbove_percent, replace format("%9.4g") force
-replace ProficientOrAbove_percent = test2 if test2 != ""
-drop test1 test2
+replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
+drop StudentSubGroup_TotalTested2
 
 foreach a of local level {
 	tostring Lev`a'_percent2, replace format("%9.4g") force
@@ -180,20 +179,21 @@ foreach a of local level {
 	replace Lev`a'_percent = "--" if Lev`a'_percent == ""
 	replace Lev`a'_count = "--" if Lev`a'_count == ""
 }
-replace DistName = DistName[_n-1] if test == 2
-replace SchName = SchName[_n-1] if test == 2
-replace StateAssignedDistID = StateAssignedDistID[_n-1] if StateAssignedDistID == ""
-replace StateAssignedSchID = StateAssignedSchID[_n-1] if StateAssignedSchID == ""
-replace State_leaid = State_leaid[_n-1] if State_leaid == ""
-replace seasch = seasch[_n-1] if seasch == ""
-replace DistType = DistType[_n-1] if DistType == ""
-replace SchType = SchType[_n-1] if SchType == .
-replace SchVirtual = SchVirtual[_n-1] if SchVirtual == .
-replace SchLevel = SchLevel[_n-1] if SchLevel == .
-replace DistCharter = DistCharter[_n-1] if DistCharter == ""
-replace DistLocale = DistLocale[_n-1] if DistLocale == ""
-replace CountyCode = CountyCode[_n-1] if CountyCode == ""
-replace CountyName = CountyName[_n-1] if CountyName == ""
+replace DistName = DistName[_n-1] if test == 2 & NCESDistrictID == NCESDistrictID[_n-1] & NCESSchoolID == NCESSchoolID[_n-1]
+replace SchName = SchName[_n-1] if test == 2 & NCESDistrictID == NCESDistrictID[_n-1] & NCESSchoolID == NCESSchoolID[_n-1]
+replace StateAssignedDistID = StateAssignedDistID[_n-1] if StateAssignedDistID == "" & NCESDistrictID == NCESDistrictID[_n-1] & NCESSchoolID == NCESSchoolID[_n-1]
+replace StateAssignedSchID = StateAssignedSchID[_n-1] if StateAssignedSchID == "" & NCESDistrictID == NCESDistrictID[_n-1] & NCESSchoolID == NCESSchoolID[_n-1]
+replace State_leaid = State_leaid[_n-1] if State_leaid == "" & NCESDistrictID == NCESDistrictID[_n-1] & NCESSchoolID == NCESSchoolID[_n-1]
+replace seasch = seasch[_n-1] if seasch == "" & NCESDistrictID == NCESDistrictID[_n-1] & NCESSchoolID == NCESSchoolID[_n-1]
+replace DistType = DistType[_n-1] if DistType == "" & NCESDistrictID == NCESDistrictID[_n-1] & NCESSchoolID == NCESSchoolID[_n-1]
+replace SchType = SchType[_n-1] if SchType == . & NCESDistrictID == NCESDistrictID[_n-1] & NCESSchoolID == NCESSchoolID[_n-1]
+replace SchVirtual = SchVirtual[_n-1] if SchVirtual == . & NCESDistrictID == NCESDistrictID[_n-1] & NCESSchoolID == NCESSchoolID[_n-1]
+replace SchLevel = SchLevel[_n-1] if SchLevel == . & NCESDistrictID == NCESDistrictID[_n-1] & NCESSchoolID == NCESSchoolID[_n-1]
+replace DistCharter = DistCharter[_n-1] if DistCharter == "" & NCESDistrictID == NCESDistrictID[_n-1] & NCESSchoolID == NCESSchoolID[_n-1]
+replace DistLocale = DistLocale[_n-1] if DistLocale == "" & NCESDistrictID == NCESDistrictID[_n-1] & NCESSchoolID == NCESSchoolID[_n-1]
+replace CountyCode = CountyCode[_n-1] if CountyCode == "" & NCESDistrictID == NCESDistrictID[_n-1] & NCESSchoolID == NCESSchoolID[_n-1]
+replace CountyName = CountyName[_n-1] if CountyName == "" & NCESDistrictID == NCESDistrictID[_n-1] & NCESSchoolID == NCESSchoolID[_n-1]
+drop if CountyName == "" & DataLevel != 1
 
 destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
 replace StudentSubGroup_TotalTested2 = 0 if StudentSubGroup_TotalTested2 == .
@@ -203,18 +203,33 @@ tostring StudentGroup_TotalTested, replace force
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
 drop StudentSubGroup_TotalTested2 test test2
 
-replace NCESDistrictID = "2801190" if StateAssignedDistID == "2561"
-replace NCESDistrictID = "2803600" if StateAssignedDistID == "5020"
-replace NCESDistrictID = "2803150" if StateAssignedDistID == "5100"
+replace CountyName = proper(CountyName)
+replace CountyName = "DeSoto County" if CountyName == "Desoto County"
+
+** Merging with standardized name file
+
+merge m:1 NCESDistrictID using "${MS}/standarddistnames.dta"
+replace DistName = newdistname if _merge != 1
+drop if _merge == 2 
+drop newdistname _merge
+
+merge m:1 NCESSchoolID using "${MS}/standardschnames.dta"
+replace SchName = newschname if _merge != 1
+drop if DataLevel == 3 & _merge == 1
+drop if _merge == 2
+drop newdistname newschname _merge
 
 ** Generating new variables
 
 gen SchYear = "2013-14"
 
 gen AssmtName = "MCT2" if Subject != "sci"
-replace AssmtName = "MST" if Subject == "sci"
+replace AssmtName = "MST2" if Subject == "sci"
 gen AssmtType = "Regular"
 gen ProficiencyCriteria = "Levels 3-4"
+
+gen Lev5_count = "--"
+gen Lev5_percent = "--"
 
 replace State = "Mississippi"
 replace StateAbbrev = "MS"

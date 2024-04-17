@@ -3,10 +3,32 @@ set more off
 
 cd "/Users/maggie/Desktop/Mississippi"
 
+global MS "/Users/maggie/Desktop/Mississippi"
 global NCESSchool "/Users/maggie/Desktop/Mississippi/NCES/School"
 global NCESDistrict "/Users/maggie/Desktop/Mississippi/NCES/District"
 global NCES "/Users/maggie/Desktop/Mississippi/NCES/Cleaned"
 global EDFacts "/Users/maggie/Desktop/EDFacts/Datasets"
+
+** Preparing district/school name standardization file
+
+import excel "${MS}/ms_full-dist-sch-stable-list_through2023.xlsx", firstrow clear
+tostring NCESDistrictID, replace
+recast long NCESSchoolID
+format NCESSchoolID %18.0g
+tostring NCESSchoolID, replace usedisplayformat
+drop DataLevel
+gen DataLevel = 3
+duplicates drop NCESDistrictID NCESSchoolID, force
+keep NCESDistrictID newdistname olddistname NCESSchoolID newschname oldschname DataLevel
+save "${MS}/standardschnames.dta", replace
+
+import excel "${MS}/ms_full-dist-sch-stable-list_through2023.xlsx", firstrow clear
+tostring NCESDistrictID, replace
+drop DataLevel
+gen DataLevel = 2
+duplicates drop NCESDistrictID, force
+keep NCESDistrictID newdistname olddistname DataLevel
+save "${MS}/standarddistnames.dta", replace
 
 /*
 ** Preparing EDFacts files
