@@ -3,6 +3,7 @@ set more off
 
 cd "/Users/maggie/Desktop/Mississippi"
 
+global MS "/Users/maggie/Desktop/Mississippi"
 global raw "/Users/maggie/Desktop/Mississippi/Original Data Files"
 global output "/Users/maggie/Desktop/Mississippi/Output"
 global NCES "/Users/maggie/Desktop/Mississippi/NCES/Cleaned"
@@ -68,7 +69,9 @@ replace SchYear = "2016-17"
 replace DistName = "All Districts" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel != 3
 
+replace StateAssignedDistID = subinstr(State_leaid, "MS-", "", .)
 replace StateAssignedDistID = "" if DataLevel == 1
+replace StateAssignedSchID = substr(StateAssignedSchID, 6, 7)
 replace StateAssignedSchID = "" if DataLevel != 3
 
 gen AssmtName = "MAAP" if Subject != "sci"
@@ -82,8 +85,8 @@ gen AvgScaleScore = "--"
 gen ParticipationRate = "--"
 
 gen Flag_AssmtNameChange = "N"
-gen Flag_CutScoreChange_ELA = "Y"
-gen Flag_CutScoreChange_math = "Y"
+gen Flag_CutScoreChange_ELA = "N"
+gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_sci = "N"
 gen Flag_CutScoreChange_soc = "Not applicable"
 
@@ -111,10 +114,16 @@ foreach v of numlist 1/5 {
 }
 replace Lev5_percent = "" if Subject == "sci"
 
+drop StudentSubGroup_TotalTested2
+
 ** Generating proficiencies
 
+destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
+
 gen ProficientOrAbove_count = Lev4_count2 + Lev5_count2 if Subject != "sci"
+replace ProficientOrAbove_count = StudentSubGroup_TotalTested2 - (Lev1_count2 + Lev2_count2 + Lev3_count2) if ProficientOrAbove_count == . & Subject != "sci"
 replace ProficientOrAbove_count = Lev3_count2 + Lev4_count2 if Subject == "sci"
+replace ProficientOrAbove_count = StudentSubGroup_TotalTested2 - (Lev1_count2 + Lev2_count2) if ProficientOrAbove_count == . & Subject == "sci"
 gen ProficientOrAbove_percent = ProficientOrAbove_count/StudentSubGroup_TotalTested2
 tostring ProficientOrAbove_count, replace force
 tostring ProficientOrAbove_percent, replace format("%9.4g") force
@@ -123,6 +132,19 @@ replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
 replace ProficientOrAbove_percent = "0" if ProficientOrAbove_count == "0"
 
 drop StudentSubGroup_TotalTested2 test *_count2
+
+** Merging with standardized name file
+
+merge m:1 NCESDistrictID using "${MS}/standarddistnames.dta"
+replace DistName = newdistname if _merge != 1
+drop if _merge == 2 
+drop newdistname _merge
+
+merge m:1 NCESSchoolID using "${MS}/standardschnames.dta"
+replace SchName = newschname if _merge != 1
+drop if DataLevel == 3 & _merge == 1
+drop if _merge == 2
+drop newdistname newschname _merge
 
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
