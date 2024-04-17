@@ -38,4 +38,4 @@ global output "/Users/miramehta/Documents/KS State Testing Data/Output"
 ```
 ## Updates
 
-03/12/2024: Updated to incorporate post-launch file format changes (including new subgroups), use 2022 EdFacts data for 2022 and 2023 files, calculate counts based on percentages where applicable, and merge gender subgroup performacne data from EdFacts. 
+04/16/2024: Updated to remove school and district IDs from their names and to adjust StudentGroup counts to match the "All Students" value if the StudentGroup only contains one StudentSubGroup.

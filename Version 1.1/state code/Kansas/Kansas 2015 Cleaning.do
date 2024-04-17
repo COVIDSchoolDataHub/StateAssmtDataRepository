@@ -44,9 +44,20 @@ gen DataLevel = "School"
 replace DataLevel = "District" if StateAssignedSchID == "0"
 replace DataLevel = "State" if StateAssignedDistID == "0"
 
+replace SchName = stritrim(SchName)
+split SchName, parse ("-")
+replace SchName = subinstr(SchName, SchName1, "", 1) if DataLevel == "School"
+replace SchName = subinstr(SchName, "- ", "", 1) if DataLevel == "School"
+drop SchName1 SchName2 SchName3 SchName4
+
+
 gen DistName = SchName
 sort StateAssignedDistID StateAssignedSchID
 replace DistName = DistName[_n-1] if DataLevel == "School"
+split DistName, parse ("-")
+replace DistName = subinstr(DistName, DistName1, "", 1) if DataLevel != "State"
+replace DistName = subinstr(DistName, "- ", "", 1) if DataLevel != "State"
+drop DistName1 DistName2 DistName3 DistName4
 
 replace SchName = "All Schools" if DataLevel != "School"
 replace DistName = "All Districts" if DataLevel == "State"
@@ -111,14 +122,14 @@ rename DataLevel_n DataLevel
 
 gen State_leaid = StateAssignedDistID
 
-merge m:1 State_leaid using "${NCES}/NCES_2014_District.dta"
+merge m:1 State_leaid using "${NCES}/NCES_2014_District_KS.dta"
 
 drop if _merge == 1 & DataLevel != 1
 drop if _merge == 2
 drop _merge
 
 gen seasch = StateAssignedSchID
-merge m:1 seasch using "${NCES}/NCES_2014_School.dta"
+merge m:1 seasch using "${NCES}/NCES_2014_School_KS.dta"
 
 drop if _merge == 2
 drop _merge
@@ -126,6 +137,8 @@ drop _merge
 replace StateAbbrev = "KS" if DataLevel == 1
 replace State = "Kansas" if DataLevel == 1
 replace StateFips = 20 if DataLevel == 1
+replace CountyName = strproper(CountyName)
+replace CountyName = "McPherson County" if CountyName == "Mcpherson County"
 
 ** Merging with EDFacts Datasets
 
@@ -198,6 +211,7 @@ bysort State_leaid seasch GradeLevel Subject: egen All = max(Count_n)
 bysort State_leaid seasch GradeLevel Subject: egen Econ = sum(Count_n) if StudentGroup == "Economic Status"
 replace Count_n = All - Econ if StudentSubGroup == "Not Economically Disadvantaged"
 replace StudentSubGroup_TotalTested = string(Count_n) if StudentSubGroup == "Not Economically Disadvantaged" & Count_n != .
+replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "0"
 
 ** State counts
 
@@ -221,6 +235,11 @@ gen ProfPct = ProficientOrAbove_percent
 split ProfPct, parse("-")
 destring ProfPct1, replace force
 destring ProfPct2, replace force
+
+gen flag = 0
+replace flag = 1 if ProfPct1 == . & Lev3_percent != . & Lev4_percent != .
+replace ProfPct1 = Lev3_percent + Lev4_percent if flag == 1
+
 gen ProfCount = round(Count_n * ProfPct1)
 gen ProfCount2 = .
 replace ProfCount2 = Count_n * ProfPct2 if ProfPct2 != .
@@ -245,26 +264,43 @@ forvalues n = 1/4{
 	replace Lev`n'_percent = "--" if inlist(Lev`n'_percent, "", ".")
 }
 
-drop ProfPct ProfPct1 ProfPct2 ProfCount ProfCount2
+tostring ProfPct1, replace format("%9.2g") force
+replace ProficientOrAbove_percent = ProfPct1 if flag == 1
+
+drop ProfPct ProfPct1 ProfPct2 ProfCount ProfCount2 flag
+
+replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == ""
 
 ** StudentGroup_TotalTested
-replace Count_n = 0 if Count_n == .
 bysort State_leaid seasch StudentGroup GradeLevel Subject: egen test = min(Count_n)
-bysort State_leaid seasch StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = sum(Count_n) if test != 0
+bysort State_leaid seasch StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = sum(Count_n) if test != .
 tostring Count_n, replace force
 replace Count_n = "--" if Count_n == "."
-replace StudentSubGroup_TotalTested = Count_n if Count_n != "0" & Count_n != "--"
+replace StudentSubGroup_TotalTested = Count_n if Count_n != "--"
 drop Count_n test All Econ
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "--" if inlist(StudentGroup_TotalTested, "", ".")
+
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+gen Suppressed = 0
+replace Suppressed = 1 if inlist(StudentSubGroup_TotalTested, "--", "*")
+egen StudentGroup_Suppressed = max(Suppressed), by(StudentGroup GradeLevel Subject DataLevel seasch StateAssignedDistID DistName SchName)
+drop Suppressed
+gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
+replace StudentGroup_TotalTested = AllStudents_Tested if StudentGroup_Suppressed == 1
+replace StudentGroup_TotalTested = AllStudents_Tested if StudentGroup == "Disability Status"
+drop AllStudents_Tested StudentGroup_Suppressed
+replace StudentGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "--"
+replace StudentGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "*"
 
 ** Generating new variables
 
 gen Flag_AssmtNameChange = "Y"
 gen Flag_CutScoreChange_ELA = "Y"
 gen Flag_CutScoreChange_math = "Y"
-gen Flag_CutScoreChange_soc = ""
-gen Flag_CutScoreChange_sci = ""
+gen Flag_CutScoreChange_soc = "Not applicable"
+gen Flag_CutScoreChange_sci = "Not applicable"
 
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 

@@ -49,6 +49,8 @@ replace StateAssignedSchID = strtrim(StateAssignedSchID)
 replace DataLevel = "District" if StateAssignedSchID == "0"
 replace DataLevel = "State" if StateAssignedDistID == "0"
 
+replace SchName = stritrim(SchName)
+
 replace SchName = "All Schools" if DataLevel != "School"
 replace DistName = "All Districts" if DataLevel == "State"
 
@@ -115,23 +117,23 @@ rename DataLevel_n DataLevel
 gen State_leaid = "KS-" + StateAssignedDistID
 replace State_leaid = "" if DataLevel == 1
 
-merge m:1 State_leaid using "${NCES}/NCES_2021_District.dta"
+merge m:1 State_leaid using "${NCES}/NCES_2022_District_KS.dta"
 
 drop if _merge == 1 & DataLevel != 1
 drop if _merge == 2
 drop _merge
 
-gen seasch = StateAssignedDistID + "-" + StateAssignedSchID
-replace seasch = "" if DataLevel != 3
+gen seasch = "KS-" + StateAssignedDistID + "-" + StateAssignedSchID
 
-merge m:1 seasch using "${NCES}/NCES_2021_School.dta"
+merge m:1 seasch using "${NCES}/NCES_2022_School_KS.dta"
 
 drop if _merge == 2
 drop _merge
 
 replace StateAbbrev = "KS" if DataLevel == 1
-replace State = "Kansas" if DataLevel == 1
-replace StateFips = 20 if DataLevel == 1
+gen State = "Kansas"
+replace StateFips = "20" if DataLevel == 1
+rename SchoolType SchType
 
 ** Merge EdFacts Data
 destring NCESDistrictID, replace force
@@ -139,8 +141,6 @@ destring NCESSchoolID, replace force
 merge m:1 DataLevel NCESDistrictID NCESSchoolID StudentGroup StudentSubGroup GradeLevel Subject using "${EDFacts}/2022/edfacts2022kansas.dta"
 replace StudentSubGroup_TotalTested = string(Count) if string(Count) != "." & string(Count) != ""
 rename Count Count_n
-replace ProficientOrAbove_percent = PctProf if _merge == 3
-replace ParticipationRate = Participation if _merge == 3 & Participation != ""
 drop if _merge == 2
 drop state _merge PctProf2 Participation2
 
@@ -151,23 +151,24 @@ bysort State_leaid seasch GradeLevel Subject: egen Disability = sum(Count_n) if 
 replace Count_n = All - Econ if StudentSubGroup == "Not Economically Disadvantaged"
 replace Count_n = All - Disability if StudentSubGroup == "Non-SWD"
 replace StudentSubGroup_TotalTested = string(Count_n) if inlist(StudentSubGroup, "Not Economically Disadvantaged", "Non-SWD") & Count_n != .
+replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "0"
 
 ** Deriving More Proficiency Information
 gen ProfPct = ProficientOrAbove_percent
-split ProfPct, parse("-")
-destring ProfPct1, replace force
-destring ProfPct2, replace force
-gen ProfCount = round(Count_n * ProfPct1)
-gen ProfCount2 = .
-replace ProfCount2 = Count_n * ProfPct2 if ProfPct2 != .
+destring ProfPct, replace
+
+gen flag = 0
+replace flag = 1 if ProfPct == . & Lev3_percent != . & Lev4_percent != .
+replace ProfPct = Lev3_percent + Lev4_percent if flag == 1
+
+gen ProfCount = round(Count_n * ProfPct)
 tostring ProfCount, replace force
-replace ProfCount = ProfCount + "-" + string(round(ProfCount2)) if ProfCount2 != .
 replace ProfCount = "--" if inlist(ProfCount, "", ".", ".-.")
 replace ProficientOrAbove_count = ProfCount if ProfCount != "--"
 replace ProficientOrAbove_count = "--" if StudentSubGroup_TotalTested == "--"
 
-replace Lev3_percent = ProfPct1 - Lev4_percent if Lev3_percent == . & Lev4_percent != .
-replace Lev4_percent = ProfPct1 - Lev3_percent if Lev4_percent == . & Lev3_percent != .
+replace Lev3_percent = ProfPct - Lev4_percent if Lev3_percent == . & Lev4_percent != .
+replace Lev4_percent = ProfPct - Lev3_percent if Lev4_percent == . & Lev3_percent != .
 
 forvalues n = 1/4{
 	gen Lev`n' = round(Lev`n'_percent * Count_n)
@@ -181,7 +182,12 @@ forvalues n = 1/4{
 	replace Lev`n'_percent = "--" if inlist(Lev`n'_percent, "", ".")
 }
 
-drop ProfPct ProfPct1 ProfPct2 ProfCount ProfCount2
+tostring ProfPct, replace format("%9.2g") force
+replace ProficientOrAbove_percent = ProfPct if flag == 1
+
+drop ProfPct ProfCount flag
+
+replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == ""
 
 ** StudentGroup_TotalTested
 replace Count_n = 0 if Count_n == .
@@ -194,12 +200,25 @@ drop Count_n test All Econ Disability
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "--" if inlist(StudentGroup_TotalTested, "", ".")
 
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+gen Suppressed = 0
+replace Suppressed = 1 if inlist(StudentSubGroup_TotalTested, "--", "*")
+egen StudentGroup_Suppressed = max(Suppressed), by(StudentGroup GradeLevel Subject DataLevel seasch StateAssignedDistID DistName SchName)
+drop Suppressed
+gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
+replace StudentGroup_TotalTested = AllStudents_Tested if StudentGroup_Suppressed == 1
+replace StudentGroup_TotalTested = AllStudents_Tested if inlist(StudentGroup, "Homeless Enrolled Status", "Migrant Status", "Foster Care Status", "Military Connected Status")
+drop AllStudents_Tested StudentGroup_Suppressed
+replace StudentGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "--"
+replace StudentGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "*"
+
 ** Generating new variables
 
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_soc = ""
+gen Flag_CutScoreChange_soc = "Not applicable"
 gen Flag_CutScoreChange_sci = "N"
 
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode

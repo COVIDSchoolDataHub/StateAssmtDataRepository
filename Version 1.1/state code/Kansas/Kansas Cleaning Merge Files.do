@@ -440,3 +440,18 @@ foreach a in $years {
 	
 }
 
+import excel "${NCESSchool}/NCES_2022_School.xlsx", firstrow allstring clear
+drop if StateAbbrev != "KS"
+merge 1:1 NCESDistrictID NCESSchoolID using "${NCES}/NCES_2021_School_KS.dta", keepusing (DistLocale CountyCode CountyName DistCharter)
+drop if _merge == 2
+drop _merge
+rename st_schid seasch
+save "${NCES}/NCES_2022_School_KS.dta", replace
+
+import excel "${NCESDistrict}/NCES_2022_District.xlsx", firstrow allstring clear
+drop if StateAbbrev != "KS"
+rename ncesdistrictid NCESDistrictID
+merge 1:1 NCESDistrictID using "${NCES}/NCES_2021_District_KS.dta", keepusing (DistLocale CountyCode CountyName DistCharter)
+drop if _merge == 2
+drop _merge
+save "${NCES}/NCES_2022_District_KS.dta", replace

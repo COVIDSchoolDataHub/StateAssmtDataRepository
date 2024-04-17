@@ -3,7 +3,7 @@ set more off
 
 cd "/Users/miramehta/Documents"
 
-global raw "/Users/miramehta/Documents/KS State Testing Data/Original Data"
+global raw "/Users/miramehta/Documents/KS State Testing Data/Original Data Files"
 global output "/Users/miramehta/Documents/KS State Testing Data/Output"
 global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
 global EDFacts "/Users/miramehta/Documents/EdFacts"
