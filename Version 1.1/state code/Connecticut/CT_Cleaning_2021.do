@@ -248,7 +248,7 @@ gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "Y"
 gen Flag_CutScoreChange_math = "Y"
 gen Flag_CutScoreChange_sci = "Y"
-gen Flag_CutScoreChange_soc = ""
+gen Flag_CutScoreChange_soc = "Not applicable"
 
 //Missing/empty Variables
 gen Lev5_count = ""
