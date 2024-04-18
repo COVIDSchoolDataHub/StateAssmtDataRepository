@@ -4,9 +4,9 @@ clear
 set more off
 set trace off
 cap log close
-cd "/Users/meghancornacchia/Desktop/DataRepository/Connecticut"
-local Original "/Users/meghancornacchia/Desktop/DataRepository/Connecticut/Original_Data_Files"
-local Output "/Users/meghancornacchia/Desktop/DataRepository/Connecticut/Output_Data_Files"
+cd "/Users/meghancornacchia/Desktop/DataRepository/Connecticut.nosync"
+local Original "/Users/meghancornacchia/Desktop/DataRepository/Connecticut.nosync/Original_Data_Files"
+local Output "/Users/meghancornacchia/Desktop/DataRepository/Connecticut.nosync/Output_Data_Files"
 local NCES_School "/Users/meghancornacchia/Desktop/DataRepository/NCES_Data_Files"
 local NCES_District "/Users/meghancornacchia/Desktop/DataRepository/NCES_Data_Files"
 

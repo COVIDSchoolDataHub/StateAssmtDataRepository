@@ -1,8 +1,8 @@
 clear
 //set more off
-local Output "/Users/meghancornacchia/Desktop/DataRepository/Connecticut/Output_Data_Files"
-local EDFacts "/Users/meghancornacchia/Desktop/DataRepository/Connecticut/EDFacts"
-local Temp "/Users/meghancornacchia/Desktop/DataRepository/Connecticut/Temp"
+local Output "/Users/meghancornacchia/Desktop/DataRepository/Connecticut.nosync/Output_Data_Files"
+local EDFacts "/Users/meghancornacchia/Desktop/DataRepository/Connecticut.nosync/EDFacts"
+local Temp "/Users/meghancornacchia/Desktop/DataRepository/Connecticut.nosync/Temp"
 
 foreach subject in ela math {
 foreach dl in district school {
@@ -16,7 +16,7 @@ cap rename NCESSCH NCESSchoolID
 rename SUBJECT Subject
 rename GRADE GradeLevel
 rename CATEGORY StudentSubGroup
-cap rename PCTPART ParticipationRate
+drop PCTPART
 cap rename NUM* StudentSubGroup_TotalTested
 
 //Subject
@@ -124,11 +124,41 @@ sort DataLevel
 replace NCESSchoolID = "" if DataLevel == 1
 replace NCESDistrictID = "" if DataLevel == 1
 
+// Generating Student Group Counts
+tempfile overallcount
+save `overallcount'
+keep if StudentGroup=="All Students"
+keep DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel StudentSubGroup_TotalTested
+rename StudentSubGroup_TotalTested AllStudents_TotalTested
+tostring AllStudents_TotalTested, replace
+duplicates drop
+merge 1:m DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel using `overallcount', nogenerate
+
 //Cleaning StudentSubGroup_TotalTested and Generating StudentGroup_TotalTested
 egen StudentGroup_TotalTested = total(StudentSubGroup_TotalTested), by(StudentGroup GradeLevel Subject DataLevel StateAssignedSchID StateAssignedDistID)
 tostring StudentGroup_TotalTested StudentSubGroup_TotalTested, replace
-replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
-replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested == "0"
+replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "."
+replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "0"
+replace StudentGroup_TotalTested = StudentSubGroup_TotalTested if (StudentGroup == "Foster Care Status" | StudentGroup == "Homeless Enrolled Status") & StudentGroup_TotalTested == "*"
+replace StudentGroup_TotalTested = AllStudents_TotalTested if (StudentGroup == "EL Status" | StudentGroup == "Economic Status") & StudentGroup_TotalTested == "*"
+
+// Dropping if StudentSubGroup_TotalTested == 0 and StudentSubGroup != "All Students"
+drop if (StudentSubGroup_TotalTested == "0" | (StudentSubGroup_TotalTested == "*" & Lev1_count == "--")) & StudentSubGroup != "All Students"
+
+// Generating Level counts
+destring StudentSubGroup_TotalTested, gen(nStudentSubGroup_TotalTested) i(*)
+destring ProficientOrAbove_percent, gen(nProficientOrAbove_percent) i(*-)
+gen nProficientOrAbove_count = nProficientOrAbove_percent * nStudentSubGroup_TotalTested
+replace nProficientOrAbove_count = round(nProficientOrAbove_count,1)
+replace ProficientOrAbove_count = string(nProficientOrAbove_count,"%9.0g") if nProficientOrAbove_count != .
+replace ProficientOrAbove_count = "*" if (ProficientOrAbove_percent == "*" | StudentSubGroup_TotalTested == "*") & nProficientOrAbove_count == .
+foreach n in 1 2 3 4 {
+	destring Lev`n'_percent, gen(nLev`n'_percent) i(*-)
+	gen nLev`n'_count = nLev`n'_percent*nStudentSubGroup_TotalTested
+	replace nLev`n'_count = round(nLev`n'_count,1)
+	replace Lev`n'_count = string(nLev`n'_count, "%9.0g") if nLev`n'_count != .
+	replace Lev`n'_count = "*" if Lev`n'_percent == "*" | StudentSubGroup_TotalTested == "*"
+}
 
 //Final Cleaning
 recast str80 SchName
