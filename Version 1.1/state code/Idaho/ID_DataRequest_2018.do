@@ -1,14 +1,14 @@
 clear all
 set more off
 
-cd "/Users/miramehta/Documents"
+cd "/Volumes/T7/State Test Project/Idaho"
 
 // Define file paths
 
-global original_files "/Users/miramehta/Documents/ID State Testing Data/Idaho data received from data request 11-27-23"
-global NCES_files "/Users/miramehta/Documents/NCES District and School Demographics"
-global output_files "/Users/miramehta/Documents/ID State Testing Data/Output"
-global temp_files "/Users/miramehta/Documents/ID State Testing Data/Temporary Files"
+global original_files "/Volumes/T7/State Test Project/Idaho/Original Data"
+global NCES_files "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global output_files "/Volumes/T7/State Test Project/Idaho/Output"
+global temp_files "/Volumes/T7/State Test Project/Idaho/Temp"
 
 // 2017-2018
 /*
@@ -30,6 +30,7 @@ append using "${temp_files}/ID_AssmtData_2018_state.dta" "${temp_files}/ID_Assmt
 
 save "${temp_files}/ID_AssmtData_2018_all.dta", replace
 */
+
 // Renaming Variables
 
 use "${temp_files}/ID_AssmtData_2018_all.dta", clear
@@ -103,6 +104,14 @@ replace SchName = "All Schools" if DataLevel !=3
 
 //Derive Missing Student Counts
 replace StudentSubGroup_TotalTested = Lev1_count + Lev2_count + Lev3_count + Lev4_count if StudentSubGroup_TotalTested == .
+
+
+foreach percent of varlist Lev*_percent {
+if "`var'" == "Lev5_percent" continue
+di "`var'"
+local count = subinstr("`percent'", "percent", "count",.)
+replace StudentSubGroup_TotalTested = round(`count'/(real(`percent')/100)) if regexm(`percent', "[0-9]") !=0 & `count' !=. & StudentSubGroup_TotalTested == .
+}
 
 //Proficient or above percent and Dealing with ranges
 gen missing = ""
@@ -178,26 +187,29 @@ gen ProficiencyCriteria = "Levels 3-4"
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_soc = ""
+gen Flag_CutScoreChange_soc = "Not Applicable"
 gen Flag_CutScoreChange_sci = "N"
 gen AssmtName = "ISAT"
 gen AssmtType = "Regular"
 gen state_leaid = "ID-"+StateAssignedDistID
 gen seasch = StateAssignedDistID+"-"+StateAssignedSchID
 
+
 // Generating + Formatting Student Group Counts
-bysort state_leaid seasch StudentGroup Grade Subject: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
+egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested), by(state_leaid seasch Subject GradeLevel StudentGroup)
 tostring StudentSubGroup_TotalTested, replace
 replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "."
+
+
 tostring StudentGroup_TotalTested, replace
-replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
+replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "0"
 
 // Saving transformed data
 save "${output_files}/ID_AssmtData_2018.dta", replace
 
 // Merging with NCES School Data
 
-use "$NCES_files/NCES School Files, Fall 1997-Fall 2022/NCES_2017_School.dta", clear 
+use "$NCES_files/NCES_2017_School.dta", clear 
 
 keep state_location state_fips district_agency_type SchType ncesdistrictid state_leaid ncesschoolid seasch DistCharter SchLevel SchVirtual county_name county_code
 
@@ -211,7 +223,7 @@ save "${output_files}/ID_AssmtData_2018.dta", replace
 
 // Merging with NCES District Data
 
-use "$NCES_files/NCES District Files, Fall 1997-Fall 2022/NCES_2017_District.dta", clear 
+use "$NCES_files/NCES_2017_District.dta", clear 
 
 keep state_location state_fips district_agency_type ncesdistrictid state_leaid DistCharter DistLocale county_name county_code
 
@@ -253,6 +265,33 @@ rename SchLevel_s SchLevel
 decode SchType, gen (SchType_s)
 drop SchType
 rename SchType_s SchType
+
+//Response to post launch review
+replace DistName = subinstr(DistName,", INC."," INC.",.)
+replace DistName = "IDAHO SCIENCE AND TECHNOLOGY CHARTER SCHOOL INC." if NCESDistrictID == "1600145" 
+replace DistName = "JEFFERSON COUNTY JOINT DISTRICT" if NCESDistrictID== "1601570" 
+replace DistName = "MCCALL-DONNELLY JOINT SCHOOL DISTRICT" if NCESDistrictID== "1602030" 
+replace DistName = "SALMON RIVER JOINT SCHOOL DISTRICT" if NCESDistrictID== "1600138" 
+replace DistName = "THREE CREEK JOINT ELEMENTARY DISTRICT" if NCESDistrictID == "1603210" 
+replace DistName = "WHITEPINE JOINT SCHOOL DISTRICT" if NCESDistrictID== "1600010" 
+
+//New Convention for StudentGroup_TotalTested when suppressed
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+gen Suppressed = 0
+replace Suppressed = 1 if StudentSubGroup_TotalTested == "*"
+egen StudentGroup_Suppressed = max(Suppressed), by(StudentGroup GradeLevel Subject DataLevel NCESDistrictID NCESSchoolID)
+drop Suppressed
+gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
+replace StudentGroup_TotalTested = AllStudents_Tested if StudentGroup_Suppressed == 1
+drop AllStudents_Tested StudentGroup_Suppressed
+
+//Deriving Percents if the count is not a range
+foreach percent of varlist Lev*_percent ProficientOrAbove_percent {
+if "`var'" == "Lev5_percent" continue
+local count = subinstr("`percent'", "percent", "count",.)
+replace `percent' = string(real(`count')/real(StudentSubGroup_TotalTested), "%9.3g") if regexm(`percent', "[*-]") !=0 & regexm(StudentSubGroup_TotalTested, "[*-]") == 0 & regexm(`count', "[-*]") == 0 
+}
 
 
 // Reordering variables and sorting data

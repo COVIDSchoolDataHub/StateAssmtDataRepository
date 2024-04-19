@@ -1,14 +1,14 @@
 clear all
 set more off
 
-cd "/Users/miramehta/Documents"
+cd "/Volumes/T7/State Test Project/Idaho"
 
 // Define file paths
 
-global original_files "/Users/miramehta/Documents/ID State Testing Data/Idaho data received from data request 11-27-23"
-global NCES_files "/Users/miramehta/Documents/NCES District and School Demographics"
-global output_files "/Users/miramehta/Documents/ID State Testing Data/Output"
-global temp_files "/Users/miramehta/Documents/ID State Testing Data/Temporary Files"
+global original_files "/Volumes/T7/State Test Project/Idaho/Original Data"
+global NCES_files "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global output_files "/Volumes/T7/State Test Project/Idaho/Output"
+global temp_files "/Volumes/T7/State Test Project/Idaho/Temp"
 
 // 2022-2023
 /*
@@ -30,6 +30,7 @@ append using "${temp_files}/ID_AssmtData_2023_state.dta" "${temp_files}/ID_Assmt
 
 save "${temp_files}/ID_AssmtData_2023_all.dta", replace
 */
+
 // Renaming Variables
 
 use "${temp_files}/ID_AssmtData_2023_all.dta", clear
@@ -178,12 +179,12 @@ gen ProficiencyCriteria = "Levels 3-4"
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_soc = ""
+gen Flag_CutScoreChange_soc = "Not Applicable"
 gen Flag_CutScoreChange_sci = "N"
 gen AssmtName = "ISAT"
 gen AssmtType = "Regular"
 gen State_leaid = "ID-"+StateAssignedDistID
-gen seasch = "ID-"+StateAssignedDistID+"-"+StateAssignedSchID
+gen seasch = StateAssignedDistID+"-"+StateAssignedSchID
 
 // Generating + Formatting Student Group Counts
 bysort State_leaid seasch StudentGroup Grade Subject: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
@@ -197,15 +198,16 @@ save "${output_files}/ID_AssmtData_2023.dta", replace
 
 // Merging with NCES School Data
 
-import excel "$NCES_files/NCES School Files, Fall 1997-Fall 2022/NCES_2022_School.xlsx", firstrow clear 
-
-rename st_schid seasch
+use "$NCES_files/NCES_2022_School.dta" 
+rename state_leaid State_leaid
+keep state_location state_fips district_agency_type school_type ncesdistrictid State_leaid ncesschoolid seasch DistCharter SchLevel SchVirtual county_name county_code
+decode district_agency_type, gen(temp)
+drop district_agency_type
+rename temp district_agency_type
 
 drop if seasch == ""
 
-keep if StateAbbrev == "ID"
-
-drop NCESDistrictID
+keep if substr(ncesschoolid, 1, 2) == "16"
 
 merge 1:m seasch using "${output_files}/ID_AssmtData_2023.dta", keep(match using) nogenerate
 
@@ -213,16 +215,24 @@ save "${output_files}/ID_AssmtData_2023.dta", replace
 
 // Merging with NCES District Data
 
-import excel "$NCES_files/NCES District Files, Fall 1997-Fall 2022/NCES_2022_District.xlsx", firstrow clear 
+use "$NCES_files/NCES_2022_District.dta" 
 
-keep if StateAbbrev == "ID"
+rename state_leaid State_leaid
+keep state_location state_fips district_agency_type ncesdistrictid State_leaid DistCharter DistLocale county_name county_code
+keep if substr(ncesdistrictid, 1, 2) == "16"
 
 merge 1:m State_leaid using "${output_files}/ID_AssmtData_2023.dta", keep(match using) nogenerate
 
 // Removing extra variables and renaming NCES variables
+rename district_agency_type DistType
+rename ncesschoolid NCESSchoolID
 rename ncesdistrictid NCESDistrictID
-rename SchoolType SchType
-keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID DistCharter SchLevel SchVirtual AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+rename state_location StateAbbrev
+rename county_code CountyCode
+rename state_fips StateFips
+rename county_name CountyName
+rename school_type SchType
+keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc
 
 // Fixing missing state data
 replace StateAbbrev = "ID" if DataLevel == 1
@@ -233,15 +243,17 @@ replace SchName = "All Schools" if DataLevel == 2
 replace StateAssignedDistID = "" if DataLevel == 1
 replace StateAssignedSchID = "" if DataLevel != 3
 
-//Add + Correct Missing Variables
-gen CountyName = ""
-gen CountyCode = ""
-gen DistLocale = ""
-tostring SchVirtual, replace
-replace SchVirtual = ""
-
 // Dropping not ID data
 drop if StateAbbrev != "ID"
+
+//Response to post-launch review
+
+//Deriving Percents if the count is not a range
+foreach percent of varlist Lev*_percent ProficientOrAbove_percent {
+if "`var'" == "Lev5_percent" continue
+local count = subinstr("`percent'", "percent", "count",.)
+replace `percent' = string(real(`count')/real(StudentSubGroup_TotalTested), "%9.3g") if regexm(`percent', "[*-]") !=0 & regexm(StudentSubGroup_TotalTested, "[*-]") == 0 & regexm(`count', "[-*]") == 0 
+}
 
 // Reordering variables and sorting data
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode

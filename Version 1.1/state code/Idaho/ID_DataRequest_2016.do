@@ -1,14 +1,14 @@
 clear all
 set more off
 
-cd "/Users/miramehta/Documents"
+cd "/Volumes/T7/State Test Project/Idaho"
 
 // Define file paths
 
-global original_files "/Users/miramehta/Documents/ID State Testing Data/Idaho data received from data request 11-27-23"
-global NCES_files "/Users/miramehta/Documents/NCES District and School Demographics"
-global output_files "/Users/miramehta/Documents/ID State Testing Data/Output"
-global temp_files "/Users/miramehta/Documents/ID State Testing Data/Temporary Files"
+global original_files "/Volumes/T7/State Test Project/Idaho/Original Data"
+global NCES_files "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global output_files "/Volumes/T7/State Test Project/Idaho/Output"
+global temp_files "/Volumes/T7/State Test Project/Idaho/Temp"
 
 // 2015-2016
 /*
@@ -30,6 +30,7 @@ append using "${temp_files}/ID_AssmtData_2016_state.dta" "${temp_files}/ID_Assmt
 
 save "${temp_files}/ID_AssmtData_2016_all.dta", replace
 */
+
 // Renaming Variables
 
 use "${temp_files}/ID_AssmtData_2016_all.dta", clear
@@ -174,7 +175,7 @@ gen ProficiencyCriteria = "Levels 3-4"
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_soc = ""
+gen Flag_CutScoreChange_soc = "Not Applicable"
 gen Flag_CutScoreChange_sci = "N"
 gen AssmtName = "ISAT"
 gen AssmtType = "Regular"
@@ -195,7 +196,7 @@ save "${output_files}/ID_AssmtData_2016.dta", replace
 
 // Merging with NCES School Data
 
-use "$NCES_files/NCES School Files, Fall 1997-Fall 2022/NCES_2015_School.dta", clear 
+use "$NCES_files/NCES_2015_School.dta", clear 
 
 keep state_location state_fips district_agency_type SchType ncesdistrictid state_leaid ncesschoolid seasch DistCharter SchLevel SchVirtual county_name county_code
 
@@ -209,7 +210,7 @@ save "${output_files}/ID_AssmtData_2016.dta", replace
 
 // Merging with NCES District Data
 
-use "$NCES_files/NCES District Files, Fall 1997-Fall 2022/NCES_2015_District.dta", clear 
+use "$NCES_files/NCES_2015_District.dta", clear 
 
 keep state_location state_fips district_agency_type ncesdistrictid state_leaid DistLocale DistCharter county_name county_code
 
@@ -255,6 +256,27 @@ rename SchLevel_s SchLevel
 decode SchType, gen (SchType_s)
 drop SchType
 rename SchType_s SchType
+
+//Response to post launch review
+replace DistName = subinstr(DistName,", INC."," INC.",.)  
+replace DistName = "IDAHO SCIENCE AND TECHNOLOGY CHARTER SCHOOL INC." if NCESDistrictID == "1600145" 
+replace DistName = "JEFFERSON COUNTY JOINT DISTRICT" if NCESDistrictID== "1601570" 
+replace DistName = "MCCALL-DONNELLY JOINT SCHOOL DISTRICT" if NCESDistrictID== "1602030" 
+replace DistName = "SALMON RIVER JOINT SCHOOL DISTRICT" if NCESDistrictID== "1600138" 
+replace DistName = "THREE CREEK JOINT ELEMENTARY DISTRICT" if NCESDistrictID == "1603210" 
+replace DistName = "WHITEPINE JOINT SCHOOL DISTRICT" if NCESDistrictID== "1600010"
+
+replace DistLocale = "City, small" if NCESDistrictID == "1600176"
+replace CountyName = "Bannock County" if NCESDistrictID == "1600176"
+replace CountyCode = "16005" if NCESDistrictID == "1600176"
+
+//Deriving Percents if the count is not a range
+foreach percent of varlist Lev*_percent ProficientOrAbove_percent {
+if "`var'" == "Lev5_percent" continue
+local count = subinstr("`percent'", "percent", "count",.)
+replace `percent' = string(real(`count')/real(StudentSubGroup_TotalTested), "%9.3g") if regexm(`percent', "[*-]") !=0 & regexm(StudentSubGroup_TotalTested, "[*-]") == 0 & regexm(`count', "[-*]") == 0 
+}
+
 
 // Reordering variables and sorting data
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
