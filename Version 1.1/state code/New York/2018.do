@@ -128,7 +128,7 @@ gen SchYear = "2017-18"
 
 //Subject
 replace Subject = "ela" if Subject == "ELA"
-replace Subject = "math" if Subject == "MATH"
+replace Subject = "math" if Subject == "MATH" | Subject == "mat"
 replace Subject = "sci" if Subject == "SCIENCE"
 replace Subject = "soc" if Subject == "SOC"
 
@@ -175,7 +175,7 @@ gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "Y"
 gen Flag_CutScoreChange_math = "Y"
 gen Flag_CutScoreChange_soc = "Not applicable"
-gen Flag_CutScoreChange_sci = "Y"
+gen Flag_CutScoreChange_sci = "N"
 
 //Proficiency
 rename NUM_PROF ProficientOrAbove_count //already in correct format
@@ -213,6 +213,13 @@ replace StateAssignedDistID = StateAssignedSchID if DistCharter == "Yes" | strpo
 
 //Dropping if No Students Tested
 drop if StudentSubGroup_TotalTested == 0
+
+//CountyNames
+replace CountyName = proper(CountyName)
+
+//Response to Post-launch review
+drop if GradeLevel == "G38" //Values dropped- they include data for Lev5_count and Lev5_percent, indicating that they aggregate Regents exam information as well.
+replace ParticipationRate = "." if ParticipationRate == "--" //explicitly asked for in review, done to merge more easily in future years
 
 //Final Cleaning and Dropping extra variables
 

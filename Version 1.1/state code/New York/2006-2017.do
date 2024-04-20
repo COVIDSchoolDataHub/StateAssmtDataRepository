@@ -3,7 +3,7 @@ set more off
 set trace off
 
 
-forvalues year = 2006/2017 {
+forvalues year = 2013/2013 {
 local prevyear =`=`year'-1'
 use "${original}/Combined_`year'"
 
@@ -225,7 +225,7 @@ replace Flag_CutScoreChange_math = "Y" if `year' == 2013
 gen Flag_CutScoreChange_soc = "N"
 replace Flag_CutScoreChange_soc = "Not applicable" if `year' > 2010
 gen Flag_CutScoreChange_sci = "N"
-replace Flag_CutScoreChange_sci = "Y" if `year' == 2013
+replace Flag_CutScoreChange_sci = "N" if `year' == 2013
 //Proficiency Counts and Percents
 gen ProficientOrAbove_count = ""
 gen ProficientOrAbove_percent = ""
@@ -300,6 +300,23 @@ replace CountyCode = "36047" if CountyCode == "17031"
 
 replace Subject = "math" if Subject == "mat"
 
+//CountyNames
+replace CountyName = proper(CountyName)
+
+//Response to post-launch review
+if `year' == 2011 {
+	replace SchType = 1 if NCESSchoolID == "360008706297"
+	replace SchVirtual = -1 if NCESSchoolID == "360008706297"
+}	
+if `year' == 2012 {
+	replace SchType = 1 if NCESSchoolID == "360098506136"
+	replace SchLevel = "Primary" if NCESSchoolID == "360098506136"
+	replace SchVirtual = -1 if NCESSchoolID == "360098506136"
+}
+
+if `year' == 2006 replace CountyCode = "36103" if CountyName == "Suffolk"
+
+replace ParticipationRate = "." if ParticipationRate == "--" //explicitly asked for in review, done to merge more easily in future years
 
 //Final Cleaning and dropping extra variables
 

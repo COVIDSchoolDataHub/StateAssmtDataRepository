@@ -150,7 +150,7 @@ drop if state_location != "NY"
 drop if seasch == ""
 gen StateAssignedSchID = substr(seasch, strpos(seasch, "-")+1, 12)
 //Fixing two schools
-replace StateAssignedSchID = "320900861122" if ncesschoolid == "360115606620"
+*replace StateAssignedSchID = "320900861122" if ncesschoolid == "360115606620"
 
 merge 1:m StateAssignedSchID using "`temp1'"
 *drop if _merge !=3 & DataLevel == "School"
@@ -315,6 +315,11 @@ replace SchVirtual = "Missing/not reported" if SchVirtual == "" & DataLevel ==3
 //Dropping if No Students Tested
 drop if StudentSubGroup_TotalTested == 0
 
+//CountyNames
+replace CountyName = proper(CountyName)
+
+//Post Launch review
+drop if GradeLevel == "G38" //Values dropped- they include data for Lev5_count and Lev5_percent, indicating that they aggregate Regents exam information as well.
 
 //Final Sorting and Dropping extra variables
 

@@ -218,7 +218,7 @@ replace StudentSubGroup = "Two or More" if StudentSubGroup ==  "Multiracial"
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "English Language Learner" | StudentSubGroup == "English Language Learners"
 replace StudentSubGroup = "English Proficient" if StudentSubGroup == "Non-English Language Learners" | StudentSubGroup == "Non-English Language Learner"
 replace StudentSubGroup = "Two or More" if StudentSubGroup == "Multiracial"
-replace StudentSubGroup = "Non-SWD" if StudentSubGroup == "General Education Students"
+replace StudentSubGroup = "Non-SWD" if StudentSubGroup == "General Education"
 replace StudentSubGroup = "Foster Care" if StudentSubGroup == "In Foster Care"
 replace StudentSubGroup = "Gender X" if StudentSubGroup == "Non-Binary"
 replace StudentSubGroup = "Non-Homeless" if StudentSubGroup == "Not Homeless"
@@ -294,6 +294,12 @@ replace StateAssignedDistID = StateAssignedSchID if DistCharter == "Yes" | strpo
 
 //Dropping if No Students Tested
 drop if StudentSubGroup_TotalTested == 0
+
+//CountyNames
+replace CountyName = proper(CountyName)
+
+//Post Launch review
+drop if GradeLevel == "G38" //Values dropped- they include data for Lev5_count and Lev5_percent, indicating that they aggregate Regents exam information as well.
 
 //Final Sorting and Dropping extra variables
 
