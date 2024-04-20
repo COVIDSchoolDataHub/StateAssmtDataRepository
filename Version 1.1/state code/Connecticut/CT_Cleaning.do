@@ -1,10 +1,10 @@
 clear
-set more off
-set trace on
+//set more on
+set trace off
 cap log close
-cd "/Users/meghancornacchia/Desktop/DataRepository/Connecticut"
-local Original "/Users/meghancornacchia/Desktop/DataRepository/Connecticut/Original_Data_Files"
-local Output "/Users/meghancornacchia/Desktop/DataRepository/Connecticut/Output_Data_Files"
+cd "/Users/meghancornacchia/Desktop/DataRepository/Connecticut.nosync"
+local Original "/Users/meghancornacchia/Desktop/DataRepository/Connecticut.nosync/Original_Data_Files"
+local Output "/Users/meghancornacchia/Desktop/DataRepository/Connecticut.nosync/Output_Data_Files"
 local NCES_School "/Users/meghancornacchia/Desktop/DataRepository/NCES_Data_Files"
 local NCES_District "/Users/meghancornacchia/Desktop/DataRepository/NCES_Data_Files"
 log using variablescheck.log, replace
@@ -789,7 +789,10 @@ foreach n in 1 2 3 4 {
 
 //Sometimes, ProficientOrAbove_count and ProficientOrAbove_percent can be calculated even if they're listed as suppressed for some reason. Correcting below. 
 replace ProficientOrAbove_count = string(nLev3_count + nLev4_count, "%9.3g") if ProficientOrAbove_count == "*" & Lev3_count != "*" & Lev4_count != "*" & Lev3_count != "--" & Lev4_count != "--"
+//destring StudentSubGroup_TotalTested, gen(nStudentSubGroup_TotalTested) i(*-)
+replace ProficientOrAbove_count = string(nStudentSubGroup_TotalTested - nLev3_count - nLev4_count, "%9.3g") if ProficientOrAbove_count == "*" & Lev3_count != "*" & Lev4_count != "*" & Lev3_count != "--" & Lev4_count != "--" & StudentSubGroup_TotalTested != "*" & StudentSubGroup_TotalTested != "--"
 replace ProficientOrAbove_percent = string((nLev3_percent/100) + (nLev4_percent/100), "%9.3g") if ProficientOrAbove_percent == "*" & Lev3_percent != "*" & Lev4_percent != "*" & Lev3_percent != "--" & Lev4_percent != "--"
+replace ProficientOrAbove_percent = string(1-(nLev1_percent/100) -(nLev2_percent/100), "%9.3g") if ProficientOrAbove_percent == "*" & Lev1_percent != "*" & Lev2_percent != "*" & Lev1_percent != "--" & Lev2_percent != "--"
 
 //Year
 gen SchYear = "`prevyear'" + "-" + substr("`year'",-2,2)
@@ -872,7 +875,17 @@ rename county_code CountyCode
 replace StateFips = 9
 replace StateAbbrev = "CT"
 
+// Make county proper case in 2015
+replace CountyName = proper(CountyName) if SchYear == "2014-15"
+
 //Fixing Unmerged with Data where possible
+replace SchVirtual = 3 if NCESSchoolID == "090051001945" & SchYear == "2022-23"
+replace SchLevel = 2 if NCESSchoolID == "090051001945" & SchYear == "2022-23"
+
+replace NCESSchoolID = "090012010010" if NCESSchoolID == "090012000010" & SchYear == "2014-15"
+replace NCESSchoolID = "090006010008" if NCESSchoolID == "090006000008" & SchYear == "2014-15"
+replace NCESSchoolID = "090003010001" if NCESSchoolID == "090003000001" & SchYear == "2014-15"
+
 replace DistTypeLabels = "Regular local school district" if SchName == "Geraldine Claytor Magnet Academy"
 replace State_leaid = "0150011" if SchName == "Geraldine Claytor Magnet Academy" & `year' == 2017
 replace SchType = 1 if SchName == "Geraldine Claytor Magnet Academy" & `year' == 2017
@@ -945,6 +958,9 @@ drop if [_merge==2] & [(Lev1_percent == "*" | Lev1_percent == "--" | Lev1_percen
 
 drop if (_merge==2) & strpos(SchName, "Bilingual") !=0
 
+// Dropping if StudentSubGroup_TotalTested == 0 and StudentSubGroup != "All Students"
+drop if (StudentSubGroup_TotalTested == "0" | (StudentSubGroup_TotalTested == "*" & Lev1_count == "--")) & StudentSubGroup != "All Students"
+
 //Replacing NCES vars with Missing/not reported when applicable
 label def agency_typedf -1 "Missing/not reported", add
 replace DistType = -1 if missing(DistType) & DataLevel !=1
@@ -977,15 +993,15 @@ gen AssmtType = "Regular"
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_sci = "N"
-gen Flag_CutScoreChange_soc = ""
+gen Flag_CutScoreChange_sci = "Not applicable"
+gen Flag_CutScoreChange_soc = "Not applicable"
 
 foreach var of varlist Flag* {
 	replace `var' = "Y" if `year' == 2015 & "`var'" != "Flag_CutScoreChange_soc" & `var' != "Flag_CutScoreChange_sci"
 	replace `var' = "N" if "`var'" == "Flag_CutScoreChange_sci" & `year' >= 2019
 	replace `var' = "Y" if `year' == 2022 & "`var'" != "Flag_AssmtNameChange" & "`var'" != "Flag_CutScoreChange_soc"
 }
-replace Flag_CutScoreChange_soc = ""
+replace Flag_CutScoreChange_soc = "Not applicable"
 
 //Missing/empty Variables
 gen Lev5_count = ""
@@ -1011,9 +1027,6 @@ save "`Output'/CT_AssmtData_`year'", replace
 export delimited "`Output'/CT_AssmtData_`year'", replace
 clear
 
-
-
-clear	
 }
 log close
 
