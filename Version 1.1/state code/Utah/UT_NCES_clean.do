@@ -75,9 +75,27 @@ import excel "${nces}/NCES School Files, Fall 1997-Fall 2022/NCES_2022_School.xl
 drop if StateAbbrev != "UT"
 replace SchName="Minersville School (Primary)" if SchName=="Minersville School" & SchLevel=="Primary"
 replace SchName="Minersville School (Middle)" if SchName=="Minersville School" & SchLevel=="Middle"
-merge 1:1 NCESDistrictID NCESSchoolID using "${utah}/NCES_2021_School.dta", keepusing (DistLocale CountyCode CountyName district_agency_type)
+drop SchVirtual
+
+merge 1:1 NCESDistrictID NCESSchoolID using "${utah}/NCES_2021_School.dta", keepusing (DistLocale CountyCode CountyName district_agency_type SchVirtual)
 drop if _merge == 2
 drop _merge
+
+rename district_agency_type DistType
+rename st_schid seasch
+
+replace SchVirtual = -1 if SchName == "Glacier Hills Elementary"
+replace CountyName = "Salt Lake County" if SchName == "Glacier Hills Elementary"
+replace CountyCode = "49035" if SchName == "Glacier Hills Elementary"
+replace DistType = 1 if SchName == "Glacier Hills Elementary"
+replace DistLocale = "City, midsize" if SchName == "Glacier Hills Elementary"
+
+replace SchVirtual = -1 if SchName == "Nebo Online School"
+replace CountyName = "Utah County" if SchName == "Nebo Online School"
+replace CountyCode = "49049" if SchName == "Nebo Online School"
+replace DistType = 1 if SchName == "Nebo Online School"
+replace DistLocale = "City, midsize" if SchName == "Nebo Online School"
+
 save "${utah}/NCES_2022_School.dta", replace
 
 import excel "${nces}/NCES District Files, Fall 1997-Fall 2022/NCES_2022_District.xlsx", firstrow allstring clear

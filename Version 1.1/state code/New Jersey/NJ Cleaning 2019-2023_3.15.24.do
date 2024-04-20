@@ -183,7 +183,7 @@ forvalues year = 2019/2023{
 	gen Flag_CutScoreChange_ELA = "N"
 	gen Flag_CutScoreChange_math = "N"
 	gen Flag_CutScoreChange_sci = "N"
-	gen Flag_CutScoreChange_soc = ""
+	gen Flag_CutScoreChange_soc = "Not applicable"
 	gen AssmtType = "Regular"
 	gen ProficiencyCriteria = "Levels 4-5"
 	replace ProficiencyCriteria = "Levels 3-4" if Subject == "sci"

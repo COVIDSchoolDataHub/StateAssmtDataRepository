@@ -229,7 +229,9 @@ import excel "${raw}/UT_OriginalData_2017_subgroup.xlsx", sheet("Overall LEA Res
 rename A DistName
 rename B Subject
 
-foreach i of varlist AllStudents AfAmBlack AmericanIndian Asian HispanicLatino MultipleRaces PacificIslander White EconomicallyDisadv StudentswDisabilities EnglishLearners {
+drop AllStudents
+
+foreach i of varlist AfAmBlack AmericanIndian Asian HispanicLatino MultipleRaces PacificIslander White EconomicallyDisadv StudentswDisabilities EnglishLearners {
 	rename `i' subgroup`i'
 }
 
@@ -367,9 +369,6 @@ rename State DataLevel
 
 merge 1:1 Subject GradeLevel using "${int}/UT_2017_state.dta"
 
-replace DataLevel = "1"
-destring DataLevel, replace
-
 replace Subject = "ela" if Subject == "English Language Arts"
 replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "sci" if Subject == "Science"
@@ -390,7 +389,9 @@ rename C Test
 rename A LEAName
 rename B Subject
 
-foreach i of varlist AllStudents AfAmBlack AmericanIndian Asian HispanicLatino MultipleRaces PacificIslander White EconomicallyDisadv StudentswDisabilities EnglishLearners {
+drop AllStudents
+
+foreach i of varlist AfAmBlack AmericanIndian Asian HispanicLatino MultipleRaces PacificIslander White EconomicallyDisadv StudentswDisabilities EnglishLearners {
 	rename `i' subgroup`i'
 }
 
@@ -409,10 +410,30 @@ drop if inlist(Test, "G03", "G04", "G05", "G06", "G07", "G08")==0
 rename Test GradeLevel
 rename LEAName DataLevel
 
+append using "${int}/UT_2017_state.dta"
+
 replace DataLevel = "1"
 destring DataLevel, replace
 
-append using "${int}/UT_2017_state.dta"
+replace Subject = "ela" if Subject == "English Language Arts"
+replace Subject = "math" if Subject == "Mathematics"
+replace Subject = "sci" if Subject == "Science"
+
+replace StudentSubGroup="All Students" if StudentSubGroup=="AllStudents"
+replace StudentSubGroup="Black or African American" if StudentSubGroup=="AfAmBlack"
+replace StudentSubGroup="American Indian or Alaska Native" if StudentSubGroup=="AmericanIndian"
+replace StudentSubGroup="English Learner" if StudentSubGroup=="EnglishLearners"
+replace StudentSubGroup="Economically Disadvantaged" if StudentSubGroup=="EconomicallyDisadv"
+replace StudentSubGroup="Two or More" if StudentSubGroup=="MultipleRaces"
+replace StudentSubGroup="Hispanic or Latino" if StudentSubGroup=="HispanicLatino"
+replace StudentSubGroup="Native Hawaiian or Pacific Islander" if StudentSubGroup=="PacificIslander"
+replace StudentSubGroup="SWD" if StudentSubGroup=="StudentswDisabilities"
+
+replace StudentGroup="RaceEth" if StudentGroup==""
+replace StudentGroup="All Students" if StudentSubGroup=="All Students"
+replace StudentGroup="EL Status" if StudentSubGroup=="English Learner"
+replace StudentGroup="Economic Status" if StudentSubGroup=="Economically Disadvantaged"
+replace StudentGroup="Disability Status" if StudentSubGroup=="SWD"
 
 save "${int}/UT_2017_state.dta", replace
 
@@ -423,14 +444,13 @@ append using "${int}/UT_2017_school.dta"
 save "${int}/UT_2017.dta", replace
 
 ** State counts
-preserve
-keep if DataLevel == 2
-rename Count_n Count
+
+use "${edfacts}/2017/edfactscount2017districtutah.dta", clear
 collapse (sum) Count, by(StudentSubGroup GradeLevel Subject)
 gen DataLevel = 1
 save "${int}/UT_AssmtData_2017_State.dta", replace
-restore
 
+use "${int}/UT_2017.dta", clear
 merge m:1 DataLevel StudentSubGroup GradeLevel Subject using "${int}/UT_AssmtData_2017_State.dta"
 replace StudentSubGroup_TotalTested = string(Count) if string(Count) != "0" & string(Count) != "."
 replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == ""
@@ -480,22 +500,6 @@ replace SchName = "All Schools" if DataLevel != 3
 replace DistName = "All Districts" if DataLevel == 1
 replace StateAssignedSchID = "" if DataLevel != 3
 replace StateAssignedDistID = "" if DataLevel == 1
-
-replace StudentSubGroup="All Students" if StudentSubGroup=="AllStudents"
-replace StudentSubGroup="Black or African American" if StudentSubGroup=="AfAmBlack"
-replace StudentSubGroup="American Indian or Alaska Native" if StudentSubGroup=="AmericanIndian"
-replace StudentSubGroup="English Learner" if StudentSubGroup=="EnglishLearners"
-replace StudentSubGroup="Economically Disadvantaged" if StudentSubGroup=="EconomicallyDisadv"
-replace StudentSubGroup="Two or More" if StudentSubGroup=="MultipleRaces"
-replace StudentSubGroup="Hispanic or Latino" if StudentSubGroup=="HispanicLatino"
-replace StudentSubGroup="Native Hawaiian or Pacific Islander" if StudentSubGroup=="PacificIslander"
-replace StudentSubGroup="SWD" if StudentSubGroup=="StudentswDisabilities"
-
-replace StudentGroup="RaceEth" if StudentGroup==""
-replace StudentGroup="All Students" if StudentSubGroup=="All Students"
-replace StudentGroup="EL Status" if StudentSubGroup=="English Learner"
-replace StudentGroup="Economic Status" if StudentSubGroup=="Economically Disadvantaged"
-replace StudentGroup="Disability Status" if StudentSubGroup=="SWD"
 
 ** Proficiency Values
 foreach i of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent {
@@ -552,6 +556,8 @@ replace ProficientOrAbove_percent = PctProf if !inlist(PctProf, "", ".", "--", "
 replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == ""
 replace ProficientOrAbove_count = "--" if ProficientOrAbove_percent == "--"
 replace ProficientOrAbove_count = "*" if ProficientOrAbove_percent == "*"
+replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == "."
+replace ParticipationRate = "--" if ParticipationRate == ""
 
 forvalues n = 1/4{
 	gen Lev`n' = Lev`n'_percent
@@ -578,6 +584,19 @@ replace Count_n = "--" if Count_n == "."
 drop Count_n test
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "--" if inlist(StudentGroup_TotalTested, "", ".")
+
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+gen Suppressed = 0
+replace Suppressed = 1 if inlist(StudentSubGroup_TotalTested, "--", "*")
+egen StudentGroup_Suppressed = max(Suppressed), by(StudentGroup GradeLevel Subject DataLevel seasch StateAssignedDistID DistName SchName)
+drop Suppressed
+gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
+replace StudentGroup_TotalTested = AllStudents_Tested if StudentGroup_Suppressed == 1
+replace StudentGroup_TotalTested = AllStudents_Tested if inlist(StudentGroup, "Disability Status", "Economic Status", "EL Status")
+drop AllStudents_Tested StudentGroup_Suppressed
+replace StudentGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "--"
+replace StudentGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "*"
 
 ** Unmerged Districts
 drop if SchName=="South Region Deaf"

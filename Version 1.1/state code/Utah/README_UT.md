@@ -42,4 +42,4 @@ global edfacts "/Users/miramehta/Documents/EdFacts"
 ```
 ## Updates
 
-04/05/2024: Updated to incorporate post-launch file format changes (including new subgroups) and update student counts.
+04/19/2024: Updated to match new StudentGroup_TotalTested convention, address issues in merging, and correct issue with derived performance counts at the state level.

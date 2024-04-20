@@ -158,7 +158,7 @@ drop if _merge==2
 drop _merge 
 
 gen StateAssignedDistID = State_leaid
-gen StateAssignedSchID = st_schid
+gen StateAssignedSchID = seasch
 
 ** Preliminary Cleaning
 replace Subject = "ela" if Subject == "English Language Arts"
@@ -509,6 +509,10 @@ save "${int}/UT_2022_state.dta", replace
 
 append using "${int}/UT_2022_district.dta"
 
+encode DistType, gen(DistType_n) label(DistType)
+drop DistType 
+rename DistType_n DistType
+
 append using "${int}/UT_2022_school.dta"
 
 *** Other Cleaning
@@ -574,7 +578,7 @@ forvalues i = 1/4 {
 	replace Lev`i'_percent1 = Lev`i'_percent1/100 if Below == 1 | Above == 1
 	gen Lev`i'_percent_count = .
 	replace Lev`i'_percent_count = round(Lev`i'_percent1 * Count_n) if Below == 0 & Above == 0
-	replace Lev`i'_count = string(Lev`i'_percent_count) if DataLevel != 1 & Lev`i'_percent_count != .
+	replace Lev`i'_count = string(Lev`i'_percent_count) if Lev`i'_percent_count != .
 	tostring Lev`i'_percent1, replace format("%9.2g") force
 	replace Lev`i'_percent = "0-" + Lev`i'_percent1 if Below == 1
 	replace Lev`i'_percent = Lev`i'_percent1 + "-1" if Above == 1
@@ -651,6 +655,8 @@ drop ProficientOrAbove_percent1 ProficientOrAbove_percent2 ProficientOrAbove_cou
 replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == ""
 replace ProficientOrAbove_count = "--" if ProficientOrAbove_percent == "--"
 replace ProficientOrAbove_count = "*" if ProficientOrAbove_percent == "*"
+replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == "."
+replace ParticipationRate = "--" if ParticipationRate == ""
 
 gen Lev5_count = ""
 gen Lev5_percent = ""
@@ -658,6 +664,19 @@ gen Lev5_percent = ""
 ** StudentGroup_TotalTested
 replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == ""
 gen StudentGroup_TotalTested = StudentSubGroup_TotalTested
+
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+gen Suppressed = 0
+replace Suppressed = 1 if inlist(StudentSubGroup_TotalTested, "--", "*")
+egen StudentGroup_Suppressed = max(Suppressed), by(StudentGroup GradeLevel Subject DataLevel seasch StateAssignedDistID DistName SchName)
+drop Suppressed
+gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
+replace StudentGroup_TotalTested = AllStudents_Tested if StudentGroup_Suppressed == 1
+replace StudentGroup_TotalTested = AllStudents_Tested if inlist(StudentGroup, "Disability Status", "Economic Status", "EL Status")
+drop AllStudents_Tested StudentGroup_Suppressed
+replace StudentGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "--"
+replace StudentGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "*"
 
 *** Clean up variables & save file
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
