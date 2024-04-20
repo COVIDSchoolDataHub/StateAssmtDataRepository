@@ -1,7 +1,9 @@
 
+
 cap log close
 log using north_carolina_cleaning.log, replace 
 
+// COUNTY NAME CHECK IN EARLIER YEARS
 
 cd "/Users/benjaminm/Documents/State_Repository_Research/North_Carolina"
 
@@ -12,7 +14,6 @@ import delimited Disag_20`a'_Data.txt, clear
 save NC_OriginalData_`a'
 	
 }
-
 
 
 
@@ -27,7 +28,6 @@ local current = "20" + substr("`a'", 4, 5)
 display "`a'"
 
 use "NC_OriginalData_`a'", clear 
-
 
 
 
@@ -334,7 +334,7 @@ gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_sci = "N" 
-gen Flag_CutScoreChange_soc = ""
+gen Flag_CutScoreChange_soc = "Not applicable"
 
 if "`a'" == "18-19" {
 
@@ -462,7 +462,7 @@ rename StudentGroup_TotalTested1 StudentGroup_TotalTested
 
 
 
-gen ParticipationRate = "-" //r1
+gen ParticipationRate = "--" //pre-review
 
 
 display "CCCCCCCCC"
@@ -654,6 +654,7 @@ if "`a'" == "22-23" | "`a'" == "21-22" {
 drop State_leaid seasch
 
 
+
  order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 // 
 
@@ -664,6 +665,253 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save NC_AssmtData_`current'_Stata, replace
-export delimited NC_AssmtData_`current'.csv, replace
+// export delimited NC_AssmtData_`current'.csv, replace
 
 }
+
+
+
+
+// pre-review cleaning 2024 
+
+
+local years2  "2014 2015 2016 2017 2018 2019 2021 2022 2023"
+
+
+foreach g in `years2' {
+	
+use NC_AssmtData_`g'_Stata, replace
+
+if "`g'" == "2015" | "`g'" == "2014"  {
+
+local a  "1 2 3 4 5" 
+foreach b in `a' {
+split Lev`b'_percent, parse("-")
+}
+
+split ProficientOrAbove_percent, parse("-")
+
+destring Lev1_percent1 Lev2_percent1 Lev3_percent1 Lev4_percent1 Lev5_percent1 ProficientOrAbove_percent1 Lev1_percent2 Lev2_percent2 Lev3_percent2 Lev4_percent2 Lev5_percent2 ProficientOrAbove_percent2, replace ignore("*") // small change as compared to 2016-2021
+
+gen Lev1_count1 = Lev1_percent1* StudentSubGroup_TotalTested
+gen Lev2_count1 = Lev2_percent1* StudentSubGroup_TotalTested
+gen Lev3_count1 = Lev3_percent1* StudentSubGroup_TotalTested
+gen Lev4_count1 = Lev4_percent1* StudentSubGroup_TotalTested
+gen Lev5_count1 = Lev5_percent1* StudentSubGroup_TotalTested
+gen ProficientOrAbove_count1 = ProficientOrAbove_percent1* StudentSubGroup_TotalTested
+
+gen Lev1_count2 = Lev1_percent2* StudentSubGroup_TotalTested
+gen Lev2_count2 = Lev2_percent2* StudentSubGroup_TotalTested
+gen Lev3_count2 = Lev3_percent2* StudentSubGroup_TotalTested
+gen Lev4_count2 = Lev4_percent2* StudentSubGroup_TotalTested
+gen Lev5_count2 = Lev5_percent2* StudentSubGroup_TotalTested
+gen ProficientOrAbove_count2 = ProficientOrAbove_percent2* StudentSubGroup_TotalTested
+
+local a  "1 2 3 4 5" 
+foreach b in `a' {
+replace Lev`b'_count1 = round(Lev`b'_count1, 1)
+}
+
+local a  "1 2 3 4 5" 
+foreach b in `a' {
+replace Lev`b'_count2 = round(Lev`b'_count2, 1)
+tostring Lev`b'_count1 Lev`b'_count2, replace force 
+egen Lev`b'_countX = concat(Lev`b'_count1 Lev`b'_count2) if Lev`b'_count2 != ".", punct("-") 
+replace Lev`b'_countX = Lev`b'_count1 if Lev`b'_count2 == "."
+drop Lev`b'_count1 Lev`b'_count2 Lev`b'_percent1 Lev`b'_percent2
+replace Lev`b'_count = Lev`b'_countX
+drop Lev`b'_count
+rename Lev`b'_countX Lev`b'_count
+
+replace Lev`b'_count = "*" if Lev`b'_percent == "*"
+
+}
+
+replace ProficientOrAbove_count1 = round(ProficientOrAbove_count1, 1)
+replace ProficientOrAbove_count2 = round(ProficientOrAbove_count2, 1)
+tostring ProficientOrAbove_count1 ProficientOrAbove_count2, replace force 
+egen ProficientOrAbove_countX = concat(ProficientOrAbove_count1 ProficientOrAbove_count2) if ProficientOrAbove_count2 != ".", punct("-") 
+replace ProficientOrAbove_countX  = ProficientOrAbove_count1 if ProficientOrAbove_count2 == "."
+drop ProficientOrAbove_count1 ProficientOrAbove_count2 ProficientOrAbove_percent1 ProficientOrAbove_percent2
+replace ProficientOrAbove_count = ProficientOrAbove_countX
+replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "*"
+
+
+drop ProficientOrAbove_count
+
+display "error"
+rename ProficientOrAbove_countX ProficientOrAbove_count
+
+
+
+}
+
+
+
+if "`g'" == "2021" | "`g'" == "2019" |  "`g'" == "2018" | "`g'" == "2017" | "`g'" == "2016"  {
+local a  "1 2 3 4 5" 
+foreach b in `a' {
+split Lev`b'_percent, parse("-")
+}
+
+split ProficientOrAbove_percent, parse("-")
+
+destring Lev1_percent1 Lev2_percent1 Lev3_percent1 Lev4_percent1 Lev5_percent1 ProficientOrAbove_percent1 Lev1_percent2 Lev2_percent2 Lev3_percent2 Lev4_percent2 Lev5_percent2 ProficientOrAbove_percent2, replace 
+
+gen Lev1_count1 = Lev1_percent1* StudentSubGroup_TotalTested
+gen Lev2_count1 = Lev2_percent1* StudentSubGroup_TotalTested
+gen Lev3_count1 = Lev3_percent1* StudentSubGroup_TotalTested
+gen Lev4_count1 = Lev4_percent1* StudentSubGroup_TotalTested
+gen Lev5_count1 = Lev5_percent1* StudentSubGroup_TotalTested
+gen ProficientOrAbove_count1 = ProficientOrAbove_percent1* StudentSubGroup_TotalTested
+
+gen Lev1_count2 = Lev1_percent2* StudentSubGroup_TotalTested
+gen Lev2_count2 = Lev2_percent2* StudentSubGroup_TotalTested
+gen Lev3_count2 = Lev3_percent2* StudentSubGroup_TotalTested
+gen Lev4_count2 = Lev4_percent2* StudentSubGroup_TotalTested
+gen Lev5_count2 = Lev5_percent2* StudentSubGroup_TotalTested
+gen ProficientOrAbove_count2 = ProficientOrAbove_percent2* StudentSubGroup_TotalTested
+
+local a  "1 2 3 4 5" 
+foreach b in `a' {
+replace Lev`b'_count1 = round(Lev`b'_count1, 1)
+}
+
+local a  "1 2 3 4 5" 
+foreach b in `a' {
+replace Lev`b'_count2 = round(Lev`b'_count2, 1)
+tostring Lev`b'_count1 Lev`b'_count2, replace force 
+egen Lev`b'_countX = concat(Lev`b'_count1 Lev`b'_count2) if Lev`b'_count2 != ".", punct("-") 
+replace Lev`b'_countX = Lev`b'_count1 if Lev`b'_count2 == "."
+drop Lev`b'_count1 Lev`b'_count2 Lev`b'_percent1 Lev`b'_percent2
+replace Lev`b'_count = Lev`b'_countX
+drop Lev`b'_count
+rename Lev`b'_countX Lev`b'_count
+}
+
+replace ProficientOrAbove_count1 = round(ProficientOrAbove_count1, 1)
+replace ProficientOrAbove_count2 = round(ProficientOrAbove_count2, 1)
+tostring ProficientOrAbove_count1 ProficientOrAbove_count2, replace force 
+egen ProficientOrAbove_countX = concat(ProficientOrAbove_count1 ProficientOrAbove_count2) if ProficientOrAbove_count2 != ".", punct("-") 
+replace ProficientOrAbove_countX  = ProficientOrAbove_count1 if ProficientOrAbove_count2 == "."
+drop ProficientOrAbove_count1 ProficientOrAbove_count2 ProficientOrAbove_percent1 ProficientOrAbove_percent2
+replace ProficientOrAbove_count = ProficientOrAbove_countX
+drop ProficientOrAbove_count
+rename ProficientOrAbove_countX ProficientOrAbove_count
+
+}
+
+
+
+if "`g'" == "2023" | "`g'" == "2022"  {
+local a  "2 3 4 5" 
+foreach b in `a' {
+split Lev`b'_percent, parse("-")
+}
+
+split ProficientOrAbove_percent, parse("-")
+
+destring  Lev2_percent1 Lev3_percent1 Lev4_percent1 Lev5_percent1 ProficientOrAbove_percent1  Lev2_percent2 Lev3_percent2 Lev4_percent2 Lev5_percent2 ProficientOrAbove_percent2, replace 
+
+gen Lev2_count1 = Lev2_percent1* StudentSubGroup_TotalTested
+gen Lev3_count1 = Lev3_percent1* StudentSubGroup_TotalTested
+gen Lev4_count1 = Lev4_percent1* StudentSubGroup_TotalTested
+gen Lev5_count1 = Lev5_percent1* StudentSubGroup_TotalTested
+gen ProficientOrAbove_count1 = ProficientOrAbove_percent1* StudentSubGroup_TotalTested
+
+gen Lev2_count2 = Lev2_percent2* StudentSubGroup_TotalTested
+gen Lev3_count2 = Lev3_percent2* StudentSubGroup_TotalTested
+gen Lev4_count2 = Lev4_percent2* StudentSubGroup_TotalTested
+gen Lev5_count2 = Lev5_percent2* StudentSubGroup_TotalTested
+gen ProficientOrAbove_count2 = ProficientOrAbove_percent2* StudentSubGroup_TotalTested
+
+local a  "2 3 4 5" 
+foreach b in `a' {
+replace Lev`b'_count1 = round(Lev`b'_count1, 1)
+}
+
+local a  "2 3 4 5" 
+foreach b in `a' {
+replace Lev`b'_count2 = round(Lev`b'_count2, 1)
+tostring Lev`b'_count1 Lev`b'_count2, replace force 
+egen Lev`b'_countX = concat(Lev`b'_count1 Lev`b'_count2) if Lev`b'_count2 != ".", punct("-") 
+replace Lev`b'_countX = Lev`b'_count1 if Lev`b'_count2 == "."
+drop Lev`b'_count1 Lev`b'_count2 Lev`b'_percent1 Lev`b'_percent2
+replace Lev`b'_count = Lev`b'_countX
+drop Lev`b'_count
+rename Lev`b'_countX Lev`b'_count
+}
+
+replace ProficientOrAbove_count1 = round(ProficientOrAbove_count1, 1)
+replace ProficientOrAbove_count2 = round(ProficientOrAbove_count2, 1)
+tostring ProficientOrAbove_count1 ProficientOrAbove_count2, replace force 
+egen ProficientOrAbove_countX = concat(ProficientOrAbove_count1 ProficientOrAbove_count2) if ProficientOrAbove_count2 != ".", punct("-") 
+replace ProficientOrAbove_countX  = ProficientOrAbove_count1 if ProficientOrAbove_count2 == "."
+drop ProficientOrAbove_count1 ProficientOrAbove_count2 ProficientOrAbove_percent1 ProficientOrAbove_percent2
+replace ProficientOrAbove_count = ProficientOrAbove_countX
+drop ProficientOrAbove_count
+rename ProficientOrAbove_countX ProficientOrAbove_count
+
+}
+
+
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+save "NC_AssmtData_`g'_Stata", replace
+
+}
+
+
+
+import excel "nc_full-dist-sch-stable-list_through2023", firstrow case(preserve) allstring clear
+
+//Fixing DataLevel
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+sort DataLevel_n 
+drop DataLevel 
+rename DataLevel_n DataLevel 
+
+save "NC_StableNames_Sch", replace
+duplicates drop NCESDistrictID SchYear, force
+drop NCESSchoolID newschname olddistname oldschname
+gen SchName = "All Schools"
+replace DataLevel = 2
+
+append using "NC_StableNames_Sch"
+sort DataLevel
+duplicates drop SchYear DataLevel NCESDistrictID NCESSchoolID, force
+save "NC_StableNames", replace
+clear
+
+//use NC_AssmtData_2014_Stata, clear
+
+//Looping Through Years
+forvalues year = 2014/2023 { 
+	if `year' == 2020 continue
+use "NC_StableNames", clear
+local prevyear = `=`year'-1'
+keep if SchYear == "`prevyear'-" + substr("`year'",-2,2)
+merge 1:m DataLevel NCESDistrictID NCESSchoolID using "NC_AssmtData_`year'_Stata" 
+drop if _merge == 1
+replace DistName = newdistname if DataLevel !=1
+replace SchName = newschname if DataLevel == 3
+replace DistName = "All Districts" if DataLevel == 1
+replace SchName = "All Schools" if DataLevel ==1
+
+
+//Final Cleaning and Saving
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup	
+
+save NC_AssmtData_`year'_Stata, replace
+export delimited NC_AssmtData_`year', replace
+//clear
+}
+
+
