@@ -135,20 +135,25 @@ replace GradeLevel = "G38" if strpos(ASSESSMENT, "_") !=0
 tempfile temp1
 save "`temp1'"
 clear
-use "${nces_school}/NCES_2021_School.dta"
+use "${nces_school}/NCES_2022_School.dta"
 drop if state_location != "NY"
 drop if seasch == ""
 gen StateAssignedSchID = substr(seasch, strpos(seasch, "-")+1, 12)
 //Fixing two schools
-replace StateAssignedSchID = "320900861122" if ncesschoolid == "360115606620"
 
 merge 1:m StateAssignedSchID using "`temp1'"
 *drop if _merge !=3 & DataLevel == "School"
 rename _merge _merge1 
+
+//Fixing NCES 2022 School Data Before Appending
+drop year boundary_change_indicator number_of_schools fips
+decode district_agency_type, gen(temp1)
+drop district_agency_type
+rename temp1 district_agency_type
 tempfile temp2
 save "`temp2'"
 clear
-use "${nces_district}/NCES_2021_District.dta"
+use "${nces_district}/NCES_2022_District.dta"
 drop if state_location != "NY"
 gen StateAssignedDistID = substr(state_leaid, strpos(state_leaid, "-")+1, 12)
 
@@ -172,6 +177,7 @@ drop SchLevel
 rename SchLevel1 SchLevel
 decode SchVirtual, gen(SchVirtual1)
 drop SchVirtual
+rename school_type SchType
 rename SchVirtual1 SchVirtual
 rename county_name CountyName
 rename county_code CountyCode
@@ -301,6 +307,7 @@ replace StateAssignedDistID = StateAssignedSchID if DistCharter == "Yes" | strpo
 //Fixing SchVirtual for Missing schools
 replace SchVirtual = "Missing/not reported" if SchVirtual == "" & DataLevel ==3
 
+/*
 //Fixing 2023 Unmerged
 tempfile temp1
 save "`temp1'", replace
@@ -317,11 +324,16 @@ save "`tempunmerged'", replace
 use "`temp1'"
 drop if missing(NCESSchoolID) & DataLevel ==3
 append using "`tempunmerged'"
+*/
 
 //Dropping if No Students Tested
 drop if StudentSubGroup_TotalTested == 0
 
+//CountyNames
+replace CountyName = proper(CountyName)
 
+//Post Launch review response
+drop if GradeLevel == "G38" //Values dropped- include data for Lev5_count and Lev5_percent in raw data, indicating that they aggregate Regents exam information as well.
 
 //Final Cleaning
 
