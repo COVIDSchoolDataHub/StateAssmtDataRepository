@@ -163,7 +163,7 @@ forvalues year = 2019/2023{
 	replace StudentGroup = "EL Status" if inlist(StudentSubGroup, "English Learner", "EL Exited")
 	replace StudentGroup = "Economic Status" if inlist(StudentSubGroup, "Economically Disadvantaged", "Not Economically Disadvantaged")
 	replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD"
-	replace StudentGroup = "Placeholder" if StudentSubGroup == "Ever EL"
+	replace StudentGroup = "Ever EL" if StudentSubGroup == "Ever EL"
 
 	gen StudentSubGroup_TotalTested = K
 	destring K, replace force
@@ -172,8 +172,21 @@ forvalues year = 2019/2023{
 	replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 	tostring StudentGroup_TotalTested, replace
 	replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
-	replace StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentGroup == "Placeholder"
-	replace StudentGroup = "EL Status" if StudentGroup == "Placeholder"
+	replace StudentGroup_TotalTested = StudentSubGroup_TotalTested if inlist(StudentGroup, "Ever EL", "EL Status")
+	replace StudentGroup = "EL Status" if StudentGroup == "Ever EL"
+	
+	sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+	gen Suppressed = 0
+	replace Suppressed = 1 if inlist(StudentSubGroup_TotalTested, "--", "*")
+	egen StudentGroup_Suppressed = max(Suppressed), by(StudentGroup GradeLevel Subject DataLevel StateAssignedSchID StateAssignedDistID DistName SchName)
+	drop Suppressed
+	gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+	replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
+	replace StudentGroup_TotalTested = AllStudents_Tested if StudentGroup_Suppressed == 1
+	replace StudentGroup_TotalTested = AllStudents_Tested if inlist(StudentGroup, "Disability Status", "All Students")
+	drop AllStudents_Tested StudentGroup_Suppressed
+	replace StudentGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "--"
+	replace StudentGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "*"
 
 	*Generate Additional Variables
 	gen SchYear = "`prevyear'-`year'"
