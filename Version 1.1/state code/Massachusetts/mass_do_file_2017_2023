@@ -484,7 +484,7 @@ use mass_districts_new_mcas_in_progress_3_n, clear
 
 // Loop to merge with NCES data, separate into individual years and add necessary variables
 
-global years1  2017 2018 2019 2021 2022 2023 
+global years1   2022 2023   // 2023 // 2017 2018 2019 2021
 
 foreach a in $years1 {
 	
@@ -729,6 +729,8 @@ replace StudentSubGroup = "EL Monit or Recently Ex" if StudentGroup == "Former E
 replace StudentSubGroup = "EL and Monit or Recently Ex" if StudentGroup == "EL and Former EL"
 replace StudentSubGroup = "Ever EL" if StudentGroup == "Ever EL"
 
+
+
 replace StudentSubGroup = "Economically Disadvantaged" if StudentGroup == "Econ. Disadvantaged"
 replace StudentSubGroup = "Not Economically Disadvantaged" if StudentGroup == "Non-Econ. Disadvantaged"
 
@@ -854,6 +856,13 @@ rename SchVirtual1 SchVirtual
 // updated 
 drop State_leaid seasch
 
+// MA pre-review update 
+
+gsort -SchType
+duplicates drop DataLevel DistName Grade Subject SchName StudentSubGroup, force
+
+
+drop if StudentSubGroup == "Not Economically Disadvantaged" & DataLevel == 3 & SchType == "" 
 
 // real 
  order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
@@ -895,4 +904,3 @@ export delimited MA_AssmtData_`a'.csv, replace
 
 
 }
-
