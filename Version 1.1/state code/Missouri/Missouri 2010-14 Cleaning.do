@@ -121,6 +121,10 @@ forvalues year = 2010/2014{
 	replace Subject = "sci" if Subject == "Science"
 	
 	bysort DistName SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
+	sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+	gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+	replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
+	replace StudentGroup_TotalTested = AllStudents_Tested if inlist(StudentGroup, "EL Status", "Economic Status")
 	
 	** Levels & Proficiency Information
 	forvalues a = 1/4{
@@ -181,14 +185,16 @@ forvalues year = 2010/2014{
 		drop merge4
 	}
 	
-	replace StateAbbrev = "MO" if DataLevel == 1
-	replace State = "Missouri" if DataLevel == 1
-	replace StateFips = 29 if DataLevel == 1
+	replace StateAbbrev = "MO"
+	replace State = "Missouri"
+	replace StateFips = 29
+	
+	replace CountyName = strproper(CountyName)
 	
 	gen Flag_AssmtNameChange = "N"
 	gen Flag_CutScoreChange_ELA = "N"
 	gen Flag_CutScoreChange_math = "N"
-	gen Flag_CutScoreChange_soc = ""
+	gen Flag_CutScoreChange_soc = "Not applicable"
 	gen Flag_CutScoreChange_sci = "N"
 	
 	** Unmerged Districts
@@ -197,17 +203,10 @@ forvalues year = 2010/2014{
 	replace DistType = "State-operated agency" if DistName == "MO VIRTUAL INSTRUCTION PROGRAM"
 	replace DistCharter = "No" if DistName == "MO VIRTUAL INSTRUCTION PROGRAM"
 	replace DistLocale = "City, small" if DistName == "MO VIRTUAL INSTRUCTION PROGRAM"
-	replace CountyName = "COLE COUNTY" if DistName == "MO VIRTUAL INSTRUCTION PROGRAM"
+	replace CountyName = "Cole County" if DistName == "MO VIRTUAL INSTRUCTION PROGRAM"
 	replace CountyCode = "29051" if DistName == "MO VIRTUAL INSTRUCTION PROGRAM"
-	replace NCESDistrictID = "Missing/not reported" if inlist(DistName, "NORTHWEST MISSOURI STATE UNIV", "SOUTHWEST MISSOURI STATE UNIV") & NCESDistrictID == ""
-	replace DistType = "Missing/not reported" if inlist(DistName, "NORTHWEST MISSOURI STATE UNIV", "SOUTHWEST MISSOURI STATE UNIV") & DistType == ""
-	replace DistCharter = "Missing/not reported" if inlist(DistName, "NORTHWEST MISSOURI STATE UNIV", "SOUTHWEST MISSOURI STATE UNIV") & DistCharter == ""
-	replace DistLocale = "Missing/not reported" if inlist(DistName, "NORTHWEST MISSOURI STATE UNIV", "SOUTHWEST MISSOURI STATE UNIV") & DistLocale == ""
-	replace CountyName = "Missing/not reported" if inlist(DistName, "NORTHWEST MISSOURI STATE UNIV", "SOUTHWEST MISSOURI STATE UNIV") & CountyName == ""
-	replace CountyCode = "Missing/not reported" if inlist(DistName, "NORTHWEST MISSOURI STATE UNIV", "SOUTHWEST MISSOURI STATE UNIV") & CountyCode == ""
-	
-	replace DistType = "Missing/not reported" if DistType == "" & DataLevel != 1
-	
+	drop if inlist(DistName, "NORTHWEST MISSOURI STATE UNIV", "SOUTHWEST MISSOURI STATE UNIV")
+		
 	keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 	
 	order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode

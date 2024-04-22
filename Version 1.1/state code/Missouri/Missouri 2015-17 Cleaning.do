@@ -103,6 +103,12 @@ forvalues year = 2015/2017{
 	replace Subject = "sci" if Subject == "Science"
 	
 	bysort DistName SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
+	replace StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+	sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+	gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+	replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
+	replace StudentGroup_TotalTested = AllStudents_Tested if inlist(StudentSubGroup, "Migrant", "English Learner")
+	replace StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "EL Monit or Recently Ex"
 	
 	** Levels & Proficiency Information
 	forvalues a = 1/4{
@@ -171,10 +177,14 @@ forvalues year = 2015/2017{
 	replace State = "Missouri" if DataLevel == 1
 	replace StateFips = 29 if DataLevel == 1
 	
+	if `year' == 2015{
+		replace CountyName = strproper(CountyName)
+	}
+	
 	gen Flag_AssmtNameChange = "N"
 	gen Flag_CutScoreChange_ELA = "N"
 	gen Flag_CutScoreChange_math = "N"
-	gen Flag_CutScoreChange_soc = ""
+	gen Flag_CutScoreChange_soc = "Not applicable"
 	gen Flag_CutScoreChange_sci = "N"
 	
 	if `year' == 2015{

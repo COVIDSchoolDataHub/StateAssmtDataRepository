@@ -91,7 +91,7 @@ gen State = "Missouri"
 drop if C != "MO"
 rename C StateAbbrev
 rename D StateFips
-destring state_fips, replace force
+destring StateFips, replace force
 rename E DistName
 rename F NCESDistrictID
 rename G State_leaid
