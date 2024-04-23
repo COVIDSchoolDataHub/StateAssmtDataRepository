@@ -113,8 +113,6 @@ forvalues year = 2015/2018{
 	replace StudentGroup_TotalTested = AllStudents_Tested if StudentGroup_Suppressed == 1
 	replace StudentGroup_TotalTested = AllStudents_Tested if inlist(StudentGroup, "Disability Status", "All Students")
 	drop AllStudents_Tested StudentGroup_Suppressed
-	replace StudentGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "--"
-	replace StudentGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "*"
 	
 	*Generate Additional Variables
 	gen SchYear = "`prevyear'-`year'"
@@ -195,7 +193,7 @@ forvalues year = 2015/2018{
 
 	//Merge Data
 	use "${data}/NJ_OriginalData_`year'", clear
-	merge m:1 StateAssignedDistID using "${NCES}/Cleaned NCES Data/NCES_`prevyear'_District_NJ.dta"
+	merge m:1 StateAssignedDistID using "${NCESClean}/NCES_`prevyear'_District_NJ.dta"
 	drop if _merge == 2
 
 	merge m:1 StateAssignedSchID StateAssignedDistID using "${NCESClean}/NCES_`prevyear'_School_NJ.dta", gen (merge2)
@@ -238,10 +236,10 @@ forvalues year = 2015/2018{
 	replace SchLevel = "Other" if SchName == "MASTERY SCHOOLS OF CAMDEN" & SchLevel == ""
 	replace SchVirtual = "No" if SchName == "MASTERY SCHOOLS OF CAMDEN" & SchVirtual == ""
 	
-	replace NCESSchoolID = "Missing/not reported" if SchName == "SINGLE GENDER ACADEMY" & NCESSchoolID == ""
-	replace SchType = "Missing/not reported" if SchName == "SINGLE GENDER ACADEMY" & SchType == ""
-	replace SchLevel = "Missing/not reported" if SchName == "SINGLE GENDER ACADEMY" & SchLevel == ""
-	replace SchVirtual = "Missing/not reported" if SchName == "SINGLE GENDER ACADEMY" & SchVirtual == ""
+	replace NCESSchoolID = "341269003369" if SchName == "SINGLE GENDER ACADEMY" & NCESSchoolID == ""
+	replace SchType = "Regular school" if SchName == "SINGLE GENDER ACADEMY" & SchType == ""
+	replace SchLevel = "Primary" if SchName == "SINGLE GENDER ACADEMY" & SchLevel == ""
+	replace SchVirtual = "No" if SchName == "SINGLE GENDER ACADEMY" & SchVirtual == ""
 	
 	replace NCESDistrictID = "3400772" if DistName == "MASTERY SCHOOLS OF CAMDEN" & NCESDistrictID == ""
 	replace DistType = "Regular local school district" if DistName == "MASTERY SCHOOLS OF CAMDEN" & DistType == ""

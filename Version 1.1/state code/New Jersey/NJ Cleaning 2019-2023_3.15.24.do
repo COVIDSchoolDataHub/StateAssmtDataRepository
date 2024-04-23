@@ -185,8 +185,6 @@ forvalues year = 2019/2023{
 	replace StudentGroup_TotalTested = AllStudents_Tested if StudentGroup_Suppressed == 1
 	replace StudentGroup_TotalTested = AllStudents_Tested if inlist(StudentGroup, "Disability Status", "All Students")
 	drop AllStudents_Tested StudentGroup_Suppressed
-	replace StudentGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "--"
-	replace StudentGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "*"
 
 	*Generate Additional Variables
 	gen SchYear = "`prevyear'-`year'"
@@ -204,6 +202,7 @@ forvalues year = 2019/2023{
 	
 	if `year' == 2019{
 		replace Flag_AssmtNameChange = "Y"
+		replace Flag_CutScoreChange_sci = "Y"
 	}
 
 	*Fixing Counts and Percents
@@ -268,41 +267,34 @@ forvalues year = 2019/2023{
 	}
 	
 	if `year' == 2023{
-		import excel "${NCESSchool}/NCES_`prevyear'_School.xlsx", clear
-		gen state_name = "New Jersey"
-		drop if C != "NJ"
-		rename C state_location
-		rename D state_fips
-		destring state_fips, replace force
-		rename E DistName
-		rename F ncesdistrictid
-		gen str StateAssignedDistID = substr(G, 6, 9)
-		drop G
-		gen str StateAssignedSchID = substr(N, 11, 13)
-		drop N
+		use "${NCESSchool}/NCES_`prevyear'_School.dta", clear
+		drop if state_location != "NJ"
+		rename state_fips_id state_fips
+		rename lea_name DistName
+		gen str StateAssignedDistID = substr(state_leaid, 6, 9)
+		gen str StateAssignedSchID = substr(seasch, 8, 10)
 		destring StateAssignedDistID, replace force
 		drop if StateAssignedDistID==.
 		destring StateAssignedSchID, replace force
 		drop if StateAssignedSchID==.
-		rename I ncesschoolid
-		rename J SchType
-		rename K SchVirtual
-		rename L SchLevel
-		rename M SchName
-		merge 1:1 ncesdistrictid ncesschoolid using "${NCESClean}/NCES_2021_School_NJ.dta", keepusing (DistLocale county_code county_name district_agency_type)
+		rename school_type SchType
+		rename school_name SchName
+		decode district_agency_type, gen (district_agency_type_s)
+		drop district_agency_type
+		rename district_agency_type_s district_agency_type
+		merge 1:1 ncesdistrictid ncesschoolid using "${NCESClean}/NCES_2021_School_NJ.dta", keepusing (DistLocale county_code county_name district_agency_type SchVirtual)
 		drop if _merge == 2
 		drop _merge
+		keep ncesdistrictid ncesschoolid StateAssignedDistID StateAssignedSchID district_agency_type DistLocale county_code county_name DistCharter SchType SchLevel SchVirtual
 		save "${NCESClean}/NCES_`prevyear'_School_NJ.dta", replace
 		
-		import excel "$NCES/NCES District Files, Fall 1997-Fall 2022/NCES_2022_District.xlsx", clear
-		drop if C != "NJ"
-		rename E DistName
-		gen str StateAssignedDistID = substr(G, 6, 9)
-		drop G
+		use "${NCESDistrict}/NCES_`prevyear'_District.dta", clear
+		drop if state_location != "NJ"
+		rename lea_name DistName
+		gen str StateAssignedDistID = substr(state_leaid, 6, 9)
 		destring StateAssignedDistID, replace force
 		drop if StateAssignedDistID==.
-		rename F ncesdistrictid
-		rename H district_agency_type
+		drop year
 		merge 1:1 ncesdistrictid using "${NCESClean}/NCES_2021_District_NJ.dta", keepusing (DistLocale county_code county_name DistCharter)
 		drop if _merge == 2
 		drop _merge
@@ -315,7 +307,7 @@ forvalues year = 2019/2023{
 		destring StateAssignedDistID, replace force
 		destring StateAssignedSchID, replace force
 	}
-	merge m:1 StateAssignedDistID using "${NCES}/Cleaned NCES Data/NCES_`prevyear'_District_NJ.dta"
+	merge m:1 StateAssignedDistID using "${NCESClean}/NCES_`prevyear'_District_NJ.dta"
 	drop if _merge == 2
 
 	merge m:1 StateAssignedSchID StateAssignedDistID using "${NCESClean}/NCES_`prevyear'_School_NJ.dta", gen (merge2)
