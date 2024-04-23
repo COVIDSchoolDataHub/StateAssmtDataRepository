@@ -117,21 +117,25 @@ forvalues year = 2015/2017{
 	}
 
 	gen ProficientOrAbove_percent = Lev3_percent + Lev4_percent
-
-	tostring ProficientOrAbove_percent, replace force
-	replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
+	replace ProficientOrAbove_percent = 1 - (Lev1_percent + Lev2_percent) if ProficientOrAbove_percent == . & Lev1_percent != . & Lev2_percent != .
 
 	forvalues a = 1/4{
 		tostring Lev`a'_percent, replace force
 		replace Lev`a'_percent = "*" if Lev`a'_percent == "."
+		destring Lev`a'_count, gen(Lev`a'_count2) force
 	}
 
-	destring Lev3_count, gen(Lev3_count2) force
-	destring Lev4_count, gen(Lev4_count2) force
 	gen ProficientOrAbove_count = Lev3_count2 + Lev4_count2
+	gen NotProfCount = Lev1_count2 + Lev2_count2 if Lev1_count2 != . & Lev2_count2 != .
+	replace ProficientOrAbove_count = StudentSubGroup_TotalTested - NotProfCount if ProficientOrAbove_count == . & StudentSubGroup_TotalTested != . & NotProfCount != .
+	replace ProficientOrAbove_count = ProficientOrAbove_percent * StudentSubGroup_TotalTested if ProficientOrAbove_count == . & StudentSubGroup_TotalTested != . & ProficientOrAbove_percent != .
+	
+	tostring ProficientOrAbove_percent, replace force
+	replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
+	
 	tostring ProficientOrAbove_count, replace force
 	replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
-	drop Lev3_count2 Lev4_count2
+	drop Lev1_count2 Lev2_count2 Lev3_count2 Lev4_count2 NotProfCount
 
 	gen Lev5_count = ""
 	gen Lev5_percent = ""

@@ -99,10 +99,9 @@ rename N seasch
 replace seasch = subinstr(seasch, "MO-", "", .)
 rename I NCESSchoolID
 rename J SchType
-rename K SchVirtual
 rename L SchLevel
 rename M SchName
-merge 1:1 NCESDistrictID NCESSchoolID using "${NCES}/NCES_2021_School_MO.dta", keepusing (DistLocale CountyCode CountyName district_agency_type)
+merge 1:1 NCESDistrictID NCESSchoolID using "${NCES}/NCES_2021_School_MO.dta", keepusing (SchVirtual DistLocale CountyCode CountyName district_agency_type)
 drop if _merge == 2
 drop _merge
 save "${NCES}/NCES_2022_School_MO.dta", replace

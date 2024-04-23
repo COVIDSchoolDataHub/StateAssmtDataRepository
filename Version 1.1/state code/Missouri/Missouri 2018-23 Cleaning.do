@@ -119,21 +119,26 @@ forvalues year = 2018/2023{
 	}
 
 	gen ProficientOrAbove_percent = Lev3_percent + Lev4_percent
-
-	tostring ProficientOrAbove_percent, replace force
-	replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
+	replace ProficientOrAbove_percent = 1 - (Lev1_percent + Lev2_percent) if ProficientOrAbove_percent == . & Lev1_percent != . & Lev2_percent != .
 
 	forvalues a = 1/4{
 		tostring Lev`a'_percent, replace force
 		replace Lev`a'_percent = "*" if Lev`a'_percent == "."
+		destring Lev`a'_count, gen(Lev`a'_count2) force
 	}
 
-	destring Lev3_count, gen(Lev3_count2) force
-	destring Lev4_count, gen(Lev4_count2) force
 	gen ProficientOrAbove_count = Lev3_count2 + Lev4_count2
+	gen NotProfCount = Lev1_count2 + Lev2_count2 if Lev1_count2 != . & Lev2_count2 != .
+	replace ProficientOrAbove_count = StudentSubGroup_TotalTested - NotProfCount if ProficientOrAbove_count == . & StudentSubGroup_TotalTested != . & NotProfCount != .
+	replace ProficientOrAbove_count = ProficientOrAbove_percent * StudentSubGroup_TotalTested if ProficientOrAbove_count == . & StudentSubGroup_TotalTested != . & ProficientOrAbove_percent != .
+	
+	tostring ProficientOrAbove_percent, replace force
+	replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
+	
+	
 	tostring ProficientOrAbove_count, replace force
 	replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
-	drop Lev3_count2 Lev4_count2
+	drop Lev1_count2 Lev2_count2 Lev3_count2 Lev4_count2 NotProfCount
 
 	gen Lev5_count = ""
 	gen Lev5_percent = ""
@@ -190,6 +195,12 @@ forvalues year = 2018/2023{
 	}
 	if `year' == 2019{
 		replace Flag_CutScoreChange_sci = "Y"
+	}
+	
+	** Unmerged Schools
+	if `year' == 2023{
+		replace SchVirtual = 1 if inlist(SchName, "Missouri Digital Academy", "Missouri Virtual Academy") & SchVirtual == .
+		replace SchVirtual = -1 if DataLevel == 3 & SchVirtual == .
 	}
 
 	keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode

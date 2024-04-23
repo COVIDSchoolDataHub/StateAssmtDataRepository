@@ -153,7 +153,9 @@ forvalues year = 2010/2014{
 	
 	merge m:1 State_leaid using "${NCES}/NCES_`prevyear'_District_MO.dta"
 	
-	replace NCESDistrictID = "Missing/not reported" if _merge == 1 & DataLevel == 2
+	if `year' < 2014{
+		rename district_agency_type DistType
+	}
 	
 	drop if _merge == 2
 	drop _merge
