@@ -9,7 +9,7 @@ cd "/Users/miramehta/Documents"
 
 set trace off
 
-forvalues year = 2018/2023{
+forvalues year = 2023/2023{
 	local prevyear = `year' - 1
 	
 	** Append data into one file & rename variables

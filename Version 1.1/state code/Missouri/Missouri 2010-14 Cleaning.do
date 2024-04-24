@@ -199,6 +199,15 @@ forvalues year = 2010/2014{
 	gen Flag_CutScoreChange_soc = "Not applicable"
 	gen Flag_CutScoreChange_sci = "N"
 	
+	gen flag = 1 if NCESSchoolID == "290825000226" & StudentSubGroup == "White" & Subject == "sci" & GradeLevel == "G05"
+	
+	forvalues n = 1/4{
+		tostring Lev`n'_percent, replace format("%7.3f") force
+		tostring Lev`n'_count, replace
+		replace Lev`n'_percent = "*" if flag == 1
+		replace Lev`n'_count = "*" if flag == 1
+	}
+	
 	** Unmerged Districts
 	
 	replace NCESDistrictID = "2900607" if DistName == "MO VIRTUAL INSTRUCTION PROGRAM"
