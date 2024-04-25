@@ -71,36 +71,57 @@ foreach a in $years {
 	
 }
 
-import excel "${nces}/NCES School Files, Fall 1997-Fall 2022/NCES_2022_School.xlsx", firstrow allstring clear
+use "${nces}/NCES School Files, Fall 1997-Fall 2022/NCES_2022_School.dta", clear
+
+rename state_name State
+rename state_location StateAbbrev
+rename fips StateFips
 drop if StateAbbrev != "UT"
-replace SchName="Minersville School (Primary)" if SchName=="Minersville School" & SchLevel=="Primary"
-replace SchName="Minersville School (Middle)" if SchName=="Minersville School" & SchLevel=="Middle"
+rename state_fips_id state_fips
+rename ncesschoolid NCESSchoolID
+rename ncesdistrictid NCESDistrictID
+rename state_leaid State_leaid
+rename lea_name DistName
+rename school_name SchName
+
+replace SchName="Minersville School (Primary)" if SchName=="Minersville School" & SchLevel == 1
+replace SchName="Minersville School (Middle)" if SchName=="Minersville School" & SchLevel == 2
 drop SchVirtual
 
 merge 1:1 NCESDistrictID NCESSchoolID using "${utah}/NCES_2021_School.dta", keepusing (DistLocale CountyCode CountyName district_agency_type SchVirtual)
 drop if _merge == 2
 drop _merge
 
-rename district_agency_type DistType
-rename st_schid seasch
+rename school_type SchType
 
 replace SchVirtual = -1 if SchName == "Glacier Hills Elementary"
 replace CountyName = "Salt Lake County" if SchName == "Glacier Hills Elementary"
 replace CountyCode = "49035" if SchName == "Glacier Hills Elementary"
-replace DistType = 1 if SchName == "Glacier Hills Elementary"
+replace district_agency_type = 1 if SchName == "Glacier Hills Elementary"
 replace DistLocale = "City, midsize" if SchName == "Glacier Hills Elementary"
 
 replace SchVirtual = -1 if SchName == "Nebo Online School"
 replace CountyName = "Utah County" if SchName == "Nebo Online School"
 replace CountyCode = "49049" if SchName == "Nebo Online School"
-replace DistType = 1 if SchName == "Nebo Online School"
+replace district_agency_type = 1 if SchName == "Nebo Online School"
 replace DistLocale = "City, midsize" if SchName == "Nebo Online School"
+
+decode district_agency_type, gen (DistType)
+drop district_agency_type
+
+keep NCESDistrictID NCESSchoolID SchName DistName seasch State_leaid DistType DistLocale CountyCode CountyName DistCharter SchType SchLevel SchVirtual
 
 save "${utah}/NCES_2022_School.dta", replace
 
-import excel "${nces}/NCES District Files, Fall 1997-Fall 2022/NCES_2022_District.xlsx", firstrow allstring clear
+use "${nces}/NCES District Files, Fall 1997-Fall 2022/NCES_2022_District.dta", clear
+rename state_name State
+rename state_location StateAbbrev
+rename fips StateFips
 drop if StateAbbrev != "UT"
 rename ncesdistrictid NCESDistrictID
+rename lea_name DistName
+rename state_leaid State_leaid
+rename district_agency_type DistType
 merge 1:1 NCESDistrictID using "${utah}/NCES_2021_District.dta", keepusing (DistLocale CountyCode CountyName DistCharter)
 drop if _merge == 2
 drop _merge

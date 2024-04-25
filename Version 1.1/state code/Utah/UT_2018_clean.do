@@ -537,7 +537,7 @@ replace ProficientOrAbove_percent = ProficientOrAbove_percent1 + "-" + Proficien
 drop ProficientOrAbove_percent1 ProficientOrAbove_percent2 ProficientOrAbove_count1 ProficientOrAbove_count2
 
 replace ProficientOrAbove_percent = PctProf if !inlist(PctProf, "", ".", "--", "*") & inlist(ProficientOrAbove_percent, "--", "*")
-replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == ""
+replace ProficientOrAbove_count = "--" if inlist(ProficientOrAbove_count, "", ".")
 replace ProficientOrAbove_count = "--" if ProficientOrAbove_percent == "--"
 replace ProficientOrAbove_count = "*" if ProficientOrAbove_percent == "*"
 replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == "."
@@ -548,7 +548,7 @@ forvalues n = 1/4{
 	destring Lev`n', replace force
 	gen Lev`n'_count = round(Lev`n' * Count_n)
 	tostring Lev`n'_count, replace
-	replace Lev`n'_count = "--" if Lev`n'_count == ""
+	replace Lev`n'_count = "--" if inlist(Lev`n'_count, "", ".")
 	replace Lev`n'_count = "--" if Lev`n'_percent == "--"
 	replace Lev`n'_count = "*" if Lev`n'_percent == "*"
 	replace Lev`n'_count = "*" if StudentSubGroup_TotalTested == "*"
@@ -584,11 +584,6 @@ replace StudentGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "--"
 replace StudentGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "*"
 
 ** Unmerged Districts
-replace StateAssignedSchID="UT-37-37179" if strpos(SchName, "Liberty")>0
-replace StateAssignedDistID="UT-37-37179" if strpos(SchName, "Liberty")>0
-
-replace StateAssignedDistID="37131" if strpos(SchName, "East Ridge")>0
-replace StateAssignedDistID="UT-3J-3J100" if strpos(SchName, "Mountain View Montessori")>0
 
 replace CountyCode="49049" if strpos(DistName, "Alpine")>0 & CountyCode == ""
 replace CountyName="Utah County" if strpos(DistName, "Alpine")>0 & CountyName == ""

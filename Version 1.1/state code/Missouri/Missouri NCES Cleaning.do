@@ -8,7 +8,7 @@ global NCESDistrict "/Users/miramehta/Documents/NCES District and School Demogra
 global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
 	
 global years 2009 2010 2011 2012
-/*
+
 foreach a in $years {
 	use "${NCESDistrict}/NCES_`a'_District.dta", clear 
 	
@@ -83,7 +83,7 @@ foreach a in $years {
 	
 	save "${NCES}/NCES_`a'_School_MO.dta", replace
 }
-*/
+
 //Fall 2022 NCES Data
 
 use "${NCESSchool}/NCES_2022_School.dta", clear

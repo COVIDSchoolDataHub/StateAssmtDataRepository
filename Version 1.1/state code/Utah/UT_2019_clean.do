@@ -674,7 +674,7 @@ forvalues i = 1/4 {
 	replace Lev`i'_percent = Lev`i'_percent1 + "-" + Lev`i'_percent2 if !inlist(Lev`i'_percent1, "", ".")
 	drop Lev`i'_percent1 Lev`i'_percent2 Lev`i'_count1 Lev`i'_count2 Lev`i'_percent_count Above Below
 	
-	replace Lev`i'_count = "--" if Lev`i'_count == ""
+	replace Lev`i'_count = "--" if inlist(Lev`i'_count, "", ".")
 	replace Lev`i'_count = "--" if Lev`i'_percent == "--"
 	replace Lev`i'_count = "*" if Lev`i'_percent == "*"
 }
@@ -726,7 +726,7 @@ replace ProficientOrAbove_percent = ProficientOrAbove_percent1 + "-" + Proficien
 drop ProficientOrAbove_percent1 ProficientOrAbove_percent2 ProficientOrAbove_count1 ProficientOrAbove_count2
 
 replace ProficientOrAbove_percent = PctProf if !inlist(PctProf, "", ".", "--", "*") & inlist(ProficientOrAbove_percent, "--", "*")
-replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == ""
+replace ProficientOrAbove_count = "--" if inlist(ProficientOrAbove_count, "", ".")
 replace ProficientOrAbove_count = "--" if ProficientOrAbove_percent == "--"
 replace ProficientOrAbove_count = "*" if ProficientOrAbove_percent == "*"
 replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == "."
@@ -735,15 +735,15 @@ replace ParticipationRate = "--" if ParticipationRate == ""
 gen Lev5_count = ""
 gen Lev5_percent = ""
 
-** Unmerged
+** Clean up from Unmerged
 drop if SchName=="Minersville School" & GradeLevel=="G38"
 replace SchVirtual="Missing/not reported" if missing(SchVirtual) & DataLevel==3
 replace CountyName="Weber County" if DistName=="Ogden City District" & CountyName==""
 replace DistLocale="City, small" if DistName=="Ogden City District" & DistLocale==""
 
-replace StateAssignedSchID="UT-37-37179" if strpos(SchName, "Liberty")>0
-replace StateAssignedDistID="UT-37-37179" if strpos(SchName, "Liberty")>0
 replace SchName="Canyon View School" if SchName == "Canyon View School (Primary)"
+
+replace StateAssignedSchID = subinstr(StateAssignedSchID, "UT-", "", .) if strpos(StateAssignedSchID, "UT-") > 0
 
 ** StudentGroup_TotalTested
 replace Count_n = 0 if Count_n == .

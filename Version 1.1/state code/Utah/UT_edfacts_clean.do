@@ -12,10 +12,22 @@ global edfacts "/Users/miramehta/Documents/EdFacts"
 
 ** Preparing EDFacts files
 
-local edyears1 15 16 17 18
+local edyears1 14 15 16 17 18
 local subject math ela
 local datatype count part
 local datalevel school district
+
+foreach year of local edyears1 {
+	foreach sub of local subject {
+		foreach type of local datatype {
+			foreach lvl of local datalevel {
+				import delimited "${edfacts}/20`year'/edfacts`type'20`year'`sub'`lvl'.csv", clear
+				save "${edfacts}/20`year'/edfacts`type'20`year'`sub'`lvl'.dta", replace
+			}
+		}
+	}
+}
+
 
 foreach year of local edyears1 {
 	foreach sub of local subject {
@@ -65,7 +77,7 @@ foreach year of local edyears1 {
 		}
 	}
 }
-
+*/
 foreach year of local edyears1 {
 	foreach type of local datatype {
 		foreach lvl of local datalevel {
@@ -119,11 +131,13 @@ foreach year of local edyears1 {
 				replace Participation = Participation1 if Participation1 != "." & Participation2 == "."
 				gen Participation3 = subinstr(Participation, "GE", "", .) if strpos(Participation, "GE") > 0
 				replace Participation3 = subinstr(Participation, "LT", "", .) if strpos(Participation, "LT") > 0
+				replace Participation3 = subinstr(Participation, "LE", "", .) if strpos(Participation, "LE") > 0
 				destring Participation3, replace force
 				replace Participation3 = Participation3/100
 				tostring Participation3, replace format("%9.2g") force
 				replace Participation = Participation3 + "-1" if strpos(Participation, "GE") > 0
 				replace Participation = "0-" + Participation3 if strpos(Participation, "LT") > 0
+				replace Participation = "0-" + Participation3 if strpos(Participation, "LE") > 0
 				drop Participation1 Participation2 Participation3
 			}
 			gen GradeLevel = "G" + substr(StudentSubGroup, -2, 2)
@@ -163,8 +177,19 @@ foreach year of local edyears1 {
 }
 
 
-/*
+
 local edyears2 2019 2021
+
+foreach year of local edyears2 {
+	foreach sub of local subject {
+		foreach type of local datatype {
+			foreach lvl of local datalevel {
+				import delimited "${edfacts}/20`year'/edfacts`type'20`year'`sub'`lvl'.csv", clear
+				save "${edfacts}/20`year'/edfacts`type'20`year'`sub'`lvl'.dta", replace
+			}
+		}
+	}
+}
 
 foreach year of local edyears2 {
 	foreach sub of local subject {
@@ -248,11 +273,13 @@ foreach year of local edyears2 {
 				replace Participation = Participation1 if Participation1 != "." & Participation2 == "."
 				gen Participation3 = subinstr(Participation, "GE", "", .) if strpos(Participation, "GE") > 0
 				replace Participation3 = subinstr(Participation, "LT", "", .) if strpos(Participation, "LT") > 0
+				replace Participation3 = subinstr(Participation, "LE", "", .) if strpos(Participation, "LE") > 0
 				destring Participation3, replace force
 				replace Participation3 = Participation3/100
 				tostring Participation3, replace format("%9.2g") force
 				replace Participation = Participation3 + "-1" if strpos(Participation, "GE") > 0
 				replace Participation = "0-" + Participation3 if strpos(Participation, "LT") > 0
+				replace Participation = "0-" + Participation3 if strpos(Participation, "LE") > 0
 				drop Participation1 Participation2 Participation3
 			}
 			drop if grade == "HS"
@@ -290,3 +317,4 @@ foreach year of local edyears2 {
 		}
 	}
 }
+*/

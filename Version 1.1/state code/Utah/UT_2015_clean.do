@@ -205,6 +205,9 @@ replace DistName = "THOMAS EDISON - LEA" if DistName == "THOMAS EDISON"
 
 merge m:1 DistName using "${utah}/NCES_2015_District.dta"
 
+replace DistName = strproper(DistName)
+replace DistName="The Center for Creativity Innovation and Discovery" if strpos(DistName, "Innovation")>0
+
 gen DataLevel = 2
 gen StateAssignedDistID = State_leaid
 
@@ -416,7 +419,7 @@ replace ProficientOrAbove_percent = ProficientOrAbove_percent1 + "-" + Proficien
 drop ProficientOrAbove_percent1 ProficientOrAbove_percent2 ProficientOrAbove_count1 ProficientOrAbove_count2
 
 replace ProficientOrAbove_percent = PctProf if !inlist(PctProf, "", ".", "--", "*") & inlist(ProficientOrAbove_percent, "--", "*")
-replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == ""
+replace ProficientOrAbove_count = "--" if inlist(ProficientOrAbove_count, "", ".")
 replace ProficientOrAbove_count = "--" if ProficientOrAbove_percent == "--"
 replace ProficientOrAbove_count = "*" if ProficientOrAbove_percent == "*"
 
@@ -425,7 +428,7 @@ forvalues n = 1/4{
 	destring Lev`n', replace force
 	gen Lev`n'_count = round(Lev`n' * Count_n)
 	tostring Lev`n'_count, replace
-	replace Lev`n'_count = "--" if Lev`n'_count == ""
+	replace Lev`n'_count = "--" if inlist(Lev`n'_count, ".", "")
 	replace Lev`n'_count = "--" if Lev`n'_percent == "--"
 	replace Lev`n'_count = "*" if Lev`n'_percent == "*"
 	replace Lev`n'_count = "*" if StudentSubGroup_TotalTested == "*"
@@ -460,10 +463,14 @@ replace StudentGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "--"
 replace StudentGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "*"
 
 ** Cleaning up from unmerged
+replace StateAssignedSchID = "33500" if NCESSchoolID == "490114001432"
+replace StateAssignedSchID = "33200" if NCESSchoolID == "490114001161"
+
 replace DistLocale="City, small" if DistName=="Washington District" & DistLocale==""
 replace CountyName="Washington County" if DistName=="Washington District" & CountyName==""
-replace StateAssignedSchID = subinstr(StateAssignedSchID, "UT-", "", 1)
-replace StateAssignedDistID = subinstr(StateAssignedDistID, "UT-", "", 1)
+
+replace StateAssignedSchID = subinstr(StateAssignedSchID, "UT-", "", .) if strpos(StateAssignedSchID, "UT-") > 0
+replace StateAssignedDistID = subinstr(StateAssignedDistID, "UT-", "", .) if strpos(StateAssignedDistID, "UT-") > 0
 
 *** Clean up variables & save file
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode

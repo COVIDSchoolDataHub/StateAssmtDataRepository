@@ -196,6 +196,7 @@ drop _merge
 replace DistName = strupper(DistName)
 replace DistName = "AMERICAN PREPARATORY ACADEMY--LEA" if DistName == "AMERICAN PREPARATORY ACADEMY"
 replace DistName = "THOMAS EDISON - LEA" if DistName == "THOMAS EDISON"
+replace DistName = strproper(DistName)
 
 merge m:1 DistName using "${utah}/NCES_2014_District.dta"
 
@@ -413,7 +414,7 @@ replace ProficientOrAbove_percent = ProficientOrAbove_percent1 + "-" + Proficien
 drop ProficientOrAbove_percent1 ProficientOrAbove_percent2 ProficientOrAbove_count1 ProficientOrAbove_count2
 
 replace ProficientOrAbove_percent = PctProf if !inlist(PctProf, "", ".", "--", "*") & inlist(ProficientOrAbove_percent, "--", "*")
-replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == ""
+replace ProficientOrAbove_count = "--" if inlist(ProficientOrAbove_count, "", ".")
 replace ProficientOrAbove_count = "--" if ProficientOrAbove_percent == "--"
 replace ProficientOrAbove_count = "*" if ProficientOrAbove_percent == "*"
 
@@ -422,7 +423,7 @@ forvalues n = 1/4{
 	destring Lev`n', replace force
 	gen Lev`n'_count = round(Lev`n' * Count_n)
 	tostring Lev`n'_count, replace
-	replace Lev`n'_count = "--" if Lev`n'_count == ""
+	replace Lev`n'_count = "--" if inlist(Lev`n'_count, "", ".")
 	replace Lev`n'_count = "--" if Lev`n'_percent == "--"
 	replace Lev`n'_count = "*" if Lev`n'_percent == "*"
 	replace Lev`n'_count = "*" if StudentSubGroup_TotalTested == "*"
@@ -448,6 +449,7 @@ replace StudentGroup_TotalTested = "--" if inlist(StudentGroup_TotalTested, "", 
 replace CountyName = "Utah County" if SchName == "Liberty Academy" & CountyName == ""
 replace DistLocale = "Suburb, large" if SchName == "Liberty Academy" & DistLocale == ""
 replace StateAssignedSchID = subinstr(StateAssignedSchID, "UT-", "", 1)
+replace StateAssignedSchID = subinstr(StateAssignedSchID, "-", "", 1)
 replace StateAssignedDistID = subinstr(StateAssignedDistID, "UT-", "", 1)
 
 *** Clean up variables & save file
