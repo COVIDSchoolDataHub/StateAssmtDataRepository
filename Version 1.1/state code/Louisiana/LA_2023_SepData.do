@@ -2,10 +2,10 @@ clear
 
 // Define file paths
 
-global original_files "/Users/meghancornacchia/Desktop/DataRepository/Louisiana/Original Data Files"
-global NCES_files "/Users/meghancornacchia/Desktop/DataRepository/NCES_Data_Files"
-global output_files "/Users/meghancornacchia/Desktop/DataRepository/Louisiana/Output"
-global temp_files "/Users/meghancornacchia/Desktop/DataRepository/Louisiana/Temporary Data Files"
+global original_files "/Volumes/T7/State Test Project/Louisiana Post Launch/Original"
+global NCES_files "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global output_files "/Volumes/T7/State Test Project/Louisiana Post Launch/Output"
+global temp_files "/Volumes/T7/State Test Project/Louisiana Post Launch/Temp"
 
 ** 2022-23 Proficiency Data
 /*
@@ -77,8 +77,8 @@ drop if StudentSubGroup_TotalTested == ""
 drop if SchoolSystemCode == "" & DataLevel != "State"
 
 save "${temp_files}/2023_all_subjects_nostate.dta", replace
-*/
-/*
+
+
 import excel "$original_files/LA_OriginalData_2023_state.xlsx", sheet("Sheet1") cellrange(A3:Be93607) firstrow clear
 
 rename ELA AvgScaleScoreela
@@ -280,15 +280,15 @@ replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Foster Care"
 replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Not Foster Care"
 replace StudentSubGroup = "Non-Foster Care" if StudentSubGroup == "Not Foster Care"
 
-replace StudentGroup = "Homeless Status" if StudentSubGroup == "Homeless"
+replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless"
 
-replace StudentGroup = "Homeless Status" if StudentSubGroup == "Not Homeless"
+replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Not Homeless"
 replace StudentSubGroup = "Non-Homeless" if StudentSubGroup == "Not Homeless"
 
 replace StudentGroup = "Gender" if StudentSubGroup == "Female"
 replace StudentGroup = "Gender" if StudentSubGroup == "Male"
 
-keep if StudentGroup == "Economic Status" | StudentGroup == "Disability Status" | StudentGroup == "RaceEth" | StudentGroup == "Migrant Status" | StudentGroup == "All Students" | StudentGroup == "EL Status" | StudentGroup == "Gender" | StudentGroup == "Military Connected Status" | StudentGroup == "Foster Care Status" | StudentGroup == "Homeless Status"
+keep if StudentGroup == "Economic Status" | StudentGroup == "Disability Status" | StudentGroup == "RaceEth" | StudentGroup == "Migrant Status" | StudentGroup == "All Students" | StudentGroup == "EL Status" | StudentGroup == "Gender" | StudentGroup == "Military Connected Status" | StudentGroup == "Foster Care Status" | StudentGroup == "Homeless Enrolled Status"
 
 
 ** Handling state level counts
@@ -334,7 +334,7 @@ foreach v of varlist Lev*_percent {
 	replace n`v' = n`v' / 100 if n`v' != .
 	generate lessthan`v' = 1 if `v'=="<5"
 	generate greaterthan`v' = 1 if `v'==">95"
-	tostring n`v', replace force
+	tostring n`v', replace force format("%9.3g")
 	replace `v' = n`v' if `v' != "*"
 	replace `v' = "0-0.05" if lessthan`v' == 1
 	replace `v' = "0.95-1" if greaterthan`v' == 1
@@ -361,8 +361,8 @@ replace Lev5min = "0.95" if Lev5_percent== "0.95-1"
 destring Lev5min, generate(Lev5minnumber) force
 gen ProficientOrAbovemin = Lev4minnumber + Lev5minnumber
 gen ProficientOrAbovemax = Lev4maxnumber + Lev5maxnumber
-tostring ProficientOrAbovemin, replace force
-tostring ProficientOrAbovemax, replace force
+tostring ProficientOrAbovemin, replace force format("%9.3g")
+tostring ProficientOrAbovemax, replace force format("%9.3g")
 gen ProficientOrAbove_percent = ProficientOrAbovemin + "-" + ProficientOrAbovemax
 replace ProficientOrAbove_percent = ProficientOrAbovemax if ProficientOrAbovemax == ProficientOrAbovemin
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent=="."
@@ -433,7 +433,10 @@ rename DistNameCurrent DistName
 
 merge 1:m State_leaid DataLevel seasch StateAssignedDistID DistName StateAssignedSchID SchName SchYear using "${temp_files}/2023_preNCES.dta", nogenerate
 
-drop DistName
+*drop DistName
+
+//Fixing Empty DistNames 
+rename DistName DistName1
 
 replace SchName = "Audubon Charter School - Gentilly" if SchName == "Audubon Charter Gentilly"
 
@@ -524,6 +527,10 @@ merge 1:m State_leaid using "$temp_files/2023_preNCES.dta"
 
 keep if _merge == 3 | DataLevel == "State"
 
+//Fixing Empty DistNames
+replace DistName = DistName1 if missing(DistName)
+drop DistName1
+
 // Rename NCES variables
 rename district_agency_type DistType
 rename state_location StateAbbrev
@@ -549,6 +556,40 @@ replace StateAssignedSchID = "" if DataLevel != 3
 replace seasch = "" if DataLevel != 3
 replace State_leaid = "" if DataLevel == 1
 
+//Response to Post-Launch Review
+replace SchLevel = 1 if NCESSchoolID == "220009002530"
+replace SchVirtual = 0 if NCESSchoolID == "220009002530"
+foreach var of varlist StudentGroup_TotalTested StudentSubGroup_TotalTested {
+	replace `var' = "0-9" if `var' == "<10"
+}
+
+**Deriving Counts where possible & New convention for StudentGroup_TotalTested
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+gen AllStudents = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+replace AllStudents = AllStudents[_n-1] if missing(AllStudents)
+destring StudentSubGroup_TotalTested, gen(UnsuppressedSSG) force
+egen UnsuppressedSG = sum(UnsuppressedSSG), by(DataLevel NCESDistrictID NCESSchoolID Subject GradeLevel StudentGroup)
+replace StudentSubGroup_TotalTested = string(real(AllStudents) - UnsuppressedSG) if StudentGroup != "RaceEth" & strpos(StudentSubGroup_TotalTested, "<") !=0 & UnsuppressedSG !=0
+
+**Deriving ProficientOrAbove_count and percent if we have Levels 1-3
+replace ProficientOrAbove_count = string(real(StudentSubGroup_TotalTested) - real(Lev1_count) - real(Lev2_count) - real(Lev3_count)) if strpos(StudentSubGroup_TotalTested, "-") ==0 & regexm(Lev1_count, "[*-]") == 0 & regexm(Lev2_count, "[*-]") == 0 & regexm(Lev3_count, "[*-]") == 0
+replace ProficientOrAbove_percent = string(1 - real(Lev1_percent) - real(Lev2_percent) - real(Lev3_percent), "%9.3g") if regexm(Lev1_percent, "[*-]") == 0 & regexm(Lev2_percent, "[*-]") == 0 & regexm(Lev3_percent, "[*-]") == 0
+
+**Deriving Exact Counts & Percents Where Possible
+foreach percent of varlist Lev*_percent ProficientOrAbove_percent {
+	local count = subinstr("`percent'","percent","count",.)
+	replace `count' = string(round(real(`percent') * real(StudentSubGroup_TotalTested))) if strpos(`count', "-") !=0 & regexm(StudentSubGroup_TotalTested, "[-<*]") ==0 & regexm(`percent', "[*-]") ==0
+	replace `percent' = string((real(`count')/real(StudentSubGroup_TotalTested)),"%9.3g") if regexm(`percent', "[*-]") !=0 & strpos(`count', "*-") ==0 & regexm(StudentSubGroup_TotalTested, "[*-<]") ==0
+}
+
+
+**Standardizing ranges
+foreach var of varlist StudentGroup_TotalTested StudentSubGroup_TotalTested {
+	replace `var' = "0-9" if `var' == "<10"
+}
+
+
+replace ProficientOrAbove_percent = "0" if real(ProficientOrAbove_percent) < 0 | strpos(ProficientOrAbove_percent, "e") !=0
 
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
