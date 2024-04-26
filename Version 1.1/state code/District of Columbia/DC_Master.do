@@ -1,10 +1,10 @@
 clear
 set more off
 
-global Output "/Users/benjaminm/Documents/State_Repository_Research/DC/Output"
-global NCES "/Users/benjaminm/Documents/State_Repository_Research/DC/NCES"
-global Original "/Users/benjaminm/Documents/State_Repository_Research/DC/Original"
-cd "/Users/benjaminm/Documents/State_Repository_Research/DC"
+global Output "/Volumes/T7/State Test Project/District of Columbia/Output"
+global NCES "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global Original "/Volumes/T7/State Test Project/District of Columbia/Original Data"
+cd "/Volumes/T7/State Test Project/District of Columbia"
 
 
 local dofiles DC_2015 DC_2016 DC_2017 DC_2018 DC_2019 DC_2022 DC_2023 DC_ParticipationRate_2015_2022
