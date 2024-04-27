@@ -358,6 +358,7 @@ replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "N/A"
 foreach var of varlist *_percent {
 	replace `var' = subinstr(`var', " ", "",.)
 }
+replace ParticipationRate = "" if ParticipationRate == "-"
 
 // NEW ADDED
 // NEW EDITED
