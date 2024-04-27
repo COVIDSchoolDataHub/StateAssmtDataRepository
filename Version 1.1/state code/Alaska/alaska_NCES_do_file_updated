@@ -1,22 +1,24 @@
 cap log close
+
+cd "/Volumes/T7/State Test Project/Alaska"
 log using alaska_nces_cleaning.log, replace
 
+global NCESOriginal "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global NCES_AK "/Volumes/T7/State Test Project/Alaska/NCES_AK"
 
 
-cd "/Users/benjaminm/Documents/State_Repository_Research/Alaska/NCES_New_Raw"
-
-use NCES_2018_School.dta, clear
-
-gen seasch_og = seasch
- use 1_NCES_2018_School_Alaska.dta, clear
-
-
+// use NCES_2018_School.dta, clear
+//
+// gen seasch_og = seasch
+// // use 1_NCES_2018_School_Alaska.dta, clear
+//
+//
 
 global years 2016 2017 2018 2019 2020 2021
 
 foreach a in $years {
 	
-	use "NCES_`a'_School.dta", clear
+	use "$NCESOriginal/NCES_`a'_School.dta", clear
 	keep if state_fips == 2
 	
 	
@@ -31,7 +33,7 @@ foreach a in $years {
 	rename county_name CountyName
 	rename county_code CountyCode
 	rename ncesschoolid NCESSchoolID
-	rename school_type SchType
+	* rename school_type SchType
 	// rename virtual Virtual  // Might not work for 2021
 	//rename school_level SchLevel
 	
@@ -44,12 +46,12 @@ foreach a in $years {
 	
 	}
 	
-keep State StateAbbrev StateFips SchType NCESDistrictID NCESSchoolID seasch DistCharter SchLevel SchVirtual CountyName CountyCode seasch_og
+keep State StateAbbrev StateFips SchType NCESDistrictID NCESSchoolID seasch DistCharter SchLevel SchVirtual CountyName CountyCode seasch_og DistLocale
 
 	
-save "1_NCES_`a'_School_Alaska.dta", replace
+save "$NCES_AK/1_NCES_`a'_School_Alaska.dta", replace
 	
-	use "NCES_`a'_District.dta", clear 
+	use "$NCESOriginal/NCES_`a'_District.dta", clear 
 	keep if state_fips == 2
 	
 	gen State_leaid_og = state_leaid
@@ -68,7 +70,6 @@ save "1_NCES_`a'_School_Alaska.dta", replace
 	
 	rename district_agency_type DistType
 	
-
 	}
 	
 	if `a' == 2010 {
@@ -77,9 +78,9 @@ save "1_NCES_`a'_School_Alaska.dta", replace
 
 	}
 	
-keep State StateAbbrev StateFips DistType NCESDistrictID State_leaid DistCharter CountyName CountyCode State_leaid_og
+keep State StateAbbrev StateFips DistType NCESDistrictID State_leaid DistCharter CountyName CountyCode State_leaid_og DistLocale
 	
-save "1_NCES_`a'_District_Alaska.dta", replace
+save "$NCES_AK/1_NCES_`a'_District_Alaska.dta", replace
 	
 }
 
