@@ -1,10 +1,10 @@
 clear all
 set more off
 
-cd "/Users/miramehta/Documents"
+cd "/Users/maggie/Desktop/Virginia"
 
-global participation "/Users/miramehta/Documents/VA State Testing Data/Participation Rates"
-global output "/Users/miramehta/Documents/VA State Testing Data"
+global participation "/Users/maggie/Desktop/Virginia/Original Data/Participation Rates"
+global output "/Users/maggie/Desktop/Virginia/Output"
 
 // ELA
 forvalues year = 2016/2023{
@@ -65,7 +65,7 @@ forvalues year = 2016/2023{
 	
 	drop part
 	
-	save "$participation/VA_Participation_`year'.dta", replace
+	save "$participation/VA_Participation_`year'_ela.dta", replace
 }
 
 //Math
@@ -110,6 +110,13 @@ forvalues year = 2016/2023{
 	replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
 	replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "Native Hawaiian"
 	replace StudentSubGroup = "Two or More" if StudentSubGroup == "Multiple Races"
+	
+	//StudentGroups
+	gen StudentGroup = "RaceEth"
+	replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
+	replace StudentGroup = "Gender" if StudentSubGroup == "Male" | StudentSubGroup == "Female"
+	replace StudentGroup = "EL Status" if StudentSubGroup == "English Learner"
+	replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged"
 	
 	//Participation Rate
 	replace ParticipationRate = "*" if ParticipationRate == "<"
@@ -165,6 +172,13 @@ forvalues year = 2016/2023{
 	replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
 	replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "Native Hawaiian"
 	replace StudentSubGroup = "Two or More" if StudentSubGroup == "Multiple Races"
+
+	//StudentGroups
+	gen StudentGroup = "RaceEth"
+	replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
+	replace StudentGroup = "Gender" if StudentSubGroup == "Male" | StudentSubGroup == "Female"
+	replace StudentGroup = "EL Status" if StudentSubGroup == "English Learner"
+	replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged"
 	
 	//Participation Rate
 	replace ParticipationRate = "*" if ParticipationRate == "<"
@@ -222,6 +236,13 @@ forvalues year = 2016/2023{
 	replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "Native Hawaiian"
 	replace StudentSubGroup = "Two or More" if StudentSubGroup == "Multiple Races"
 	
+	//StudentGroups
+	gen StudentGroup = "RaceEth"
+	replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
+	replace StudentGroup = "Gender" if StudentSubGroup == "Male" | StudentSubGroup == "Female"
+	replace StudentGroup = "EL Status" if StudentSubGroup == "English Learner"
+	replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged"
+	
 	//Participation Rate
 	replace ParticipationRate = "*" if ParticipationRate == "<"
 	destring ParticipationRate, gen(part) force
@@ -241,13 +262,16 @@ forvalues year = 2016/2023{
 		continue
 	}
 	
-	use "$participation/VA_Participation_`year'.dta", clear
+	use "$participation/VA_Participation_`year'_ela.dta", clear
 	append using "$participation/VA_Participation_`year'_math.dta" "$participation/VA_Participation_`year'_wri.dta" "$participation/VA_Participation_`year'_sci.dta"
 	replace DataLevel = "School" if DataLevel == "SCH"
 	replace DataLevel = "District" if DataLevel == "DIV"
 	replace DataLevel = "State" if DataLevel == "STATE"
-	destring StateAssignedDistID, replace
-	destring StateAssignedSchID, replace
+	label def DataLevel 1 "State" 2 "District" 3 "School"
+	encode DataLevel, gen(DataLevel_n) label(DataLevel)
+	sort DataLevel_n 
+	drop DataLevel 
+	rename DataLevel_n DataLevel
 	save "$participation/VA_Participation_`year'.dta", replace
 }
 
@@ -258,16 +282,20 @@ forvalues year = 2016/2023{
 		continue
 	}
 	
-	import delimited "$output/VA_AssmtData_`year'.csv", case(preserve) clear
+	use "$output/VA_AssmtData_`year'.dta", clear
 	drop ParticipationRate
 	merge 1:1 StateAssignedDistID StateAssignedSchID Subject GradeLevel StudentSubGroup using "$participation/VA_Participation_`year'.dta"
 	replace ParticipationRate = "--" if _merge == 1
 	drop if _merge == 2
 	drop _merge
 	
-	order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+	keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+	order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
 	sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
 	save "$output/VA_AssmtData_`year'.dta", replace
-	export delimited "$output/VA_AssmtData_`year'.csv", replace
+	export delimited "$output/csv/VA_AssmtData_`year'.csv", replace
 }
 

@@ -250,10 +250,12 @@ gen StudentSubGroup_TotalTested2 = StudentSubGroup_TotalTested
 destring StudentSubGroup_TotalTested2, replace force
 replace StudentSubGroup_TotalTested2 = 0 if StudentSubGroup_TotalTested2 == .
 bysort State_leaid seasch StudentGroup GradeLevel Subject: egen test = min(StudentSubGroup_TotalTested2)
+bysort State_leaid seasch GradeLevel Subject: egen max = max(StudentSubGroup_TotalTested2)
 bysort State_leaid seasch StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested2) if test != 0
+replace StudentGroup_TotalTested = max if !inlist(max, ., 0) & StudentGroup_TotalTested == .
 tostring StudentGroup_TotalTested, replace force
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
-drop StudentSubGroup_TotalTested2 test
+drop StudentSubGroup_TotalTested2 test max
 
 rename failcount Lev1_count
 rename failrate Lev1_percent
@@ -285,7 +287,7 @@ replace Lev1_percent = "0.5-1" if Lev1_percent == "99.99"
 replace Lev1_percent = "0-0.5" if Lev1_percent == "11.11"
 
 rename averagesolscaledscore AvgScaleScore
-replace AvgScaleScore = "*" if AvgScaleScore == " "
+replace AvgScaleScore = "*" if AvgScaleScore == " " | AvgScaleScore == ""
 
 gen ProficiencyCriteria = "Levels 2-3"
 
