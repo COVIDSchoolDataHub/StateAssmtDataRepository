@@ -67,6 +67,23 @@ replace averagesolscaledscore = "" if averagesolscaledscore == "."
 save "${output}/VA_2014_econ.dta", replace
 
 
+//// Import disaggregate migrant status data
+
+import delimited "/${raw}/Disaggregate/VA_OriginalData_2014_all_migrant.csv", varnames(1) clear
+
+rename migrant StudentSubGroup
+gen StudentGroup = "Migrant Status"
+
+tostring divisionnumber, replace
+replace divisionnumber = "" if divisionnumber == "."
+tostring schoolnumber, replace
+replace schoolnumber = "" if schoolnumber == "."
+tostring averagesolscaledscore, replace
+replace averagesolscaledscore = "" if averagesolscaledscore == "."
+
+save "${output}/VA_2014_migrant.dta", replace
+
+
 ////	Append aggregate and disaggregate 
 
 use "${output}/VA_2014_base.dta", clear
@@ -75,6 +92,7 @@ append using "${output}/VA_2014_gender.dta"
 append using "${output}/VA_2014_language.dta"
 append using "${output}/VA_2014_race.dta"
 append using "${output}/VA_2014_econ.dta"
+append using "${output}/VA_2014_migrant.dta"
 
 
 ////	Prepare for NCES merge
@@ -134,8 +152,8 @@ replace AssmtName = "Standards of Learning"
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_read = ""
-gen Flag_CutScoreChange_oth = "N"
+gen Flag_CutScoreChange_sci = "N"
+gen Flag_CutScoreChange_soc = "N"
 gen AssmtType = "Regular"
 
 rename subject Subject
@@ -157,10 +175,12 @@ gen StudentSubGroup_TotalTested2 = StudentSubGroup_TotalTested
 destring StudentSubGroup_TotalTested2, replace force
 replace StudentSubGroup_TotalTested2 = 0 if StudentSubGroup_TotalTested2 == .
 bysort State_leaid seasch StudentGroup GradeLevel Subject: egen test = min(StudentSubGroup_TotalTested2)
+bysort State_leaid seasch GradeLevel Subject: egen max = max(StudentSubGroup_TotalTested2)
 bysort State_leaid seasch StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested2) if test != 0
+replace StudentGroup_TotalTested = max if !inlist(max, ., 0) & StudentGroup_TotalTested == .
 tostring StudentGroup_TotalTested, replace force
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
-drop StudentSubGroup_TotalTested2 test
+drop StudentSubGroup_TotalTested2 test max
 
 rename failcount Lev1_count
 rename failrate Lev1_percent
@@ -192,7 +212,7 @@ replace Lev1_percent = "0.5-1" if Lev1_percent == "99.99"
 replace Lev1_percent = "0-0.5" if Lev1_percent == "11.11"
 
 rename averagesolscaledscore AvgScaleScore
-replace AvgScaleScore = "*" if AvgScaleScore == " "
+replace AvgScaleScore = "*" if AvgScaleScore == " " | AvgScaleScore == ""
 
 gen ProficiencyCriteria = "Levels 2-3"
 
@@ -211,9 +231,10 @@ replace ProficientOrAbove_percent = "0-0.5" if ProficientOrAbove_percent == "11.
 
 gen ParticipationRate = "--"
 
-replace State = 51 if DataLevel == 1
+replace State = "Virginia" if DataLevel == 1
 replace StateAbbrev = "VA" if DataLevel == 1
 replace StateFips = 51 if DataLevel == 1
+replace CountyName = proper(CountyName)
 
 replace StudentSubGroup = "Male" if StudentSubGroup == "M"
 replace StudentSubGroup = "Female" if StudentSubGroup == "F"
@@ -227,8 +248,12 @@ replace StudentSubGroup = "Unknown" if StudentSubGroup == "Unknown - Race/Ethnic
 replace StudentSubGroup = "Two or More" if StudentSubGroup == "Non-Hispanic, two or more races"
 replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Y" & StudentGroup == "Economic Status"
 replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "N" & StudentGroup == "Economic Status"
+replace StudentSubGroup = "Migrant" if StudentSubGroup == "Y" & StudentGroup == "Migrant Status"
+replace StudentSubGroup = "Non-Migrant" if StudentSubGroup == "N" & StudentGroup == "Migrant Status"
 
-order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 

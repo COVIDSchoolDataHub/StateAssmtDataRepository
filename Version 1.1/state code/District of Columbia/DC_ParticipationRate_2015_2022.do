@@ -1,9 +1,10 @@
 clear
 set more off
-local Original "/Volumes/T7/State Test Project/District of Columbia/Original Data"
-local Output "/Volumes/T7/State Test Project/District of Columbia/Output"
-local NCES "/Volumes/T7/State Test Project/NCES"
 
+global Output "/Volumes/T7/State Test Project/District of Columbia/Output"
+global NCES "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global Original "/Volumes/T7/State Test Project/District of Columbia/Original Data"
+cd "/Volumes/T7/State Test Project/District of Columbia"
 
 forvalues year = 2015/2019 {
 local prevyear =`=`year'-1'
@@ -12,11 +13,11 @@ local prevyear =`=`year'-1'
 tempfile temp1
 save "`temp1'", replace emptyok
 if `year' == 2015 | `year' == 2016 {
-	import excel "`Original'/DC_OriginalData_2016_part", sheet(State) firstrow case(preserve)
+	import excel "${Original}/DC_OriginalData_2016_part", sheet(State) firstrow case(preserve)
 	
 } 
 else {
-	import excel "`Original'/DC_OriginalData_`year'_part", sheet(State) firstrow case(preserve)
+	import excel "${Original}/DC_OriginalData_`year'_part", sheet(State) firstrow case(preserve)
 }
 
 keep if SchoolYear == "`prevyear'" + "-" + substr("`year'",3,2)
@@ -24,11 +25,11 @@ append using "`temp1'"
 save "`temp1'", replace
 clear
 if `year' < 2017 {
-import excel "`Original'/DC_OriginalData_2016_part", sheet(District) firstrow case(preserve) allstring
+import excel "${Original}/DC_OriginalData_2016_part", sheet(District) firstrow case(preserve) allstring
 }
 
 else {
-import excel "`Original'/DC_OriginalData_`year'_part", sheet(District) firstrow case(preserve) allstring
+import excel "${Original}/DC_OriginalData_`year'_part", sheet(District) firstrow case(preserve) allstring
 }
 
 keep if SchoolYear == "`prevyear'" + "-" + substr("`year'",3,2)
@@ -36,11 +37,11 @@ append using "`temp1'"
 save "`temp1'", replace
 clear
 if `year' < 2017 {
-import excel "`Original'/DC_OriginalData_2016_part", sheet(School) firstrow case(preserve) allstring
+import excel "${Original}/DC_OriginalData_2016_part", sheet(School) firstrow case(preserve) allstring
 }
 
 else {
-import excel "`Original'/DC_OriginalData_`year'_part", sheet(School) firstrow case(preserve) allstring
+import excel "${Original}/DC_OriginalData_`year'_part", sheet(School) firstrow case(preserve) allstring
 }
 
 keep if SchoolYear == "`prevyear'" + "-" + substr("`year'",3,2)
@@ -48,17 +49,17 @@ append using "`temp1'"
 save "`temp1'", replace
 if `year' == 2019 {
 clear
-import excel "`Original'/DC_OriginalData_`year'_sci_part", sheet(State) firstrow case(preserve) allstring
+import excel "${Original}/DC_OriginalData_`year'_sci_part", sheet(State) firstrow case(preserve) allstring
 gen S = "sci"
 append using "`temp1'"
 save "`temp1'", replace
 clear
-import excel "`Original'/DC_OriginalData_`year'_sci_part", sheet(District) firstrow case(preserve) allstring
+import excel "${Original}/DC_OriginalData_`year'_sci_part", sheet(District) firstrow case(preserve) allstring
 gen S = "sci"
 append using "`temp1'"
 save "`temp1'", replace
 clear
-import excel "`Original'/DC_OriginalData_`year'_sci_part", sheet(School) firstrow case(preserve) allstring
+import excel "${Original}/DC_OriginalData_`year'_sci_part", sheet(School) firstrow case(preserve) allstring
 gen S = "sci"
 append using "`temp1'"
 }
@@ -106,17 +107,17 @@ keep if StudentSubGroup == "All Students" | StudentSubGroup == "American Indian 
 if `year' == 2016 tostring StateAssignedSchID, replace
 if `year' == 2016 replace StateAssignedSchID = "" if StateAssignedSchID == "."
 *save "/Volumes/T7/State Test Project/District of Columbia/Testing/`year'_part", replace
-if `year' != 2019 merge 1:1 StateAssignedSchID StateAssignedDistID StudentSubGroup GradeLevel Subject using "`Output'/DC_AssmtData_`year'", update
+if `year' != 2019 merge 1:1 StateAssignedSchID StateAssignedDistID StudentSubGroup GradeLevel Subject using "${Output}/DC_AssmtData_`year'", update
 if `year' == 2019 { 
 rename S subject1
 tempfile temp2 
 save "`temp2'", replace
 clear
-use "`Output'/DC_AssmtData_2019"
+use "${Output}/DC_AssmtData_2019"
 gen subject1 = "sci" if Subject == "sci"
-save "`Output'/DC_AssmtData_2019", replace
+save "${Output}/DC_AssmtData_2019", replace
 use "`temp2'"
-merge 1:1 StateAssignedSchID StateAssignedDistID StudentSubGroup GradeLevel Subject subject1 using "`Output'/DC_AssmtData_`year'", update
+merge 1:1 StateAssignedSchID StateAssignedDistID StudentSubGroup GradeLevel Subject subject1 using "${Output}/DC_AssmtData_`year'", update
 }
 drop if _merge ==1
 replace ParticipationRate = "--" if _merge ==2 & Subject != "sci"
@@ -130,12 +131,18 @@ if `year' >=2017 {
 	replace ParticipationRate = string(nParticipationRate/100, "%9.4g") if ParticipationRate != "*" & ParticipationRate != "--"
 }
 
+//Making sure there are no "." values
+replace ParticipationRate = "--" if ParticipationRate == "."
+
 //Final Cleaning
-order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
-keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-save "`Output'/DC_AssmtData_`year'", replace
-export delimited "`Output'/DC_AssmtData_`year'", replace
+save "${Output}/DC_AssmtData_`year'", replace
+export delimited "${Output}/DC_AssmtData_`year'", replace
 
 clear
 
@@ -145,32 +152,30 @@ clear
 
 //Importing and appending
 clear
-local Original "/Volumes/T7/State Test Project/District of Columbia/Original Data"
-local Output "/Volumes/T7/State Test Project/District of Columbia/Output"
-local NCES "/Volumes/T7/State Test Project/NCES"
+
 tempfile temp1
 save "`temp1'", replace emptyok
-import excel "`Original'/DC_OriginalData_2022_part", firstrow case(preserve) sheet(State)
+import excel "${Original}/DC_OriginalData_2022_part", firstrow case(preserve) sheet(State)
 append using "`temp1'"
 save "`temp1'", replace
 clear
-import excel "`Original'/DC_OriginalData_2022_part", firstrow case(preserve) sheet(District)
+import excel "${Original}/DC_OriginalData_2022_part", firstrow case(preserve) sheet(District)
 append using "`temp1'"
 save "`temp1'", replace
 clear
-import excel "`Original'/DC_OriginalData_2022_part", firstrow case(preserve) sheet(School)
+import excel "${Original}/DC_OriginalData_2022_part", firstrow case(preserve) sheet(School)
 append using "`temp1'"
 save "`temp1'", replace
 clear
-import excel "`Original'/DC_OriginalData_2022_sci_part", firstrow case(preserve) sheet(State)
+import excel "${Original}/DC_OriginalData_2022_sci_part", firstrow case(preserve) sheet(State)
 append using "`temp1'"
 save "`temp1'", replace
 clear
-import excel "`Original'/DC_OriginalData_2022_sci_part", firstrow case(preserve) sheet(District)
+import excel "${Original}/DC_OriginalData_2022_sci_part", firstrow case(preserve) sheet(District)
 append using "`temp1'"
 save "`temp1'", replace
 clear
-import excel "`Original'/DC_OriginalData_2022_sci_part", firstrow case(preserve) sheet(School)
+import excel "${Original}/DC_OriginalData_2022_sci_part", firstrow case(preserve) sheet(School)
 append using "`temp1'"
 *save "/Volumes/T7/State Test Project/District of Columbia/Testing/2022", replace
 
@@ -207,7 +212,7 @@ replace StateAssignedSchID = "" if AggregationLevel == "State"
 
 
 //Merging
-merge 1:1 StateAssignedSchID StateAssignedDistID Subject GradeLevel StudentSubGroup using "`Output'/DC_AssmtData_2022", update
+merge 1:1 StateAssignedSchID StateAssignedDistID Subject GradeLevel StudentSubGroup using "${Output}/DC_AssmtData_2022", update
 drop if _merge ==1
 replace ParticipationRate = "--" if _merge ==2
 
@@ -220,12 +225,14 @@ replace range = substr(ParticipationRate,1,2) if regexm(ParticipationRate,"=") !
 destring ParticipationRate, gen(nParticipationRate) i(*-<>=%)
 replace ParticipationRate = range + string(nParticipationRate/100, "%9.4g") if regexm(ParticipationRate, "[-*]") ==0
 
+
 //Final Cleaning
-order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
-keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-save "`Output'/DC_AssmtData_2022", replace
-export delimited "`Output'/DC_AssmtData_2022", replace
+save "${Output}/DC_AssmtData_2022", replace
+export delimited "${Output}/DC_AssmtData_2022", replace
 
 clear
 	

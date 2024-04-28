@@ -1,11 +1,28 @@
 cap log close
+set trace off
+
+cd "/Volumes/T7/State Test Project/Alaska"
 log using alaska_cleaning.log, replace
 
-cd "/Users/benjaminm/Documents/State_Repository_Research/Alaska"
+global Original "/Volumes/T7/State Test Project/Alaska/Original"
+global Output "/Volumes/T7/State Test Project/Alaska/Output"
+global NCES "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global Temp "/Volumes/T7/State Test Project/Alaska/Temp"
 
+*** OLD ***
 //import delimited "/Users/benjaminm/Documents/State_Repository_Research/Alaska/alaska_updated.csv", varnames(nonames) clear 
 // save alaska_updated_original
-use alaska_updated_original, clear
+*** OLD ***
+
+/*
+//New Importing Code
+import delimited "$Original/AK_OriginalData_2015_2022", varnames(nonames) clear 
+save "$Original/alaska_updated_original", replace
+clear
+*/
+
+
+use "$Original/alaska_updated_original", clear
 
 
 // rename vars
@@ -27,7 +44,7 @@ rename v15 Enrollment // originally enrollment
 rename v16 ParticipationRate
 
 // drops first line
-drop if DataLevel == "DataLevel"
+drop if DataLevel == "datalevel"
 
 // encodes datalevel
 label def DataLevel 1 "State" 2 "District" 3 "School"
@@ -47,6 +64,7 @@ replace Subject = "sci" if Subject == "science"
 
 // Generate Empty Variables
 
+/*
 gen Lev1_count = . 
 gen Lev1_percent = .
 gen Lev2_count = .
@@ -57,8 +75,16 @@ gen Lev4_count = .
 gen Lev4_percent = .
 gen Lev5_count = .
 gen Lev5_percent = .
-gen AvgScaleScore = .
-gen ProficiencyCriteria = "Levels 3 and 4"
+*/
+
+forvalues n = 1/4 {
+	gen Lev`n'_count = "--"
+	gen Lev`n'_percent = "--"
+}
+gen Lev5_count = ""
+gen Lev5_percent = ""
+gen AvgScaleScore = "--"
+gen ProficiencyCriteria = "Levels 3-4"
 
 tab StudentSubGroup
 
@@ -70,7 +96,6 @@ replace StudentGroup = "EL Status" if StudentGroup == "English Leaner Status"
 replace StudentGroup = "Economic Status" if StudentGroup == "Economic Status"
 replace StudentGroup = "Gender" if StudentGroup == "Gender"
 
-keep if StudentGroup == "All Students" | StudentGroup == "RaceEth" | StudentGroup == "EL Status" | StudentGroup == "Economic Status" | StudentGroup == "Gender"  // StudentGroup == "Ethnicity"
 
 // StudentSubGroup Correct Labels 
 
@@ -85,6 +110,7 @@ replace StudentSubGroup = "Black or African American" if StudentSubGroup == "Afr
 replace StudentSubGroup = "White" if StudentSubGroup == "Caucasian"
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
 replace StudentSubGroup = "Two or More" if StudentSubGroup == "Two or More Races"
+
 
 
 // Ethnicity Group 
@@ -104,6 +130,11 @@ replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup ==
 // Gender Group 
 replace StudentSubGroup = "Male" if StudentSubGroup == "Male"
 replace StudentSubGroup = "Female" if StudentSubGroup == "Female"
+
+// Disability Group
+replace StudentSubGroup = "SWD" if StudentSubGroup == "Students With Disabilities"
+replace StudentSubGroup = "Non-SWD" if StudentSubGroup == "Students Without Disabilities"
+
 //NEW ADDED
 
 
@@ -212,7 +243,7 @@ replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
 
 
 
-save "alaska_cleaned_updated", replace
+save "$Temp/alaska_cleaned_updated", replace
 
 
 
@@ -222,7 +253,7 @@ foreach a in $years1 {
 
 local prevyear = `a' - 1
 	
-use alaska_cleaned_updated, clear
+use "$Temp/alaska_cleaned_updated", clear
 
 keep if SchYear == "`a'"
 
@@ -230,7 +261,7 @@ keep if SchYear == "`a'"
 rename StateAssignedDistID State_leaid
 
 // District NCES Merge
-merge m:1 State_leaid using 1_NCES_`prevyear'_District_Alaska // CHANGED
+merge m:1 State_leaid using "$NCES_AK/1_NCES_`prevyear'_District_Alaska" // CHANGED
 rename _merge DistMerge
 drop if DistMerge == 2
 
@@ -240,7 +271,7 @@ rename State_leaid_og State_leaid
 
 // School NCES merge	
 rename StateAssignedSchID seasch
-merge m:1 seasch using 1_NCES_`prevyear'_School_Alaska // CHANGED 
+merge m:1 seasch using "$NCES_AK/1_NCES_`prevyear'_School_Alaska" // CHANGED 
 rename _merge SchoolMerge
 drop if SchoolMerge == 2
 
@@ -266,8 +297,8 @@ if `a' == 2017 | `a' == 2022 {
 gen Flag_AssmtNameChange = "Y"
 gen Flag_CutScoreChange_ELA = "Y"
 gen Flag_CutScoreChange_math = "Y"
-gen Flag_CutScoreChange_read = ""
-gen Flag_CutScoreChange_oth = "Y"
+gen Flag_CutScoreChange_soc = "Not Applicable"
+gen Flag_CutScoreChange_sci = "Y"
 
 }
 
@@ -276,49 +307,20 @@ if `a' != 2017 & `a' != 2022  {
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_read = ""
-gen Flag_CutScoreChange_oth = "N"
+gen Flag_CutScoreChange_soc = "Not Applicable"
+gen Flag_CutScoreChange_sci = "N"
 
 }
 
-// year specific 
+//SchYear Correct Format
+replace SchYear = "`prevyear'-" + substr("`a'",-2,2)
 
-
-if `a' == 2017 {
-gen SchYear2 = "2016-17"
-
-} 
-
-if `a' == 2018 {
-gen SchYear2 = "2017-18"
-
-} 
-
-if `a' == 2019 {
-gen SchYear2 = "2018-19"
-
-} 
-
-if `a' == 2021 {
-gen SchYear2 = "2020-21"
-
-} 
-
-if `a' == 2022 {
-gen SchYear2 = "2021-22"
-
-} 
-
-
-drop SchYear
-rename SchYear2 SchYear
-
-
-
+/*
 // Recode DistrictType to String and Generate Charter Variable
 decode DistType, gen(DistType2)
 drop DistType
 rename DistType2 DistType
+*/
 
 
 gen StudentSubGroup_TotalTested = StudentGroup_TotalTested
@@ -336,7 +338,7 @@ tostring StudentSubGroup_TotalTested, replace
 tostring CountyCode, replace force
 destring CountyCode, replace force
 
-
+/*
 decode SchType, gen (SchType1)
 drop SchType
 rename SchType1 SchType
@@ -348,24 +350,30 @@ rename SchLevel1 SchLevel
 decode SchVirtual, gen (SchVirtual1)
 drop SchVirtual
 rename SchVirtual1 SchVirtual
+*/
+
+//Post Launch Updates 4/27/24
+replace StudentSubGroup_TotalTested = "0" if StudentSubGroup_TotalTested == "."
+replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "N/A"
+foreach var of varlist *_percent {
+	replace `var' = subinstr(`var', " ", "",.)
+}
+replace ParticipationRate = "" if ParticipationRate == "-"
 
 // NEW ADDED
-
-
-
 // NEW EDITED
-order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth 
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
-
-keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth 
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 // NEW EDITED
 
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup 
 //NEW ADDED
 
-save AK_AssmtData_`a'_Stata, replace
-export delimited AK_AssmtData_`a'.csv, replace
+save "$Output/AK_AssmtData_`a'_Stata", replace
+export delimited "$Output/AK_AssmtData_`a'.csv", replace
 
 }
 

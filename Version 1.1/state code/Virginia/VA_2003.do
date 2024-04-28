@@ -11,10 +11,10 @@ cd "/Users/maggie/Desktop/Virginia"
 
 import excel "/${raw}/VA_OriginalData_2003-2005_all.xls", sheet("spring_pass_rate_table_03_to_05") cellrange(A3:GX1973) firstrow
 
-rename Grade3English ProficientOrAbove_percentread3
-rename Grade5English ProficientOrAbove_percentread5
+rename Grade3English ProficientOrAbove_percentela3
+rename Grade5English ProficientOrAbove_percentela5
 rename Grade5Writing ProficientOrAbove_percentwri5
-rename Grade8English ProficientOrAbove_percentread8
+rename Grade8English ProficientOrAbove_percentela8
 rename Grade8Writing ProficientOrAbove_percentwri8
 rename Grade3Math ProficientOrAbove_percentmath3
 rename Grade5Math ProficientOrAbove_percentmath5
@@ -30,7 +30,7 @@ keep DivNo DivisionName SchNo SchoolName LowGrade HighGrade ProficientOrAbove_pe
 
 drop if DivisionName == ""
 
-reshape long ProficientOrAbove_percentread ProficientOrAbove_percentmath ProficientOrAbove_percentsoc ProficientOrAbove_percentsci ProficientOrAbove_percentwri, i(DivNo SchNo) j(GradeLevel)
+reshape long ProficientOrAbove_percentela ProficientOrAbove_percentmath ProficientOrAbove_percentsoc ProficientOrAbove_percentsci ProficientOrAbove_percentwri, i(DivNo SchNo) j(GradeLevel)
 
 reshape long ProficientOrAbove_percent, i(DivNo SchNo GradeLevel) j(Subject) string
 
@@ -76,7 +76,7 @@ rename *Passed Passed*
 
 reshape long Passed Proficient Advanced, i(StudentSubGroup) j(Subject) string
 
-drop if StudentSubGroup == "All Students" | StudentSubGroup == "Students with Disabilities"
+drop if StudentSubGroup == "All Students"
 
 gen StudentGroup = ""
 
@@ -90,11 +90,13 @@ replace StudentSubGroup = "Black or African American" if StudentSubGroup == "Bla
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
 replace StudentSubGroup = "Unknown" if StudentSubGroup == "Ethnicity Unknown"
 replace StudentSubGroup = "Unknown" if StudentSubGroup == "Gender Unknown"
+replace StudentSubGroup = "SWD" if StudentSubGroup == "Students with Disabilities"
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "Limited English Proficient"
 
 replace StudentGroup = "Gender" if StudentSubGroup == "Female" | StudentSubGroup == "Male"
-replace StudentGroup="EL Status" if StudentSubGroup == "English Learner"
-replace StudentGroup="RaceEth" if StudentSubGroup == "Black or African American" | StudentSubGroup == "Hispanic or Latino" | StudentSubGroup == "White" | StudentSubGroup == "American Indian or Alaska Native" | StudentSubGroup == "Asian" | StudentSubGroup == "Native Hawaiian or Pacific Islander"
+replace StudentGroup = "EL Status" if StudentSubGroup == "English Learner"
+replace StudentGroup = "RaceEth" if StudentSubGroup == "Black or African American" | StudentSubGroup == "Hispanic or Latino" | StudentSubGroup == "White" | StudentSubGroup == "American Indian or Alaska Native" | StudentSubGroup == "Asian" | StudentSubGroup == "Native Hawaiian or Pacific Islander"
+replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD"
 
 gen GradeLevel = 3
 
@@ -132,7 +134,7 @@ rename *Passed Passed*
 
 reshape long Passed Proficient Advanced, i(StudentSubGroup) j(Subject) string
 
-drop if StudentSubGroup == "All Students" | StudentSubGroup == "Students with Disabilities"
+drop if StudentSubGroup == "All Students"
 
 gen StudentGroup = ""
 
@@ -146,11 +148,13 @@ replace StudentSubGroup = "Black or African American" if StudentSubGroup == "Bla
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
 replace StudentSubGroup = "Unknown" if StudentSubGroup == "Ethnicity Unknown"
 replace StudentSubGroup = "Unknown" if StudentSubGroup == "Gender Unknown"
+replace StudentSubGroup = "SWD" if StudentSubGroup == "Students with Disabilities"
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "Limited English Proficient"
 
 replace StudentGroup = "Gender" if StudentSubGroup == "Female" | StudentSubGroup == "Male"
-replace StudentGroup="EL Status" if StudentSubGroup == "English Learner"
-replace StudentGroup="RaceEth" if StudentSubGroup == "Black or African American" | StudentSubGroup == "Hispanic or Latino" | StudentSubGroup == "White" | StudentSubGroup == "American Indian or Alaska Native" | StudentSubGroup == "Asian" | StudentSubGroup == "Native Hawaiian or Pacific Islander"
+replace StudentGroup = "EL Status" if StudentSubGroup == "English Learner"
+replace StudentGroup = "RaceEth" if StudentSubGroup == "Black or African American" | StudentSubGroup == "Hispanic or Latino" | StudentSubGroup == "White" | StudentSubGroup == "American Indian or Alaska Native" | StudentSubGroup == "Asian" | StudentSubGroup == "Native Hawaiian or Pacific Islander"
+replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD"
 
 gen GradeLevel = 5
 
@@ -188,7 +192,7 @@ rename *Passed Passed*
 
 reshape long Passed Proficient Advanced, i(StudentSubGroup) j(Subject) string
 
-drop if StudentSubGroup == "All Students" | StudentSubGroup == "Students with Disabilities"
+drop if StudentSubGroup == "All Students"
 
 gen StudentGroup = ""
 
@@ -202,11 +206,13 @@ replace StudentSubGroup = "Black or African American" if StudentSubGroup == "Bla
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
 replace StudentSubGroup = "Unknown" if StudentSubGroup == "Ethnicity Unknown"
 replace StudentSubGroup = "Unknown" if StudentSubGroup == "Gender Unknown"
+replace StudentSubGroup = "SWD" if StudentSubGroup == "Students with Disabilities"
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "Limited English Proficient"
 
 replace StudentGroup = "Gender" if StudentSubGroup == "Female" | StudentSubGroup == "Male"
-replace StudentGroup="EL Status" if StudentSubGroup == "English Learner"
-replace StudentGroup="RaceEth" if StudentSubGroup == "Black or African American" | StudentSubGroup == "Hispanic or Latino" | StudentSubGroup == "White" | StudentSubGroup == "American Indian or Alaska Native" | StudentSubGroup == "Asian" | StudentSubGroup == "Native Hawaiian or Pacific Islander"
+replace StudentGroup = "EL Status" if StudentSubGroup == "English Learner"
+replace StudentGroup = "RaceEth" if StudentSubGroup == "Black or African American" | StudentSubGroup == "Hispanic or Latino" | StudentSubGroup == "White" | StudentSubGroup == "American Indian or Alaska Native" | StudentSubGroup == "Asian" | StudentSubGroup == "Native Hawaiian or Pacific Islander"
+replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD"
 
 gen GradeLevel = 8
 
@@ -265,7 +271,10 @@ drop if _merge == 2
 drop _merge
 
 merge m:1 seasch using "/${NCES}/NCES_2002_School.dta"
-drop if NCESSchoolID == "" & seasch != ""
+drop if _merge == 2
+drop _merge
+
+merge m:1 seasch using "/${NCES}/NCES_2004_School.dta", update
 drop if _merge == 2
 drop _merge
 
@@ -310,27 +319,34 @@ replace GradeLevel = "G08" if GradeLevel == "8"
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_read = ""
-gen Flag_CutScoreChange_oth = "N"
+gen Flag_CutScoreChange_sci = "N"
+gen Flag_CutScoreChange_soc = "N"
+
 gen AssmtName = "Standards of Learning"
 gen AssmtType = "Regular"
+
 gen SchYear = "2002-03"
+
 gen StudentGroup_TotalTested = "--"
 gen StudentSubGroup_TotalTested = "--"
+
 gen AvgScaleScore = "--"
+
 gen ProficiencyCriteria = "Levels 2-3"
 gen ProficientOrAbove_count = "--"
+
 gen ParticipationRate = "--"
 
-replace State = 51 if DataLevel == 1
+replace State = "Virginia" if DataLevel == 1
 replace StateAbbrev = "VA" if DataLevel == 1
 replace StateFips = 51 if DataLevel == 1
 replace DistName = "All Districts" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel != 3
+replace CountyName = proper(CountyName)
 
-drop DivisionName SchoolName Proficient Advanced
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
-order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 

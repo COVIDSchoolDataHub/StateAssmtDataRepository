@@ -1,22 +1,25 @@
 clear
 set more off
-local Original "/Volumes/T7/State Test Project/District of Columbia/Original Data"
-local Output "/Volumes/T7/State Test Project/District of Columbia/Output"
-local NCES "/Volumes/T7/State Test Project/NCES"
 
+global Output "/Volumes/T7/State Test Project/District of Columbia/Output"
+global NCES "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global Original "/Volumes/T7/State Test Project/District of Columbia/Original Data"
+cd "/Volumes/T7/State Test Project/District of Columbia"
+
+/*
 //Importing ela/math
 tempfile temp1
 save "`temp1'", replace emptyok
-import delimited using "`Original'/DC_OriginalData_2022_Sch", case(preserve) stringcols(2,4)
+import delimited using "${Original}/DC_OriginalData_2022_Sch", case(preserve) stringcols(2,4)
 append using "`temp1'"
 save "`temp1'", replace
 clear
-import excel using "`Original'/DC_OriginalData_2022_Dist", sheet(Data) firstrow allstring
+import excel using "${Original}/DC_OriginalData_2022_Dist", sheet(Data) firstrow allstring
 replace AggregationLevel = "District"
 append using "`temp1'"
 save "`temp1'", replace
 clear
-import excel using "`Original'/DC_OriginalData_2022_State", sheet(Data) case(preserve) firstrow
+import excel using "${Original}/DC_OriginalData_2022_State", sheet(Data) case(preserve) firstrow
 replace LEACode = ""
 replace SchoolCode = ""
 append using "`temp1'"
@@ -26,16 +29,16 @@ clear
 //Importing sci
 tempfile temp2
 save "`temp2'", replace emptyok
-import excel using "`Original'/DC_OriginalData_2022_sci_Sch", sheet(perf_level) firstrow case(preserve) allstring
+import excel using "${Original}/DC_OriginalData_2022_sci_Sch", sheet(perf_level) firstrow case(preserve) allstring
 append using "`temp2'"
 save "`temp2'", replace
 clear
-import excel using "`Original'/DC_OriginalData_2022_sci_Dist", sheet(perf_level) firstrow case(preserve) allstring
+import excel using "${Original}/DC_OriginalData_2022_sci_Dist", sheet(perf_level) firstrow case(preserve) allstring
 replace AggregationLevel = "District"
 append using "`temp2'"
 save "`temp2'", replace
 clear
-import excel using "`Original'/DC_OriginalData_2022_sci_State", sheet(perf_level) firstrow case(preserve)
+import excel using "${Original}/DC_OriginalData_2022_sci_State", sheet(perf_level) firstrow case(preserve)
 replace LEACode = ""
 replace SchoolCode = ""
 append using "`temp2'"
@@ -45,7 +48,14 @@ replace LEAName = lea_name if missing(LEAName)
 drop lea_name
 replace MetricValue = metric_value if missing(MetricValue)
 drop metric_value
-save "`Original'/2022", replace
+
+
+save "${Original}/2022", replace
+*/
+
+use "${Original}/2022", clear
+
+tab SubgroupValue
 
 //Standardizing Varnames
 rename AggregationLevel DataLevel
@@ -93,21 +103,44 @@ replace SchName = "All Schools" if DataLevel ==1 | DataLevel == 2
 replace StudentSubGroup = subinstr(StudentSubGroup, "/", " or ",.)
 replace StudentSubGroup = "All Students" if StudentSubGroup == "All"
 replace StudentSubGroup = "English Proficient" if StudentSubGroup == "Not an English Learner"
+replace StudentSubGroup = "English Learner" if StudentSubGroup == "English Learner"
 replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Econ Dis"
 replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "Not Econ Dis"
 replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "Pacific Islander or Native Hawaiian"
 replace StudentSubGroup = "Two or More" if StudentSubGroup == "Two or More Races"
 replace StudentSubGroup = "White" if StudentSubGroup == "White or Caucasian"
-keep if StudentSubGroup == "All Students" | StudentSubGroup == "American Indian or Alaska Native" | StudentSubGroup == "Asian" | StudentSubGroup == "Black or African American" | StudentSubGroup == "Native Hawaiian or Pacific Islander" | StudentSubGroup == "White" | StudentSubGroup == "Hispanic or Latino" | StudentSubGroup == "English Learner" | StudentSubGroup == "English Proficient" | StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged" | StudentSubGroup == "Male" | StudentSubGroup == "Female" | StudentSubGroup == "Two or More"
+replace StudentSubGroup = "EL and Monit or Recently Ex" if StudentSubGroup == "Active or Monitored English Learner" // updated
+replace StudentSubGroup = "Gender X" if StudentSubGroup == "Non-binary" // updated
+
+
+
+// updated
+replace StudentSubGroup = "SWD" if StudentSubGroup == "Students with Disabilities"
+replace StudentSubGroup = "Homeless" if StudentSubGroup == "Homeless"
+replace StudentSubGroup = "Non-Homeless" if StudentSubGroup == "Not Homeless"	
+replace StudentSubGroup = "Military" if StudentSubGroup == "Military Connected"
+replace StudentSubGroup = "Non-Military" if StudentSubGroup == "Not Military Connected"
+// updated
+
+
+keep if StudentSubGroup == "All Students" | StudentSubGroup == "American Indian or Alaska Native" | StudentSubGroup == "Asian" | StudentSubGroup == "Black or African American" | StudentSubGroup == "Native Hawaiian or Pacific Islander" | StudentSubGroup == "White" | StudentSubGroup == "Hispanic or Latino" | StudentSubGroup == "English Learner" | StudentSubGroup == "English Proficient" | StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged" | StudentSubGroup == "Male" | StudentSubGroup == "Female" | StudentSubGroup == "Two or More" | StudentSubGroup == "Gender X" | StudentSubGroup == "English Learner" | StudentSubGroup == "EL and Monit or Recently Ex" | StudentSubGroup == "SWD" | StudentSubGroup == "Non-SWD" | StudentSubGroup == "Homeless" |  StudentSubGroup == "Non-Homeless"| StudentSubGroup == "Military" | StudentSubGroup == "Non-Military"  // updated
+
+
 
 //StudentGroup
 gen StudentGroup = ""
 replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
 replace StudentGroup = "RaceEth" if StudentSubGroup == "American Indian or Alaska Native" | StudentSubGroup == "Asian" | StudentSubGroup == "Black or African American" | StudentSubGroup == "White" | StudentSubGroup == "Two or More" | StudentSubGroup == "Native Hawaiian or Pacific Islander"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged"
-replace StudentGroup = "Gender" if StudentSubGroup == "Male" | StudentSubGroup == "Female"
-replace StudentGroup = "EL Status" if StudentSubGroup == "English Proficient" | StudentSubGroup == "English Learner"
+replace StudentGroup = "Gender" if StudentSubGroup == "Male" | StudentSubGroup == "Female" | StudentSubGroup == "Gender X"
+replace StudentGroup = "EL Status" if StudentSubGroup == "English Proficient" | StudentSubGroup == "English Learner" | StudentSubGroup == "EL and Monit or Recently Ex" 
 replace StudentGroup = "RaceEth" if StudentSubGroup == "Hispanic or Latino"
+
+// updated
+replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD"
+replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless" | StudentSubGroup == "Non-Homeless"
+replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Military" | StudentSubGroup == "Non-Military"
+// updated
 
 //Suppressed/ missing values
 foreach var of varlist _all {
@@ -151,8 +184,8 @@ keep if DataLevel ==2
 tempfile tempdist
 save "`tempdist'", replace
 clear
-use "`NCES'/NCES_2021_District"
-keep if state_name == 11 | state_location == "DC"
+use "${NCES}/NCES_2021_District"
+keep if state_name == "District of Columbia" | state_location == "DC"
 gen StateAssignedDistID = subinstr(state_leaid, "DC-","",.)
 merge 1:m StateAssignedDistID using "`tempdist'"
 drop if _merge ==1
@@ -164,8 +197,8 @@ keep if DataLevel ==3
 tempfile tempsch
 save "`tempsch'", replace
 clear
-use "`NCES'/NCES_2021_School"
-keep if state_name == 11 | state_location == "DC"
+use "${NCES}/NCES_2021_School"
+keep if state_name == "District of Columbia" | state_location == "DC"
 gen StateAssignedSchID = seasch
 replace StateAssignedSchID = "219" if strpos(school_name, "Bunker") !=0
 replace StateAssignedSchID = substr(StateAssignedSchID, strpos(StateAssignedSchID, "-")+1,10)
@@ -182,7 +215,7 @@ append using "`tempsch'" "`tempdist'"
 rename state_location StateAbbrev
 rename state_fips StateFips
 rename district_agency_type DistType
-rename school_type SchType
+// rename school_type SchType
 rename ncesdistrictid NCESDistrictID
 rename state_leaid State_leaid
 rename ncesschoolid NCESSchoolID
@@ -194,12 +227,24 @@ replace StateAbbrev = "DC"
 //Generating additional variables
 gen State = "District of Columbia"
 gen AvgScaleScore = "--"
+
+// gen Flag_AssmtNameChange = "N"
+// gen Flag_CutScoreChange_ELA = "N"
+// gen Flag_CutScoreChange_math = "N"
+// gen Flag_CutScoreChange_oth = "Y"
+// gen Flag_CutScoreChange_read = ""
+
+// updated 
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_oth = "N"
-gen Flag_CutScoreChange_read = ""
-gen ProficiencyCriteria = "Levels 4 and 5"
+gen Flag_CutScoreChange_sci = "N" 
+gen Flag_CutScoreChange_soc = "Not Applicable"
+// updated 
+
+
+
+gen ProficiencyCriteria = "Levels 4-5"
 gen AssmtType = "Regular"
 gen SchYear = "2021-22"
 
@@ -222,15 +267,72 @@ replace ProficientOrAbove_count = "*" if (Lev3_count == "*" | Lev4_count == "*")
 gen ParticipationRate = ""
 
 //Extra cleaning for sci 
-replace ProficiencyCriteria = "Levels 3 and 4" if Subject == "sci"
+replace ProficiencyCriteria = "Levels 3-4" if Subject == "sci"
 replace Lev5_count = "" if Subject == "sci"
 replace Lev5_percent = "" if Subject == "sci"
 
 //Final Cleaning
-order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
-keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+// order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+//
+// keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+
+//Response to Post Launch Review
+replace DistName="BASIS DC PCS" if NCESDistrictID== "1100083"
+replace DistName="Cesar Chavez PCS for Public Policy" if NCESDistrictID== "1100005"
+replace DistName="DC Bilingual PCS" if NCESDistrictID== "1100042"
+replace DistName="DC Prep PCS" if NCESDistrictID== "1100048"
+replace DistName="Department of Youth Rehabilitation Services (DYRS)" if NCESDistrictID== "1100087"
+replace DistName="Democracy Prep Congress Heights PCS" if NCESDistrictID== "1100095"
+replace DistName="DC International School" if NCESDistrictID== "1100097"
+replace DistName="E.L. Haynes PCS" if NCESDistrictID== "1100043"
+replace DistName="Harmony DC PCS" if NCESDistrictID== "1100096"
+replace DistName="Hope Community PCS" if NCESDistrictID== "1100051"
+replace DistName="Howard University Middle School of Mathematics and Science PCS" if NCESDistrictID== "1100058"
+replace DistName="Latin American Montessori Bilingual PCS" if NCESDistrictID== "1100032"
+replace DistName="Mary McLeod Bethune Day Academy PCS" if NCESDistrictID== "1100044"
+replace DistName="Perry Street Preparatory PCS" if NCESDistrictID== "1100011"
+replace DistName="Rocketship Education DC PCS" if NCESDistrictID=="1100106"
+replace DistName="SEED PCS of Washington DC" if NCESDistrictID== "1100022"
+replace DistName="Shining Stars Montessori Academy PCS" if NCESDistrictID== "1100081"
+replace DistName="Somerset Preparatory Academy PCS" if NCESDistrictID== "1100089"
+replace DistName="Statesmen College Preparatory Academy for Boys PCS" if NCESDistrictID== "1100110"
+replace DistName="The Children's Guild DC PCS" if NCESDistrictID== "1100101"
+replace DistName="City Arts & Prep PCS" if NCESDistrictID== "1100053" // this was also Doar, but same dist/sch 
+
+//StudentGroup_TotalTested Convention
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-save "`Output'/DC_AssmtData_2022", replace
-export delimited "`Output'/DC_AssmtData_2022", replace
+gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
+gen Suppressed = 0
+replace Suppressed = 1 if StudentSubGroup_TotalTested == "*"
+egen StudentGroup_Suppressed = max(Suppressed), by(StudentGroup GradeLevel Subject DataLevel NCESSchoolID NCESDistrictID)
+drop Suppressed
+replace StudentGroup_TotalTested = AllStudents_Tested if StudentGroup_Suppressed == 1
+drop AllStudents_Tested StudentGroup_Suppressed
+
+//Deriving Lev*_count
+foreach count of varlist Lev*_count {
+local percent = subinstr("`count'", "count", "percent",.)
+replace `count' = string(round(real(`percent') * real(StudentSubGroup_TotalTested))) if regexm(`count', "[*-]") !=0 & regexm(`percent', "[*-]") == 0 & regexm(StudentSubGroup_TotalTested, "[*-]") == 0 
+}
+
+//Deriving ProficientOrAbove_count and ProficientOrAbove_percent where possible if Levels 1-3 are available (for ela and math)/Levels 1-2 are available (for sci)
+replace ProficientOrAbove_count = string(real(StudentSubGroup_TotalTested) - real(Lev1_count) - real(Lev2_count) - real(Lev3_count)) if Subject != "sci" & regexm(ProficientOrAbove_count, "[*-]") !=0 & regexm(Lev1_count, "[*-]") == 0 & regexm(Lev2_count, "[*-]") == 0 & regexm(Lev3_count, "[*-]") == 0
+replace ProficientOrAbove_count = string(real(StudentSubGroup_TotalTested) - real(Lev1_count) - real(Lev2_count)) if Subject == "sci" & regexm(ProficientOrAbove_count, "[*-]") !=0 & regexm(Lev1_count, "[*-]") == 0 & regexm(Lev2_count, "[*-]") == 0
+replace ProficientOrAbove_percent = string(1 - real(Lev1_percent) - real(Lev2_percent) - real(Lev3_percent), "%9.3g") if Subject != "sci" & regexm(ProficientOrAbove_percent, "[*-]") !=0 & regexm(Lev1_percent, "[*-]") == 0 & regexm(Lev2_percent, "[*-]") == 0 & regexm(Lev3_percent, "[*-]") == 0
+replace ProficientOrAbove_percent = string(1 - real(Lev1_percent) - real(Lev2_percent), "%9.3g") if Subject != "sci" & regexm(ProficientOrAbove_percent, "[*-]") !=0 & regexm(Lev1_percent, "[*-]") == 0 & regexm(Lev2_percent, "[*-]") == 0
+
+
+drop State_leaid seasch
+
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
+
+save "${Output}/DC_AssmtData_2022", replace
+export delimited "${Output}/DC_AssmtData_2022", replace
 clear
 

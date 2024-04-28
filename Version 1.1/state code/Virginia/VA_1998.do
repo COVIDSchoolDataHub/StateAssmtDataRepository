@@ -13,18 +13,18 @@ cd "/Users/maggie/Desktop/Virginia"
 
 import excel "/${raw}/VA_OriginalData_1998-2002_all.xls", sheet("1998-2002 % Passing By School") cellrange(A2:EP2119) firstrow case(lower) clear
 
-rename english1998 ProficientOrAbove_percentread3
+rename english1998 ProficientOrAbove_percentela3
 rename mathematics1998 ProficientOrAbove_percentmath3
 rename history1998 ProficientOrAbove_percentsoc3
 rename science1998 ProficientOrAbove_percentsci3
 rename writing1998 ProficientOrAbove_percentwri5
-rename englishrlr1998 ProficientOrAbove_percentread5
+rename englishrlr1998 ProficientOrAbove_percentela5
 rename ak ProficientOrAbove_percentmath5
 rename ap ProficientOrAbove_percentsoc5
 rename au ProficientOrAbove_percentsci5
 rename computertechnology1998 ProficientOrAbove_percentstem5
 rename be ProficientOrAbove_percentwri8
-rename bj ProficientOrAbove_percentread8
+rename bj ProficientOrAbove_percentela8
 rename bo ProficientOrAbove_percentmath8
 rename bt ProficientOrAbove_percentsoc8
 rename by ProficientOrAbove_percentsci8
@@ -34,7 +34,7 @@ keep div divisionname sch schoolname lowgr highgr ProficientOrAbove_percent*
 
 drop if divisionname == ""
 
-reshape long ProficientOrAbove_percentread ProficientOrAbove_percentmath ProficientOrAbove_percentsoc ProficientOrAbove_percentsci ProficientOrAbove_percentwri ProficientOrAbove_percentstem, i(div sch) j(GradeLevel)
+reshape long ProficientOrAbove_percentela ProficientOrAbove_percentmath ProficientOrAbove_percentsoc ProficientOrAbove_percentsci ProficientOrAbove_percentwri ProficientOrAbove_percentstem, i(div sch) j(GradeLevel)
 
 reshape long ProficientOrAbove_percent, i(div sch GradeLevel) j(Subject) string
 
@@ -102,7 +102,7 @@ import excel "/${raw}/disaggregate/VA_1998-2002_raceeth.xls", sheet("Sheet1 (2)"
 
 keep A B G L Q
 rename A StudentSubGroup
-rename B ProficientOrAbove_percentread
+rename B ProficientOrAbove_percentela
 rename G ProficientOrAbove_percentmath
 rename L ProficientOrAbove_percentsoc
 rename Q ProficientOrAbove_percentsci
@@ -125,7 +125,7 @@ import excel "/${raw}/disaggregate/VA_1998-2002_raceeth.xls", sheet("Sheet1 (2)"
 
 keep A B G L Q V AA
 rename A StudentSubGroup
-rename B ProficientOrAbove_percentread
+rename B ProficientOrAbove_percentela
 rename G ProficientOrAbove_percentwri
 rename L ProficientOrAbove_percentmath
 rename Q ProficientOrAbove_percentsoc
@@ -192,9 +192,9 @@ drop _merge
 
 ////	FINISH CLEANING DATA
 
-replace Subject = "stem" if Subject == "Computer/Technology"
+drop if Subject == "Computer/Technology" | Subject == "stem"
 replace Subject = "wri" if strpos(Subject, "Writing") > 0
-replace Subject = "ela" if strpos(Subject, "English") > 0
+replace Subject = "ela" if strpos(Subject, "Reading") > 0 | Subject == "English"
 replace Subject = "soc" if Subject == "History"
 replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "sci" if Subject == "Science"
@@ -229,16 +229,22 @@ replace GradeLevel = "G08" if GradeLevel == "8"
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_read = ""
-gen Flag_CutScoreChange_oth = "N"
+gen Flag_CutScoreChange_sci = "N"
+gen Flag_CutScoreChange_soc = "N"
+
 gen AssmtName = "Standards of Learning"
 gen AssmtType = "Regular"
+
 gen SchYear = "1997-98"
+
 gen StudentGroup_TotalTested = "--"
 gen StudentSubGroup_TotalTested = "--"
+
 gen AvgScaleScore = "--"
+
 gen ProficiencyCriteria = "Levels 2-3"
 gen ProficientOrAbove_count = "--"
+
 gen ParticipationRate = "--"
 
 replace StudentSubGroup = "Black or African American" if StudentSubGroup == "African American"
@@ -248,15 +254,16 @@ replace StudentSubGroup = "Asian" if StudentSubGroup == "Asian/Pacific Islander"
 replace StudentSubGroup = "Unknown" if StudentSubGroup == "Ethnicity Unknown"
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
 
-replace State = 51 if DataLevel == 1
+replace State = "Virginia" if DataLevel == 1
 replace StateAbbrev = "VA" if DataLevel == 1
 replace StateFips = 51 if DataLevel == 1
 replace DistName = "All Districts" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel != 3
+replace CountyName = proper(CountyName)
 
-drop divisionname schoolname
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
-order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
