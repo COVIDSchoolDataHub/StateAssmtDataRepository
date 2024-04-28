@@ -15,7 +15,7 @@ Download the AK_OriginalData_2015_2022 and AK_OriginalData_2023 from the drive a
 There are three do-files: 
 - alaska_NCES_do_file_updates.do cleans the NCES files.
 - alaska_updated_do_file cleans 2017-2022, based on the delimited file AK_OriginalData_2015_2022.
-- AK_2023 cleans 2023.
+- AK_2023 cleans 2023 based on the delimited file AK_OriginalData_2023.
 
 Run the NCES file first. Run the other files in any order you choose.
 
