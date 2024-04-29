@@ -77,7 +77,7 @@ foreach year of local edyears1 {
 		}
 	}
 }
-*/
+
 foreach year of local edyears1 {
 	foreach type of local datatype {
 		foreach lvl of local datalevel {
@@ -175,8 +175,6 @@ foreach year of local edyears1 {
 		
 	}
 }
-
-
 
 local edyears2 2019 2021
 

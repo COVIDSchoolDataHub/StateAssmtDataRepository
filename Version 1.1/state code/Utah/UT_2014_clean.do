@@ -196,12 +196,13 @@ drop _merge
 replace DistName = strupper(DistName)
 replace DistName = "AMERICAN PREPARATORY ACADEMY--LEA" if DistName == "AMERICAN PREPARATORY ACADEMY"
 replace DistName = "THOMAS EDISON - LEA" if DistName == "THOMAS EDISON"
-replace DistName = strproper(DistName)
 
 merge m:1 DistName using "${utah}/NCES_2014_District.dta"
 
 gen DataLevel=2
 gen StateAssignedDistID = State_leaid
+
+replace DistName = strproper(DistName)
 
 drop if _merge==2
 
