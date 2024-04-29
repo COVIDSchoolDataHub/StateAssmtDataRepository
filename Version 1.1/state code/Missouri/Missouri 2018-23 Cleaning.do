@@ -184,6 +184,8 @@ forvalues year = 2018/2023{
 	replace State = "Missouri"
 	replace StateFips = 29
 	
+	replace CountyName= "St. Louis City" if CountyCode == "29510"
+	
 	gen Flag_AssmtNameChange = "N"
 	gen Flag_CutScoreChange_ELA = "N"
 	gen Flag_CutScoreChange_math = "N"
@@ -192,6 +194,7 @@ forvalues year = 2018/2023{
 	if `year' == 2018{
 		replace Flag_CutScoreChange_ELA = "Y"
 		replace Flag_CutScoreChange_math = "Y"
+		replace Flag_CutScoreChange_sci = "Not applicable"
 	}
 	if `year' == 2019{
 		replace Flag_CutScoreChange_sci = "Y"

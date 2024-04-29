@@ -207,6 +207,13 @@ forvalues year = 2010/2014{
 		replace Lev`n'_percent = "*" if flag == 1
 		replace Lev`n'_count = "*" if flag == 1
 	}
+	tostring ProficientOrAbove_percent, replace format("%7.3f") force
+	tostring ProficientOrAbove_count, replace
+	replace ProficientOrAbove_percent = "*" if flag == 1
+	replace ProficientOrAbove_count = "*" if flag == 1
+	
+	replace CountyName= "McDonald County" if CountyCode == "29119"
+	replace CountyName= "DeKalb County" if CountyCode == "29063"
 	
 	** Unmerged Districts
 	

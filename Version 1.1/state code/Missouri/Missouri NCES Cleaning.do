@@ -89,9 +89,8 @@ foreach a in $years {
 use "${NCESSchool}/NCES_2022_School.dta", clear
 rename state_name State
 rename state_location StateAbbrev
-rename fips StateFips
+rename state_fips_id StateFips
 drop if StateAbbrev != "MO"
-rename state_fips_id state_fips
 rename ncesschoolid NCESSchoolID
 rename ncesdistrictid NCESDistrictID
 rename lea_name DistName
