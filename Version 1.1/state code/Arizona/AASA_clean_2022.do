@@ -374,14 +374,13 @@ replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "In
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "Limited English Proficient"
 replace StudentSubGroup = "SWD" if StudentSubGroup == "Students with Disabilities"
 
-gen StudentSubGroup_TotalTested2 = StudentSubGroup_TotalTested
-destring StudentSubGroup_TotalTested2, replace force
-replace StudentSubGroup_TotalTested2 = 0 if StudentSubGroup_TotalTested2 == .
-bysort State_leaid seasch StudentGroup GradeLevel Subject: egen test = min(StudentSubGroup_TotalTested2)
-bysort State_leaid seasch StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested2) if test != 0
+destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
+replace StudentSubGroup_TotalTested2 = 0 if StudentSubGroup_TotalTested2 == . | StudentGroup != "All Students"
+bysort State_leaid seasch GradeLevel Subject: egen max = max(StudentSubGroup_TotalTested2)
+gen StudentGroup_TotalTested = max if !inlist(max, ., 0)
 tostring StudentGroup_TotalTested, replace force
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
-drop StudentSubGroup_TotalTested2 test
+drop StudentSubGroup_TotalTested2 max
 
 replace Subject="ela" if Subject=="English Language Arts"
 replace Subject="math" if Subject=="Mathematics"
@@ -395,15 +394,21 @@ rename DataLevel_n DataLevel
 
 **
 
-destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
-destring ProficientOrAbove_percent, gen(ProficientOrAbove_percent2) force
+foreach v of varlist StudentSubGroup_TotalTested Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent {
+	destring `v', gen(`v'2) force
+}
+
+replace ProficientOrAbove_percent2 = 1 - (Lev1_percent2 + Lev2_percent2) if ProficientOrAbove_percent2 == . & Lev1_percent2 != . & Lev2_percent2 != .
+replace ProficientOrAbove_percent2 = Lev3_percent2 + Lev4_percent2 if ProficientOrAbove_percent2 == . & Lev3_percent2 != . & Lev4_percent2 != .
 
 gen ProficientOrAbove_count = round(ProficientOrAbove_percent2 * StudentSubGroup_TotalTested2)
 tostring ProficientOrAbove_count, replace force
 replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
 
+tostring ProficientOrAbove_percent2, format("%9.2g") replace force
+replace ProficientOrAbove_percent = ProficientOrAbove_percent2 if ProficientOrAbove_percent2 != "."
+
 foreach x of numlist 1/4 {
-    destring Lev`x'_percent, gen(Lev`x'_percent2) force
 	gen Lev`x'_count = round(Lev`x'_percent2 * StudentSubGroup_TotalTested2)
 	tostring Lev`x'_count, replace force
 	replace Lev`x'_count = "*" if Lev`x'_count == "."

@@ -37,13 +37,14 @@ tostring CountyCode, replace
 
 save "${raw}/IA_Unmerged_1.dta", replace
 
-
+// saving files 
 foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 {
 	
 local prevyear =`=`year'-1'
 local Year = substr("`prevyear'",-2,2) + substr("`year'",-2,2)
 
 import excel "${dr}/IA_ProficiencyData_`Year'.xlsx", sheet("School") firstrow allstring clear
+
 
 save "${output}/IA_AssmtData_`year'_NEW.dta", replace
 
@@ -65,6 +66,11 @@ use "${output}/IA_AssmtData_2023_NEW.dta", replace
 //	use "${output}/IA_AssmtData_2022_NEW.dta", clear
 
 // set trace on
+
+
+
+
+
 
 foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 {
 	
@@ -364,8 +370,17 @@ replace SchName = "All Schools" if DataLevel ==1 | DataLevel ==2
 		replace SchVirtual = 0  if SchName == "Van Buren County Community School District Middle & High School"
 		
 	}
-		
-		
+	
+
+	// updated 4/30/2024
+	
+if "`year'" == "2023" {
+	
+	replace NCESSchoolID = "190654000213" if SchName == "Maple Grove Elementary" & NCESDistrictID == "1906540"
+	
+}
+	
+	
 	drop State_leaid seasch
 
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
@@ -384,3 +399,86 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 }
 
 
+
+// new dist names 
+
+import excel "${raw}/ia_full-dist-sch-stable-list_through2023", firstrow case(preserve) allstring clear
+
+//Fixing DataLevel
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+sort DataLevel_n 
+drop DataLevel 
+rename DataLevel_n DataLevel 
+
+save "IA_StableNames_Sch", replace
+duplicates drop NCESDistrictID SchYear, force
+drop NCESSchoolID newschname olddistname oldschname
+gen SchName = "All Schools"
+replace DataLevel = 2
+
+append using "IA_StableNames_Sch"
+sort DataLevel
+duplicates drop SchYear DataLevel NCESDistrictID NCESSchoolID, force
+save "IA_StableNames", replace
+clear
+
+
+//Looping Through Years
+forvalues year = 2015/2023 {  
+	if `year' == 2020 continue
+use "IA_StableNames", clear
+local prevyear = `=`year'-1'
+keep if SchYear == "`prevyear'-" + substr("`year'",-2,2)
+merge 1:m DataLevel NCESDistrictID NCESSchoolID using "${output}/IA_AssmtData_`year'" 
+drop if _merge == 1
+replace DistName = newdistname if DataLevel !=1
+replace SchName = newschname if DataLevel == 3
+replace DistName = "All Districts" if DataLevel == 1
+replace SchName = "All Schools" if DataLevel ==1
+
+
+//Final Cleaning and Saving
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup	
+
+save "${output}/IA_AssmtData_`year'.dta", replace
+
+export delimited using "${output}/IA_AssmtData_`year'.csv", replace
+
+}
+
+
+
+// merging in updated county names 
+	
+import excel "${raw}/ia_county-list_through2023", firstrow case(preserve) allstring clear
+
+duplicates drop CountyCode SchYear, force
+drop oldcountyname 
+
+save "IA_StableCounty", replace
+
+forvalues year = 2015/2023 {  // /2023 { 
+	if `year' == 2020 continue
+use "IA_StableCounty", clear
+local prevyear = `=`year'-1'
+keep if SchYear == "`prevyear'-" + substr("`year'",-2,2)
+merge 1:m CountyCode using "${output}/IA_AssmtData_`year'" 
+replace CountyName = newcountyname if newcountyname != ""
+drop newcountyname
+
+//Final Cleaning and Saving
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup	
+
+save "${output}/IA_AssmtData_`year'.dta", replace
+
+export delimited using "${output}/IA_AssmtData_`year'.csv", replace
+
+
+}
