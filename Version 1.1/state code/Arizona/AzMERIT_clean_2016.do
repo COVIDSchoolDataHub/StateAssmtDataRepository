@@ -406,15 +406,12 @@ drop if _merge == 2
 drop stnam-_merge
 
 destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
-replace StudentSubGroup_TotalTested2 = 0 if StudentSubGroup_TotalTested2 == .
-bysort State_leaid seasch StudentGroup GradeLevel Subject: egen test = min(StudentSubGroup_TotalTested2)
-bysort State_leaid seasch StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested2) if test != 0
-tostring StudentSubGroup_TotalTested2, replace force
-replace StudentSubGroup_TotalTested = StudentSubGroup_TotalTested2 if StudentSubGroup_TotalTested2 != "0"
+replace StudentSubGroup_TotalTested2 = 0 if StudentSubGroup_TotalTested2 == . | StudentGroup != "All Students"
+bysort State_leaid seasch GradeLevel Subject: egen max = max(StudentSubGroup_TotalTested2)
+gen StudentGroup_TotalTested = max if !inlist(max, ., 0)
 tostring StudentGroup_TotalTested, replace force
 replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested == "."
-drop StudentSubGroup_TotalTested2 test
-
+drop StudentSubGroup_TotalTested2 max
 **
 
 destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
