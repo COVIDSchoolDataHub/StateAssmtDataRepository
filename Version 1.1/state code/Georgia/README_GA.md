@@ -37,3 +37,5 @@ Broadly, the initial file format (and therefore the cleaning code structure) are
 ## Updates
 
 04/17/2024: Updated to derive more level and proficiency counts where possible, change the case of CountyName prior to 2015, and match new StudentGroup_TotalTested convention for suppressed subgroup counts/categories where only one applicable subgroup is reported.
+
+05/01/2024: Update to pull in updated NCES fall 2022 data and correct an unmerged value in 2021.

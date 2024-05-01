@@ -684,6 +684,32 @@ drop if _merge == 2
 replace SchName = newschname if _merge == 3 & SchName != newschname
 replace DistName = newdistname if _merge == 3 & DistName != newdistname
 
+replace DistName = "Weilenmann School of Discovery" if NCESDistrictID == "4900145"
+replace DistName = "Walden School of Liberal Arts" if NCESDistrictID == "4900061"
+replace DistName = "Vista School" if NCESDistrictID == "4900141"
+replace DistName = "Academy for Math Engineering & Science (Ames)" if NCESDistrictID == "4900017"
+replace DistName = "American Academy of Innovation" if NCESDistrictID == "4900186"
+replace DistName = "American International School of Utah" if NCESDistrictID == "4900172"
+replace DistName = "American Preparatory Academy (District)" if NCESDistrictID == "4900005"
+replace DistName = "Ascent Academies of Utah" if NCESDistrictID == "4900174"
+replace DistName = "Athenian eAcademy" if NCESDistrictID == "4900181"
+replace DistName = "Beehive Science & Technology Academy" if NCESDistrictID == "4900023"
+replace DistName = "C.S. Lewis Academy" if NCESDistrictID == "4900074"
+replace DistName = "Early Light Academy at Daybreak" if NCESDistrictID == "4900140"
+replace DistName = "InTech Collegiate Academy" if NCESDistrictID == "4900039"
+replace DistName = "Karl G. Maeser Preparatory Academy" if NCESDistrictID == "4900056"
+replace DistName = "No. UT Academy for Math Engineering & Science" if NCESDistrictID == "4900063"
+replace DistName = "Pioneer High School for the Performing Arts" if NCESDistrictID == "4900164"
+replace DistName = "Promontory School of Expeditionary Learning" if NCESDistrictID == "4900157"
+replace DistName = "Salt Lake Center for Science Education" if NCESDistrictID == "4900123"
+replace DistName = "Salt Lake School for the Performing Arts" if NCESDistrictID == "4900050"
+replace DistName = "The Center for Creativity Innovation and Discovery" if NCESDistrictID == "4900193"
+replace DistName = "Thomas Edison (District)" if NCESDistrictID == "4900015"
+replace DistName = "Tuacahn High School for the Performing Arts" if NCESDistrictID == "4900012"
+replace DistName = "Utah County Academy of Science (UCAS)" if NCESDistrictID == "4900020"
+replace DistName = "Utah Schools for Deaf & Blind" if NCESDistrictID == "4900069"
+replace DistName = "Mountain View Montessori" if NCESDistrictID == "4900169"
+
 *** Clean up variables & save file
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 

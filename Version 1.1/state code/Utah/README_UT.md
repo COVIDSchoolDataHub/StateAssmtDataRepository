@@ -43,3 +43,5 @@ global edfacts "/Users/miramehta/Documents/EdFacts"
 ## Updates
 
 04/19/2024: Updated to match new StudentGroup_TotalTested convention, address issues in merging, and correct issue with derived performance counts at the state level.
+
+05/01/2024: Updated to fix inconsistent school names across years.

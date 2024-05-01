@@ -41,4 +41,6 @@ global output "/Users/miramehta/Documents/CO State Testing Data"
 ```
 ## Updates
 
-04/10/2024: Updated to pull from 2022 NCES files, derive level counts for 2015 annd proficiency counts for 2022, and match updated StudentGroup_TotalTested convention.  Also updated to appropriately address range values.
+04/10/2024: Updated to pull from 2022 NCES files, derive level counts for 2015 and proficiency counts for 2022, and match updated StudentGroup_TotalTested convention.  Also updated to appropriately address range values.
+
+05/01/2024: Updated to pull in updated NCES fall 2022 data and correct some StudentGroup and StudentSubGroup labels.

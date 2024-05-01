@@ -440,18 +440,38 @@ foreach a in $years {
 	
 }
 
-import excel "${NCESSchool}/NCES_2022_School.xlsx", firstrow allstring clear
+use "${NCESSchool}/NCES_2022_School.dta", clear
+rename state_name State
+rename state_location StateAbbrev
+rename state_fips_id StateFips
 drop if StateAbbrev != "KS"
-merge 1:1 NCESDistrictID NCESSchoolID using "${NCES}/NCES_2021_School_KS.dta", keepusing (DistLocale CountyCode CountyName DistCharter)
+rename ncesschoolid NCESSchoolID
+rename ncesdistrictid NCESDistrictID
+rename lea_name DistName
+rename school_type SchType
+rename school_name SchName
+decode district_agency_type, gen (DistType)
+drop district_agency_type
+rename county_name CountyName
+rename county_code CountyCode
+rename state_leaid State_leaid
+merge 1:1 NCESDistrictID NCESSchoolID using "${NCES}/NCES_2021_School_KS.dta", keepusing (DistLocale CountyCode CountyName DistType SchVirtual)
 drop if _merge == 2
 drop _merge
-rename st_schid seasch
+keep State StateAbbrev StateFips NCESDistrictID NCESSchoolID seasch State_leaid DistType DistLocale CountyCode CountyName DistCharter SchType SchLevel SchVirtual
 save "${NCES}/NCES_2022_School_KS.dta", replace
-
-import excel "${NCESDistrict}/NCES_2022_District.xlsx", firstrow allstring clear
-drop if StateAbbrev != "KS"
+		
+use "${NCESDistrict}/NCES_2022_District.dta", clear
+drop if state_location != "KS"
+rename lea_name DistName
 rename ncesdistrictid NCESDistrictID
+rename district_agency_type DistType
+rename county_name CountyName
+rename county_code CountyCode
+rename state_leaid State_leaid
+drop year
 merge 1:1 NCESDistrictID using "${NCES}/NCES_2021_District_KS.dta", keepusing (DistLocale CountyCode CountyName DistCharter)
 drop if _merge == 2
 drop _merge
 save "${NCES}/NCES_2022_District_KS.dta", replace
+

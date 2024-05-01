@@ -181,38 +181,42 @@ drop if Subject == "soc" & GradeLevel != "G08"
 save "$GAdata/GA_AssmtData_2023.dta", replace
 
 //Clean NCES Data
-import excel "$NCES/NCES School Files, Fall 1997-Fall 2022/NCES_2022_School.xlsx", clear
-drop if C != "GA"
-rename E DistName
-rename F ncesdistrictid
-gen str StateAssignedDistID = substr(G, 4, 7)
-drop G
-gen str StateAssignedSchID = substr(N, 8, 12)
-drop N
+use "$NCES/NCES School Files, Fall 1997-Fall 2022/NCES_2022_School.dta", clear
+rename state_name State
+rename state_location StateAbbrev
+rename state_fips_id StateFips
+drop if StateAbbrev != "GA"
+rename lea_name DistName
+rename school_type SchType
+rename school_name SchName
+decode district_agency_type, gen (DistType)
+drop district_agency_type
+rename DistType district_agency_type
+rename state_leaid State_leaid
+gen str StateAssignedDistID = substr(State_leaid, 4, 7)
+gen str StateAssignedSchID = substr(seasch, 5, 8)
 destring StateAssignedDistID, replace force
 drop if StateAssignedDistID==.
 destring StateAssignedSchID, replace force
 drop if StateAssignedSchID==.
-rename I ncesschoolid
-rename J SchType
-rename K SchVirtual
-rename L SchLevel
-rename M SchName
-merge 1:1 ncesdistrictid ncesschoolid using "$NCES/Cleaned NCES Data/NCES_2022_School_GA.dta", keepusing (DistLocale county_code county_name district_agency_type)
+decode SchVirtual, gen(SchVirtual_s)
+drop SchVirtual
+rename SchVirtual_s SchVirtual
+merge 1:1 ncesdistrictid ncesschoolid using "$NCES/Cleaned NCES Data/NCES_2022_School_GA.dta", keepusing (DistLocale county_code county_name district_agency_type SchVirtual)
 drop if _merge == 2
 drop _merge
+keep State StateAbbrev StateFips ncesdistrictid ncesschoolid StateAssignedDistID StateAssignedSchID district_agency_type DistLocale county_code county_name DistCharter SchType SchLevel SchVirtual
 save "$NCES/Cleaned NCES Data/NCES_2023_School_GA.dta", replace
-
-import excel "$NCES/NCES District Files, Fall 1997-Fall 2022/NCES_2022_District.xlsx", clear
-drop if C != "GA"
-rename E DistName
-gen str StateAssignedDistID = substr(G, 4, 7)
-drop G
+		
+use "$NCES/NCES District Files, Fall 1997-Fall 2022/NCES_2022_District.dta", clear
+drop if state_location != "GA"
+rename lea_name DistName
+rename state_leaid State_leaid
+gen str StateAssignedDistID = substr(State_leaid, 4, 7)
 destring StateAssignedDistID, replace force
-drop if StateAssignedDistID==.
-rename F ncesdistrictid
-rename H DistType
-merge 1:1 ncesdistrictid using "$NCES/Cleaned NCES Data/NCES_2022_District_GA.dta", keepusing (DistLocale county_code county_name DistCharter)
+drop if StateAssignedDistID == .
+drop year
+merge 1:1 ncesdistrictid using "$NCES/Cleaned NCES Data/NCES_2022_District_GA.dta", keepusing (DistLocale county_code county_name DistCharter district_agency_type)
 drop if _merge == 2
 drop _merge
 save "$NCES/Cleaned NCES Data/NCES_2023_District_GA.dta", replace
@@ -228,19 +232,19 @@ merge m:1 StateAssignedSchID StateAssignedDistID using "$NCES/Cleaned NCES Data/
 drop if merge2 == 2
 
 //Clean Merged Data
-rename C StateAbbrev
 rename ncesdistrictid NCESDistrictID
 rename ncesschoolid NCESSchoolID
 rename county_name CountyName
 rename county_code CountyCode
+rename district_agency_type DistType
 
 replace DistLocale = "Missing/not reported" if DistLocale == "" & DataLevel != "State"
 
-drop A B D I J K H O P _merge merge2 district_agency_type
+*drop A B D I J K H O P _merge merge2 district_agency_type
 
-gen State = "Georgia"
+replace State = "Georgia"
 replace StateAbbrev = "GA"
-gen StateFips = 13
+replace StateFips = 13
 tostring StateAssignedSchID, replace
 tostring StateAssignedDistID, replace
 replace StateAssignedSchID = "" if DataLevel != "School"
@@ -248,133 +252,173 @@ replace StateAssignedDistID = "" if DataLevel == "State"
 
 //Unmerged Schools
 replace NCESSchoolID = "130002303482" if SchName == "Odyssey Charter School"
-replace SchLevel = "Elementary" if SchName == "Odyssey Charter School"
-replace SchType = "Regular School" if SchName == "Odyssey Charter School"
+replace SchLevel = 1 if SchName == "Odyssey Charter School"
+replace SchType = 1 if SchName == "Odyssey Charter School"
+replace SchVirtual = "No" if SchName == "Odyssey Charter School"
 replace NCESSchoolID = "130023204148" if SchName == "Georgia Cyber Academy (Virtual)"
-replace SchLevel = "Other" if SchName == "Georgia Cyber Academy (Virtual)"
-replace SchType = "Regular School" if SchName == "Georgia Cyber Academy (Virtual)"
+replace SchLevel = 4 if SchName == "Georgia Cyber Academy (Virtual)"
+replace SchType = 1 if SchName == "Georgia Cyber Academy (Virtual)"
+replace SchVirtual = "Yes" if SchName == "Georgia Cyber Academy (Virtual)"
 replace NCESSchoolID = "130023304164" if SchName == "Utopian Academy for the Arts Charter School"
-replace SchLevel = "Middle" if SchName == "Utopian Academy for the Arts Charter School"
-replace SchType = "Regular School" if SchName == "Utopian Academy for the Arts Charter School"
+replace SchLevel = 2 if SchName == "Utopian Academy for the Arts Charter School"
+replace SchType = 1 if SchName == "Utopian Academy for the Arts Charter School"
+replace SchVirtual = "No" if SchName == "Utopian Academy for the Arts Charter School"
 replace NCESSchoolID = "130021803964" if SchName == "Pataula Charter Academy"
-replace SchLevel = "Other" if SchName == "Pataula Charter Academy"
-replace SchType = "Regular School" if SchName == "Pataula Charter Academy"
+replace SchLevel = 4 if SchName == "Pataula Charter Academy"
+replace SchType = 1 if SchName == "Pataula Charter Academy"
+replace SchVirtual = "No" if SchName == "Pataula Charter Academy"
 replace NCESSchoolID = "130023004051" if SchName == "Cherokee Charter Academy"
-replace SchLevel = "Elementary" if SchName == "Cherokee Charter Academy"
-replace SchType = "Regular School" if SchName == "Cherokee Charter Academy"
+replace SchLevel = 1 if SchName == "Cherokee Charter Academy"
+replace SchType = 1 if SchName == "Cherokee Charter Academy"
+replace SchVirtual = "No" if SchName == "Cherokee Charter Academy"
 replace NCESSchoolID = "130021703961" if SchName == "Fulton Leadership Academy"
-replace SchLevel = "Other" if SchName == "Fulton Leadership Academy"
-replace SchType = "Regular School" if SchName == "Fulton Leadership Academy"
+replace SchLevel = 4 if SchName == "Fulton Leadership Academy"
+replace SchType = 1 if SchName == "Fulton Leadership Academy"
+replace SchVirtual = "No" if SchName == "Fulton Leadership Academy"
 replace NCESSchoolID = "130022104021" if SchName == "Atlanta Heights Charter School"
-replace SchLevel = "Elementary" if SchName == "Atlanta Heights Charter School"
-replace SchType = "Regular School" if SchName == "Atlanta Heights Charter School"
+replace SchLevel = 1 if SchName == "Atlanta Heights Charter School"
+replace SchType = 1 if SchName == "Atlanta Heights Charter School"
+replace SchVirtual = "No" if SchName == "Atlanta Heights Charter School"
 replace NCESSchoolID = "130022704031" if SchName == "Georgia Connections Academy (Virtual)"
-replace SchLevel = "Other" if SchName == "Georgia Connections Academy (Virtual)"
-replace SchType = "Regular School" if SchName == "Georgia Connections Academy (Virtual)"
+replace SchLevel = 4 if SchName == "Georgia Connections Academy (Virtual)"
+replace SchType = 1 if SchName == "Georgia Connections Academy (Virtual)"
+replace SchVirtual = "Yes" if SchName == "Georgia Connections Academy (Virtual)"
 replace NCESSchoolID = "130022204007" if SchName == "Coweta Charter Academy"
-replace SchLevel = "Elementary" if SchName == "Coweta Charter Academy"
-replace SchType = "Regular School" if SchName == "Coweta Charter Academy"
+replace SchLevel = 1 if SchName == "Coweta Charter Academy"
+replace SchType = 1 if SchName == "Coweta Charter Academy"
+replace SchVirtual = "No" if SchName == "Coweta Charter Academy"
 replace NCESSchoolID = "130023904226" if SchName == "Cirrus Charter Academy"
-replace SchLevel = "Elementary" if SchName == "Cirrus Charter Academy"
-replace SchType = "Regular School" if SchName == "Cirrus Charter Academy"
+replace SchLevel = 1 if SchName == "Cirrus Charter Academy"
+replace SchType = 1 if SchName == "Cirrus Charter Academy"
+replace SchVirtual = "No" if SchName == "Cirrus Charter Academy"
 replace NCESSchoolID = "130022604023" if SchName == "Ivy Preparatory Academy, Inc"
-replace SchLevel = "Elementary" if SchName == "Ivy Preparatory Academy, Inc"
-replace SchType = "Regular School" if SchName == "Ivy Preparatory Academy, Inc"
+replace SchLevel = 1 if SchName == "Ivy Preparatory Academy, Inc"
+replace SchType = 1 if SchName == "Ivy Preparatory Academy, Inc"
+replace SchVirtual = "No" if SchName == "Ivy Preparatory Academy, Inc"
 replace NCESSchoolID = "130024304253" if SchName == "Southwest Georgia S.T.E.M. Charter Academy"
-replace SchLevel = "Elementary" if SchName == "Southwest Georgia S.T.E.M. Charter Academy"
-replace SchType = "Regular School" if SchName == "Southwest Georgia S.T.E.M. Charter Academy"
+replace SchLevel = 1 if SchName == "Southwest Georgia S.T.E.M. Charter Academy"
+replace SchVirtual = "No" if SchName == "Southwest Georgia S.T.E.M. Charter Academy"
+replace SchType = 1 if SchName == "Southwest Georgia S.T.E.M. Charter Academy"
 replace NCESSchoolID = "130024204249" if SchName == "Brookhaven Innovation Academy"
-replace SchLevel = "Elementary" if SchName == "Brookhaven Innovation Academy"
-replace SchType = "Regular School" if SchName == "Brookhaven Innovation Academy"
+replace SchLevel = 1 if SchName == "Brookhaven Innovation Academy"
+replace SchType = 1 if SchName == "Brookhaven Innovation Academy"
+replace SchVirtual = "No" if SchName == "Brookhaven Innovation Academy"
 replace NCESSchoolID = "130023404179" if SchName == "International Charter School of Atlanta"
-replace SchLevel = "Elementary" if SchName == "International Charter School of Atlanta"
-replace SchType = "Regular School" if SchName == "International Charter School of Atlanta"
+replace SchLevel = 1 if SchName == "International Charter School of Atlanta"
+replace SchType = 1 if SchName == "International Charter School of Atlanta"
+replace SchVirtual = "No" if SchName == "International Charter School of Atlanta"
 replace NCESSchoolID = "130024104229" if SchName == "Liberty Tech Charter Academy"
-replace SchLevel = "Elementary" if SchName == "Liberty Tech Charter Academy"
-replace SchType = "Regular School" if SchName == "Liberty Tech Charter Academy"
+replace SchLevel = 1 if SchName == "Liberty Tech Charter Academy"
+replace SchType = 1 if SchName == "Liberty Tech Charter Academy"
+replace SchVirtual = "No" if SchName == "Liberty Tech Charter Academy"
 replace NCESSchoolID = "130023604192" if SchName == "Scintilla Charter Academy"
-replace SchLevel = "Elementary" if SchName == "Scintilla Charter Academy"
-replace SchType = "Regular School" if SchName == "Scintilla Charter Academy"
+replace SchLevel = 1 if SchName == "Scintilla Charter Academy"
+replace SchType = 1 if SchName == "Scintilla Charter Academy"
+replace SchVirtual = "No" if SchName == "Scintilla Charter Academy"
 replace NCESSchoolID = "130023804205" if SchName == "Georgia School for Innovation and the Classics"
-replace SchLevel = "Elementary" if SchName == "Georgia School for Innovation and the Classics"
-replace SchType = "Regular School" if SchName == "Georgia School for Innovation and the Classics"
+replace SchLevel = 1 if SchName == "Georgia School for Innovation and the Classics"
+replace SchType = 1 if SchName == "Georgia School for Innovation and the Classics"
+replace SchVirtual = "No" if SchName == "Georgia School for Innovation and the Classics"
 replace NCESSchoolID = "130023704193" if SchName == "Dubois Integrity Academy"
-replace SchLevel = "Elementary" if SchName == "Dubois Integrity Academy"
-replace SchType = "Regular School" if SchName == "Dubois Integrity Academy"
+replace SchLevel = 1 if SchName == "Dubois Integrity Academy"
+replace SchType = 1 if SchName == "Dubois Integrity Academy"
+replace SchVirtual = "No" if SchName == "Dubois Integrity Academy"
 replace NCESSchoolID = "130024804288" if SchName == "Genesis Innovation Academy for Boys"
-replace SchLevel = "Elementary" if SchName == "Genesis Innovation Academy for Boys"
-replace SchType = "Regular School" if SchName == "Genesis Innovation Academy for Boys"
+replace SchLevel = 1 if SchName == "Genesis Innovation Academy for Boys"
+replace SchType = 1 if SchName == "Genesis Innovation Academy for Boys"
+replace SchVirtual = "No" if SchName == "Genesis Innovation Academy for Boys"
 replace NCESSchoolID = "130024404272" if SchName == "Genesis Innovation Academy for Girls"
-replace SchLevel = "Elementary" if SchName == "Genesis Innovation Academy for Girls"
-replace SchType = "Regular School" if SchName == "Genesis Innovation Academy for Girls"
+replace SchLevel = 1 if SchName == "Genesis Innovation Academy for Girls"
+replace SchType = 1 if SchName == "Genesis Innovation Academy for Girls"
+replace SchVirtual = "No" if SchName == "Genesis Innovation Academy for Girls"
 replace NCESSchoolID = "130024704283" if SchName == "Resurgence Hall Charter School"
-replace SchLevel = "Elementary" if SchName == "Resurgence Hall Charter School"
-replace SchType = "Regular School" if SchName == "Resurgence Hall Charter School"
+replace SchLevel = 1 if SchName == "Resurgence Hall Charter School"
+replace SchType = 1 if SchName == "Resurgence Hall Charter School"
+replace SchVirtual = "No" if SchName == "Resurgence Hall Charter School"
 replace NCESSchoolID = "130024504293" if SchName == "SAIL Charter Academy - School for Arts-Infused Learning"
-replace SchLevel = "Elementary" if SchName == "SAIL Charter Academy - School for Arts-Infused Learning"
-replace SchType = "Regular School" if SchName == "SAIL Charter Academy - School for Arts-Infused Learning"
+replace SchLevel = 1 if SchName == "SAIL Charter Academy - School for Arts-Infused Learning"
+replace SchType = 1 if SchName == "SAIL Charter Academy - School for Arts-Infused Learning"
+replace SchVirtual = "No" if SchName == "SAIL Charter Academy - School for Arts-Infused Learning"
 replace NCESSchoolID = "130024904273" if SchName == "International Academy of Smyrna"
-replace SchLevel = "Elementary" if SchName == "International Academy of Smyrna"
-replace SchType = "Regular School" if SchName == "International Academy of Smyrna"
+replace SchLevel = 1 if SchName == "International Academy of Smyrna"
+replace SchType = 1 if SchName == "International Academy of Smyrna"
+replace SchVirtual = "No" if SchName == "International Academy of Smyrna"
 replace NCESSchoolID = "130025004325" if SchName == "International Charter Academy of Georgia"
-replace SchLevel = "Elementary" if SchName == "International Charter Academy of Georgia"
-replace SchType = "Regular School" if SchName == "International Charter Academy of Georgia"
+replace SchLevel = 1 if SchName == "International Charter Academy of Georgia"
+replace SchType = 1 if SchName == "International Charter Academy of Georgia"
+replace SchVirtual = "No" if SchName == "International Charter Academy of Georgia"
 replace NCESSchoolID = "130025104306" if SchName == "SLAM Academy of Atlanta"
-replace SchLevel = "Elementary" if SchName == "SLAM Academy of Atlanta"
-replace SchType = "Regular School" if SchName == "SLAM Academy of Atlanta"
+replace SchLevel = 1 if SchName == "SLAM Academy of Atlanta"
+replace SchType = 1 if SchName == "SLAM Academy of Atlanta"
+replace SchVirtual = "No" if SchName == "SLAM Academy of Atlanta"
 replace NCESSchoolID = "130000502626" if SchName == "Statesboro STEAM Academy"
-replace SchLevel = "High" if SchName == "Statesboro STEAM Academy"
-replace SchType = "Regular School" if SchName == "Statesboro STEAM Academy"
+replace SchLevel = 3 if SchName == "Statesboro STEAM Academy"
+replace SchType = 1 if SchName == "Statesboro STEAM Academy"
+replace SchVirtual = "No" if SchName == "Statesboro STEAM Academy"
 replace NCESSchoolID = "130025204345" if SchName == "Academy For Classical Education"
-replace SchLevel = "Other" if SchName == "Academy For Classical Education"
-replace SchType = "Regular School" if SchName == "Academy For Classical Education"
+replace SchLevel = 4 if SchName == "Academy For Classical Education"
+replace SchType = 1 if SchName == "Academy For Classical Education"
+replace SchVirtual = "No" if SchName == "Academy For Classical Education"
 replace NCESSchoolID = "130025304349" if SchName == "Spring Creek Charter Academy"
-replace SchLevel = "Elementary" if SchName == "Spring Creek Charter Academy"
-replace SchType = "Regular School" if SchName == "Spring Creek Charter Academy"
+replace SchLevel = 1 if SchName == "Spring Creek Charter Academy"
+replace SchType = 1 if SchName == "Spring Creek Charter Academy"
+replace SchVirtual = "No" if SchName == "Spring Creek Charter Academy"
 replace NCESSchoolID = "130025704372" if SchName == "Yi Hwang Academy of Language Excellence"
-replace SchLevel = "Elementary" if SchName == "Yi Hwang Academy of Language Excellence"
-replace SchType = "Regular School" if SchName == "Yi Hwang Academy of Language Excellence"
+replace SchLevel = 1 if SchName == "Yi Hwang Academy of Language Excellence"
+replace SchType = 1 if SchName == "Yi Hwang Academy of Language Excellence"
+replace SchVirtual = "No" if SchName == "Yi Hwang Academy of Language Excellence"
 replace NCESSchoolID = "130025804373" if SchName == "Furlow Charter School"
-replace SchLevel = "Other" if SchName == "Furlow Charter School"
-replace SchType = "Regular School" if SchName == "Furlow Charter School"
+replace SchLevel = 4 if SchName == "Furlow Charter School"
+replace SchType = 1 if SchName == "Furlow Charter School"
+replace SchVirtual = "No" if SchName == "Furlow Charter School"
 replace NCESSchoolID = "130025504332" if SchName == "Ethos Classical Charter School"
-replace SchLevel = "Elementary" if SchName == "Ethos Classical Charter School"
-replace SchType = "Regular School" if SchName == "Ethos Classical Charter School"
+replace SchLevel = 1 if SchName == "Ethos Classical Charter School"
+replace SchType = 1 if SchName == "Ethos Classical Charter School"
+replace SchVirtual = "No" if SchName == "Ethos Classical Charter School"
 replace NCESSchoolID = "130025604363" if SchName == "Baconton Community Charter School"
-replace SchLevel = "Other" if SchName == "Baconton Community Charter School"
-replace SchType = "Regular School" if SchName == "Baconton Community Charter School"
+replace SchLevel = 4 if SchName == "Baconton Community Charter School"
+replace SchType = 1 if SchName == "Baconton Community Charter School"
+replace SchVirtual = "No" if SchName == "Baconton Community Charter School"
 replace NCESSchoolID = "130026104376" if SchName == "Atlanta Unbound Academy"
-replace SchLevel = "Elementary" if SchName == "Atlanta Unbound Academy"
-replace SchType = "Regular School" if SchName == "Atlanta Unbound Academy"
+replace SchLevel = 1 if SchName == "Atlanta Unbound Academy"
+replace SchType = 1 if SchName == "Atlanta Unbound Academy"
+replace SchVirtual = "No" if SchName == "Atlanta Unbound Academy"
 replace NCESSchoolID = "130026204377" if SchName == "D.E.L.T.A. STEAM Academy"
-replace SchLevel = "Elementary" if SchName == "D.E.L.T.A. STEAM Academy"
-replace SchType = "Regular School" if SchName == "D.E.L.T.A. STEAM Academy"
+replace SchLevel = 1 if SchName == "D.E.L.T.A. STEAM Academy"
+replace SchType = 1 if SchName == "D.E.L.T.A. STEAM Academy"
+replace SchVirtual = "No" if SchName == "D.E.L.T.A. STEAM Academy"
 replace NCESSchoolID = "130026304378" if SchName == "Georgia Fugees Academy Charter School"
-replace SchLevel = "High" if SchName == "Georgia Fugees Academy Charter School"
-replace SchType = "Regular School" if SchName == "Georgia Fugees Academy Charter School"
+replace SchLevel = 3 if SchName == "Georgia Fugees Academy Charter School"
+replace SchType = 1 if SchName == "Georgia Fugees Academy Charter School"
+replace SchVirtual = "No" if SchName == "Georgia Fugees Academy Charter School"
 replace NCESSchoolID = "130025904374" if SchName == "Atlanta SMART Academy"
-replace SchLevel = "Middle" if SchName == "Atlanta SMART Academy"
-replace SchType = "Regular School" if SchName == "Atlanta SMART Academy"
+replace SchLevel = 2 if SchName == "Atlanta SMART Academy"
+replace SchType = 1 if SchName == "Atlanta SMART Academy"
+replace SchVirtual = "No" if SchName == "Atlanta SMART Academy"
 replace NCESSchoolID = "130026404424" if SchName == "Northwest Classical Academy"
-replace SchLevel = "Elementary" if SchName == "Northwest Classical Academy"
-replace SchType = "Regular School" if SchName == "Northwest Classical Academy"
+replace SchLevel = 1 if SchName == "Northwest Classical Academy"
+replace SchType = 1 if SchName == "Northwest Classical Academy"
+replace SchVirtual = "No" if SchName == "Northwest Classical Academy"
 replace NCESSchoolID = "130026504428" if SchName == "Amana Academy West Atlanta"
-replace SchLevel = "Elementary" if SchName == "Amana Academy West Atlanta"
-replace SchType = "Regular School" if SchName == "Amana Academy West Atlanta"
+replace SchLevel = 1 if SchName == "Amana Academy West Atlanta"
+replace SchType = 1 if SchName == "Amana Academy West Atlanta"
+replace SchVirtual = "Missing/not reported" if SchName == "Amana Academy West Atlanta"
+
 replace DistCharter = "Yes" if DistName == "State Charter Schools II- Amana Academy West Atlanta"
 replace DistLocale = "Suburb, large" if DistName == "State Charter Schools II- Amana Academy West Atlanta"
 replace CountyName = "Cobb County" if DistName == "State Charter Schools II- Amana Academy West Atlanta"
 replace CountyCode = "13067" if DistName == "State Charter Schools II- Amana Academy West Atlanta"
 replace NCESSchoolID = "130585304460" if SchName == "Destinations Career Academy of Georgia (Virtual)"
-replace SchLevel = "Middle" if SchName == "Destinations Career Academy of Georgia (Virtual)"
-replace SchType = "Regular School" if SchName == "Destinations Career Academy of Georgia (Virtual)"
+replace SchLevel = 2 if SchName == "Destinations Career Academy of Georgia (Virtual)"
+replace SchType = 1 if SchName == "Destinations Career Academy of Georgia (Virtual)"
 replace DistCharter = "Yes" if SchName == "Destinations Career Academy of Georgia (Virtual)"
 replace DistLocale = "Missing/not reported" if SchName == "Destinations Career Academy of Georgia (Virtual)"
 replace CountyName = "Missing/not reported" if SchName == "Destinations Career Academy of Georgia (Virtual)"
 replace CountyCode = "Missing/not reported" if SchName == "Destinations Career Academy of Georgia (Virtual)"
 replace NCESSchoolID = "130585204434" if SchName == "Resurgence Hall Middle Academy"
-replace SchLevel = "Middle" if SchName == "Resurgence Hall Middle Academy"
-replace SchType = "Regular School" if SchName == "Resurgence Hall Middle Academy"
+replace SchLevel = 2 if SchName == "Resurgence Hall Middle Academy"
+replace SchType = 1 if SchName == "Resurgence Hall Middle Academy"
+replace SchVirtual = "Missing/not reported" if SchName == "Resurgence Hall Middle Academy"
 replace DistCharter = "Yes" if DistName == "State Charter Schools II- Resurgence Hall Middle Academy"
 replace DistLocale = "Suburb, large" if DistName == "State Charter Schools II- Resurgence Hall Middle Academy"
 replace CountyName = "Fulton County" if DistName == "State Charter Schools II- Resurgence Hall Middle Academy"

@@ -123,17 +123,16 @@ drop if _merge == 1 & DataLevel != 1
 drop if _merge == 2
 drop _merge
 
-gen seasch = "KS-" + StateAssignedDistID + "-" + StateAssignedSchID
+gen seasch = StateAssignedDistID + "-" + StateAssignedSchID
 
 merge m:1 seasch using "${NCES}/NCES_2022_School_KS.dta"
 
 drop if _merge == 2
 drop _merge
 
-replace StateAbbrev = "KS" if DataLevel == 1
-gen State = "Kansas"
-replace StateFips = "20" if DataLevel == 1
-rename SchoolType SchType
+replace StateAbbrev = "KS"
+replace State = "Kansas"
+replace StateFips = 20
 
 ** Merge EdFacts Data
 destring NCESDistrictID, replace force

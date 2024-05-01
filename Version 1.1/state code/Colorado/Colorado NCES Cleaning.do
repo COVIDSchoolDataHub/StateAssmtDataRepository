@@ -55,7 +55,6 @@ drop if StateAbbrev != "CO"
 rename ncesschoolid NCESSchoolID
 rename ncesdistrictid NCESDistrictID
 rename lea_name DistName
-*replace seasch = subinstr(seasch, "MO-", "", .)
 rename school_type SchType
 rename school_name SchName
 decode district_agency_type, gen (DistType)
