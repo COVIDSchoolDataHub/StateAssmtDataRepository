@@ -371,6 +371,9 @@ drop if StudentGroup == "Disability Status" & StudentSubGroup == "Unknown"
 *drop if StudentGroup == "RaceEth" & StudentSubGroup == "Unknown"
 *drop if StudentGroup == "Gender" & StudentSubGroup == "Unknown"
 
+//Dropping Unmerged Virtual School with all data suppressed
+drop if SchName == "JEDI Virtual K-12 - Jefferson and Eastern Dane County Interactive" & NCESSchoolID == "Missing"
+
 // Sorting and Exporting final
 
 drop Suppressed

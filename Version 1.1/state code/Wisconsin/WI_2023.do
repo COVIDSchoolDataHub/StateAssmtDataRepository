@@ -127,7 +127,7 @@ replace StateAssignedSchID = "" if SchName == "All Schools"
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_soc = "Not Applicable"
+gen Flag_CutScoreChange_soc = "N"
 gen Flag_CutScoreChange_sci = "N"
 
 // NCES district data
@@ -308,6 +308,30 @@ replace StudentSubGroup="Gender X" if copy_id==4
 
 drop copy_id
 
+//Migrant Status
+
+expand 2 if StudentGroup == "Migrant Status"
+sort n1 DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
+by n1: gen copy_id = _n
+replace copy_id=. if StudentGroup != "Migrant Status"
+
+replace StudentSubGroup = "Migrant" if copy_id ==1
+replace StudentSubGroup = "Non-Migrant" if copy_id == 2
+drop copy_id
+
+//Disability Status
+
+expand 2 if StudentGroup == "Disability Status"
+sort n1 DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
+by n1: gen copy_id = _n
+replace copy_id=. if StudentGroup != "Disability Status"
+
+replace StudentSubGroup = "SWD" if copy_id ==1
+replace StudentSubGroup = "Non-SWD" if copy_id == 2
+drop copy_id
+
 // RaceEth
 
 expand 8 if StudentGroup == "RaceEth"
@@ -384,6 +408,9 @@ drop if StudentGroup == "Migrant Status" & StudentSubGroup == "Unknown"
 drop if StudentGroup == "Disability Status" & StudentSubGroup == "Unknown"
 *drop if StudentGroup == "RaceEth" & StudentSubGroup == "Unknown"
 *drop if StudentGroup == "Gender" & StudentSubGroup == "Unknown"
+
+//Dropping Unmerged and all suppressed virtual schools
+drop if SchName == "Between the Lakes Virtual Academy" | SchName == "eSucceed Charter School" & NCESSchoolID == "Missing/not reported"
 
 // Sorting and Exporting final
 
