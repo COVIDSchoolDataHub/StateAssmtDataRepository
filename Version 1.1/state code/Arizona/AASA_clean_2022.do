@@ -123,8 +123,6 @@ tostring StateAssignedDistID, replace
 merge m:1 State_leaid using "${NCES}/NCES_2021_District.dta", force
 drop if _merge == 2
 drop _merge
-replace lea_name = strproper(lea_name)
-replace DistName = lea_name if DistName == ""
 
 merge m:1 seasch NCESDistrictID using "${NCES}/NCES_2021_School.dta", force
 drop if _merge == 2
@@ -211,9 +209,6 @@ append using "${output}/AZ_AssmtData_2022_district_sci.dta"
 merge m:1 State_leaid using "${NCES}/NCES_2021_District.dta"
 keep if _merge == 3
 drop _merge
-
-replace lea_name = strproper(lea_name)
-replace DistName = lea_name if DistName == ""
 
 sort NCESDistrictID GradeLevel Subject
 gen DataLevel="District"
@@ -319,8 +314,8 @@ gen AssmtType="Regular"
 
 gen AvgScaleScore = "--"
 
-gen Flag_CutScoreChange_ELA="N"
-gen Flag_CutScoreChange_math="N"
+gen Flag_CutScoreChange_ELA="Y"
+gen Flag_CutScoreChange_math="Y"
 gen Flag_CutScoreChange_soc="Not applicable"
 gen Flag_CutScoreChange_sci = "Y"
 
@@ -346,17 +341,7 @@ decode SchVirtual, generate(new)
 drop SchVirtual
 rename new SchVirtual
 
-foreach x of numlist 1/5 {
-    generate Lev`x'_count = ""
-    label variable Lev`x'_count "Count of students within subgroup performing at Level `x'."
-    label variable Lev`x'_percent "Percent of students within subgroup performing at Level `x'."
-}
-
 ** Replace missing values
-foreach v of varlist Lev1_count Lev2_count Lev3_count Lev4_count ParticipationRate {
-	tostring `v', replace
-	replace `v' = "--" if `v' == "" | `v' == "."
-}
 	
 foreach u of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent {
 	destring `u', replace force
@@ -365,14 +350,6 @@ foreach u of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent Profici
 	replace `u' = "*" if `u' == "."
 }
 
-destring ProficientOrAbove_percent, gen(ProficientOrAbove_percent2) force
-destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
-gen ProficientOrAbove_count = round(ProficientOrAbove_percent2 * StudentSubGroup_TotalTested2)
-tostring ProficientOrAbove_count, replace force
-replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
-drop ProficientOrAbove_percent2 StudentSubGroup_TotalTested2
-
-rename county_name CountyName
 replace CountyName = strproper(CountyName)
 
 replace StudentGroup="All Students" if StudentSubGroup=="All Students"
@@ -415,10 +392,28 @@ encode DataLevel, gen(DataLevel_n) label(DataLevel)
 sort DataLevel_n DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 drop DataLevel 
 rename DataLevel_n DataLevel 
-replace SchVirtual = "Missing/not reported" if SchVirtual == "" & DataLevel == 3
-replace SchLevel = "Missing/not reported" if SchLevel == "" & DataLevel == 3
 
-	
+**
+
+destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
+destring ProficientOrAbove_percent, gen(ProficientOrAbove_percent2) force
+
+gen ProficientOrAbove_count = round(ProficientOrAbove_percent2 * StudentSubGroup_TotalTested2)
+tostring ProficientOrAbove_count, replace force
+replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
+
+foreach x of numlist 1/4 {
+    destring Lev`x'_percent, gen(Lev`x'_percent2) force
+	gen Lev`x'_count = round(Lev`x'_percent2 * StudentSubGroup_TotalTested2)
+	tostring Lev`x'_count, replace force
+	replace Lev`x'_count = "*" if Lev`x'_count == "."
+}
+
+gen Lev5_count = ""
+
+replace SchLevel = "Primary" if NCESSchoolID == "040093303798"
+replace SchVirtual = "Yes" if NCESSchoolID == "040093303798"
+
 //order
 
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode

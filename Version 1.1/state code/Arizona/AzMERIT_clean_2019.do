@@ -8,15 +8,15 @@ global NCES "/Users/maggie/Desktop/Arizona/NCES/Cleaned"
 /*
 ** 2019 ELA and Math
 
-import excel "${AzMERIT}/AZ_OriginalData_2019_all.xlsx", sheet("School") firstrow clear
+import excel "${AzMERIT}/AZ_OriginalData_2019_ela_math.xlsx", sheet("School") firstrow clear
 
 save "${AzMERIT}/AZ_AssmtData_school_2019.dta", replace
 
-import excel "${AzMERIT}/AZ_OriginalData_2019_all.xlsx", sheet("District_Charter") firstrow clear   
+import excel "${AzMERIT}/AZ_OriginalData_2019_ela_math.xlsx", sheet("District_Charter") firstrow clear   
                     
 save "${AzMERIT}/AZ_AssmtData_district_2019.dta", replace
 
-import excel "${AzMERIT}/AZ_OriginalData_2019_all.xlsx", sheet("State") firstrow clear
+import excel "${AzMERIT}/AZ_OriginalData_2019_ela_math.xlsx", sheet("State") firstrow clear
 
 save "${AzMERIT}/AZ_AssmtData_state_2019.dta", replace
 
@@ -81,7 +81,6 @@ save "${output}/AZ_AssmtData_school_2019.dta", replace
 
 use "${AzMERIT}/AZ_AssmtData_school_sci_2019.dta", clear
 
-rename County CountyName
 rename DistrictName DistName
 rename DistrictCode StateAssignedDistID
 rename SchoolCode StateAssignedSchID
@@ -126,9 +125,6 @@ merge m:1 State_leaid using "${NCES}/NCES_2018_District.dta", force
 drop if _merge == 2
 drop _merge
 
-replace lea_name = strproper(lea_name)
-replace DistName = lea_name if DistName == ""
-
 merge m:1 seasch NCESDistrictID using "${NCES}/NCES_2018_School.dta", force
 drop if _merge == 2
 drop _merge
@@ -158,8 +154,6 @@ rename PercentProficiencyLevel3 Lev3_percent
 rename PercentProficiencyLevel4 Lev4_percent
 rename PercentPassing ProficientOrAbove_percent
 
-rename County CountyName
-
 ** Generate grade observations from TestLevel variable
 replace GradeLevel = "G03" if strpos(GradeLevel, "Grade 3")>0
 replace GradeLevel = "G04" if strpos(GradeLevel, "Grade 4")>0
@@ -180,7 +174,6 @@ save "${output}/AZ_AssmtData_district_2019.dta", replace
 
 use "${AzMERIT}/AZ_AssmtData_district_sci_2019.dta", clear 
 
-rename County CountyName
 rename DistrictName DistName
 rename DistrictCode StateAssignedDistID
 rename Subgroup StudentSubGroup
@@ -218,9 +211,6 @@ append using "${output}/AZ_AssmtData_2019_district_sci.dta"
 merge m:1 State_leaid using "${NCES}/NCES_2018_District.dta"
 drop if _merge == 2
 drop _merge
-
-replace lea_name = strproper(lea_name)
-replace DistName = lea_name if DistName == ""
 
 sort NCESDistrictID GradeLevel Subject
 gen DataLevel="District"
@@ -353,14 +343,9 @@ decode SchVirtual, generate(new)
 drop SchVirtual
 rename new SchVirtual
 
-foreach x of numlist 1/5 {
-    generate Lev`x'_count = ""
-    label variable Lev`x'_count "Count of students within subgroup performing at Level `x'."
-    label variable Lev`x'_percent "Percent of students within subgroup performing at Level `x'."
-}
-
 ** Replace missing values
-foreach v of varlist AvgScaleScore Lev1_count Lev2_count Lev3_count Lev4_count ParticipationRate {
+
+foreach v of varlist AvgScaleScore ParticipationRate {
 	tostring `v', replace
 	replace `v' = "--" if `v' == "" | `v' == "."
 }
@@ -371,16 +356,6 @@ foreach u of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent Profici
 	tostring `u', replace format("%9.2g") force
 	replace `u' = "*" if `u' == "."
 }
-
-destring ProficientOrAbove_percent, gen(ProficientOrAbove_percent2) force
-destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
-gen ProficientOrAbove_count = round(ProficientOrAbove_percent2 * StudentSubGroup_TotalTested2)
-tostring ProficientOrAbove_count, replace force
-replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
-drop ProficientOrAbove_percent2 StudentSubGroup_TotalTested2
-
-drop CountyName County
-rename county_name CountyName
 
 replace CountyName = strproper(CountyName)
 
@@ -426,6 +401,24 @@ drop DataLevel
 rename DataLevel_n DataLevel 
 replace SchVirtual = "Missing/not reported" if SchVirtual == "" & DataLevel == 3
 replace SchLevel = "Missing/not reported" if SchLevel == "" & DataLevel == 3
+
+**
+
+destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
+destring ProficientOrAbove_percent, gen(ProficientOrAbove_percent2) force
+
+gen ProficientOrAbove_count = round(ProficientOrAbove_percent2 * StudentSubGroup_TotalTested2)
+tostring ProficientOrAbove_count, replace force
+replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
+
+foreach x of numlist 1/4 {
+    destring Lev`x'_percent, gen(Lev`x'_percent2) force
+	gen Lev`x'_count = round(Lev`x'_percent2 * StudentSubGroup_TotalTested2)
+	tostring Lev`x'_count, replace force
+	replace Lev`x'_count = "*" if Lev`x'_count == "."
+}
+
+gen Lev5_count = ""
 
 //order
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode

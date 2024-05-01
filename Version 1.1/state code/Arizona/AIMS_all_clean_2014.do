@@ -74,9 +74,6 @@ merge m:1 State_leaid using "${NCES}/NCES_2013_District.dta", force
 drop if _merge == 2
 drop _merge
 
-replace lea_name = strproper(lea_name)
-replace DistName = lea_name if DistName == ""
-
 tostring StateAssignedSchID, generate(seasch)
 
 merge m:1 seasch NCESDistrictID using "${NCES}/NCES_2013_School.dta", force
@@ -158,9 +155,6 @@ merge m:1 State_leaid using "${NCES}/NCES_2013_District.dta", force
 drop if _merge == 2
 drop _merge
 
-replace lea_name = strproper(lea_name)
-replace DistName = lea_name if DistName == ""
-
 sort NCESDistrictID GradeLevel Subject
 
 save "${output}/AZ_AssmtData_district_2014.dta", replace
@@ -228,10 +222,10 @@ append using "${output}/AZ_AssmtData_school_2014.dta" "${output}/AZ_AssmtData_di
 
 save "${output}/AZ_AssmtData_2014.dta", replace
 
-rename county CountyName
 gen AssmtType="Regular and alt"
 
 gen AssmtName="AIMS"
+replace AssmtName = "AIMS Science and AIMS A" if Subject == "Science"
 gen Flag_AssmtNameChange="N"
 
 gen Flag_CutScoreChange_ELA="N"
@@ -242,20 +236,13 @@ gen Flag_CutScoreChange_sci="N"
 gen Lev5_percent=""
 
 gen ProficiencyCriteria="Levels 3-4"
-gen ProficientOrAbove_count=""
 gen ParticipationRate=""
 gen StudentGroup = "All Students"
 gen StudentSubGroup="All Students"
 gen StudentSubGroup_TotalTested="--"
 
-foreach x of numlist 1/5 {
-    generate Lev`x'_count =""
-    label variable Lev`x'_count "Count of students within subgroup performing at Level `x'."
-    label variable Lev`x'_percent "Percent of students within subgroup performing at Level `x'."
-}
-
 ** Replace missing values
-foreach v of varlist AvgScaleScore Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count ParticipationRate {
+foreach v of varlist AvgScaleScore ParticipationRate {
 	replace `v' = "--" if `v' == ""
 }
 	
@@ -275,7 +262,7 @@ replace Subject="wri" if Subject=="Writing"
 tostring SchYear, replace
 replace SchYear="2013-14"
 
-drop County LocalEducationAgencyLEACTD SchoolCTDSNumber CharterSchool lea_name year 
+drop County LocalEducationAgencyLEACTD SchoolCTDSNumber CharterSchool
 
 replace State="Arizona"
 replace StateAbbrev="AZ"
@@ -359,6 +346,28 @@ replace StudentSubGroup_TotalTested = StudentSubGroup_TotalTested2 if StudentSub
 tostring StudentGroup_TotalTested, replace force
 replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested == "."
 drop StudentSubGroup_TotalTested2 test
+
+**
+
+destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
+destring ProficientOrAbove_percent, gen(ProficientOrAbove_percent2) force
+
+gen ProficientOrAbove_count = round(ProficientOrAbove_percent2 * StudentSubGroup_TotalTested2)
+tostring ProficientOrAbove_count, replace force
+replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
+replace ProficientOrAbove_count = "--" if StudentSubGroup_TotalTested == "--"
+
+foreach x of numlist 1/4 {
+    destring Lev`x'_percent, gen(Lev`x'_percent2) force
+	gen Lev`x'_count = round(Lev`x'_percent2 * StudentSubGroup_TotalTested2)
+	tostring Lev`x'_count, replace force
+	replace Lev`x'_count = "*" if Lev`x'_count == "."
+	replace Lev`x'_count = "--" if StudentSubGroup_TotalTested == "--"
+}
+
+gen Lev5_count = ""
+
+replace DistName = "University Public Schools, Inc." if inlist(NCESDistrictID, "0400764", "0400857")
 	
 //order
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode

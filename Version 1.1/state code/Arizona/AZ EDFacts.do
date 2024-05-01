@@ -173,11 +173,12 @@ foreach year of local edyears2 {
 				replace Participation = Participation1 if Participation1 != "." & Participation2 == "."
 				gen Participation3 = subinstr(Participation, "GE", "", .) if strpos(Participation, "GE") > 0
 				replace Participation3 = subinstr(Participation, "LT", "", .) if strpos(Participation, "LT") > 0
+				replace Participation3 = subinstr(Participation, "LE", "", .) if strpos(Participation, "LE") > 0
 				destring Participation3, replace force
 				replace Participation3 = Participation3/100
 				tostring Participation3, replace format("%9.2g") force
 				replace Participation = Participation3 + "-1" if strpos(Participation, "GE") > 0
-				replace Participation = "0-" + Participation3 if strpos(Participation, "LT") > 0
+				replace Participation = "0-" + Participation3 if strpos(Participation, "LT") > 0 | strpos(Participation, "LE") > 0
 				drop Participation1 Participation2 Participation3
 			}
 			gen GradeLevel = "G" + substr(StudentSubGroup, -2, 2)
