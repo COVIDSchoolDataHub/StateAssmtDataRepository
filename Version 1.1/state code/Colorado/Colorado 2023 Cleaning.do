@@ -254,7 +254,7 @@ gen State_leaid = StateAssignedDistID
 replace State_leaid = "CO-" + State_leaid if DataLevel != 1
 
 gen seasch = StateAssignedSchID
-replace seasch = "CO-" + StateAssignedDistID + "-" + seasch if DataLevel == 3
+replace seasch = StateAssignedDistID + "-" + seasch if DataLevel == 3
 
 gen AssmtName = "Colorado Measures of Academic Success"
 gen AssmtType = "Regular"
@@ -264,51 +264,18 @@ gen AssmtType = "Regular"
 merge m:1 State_leaid using "${NCES}/NCES_2022_District_CO.dta"
 
 drop if _merge == 2
-drop _merge
+drop _merge 
+drop supervisory_union_number boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment teachers_total_fte staff_total_fte FLAG state_mailing urban_centric_locale
 
-merge m:1 State_leaid seasch using "${NCES}/NCES_2022_School_CO.dta"
+merge m:1 State_leaid seasch using "${NCES}/NCES_2022_School_CO"
 
 drop if _merge == 2
 drop _merge
-
-rename SchoolType SchType
-
-merge m:1 NCESDistrictID NCESSchoolID using "${NCES}/NCES_2021_School_CO.dta", keepusing(SchVirtual_str)
-replace SchVirtual = SchVirtual_str
-drop if _merge == 2
-drop _merge
-
-**** Updating 2023 schools
-replace SchVirtual = "Yes" if NCESSchoolID == "080690006850"
-replace SchVirtual = "Yes" if NCESSchoolID == "080028206846"
-replace SchVirtual = "Yes" if NCESSchoolID == "080354006868"
-replace SchVirtual = "Yes" if NCESSchoolID == "080354006869"
-replace SchVirtual = "Yes" if NCESSchoolID == "080480006852"
-replace SchVirtual = "Yes" if NCESSchoolID == "080555006860"
-replace SchVirtual = "Yes" if NCESSchoolID == "080258006488"
-replace SchVirtual = "Yes" if NCESSchoolID == "080002006867"
-replace SchVirtual = "Yes" if NCESSchoolID == "080492006863"
-replace SchVirtual = "No" if NCESSchoolID == "080291006865"
-replace SchVirtual = "No" if NCESSchoolID == "080333006847"
-replace SchVirtual = "No" if NCESSchoolID == "080028206848"
-replace SchVirtual = "No" if NCESSchoolID == "080441006859"
-replace SchVirtual = "No" if NCESSchoolID == "080555006862"
-replace SchVirtual = "No" if NCESSchoolID == "080399006866"
-replace SchVirtual = "No" if NCESSchoolID == "080615006856"
-replace SchVirtual = "No" if NCESSchoolID == "080615006841"
-replace SchVirtual = "No" if NCESSchoolID == "080426006635"
-replace SchVirtual = "No" if NCESSchoolID == "080258006857"
-replace SchVirtual = "No" if NCESSchoolID == "080336006849"
-replace SchVirtual = "No" if NCESSchoolID == "080002006853"
-replace SchVirtual = "No" if NCESSchoolID == "080492006863"
-replace SchVirtual = "No" if NCESSchoolID == "080738006844"
-replace SchVirtual = "No" if NCESSchoolID == "080531006854"
 
 **
 
 replace StateAbbrev = "CO"
-gen State = "Colorado"
-destring StateFips, replace
+replace State = "Colorado"
 replace StateFips = 8
 
 ** Generating new variables

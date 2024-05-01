@@ -543,7 +543,7 @@ replace StudentSubGroup = strtrim(StudentSubGroup)
 replace StudentSubGroup="Black or African American" if StudentSubGroup=="Black"
 replace StudentSubGroup="Native Hawaiian or Pacific Islander" if StudentSubGroup=="Hawaiian/Pacific Islander"
 replace StudentSubGroup="Native Hawaiian or Pacific Islander" if StudentSubGroup=="Pacific Islander"
-replace StudentSubGroup="Two or More" if StudentSubGroup=="Two or More Races"
+replace StudentSubGroup="Two or More" if StudentSubGroup=="Multiracial"
 replace StudentSubGroup="Hispanic or Latino" if StudentSubGroup=="Hispanic"
 replace StudentSubGroup="Unknown" if StudentSubGroup=="Unreported"
 replace StudentSubGroup="Unknown" if StudentSubGroup=="Not Reported"

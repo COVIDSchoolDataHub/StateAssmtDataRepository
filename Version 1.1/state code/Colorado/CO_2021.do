@@ -124,7 +124,7 @@ rename percentmetexpectations Lev4_percent
 rename numberexceededexpectations Lev5_count
 rename percentexceededexpectations Lev5_percent
 rename raceethnicity StudentSubGroup
-gen StudentGroup = "Race"
+gen StudentGroup = "RaceEth"
 gen subject="ela"
 
 save "${output}/CO_2021_ELA_raceEthnicity.dta", replace
@@ -221,7 +221,7 @@ rename percentmetexpectations Lev4_percent
 rename numberexceededexpectations Lev5_count
 rename percentexceededexpectations Lev5_percent
 rename languageproficiency StudentSubGroup
-gen StudentGroup = "EL status"
+gen StudentGroup = "EL Status"
 gen subject="math"
 
 save "${output}/CO_2021_mat_language.dta", replace
@@ -241,7 +241,7 @@ rename percentmetexpectations Lev4_percent
 rename numberexceededexpectations Lev5_count
 rename percentexceededexpectations Lev5_percent
 rename raceethnicity StudentSubGroup
-gen StudentGroup = "Race"
+gen StudentGroup = "RaceEth"
 gen subject="math"
 
 save "${output}/CO_2021_mat_raceEthnicity.dta", replace
@@ -336,7 +336,7 @@ rename percentmetexpectations Lev3_percent
 rename numberexceededexpectations Lev4_count
 rename percentexceededexpectations Lev4_percent
 rename languageproficiency StudentSubGroup
-gen StudentGroup = "EL status"
+gen StudentGroup = "EL Status"
 gen subject="sci"
 
 save "${output}/CO_2021_sci_language.dta", replace
@@ -354,7 +354,7 @@ rename percentmetexpectations Lev3_percent
 rename numberexceededexpectations Lev4_count
 rename percentexceededexpectations Lev4_percent
 rename raceethnicity StudentSubGroup
-gen StudentGroup = "Race"
+gen StudentGroup = "RaceEth"
 gen subject="sci"
 
 

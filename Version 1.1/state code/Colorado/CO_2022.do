@@ -56,7 +56,7 @@ import excel "${path}/2022 CMAS ELA School and District Achievement Results - Di
 
 
 rename raceethnicity StudentSubGroup
-gen StudentGroup = "Race"
+gen StudentGroup = "RaceEth"
 gen subject="ela"
 
 save "${output}/CO_2022_ELA_raceEthnicity.dta", replace
@@ -116,7 +116,7 @@ save "${output}/CO_2022_mat_language.dta", replace
 import excel "${path}/2022 CMAS Math School and District Achievement Results - Disaggregated by Group.xlsx", sheet("Race Ethnicity") cellrange(A13:Y56659) firstrow case(lower) clear
 
 rename raceethnicity StudentSubGroup
-gen StudentGroup = "Race"
+gen StudentGroup = "RaceEth"
 gen subject="math"
 
 save "${output}/CO_2022_mat_raceEthnicity.dta", replace
