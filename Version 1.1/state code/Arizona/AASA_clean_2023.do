@@ -351,17 +351,7 @@ decode SchVirtual, generate(new)
 drop SchVirtual
 rename new SchVirtual
 
-foreach x of numlist 1/5 {
-    generate Lev`x'_count = ""
-    label variable Lev`x'_count "Count of students within subgroup performing at Level `x'."
-    label variable Lev`x'_percent "Percent of students within subgroup performing at Level `x'."
-}
-
 ** Replace missing values
-foreach v of varlist Lev1_count Lev2_count Lev3_count Lev4_count {
-	tostring `v', replace
-	replace `v' = "--" if `v' == ""
-}
 	
 foreach u of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent {
 	destring `u', generate(`u'2) force
@@ -372,13 +362,6 @@ foreach u of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent Profici
 	replace `u' = "0.98-1" if `u' == ">98"
 	drop `u'2
 }
-
-destring ProficientOrAbove_percent, gen(ProficientOrAbove_percent2) force
-destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
-gen ProficientOrAbove_count = round(ProficientOrAbove_percent2 * StudentSubGroup_TotalTested2)
-tostring ProficientOrAbove_count, replace force
-replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
-drop ProficientOrAbove_percent2 StudentSubGroup_TotalTested2
 
 replace CountyName = strproper(CountyName)
 
@@ -418,10 +401,23 @@ sort DataLevel_n DistName SchName Subject GradeLevel StudentGroup StudentSubGrou
 drop DataLevel 
 rename DataLevel_n DataLevel
 
-replace SchVirtual = "Missing/not reported" if SchVirtual == "" & DataLevel == 3
+**
 
-replace DistName = "Archway Classical Academy Trivium West - Online (1001937)" if NCESDistrictID == "0409737"
-replace DistName = "Archway Classical Academy Trivium West (90915)" if NCESDistrictID == "0400832"
+destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
+destring ProficientOrAbove_percent, gen(ProficientOrAbove_percent2) force
+
+gen ProficientOrAbove_count = round(ProficientOrAbove_percent2 * StudentSubGroup_TotalTested2)
+tostring ProficientOrAbove_count, replace force
+replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
+
+foreach x of numlist 1/4 {
+    destring Lev`x'_percent, gen(Lev`x'_percent2) force
+	gen Lev`x'_count = round(Lev`x'_percent2 * StudentSubGroup_TotalTested2)
+	tostring Lev`x'_count, replace force
+	replace Lev`x'_count = "*" if Lev`x'_count == "."
+}
+
+gen Lev5_count = ""
 
 //order
 

@@ -68,9 +68,6 @@ merge m:1 State_leaid using "${NCES}/NCES_2020_District.dta", force
 drop if _merge == 2
 drop _merge
 
-replace lea_name = strproper(lea_name)
-replace DistName = lea_name if DistName == ""
-
 //replace StateAssignedSchID = 92731 if SchName == "Leman Academy of Excellence - Central Tucson"
 //replace StateAssignedSchID = 92230 if SchName == "Incito Schools-Phoenix"
 
@@ -210,7 +207,7 @@ gen Lev5_percent=""
 
 gen ProficiencyCriteria="Levels 3-4"
 
-gen ParticipationRate=""
+gen ParticipationRate="--"
 
 //District wide
 replace SchName = "All Schools" if DataLevel == "District" | DataLevel == "State"
@@ -229,17 +226,7 @@ decode SchVirtual, generate(new)
 drop SchVirtual
 rename new SchVirtual
 
-foreach x of numlist 1/5 {
-    generate Lev`x'_count = ""
-    label variable Lev`x'_count "Count of students within subgroup performing at Level `x'."
-    label variable Lev`x'_percent "Percent of students within subgroup performing at Level `x'."
-}
-
 ** Replace missing values
-foreach v of varlist Lev1_count Lev2_count Lev3_count Lev4_count ParticipationRate {
-	tostring `v', replace
-	replace `v' = "--" if `v' == "" | `v' == "."
-}
 	
 foreach u of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent {
 	destring `u', replace force
@@ -248,14 +235,6 @@ foreach u of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent Profici
 	replace `u' = "*" if `u' == "."
 }
 
-destring ProficientOrAbove_percent, gen(ProficientOrAbove_percent2) force
-destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
-gen ProficientOrAbove_count = round(ProficientOrAbove_percent2 * StudentSubGroup_TotalTested2)
-tostring ProficientOrAbove_count, replace force
-replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
-drop ProficientOrAbove_percent2 StudentSubGroup_TotalTested2
-
-rename county_name CountyName
 replace CountyName = strproper(CountyName)
 
 replace StudentGroup="All Students" if StudentSubGroup=="All Students"
@@ -304,12 +283,23 @@ rename DataLevel_n DataLevel
 replace SchVirtual = "Missing/not reported" if SchVirtual == "" & DataLevel == 3
 replace SchLevel = "Missing/not reported" if SchLevel == "" & DataLevel == 3
 
-// Insert Robert J. C. Rice data from 2021 NCES School
-replace NCESSchoolID = "040187003766" if SchName == "Robert J.C. Rice Elementary School"
-replace SchType = "Regular school" if SchName == "Robert J.C. Rice Elementary School"
-replace SchLevel = "Primary" if SchName == "Robert J.C. Rice Elementary School"
+**
 
+destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
+destring ProficientOrAbove_percent, gen(ProficientOrAbove_percent2) force
 
+gen ProficientOrAbove_count = round(ProficientOrAbove_percent2 * StudentSubGroup_TotalTested2)
+tostring ProficientOrAbove_count, replace force
+replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
+
+foreach x of numlist 1/4 {
+    destring Lev`x'_percent, gen(Lev`x'_percent2) force
+	gen Lev`x'_count = round(Lev`x'_percent2 * StudentSubGroup_TotalTested2)
+	tostring Lev`x'_count, replace force
+	replace Lev`x'_count = "*" if Lev`x'_count == "."
+}
+
+gen Lev5_count = ""
 	
 //order
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
@@ -317,7 +307,6 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-
 
 save "${output}/AZ_AssmtData_2021.dta", replace
 export delimited using "${output}/csv/AZ_AssmtData_2021.csv", replace
