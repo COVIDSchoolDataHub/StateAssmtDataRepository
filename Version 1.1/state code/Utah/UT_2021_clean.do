@@ -671,6 +671,9 @@ forvalues i = 1/4 {
 
 replace ProficientOrAbove_percent = "--" if inlist(ProficientOrAbove_percent, "null", "NULL", "", "-")
 replace ProficientOrAbove_percent ="*" if inlist(ProficientOrAbove_percent, "N≤10", "n≤10", "n<10", "N<10")
+
+replace ProficientOrAbove_percent = PctProf if !inlist(PctProf, "", ".", "--", "*") & inlist(ProficientOrAbove_percent, "--", "*")
+
 replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, " to ", "-", 1)
 replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, "%", "", 1)
 gen Below = 0
@@ -680,10 +683,10 @@ gen Above = 0
 replace Above = 1 if strpos(ProficientOrAbove_percent, ">") > 0
 replace Above = 1 if strpos(ProficientOrAbove_percent, "≥") > 0
 replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, "< ", "", 1)
-replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, "<= ", "", 1)
+replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, "<=", "", 1)
 replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, "≤", "", 1)
 replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, "> ", "", 1)
-replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, ">= ", "", 1)
+replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, ">=", "", 1)
 replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, "≥", "", 1)
 replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, "<", "", 1)
 replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, ">", "", 1)
@@ -692,7 +695,8 @@ destring ProficientOrAbove_percent1, replace force
 replace ProficientOrAbove_percent1 = ProficientOrAbove_percent1/100 if Below == 1 | Above == 1
 gen ProfCount = .
 replace ProfCount = round(ProficientOrAbove_percent1 * Count_n) if Below == 0 & Above == 0
-replace ProficientOrAbove_count = string(ProfCount) if DataLevel != 1 & ProfCount != .
+gen flag1 = 1 if DataLevel == 1 & StudentSubGroup == "All Students"
+replace ProficientOrAbove_count = string(ProfCount) if flag1 != 1 & ProfCount != .
 tostring ProficientOrAbove_percent1, replace format("%9.2g") force
 replace ProficientOrAbove_percent = "0-" + ProficientOrAbove_percent1 if Below == 1
 replace ProficientOrAbove_percent = ProficientOrAbove_percent1 + "-1" if Above == 1
@@ -709,13 +713,13 @@ gen ProficientOrAbove_count2 = round(ProficientOrAbove_percent2 * Count_n)
 tostring ProficientOrAbove_count1, replace
 tostring ProficientOrAbove_count2, replace
 replace ProficientOrAbove_count1 = "" if ProficientOrAbove_count1 == "."
-replace ProficientOrAbove_count = ProficientOrAbove_count1 + "-" + ProficientOrAbove_count2 if ProficientOrAbove_count1 != "" & ProficientOrAbove_count2 != "."
+replace ProficientOrAbove_count = ProficientOrAbove_count1 + "-" + ProficientOrAbove_count2 if ProficientOrAbove_count1 != "" & ProficientOrAbove_count2 != "." & ProficientOrAbove_count1 != ProficientOrAbove_count2
+replace ProficientOrAbove_count = ProficientOrAbove_count1 if ProficientOrAbove_count1 != "" & ProficientOrAbove_count2 != "." & ProficientOrAbove_count1 == ProficientOrAbove_count2
 tostring ProficientOrAbove_percent1, replace format("%9.2g") force
 tostring ProficientOrAbove_percent2, replace format("%9.2g") force
 replace ProficientOrAbove_percent = ProficientOrAbove_percent1 + "-" + ProficientOrAbove_percent2 if !inlist(ProficientOrAbove_percent1, "", ".")
 drop ProficientOrAbove_percent1 ProficientOrAbove_percent2 ProficientOrAbove_count1 ProficientOrAbove_count2
 
-replace ProficientOrAbove_percent = PctProf if !inlist(PctProf, "", ".", "--", "*") & inlist(ProficientOrAbove_percent, "--", "*")
 replace ProficientOrAbove_count = "--" if inlist(ProficientOrAbove_count, "", ".")
 replace ProficientOrAbove_count = "--" if ProficientOrAbove_percent == "--"
 replace ProficientOrAbove_count = "*" if ProficientOrAbove_percent == "*"
@@ -755,6 +759,12 @@ replace StudentGroup_TotalTested = AllStudents_Tested if inlist(StudentGroup, "D
 drop AllStudents_Tested StudentGroup_Suppressed
 replace StudentGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "--"
 replace StudentGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "*"
+
+*** Cleaning Inconsistent School & District Names
+merge m:m SchYear NCESSchoolID NCESDistrictID using "${raw}/ut_full-dist-sch-stable-list_through2023.dta"
+drop if _merge == 2
+replace SchName = newschname if _merge == 3 & SchName != newschname
+replace DistName = newdistname if _merge == 3 & DistName != newdistname
 
 *** Clean up variables & save file
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode

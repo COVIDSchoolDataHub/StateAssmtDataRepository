@@ -10,10 +10,6 @@ global utah "/Users/miramehta/Documents/NCES District and School Demographics/Cl
 
 global edfacts "/Users/miramehta/Documents/EdFacts"
 
-*import excel "${raw}/UT_Enrollment_Unmerged_2022_2023.xlsx", firstrow allstring clear
-
-*save "${raw}/UT_Enrollment_Unmerged_2022_2023.dta", replace
-
 foreach year in 2022 2023 {
 	
 	foreach dl in School LEA {

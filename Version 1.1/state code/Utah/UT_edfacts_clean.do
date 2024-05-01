@@ -182,8 +182,8 @@ foreach year of local edyears2 {
 	foreach sub of local subject {
 		foreach type of local datatype {
 			foreach lvl of local datalevel {
-				import delimited "${edfacts}/20`year'/edfacts`type'20`year'`sub'`lvl'.csv", clear
-				save "${edfacts}/20`year'/edfacts`type'20`year'`sub'`lvl'.dta", replace
+				import delimited "${edfacts}/`year'/edfacts`type'`year'`sub'`lvl'.csv", clear
+				save "${edfacts}/`year'/edfacts`type'`year'`sub'`lvl'.dta", replace
 			}
 		}
 	}

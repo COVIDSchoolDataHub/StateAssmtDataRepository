@@ -150,6 +150,9 @@ save "${int}/UT_2022_subgroup_school.dta", replace
 append using "${int}/UT_2022_levels_school.dta"
 drop _merge
 
+replace SchName = "Minersville School (Primary)" if SchName == "Minersville School" & inlist(GradeLevel, "G03", "G04", "G05")
+replace SchName = "Minersville School (Middle)" if SchName == "Minersville School" & inlist(GradeLevel, "G06", "G07", "G08", "G38")
+
 merge m:1 SchName DistName using "${utah}/NCES_2022_School.dta"
 
 gen DataLevel=3
@@ -182,6 +185,8 @@ replace StudentGroup="All Students" if StudentSubGroup=="All Students"
 replace StudentGroup="EL Status" if StudentSubGroup=="English Learner"
 replace StudentGroup="Economic Status" if StudentSubGroup=="Economically Disadvantaged"
 replace StudentGroup="Disability Status" if StudentSubGroup=="SWD"
+
+replace SchName = "Minersville School" if strpos(SchName, "Minersville School") > 0
 
 *** Merge Enrollment Data
 merge m:1 DataLevel NCESDistrictID NCESSchoolID GradeLevel StudentSubGroup using "${raw}/UT_Enrollment_School_2022.dta"
@@ -560,10 +565,10 @@ forvalues i = 1/4 {
 	replace Above = 1 if strpos(Lev`i'_percent, ">") > 0
 	replace Above = 1 if strpos(Lev`i'_percent, "≥") > 0
 	replace Lev`i'_percent = subinstr(Lev`i'_percent, "< ", "", 1)
-	replace Lev`i'_percent = subinstr(Lev`i'_percent, "<= ", "", 1)
+	replace Lev`i'_percent = subinstr(Lev`i'_percent, "<=", "", 1)
 	replace Lev`i'_percent = subinstr(Lev`i'_percent, "≤", "", 1)
 	replace Lev`i'_percent = subinstr(Lev`i'_percent, "> ", "", 1)
-	replace Lev`i'_percent = subinstr(Lev`i'_percent, ">= ", "", 1)
+	replace Lev`i'_percent = subinstr(Lev`i'_percent, ">=", "", 1)
 	replace Lev`i'_percent = subinstr(Lev`i'_percent, "≥", "", 1)
 	replace Lev`i'_percent = subinstr(Lev`i'_percent, "<", "", 1)
 	replace Lev`i'_percent = subinstr(Lev`i'_percent, ">", "", 1)
@@ -611,10 +616,10 @@ gen Above = 0
 replace Above = 1 if strpos(ProficientOrAbove_percent, ">") > 0
 replace Above = 1 if strpos(ProficientOrAbove_percent, "≥") > 0
 replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, "< ", "", 1)
-replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, "<= ", "", 1)
+replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, "<=", "", 1)
 replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, "≤", "", 1)
 replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, "> ", "", 1)
-replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, ">= ", "", 1)
+replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, ">=", "", 1)
 replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, "≥", "", 1)
 replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, "<", "", 1)
 replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, ">", "", 1)
@@ -623,7 +628,8 @@ destring ProficientOrAbove_percent1, replace force
 replace ProficientOrAbove_percent1 = ProficientOrAbove_percent1/100 if Below == 1 | Above == 1
 gen ProfCount = .
 replace ProfCount = round(ProficientOrAbove_percent1 * Count_n) if Below == 0 & Above == 0
-replace ProficientOrAbove_count = string(ProfCount) if DataLevel != 1 & ProfCount != .
+gen flag1 = 1 if DataLevel == 1 & StudentSubGroup == "All Students"
+replace ProficientOrAbove_count = string(ProfCount) if flag1 != 1 & ProfCount != .
 tostring ProficientOrAbove_percent1, replace format("%9.2g") force
 replace ProficientOrAbove_percent = "0-" + ProficientOrAbove_percent1 if Below == 1
 replace ProficientOrAbove_percent = ProficientOrAbove_percent1 + "-1" if Above == 1
@@ -675,6 +681,12 @@ replace StudentGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "*"
 ** Clean up from unmerged schools
 replace StateAssignedSchID = subinstr(StateAssignedSchID, "UT-", "", .) if strpos(StateAssignedSchID, "UT-") > 0
 replace StateAssignedDistID = "UT-" + StateAssignedDistID if strpos(StateAssignedDistID, "UT-") <= 0 & DataLevel != 1
+
+*** Cleaning Inconsistent School & District Names
+merge m:m SchYear NCESSchoolID NCESDistrictID using "${raw}/ut_full-dist-sch-stable-list_through2023.dta"
+drop if _merge == 2
+replace SchName = newschname if _merge == 3 & SchName != newschname
+replace DistName = newdistname if _merge == 3 & DistName != newdistname
 
 *** Clean up variables & save file
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode

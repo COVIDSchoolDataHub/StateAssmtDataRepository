@@ -487,74 +487,80 @@ replace StateAssignedSchID = "" if DataLevel != 3
 replace StateAssignedDistID = "" if DataLevel == 1
 
 ** Proficiency Values
+destring StudentSubGroup_TotalTested, gen(x) force
+replace Count_n = x if Count_n == . & x != .
+
 foreach i of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent {
 	replace `i'="--" if `i'=="null" | `i'=="NULL" | `i'=="" | `i'=="-"
 	replace `i'="*" if `i'=="N≤10" | `i'=="n≤10" | `i'=="n<10"| `i'=="N<10"
-}
-
-replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, " to ", "-", 1)
-replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, "%", "", 1)
-gen Below = 0
-replace Below = 1 if strpos(ProficientOrAbove_percent, "<") > 0
-replace Below = 1 if strpos(ProficientOrAbove_percent, "≤") > 0
-gen Above = 0
-replace Above = 1 if strpos(ProficientOrAbove_percent, ">") > 0
-replace Above = 1 if strpos(ProficientOrAbove_percent, "≥") > 0
-replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, "< ", "", 1)
-replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, "<= ", "", 1)
-replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, "≤", "", 1)
-replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, "> ", "", 1)
-replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, ">= ", "", 1)
-replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, "≥", "", 1)
-replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, "<", "", 1)
-replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, ">", "", 1)
-gen ProficientOrAbove_percent1 = ProficientOrAbove_percent
-destring ProficientOrAbove_percent1, replace force
-replace ProficientOrAbove_percent1 = ProficientOrAbove_percent1/100 if Below == 1 | Above == 1
-gen ProficientOrAbove_count = .
-replace ProficientOrAbove_count = round(ProficientOrAbove_percent1 * Count_n) if Below == 0 & Above == 0
-tostring ProficientOrAbove_count, replace
-tostring ProficientOrAbove_percent1, replace format("%9.2g") force
-replace ProficientOrAbove_percent = "0-" + ProficientOrAbove_percent1 if Below == 1
-replace ProficientOrAbove_percent = ProficientOrAbove_percent1 + "-1" if Above == 1
-drop ProficientOrAbove_percent1
+	replace `i' = subinstr(`i', " to ", "-", 1)
+	replace `i' = subinstr(`i', "%", "", 1)
+	gen Below = 0
+	replace Below = 1 if strpos(`i', "<") > 0
+	replace Below = 1 if strpos(`i', "≤") > 0
+	gen Above = 0
+	replace Above = 1 if strpos(`i', ">") > 0
+	replace Above = 1 if strpos(`i', "≥") > 0
+	replace `i' = subinstr(`i', "< ", "", 1)
+	replace `i' = subinstr(`i', "<= ", "", 1)
+	replace `i' = subinstr(`i', "≤", "", 1)
+	replace `i' = subinstr(`i', "> ", "", 1)
+	replace `i' = subinstr(`i', ">=", "", 1)
+	replace `i' = subinstr(`i', "≥", "", 1)
+	replace `i' = subinstr(`i', "<", "", 1)
+	replace `i' = subinstr(`i', ">", "", 1)
+	gen `i'1 = `i'
+	destring `i'1, replace force
+	replace `i'1 = `i'1/100 if Below == 1 | Above == 1
+	gen `i'_count = .
+	replace `i'_count = round(`i'1 * Count_n) if Below == 0 & Above == 0
+	tostring `i'_count, replace
+	tostring `i'1, replace format("%9.2g") force
+	replace `i' = "0-" + `i'1 if Below == 1
+	replace `i' = `i'1 + "-1" if Above == 1
+	drop `i'1
 	
-split ProficientOrAbove_percent, parse("-")
-replace ProficientOrAbove_percent1 = "" if ProficientOrAbove_percent == ProficientOrAbove_percent1
-destring ProficientOrAbove_percent1, replace force
-destring ProficientOrAbove_percent2, replace force
-replace ProficientOrAbove_percent1 = ProficientOrAbove_percent1/100 if Above == 0 & Below == 0
-replace ProficientOrAbove_percent2 = ProficientOrAbove_percent2/100 if Above == 0 & Below == 0
-gen ProficientOrAbove_count1 = round(ProficientOrAbove_percent1 * Count_n)
-gen ProficientOrAbove_count2 = round(ProficientOrAbove_percent2 * Count_n)
-tostring ProficientOrAbove_count1, replace
-tostring ProficientOrAbove_count2, replace
-replace ProficientOrAbove_count1 = "" if ProficientOrAbove_count1 == "."
-replace ProficientOrAbove_count = ProficientOrAbove_count1 + "-" + ProficientOrAbove_count2 if ProficientOrAbove_count1 != "" & ProficientOrAbove_count2 != "."
-tostring ProficientOrAbove_percent1, replace format("%9.2g") force
-tostring ProficientOrAbove_percent2, replace format("%9.2g") force
-replace ProficientOrAbove_percent = ProficientOrAbove_percent1 + "-" + ProficientOrAbove_percent2 if !inlist(ProficientOrAbove_percent1, "", ".")
-drop ProficientOrAbove_percent1 ProficientOrAbove_percent2 ProficientOrAbove_count1 ProficientOrAbove_count2
-
-replace ProficientOrAbove_percent = PctProf if !inlist(PctProf, "", ".", "--", "*") & inlist(ProficientOrAbove_percent, "--", "*")
-replace ProficientOrAbove_count = "--" if inlist(ProficientOrAbove_count, "", ".")
-replace ProficientOrAbove_count = "--" if ProficientOrAbove_percent == "--"
-replace ProficientOrAbove_count = "*" if ProficientOrAbove_percent == "*"
-replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == "."
-replace ParticipationRate = "--" if ParticipationRate == ""
+	split `i', parse("-")
+	replace `i'1 = "" if `i' == `i'1
+	destring `i'1, replace force
+	destring `i'2, replace force
+	replace `i'1 = `i'1/100 if Above == 0 & Below == 0
+	replace `i'2 = `i'2/100 if Above == 0 & Below == 0
+	gen `i'_count1 = round(`i'1 * Count_n)
+	gen `i'_count2 = round(`i'2 * Count_n)
+	tostring `i'_count1, replace
+	tostring `i'_count2, replace
+	replace `i'_count1 = "" if `i'_count1 == "."
+	replace `i'_count = `i'_count1 + "-" + `i'_count2 if `i'_count1 != "" & `i'_count2 != "." & `i'_count1 != `i'_count2
+	replace `i'_count = `i'_count1 if `i'_count1 != "" & `i'_count2 != "." & `i'_count1 == `i'_count2
+	tostring `i'1, replace format("%9.2g") force
+	tostring `i'2, replace format("%9.2g") force
+	replace `i' = `i'1 + "-" + `i'2 if !inlist(`i'1, "", ".")
+	
+	replace `i'_count = "--" if inlist(`i'_count, "", ".")
+	replace `i'_count = "--" if `i' == "--"
+	replace `i'_count = "*" if `i' == "*"
+	
+	drop `i'1 `i'2 `i'_count1 `i'_count2 Above Below
+}
 
 forvalues n = 1/4{
-	gen Lev`n' = Lev`n'_percent
-	destring Lev`n', replace force
-	gen Lev`n'_count = round(Lev`n' * Count_n)
-	tostring Lev`n'_count, replace
-	replace Lev`n'_count = "--" if inlist(Lev`n'_count, "", ".")
-	replace Lev`n'_count = "--" if Lev`n'_percent == "--"
-	replace Lev`n'_count = "*" if Lev`n'_percent == "*"
-	replace Lev`n'_count = "*" if StudentSubGroup_TotalTested == "*"
-	replace Lev`n'_count = "--" if StudentSubGroup_TotalTested == "--" & Lev`n'_count != "*"
-	drop Lev`n'
+	rename Lev`n'_percent_count Lev`n'_count
 }
+
+rename ProficientOrAbove_percent_count ProficientOrAbove_count
+
+gen flag = 1 if !inlist(PctProf, "", ".", "--", "*") & inlist(ProficientOrAbove_percent, "--", "*")
+replace ProficientOrAbove_percent = PctProf if flag == 1
+split ProficientOrAbove_percent, parse("-")
+destring ProficientOrAbove_percent1, replace force
+destring ProficientOrAbove_percent2, replace force
+gen Prof1 = round(ProficientOrAbove_percent1 * Count_n)
+gen Prof2 = round(ProficientOrAbove_percent2 * Count_n)
+replace ProficientOrAbove_count = string(Prof1) + "-" + string(Prof2) if flag == 1 & Prof1 != . & Prof2 != . & Prof1 != Prof2
+
+replace ProficientOrAbove_count = "--" if inlist(ProficientOrAbove_count, "", ".")
+replace ParticipationRate = "--" if ParticipationRate == ""
 
 gen Lev5_count = ""
 gen Lev5_percent = ""
@@ -604,6 +610,12 @@ replace SchName="Canyon View School" if strpos(SchName, "Canyon View")>0
 replace SchLevel="Missing/not reported" if SchName=="North Sanpete Special Purpose School"
 replace SchType="Missing/not reported" if SchName=="North Sanpete Special Purpose School"
 replace SchVirtual="Missing/not reported" if SchName=="North Sanpete Special Purpose School"
+
+*** Cleaning Inconsistent School & District Names
+merge m:m SchYear NCESSchoolID NCESDistrictID using "${raw}/ut_full-dist-sch-stable-list_through2023.dta"
+drop if _merge == 2
+replace SchName = newschname if _merge == 3 & SchName != newschname
+replace DistName = newdistname if _merge == 3 & DistName != newdistname
 
 *** Clean up variables & save file
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
