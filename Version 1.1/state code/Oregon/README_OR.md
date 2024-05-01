@@ -9,7 +9,7 @@ Note that there is not any data for 2020 due to COVID, and the data for 2021 are
 Create the following folders:
 - OR State Testing Data (with two subfolders: Original Data and Output.)
 - NCES District and School Demographics (with two subfolders: NCES School Files, Fall 1997-Fall 2022 and NCES District Files, Fall 1997-Fall 2022)
-Download the original .xlsx files and place them into the "Original Data" subfolder. Download the NCES files and place them into the appropriate folders.
+Download the original .xlsx files from the "Updated Original Data" folder and place them into the "Original Data" subfolder. Download the NCES files and place them into the appropriate folders.
 
 There are 2 .do files, one for 2021 and one for all other years.  You can run them in any order.
     
