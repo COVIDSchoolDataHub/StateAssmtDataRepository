@@ -348,8 +348,8 @@ append using mass_districts_new_mcas_titled
 drop StateAssignedDistID
 
 // append new subgroup data from database 
-append using mass_new_cleaned 
-drop StateAssignedDistID
+//append using mass_new_cleaned 
+//drop StateAssignedDistID
 
 
 merge m:1 DistName using mass_district_IDs
@@ -484,7 +484,7 @@ use mass_districts_new_mcas_in_progress_3_n, clear
 
 // Loop to merge with NCES data, separate into individual years and add necessary variables
 
-global years1   2022 2023   // 2023 // 2017 2018 2019 2021
+global years1  2017 2018 2019 2021 2022 2023
 
 foreach a in $years1 {
 	
@@ -608,38 +608,7 @@ gen State = "Massachusetts"
 gen StateAbbrev = "MA"
 gen StateFips = 25 // CHANGED
 
-if `a' == 2017 {
-// gen Flag_AssmtNameChange = "Y"
-// gen Flag_CutScoreChange_ELA = "Y"
-// gen Flag_CutScoreChange_math = "Y"
-// gen Flag_CutScoreChange_read = ""
-// gen Flag_CutScoreChange_oth = "Y"
 
-gen Flag_AssmtNameChange = "Y"
-gen Flag_CutScoreChange_ELA = "Y"
-gen Flag_CutScoreChange_math = "Y"
-gen Flag_CutScoreChange_sci = "Y" 
-gen Flag_CutScoreChange_soc = "Not applicable"
-
-}
-
-if `a' != 2017 {
-// gen Flag_AssmtNameChange = "N"
-// gen Flag_CutScoreChange_ELA = "N"
-// gen Flag_CutScoreChange_math = "N"
-// gen Flag_CutScoreChange_oth = "Y"
-// gen Flag_CutScoreChange_read = ""
-
-// updated 
-gen Flag_AssmtNameChange = "N"
-gen Flag_CutScoreChange_ELA = "N"
-gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_sci = "N" 
-gen Flag_CutScoreChange_soc = "Not applicable"
-// updated 
-
-
-}
 
 // year specific 
 
@@ -691,6 +660,46 @@ replace Subject2 = "sci" if Subject == "SCI"
 
 drop Subject
 rename Subject2 Subject
+
+
+if `a' == 2017 {
+// gen Flag_AssmtNameChange = "Y"
+// gen Flag_CutScoreChange_ELA = "Y"
+// gen Flag_CutScoreChange_math = "Y"
+// gen Flag_CutScoreChange_read = ""
+// gen Flag_CutScoreChange_oth = "Y"
+
+gen Flag_AssmtNameChange = "N"
+replace Flag_AssmtNameChange = "Y" if Subject == "math" | Subject == "ela"
+gen Flag_CutScoreChange_ELA = "Y"
+gen Flag_CutScoreChange_math = "Y"
+gen Flag_CutScoreChange_sci = "Y" 
+gen Flag_CutScoreChange_soc = "Not applicable"
+
+}
+
+if `a' != 2017 {
+// gen Flag_AssmtNameChange = "N"
+// gen Flag_CutScoreChange_ELA = "N"
+// gen Flag_CutScoreChange_math = "N"
+// gen Flag_CutScoreChange_oth = "Y"
+// gen Flag_CutScoreChange_read = ""
+
+// updated 
+gen Flag_AssmtNameChange = "N"
+gen Flag_CutScoreChange_ELA = "N"
+gen Flag_CutScoreChange_math = "N"
+gen Flag_CutScoreChange_sci = "N" 
+gen Flag_CutScoreChange_soc = "Not applicable"
+// updated 
+
+}
+
+if `a' == 2019 {
+replace Flag_AssmtNameChange = "Y" if Subject == "sci"
+replace Flag_CutScoreChange_sci = "Y" 
+
+}
 
 
 gen GradeLevel2 = ""
@@ -904,3 +913,45 @@ export delimited MA_AssmtData_`a'.csv, replace
 
 
 }
+
+
+
+// new dist names 
+//Looping Through Years
+forvalues year = 2017/2023 {  
+	if `year' == 2020 continue
+	
+use "MA_StableNames", clear
+local prevyear = `=`year'-1'
+keep if SchYear == "`prevyear'-" + substr("`year'",-2,2)
+
+save "MA_StableNames_`year'", replace
+
+use "MA_AssmtData_`year'_Stata", clear
+
+merge m:1 NCESDistrictID using "MA_StableNames_`year'"
+
+
+
+drop if _merge == 2
+replace DistName = newdistname if DataLevel !=1
+replace DistName = "All Districts" if DataLevel == 1
+replace SchName = "All Schools" if DataLevel ==1
+
+
+//Final Cleaning and Saving
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup	
+
+
+save MA_AssmtData_`year'_Stata, replace
+export delimited MA_AssmtData_`year'.csv, replace
+
+}
+
+
+
+
+
