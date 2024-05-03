@@ -167,7 +167,22 @@ rename testlevel GradeLevel
 replace GradeLevel = subinstr(GradeLevel,"Grade ","",.)
 replace GradeLevel = "G0" + GradeLevel
 
+replace StudentSubGroup = "Male" if StudentSubGroup == "M"
+replace StudentSubGroup = "Female" if StudentSubGroup == "F"
+replace StudentSubGroup = "English Learner" if StudentSubGroup == "Y" & StudentGroup == "EL Status"
+replace StudentSubGroup = "English Proficient" if StudentSubGroup == "N" & StudentGroup == "EL Status"
+replace StudentSubGroup = "Black or African American" if StudentSubGroup == "Black, not of Hispanic origin"
+replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "Native Hawaiian  or Pacific Islander"
+replace StudentSubGroup = "White" if StudentSubGroup == "White, not of Hispanic origin"
+replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
+replace StudentSubGroup = "Unknown" if StudentSubGroup == "Unknown - Race/Ethnicity not provided"
+replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Y" & StudentGroup == "Economic Status"
+replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "N" & StudentGroup == "Economic Status"
+replace StudentSubGroup = "Migrant" if StudentSubGroup == "Y" & StudentGroup == "Migrant Status"
+replace StudentSubGroup = "Non-Migrant" if StudentSubGroup == "N" & StudentGroup == "Migrant Status"
+
 rename totalcount StudentSubGroup_TotalTested
+replace StudentSubGroup_TotalTested = strtrim(StudentSubGroup_TotalTested)
 replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "<"
 replace StudentSubGroup_TotalTested = subinstr(StudentSubGroup_TotalTested, ",", "", .)
 
@@ -180,7 +195,20 @@ bysort State_leaid seasch StudentGroup GradeLevel Subject: egen StudentGroup_Tot
 replace StudentGroup_TotalTested = max if !inlist(max, ., 0) & StudentGroup_TotalTested == .
 tostring StudentGroup_TotalTested, replace force
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
-drop StudentSubGroup_TotalTested2 test max
+
+bysort State_leaid seasch GradeLevel Subject: egen Econ = sum(StudentSubGroup_TotalTested2) if StudentGroup == "Economic Status"
+bysort State_leaid seasch GradeLevel Subject: egen EL = sum(StudentSubGroup_TotalTested2) if StudentGroup == "EL Status"
+bysort State_leaid seasch GradeLevel Subject: egen Gender = sum(StudentSubGroup_TotalTested2) if StudentGroup == "Gender"
+bysort State_leaid seasch GradeLevel Subject: egen Migrant = sum(StudentSubGroup_TotalTested2) if StudentGroup == "Migrant Status"
+replace StudentSubGroup_TotalTested2 = max - Econ if StudentSubGroup == "Not Economically Disadvantaged" & max != 0 & StudentSubGroup_TotalTested == "*" & Econ != 0
+replace StudentSubGroup_TotalTested2 = max - Econ if StudentSubGroup == "Economically Disadvantaged" & max != 0 & StudentSubGroup_TotalTested == "*" & Econ != 0
+replace StudentSubGroup_TotalTested2 = max - EL if StudentSubGroup == "English Proficient" & max != 0 & StudentSubGroup_TotalTested == "*" & EL != 0
+replace StudentSubGroup_TotalTested2 = max - EL if StudentSubGroup == "English Learner" & max != 0 & StudentSubGroup_TotalTested == "*" & EL != 0
+replace StudentSubGroup_TotalTested2 = max - Gender if StudentSubGroup == "Male" & max != 0 & StudentSubGroup_TotalTested == "*" & Gender != 0
+replace StudentSubGroup_TotalTested2 = max - Gender if StudentSubGroup == "Female" & max != 0 & StudentSubGroup_TotalTested == "*" & Gender != 0
+replace StudentSubGroup_TotalTested2 = max - Migrant if StudentSubGroup == "Non-Migrant" & max != 0 & StudentSubGroup_TotalTested == "*" & Migrant != 0
+replace StudentSubGroup_TotalTested2 = max - Migrant if StudentSubGroup == "Migrant" & max != 0 & StudentSubGroup_TotalTested == "*" & Migrant != 0
+replace StudentSubGroup_TotalTested = string(StudentSubGroup_TotalTested2) if StudentSubGroup_TotalTested2 != 0
 
 rename failcount Lev1_count
 rename failrate Lev1_percent
@@ -199,6 +227,7 @@ replace Lev1_percent = "1111" if Lev1_percent == "<50"
 local level 1 2 3
 
 foreach a of local level{
+	replace Lev`a'_count = strtrim(Lev`a'_count)
 	replace Lev`a'_count = "*" if Lev`a'_count == "<"
 	replace Lev`a'_count = subinstr(Lev`a'_count, ",", "", .)
 	replace Lev`a'_percent = "." if Lev`a'_percent == "<"
@@ -217,6 +246,7 @@ replace AvgScaleScore = "*" if AvgScaleScore == " " | AvgScaleScore == ""
 gen ProficiencyCriteria = "Levels 2-3"
 
 rename passcount ProficientOrAbove_count
+replace ProficientOrAbove_count = strtrim(ProficientOrAbove_count)
 replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "<"
 replace ProficientOrAbove_count = subinstr(ProficientOrAbove_count, ",", "", .)
 
@@ -235,20 +265,12 @@ replace State = "Virginia" if DataLevel == 1
 replace StateAbbrev = "VA" if DataLevel == 1
 replace StateFips = 51 if DataLevel == 1
 replace CountyName = proper(CountyName)
+replace DistName = proper(DistName)
 
-replace StudentSubGroup = "Male" if StudentSubGroup == "M"
-replace StudentSubGroup = "Female" if StudentSubGroup == "F"
-replace StudentSubGroup = "English Learner" if StudentSubGroup == "Y" & StudentGroup == "EL Status"
-replace StudentSubGroup = "English Proficient" if StudentSubGroup == "N" & StudentGroup == "EL Status"
-replace StudentSubGroup = "Black or African American" if StudentSubGroup == "Black, not of Hispanic origin"
-replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "Native Hawaiian  or Pacific Islander"
-replace StudentSubGroup = "White" if StudentSubGroup == "White, not of Hispanic origin"
-replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
-replace StudentSubGroup = "Unknown" if StudentSubGroup == "Unknown - Race/Ethnicity not provided"
-replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Y" & StudentGroup == "Economic Status"
-replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "N" & StudentGroup == "Economic Status"
-replace StudentSubGroup = "Migrant" if StudentSubGroup == "Y" & StudentGroup == "Migrant Status"
-replace StudentSubGroup = "Non-Migrant" if StudentSubGroup == "N" & StudentGroup == "Migrant Status"
+merge m:1 SchYear CountyCode using "/${raw}/va_county-list_through2023.dta"
+replace CountyName = newcountyname
+drop if _merge == 2
+drop _merge
 
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 

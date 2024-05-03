@@ -555,3 +555,70 @@ export delimited MA_AssmtData_`a'.csv, replace
 
 
 }
+
+
+
+// new dist names 
+
+import excel "ma_full-dist-stable-list_through2023", firstrow case(preserve) allstring clear
+
+// Fixing DataLevel
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+sort DataLevel_n 
+drop DataLevel 
+rename DataLevel_n DataLevel 
+
+save "MA_StableNames_Dist", replace
+duplicates drop NCESDistrictID SchYear, force
+drop  olddistname 
+gen SchName = "All Schools"
+replace DataLevel = 2
+
+save "MA_StableNames", replace
+//
+// append using "MA_StableNames_Dist"
+// sort DataLevel
+// duplicates drop SchYear DataLevel NCESDistrictID NCESSchoolID, force
+// save "MA_StableNames", replace
+// clear
+
+
+// new dist names 
+//Looping Through Years
+forvalues year = 2010/2014 {  
+	if `year' == 2020 continue
+	
+use "MA_StableNames", clear
+local prevyear = `=`year'-1'
+keep if SchYear == "`prevyear'-" + substr("`year'",-2,2)
+
+save "MA_StableNames_`year'", replace
+
+use "MA_AssmtData_`year'_Stata", clear
+
+merge m:1 NCESDistrictID using "MA_StableNames_`year'"
+
+
+
+drop if _merge == 2
+replace DistName = newdistname if DataLevel !=1
+replace DistName = "All Districts" if DataLevel == 1
+replace SchName = "All Schools" if DataLevel ==1
+
+
+//Final Cleaning and Saving
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup	
+
+//save "${output}/MA_AssmtData_`year'.dta", replace
+
+//export delimited using "${output}/MA_AssmtData_`year'.csv", replace
+
+}
+
+
+ 
+

@@ -412,6 +412,12 @@ drop if StudentGroup == "Disability Status" & StudentSubGroup == "Unknown"
 //Dropping Unmerged and all suppressed virtual schools
 drop if SchName == "Between the Lakes Virtual Academy" | SchName == "eSucceed Charter School" & NCESSchoolID == "Missing/not reported"
 
+//Post launch review response
+replace SchVirtual = "No" if NCESSchoolID== "551464003161"
+replace CountyName = "Milwaukee County" if CountyName == "San Mateo County"
+replace CountyCode = "55079" if CountyCode== "6081"
+replace StudentSubGroup_TotalTested = string(StudentGroup_TotalTested) if StudentSubGroup == "All Students" & StudentSubGroup_TotalTested == "*"
+
 // Sorting and Exporting final
 
 drop Suppressed

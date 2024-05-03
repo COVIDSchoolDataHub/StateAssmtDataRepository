@@ -65,7 +65,7 @@ replace StudentSubGroup = "White" if StudentSubGroup == "Caucasian"
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
 replace StudentSubGroup = "Two or More" if StudentSubGroup == "Two or More Races"
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "English Learners"
-replace StudentSubGroup = "English Proficient" if StudentSubGroup == "Non English Learners"
+replace StudentSubGroup = "English Proficient" if StudentSubGroup == "Not English Learners"
 replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Economically Disadvantaged"
 replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "Not Economically Disadvantaged"
 replace StudentSubGroup = "Male" if StudentSubGroup == "Male"
@@ -184,6 +184,18 @@ gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_sci = "N"
 gen Flag_CutScoreChange_soc = "Not Applicable"
+
+//Post Launch Response
+replace StudentSubGroup_TotalTested = 0 if SchYear== "2022-23" & NCESSchoolID== "020060000651"  & GradeLevel == "G38" & StudentSubGroup == "Black or African American" & Subject == "sci"
+replace StudentSubGroup_TotalTested = 0 if SchYear== "2022-23" & NCESSchoolID== "020021000396"  & GradeLevel == "G38" & StudentGroup_TotalTested == 0 
+replace StudentSubGroup_TotalTested = 0 if SchYear== "2022-23" & NCESSchoolID== "020003000626" & Subject == "sci" & GradeLevel == "G38" & StudentSubGroup == "Asian"
+replace StudentSubGroup_TotalTested = 0 if SchYear== "2022-23" & DataLevel == 2 & NCESDistrictID == "0200030" & Subject == "sci" & GradeLevel == "G38" & StudentSubGroup == "Asian"
+
+foreach percent of varlist *_percent {
+local count = subinstr("`percent'", "percent", "count",.)
+replace `count' = string(round(StudentSubGroup_TotalTested * real(substr(`percent',1,strpos(`percent',"-")-1)))) + "-" + string(round(StudentSubGroup_TotalTested * real(substr(`percent',strpos(`percent',"-")+1,3)))) if regexm(`percent', "[0-9]") !=0 & `count' == "*"
+}
+replace ParticipationRate = "--" if strpos(ParticipationRate, "-") !=0 | ParticipationRate == "." | StudentSubGroup_TotalTested == 0 
 
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode

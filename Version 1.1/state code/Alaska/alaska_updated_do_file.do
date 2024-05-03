@@ -1,12 +1,11 @@
 cap log close
-set trace off
+set trace on
 
 cd "/Volumes/T7/State Test Project/Alaska"
 log using alaska_cleaning.log, replace
 
 global Original "/Volumes/T7/State Test Project/Alaska/Original"
 global Output "/Volumes/T7/State Test Project/Alaska/Output"
-global NCES "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
 global Temp "/Volumes/T7/State Test Project/Alaska/Temp"
 
 *** OLD ***
@@ -359,6 +358,13 @@ foreach var of varlist *_percent {
 	replace `var' = subinstr(`var', " ", "",.)
 }
 replace ParticipationRate = "" if ParticipationRate == "-"
+
+//Post Launch Response to Review
+if `a' == 2019 replace SchVirtual = 0 if NCESSchoolID == "020051000450"
+replace ProficientOrAbove_count = string(round(real(StudentSubGroup_TotalTested) * real(substr(ProficientOrAbove_percent,1,strpos(ProficientOrAbove_percent,"-")-1)))) + "-" + string(round(real(StudentSubGroup_TotalTested) * real(substr(ProficientOrAbove_percent,strpos(ProficientOrAbove_percent,"-")+1,3)))) if regexm(ProficientOrAbove_percent, "[0-9]") !=0 & ProficientOrAbove_count == "*"
+replace ParticipationRate = "--" if strpos(ParticipationRate, "-") !=0
+if `a' == 2022 replace Flag_CutScoreChange_sci = "N"
+if `a' == 2018 replace Flag_CutScoreChange_sci = "Not Applicable"
 
 // NEW ADDED
 // NEW EDITED

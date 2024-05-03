@@ -381,6 +381,10 @@ drop if StudentGroup == "Disability Status" & StudentSubGroup == "Unknown"
 //Dropping Unmerged Virtual School with all data suppressed
 drop if SchName == "JEDI Virtual K-12 - Jefferson and Eastern Dane County Interactive" & NCESSchoolID == "Missing"
 
+//Post launch review responsereplace CountyName = "Milwaukee County" if CountyName == "San Mateo County"
+replace CountyCode = "55079" if CountyCode== "6081"
+replace StudentSubGroup_TotalTested = string(StudentGroup_TotalTested) if StudentSubGroup == "All Students" & StudentSubGroup_TotalTested == "*"
+
 // Sorting and Exporting final
 
 drop Suppressed

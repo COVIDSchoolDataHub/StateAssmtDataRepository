@@ -240,75 +240,6 @@ rename testlevel GradeLevel
 replace GradeLevel = subinstr(GradeLevel,"Grade ","",.)
 replace GradeLevel = "G0" + GradeLevel
 
-rename totalcount StudentSubGroup_TotalTested
-replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "<"
-replace StudentSubGroup_TotalTested = subinstr(StudentSubGroup_TotalTested, ",", "", .)
-
-gen StudentSubGroup_TotalTested2 = StudentSubGroup_TotalTested
-destring StudentSubGroup_TotalTested2, replace force
-replace StudentSubGroup_TotalTested2 = 0 if StudentSubGroup_TotalTested2 == .
-bysort State_leaid seasch StudentGroup GradeLevel Subject: egen test = min(StudentSubGroup_TotalTested2)
-bysort State_leaid seasch GradeLevel Subject: egen max = max(StudentSubGroup_TotalTested2)
-bysort State_leaid seasch StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested2) if test != 0
-replace StudentGroup_TotalTested = max if !inlist(max, ., 0) & StudentGroup_TotalTested == .
-tostring StudentGroup_TotalTested, replace force
-replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
-drop StudentSubGroup_TotalTested2 test max
-
-rename failcount Lev1_count
-rename failrate Lev1_percent
-rename passproficientcount Lev2_count
-rename passproficientrate Lev2_percent
-rename passadvancedcount Lev3_count
-rename passadvancedrate Lev3_percent
-gen Lev4_count = ""
-gen Lev4_percent = ""
-gen Lev5_count = ""
-gen Lev5_percent = ""
-
-replace Lev1_percent = "9999" if Lev1_percent == ">50"
-replace Lev1_percent = "1111" if Lev1_percent == "<50"
-
-local level 1 2 3
-
-foreach a of local level{
-	replace Lev`a'_count = "*" if Lev`a'_count == "<"
-	replace Lev`a'_count = subinstr(Lev`a'_count, ",", "", .)
-	replace Lev`a'_percent = "." if Lev`a'_percent == "<"
-	destring Lev`a'_percent, replace
-	replace Lev`a'_percent = Lev`a'_percent/100
-	tostring Lev`a'_percent, replace force
-	replace Lev`a'_percent = "*" if Lev`a'_percent == "."
-}
-
-replace Lev1_percent = "0.5-1" if Lev1_percent == "99.99"
-replace Lev1_percent = "0-0.5" if Lev1_percent == "11.11"
-
-rename averagesolscaledscore AvgScaleScore
-replace AvgScaleScore = "*" if AvgScaleScore == " " | AvgScaleScore == ""
-
-gen ProficiencyCriteria = "Levels 2-3"
-
-rename passcount ProficientOrAbove_count
-replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "<"
-replace ProficientOrAbove_count = subinstr(ProficientOrAbove_count, ",", "", .)
-
-rename passrate ProficientOrAbove_percent
-replace ProficientOrAbove_percent = "9999" if ProficientOrAbove_percent == ">50"
-replace ProficientOrAbove_percent = "1111" if ProficientOrAbove_percent == "<50"
-destring ProficientOrAbove_percent, replace
-replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
-tostring ProficientOrAbove_percent, replace force
-replace ProficientOrAbove_percent = "0.5-1" if ProficientOrAbove_percent == "99.99"
-replace ProficientOrAbove_percent = "0-0.5" if ProficientOrAbove_percent == "11.11"
-
-gen ParticipationRate = "--"
-
-replace State = "Virginia" if DataLevel == 1
-replace StateAbbrev = "VA" if DataLevel == 1
-replace StateFips = 51 if DataLevel == 1
-replace CountyName = proper(CountyName)
-
 replace StudentSubGroup = "Male" if StudentSubGroup == "M"
 replace StudentSubGroup = "Female" if StudentSubGroup == "F"
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "Y" & StudentGroup == "EL Status"
@@ -330,6 +261,109 @@ replace StudentSubGroup = "Foster Care" if StudentSubGroup == "Y" & StudentGroup
 replace StudentSubGroup = "Non-Foster Care" if StudentSubGroup == "N" & StudentGroup == "Foster Care Status"
 replace StudentSubGroup = "SWD" if StudentSubGroup == "Y" & StudentGroup == "Disability Status"
 replace StudentSubGroup = "Non-SWD" if StudentSubGroup == "N" & StudentGroup == "Disability Status"
+
+rename totalcount StudentSubGroup_TotalTested
+replace StudentSubGroup_TotalTested = strtrim(StudentSubGroup_TotalTested)
+replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "<"
+replace StudentSubGroup_TotalTested = subinstr(StudentSubGroup_TotalTested, ",", "", .)
+
+gen StudentSubGroup_TotalTested2 = StudentSubGroup_TotalTested
+destring StudentSubGroup_TotalTested2, replace force
+replace StudentSubGroup_TotalTested2 = 0 if StudentSubGroup_TotalTested2 == .
+bysort State_leaid seasch StudentGroup GradeLevel Subject: egen test = min(StudentSubGroup_TotalTested2)
+bysort State_leaid seasch GradeLevel Subject: egen max = max(StudentSubGroup_TotalTested2)
+bysort State_leaid seasch StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested2) if test != 0
+replace StudentGroup_TotalTested = max if !inlist(max, ., 0) & StudentGroup_TotalTested == .
+tostring StudentGroup_TotalTested, replace force
+replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
+
+bysort State_leaid seasch GradeLevel Subject: egen Econ = sum(StudentSubGroup_TotalTested2) if StudentGroup == "Economic Status"
+bysort State_leaid seasch GradeLevel Subject: egen EL = sum(StudentSubGroup_TotalTested2) if StudentGroup == "EL Status"
+bysort State_leaid seasch GradeLevel Subject: egen Gender = sum(StudentSubGroup_TotalTested2) if StudentGroup == "Gender"
+bysort State_leaid seasch GradeLevel Subject: egen Migrant = sum(StudentSubGroup_TotalTested2) if StudentGroup == "Migrant Status"
+bysort State_leaid seasch GradeLevel Subject: egen Homeless = sum(StudentSubGroup_TotalTested2) if StudentGroup == "Homeless Enrolled Status"
+bysort State_leaid seasch GradeLevel Subject: egen Military = sum(StudentSubGroup_TotalTested2) if StudentGroup == "Military Connected Status"
+bysort State_leaid seasch GradeLevel Subject: egen Foster = sum(StudentSubGroup_TotalTested2) if StudentGroup == "Foster Care Status"
+bysort State_leaid seasch GradeLevel Subject: egen Disability = sum(StudentSubGroup_TotalTested2) if StudentGroup == "Disability Status"
+replace StudentSubGroup_TotalTested2 = max - Econ if StudentSubGroup == "Not Economically Disadvantaged" & max != 0 & StudentSubGroup_TotalTested == "*" & Econ != 0
+replace StudentSubGroup_TotalTested2 = max - Econ if StudentSubGroup == "Economically Disadvantaged" & max != 0 & StudentSubGroup_TotalTested == "*" & Econ != 0
+replace StudentSubGroup_TotalTested2 = max - EL if StudentSubGroup == "English Proficient" & max != 0 & StudentSubGroup_TotalTested == "*" & EL != 0
+replace StudentSubGroup_TotalTested2 = max - EL if StudentSubGroup == "English Learner" & max != 0 & StudentSubGroup_TotalTested == "*" & EL != 0
+replace StudentSubGroup_TotalTested2 = max - Gender if StudentSubGroup == "Male" & max != 0 & StudentSubGroup_TotalTested == "*" & Gender != 0
+replace StudentSubGroup_TotalTested2 = max - Gender if StudentSubGroup == "Female" & max != 0 & StudentSubGroup_TotalTested == "*" & Gender != 0
+replace StudentSubGroup_TotalTested2 = max - Migrant if StudentSubGroup == "Non-Migrant" & max != 0 & StudentSubGroup_TotalTested == "*" & Migrant != 0
+replace StudentSubGroup_TotalTested2 = max - Migrant if StudentSubGroup == "Migrant" & max != 0 & StudentSubGroup_TotalTested == "*" & Migrant != 0
+replace StudentSubGroup_TotalTested2 = max - Homeless if StudentSubGroup == "Non-Homeless" & max != 0 & StudentSubGroup_TotalTested == "*" & Homeless != 0
+replace StudentSubGroup_TotalTested2 = max - Homeless if StudentSubGroup == "Homeless" & max != 0 & StudentSubGroup_TotalTested == "*" & Homeless != 0
+replace StudentSubGroup_TotalTested2 = max - Military if StudentSubGroup == "Non-Military" & max != 0 & StudentSubGroup_TotalTested == "*" & Military != 0
+replace StudentSubGroup_TotalTested2 = max - Military if StudentSubGroup == "Military" & max != 0 & StudentSubGroup_TotalTested == "*" & Military != 0
+replace StudentSubGroup_TotalTested2 = max - Foster if StudentSubGroup == "Non-Foster Care" & max != 0 & StudentSubGroup_TotalTested == "*" & Foster != 0
+replace StudentSubGroup_TotalTested2 = max - Foster if StudentSubGroup == "Foster Care" & max != 0 & StudentSubGroup_TotalTested == "*" & Foster != 0
+replace StudentSubGroup_TotalTested2 = max - Disability if StudentSubGroup == "Non-SWD" & max != 0 & StudentSubGroup_TotalTested == "*" & Disability != 0
+replace StudentSubGroup_TotalTested2 = max - Disability if StudentSubGroup == "SWD" & max != 0 & StudentSubGroup_TotalTested == "*" & Disability != 0
+replace StudentSubGroup_TotalTested = string(StudentSubGroup_TotalTested2) if StudentSubGroup_TotalTested2 != 0
+
+rename failcount Lev1_count
+rename failrate Lev1_percent
+rename passproficientcount Lev2_count
+rename passproficientrate Lev2_percent
+rename passadvancedcount Lev3_count
+rename passadvancedrate Lev3_percent
+gen Lev4_count = ""
+gen Lev4_percent = ""
+gen Lev5_count = ""
+gen Lev5_percent = ""
+
+replace Lev1_percent = "9999" if Lev1_percent == ">50"
+replace Lev1_percent = "1111" if Lev1_percent == "<50"
+
+local level 1 2 3
+
+foreach a of local level{
+	replace Lev`a'_count = strtrim(Lev`a'_count)
+	replace Lev`a'_count = "*" if Lev`a'_count == "<"
+	replace Lev`a'_count = subinstr(Lev`a'_count, ",", "", .)
+	replace Lev`a'_percent = "." if Lev`a'_percent == "<"
+	destring Lev`a'_percent, replace
+	replace Lev`a'_percent = Lev`a'_percent/100
+	tostring Lev`a'_percent, replace force
+	replace Lev`a'_percent = "*" if Lev`a'_percent == "."
+}
+
+replace Lev1_percent = "0.5-1" if Lev1_percent == "99.99"
+replace Lev1_percent = "0-0.5" if Lev1_percent == "11.11"
+
+rename averagesolscaledscore AvgScaleScore
+replace AvgScaleScore = "*" if AvgScaleScore == " " | AvgScaleScore == ""
+
+gen ProficiencyCriteria = "Levels 2-3"
+
+rename passcount ProficientOrAbove_count
+replace ProficientOrAbove_count = strtrim(ProficientOrAbove_count)
+replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "<"
+replace ProficientOrAbove_count = subinstr(ProficientOrAbove_count, ",", "", .)
+
+rename passrate ProficientOrAbove_percent
+replace ProficientOrAbove_percent = "9999" if ProficientOrAbove_percent == ">50"
+replace ProficientOrAbove_percent = "1111" if ProficientOrAbove_percent == "<50"
+destring ProficientOrAbove_percent, replace
+replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
+tostring ProficientOrAbove_percent, replace force
+replace ProficientOrAbove_percent = "0.5-1" if ProficientOrAbove_percent == "99.99"
+replace ProficientOrAbove_percent = "0-0.5" if ProficientOrAbove_percent == "11.11"
+
+gen ParticipationRate = "--"
+
+replace State = "Virginia" if DataLevel == 1
+replace StateAbbrev = "VA" if DataLevel == 1
+replace StateFips = 51 if DataLevel == 1
+replace CountyName = proper(CountyName)
+replace DistName = proper(DistName)
+
+merge m:1 SchYear CountyCode using "/${raw}/va_county-list_through2023.dta"
+replace CountyName = newcountyname
+drop if _merge == 2
+drop _merge
 
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
