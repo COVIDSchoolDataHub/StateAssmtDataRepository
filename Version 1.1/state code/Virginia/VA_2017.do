@@ -240,6 +240,28 @@ rename testlevel GradeLevel
 replace GradeLevel = subinstr(GradeLevel,"Grade ","",.)
 replace GradeLevel = "G0" + GradeLevel
 
+replace StudentSubGroup = "Male" if StudentSubGroup == "M"
+replace StudentSubGroup = "Female" if StudentSubGroup == "F"
+replace StudentSubGroup = "English Learner" if StudentSubGroup == "Y" & StudentGroup == "EL Status"
+replace StudentSubGroup = "English Proficient" if StudentSubGroup == "N" & StudentGroup == "EL Status"
+replace StudentSubGroup = "Black or African American" if StudentSubGroup == "Black, not of Hispanic origin"
+replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "Native Hawaiian  or Pacific Islander"
+replace StudentSubGroup = "White" if StudentSubGroup == "White, not of Hispanic origin"
+replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
+replace StudentSubGroup = "Two or More" if StudentSubGroup == "Non-Hispanic, two or more races"
+replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Y" & StudentGroup == "Economic Status"
+replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "N" & StudentGroup == "Economic Status"
+replace StudentSubGroup = "Migrant" if StudentSubGroup == "Y" & StudentGroup == "Migrant Status"
+replace StudentSubGroup = "Non-Migrant" if StudentSubGroup == "N" & StudentGroup == "Migrant Status"
+replace StudentSubGroup = "Homeless" if StudentSubGroup == "Y" & StudentGroup == "Homeless Enrolled Status"
+replace StudentSubGroup = "Non-Homeless" if StudentSubGroup == "N" & StudentGroup == "Homeless Enrolled Status"
+replace StudentSubGroup = "Military" if StudentSubGroup == "Y" & StudentGroup == "Military Connected Status"
+replace StudentSubGroup = "Non-Military" if StudentSubGroup == "N" & StudentGroup == "Military Connected Status"
+replace StudentSubGroup = "Foster Care" if StudentSubGroup == "Y" & StudentGroup == "Foster Care Status"
+replace StudentSubGroup = "Non-Foster Care" if StudentSubGroup == "N" & StudentGroup == "Foster Care Status"
+replace StudentSubGroup = "SWD" if StudentSubGroup == "Y" & StudentGroup == "Disability Status"
+replace StudentSubGroup = "Non-SWD" if StudentSubGroup == "N" & StudentGroup == "Disability Status"
+
 rename totalcount StudentSubGroup_TotalTested
 replace StudentSubGroup_TotalTested = strtrim(StudentSubGroup_TotalTested)
 replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "<"
@@ -254,7 +276,32 @@ bysort State_leaid seasch StudentGroup GradeLevel Subject: egen StudentGroup_Tot
 replace StudentGroup_TotalTested = max if !inlist(max, ., 0) & StudentGroup_TotalTested == .
 tostring StudentGroup_TotalTested, replace force
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
-drop StudentSubGroup_TotalTested2 test max
+
+bysort State_leaid seasch GradeLevel Subject: egen Econ = sum(StudentSubGroup_TotalTested2) if StudentGroup == "Economic Status"
+bysort State_leaid seasch GradeLevel Subject: egen EL = sum(StudentSubGroup_TotalTested2) if StudentGroup == "EL Status"
+bysort State_leaid seasch GradeLevel Subject: egen Gender = sum(StudentSubGroup_TotalTested2) if StudentGroup == "Gender"
+bysort State_leaid seasch GradeLevel Subject: egen Migrant = sum(StudentSubGroup_TotalTested2) if StudentGroup == "Migrant Status"
+bysort State_leaid seasch GradeLevel Subject: egen Homeless = sum(StudentSubGroup_TotalTested2) if StudentGroup == "Homeless Enrolled Status"
+bysort State_leaid seasch GradeLevel Subject: egen Military = sum(StudentSubGroup_TotalTested2) if StudentGroup == "Military Connected Status"
+bysort State_leaid seasch GradeLevel Subject: egen Foster = sum(StudentSubGroup_TotalTested2) if StudentGroup == "Foster Care Status"
+bysort State_leaid seasch GradeLevel Subject: egen Disability = sum(StudentSubGroup_TotalTested2) if StudentGroup == "Disability Status"
+replace StudentSubGroup_TotalTested2 = max - Econ if StudentSubGroup == "Not Economically Disadvantaged" & max != 0 & StudentSubGroup_TotalTested == "*" & Econ != 0
+replace StudentSubGroup_TotalTested2 = max - Econ if StudentSubGroup == "Economically Disadvantaged" & max != 0 & StudentSubGroup_TotalTested == "*" & Econ != 0
+replace StudentSubGroup_TotalTested2 = max - EL if StudentSubGroup == "English Proficient" & max != 0 & StudentSubGroup_TotalTested == "*" & EL != 0
+replace StudentSubGroup_TotalTested2 = max - EL if StudentSubGroup == "English Learner" & max != 0 & StudentSubGroup_TotalTested == "*" & EL != 0
+replace StudentSubGroup_TotalTested2 = max - Gender if StudentSubGroup == "Male" & max != 0 & StudentSubGroup_TotalTested == "*" & Gender != 0
+replace StudentSubGroup_TotalTested2 = max - Gender if StudentSubGroup == "Female" & max != 0 & StudentSubGroup_TotalTested == "*" & Gender != 0
+replace StudentSubGroup_TotalTested2 = max - Migrant if StudentSubGroup == "Non-Migrant" & max != 0 & StudentSubGroup_TotalTested == "*" & Migrant != 0
+replace StudentSubGroup_TotalTested2 = max - Migrant if StudentSubGroup == "Migrant" & max != 0 & StudentSubGroup_TotalTested == "*" & Migrant != 0
+replace StudentSubGroup_TotalTested2 = max - Homeless if StudentSubGroup == "Non-Homeless" & max != 0 & StudentSubGroup_TotalTested == "*" & Homeless != 0
+replace StudentSubGroup_TotalTested2 = max - Homeless if StudentSubGroup == "Homless" & max != 0 & StudentSubGroup_TotalTested == "*" & Homeless != 0
+replace StudentSubGroup_TotalTested2 = max - Military if StudentSubGroup == "Non-Military" & max != 0 & StudentSubGroup_TotalTested == "*" & Military != 0
+replace StudentSubGroup_TotalTested2 = max - Military if StudentSubGroup == "Military" & max != 0 & StudentSubGroup_TotalTested == "*" & Military != 0
+replace StudentSubGroup_TotalTested2 = max - Foster if StudentSubGroup == "Non-Foster Care" & max != 0 & StudentSubGroup_TotalTested == "*" & Foster != 0
+replace StudentSubGroup_TotalTested2 = max - Foster if StudentSubGroup == "Foster Care" & max != 0 & StudentSubGroup_TotalTested == "*" & Foster != 0
+replace StudentSubGroup_TotalTested2 = max - Disability if StudentSubGroup == "Non-SWD" & max != 0 & StudentSubGroup_TotalTested == "*" & Disability != 0
+replace StudentSubGroup_TotalTested2 = max - Disability if StudentSubGroup == "SWD" & max != 0 & StudentSubGroup_TotalTested == "*" & Disability != 0
+replace StudentSubGroup_TotalTested = string(StudentSubGroup_TotalTested2) if StudentSubGroup_TotalTested2 != 0
 
 rename failcount Lev1_count
 rename failrate Lev1_percent
@@ -317,28 +364,6 @@ merge m:1 SchYear CountyCode using "/${raw}/va_county-list_through2023.dta"
 replace CountyName = newcountyname
 drop if _merge == 2
 drop _merge
-
-replace StudentSubGroup = "Male" if StudentSubGroup == "M"
-replace StudentSubGroup = "Female" if StudentSubGroup == "F"
-replace StudentSubGroup = "English Learner" if StudentSubGroup == "Y" & StudentGroup == "EL Status"
-replace StudentSubGroup = "English Proficient" if StudentSubGroup == "N" & StudentGroup == "EL Status"
-replace StudentSubGroup = "Black or African American" if StudentSubGroup == "Black, not of Hispanic origin"
-replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "Native Hawaiian  or Pacific Islander"
-replace StudentSubGroup = "White" if StudentSubGroup == "White, not of Hispanic origin"
-replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
-replace StudentSubGroup = "Two or More" if StudentSubGroup == "Non-Hispanic, two or more races"
-replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Y" & StudentGroup == "Economic Status"
-replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "N" & StudentGroup == "Economic Status"
-replace StudentSubGroup = "Migrant" if StudentSubGroup == "Y" & StudentGroup == "Migrant Status"
-replace StudentSubGroup = "Non-Migrant" if StudentSubGroup == "N" & StudentGroup == "Migrant Status"
-replace StudentSubGroup = "Homeless" if StudentSubGroup == "Y" & StudentGroup == "Homeless Enrolled Status"
-replace StudentSubGroup = "Non-Homeless" if StudentSubGroup == "N" & StudentGroup == "Homeless Enrolled Status"
-replace StudentSubGroup = "Military" if StudentSubGroup == "Y" & StudentGroup == "Military Connected Status"
-replace StudentSubGroup = "Non-Military" if StudentSubGroup == "N" & StudentGroup == "Military Connected Status"
-replace StudentSubGroup = "Foster Care" if StudentSubGroup == "Y" & StudentGroup == "Foster Care Status"
-replace StudentSubGroup = "Non-Foster Care" if StudentSubGroup == "N" & StudentGroup == "Foster Care Status"
-replace StudentSubGroup = "SWD" if StudentSubGroup == "Y" & StudentGroup == "Disability Status"
-replace StudentSubGroup = "Non-SWD" if StudentSubGroup == "N" & StudentGroup == "Disability Status"
 
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
