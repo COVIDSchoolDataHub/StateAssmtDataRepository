@@ -446,13 +446,14 @@ drop Count_n test
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "--" if inlist(StudentGroup_TotalTested, "", ".")
 
-** Cleaning Unmerged
+** Cleaning up from unmerged
 replace CountyName = "Utah County" if SchName == "Liberty Academy" & CountyName == ""
 replace DistLocale = "Suburb, large" if SchName == "Liberty Academy" & DistLocale == ""
 replace StateAssignedSchID = subinstr(StateAssignedSchID, "UT-", "", 1)
 replace StateAssignedSchID = subinstr(StateAssignedSchID, "-", "", 1)
 replace StateAssignedDistID = subinstr(StateAssignedDistID, "UT-", "", 1)
 
+gen flag = 1 if inlist(SchName, "East School", "Legacy School")
 *** Cleaning Inconsistent School & District Names
 merge m:m SchYear NCESSchoolID NCESDistrictID using "${raw}/ut_full-dist-sch-stable-list_through2023.dta"
 drop if _merge == 2

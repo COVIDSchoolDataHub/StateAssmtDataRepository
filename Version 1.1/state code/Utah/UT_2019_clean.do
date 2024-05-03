@@ -776,6 +776,12 @@ drop AllStudents_Tested StudentGroup_Suppressed
 replace StudentGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "--"
 replace StudentGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "*"
 
+** Cleaning up from unmerged
+gen flag = 1 if inlist(SchName, "East School", "Legacy School")
+replace SchName = SchName + " (" + DistName + ")" if flag == 1
+replace SchName = subinstr(SchName, " District", "", 1) if flag == 1
+drop flag
+
 *** Cleaning Inconsistent School & District Names
 merge m:m SchYear NCESSchoolID NCESDistrictID using "${raw}/ut_full-dist-sch-stable-list_through2023.dta"
 drop if _merge == 2

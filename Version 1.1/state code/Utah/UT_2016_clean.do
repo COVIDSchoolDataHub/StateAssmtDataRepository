@@ -569,6 +569,12 @@ replace CountyName="Washington County" if DistName=="Washington District" & Coun
 replace StateAssignedSchID = subinstr(StateAssignedSchID, "UT-", "", .) if strpos(StateAssignedSchID, "UT-") > 0
 replace StateAssignedDistID="UT-"+StateAssignedDistID if strpos(StateAssignedDistID, "UT-")<=0 & DataLevel != 1
 
+gen flag = 1 if inlist(SchName, "East School", "Legacy School")
+replace SchName = SchName + " (" + DistName + ")" if flag == 1
+replace SchName = subinstr(SchName, " District", "", 1) if flag == 1
+replace StateAssignedSchID = "33-33116" if SchName == "Legacy School (Washington)"
+drop flag
+
 *** Cleaning Inconsistent School & District Names
 merge m:m SchYear NCESSchoolID NCESDistrictID using "${raw}/ut_full-dist-sch-stable-list_through2023.dta"
 drop if _merge == 2

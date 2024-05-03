@@ -729,11 +729,16 @@ replace ParticipationRate = "--" if ParticipationRate == ""
 gen Lev5_count = ""
 gen Lev5_percent = ""
 
-** Unmerged Districts
+** Cleaning up from unmerged
 drop if SchName=="Minersville School" & GradeLevel=="G38"
 replace SchVirtual="Missing/not reported" if missing(SchVirtual) & DataLevel==3
 
 replace SchName="Canyon View School" if SchName == "Canyon View School (Primary)"
+
+gen flag = 1 if inlist(SchName, "East School", "Legacy School")
+replace SchName = SchName + " (" + DistName + ")" if flag == 1
+replace SchName = subinstr(SchName, " District", "", 1) if flag == 1
+drop flag
 
 ** StudentGroup_TotalTested
 replace Count_n = 0 if Count_n == .
