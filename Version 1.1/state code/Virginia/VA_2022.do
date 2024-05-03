@@ -241,6 +241,7 @@ replace GradeLevel = subinstr(GradeLevel,"Grade ","",.)
 replace GradeLevel = "G0" + GradeLevel
 
 rename totalcount StudentSubGroup_TotalTested
+replace StudentSubGroup_TotalTested = strtrim(StudentSubGroup_TotalTested)
 replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "<"
 replace StudentSubGroup_TotalTested = subinstr(StudentSubGroup_TotalTested, ",", "", .)
 
@@ -272,6 +273,7 @@ replace Lev1_percent = "1111" if Lev1_percent == "<50"
 local level 1 2 3
 
 foreach a of local level{
+	replace Lev`a'_count = strtrim(Lev`a'_count)
 	replace Lev`a'_count = "*" if Lev`a'_count == "<"
 	replace Lev`a'_count = subinstr(Lev`a'_count, ",", "", .)
 	replace Lev`a'_percent = "." if Lev`a'_percent == "<"
@@ -290,6 +292,7 @@ replace AvgScaleScore = "*" if AvgScaleScore == " " | AvgScaleScore == ""
 gen ProficiencyCriteria = "Levels 2-3"
 
 rename passcount ProficientOrAbove_count
+replace ProficientOrAbove_count = strtrim(ProficientOrAbove_count)
 replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "<"
 replace ProficientOrAbove_count = subinstr(ProficientOrAbove_count, ",", "", .)
 
@@ -308,6 +311,12 @@ replace State = "Virginia" if DataLevel == 1
 replace StateAbbrev = "VA" if DataLevel == 1
 replace StateFips = 51 if DataLevel == 1
 replace CountyName = proper(CountyName)
+replace DistName = proper(DistName)
+
+merge m:1 SchYear CountyCode using "/${raw}/va_county-list_through2023.dta"
+replace CountyName = newcountyname
+drop if _merge == 2
+drop _merge
 
 replace StudentSubGroup = "Male" if StudentSubGroup == "M"
 replace StudentSubGroup = "Female" if StudentSubGroup == "F"
