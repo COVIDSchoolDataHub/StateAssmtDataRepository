@@ -1,10 +1,10 @@
 clear
 set more off
 set trace off
-cd "/Volumes/T7/State Test Project/Wyoming"
-local Original "/Volumes/T7/State Test Project/Wyoming/Original Data Files"
-local Output "/Volumes/T7/State Test Project/Wyoming/Output"
-local NCES "/Volumes/T7/State Test Project/Wyoming/NCES"
+cd "/Users/meghancornacchia/Desktop/DataRepository/Wyoming"
+local Original "/Users/meghancornacchia/Desktop/DataRepository/Wyoming/Original_Data_Files"
+local Output "/Users/meghancornacchia/Desktop/DataRepository/Wyoming/Output"
+local NCES "/Users/meghancornacchia/Desktop/DataRepository/Wyoming/New_NCES"
 
 //Unhide below code on first run
 
@@ -38,12 +38,28 @@ if `year' == 2020 continue
 keep if SchoolYear == "`prevyear'" + "-" + substr("`year'",-2,2)
 save "`Original'/WY_OriginalData_`year'", replace
 
+//Dropping duplicates for 2019
+if `year' == 2019 {
+	duplicates drop Subgroup SpecificGrade Subject DistrictName SchoolName DataLevel, force
+	drop if SchoolName == "Baldwin Creek"
+	drop if SchoolName == "Clearmont K-12"
+	drop if SchoolName == "Coffeen Elementary"
+	drop if SchoolName == "Gannett Peak"
+	drop if SchoolName == "Glenrock High School"
+	drop if SchoolName == "Laramie Junior High School"
+	drop if SchoolName == "Laramie Montessori"
+	drop if SchoolName == "Monroe Elementray School"
+	drop if SchoolName == "Munger Mountain Elementary"
+	drop if SchoolName == "PODER Secondary School"
+	drop if SchoolName == "Riverside High School"
+	drop if SchoolName == "Summit Elementary"
+	drop if SchoolName == "Sundance Secondary"
+}
 
 //Renaming Varnames
 rename SchoolYear SchYear
 rename DistrictName DistName
 rename SchoolName SchName
-rename Subgroup StudentSubGroup
 rename SpecificGrade GradeLevel
 rename NoofStudentsTested StudentSubGroup_TotalTested
 rename PercentBelowBasic Lev1_percent
@@ -60,31 +76,37 @@ tostring GradeLevel, replace
 replace GradeLevel = "G0" + GradeLevel
 *save "`Original'/WY_OriginalData_`year'", replace
 
+// Drop no student subgroups
+drop if StudentSubGroup_TotalTested == "             0" & Subgroup != "All Students"
+
 //StudentSubGroup 
-replace StudentSubGroup = "English Learner" if strpos(StudentSubGroup, "English Learner Status: English Learner") !=0
-replace StudentSubGroup = "English Proficient" if strpos(StudentSubGroup, "English Learner Status: Non-English") !=0
-replace StudentSubGroup = "Male" if strpos(StudentSubGroup, "Gender: Male") !=0
-replace StudentSubGroup = "Female" if strpos(StudentSubGroup, "Gender: Female") !=0
-replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Income Status: Low Income"
-replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "Income Status: Non-Low Income"
-replace StudentSubGroup = "American Indian or Alaska Native" if strpos(StudentSubGroup, "Race / Ethnicity: American Indian") !=0
-replace StudentSubGroup = "Asian" if StudentSubGroup == "Race / Ethnicity: Asian"
-replace StudentSubGroup = "Black or African American" if StudentSubGroup == "Race / Ethnicity: Black"
-replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Race / Ethnicity: Hispanic"
-replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if strpos(StudentSubGroup, "Race / Ethnicity: Native Hawaiian") !=0
-replace StudentSubGroup = "Two or More" if strpos(StudentSubGroup, "Race / Ethnicity: Two or More Races") !=0
-replace StudentSubGroup = "White" if StudentSubGroup == "Race / Ethnicity: White"
+replace Subgroup = "All Students: All Students" if Subgroup == "All Students"
+gen StudentGroup = substr(Subgroup, 1, strpos(Subgroup, ":") - 1)
+gen StudentSubGroup = substr(Subgroup, strpos(Subgroup, ":") + 2, .)
 
-keep if StudentSubGroup == "All Students" | StudentSubGroup == "American Indian or Alaska Native" | StudentSubGroup == "Asian" | StudentSubGroup == "Black or African American" | StudentSubGroup == "Native Hawaiian or Pacific Islander" | StudentSubGroup == "White" | StudentSubGroup == "Hispanic or Latino" | StudentSubGroup == "English Learner" | StudentSubGroup == "English Proficient" | StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged" | StudentSubGroup == "Male" | StudentSubGroup == "Female" | StudentSubGroup == "Two or More"
+replace StudentSubGroup = "English Proficient" if strpos(StudentSubGroup, "Non-English Learner") !=0
+replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Low Income"
+replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "Non-Low Income"
+replace StudentSubGroup = "American Indian or Alaska Native" if strpos(StudentSubGroup, "American Indian") !=0
+replace StudentSubGroup = "Asian" if StudentSubGroup == "Asian"
+replace StudentSubGroup = "Black or African American" if StudentSubGroup == "Black"
+replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
+replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if strpos(StudentSubGroup, "Native Hawaiian") !=0
+replace StudentSubGroup = "Two or More" if strpos(StudentSubGroup, "Two or More Races") !=0
+replace StudentSubGroup = "Military" if StudentSubGroup == "Military Connected"
+replace StudentSubGroup = "Non-Military" if StudentSubGroup == "Non-Military Connected"
+replace StudentSubGroup = "SWD" if StudentSubGroup == "Students with Disabilities"
+replace StudentSubGroup = "Non-SWD" if StudentSubGroup == "Students without Disabilities"
 
-//StudentGroup
-gen StudentGroup = ""
-replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
-replace StudentGroup = "RaceEth" if StudentSubGroup == "American Indian or Alaska Native" | StudentSubGroup == "Asian" | StudentSubGroup == "Black or African American" | StudentSubGroup == "White" | StudentSubGroup == "Two or More" | StudentSubGroup == "Native Hawaiian or Pacific Islander"
-replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged"
-replace StudentGroup = "Gender" if StudentSubGroup == "Male" | StudentSubGroup == "Female"
-replace StudentGroup = "EL Status" if StudentSubGroup == "English Proficient" | StudentSubGroup == "English Learner"
-replace StudentGroup = "RaceEth" if StudentSubGroup == "Hispanic or Latino"
+
+replace StudentGroup = "EL Status" if StudentGroup == "English Learner Status"
+replace StudentGroup = "Economic Status" if StudentGroup == "Income Status"
+replace StudentGroup = "RaceEth" if StudentGroup == "Race / Ethnicity"
+replace StudentGroup = "Homeless Enrolled Status" if StudentGroup == "Homeless Status"
+
+
+keep if StudentGroup == "All Students" | StudentGroup == "Disability Status" | StudentGroup == "EL Status" | StudentGroup == "Foster Care Status" | StudentGroup == "Gender" | StudentGroup == "Homeless Enrolled Status" | StudentGroup == "Economic Status" | StudentGroup == "Migrant Status" | StudentGroup == "Military Connected Status" | StudentGroup == "RaceEth"
+
 
 //Merging with NCES
 tempfile temp1
@@ -183,6 +205,9 @@ replace school_name = "sweetwater#2-monroeelementaryschool" if school_name == "s
 replace school_name = "sweetwater#2-monroeelementaryschool" if school_name == "sweetwater#2-monroeelementrayschool" & `year' == 2022
 replace school_name = "teton#1-mungermountainelementaryschool" if school_name == "teton#1-mungermountainelementary" & `year' == 2019
 replace school_name = "converse#2-glenrockjr/srhighschool" if school_name == "converse#2-glenrockhighschool" & `year' == 2019
+replace school_name = "converse#2-glenrockintermediate/middleschool" if school_name == "converse#2-glenrockintermediateschool" & `year' == 2019
+replace school_name = "johnson#1-cloudpeakelementaryschool" if school_name == "johnson#1-cloudpeakelementary" & `year' == 2019
+replace school_name = "natrona#1-cyjuniormiddleschool" if school_name == "natrona#1-cymiddleschool" & `year' == 2019
 replace school_name = "laramie#1-poderacademysecondaryschool" if school_name == "laramie#1-poder" & `year' == 2022
 replace school_name = "laramie#1-poderacademysecondaryschool" if school_name == "laramie#1-poder" & `year' == 2023
 
@@ -196,10 +221,7 @@ duplicates drop school_name, force
 merge 1:m school_name using "`tempschool'"
 rename _merge _merge1
 if `year' == 2014 {	
-label def SchVirtual -1 "Missing/not reported"
-encode SchVirtual, gen(nSchVirtual) label(SchVirtual)
-drop SchVirtual
-rename nSchVirtual SchVirtual
+replace SchVirtual = "Missing/not reported"
 }
 
 if `year' != 2023 & `year' != 2022 merge m:1 school_name using "`NCES'/NCESnew_`year'_School", update
@@ -258,6 +280,8 @@ gen StudentGroup_TotalTested = string(low_end_group) + "-" + string(high_end_gro
 replace StudentGroup_TotalTested = "0" if missing(StudentGroup_TotalTested)
 replace StudentSubGroup_TotalTested = subinstr(StudentSubGroup_TotalTested, " ", "",.)
 
+// Dropping observations with no students tested
+drop if StudentSubGroup_TotalTested == "0" & StudentGroup != "All Students"
 
 //Level counts and percents
 foreach n in 1 2 3 4 {
@@ -269,9 +293,11 @@ foreach n in 1 2 3 4 {
 }
 
 //ProficientOrAbove_percent
-gen range = substr(ProficientOrAbove_percent, 1,2) if regexm(ProficientOrAbove_percent, "[<>=]") !=0
+gen ranges = substr(ProficientOrAbove_percent, 1,2) if regexm(ProficientOrAbove_percent, "[<>=]") !=0
 destring ProficientOrAbove_percent, gen(nProficientOrAbove_percent) i(%<>=)
-replace ProficientOrAbove_percent = range + " " + string(nProficientOrAbove_percent/100, "%9.4g")
+replace ProficientOrAbove_percent = string(nProficientOrAbove_percent/100, "%9.4g") if strpos(ProficientOrAbove_percent, "%")!=0
+replace ProficientOrAbove_percent = string(nProficientOrAbove_percent/100, "%9.4g") + "-1" if strpos(ranges, ">")!=0
+replace ProficientOrAbove_percent = "0-" + string(nProficientOrAbove_percent/100, "%9.4g") if strpos(ranges, "<")!=0
 replace ProficientOrAbove_percent = "*" if missing(nProficientOrAbove_percent)
 replace ProficientOrAbove_percent = "--" if StudentSubGroup_TotalTested == "0"
 
@@ -282,21 +308,23 @@ replace ParticipationRate = "*" if missing(nParticipationRate)
 replace ParticipationRate = "--" if StudentSubGroup_TotalTested == "0" 
 
 //Generating Informational Variables 
-gen ProficiencyCriteria = "Levels 3 and 4"
+gen ProficiencyCriteria = "Levels 3-4"
 if `year' <2018 gen AssmtName = "PAWS"
 if `year' > 2017 gen AssmtName = "WY-TOPP"
 gen AssmtType = "Regular"
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_read=""
-gen Flag_CutScoreChange_oth = "N"
+gen Flag_CutScoreChange_soc="Not applicable"
+gen Flag_CutScoreChange_sci = "N"
 
 replace Flag_AssmtNameChange = "Y" if `year' == 2018
 replace Flag_CutScoreChange_ELA = "Y" if `year' == 2018 | `year' == 2015
 replace Flag_CutScoreChange_math = "Y" if `year' == 2018 | `year' == 2015
-replace Flag_CutScoreChange_oth = "Y" if `year' == 2022 | `year' == 2018 | `year' == 2015
+replace Flag_CutScoreChange_sci = "Y" if `year' == 2022 | `year' == 2018 | `year' == 2015
 
+//Fix capitalization of county name
+replace CountyName = proper(CountyName)
 
 //Generating Empty/missing Variables
 gen AvgScaleScore = "--"
@@ -304,9 +332,27 @@ gen Lev5_count = ""
 gen Lev5_percent = ""
 gen ProficientOrAbove_count = "--"
 
+// Reset vars before generating counts
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+// Ranges for level counts for 2022 & 2023
+if `year' == 2022 | `year' == 2023 {
+gen low_end_subgroup = real(substr(StudentSubGroup_TotalTested, 1, strpos(StudentSubGroup_TotalTested, "-") - 1))
+gen high_end_subgroup = real(substr(StudentSubGroup_TotalTested, strpos(StudentSubGroup_TotalTested, "-") + 1, 4))
+forvalues n = 1/5 {
+	destring Lev`n'_percent, gen(nLev`n'_percent) force
+	gen lowLev`n'_count = round(nLev`n'_percent*low_end_subgroup)
+	gen highLev`n'_count = round(nLev`n'_percent*high_end_subgroup)
+	gen rangeLev`n'_count = string(lowLev`n'_count)+"-"+string(highLev`n'_count)
+	replace rangeLev`n'_count = string(lowLev`n'_count) if lowLev`n'_count == highLev`n'_count
+	replace Lev`n'_count = rangeLev`n'_count if Lev`n'_count == "--"
+	replace Lev`n'_count = "*" if Lev`n'_percent == "*"
+}
+}
+
 //Final Cleaning
-order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
-keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 drop if missing(DataLevel)
 save "`Output'/WY_AssmtData_`year'", replace
