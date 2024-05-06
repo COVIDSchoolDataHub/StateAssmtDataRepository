@@ -1,11 +1,11 @@
 clear all
 set more off
 
-cd "/Users/miramehta/Documents"
-global data "/Users/miramehta/Documents/WV State Testing Data"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics"
-global NCES_clean "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
-global counts "/Users/miramehta/Documents/EdFacts Data"
+cd "/Volumes/T7/State Test Project/West Virginia"
+global data "/Volumes/T7/State Test Project/West Virginia/Original Data Files"
+global NCES "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global NCES_clean "/Volumes/T7/State Test Project/West Virginia/NCES_Clean"
+global counts "/Volumes/T7/State Test Project/EDFACTS"
 
 forvalues year = 2015/2021 {
 	if `year' == 2020 {
@@ -41,6 +41,11 @@ replace CATEGORY = "Economically Disadvantaged" if CATEGORY == "ECD"
 replace CATEGORY = "Female" if CATEGORY == "F"
 replace CATEGORY = "Male" if CATEGORY == "M"
 replace CATEGORY = "English Learner" if CATEGORY == "LEP"
+replace CATEGORY = "SWD" if CATEGORY == "CWD"
+replace CATEGORY = "Foster Care" if CATEGORY == "FCS"
+replace CATEGORY = "Military" if CATEGORY == "MIL"
+replace CATEGORY = "Migrant" if CATEGORY == "MIG"
+replace CATEGORY = "Homeless" if CATEGORY == "HOM"
 rename CATEGORY StudentSubGroup
 save "$counts/WV_edfactscount`year'.dta", replace
 
@@ -73,6 +78,10 @@ replace CATEGORY = "Economically Disadvantaged" if CATEGORY == "ECD"
 replace CATEGORY = "Female" if CATEGORY == "F"
 replace CATEGORY = "Male" if CATEGORY == "M"
 replace CATEGORY = "English Learner" if CATEGORY == "LEP"
+replace CATEGORY = "SWD" if CATEGORY == "CWD"
+replace CATEGORY = "Foster Care" if CATEGORY == "FCS"
+replace CATEGORY = "Military" if CATEGORY == "MIL"
+replace CATEGORY = "Migrant" if CATEGORY == "MIG"
 rename CATEGORY StudentSubGroup
 save "$counts/WV_edfactscount`year'mathdistrict.dta", replace
 
@@ -105,6 +114,10 @@ replace CATEGORY = "Economically Disadvantaged" if CATEGORY == "ECD"
 replace CATEGORY = "Female" if CATEGORY == "F"
 replace CATEGORY = "Male" if CATEGORY == "M"
 replace CATEGORY = "English Learner" if CATEGORY == "LEP"
+replace CATEGORY = "SWD" if CATEGORY == "CWD"
+replace CATEGORY = "Foster Care" if CATEGORY == "FCS"
+replace CATEGORY = "Military" if CATEGORY == "MIL"
+replace CATEGORY = "Migrant" if CATEGORY == "MIG"
 rename CATEGORY StudentSubGroup
 save "$counts/WV_edfactscount`year'elaschool.dta", replace
 
@@ -137,6 +150,10 @@ replace CATEGORY = "Economically Disadvantaged" if CATEGORY == "ECD"
 replace CATEGORY = "Female" if CATEGORY == "F"
 replace CATEGORY = "Male" if CATEGORY == "M"
 replace CATEGORY = "English Learner" if CATEGORY == "LEP"
+replace CATEGORY = "SWD" if CATEGORY == "CWD"
+replace CATEGORY = "Foster Care" if CATEGORY == "FCS"
+replace CATEGORY = "Military" if CATEGORY == "MIL"
+replace CATEGORY = "Migrant" if CATEGORY == "MIG"
 rename CATEGORY StudentSubGroup
 save "$counts/WV_edfactscount`year'eladistrict.dta", replace
 
