@@ -1,11 +1,10 @@
 clear all
 set more off
-
-cd "/Users/miramehta/Documents/"
-global data "/Users/miramehta/Documents/WV State Testing Data"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics"
-global NCES_clean "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
-global counts "/Users/miramehta/Documents/EdFacts Data"
+cd "/Volumes/T7/State Test Project/West Virginia"
+global data "/Volumes/T7/State Test Project/West Virginia/Original Data Files"
+global NCES "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global NCES_clean "/Volumes/T7/State Test Project/West Virginia/NCES_Clean"
+global counts "/Volumes/T7/State Test Project/EDFACTS"
 
 //2022//
 import excel "$data/WV_EnrollmentData_2022.xlsx", sheet("SY21-22 School Composition") clear
