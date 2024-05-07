@@ -346,10 +346,7 @@ foreach var of local sch_nomiss {
 	}
 
 }
-** Missing values for AL 
 
-keep if DataLevel=="School"
-tab SchYear if SchType=="" // all 2016 values missing 
 
 ** • NEW. For all cases where DataLevel= is not School, are all rows blank?
 
