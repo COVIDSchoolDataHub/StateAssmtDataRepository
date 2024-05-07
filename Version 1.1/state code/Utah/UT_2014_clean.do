@@ -450,7 +450,7 @@ replace StudentGroup_TotalTested = "--" if inlist(StudentGroup_TotalTested, "", 
 replace CountyName = "Utah County" if SchName == "Liberty Academy" & CountyName == ""
 replace DistLocale = "Suburb, large" if SchName == "Liberty Academy" & DistLocale == ""
 
-replace StateAssignedSchID = "UT-" + StateAssignedSchID if DataLevel == 3
+replace StateAssignedSchID = StateAssignedDistID + "-" + StateAssignedSchID if DataLevel == 3
 replace StateAssignedDistID = "UT-" + StateAssignedDistID if DataLevel != 1
 
 gen flag = 1 if inlist(SchName, "East School", "Legacy School")

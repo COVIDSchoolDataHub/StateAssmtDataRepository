@@ -469,7 +469,7 @@ replace StateAssignedSchID = "33200" if NCESSchoolID == "490114001161"
 replace DistLocale="City, small" if DistName=="Washington District" & DistLocale==""
 replace CountyName="Washington County" if DistName=="Washington District" & CountyName==""
 
-replace StateAssignedSchID = "UT-" + StateAssignedSchID if DataLevel == 3
+replace StateAssignedSchID = StateAssignedDistID + "-" + StateAssignedSchID if DataLevel == 3
 replace StateAssignedDistID = "UT-" + StateAssignedDistID if DataLevel != 1
 
 gen flag = 1 if inlist(SchName, "East School", "Legacy School")
