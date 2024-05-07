@@ -77,12 +77,12 @@ foreach dl in State District School {
 use "`temp1'"
 save "`Original'/2021", replace
 clear
-*/
 
+*/
 
 //Unhide Above importing code on first run
 
-forvalues year == 2019/2023 {
+forvalues year == 2015/2023 {
 if `year' == 2020 | `year' == 2021 continue
 
 use "`Original'/`year'"
@@ -129,9 +129,15 @@ if `year' == 2023 {
 	replace ProficientOrAbove_percent = PercentProficient
 }
 
+destring StudentSubGroup_TotalTested, gen(nStudentSubGroup_TotalTested) i(*-)
+destring ProficientOrAbove_percent, gen(Prof) force
+replace Prof = Prof/100
+gen ProfCount = round(Prof * nStudentSubGroup_TotalTested)
+replace ProficientOrAbove_count = string(ProfCount) if inlist(ProficientOrAbove_count, "*", "--", "") & ProfCount != .
+
 cap gen Lev5_count = ""
 cap gen Lev5_percent = ""
-keep StateAssignedDistID DistName StateAssignedSchID SchName Subject StudentSubGroup GradeLevel Lev5_count Lev5_percent Lev4_count Lev4_percent Lev3_count Lev3_percent Lev2_count Lev2_percent Lev1_count Lev1_percent StudentSubGroup_TotalTested ParticipationRate DataLevel SchYear ProficientOrAbove_count ProficientOrAbove_percent
+keep StateAssignedDistID DistName StateAssignedSchID SchName Subject StudentSubGroup GradeLevel Lev5_count Lev5_percent Lev4_count Lev4_percent Lev3_count Lev3_percent Lev2_count Lev2_percent Lev1_count Lev1_percent StudentSubGroup_TotalTested ParticipationRate DataLevel SchYear ProficientOrAbove_count ProficientOrAbove_percent nStudentSubGroup_TotalTested
 
 //Subject 
 replace Subject = "sci" if Subject == "Science"
@@ -201,13 +207,15 @@ destring ProficientOrAbove_percent, gen(nProficientOrAbove_percent) i(*-)
 replace ProficientOrAbove_percent = string(nProficientOrAbove_percent/100,"%9.3g") if regexm(ProficientOrAbove_percent, "[*-]") == 0
 
 //Derive Additional Information
-destring StudentSubGroup_TotalTested, gen(nStudentSubGroup_TotalTested) i(*-)
 gen flag1 = 1 if ProficientOrAbove_count == "*" & ProficientOrAbove_percent != "0-0.05"
 gen flag2 = 1 if ProficientOrAbove_count == "*" & ProficientOrAbove_percent != "0.95-1"
 gen xlow = round(0.05 * nStudentSubGroup_TotalTested)
 gen xhigh = round(0.95 * nStudentSubGroup_TotalTested)
 replace ProficientOrAbove_count = "0-" + string(xlow) if flag1 == 1 & xlow != .
 replace ProficientOrAbove_percent = string(xhigh) + "-1" if flag2 == 1 & xhigh != .
+
+replace ProficientOrAbove_count = "*" if ProficientOrAbove_percent == "*" & ProficientOrAbove_count == "--"
+replace ProficientOrAbove_count = "*" if StudentSubGroup_TotalTested == "*" & ProficientOrAbove_count == "--"
 
 //ParticipationRate
 destring ParticipationRate, gen(nParticipationRate) i(*-)
@@ -309,16 +317,18 @@ gen Flag_CutScoreChange_soc = "Not applicable"
 gen ProficiencyCriteria = "Levels 3-4"
 gen AssmtType = "Regular"
 gen AssmtName = "Smarter Balanced Assessment"
-replace AssmtName = "OSAS" if Subject == "sci"
-replace ProficiencyCriteria = "Levels 4-5" if Subject == "sci" & `year' <2019
+replace AssmtName = "OAKS Science" if Subject == "sci" & `year' < 2019
+replace AssmtName = "OSAS" if Subject == "sci" & `year' >= 2019
+replace ProficiencyCriteria = "Levels 4-5" if Subject == "sci" & `year' < 2019
 
 //Flags
 foreach var of varlist Flag* {
-	replace `var' = "Y" if ("`var'" == "Flag_AssmtNameChange" | "`var'" == "Flag_CutScoreChange_ELA" | "`var'" == "Flag_CutScoreChange_math" | "`var'" == "Flag_CutScoreChange_sci") & `year' == 2015
+	replace `var' = "Y" if ("`var'" == "Flag_AssmtNameChange" | "`var'" == "Flag_CutScoreChange_ELA" | "`var'" == "Flag_CutScoreChange_math") & `year' == 2015
 	replace `var' = "Y" if "`var'" == "Flag_CutScoreChange_sci" & `year' == 2019
 }
-replace Flag_CutScoreChange_ELA = "Y" if `year' == 2022
-replace Flag_CutScoreChange_math = "Y" if `year' == 2022
+
+replace Flag_AssmtNameChange = "N" if Subject == "sci" & `year' == 2015
+replace Flag_AssmtNameChange = "Y" if Subject == "sci" & `year' == 2019
 replace Flag_CutScoreChange_sci = "Y" if `year' == 2023
 
 //Empty Variables
@@ -355,6 +365,7 @@ foreach var of varlist StudentSubGroup_TotalTested Lev* ParticipationRate {
 
 //Dropping Empty Obs
 drop if ProficientOrAbove_percent == "--"
+replace StudentGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "*" & StudentSubGroup == "All Students"
 
 **Unmerged 2023**
 if `year' == 2023 {

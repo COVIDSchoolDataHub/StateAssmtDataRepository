@@ -469,8 +469,8 @@ replace StateAssignedSchID = "33200" if NCESSchoolID == "490114001161"
 replace DistLocale="City, small" if DistName=="Washington District" & DistLocale==""
 replace CountyName="Washington County" if DistName=="Washington District" & CountyName==""
 
-replace StateAssignedSchID = subinstr(StateAssignedSchID, "UT-", "", .) if strpos(StateAssignedSchID, "UT-") > 0
-replace StateAssignedDistID = subinstr(StateAssignedDistID, "UT-", "", .) if strpos(StateAssignedDistID, "UT-") > 0
+replace StateAssignedSchID = "UT-" + StateAssignedSchID if DataLevel == 3
+replace StateAssignedDistID = "UT-" + StateAssignedDistID if DataLevel != 1
 
 gen flag = 1 if inlist(SchName, "East School", "Legacy School")
 replace SchName = SchName + " (" + DistName + ")" if flag == 1

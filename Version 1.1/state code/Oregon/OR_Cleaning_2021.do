@@ -25,6 +25,7 @@ foreach n in 1 2 3 4 {
 	gen Lev`n'_count = "--"
 	gen Lev`n'_percent = "--"
 }
+
 gen Lev5_count = ""
 gen Lev5_percent = ""
 gen ProficientOrAbove_count = "--"
@@ -95,6 +96,12 @@ gen xlow = round(0.05 * nStudentSubGroup_TotalTested)
 gen xhigh = round(0.95 * nStudentSubGroup_TotalTested)
 replace ProficientOrAbove_count = "0-" + string(xlow) if flag1 == 1 & xlow != .
 replace ProficientOrAbove_percent = string(xhigh) + "-1" if flag2 == 1 & xhigh != .
+
+replace nProficientOrAbove_percent = nProficientOrAbove_percent/100
+gen ProfCount = round(nProficientOrAbove_percent * nStudentSubGroup_TotalTested)
+replace ProficientOrAbove_count = string(ProfCount) if inlist(ProficientOrAbove_count, "*", "--", "") & ProfCount != .
+replace ProficientOrAbove_count = "*" if ProficientOrAbove_percent == "*" & ProficientOrAbove_count == "--"
+replace ProficientOrAbove_count = "*" if StudentSubGroup_TotalTested == "*" & ProficientOrAbove_count == "--"
 
 //ParticipationRate
 destring ParticipationRate, gen(nParticipationRate) i(*-)
@@ -180,6 +187,7 @@ sort StudentGroup
 egen StudentGroup_TotalTested = total(nStudentSubGroup_TotalTested), by(StudentGroup GradeLevel Subject DataLevel SchName DistName)
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "0"
+replace StudentGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "*"
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 gen Suppressed = 0
@@ -199,6 +207,7 @@ foreach var of varlist StudentSubGroup_TotalTested ParticipationRate {
 
 //Dropping Empty Obs
 drop if ProficientOrAbove_percent == "--"
+replace StudentGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "*" & StudentSubGroup == "All Students"
 
 //Final Cleaning
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode

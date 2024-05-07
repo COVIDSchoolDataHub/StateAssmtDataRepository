@@ -449,9 +449,9 @@ replace StudentGroup_TotalTested = "--" if inlist(StudentGroup_TotalTested, "", 
 ** Cleaning up from unmerged
 replace CountyName = "Utah County" if SchName == "Liberty Academy" & CountyName == ""
 replace DistLocale = "Suburb, large" if SchName == "Liberty Academy" & DistLocale == ""
-replace StateAssignedSchID = subinstr(StateAssignedSchID, "UT-", "", 1)
-replace StateAssignedSchID = subinstr(StateAssignedSchID, "-", "", 1)
-replace StateAssignedDistID = subinstr(StateAssignedDistID, "UT-", "", 1)
+
+replace StateAssignedSchID = "UT-" + StateAssignedSchID if DataLevel == 3
+replace StateAssignedDistID = "UT-" + StateAssignedDistID if DataLevel != 1
 
 gen flag = 1 if inlist(SchName, "East School", "Legacy School")
 replace SchName = SchName + " (" + DistName + ")" if flag == 1

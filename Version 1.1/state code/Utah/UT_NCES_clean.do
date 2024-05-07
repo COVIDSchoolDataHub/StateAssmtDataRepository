@@ -83,10 +83,10 @@ rename ncesdistrictid NCESDistrictID
 rename state_leaid State_leaid
 rename lea_name DistName
 rename school_name SchName
+rename SchVirtual SchVirtual_n
 
 replace SchName="Minersville School (Primary)" if SchName=="Minersville School" & SchLevel == 1
 replace SchName="Minersville School (Middle)" if SchName=="Minersville School" & SchLevel == 2
-drop SchVirtual
 
 merge 1:1 NCESDistrictID NCESSchoolID using "${utah}/NCES_2021_School.dta", keepusing (DistLocale CountyCode CountyName district_agency_type SchVirtual)
 drop if _merge == 2
@@ -105,6 +105,10 @@ replace CountyName = "Utah County" if SchName == "Nebo Online School"
 replace CountyCode = "49049" if SchName == "Nebo Online School"
 replace district_agency_type = 1 if SchName == "Nebo Online School"
 replace DistLocale = "City, midsize" if SchName == "Nebo Online School"
+
+replace SchVirtual_n = SchVirtual if inlist(SchVirtual_n, ., -1) & SchVirtual != .
+drop SchVirtual
+rename SchVirtual_n SchVirtual
 
 decode district_agency_type, gen (DistType)
 drop district_agency_type
