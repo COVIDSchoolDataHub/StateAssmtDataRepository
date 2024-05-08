@@ -219,6 +219,7 @@ replace StudentGroup="Disability Status" if StudentSubGroup=="SWD"
 *** Merge EdFacts Data
 merge m:1 DataLevel NCESSchoolID StudentSubGroup GradeLevel Subject using "${edfacts}/2021/edfactscount2021schoolutah.dta"
 replace StudentSubGroup_TotalTested = string(Count) if string(Count) != "." & string(Count) != ""
+replace StudentSubGroup_TotalTested = "*" if Count == 0
 gen Count_n = Count if DataLevel == 3 & _merge == 3
 drop if _merge == 2
 drop Count stnam schnam _merge
@@ -393,6 +394,7 @@ replace StudentGroup="Disability Status" if StudentSubGroup=="SWD"
 *** Merge EdFacts Data
 merge m:1 DataLevel NCESDistrictID StudentSubGroup GradeLevel Subject using "${edfacts}/2021/edfactscount2021districtutah.dta"
 replace StudentSubGroup_TotalTested = string(Count) if string(Count) != "." & string(Count) != ""
+replace StudentSubGroup_TotalTested = "*" if Count == 0
 rename Count Count_n
 drop if _merge == 2
 drop stnam _merge
@@ -614,6 +616,9 @@ replace StateAssignedSchID = "" if DataLevel != 3
 replace StateAssignedDistID = "" if DataLevel == 1
 
 ** Proficiency Values
+destring StudentSubGroup_TotalTested, gen(x) force
+replace Count_n = x if DataLevel == 1
+
 forvalues i = 1/4 {
 	gen Lev`i'_count = "--"
 	
@@ -672,7 +677,8 @@ forvalues i = 1/4 {
 replace ProficientOrAbove_percent = "--" if inlist(ProficientOrAbove_percent, "null", "NULL", "", "-")
 replace ProficientOrAbove_percent ="*" if inlist(ProficientOrAbove_percent, "N≤10", "n≤10", "n<10", "N<10")
 
-replace ProficientOrAbove_percent = PctProf if !inlist(PctProf, "", ".", "--", "*") & inlist(ProficientOrAbove_percent, "--", "*")
+gen flag_edfacts = 1 if !inlist(PctProf, "", ".", "--", "*") & inlist(ProficientOrAbove_percent, "--", "*")
+replace ProficientOrAbove_percent = PctProf if flag_edfacts == 1
 
 replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, " to ", "-", 1)
 replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, "%", "", 1)

@@ -141,7 +141,7 @@ replace SchName = strproper(SchName)
 merge m:1 SchName DistName SchYear using "${raw}/UT_unmerged_schools.dta", update
 
 gen StateAssignedDistID = State_leaid
-replace StateAssignedSchID = seasch
+gen StateAssignedSchID = seasch
 
 drop if _merge==2
 drop _merge
@@ -177,6 +177,7 @@ replace StudentGroup="Disability Status" if StudentSubGroup=="SWD"
 *** Merge EdFacts Data
 merge m:1 DataLevel NCESSchoolID StudentSubGroup GradeLevel Subject using "${edfacts}/2018/edfactscount2018schoolutah.dta"
 replace StudentSubGroup_TotalTested = string(Count) if string(Count) != "." & string(Count) != ""
+replace StudentSubGroup_TotalTested = "*" if Count == 0
 gen Count_n = Count if DataLevel == 3 & _merge == 3
 drop if _merge == 2
 drop Count stnam schnam _merge
@@ -315,6 +316,7 @@ replace StudentGroup="Disability Status" if StudentSubGroup=="SWD"
 *** Merge EdFacts Data
 merge m:1 DataLevel NCESDistrictID StudentSubGroup GradeLevel Subject using "${edfacts}/2018/edfactscount2018districtutah.dta"
 replace StudentSubGroup_TotalTested = string(Count) if string(Count) != "." & string(Count) != ""
+replace StudentSubGroup_TotalTested = "*" if Count == 0
 rename Count Count_n
 drop if _merge == 2
 drop stnam _merge
@@ -550,8 +552,8 @@ forvalues n = 1/4{
 
 rename ProficientOrAbove_percent_count ProficientOrAbove_count
 
-gen flag = 1 if !inlist(PctProf, "", ".", "--", "*") & inlist(ProficientOrAbove_percent, "--", "*")
-replace ProficientOrAbove_percent = PctProf if flag == 1
+gen flag_edfacts = 1 if !inlist(PctProf, "", ".", "--", "*") & inlist(ProficientOrAbove_percent, "--", "*")
+replace ProficientOrAbove_percent = PctProf if flag_edfacts == 1
 split ProficientOrAbove_percent, parse("-")
 destring ProficientOrAbove_percent1, replace force
 destring ProficientOrAbove_percent2, replace force
@@ -616,7 +618,7 @@ replace SchName = SchName + " (" + DistName + ")" if flag == 1
 replace SchName = subinstr(SchName, " District", "", 1) if flag == 1
 drop flag
 
-replace StateAssignedSchID = StateAssignedDistID + "-" + StateAssignedSchID if strpos(StateAssignedSchID, "-") == 0
+replace StateAssignedSchID = StateAssignedDistID + "-" + StateAssignedSchID if strpos(StateAssignedSchID, "-") == 0 & DataLevel == 3
 
 *** Cleaning Inconsistent School & District Names
 merge m:m SchYear NCESSchoolID NCESDistrictID using "${raw}/ut_full-dist-sch-stable-list_through2023.dta"

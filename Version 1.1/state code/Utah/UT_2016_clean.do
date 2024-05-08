@@ -104,6 +104,8 @@ replace DistName=strupper(DistName)
 
 merge m:1 SchName DistName SchYear using "${raw}/UT_unmerged_schools.dta", update
 
+replace StateAssignedSchID = seasch if StateAssignedSchID == ""
+
 drop if _merge==2
 drop _merge
 
@@ -133,6 +135,7 @@ gen ParticipationRate = "--"
 *** Merge EdFacts Data
 merge m:1 DataLevel NCESSchoolID StudentGroup StudentSubGroup GradeLevel Subject using "${edfacts}/2016/edfactscount2016schoolutah.dta"
 replace StudentSubGroup_TotalTested = string(Count) if string(Count) != "." & string(Count) != ""
+replace StudentSubGroup_TotalTested = "*" if Count == 0
 gen Count_n = Count if DataLevel == 3 & _merge == 3
 drop if _merge == 2
 drop Count stnam schnam _merge
@@ -277,6 +280,7 @@ gen ParticipationRate = "--"
 *** Merge EdFacts Data
 merge m:1 DataLevel NCESDistrictID StudentGroup StudentSubGroup GradeLevel Subject using "${edfacts}/2016/edfactscount2016districtutah.dta"
 replace StudentSubGroup_TotalTested = string(Count) if string(Count) != "." & string(Count) != ""
+replace StudentSubGroup_TotalTested = "*" if Count == 0
 rename Count Count_n
 drop if _merge == 2
 drop stnam _merge
@@ -516,7 +520,8 @@ tostring ProficientOrAbove_percent2, replace format("%9.2g") force
 replace ProficientOrAbove_percent = ProficientOrAbove_percent1 + "-" + ProficientOrAbove_percent2 if !inlist(ProficientOrAbove_percent1, "", ".")
 drop ProficientOrAbove_percent1 ProficientOrAbove_percent2 ProficientOrAbove_count1 ProficientOrAbove_count2
 
-replace ProficientOrAbove_percent = PctProf if !inlist(PctProf, "", ".", "--", "*") & inlist(ProficientOrAbove_percent, "--", "*")
+gen flag_edfacts = 1 if !inlist(PctProf, "", ".", "--", "*") & inlist(ProficientOrAbove_percent, "--", "*")
+replace ProficientOrAbove_percent = PctProf if flag_edfacts == 1
 replace ProficientOrAbove_count = "--" if inlist(ProficientOrAbove_count, "", ".")
 replace ProficientOrAbove_count = "--" if ProficientOrAbove_percent == "--"
 replace ProficientOrAbove_count = "*" if ProficientOrAbove_percent == "*"

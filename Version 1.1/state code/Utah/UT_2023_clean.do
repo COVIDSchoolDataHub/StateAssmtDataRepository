@@ -590,7 +590,8 @@ forvalues i = 1/4 {
 	tostring Lev`i'_count1, replace
 	tostring Lev`i'_count2, replace
 	replace Lev`i'_count1 = "" if Lev`i'_count1 == "."
-	replace Lev`i'_count = Lev`i'_count1 + "-" + Lev`i'_count2 if Lev`i'_count1 != "" & Lev`i'_count2 != "."
+	replace Lev`i'_count = Lev`i'_count1 + "-" + Lev`i'_count2 if Lev`i'_count1 != "" & Lev`i'_count2 != "." & Lev`i'_count1 != Lev`i'_count2
+	replace Lev`i'_count = Lev`i'_count1 if Lev`i'_count1 != "" & Lev`i'_count2 != "." & Lev`i'_count1 == Lev`i'_count2
 	tostring Lev`i'_percent1, replace format("%9.2g") force
 	tostring Lev`i'_percent2, replace format("%9.2g") force
 	replace Lev`i'_percent = Lev`i'_percent1 + "-" + Lev`i'_percent2 if !inlist(Lev`i'_percent1, "", ".")
@@ -642,7 +643,8 @@ gen ProficientOrAbove_count2 = round(ProficientOrAbove_percent2 * Count_n)
 tostring ProficientOrAbove_count1, replace
 tostring ProficientOrAbove_count2, replace
 replace ProficientOrAbove_count1 = "" if ProficientOrAbove_count1 == "."
-replace ProficientOrAbove_count = ProficientOrAbove_count1 + "-" + ProficientOrAbove_count2 if ProficientOrAbove_count1 != "" & ProficientOrAbove_count2 != "."
+replace ProficientOrAbove_count = ProficientOrAbove_count1 + "-" + ProficientOrAbove_count2 if ProficientOrAbove_count1 != "" & ProficientOrAbove_count2 != "." & ProficientOrAbove_count1 != ProficientOrAbove_count2
+replace ProficientOrAbove_count = ProficientOrAbove_count1 if ProficientOrAbove_count1 != "" & ProficientOrAbove_count2 != "." & ProficientOrAbove_count1 == ProficientOrAbove_count2
 tostring ProficientOrAbove_percent1, replace format("%9.2g") force
 tostring ProficientOrAbove_percent2, replace format("%9.2g") force
 replace ProficientOrAbove_percent = ProficientOrAbove_percent1 + "-" + ProficientOrAbove_percent2 if !inlist(ProficientOrAbove_percent1, "", ".")
@@ -659,6 +661,7 @@ gen Lev5_percent = ""
 
 ** StudentGroup_TotalTested
 replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == ""
+replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "0"
 gen StudentGroup_TotalTested = StudentSubGroup_TotalTested
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup

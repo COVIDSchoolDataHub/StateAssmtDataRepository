@@ -133,7 +133,7 @@ save "${utah}/NCES_2022_District.dta", replace
 
 import excel "${raw}/UT_unmerged_schools.xlsx", sheet("UT unmerged") firstrow clear 
 tostring CountyCode, replace
-save "${raw}/UT_unmerged_schools.dta", replace format() force
+save "${raw}/UT_unmerged_schools.dta", replace
 
 use "${raw}/ut_full-dist-sch-stable-list_through2023.dta", clear
 tostring NCESDistrictID, replace
