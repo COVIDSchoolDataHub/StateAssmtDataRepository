@@ -1269,10 +1269,10 @@ tab Lev5_percent
 ** • Has it been confirmed that there are no cases where the percent across levels does not sum to over 101%?
 
 // first converting level counts from string to num 
-destring Lev1_percent, generate(Lev1_p) ignore("*" & "--" & "<") //added < for DE
+destring Lev1_percent, generate(Lev1_p) ignore("*" & "--") 
 destring Lev2_percent, generate(Lev2_p) ignore("*" & "--")
 destring Lev3_percent, generate(Lev3_p) ignore("*" & "--")
-destring Lev4_percent, generate(Lev4_p) ignore("*" & "--" & "<") //added < for DE
+destring Lev4_percent, generate(Lev4_p) ignore("*" & "--")
 *destring Lev5_percent, generate(Lev5_p) ignore("*" & "--")
 
 egen tot_percent=rowtotal(Lev*_percent)
