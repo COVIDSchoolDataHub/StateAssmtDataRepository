@@ -349,6 +349,10 @@ forvalues n = 1/5 {
 	replace Lev`n'_count = rangeLev`n'_count if Lev`n'_count == "--"
 	replace Lev`n'_count = "*" if Lev`n'_percent == "*"
 }
+
+gen lowProfCount = string(round(lowLev3_count + lowLev4_count))
+gen highProfCount = string(round(highLev3_count + highLev4_count))
+replace ProficientOrAbove_count = lowProfCount+"-"+highProfCount if ProficientOrAbove_count == "--"
 }
 
 // Standardizing state ids across years
@@ -371,3 +375,4 @@ clear
 }
 
 do "/Users/meghancornacchia/Desktop/DataRepository/Wyoming/WY_EDFacts.do"
+do "/Users/meghancornacchia/Desktop/DataRepository/Wyoming/WY_EDFacts_2022.do"
