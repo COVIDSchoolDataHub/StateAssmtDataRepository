@@ -282,6 +282,7 @@ replace StudentSubGroup_TotalTested = subinstr(StudentSubGroup_TotalTested, " ",
 
 // Dropping observations with no students tested
 drop if StudentSubGroup_TotalTested == "0" & StudentGroup != "All Students"
+replace StudentGroup_TotalTested = "0" if StudentGroup_TotalTested == "0-0"
 
 //Level counts and percents
 foreach n in 1 2 3 4 {
@@ -319,9 +320,9 @@ gen Flag_CutScoreChange_soc="Not applicable"
 gen Flag_CutScoreChange_sci = "N"
 
 replace Flag_AssmtNameChange = "Y" if `year' == 2018
-replace Flag_CutScoreChange_ELA = "Y" if `year' == 2018 | `year' == 2015
-replace Flag_CutScoreChange_math = "Y" if `year' == 2018 | `year' == 2015
-replace Flag_CutScoreChange_sci = "Y" if `year' == 2022 | `year' == 2018 | `year' == 2015
+replace Flag_CutScoreChange_ELA = "Y" if `year' == 2018 | `year' == 2014
+replace Flag_CutScoreChange_math = "Y" if `year' == 2018 | `year' == 2014
+replace Flag_CutScoreChange_sci = "Y" if `year' == 2022
 
 //Fix capitalization of county name
 replace CountyName = proper(CountyName)
@@ -348,6 +349,18 @@ forvalues n = 1/5 {
 	replace Lev`n'_count = rangeLev`n'_count if Lev`n'_count == "--"
 	replace Lev`n'_count = "*" if Lev`n'_percent == "*"
 }
+
+gen lowProfCount = string(round(lowLev3_count + lowLev4_count))
+gen highProfCount = string(round(highLev3_count + highLev4_count))
+replace ProficientOrAbove_count = lowProfCount+"-"+highProfCount if ProficientOrAbove_count == "--"
+}
+
+// Standardizing state ids across years
+if `year' == 2014 | `year' == 2015 | `year' == 2016 {
+	replace StateAssignedSchID = StateAssignedDistID + StateAssignedSchID
+	replace StateAssignedDistID = "WY-"+StateAssignedDistID
+	replace StateAssignedDistID = "" if DataLevel == 1
+	replace StateAssignedSchID = "" if DataLevel != 3
 }
 
 //Final Cleaning
@@ -360,3 +373,6 @@ export delimited using "`Output'/WY_AssmtData_`year'", replace
 
 clear
 }
+
+do "/Users/meghancornacchia/Desktop/DataRepository/Wyoming/WY_EDFacts.do"
+do "/Users/meghancornacchia/Desktop/DataRepository/Wyoming/WY_EDFacts_2022.do"
