@@ -536,7 +536,6 @@ keep if flag1==1
 // If there are observations flagged, identify the issue and flag for data cleaner (specific districts? specific years?)
 // For example, it may help to focus on the specific cases flagged:
 
-preserve 
 format NCESSchoolID %18.0g	
 keep if flag1==1
 keep State SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID flag1 
@@ -1187,17 +1186,11 @@ tab Lev4_count
 tab Lev5_count // may not be applicable to the state 
 
 // additional checks for looking at level data 
-summarize Lev1_count
-summarize Lev2_count
-summarize Lev3_count
-summarize Lev4_count
-summarize Lev5_count
-
 sort Lev1_count
 sort Lev2_count
 sort Lev3_count
 sort Lev4_count
-
+sort Lev5_count
 
 ** • Are all rows free from any blanks? (as applicable)
 local levels_nomiss "Lev1_count  Lev2_count Lev3_count  Lev4_count Lev5_count"
@@ -1276,13 +1269,13 @@ tab Lev5_percent
 ** • Has it been confirmed that there are no cases where the percent across levels does not sum to over 101%?
 
 // first converting level counts from string to num 
-destring Lev1_percent, generate(Lev1_p) ignore("*" & "--" & "<") //added < for DE
+destring Lev1_percent, generate(Lev1_p) ignore("*" & "--") 
 destring Lev2_percent, generate(Lev2_p) ignore("*" & "--")
 destring Lev3_percent, generate(Lev3_p) ignore("*" & "--")
-destring Lev4_percent, generate(Lev4_p) ignore("*" & "--" & "<") //added < for DE
+destring Lev4_percent, generate(Lev4_p) ignore("*" & "--")
 *destring Lev5_percent, generate(Lev5_p) ignore("*" & "--")
 
-egen tot_percent=rowtotal(Lev*_percent)
+egen tot_percent=rowtotal(Lev*_p)
 gen row=_n
 
 di as error "Below rows have percent total greater than 101%"
