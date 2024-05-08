@@ -614,6 +614,7 @@ replace CountyName="Salt Lake County" if inlist(DistName, "Canyons District", "S
 replace CountyName="Utah County" if DistName=="Alpine District" & CountyName==""
 replace CountyName="Washington County" if DistName=="Washington District" & CountyName==""
 
+replace StateAssignedSchID = StateAssignedDistID + "-" + StateAssignedSchID if strpos(StateAssignedSchID, "-") == 0 & DataLevel == 3
 replace StateAssignedSchID = subinstr(StateAssignedSchID, "UT-", "", .) if strpos(StateAssignedSchID, "UT-") > 0
 replace StateAssignedDistID="UT-"+StateAssignedDistID if strpos(StateAssignedDistID, "UT-")<=0 & DataLevel != 1
 replace DistCharter="No" if DistCharter=="NO"

@@ -113,7 +113,7 @@ replace DistName=subinstr(DistName, ",", "", 1) if strpos(DistName, "The Center 
 merge m:1 SchName DistName using "${utah}/NCES_2018_School.dta"
 
 replace NCESSchoolID = "490066001431" if SchName == "North Sanpete Special Purpose School"
-replace seasch = "20801" if SchName == "North Sanpete Special Purpose School"
+replace seasch = "20-20801" if SchName == "North Sanpete Special Purpose School"
 
 gen DataLevel=3
 
@@ -615,6 +615,8 @@ gen flag = 1 if inlist(SchName, "East School", "Legacy School")
 replace SchName = SchName + " (" + DistName + ")" if flag == 1
 replace SchName = subinstr(SchName, " District", "", 1) if flag == 1
 drop flag
+
+replace StateAssignedSchID = StateAssignedDistID + "-" + StateAssignedSchID if strpos(StateAssignedSchID, "-") == 0
 
 *** Cleaning Inconsistent School & District Names
 merge m:m SchYear NCESSchoolID NCESDistrictID using "${raw}/ut_full-dist-sch-stable-list_through2023.dta"
