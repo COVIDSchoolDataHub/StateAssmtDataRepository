@@ -1275,7 +1275,7 @@ destring Lev3_percent, generate(Lev3_p) ignore("*" & "--")
 destring Lev4_percent, generate(Lev4_p) ignore("*" & "--")
 *destring Lev5_percent, generate(Lev5_p) ignore("*" & "--")
 
-egen tot_percent=rowtotal(Lev*_percent)
+egen tot_percent=rowtotal(Lev*_p)
 gen row=_n
 
 di as error "Below rows have percent total greater than 101%"
