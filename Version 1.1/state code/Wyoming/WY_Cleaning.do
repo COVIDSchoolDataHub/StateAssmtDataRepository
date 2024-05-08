@@ -282,6 +282,7 @@ replace StudentSubGroup_TotalTested = subinstr(StudentSubGroup_TotalTested, " ",
 
 // Dropping observations with no students tested
 drop if StudentSubGroup_TotalTested == "0" & StudentGroup != "All Students"
+replace StudentGroup_TotalTested = "0" if StudentGroup_TotalTested == "0-0"
 
 //Level counts and percents
 foreach n in 1 2 3 4 {
@@ -319,9 +320,9 @@ gen Flag_CutScoreChange_soc="Not applicable"
 gen Flag_CutScoreChange_sci = "N"
 
 replace Flag_AssmtNameChange = "Y" if `year' == 2018
-replace Flag_CutScoreChange_ELA = "Y" if `year' == 2018 | `year' == 2015
-replace Flag_CutScoreChange_math = "Y" if `year' == 2018 | `year' == 2015
-replace Flag_CutScoreChange_sci = "Y" if `year' == 2022 | `year' == 2018 | `year' == 2015
+replace Flag_CutScoreChange_ELA = "Y" if `year' == 2018 | `year' == 2014
+replace Flag_CutScoreChange_math = "Y" if `year' == 2018 | `year' == 2014
+replace Flag_CutScoreChange_sci = "Y" if `year' == 2022
 
 //Fix capitalization of county name
 replace CountyName = proper(CountyName)
@@ -350,6 +351,14 @@ forvalues n = 1/5 {
 }
 }
 
+// Standardizing state ids across years
+if `year' == 2014 | `year' == 2015 | `year' == 2016 {
+	replace StateAssignedSchID = StateAssignedDistID + StateAssignedSchID
+	replace StateAssignedDistID = "WY-"+StateAssignedDistID
+	replace StateAssignedDistID = "" if DataLevel == 1
+	replace StateAssignedSchID = "" if DataLevel != 3
+}
+
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
@@ -360,3 +369,5 @@ export delimited using "`Output'/WY_AssmtData_`year'", replace
 
 clear
 }
+
+do "/Users/meghancornacchia/Desktop/DataRepository/Wyoming/WY_EDFacts.do"
