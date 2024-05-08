@@ -1,11 +1,10 @@
 
-
 cap log close
 log using north_carolina_cleaning.log, replace 
 
 // COUNTY NAME CHECK IN EARLIER YEARS
 
-cd "/Users/benjaminm/Documents/State_Repository_Research/North_Carolina"
+
 
 // imports all years and converts to dta files 
 local years 13-14 14-15 15-16 16-17 17-18 21-22 22-23 //18-19 20-21
@@ -16,9 +15,9 @@ save NC_OriginalData_`a'
 }
 
 
+cd "/Users/benjaminm/Documents/State_Repository_Research/North_Carolina"
 
 local years1  "13-14 14-15 15-16 16-17 17-18 18-19 20-21 21-22 22-23"
-
 
 foreach a in `years1' {
 	
@@ -192,7 +191,9 @@ replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Foster Care" 
 
 
 // proficiency level 
-gen ProficiencyCriteria = "Levels 3, 4 and 5" // THIS WILL DIFF FOR PRIOR TO 2021/19 DEPENDING ON SUBJECT
+gen ProficiencyCriteria = "Levels 3-5" // THIS WILL DIFF FOR PRIOR TO 2021/19 DEPENDING ON SUBJECT
+
+
 
 
 
@@ -220,6 +221,8 @@ replace StateAssignedDistID = substr(Code, 1, 3) if DataLevel == "School"
 rename Code StateAssignedSchID
 
 
+
+
 // create separate district and school names, based on length of code (or daalevel function)
 
 gen DistName = SchName if DataLevel == "District"
@@ -244,7 +247,7 @@ replace SchName = "All Schools" if DataLevel == 2
 save nc_progress_1, replace // use loop variable here (or not)
 
 
-
+gen StateAssignedSchID_full = StateAssignedSchID // keeping to replace back later 
 //making state assigned school ID just 3 for match 
 replace StateAssignedSchID = substr(StateAssignedSchID, 4, .)
 
@@ -336,19 +339,43 @@ gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_sci = "N" 
 gen Flag_CutScoreChange_soc = "Not applicable"
 
+
+
+// UPDATED 4/30/24
+if "`a'" == "13-14" {
+
+replace Flag_AssmtNameChange = "Y" // if Subject == "ela" & GradeLevel == "G04" | GradeLevel == "G05" | GradeLevel == "G06" | GradeLevel == "G07" | GradeLevel == "G08" 
+replace Flag_CutScoreChange_ELA = "Y" 
+replace Flag_CutScoreChange_math = "Y" 
+replace Flag_CutScoreChange_sci = "Y" 
+
+}
+
 if "`a'" == "18-19" {
 
-replace Flag_CutScoreChange_math = "Y"
+replace Flag_AssmtNameChange = "Y" if Subject == "math"
+replace Flag_CutScoreChange_math = "Y" 
 
 }
 
 if "`a'" == "20-21" {
 
-replace Flag_CutScoreChange_ELA = "Y"
+replace Flag_AssmtNameChange = "Y" if Subject == "ela" & GradeLevel == "G04" | GradeLevel == "G05" | GradeLevel == "G06" | GradeLevel == "G07" | GradeLevel == "G08" 
+replace Flag_AssmtNameChange = "Y" if Subject == "sci" 
+replace Flag_CutScoreChange_ELA = "Y" 
 replace Flag_CutScoreChange_sci = "Y" 
 
 }
 
+if "`a'" == "21-22" {
+	
+	
+replace Flag_AssmtNameChange = "Y" if Subject == "ela" & GradeLevel == "G03" 
+replace Flag_CutScoreChange_ELA = "Y" // 
+
+}
+
+// UPDATED 4/30/24
 
 
 if "`a'" == "13-14" {
@@ -416,8 +443,31 @@ drop SchVirtual
 rename SchVirtual1 SchVirtual
 } 
 
+// EDIT 
 
-gen AssmtName = "End Of Grade Assessments" // r3 changed
+// UPDATED 4/30/24
+if "`a'" == "17-18" | "`a'" == "16-17" | "`a'" == "15-16" | "`a'" == "14-15" | "`a'" == "13-14"  {
+gen AssmtName = "End-of-Grade Tests - Edition 4" // r3 changed
+} 
+
+if "`a'" == "18-19" { 
+gen AssmtName = "End-of-Grade Tests - Edition 4" // r3 changed
+replace AssmtName = "End-of-Grade Tests - Edition 5" if Subject == "math" // r3 changed
+
+}
+
+if "`a'" == "20-21" { 
+gen AssmtName = "End-of-Grade Tests - Edition 4" // r3 changed
+replace AssmtName = "End-of-Grade Tests - Edition 5" if Subject == "math" // r3 changed
+replace AssmtName = "End-of-Grade Tests - Edition 5" if Subject == "ela" & GradeLevel == "G04" | GradeLevel == "G05" | GradeLevel == "G06" | GradeLevel == "G07" | GradeLevel == "G08" | GradeLevel == "G38" 
+replace AssmtName = "End-of-Grade Tests - Edition 5" if Subject == "sci" 
+}
+
+if "`a'" == "21-22" | "`a'" == "22-23" { 
+gen AssmtName = "End-of-Grade Tests - Edition 5" 
+}
+// EDIT 
+
 
 gen seasch = StateAssignedSchID // CHANGED //r3 changed
 gen State_leaid = StateAssignedDistID // CHANGED
@@ -653,7 +703,19 @@ if "`a'" == "22-23" | "`a'" == "21-22" {
 	
 drop State_leaid seasch
 
+// updated 4/30/24 
 
+drop StateAssignedSchID
+
+rename StateAssignedSchID_full StateAssignedSchID
+
+
+
+
+
+
+
+// updated 4/30/24 
 
  order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 // 
@@ -665,17 +727,15 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save NC_AssmtData_`current'_Stata, replace
-// export delimited NC_AssmtData_`current'.csv, replace
+export delimited NC_AssmtData_`current'.csv, replace
 
 }
 
 
 
-
 // pre-review cleaning 2024 
 
-
-local years2  "2014 2015 2016 2017 2018 2019 2021 2022 2023"
+local years2   "2014 2015 2016 2017 2018 2019 2021 2022 2023"
 
 
 foreach g in `years2' {
@@ -725,6 +785,12 @@ rename Lev`b'_countX Lev`b'_count
 
 replace Lev`b'_count = "*" if Lev`b'_percent == "*"
 
+// updated 4/30/24
+split Lev`b'_count, parse("-")
+replace Lev`b'_count = Lev`b'_count1 if Lev`b'_count1 == Lev`b'_count2
+drop Lev`b'_count1 Lev`b'_count2
+// updated 4/30/24
+
 }
 
 replace ProficientOrAbove_count1 = round(ProficientOrAbove_count1, 1)
@@ -736,11 +802,17 @@ drop ProficientOrAbove_count1 ProficientOrAbove_count2 ProficientOrAbove_percent
 replace ProficientOrAbove_count = ProficientOrAbove_countX
 replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "*"
 
-
 drop ProficientOrAbove_count
 
 display "error"
 rename ProficientOrAbove_countX ProficientOrAbove_count
+
+
+// updated 4/30/24
+split ProficientOrAbove_count, parse("-")
+replace ProficientOrAbove_count = ProficientOrAbove_count1 if ProficientOrAbove_count1 == ProficientOrAbove_count2
+drop ProficientOrAbove_count1 ProficientOrAbove_count2
+// updated 4/30/24
 
 
 
@@ -787,6 +859,12 @@ drop Lev`b'_count1 Lev`b'_count2 Lev`b'_percent1 Lev`b'_percent2
 replace Lev`b'_count = Lev`b'_countX
 drop Lev`b'_count
 rename Lev`b'_countX Lev`b'_count
+
+// updated 4/30/24
+split Lev`b'_count, parse("-")
+replace Lev`b'_count = Lev`b'_count1 if Lev`b'_count1 == Lev`b'_count2
+drop Lev`b'_count1 Lev`b'_count2
+// updated 4/30/24
 }
 
 replace ProficientOrAbove_count1 = round(ProficientOrAbove_count1, 1)
@@ -799,11 +877,20 @@ replace ProficientOrAbove_count = ProficientOrAbove_countX
 drop ProficientOrAbove_count
 rename ProficientOrAbove_countX ProficientOrAbove_count
 
+
+// updated 4/30/24
+split ProficientOrAbove_count, parse("-")
+replace ProficientOrAbove_count = ProficientOrAbove_count1 if ProficientOrAbove_count1 == ProficientOrAbove_count2
+drop ProficientOrAbove_count1 ProficientOrAbove_count2
+// updated 4/30/24
+
+
 }
 
 
 
 if "`g'" == "2023" | "`g'" == "2022"  {
+	
 local a  "2 3 4 5" 
 foreach b in `a' {
 split Lev`b'_percent, parse("-")
@@ -840,6 +927,13 @@ drop Lev`b'_count1 Lev`b'_count2 Lev`b'_percent1 Lev`b'_percent2
 replace Lev`b'_count = Lev`b'_countX
 drop Lev`b'_count
 rename Lev`b'_countX Lev`b'_count
+
+// updated 4/30/24
+split Lev`b'_count, parse("-")
+replace Lev`b'_count = Lev`b'_count1 if Lev`b'_count1 == Lev`b'_count2
+drop Lev`b'_count1 Lev`b'_count2
+// updated 4/30/24
+
 }
 
 replace ProficientOrAbove_count1 = round(ProficientOrAbove_count1, 1)
@@ -852,8 +946,40 @@ replace ProficientOrAbove_count = ProficientOrAbove_countX
 drop ProficientOrAbove_count
 rename ProficientOrAbove_countX ProficientOrAbove_count
 
+
+// updated 4/30/24
+split ProficientOrAbove_count, parse("-")
+replace ProficientOrAbove_count = ProficientOrAbove_count1 if ProficientOrAbove_count1 == ProficientOrAbove_count2
+drop ProficientOrAbove_count1 ProficientOrAbove_count2
+// updated 4/30/24
+
 }
 
+// updated 4/30/24
+// for 2016
+
+if "`g'" == "2016" | "`g'" == "2021" {
+replace SchName = "Hallyburton Academy" if NCESSchoolID== "370048001005"
+replace DistName = "Burke County Schools" if NCESSchoolID== "370048001005"
+}
+
+
+if "`g'" == "2016" | "`g'" == "2021"  {
+// for 2021 
+replace SchName = "Doris Henderson Newcomers Sch" if NCESSchoolID == "370192002988"
+replace DistName = "Guilford County Schools" if NCESSchoolID == "370192002988"
+
+}
+
+replace CountyName = proper(CountyName)
+
+replace CountyName = "McDowell County" if CountyCode == "37111"
+
+
+
+
+
+// updated 4/30/24
 
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
@@ -903,6 +1029,20 @@ replace DistName = "All Districts" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel ==1
 
 
+if `year' == 2016 | `year' == 2021 {
+replace SchName = "Hallyburton Academy" if NCESSchoolID== "370048001005"
+replace DistName = "Burke County Schools" if NCESSchoolID== "370048001005"
+}
+
+
+if `year' == 2016 | `year' == 2021  {
+// for 2021 
+replace SchName = "Doris Henderson Newcomers Sch" if NCESSchoolID == "370192002988"
+replace DistName = "Guilford County Schools" if NCESSchoolID == "370192002988"
+
+}
+
+
 //Final Cleaning and Saving
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
@@ -911,7 +1051,67 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save NC_AssmtData_`year'_Stata, replace
 export delimited NC_AssmtData_`year', replace
+
 //clear
 }
+
+
+//use NC_AssmtData_2015_Stata, clear	
+// changes 5/7/2024
+
+// updating from Lev 3-5 to Lev 2-4 in 2022 and 2023
+forvalues year = 2022/2023 { 
+	if `year' == 2020 continue
+	
+use NC_AssmtData_`year'_Stata, replace	
+
+
+forvalues b = 2/5 { 
+	
+local prevyear = `b' - 1
+
+replace Lev`prevyear'_count = Lev`b'_count 
+replace Lev`prevyear'_percent = Lev`b'_percent
+
+}
+
+replace Lev5_count = ""
+replace Lev5_percent  = ""
+
+replace ProficiencyCriteria = "Levels 2-4"
+
+save NC_AssmtData_`year'_Stata, replace
+export delimited NC_AssmtData_`year', replace
+
+
+}
+
+
+// updating from Lev 3-5 to Lev 2-4 for certain values in 2019 and 2021
+forvalues year = 2019/2021 { 
+	if `year' == 2020 continue
+	
+use NC_AssmtData_`year'_Stata, replace	
+
+
+forvalues b = 2/5 { 
+	
+local prevyear = `b' - 1
+
+replace ProficiencyCriteria = "Levels 2-4" if AssmtName == "End-of-Grade Tests - Edition 5"
+
+replace Lev`prevyear'_count = Lev`b'_count if  AssmtName == "End-of-Grade Tests - Edition 5"
+replace Lev`prevyear'_percent = Lev`b'_percent if  AssmtName == "End-of-Grade Tests - Edition 5"
+}
+
+replace Lev5_count = ""  if AssmtName == "End-of-Grade Tests - Edition 5"
+replace Lev5_percent  = "" if  AssmtName == "End-of-Grade Tests - Edition 5"
+
+
+save NC_AssmtData_`year'_Stata, replace
+export delimited NC_AssmtData_`year', replace
+
+}
+
 
 
