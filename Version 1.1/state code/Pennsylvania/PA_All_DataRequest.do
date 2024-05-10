@@ -55,8 +55,8 @@ rename Subgroup Group
 gen DataLevel = "State"
 
 save "$temp_files/PA_DataRequest_State.dta", replace
-*/
-/*
+
+
 // Appending All DataLevels
 clear
 append using "$temp_files/PA_DataRequest_School_All.dta" "$temp_files/PA_DataRequest_District.dta" "$temp_files/PA_DataRequest_State.dta"
@@ -133,7 +133,7 @@ foreach var of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent Lev1_
 // Generating missing variables
 gen AssmtName = "Pennsylvania System of School Assessment"
 gen AssmtType = "Regular"
-gen AvgScaleScore = ""
+gen AvgScaleScore = "--"
 gen ProficiencyCriteria = "Levels 3-4"
 gen ParticipationRate = "--"
 gen Lev5_count = ""
@@ -210,6 +210,8 @@ rename county_name CountyName
 
 //Other Reformatting
 replace CountyName = strproper(CountyName)
+replace CountyName = "McKean County" if NCESDistrictID == "42083"
+replace DistName = stritrim(DistName)
 
 // Fixing State Level Data
 replace StateAbbrev = "PA" if DataLevel == 1
@@ -277,6 +279,9 @@ rename county_code CountyCode
 rename state_fips StateFips
 rename county_name CountyName
 
+//Other Reformatting
+replace DistName = stritrim(DistName)
+
 // Fixing State Level Data
 replace StateAbbrev = "PA" if DataLevel == 1
 replace StateFips = 42 if DataLevel == 1
@@ -343,6 +348,9 @@ generate State = "Pennsylvania"
 rename county_code CountyCode
 rename state_fips StateFips
 rename county_name CountyName
+
+//Other Reformatting
+replace DistName = stritrim(DistName)
 
 // Fixing State Level Data
 replace StateAbbrev = "PA" if DataLevel == 1

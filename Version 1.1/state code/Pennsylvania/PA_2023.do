@@ -7,7 +7,7 @@ global NCES_district "/Users/miramehta/Documents/NCES District and School Demogr
 global output_files "/Users/miramehta/Documents/PA State Testing Data/Output_Data_Files"
 global temp_files "/Users/miramehta/Documents/PA State Testing Data/Temporary_Data_Files"
 
-// All years from data request
+// Import Original Data Files
 /*
 //School import
 
@@ -161,9 +161,9 @@ rename SchVirtual SchVirtual_n
 decode district_agency_type, gen (DistType)
 drop district_agency_type
 rename DistType district_agency_type
-merge 1:1 ncesdistrictid ncesschoolid using "$NCES_school/NCES_2021_School.dta", keepusing (DistLocale county_code county_name district_agency_type SchVirtual)
+merge 1:1 ncesdistrictid ncesschoolid using "$NCES_school/NCES_2021_School.dta", keepusing (county_code county_name district_agency_type SchVirtual)
 drop if state_location != "PA"
-replace SchVirtual_n = SchVirtual if inlist(SchVirtual, -1, .)
+replace SchVirtual_n = SchVirtual if inlist(SchVirtual_n, -1, .)
 drop SchVirtual
 rename SchVirtual_n SchVirtual
 rename school_type SchType
@@ -177,10 +177,10 @@ save "${output_files}/PA_AssmtData_2023.dta", replace
 // Merging with NCES District Data
 
 use "$NCES_district/NCES_2022_District.dta", clear
-merge 1:1 ncesdistrictid using "$NCES_district/NCES_2021_District.dta", keepusing (DistLocale county_code county_name DistCharter)
+merge 1:1 ncesdistrictid using "$NCES_district/NCES_2021_District.dta", keepusing (county_code county_name DistCharter)
 drop if state_location != "PA"
 
-keep state_location state_fips district_agency_type ncesdistrictid state_leaid DistCharter county_name county_code
+keep state_location state_fips district_agency_type ncesdistrictid state_leaid DistCharter DistLocale county_name county_code
 
 merge 1:m state_leaid using "${output_files}/PA_AssmtData_2023.dta", keep(match using) nogenerate
 
