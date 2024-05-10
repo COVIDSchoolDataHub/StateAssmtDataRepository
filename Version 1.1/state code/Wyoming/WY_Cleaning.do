@@ -357,7 +357,7 @@ replace ProficientOrAbove_count = lowProfCount+"-"+highProfCount if ProficientOr
 
 // Standardizing state ids across years
 if `year' == 2014 | `year' == 2015 | `year' == 2016 {
-	replace StateAssignedSchID = StateAssignedDistID + StateAssignedSchID
+	replace StateAssignedSchID = StateAssignedDistID +"-"+ StateAssignedSchID
 	replace StateAssignedDistID = "WY-"+StateAssignedDistID
 	replace StateAssignedDistID = "" if DataLevel == 1
 	replace StateAssignedSchID = "" if DataLevel != 3

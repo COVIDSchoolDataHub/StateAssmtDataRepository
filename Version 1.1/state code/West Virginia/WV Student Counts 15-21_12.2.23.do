@@ -5,14 +5,15 @@ cd "/Volumes/T7/State Test Project/West Virginia"
 global data "/Volumes/T7/State Test Project/West Virginia/Original Data Files"
 global NCES "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
 global NCES_clean "/Volumes/T7/State Test Project/West Virginia/NCES_Clean"
-global counts "/Volumes/T7/State Test Project/EDFACTS"
+global edfacts "/Volumes/T7/State Test Project/EDFACTS"
+global counts "/Volumes/T7/State Test Project/West Virginia/Counts"
 
 forvalues year = 2015/2021 {
 	if `year' == 2020 {
 		continue
 	}
 	
-use "$counts/edfactscount`year'mathschool.dta", clear
+use "$edfacts/edfactscount`year'mathschool.dta", clear
 drop if STNAM != "WEST VIRGINIA"
 
 rename NCESSCH NCESSchoolID
@@ -49,7 +50,7 @@ replace CATEGORY = "Homeless" if CATEGORY == "HOM"
 rename CATEGORY StudentSubGroup
 save "$counts/WV_edfactscount`year'.dta", replace
 
-use "$counts/edfactscount`year'mathdistrict.dta", clear
+use "$edfacts/edfactscount`year'mathdistrict.dta", clear
 drop if STNAM != "WEST VIRGINIA"
 
 rename LEAID NCESDistrictID
@@ -85,7 +86,7 @@ replace CATEGORY = "Migrant" if CATEGORY == "MIG"
 rename CATEGORY StudentSubGroup
 save "$counts/WV_edfactscount`year'mathdistrict.dta", replace
 
-use "$counts/edfactscount`year'elaschool.dta", clear
+use "$edfacts/edfactscount`year'elaschool.dta", clear
 drop if STNAM != "WEST VIRGINIA"
 
 rename NCESSCH NCESSchoolID
@@ -121,7 +122,7 @@ replace CATEGORY = "Migrant" if CATEGORY == "MIG"
 rename CATEGORY StudentSubGroup
 save "$counts/WV_edfactscount`year'elaschool.dta", replace
 
-use "$counts/edfactscount`year'eladistrict.dta", clear
+use "$edfacts/edfactscount`year'eladistrict.dta", clear
 drop if STNAM != "WEST VIRGINIA"
 
 rename LEAID NCESDistrictID

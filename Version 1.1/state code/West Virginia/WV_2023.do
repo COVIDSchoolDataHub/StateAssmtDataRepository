@@ -143,7 +143,7 @@ gen AvgScaleScore = "--"
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_soc = "Not Applicable"
+gen Flag_CutScoreChange_soc = "Not applicable"
 gen Flag_CutScoreChange_sci = "N"
 
 //Student Groups
@@ -174,11 +174,41 @@ replace StudentSubGroup = "Military" if StudentSubGroup == "Military-Connected"
 
 save "$data/WV_AssmtData_2023", replace
 
+//Clean NCES Data
+use "$NCES/NCES_2022_School.dta", clear
+drop if state_location != "WV"
+gen StateAssignedSchID = substr(seasch, 11, 13)
+gen StateAssignedDistID = substr(state_leaid, 4, 6)
+replace StateAssignedDistID = substr(StateAssignedDistID, 1,2)
+replace StateAssignedDistID = "0" + StateAssignedDistID
+
+foreach var of varlist school_type SchLevel SchVirtual district_agency_type {
+	decode `var', gen(temp)
+	drop `var'
+	rename temp `var'
+}
+keep state_location state_fips ncesdistrictid district_agency_type county_name county_code state_leaid school_type ncesschoolid StateAssignedDistID StateAssignedSchID DistCharter SchVirtual SchLevel DistLocale
+
+save "$NCES_clean/NCES_2023_School_WV", replace
+
+use "$NCES/NCES_2022_District.dta", clear
+drop if state_location != "WV"
+gen StateAssignedDistID = substr(state_leaid, 4, 6)
+replace StateAssignedDistID = substr(StateAssignedDistID, 1,2)
+replace StateAssignedDistID = "0" + StateAssignedDistID
+replace StateAssignedDistID = substr(state_leaid, strpos(state_leaid, "-") +1,3) if ncesdistrictid == "5400062" | ncesdistrictid == "5400063" | ncesdistrictid == "5400064"
+drop if lea_name == "WIN Academy at BVCTC"
+replace StateAssignedDistID = "101" if lea_name == "West Virginia Academy"
+keep state_location state_fips ncesdistrictid district_agency_type county_name county_code state_leaid StateAssignedDistID DistCharter DistLocale
+save "$NCES_clean/NCES_2023_District_WV", replace
+
+use "$data/WV_AssmtData_2023"
 //Merge Data
-merge m:1 StateAssignedDistID using "$NCES_clean/NCES_2022_District_WV.dta"
+merge m:1 StateAssignedDistID using "$NCES_clean/NCES_2023_District_WV.dta"
 drop if _merge == 2
 
-merge m:1 StateAssignedSchID StateAssignedDistID using "$NCES_clean/NCES_2022_School_WV.dta", gen (merge2)
+
+merge m:1 StateAssignedSchID StateAssignedDistID using "$NCES_clean/NCES_2023_School_WV.dta", gen (merge2)
 drop if merge2 == 2
 
 //Clean Merged Data
@@ -189,7 +219,7 @@ rename district_agency_type DistType
 rename county_name CountyName
 rename county_code CountyCode
 rename ncesschoolid NCESSchoolID
-*rename school_type SchType
+rename school_type SchType
 rename state_leaid State_leaid
 
 drop  _merge merge2
@@ -197,6 +227,10 @@ drop  _merge merge2
 replace StateAbbrev = "WV"
 replace StateFips = 54
 
+//Charter Schools are Districts in NCES, Districts and Schools in Raw data. Schools have duplicate values as districts. Dropping here.
+drop if DataLevel == "School" & (SchName == "Eastern Panhandle Preparatory Academy" | SchName == "Virtual Preparatory Academy of West Virginia" | SchName == "West Virginia Academy" | SchName == "West Virginia Virtual Academy")
+
+/*
 //Unmerged Schools
 replace NCESSchoolID = "540006201604" if SchName == "Eastern Panhandle Preparatory Academy"
 replace seasch = "1020000-102102" if SchName == "Eastern Panhandle Preparatory Academy"
@@ -246,17 +280,29 @@ replace DistCharter = "Yes" if DistName == "WV Academy"
 replace DistType = "Charter agency" if DistName == "WV Academy"
 replace State_leaid = "WV-1010000" if DistName == "WV Academy"
 
+
 replace NCESSchoolID = "540051001608" if SchName == "Victory Elementary School"
 replace seasch = "3300000-33236" if SchName == "Victory Elementary School"
 replace SchLevel = 1 if SchName == "Victory Elementary School"
 replace SchType = 1 if SchName == "Victory Elementary School"
 replace SchVirtual = -1 if SchName == "Victory Elementary School"
+*/
 
-//Student Counts
-merge m:1 StateAssignedDistID StateAssignedSchID GradeLevel StudentSubGroup using "$data/WV_EnrollmentData_2023.dta"
-drop if _merge == 2
-replace StudentSubGroup_TotalTested = "--" if _merge == 1
-gen StudentGroup_TotalTested = StudentSubGroup_TotalTested
+//Variable Types
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+sort DataLevel_n 
+drop DataLevel 
+rename DataLevel_n DataLevel
+
+
+//Student Counts and ParticipationRate
+merge 1:1 DistName SchName GradeLevel Subject StudentSubGroup using "$counts/WV_2022_counts", keep(match master)
+tostring StudentSubGroup_TotalTested StudentGroup_TotalTested, replace 
+replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
+replace StudentGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
+replace ParticipationRate = ParticipationRate1
+replace ParticipationRate = "--" if missing(ParticipationRate)
 
 //Missing & Suppressed Data
 replace Lev1_percent = "--" if Lev1_percent == ""
@@ -296,15 +342,10 @@ tostring ProficientOrAbove_count, replace
 replace ProficientOrAbove_count = "*" if ProficientOrAbove_percent == "***"
 replace ProficientOrAbove_count = "--" if ProficientOrAbove_percent == "--"
 replace ProficientOrAbove_count = "--" if StudentSubGroup_TotalTested == "--" & ProficientOrAbove_count != "*"
+replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "." & ProficientOrAbove_percent == "*"
+replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == "."
 
 drop Lev1_pct Lev2_pct Lev3_pct Lev4_pct Prof_pct num _merge
-
-//Variable Types
-label def DataLevel 1 "State" 2 "District" 3 "School"
-encode DataLevel, gen(DataLevel_n) label(DataLevel)
-sort DataLevel_n 
-drop DataLevel 
-rename DataLevel_n DataLevel
 
 //StudentGroup_TotalTested Convention
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
@@ -316,6 +357,9 @@ replace StudentGroup_TotalTested = All_Students if regexm(StudentGroup_TotalTest
 foreach var of varlist *_percent {
 	replace `var' = string(real(`var'), "%9.3g") if regexm(`var', "[0-9]") !=0
 }
+
+//Getting rid of empty observations
+drop if StudentSubGroup_TotalTested == "--" & Lev1_percent == "--" & Lev2_percent == "--" & Lev3_percent == "--" & Lev4_percent == "--" & ProficientOrAbove_percent == "--"
 
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode

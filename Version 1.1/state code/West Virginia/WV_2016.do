@@ -131,8 +131,8 @@ gen AvgScaleScore = "--"
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_soc = "Not Applicable"
-gen Flag_CutScoreChange_sci = "Not Applicable"
+gen Flag_CutScoreChange_soc = "Not applicable"
+gen Flag_CutScoreChange_sci = "Not applicable"
 
 //Student Groups
 replace StudentGroup = "All Students" if StudentGroup == "Total Population"

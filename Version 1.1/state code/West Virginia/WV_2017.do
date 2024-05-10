@@ -131,8 +131,8 @@ gen AvgScaleScore = "--"
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_soc = "Not Applicable"
-gen Flag_CutScoreChange_sci = "Not Applicable"
+gen Flag_CutScoreChange_soc = "Not applicable"
+gen Flag_CutScoreChange_sci = "Not applicable"
 
 //Student Groups
 replace StudentGroup = "All Students" if StudentGroup == "Total Population"
@@ -256,6 +256,10 @@ encode DataLevel, gen(DataLevel_n) label(DataLevel)
 sort DataLevel_n 
 drop DataLevel 
 rename DataLevel_n DataLevel
+
+//Post Launch Updates
+replace StateAbbrev = "WV"
+replace StateFips = 54
 
 //StudentGroup_TotalTested Convention
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
