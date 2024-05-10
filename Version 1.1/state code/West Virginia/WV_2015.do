@@ -132,8 +132,8 @@ gen AvgScaleScore = "--"
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_soc = "Not Applicable"
-gen Flag_CutScoreChange_sci = "Not Applicable"
+gen Flag_CutScoreChange_soc = "Not applicable"
+gen Flag_CutScoreChange_sci = "Not applicable"
 
 //Student Groups
 replace StudentGroup = "All Students" if StudentGroup == "Total Population"
@@ -206,11 +206,10 @@ replace SchType = 1 if SchName == "South Preston School"
 replace seasch = "70106" if SchName == "South Preston School"
 
 //Student Counts
-merge 1:1 NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject using "$counts/WV_edfactscount2015.dta"
+merge 1:1 NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject using "$counts/WV_edfactscount2016.dta"
 drop if _merge == 2
 rename NUMVALID StudentSubGroup_TotalTested
 replace StudentSubGroup_TotalTested = "--" if _merge == 1
-
 
 gen num = StudentSubGroup_TotalTested
 destring num, replace force
@@ -227,8 +226,6 @@ bys SchName DistName StudentGroup Subject GradeLevel: egen StudentGroup_TotalTes
 replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested == "."
-
-
 drop _merge STNAM FIPST DATE_CUR PCTPROF
 
 //Proficiency Levels
@@ -274,6 +271,8 @@ rename DataLevel_n DataLevel
 
 //Post Launch Updates//
 replace CountyName = proper(CountyName)
+replace DistName = "McDowell" if NCESDistrictID == "5400810"
+replace CountyName = "McDowell County" if CountyCode== "54047"
 
 //StudentGroup_TotalTested Convention
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
@@ -290,4 +289,4 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 
 save "$data/WV_AssmtData_2015", replace
 export delimited "$data/WV_AssmtData_2015", replace
-clear
+

@@ -143,7 +143,7 @@ gen AvgScaleScore = "--"
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_soc = "Not Applicable"
+gen Flag_CutScoreChange_soc = "Not applicable"
 gen Flag_CutScoreChange_sci = "N"
 
 //Student Groups
@@ -217,11 +217,20 @@ drop _merge merge2
 replace StateAbbrev = "WV"
 replace StateFips = 54
 
-//Student Counts
-merge m:1 StateAssignedDistID StateAssignedSchID GradeLevel StudentSubGroup using "$data/WV_EnrollmentData_2022.dta"
-drop if _merge == 2
-replace StudentSubGroup_TotalTested = "--" if _merge == 1
-gen StudentGroup_TotalTested = StudentSubGroup_TotalTested
+//Variable Types
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+sort DataLevel_n 
+drop DataLevel 
+rename DataLevel_n DataLevel
+
+//Student Counts and ParticipationRate
+merge 1:1 NCESDistrictID NCESSchoolID GradeLevel Subject StudentSubGroup using "$counts/WV_2022_counts", keep(match master)
+tostring StudentSubGroup_TotalTested StudentGroup_TotalTested, replace 
+replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
+replace StudentGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
+replace ParticipationRate = ParticipationRate1
+replace ParticipationRate = "--" if missing(ParticipationRate)
 
 //Proficiency Levels
 destring StudentSubGroup_TotalTested, gen(num) force
@@ -257,18 +266,14 @@ replace ProficientOrAbove_count = "--" if StudentSubGroup_TotalTested == "--" & 
 
 drop Lev1_pct Lev2_pct Lev3_pct Lev4_pct Prof_pct num _merge
 
-//Variable Types
-label def DataLevel 1 "State" 2 "District" 3 "School"
-encode DataLevel, gen(DataLevel_n) label(DataLevel)
-sort DataLevel_n 
-drop DataLevel 
-rename DataLevel_n DataLevel
-
 //StudentGroup_TotalTested Convention
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 gen All_Students = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
 replace All_Students = All_Students[_n-1] if missing(All_Students)
-replace StudentGroup_TotalTested = All_Students if regexm(StudentGroup_TotalTested, "[0-9]") == 0 
+replace StudentGroup_TotalTested = All_Students if regexm(StudentGroup_TotalTested, "[0-9]") == 0
+
+//Getting rid of empty observations
+drop if StudentSubGroup_TotalTested == "--" & Lev1_percent == "--" & Lev2_percent == "--" & Lev3_percent == "--" & Lev4_percent == "--" & ProficientOrAbove_percent == "--"
 
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
@@ -277,4 +282,3 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 
 save "$data/WV_AssmtData_2022", replace
 export delimited "$data/WV_AssmtData_2022", replace
-clear
