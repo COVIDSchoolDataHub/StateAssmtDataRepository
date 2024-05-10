@@ -4,7 +4,7 @@ This is a ReadMe for West Virginia's data cleaning process, from 2015 to 2023.
 
 ## Setup
 
-Create a folder for WV. Within that folder, create four more folders corresponding to the following directories at the top of the relevant do-files (WV Cleaning_7.22.23, WV Student Counts 15-21_12.2.23, and WV_2022_2023_edfactscounts). `counts` should contain EDFacts data. `data` should contain all original data downloaded from the drive, including enrollment data. `NCES` should contain updated NCES files. `NCES_clean` should be empty for now.
+Create a folder for WV. Within that folder, create four more folders corresponding to the following directories at the top of the relevant do-files (WV Cleaning_7.22.23, WV Student Counts 15-21_12.2.23, and WV_2022_2023_edfactscounts). `counts` should contain EDFacts data, in addition to the WV_2022_counts.csv file that you must download from the drive. `data` should contain all original data downloaded from the drive, including enrollment data. `NCES` should contain updated NCES files. `NCES_clean` should be empty for now.
 
 ```
 cd "/Volumes/T7/State Test Project/West Virginia"
