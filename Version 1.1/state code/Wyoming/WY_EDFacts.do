@@ -133,28 +133,16 @@ sort DataLevel
 replace NCESSchoolID = "" if DataLevel == 1
 replace NCESDistrictID = "" if DataLevel == 1
 
-// Generating Student Group Counts
-tempfile overallcount
-save `overallcount'
-keep if StudentGroup=="All Students"
-keep DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel EDStudentSubGroup_TotalTested
-rename EDStudentSubGroup_TotalTested AllStudents_TotalTested
-tostring AllStudents_TotalTested, replace
-duplicates drop
-merge 1:m DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel using `overallcount', nogenerate
-
 //Cleaning StudentSubGroup_TotalTested and Generating StudentGroup_TotalTested
 egen EDStudentGroup_TotalTested = total(EDStudentSubGroup_TotalTested), by(StudentGroup GradeLevel Subject DataLevel StateAssignedSchID StateAssignedDistID)
 tostring EDStudentGroup_TotalTested EDStudentSubGroup_TotalTested, replace
-/*
-replace EDStudentSubGroup_TotalTested = "*" if EDStudentSubGroup_TotalTested == "."
-replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "0"
-replace StudentGroup_TotalTested = StudentSubGroup_TotalTested if (StudentGroup == "Foster Care Status" | StudentGroup == "Homeless Enrolled Status") & StudentGroup_TotalTested == "*"
-replace StudentGroup_TotalTested = AllStudents_TotalTested if (StudentGroup == "EL Status" | StudentGroup == "Economic Status") & StudentGroup_TotalTested == "*"
 
-// Dropping if StudentSubGroup_TotalTested == 0 and StudentSubGroup != "All Students"
-drop if (StudentSubGroup_TotalTested == "0" | (StudentSubGroup_TotalTested == "*" & Lev1_count == "--")) & StudentSubGroup != "All Students"
-*/
+// Apply All Student tested counts if still have ranges
+gen AllStudents = EDStudentGroup_TotalTested if StudentSubGroup == "All Students"
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+replace AllStudents = AllStudents[_n-1] if missing(AllStudents)
+replace EDStudentGroup_TotalTested = AllStudents if EDStudentGroup_TotalTested == "0" & StudentGroup != "All Students"
+
 // Generating Level counts
 destring EDStudentSubGroup_TotalTested, gen(nStudentSubGroup_TotalTested) i(*)
 destring ProficientOrAbove_percent, gen(nProficientOrAbove_percent) i(*-)
@@ -172,15 +160,19 @@ foreach n in 1 2 3 4 {
 
 
 // Replace with EDFacts when possible
-replace StudentGroup_TotalTested = EDStudentGroup_TotalTested if EDStudentSubGroup_TotalTested != "."
+replace StudentGroup_TotalTested = EDStudentGroup_TotalTested if EDStudentGroup_TotalTested != "." & EDStudentGroup_TotalTested != "0"
 replace StudentSubGroup_TotalTested = EDStudentSubGroup_TotalTested if EDStudentSubGroup_TotalTested != "."
 
 drop nLev*_percent
 
 // Ranges for level counts if EDFacts is not available
 gen low_end_subgroup = real(substr(StudentSubGroup_TotalTested, 1, strpos(StudentSubGroup_TotalTested, "-") - 1))
+destring StudentGroup_TotalTested, gen(xStudentGroup_TotalTested) force
 gen high_end_subgroup = real(substr(StudentSubGroup_TotalTested, strpos(StudentSubGroup_TotalTested, "-") + 1, 4))
-forvalues n = 1/5 {
+replace high_end_subgroup = xStudentGroup_TotalTested if (xStudentGroup_TotalTested < high_end_subgroup)
+replace StudentSubGroup_TotalTested = string(low_end_subgroup)+"-"+string(high_end_subgroup) if strpos(StudentSubGroup_TotalTested, "-")>0
+replace StudentSubGroup_TotalTested = string(high_end_subgroup) if high_end_subgroup == low_end_subgroup
+forvalues n = 1/4 {
 	destring Lev`n'_percent, gen(nLev`n'_percent) force
 	gen lowLev`n'_count = round(nLev`n'_percent*low_end_subgroup)
 	gen highLev`n'_count = round(nLev`n'_percent*high_end_subgroup)
@@ -196,6 +188,8 @@ replace ProficientOrAbove_count = lowProfCount+"-"+highProfCount if ProficientOr
 // Setting part rate to 0 if tested count = 0
 foreach var of varlist Lev* ParticipationRate ProficientOrAbove* {
 	replace `var' = "0" if StudentSubGroup_TotalTested == "0"
+	replace Lev5_count = "" if StudentSubGroup_TotalTested == "0"
+	replace Lev5_percent = "" if StudentSubGroup_TotalTested == "0"
 }
 
 //Final Cleaning
