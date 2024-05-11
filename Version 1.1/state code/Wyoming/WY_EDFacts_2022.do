@@ -107,6 +107,12 @@ drop _merge
 egen EDStudentGroup_TotalTested = total(EDStudentSubGroup_TotalTested), by(StudentGroup GradeLevel Subject DataLevel StateAssignedSchID StateAssignedDistID)
 tostring EDStudentGroup_TotalTested EDStudentSubGroup_TotalTested, replace
 
+// Apply All Student tested counts if still have ranges
+gen AllStudents = EDStudentGroup_TotalTested if StudentSubGroup == "All Students"
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+replace AllStudents = AllStudents[_n-1] if missing(AllStudents)
+replace EDStudentGroup_TotalTested = AllStudents if EDStudentGroup_TotalTested == "0" & StudentGroup != "All Students"
+
 // Generating Level counts
 destring EDStudentSubGroup_TotalTested, gen(nStudentSubGroup_TotalTested) i(*)
 destring ProficientOrAbove_percent, gen(nProficientOrAbove_percent) i(*-)
@@ -131,6 +137,8 @@ drop nLev*_percent
 // Setting part rate to 0 if tested count = 0
 foreach var of varlist Lev* ParticipationRate ProficientOrAbove* {
 	replace `var' = "0" if StudentSubGroup_TotalTested == "0"
+	replace Lev5_count = "" if StudentSubGroup_TotalTested == "0"
+	replace Lev5_percent = "" if StudentSubGroup_TotalTested == "0"
 }
 
 //Final Cleaning

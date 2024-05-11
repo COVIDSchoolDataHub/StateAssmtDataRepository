@@ -312,6 +312,7 @@ replace ParticipationRate = "--" if StudentSubGroup_TotalTested == "0"
 gen ProficiencyCriteria = "Levels 3-4"
 if `year' <2018 gen AssmtName = "PAWS"
 if `year' > 2017 gen AssmtName = "WY-TOPP"
+replace AssmtName = "SAWS" if `year' == 2014 & Subject == "wri"
 gen AssmtType = "Regular"
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
@@ -339,8 +340,12 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 // Ranges for level counts for 2022 & 2023
 if `year' == 2022 | `year' == 2023 {
 gen low_end_subgroup = real(substr(StudentSubGroup_TotalTested, 1, strpos(StudentSubGroup_TotalTested, "-") - 1))
+destring StudentGroup_TotalTested, gen(xStudentGroup_TotalTested) force
 gen high_end_subgroup = real(substr(StudentSubGroup_TotalTested, strpos(StudentSubGroup_TotalTested, "-") + 1, 4))
-forvalues n = 1/5 {
+replace high_end_subgroup = xStudentGroup_TotalTested if (xStudentGroup_TotalTested < high_end_subgroup)
+replace StudentSubGroup_TotalTested = string(low_end_subgroup)+"-"+string(high_end_subgroup) if strpos(StudentSubGroup_TotalTested, "-")>0
+replace StudentSubGroup_TotalTested = string(high_end_subgroup) if high_end_subgroup == low_end_subgroup
+forvalues n = 1/4 {
 	destring Lev`n'_percent, gen(nLev`n'_percent) force
 	gen lowLev`n'_count = round(nLev`n'_percent*low_end_subgroup)
 	gen highLev`n'_count = round(nLev`n'_percent*high_end_subgroup)
