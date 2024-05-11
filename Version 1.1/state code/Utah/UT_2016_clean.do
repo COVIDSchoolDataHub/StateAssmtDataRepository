@@ -567,19 +567,6 @@ drop AllStudents_Tested StudentGroup_Suppressed
 replace StudentGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "--"
 replace StudentGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "*"
 
-** Cleaning Up from Unmerged
-replace DistLocale="City, small" if DistName=="Washington District" & DistLocale==""
-replace CountyName="Washington County" if DistName=="Washington District" & CountyName==""
-
-replace StateAssignedSchID = subinstr(StateAssignedSchID, "UT-", "", .) if strpos(StateAssignedSchID, "UT-") > 0
-replace StateAssignedDistID="UT-"+StateAssignedDistID if strpos(StateAssignedDistID, "UT-")<=0 & DataLevel != 1
-
-gen flag = 1 if inlist(SchName, "East School", "Legacy School")
-replace SchName = SchName + " (" + DistName + ")" if flag == 1
-replace SchName = subinstr(SchName, " District", "", 1) if flag == 1
-replace StateAssignedSchID = "33-33116" if SchName == "Legacy School (Washington)"
-drop flag
-
 *** Cleaning Inconsistent School & District Names
 merge m:m SchYear NCESSchoolID NCESDistrictID using "${raw}/ut_full-dist-sch-stable-list_through2023.dta"
 drop if _merge == 2
@@ -611,6 +598,19 @@ replace DistName = "Tuacahn High School for the Performing Arts" if NCESDistrict
 replace DistName = "Utah County Academy of Science (UCAS)" if NCESDistrictID == "4900020"
 replace DistName = "Utah Schools for Deaf & Blind" if NCESDistrictID == "4900069"
 replace DistName = "Mountain View Montessori" if NCESDistrictID == "4900169"
+
+gen flag = 1 if inlist(SchName, "East School", "Legacy School")
+replace SchName = SchName + " (" + DistName + ")" if flag == 1
+replace SchName = subinstr(SchName, " District", "", 1) if flag == 1
+replace StateAssignedSchID = "33-33116" if SchName == "Legacy School (Washington)"
+drop flag
+
+** Cleaning Up from Unmerged
+replace DistLocale="City, small" if DistName=="Washington District" & DistLocale==""
+replace CountyName="Washington County" if DistName=="Washington District" & CountyName==""
+
+replace StateAssignedSchID = subinstr(StateAssignedSchID, "UT-", "", .) if strpos(StateAssignedSchID, "UT-") > 0
+replace StateAssignedDistID="UT-"+StateAssignedDistID if strpos(StateAssignedDistID, "UT-")<=0 & DataLevel != 1
 
 *** Clean up variables & save file
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
