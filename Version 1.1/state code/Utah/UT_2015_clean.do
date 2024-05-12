@@ -453,6 +453,7 @@ replace Count_n = "--" if Count_n == "."
 drop Count_n test
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "--" if inlist(StudentGroup_TotalTested, "", ".")
+replace StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 gen Suppressed = 0
