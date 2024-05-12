@@ -210,7 +210,7 @@ rename county_name CountyName
 
 //Other Reformatting
 replace CountyName = strproper(CountyName)
-replace CountyName = "McKean County" if NCESDistrictID == "42083"
+replace CountyName = "McKean County" if CountyCode == "42083"
 replace DistName = stritrim(DistName)
 
 // Fixing State Level Data
