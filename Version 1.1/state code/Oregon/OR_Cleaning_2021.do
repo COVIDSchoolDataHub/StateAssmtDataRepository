@@ -50,7 +50,7 @@ replace StudentSubGroup = "Two or More" if strpos(StudentSubGroup, "Multi") !=0
 replace StudentSubGroup = "All Students" if strpos(StudentSubGroup, "All Students") !=0
 replace StudentSubGroup = "All Students" if strpos(StudentSubGroup, "All students") !=0
 replace StudentSubGroup = "Migrant" if strpos(StudentSubGroup, "Migrant Education") != 0
-replace StudentSubGroup = "SWD" if StudentSubGroup == "Students with Disabilities (SWD)"
+replace StudentSubGroup = "SWD" if StudentSubGroup == "Students with Disabilities"
 replace StudentSubGroup = "Military" if strpos(StudentSubGroup, "Military") != 0
 replace StudentSubGroup = "Foster Care" if strpos(StudentSubGroup, "Foster Care") != 0
 replace StudentSubGroup = "Gender X" if strpos(StudentSubGroup, "Non-Binary") != 0

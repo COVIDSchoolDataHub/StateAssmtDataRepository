@@ -11,7 +11,7 @@ Create the following folders:
 - NCES District and School Demographics (with two subfolders: NCES School Files, Fall 1997-Fall 2022 and NCES District Files, Fall 1997-Fall 2022)
 Download the original .xlsx files from the "Updated Original Data" folder and place them into the "Original Data" subfolder. Download the NCES files and place them into the appropriate folders.
 
-There are 2 .do files, one for 2021 and one for all other years.  You can run them in any order.
+There are 2 .do files, one for 2021 and one for all other years.  Run the main file ("OR Cleaning.do") first because this will convert files for all years to .dta, whcih is necessary to run the 2021 file.
     
 ## File Path
 
