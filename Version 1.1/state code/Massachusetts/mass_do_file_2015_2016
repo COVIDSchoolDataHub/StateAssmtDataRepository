@@ -3,14 +3,14 @@ log using massachusetts_cleaning.log, replace
 
 
 
-cd "/Users/benjaminm/Documents/State_Repository_Research/Massachusetts"
+cd "/Volumes/T7/State Test Project/Massachusetts"
 
 
 // Remaping Raw Data into Standard Format, and appending together
 
 // r3 change
-import excel "mass_district_science", clear
-save mass_district_science, replace
+// import excel "mass_district_science", clear
+// save mass_district_science, replace
 use mass_district_science, clear
 
 rename A DataLevel	
@@ -45,8 +45,8 @@ save mass_district_science_cleaned_parcc, replace
 
 
 
-//import excel "mass_districts_parcc", clear
-// save mass_districts_parcc
+// import excel "mass_districts_parcc", clear
+// save mass_districts_parcc, replace
 use mass_districts_parcc, clear 
 
 
@@ -119,8 +119,8 @@ save mass_district_IDs_parcc, replace
 
 
 // r3 added
-//import excel "mass_school_science", clear
-//save mass_school_science, replace
+import excel "mass_school_science", clear
+save mass_school_science, replace
 use mass_school_science, clear
 
 
@@ -190,12 +190,15 @@ save mass_school_science_cleaned_parcc, replace
 
 
 
-//import excel "mass_schools_parcc", clear
+// import excel "mass_schools_parcc", clear
 // save mass_schools_parcc, replace
+
+
 use mass_schools_parcc, clear
 
 // import excel "mass_schools_old_mcas_2", clear
 // save mass_schools_old_mcas_2, replace
+
 
 drop if F == "State Totals - State Totals"
 
@@ -281,8 +284,8 @@ save mass_districts_parcc_in_progress_1, replace
 // importing district participation data and merging
 
 // r3 changed
-//import excel "mass_district_participation_new_2", clear
-//save mass_district_participation_new, replace
+// import excel "mass_district_participation_new_2", clear
+// save mass_district_participation_new, replace
 use mass_district_participation_new, clear
 
 rename A DataLevel
@@ -345,8 +348,8 @@ save mass_districts_parcc_in_progress_2, replace
 
 
 // school participation cleaning and merging
-//import excel "mass_school_participation_new", clear
-//save mass_school_participation, replace
+// import excel "mass_school_participation_new", clear
+// save mass_school_participation, replace
 use mass_school_participation, clear
 
 
@@ -929,6 +932,8 @@ drop if _merge == 2
 replace DistName = newdistname if DataLevel !=1
 replace DistName = "All Districts" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel ==1
+//UPDATE 5/12/24 Josh for missing DistName
+replace DistName = "Abby Kelley Foster Charter Public (District)" if NCESDistrictID == "2500051"
 
 // new updated 5/1/23
 replace CountyName = proper(CountyName) 
