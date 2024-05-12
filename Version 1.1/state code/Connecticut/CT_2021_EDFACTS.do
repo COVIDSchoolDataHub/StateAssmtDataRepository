@@ -1,13 +1,14 @@
 clear
 //set more off
-local Output "/Users/meghancornacchia/Desktop/DataRepository/Connecticut.nosync/Output_Data_Files"
-local EDFacts "/Users/meghancornacchia/Desktop/DataRepository/Connecticut.nosync/EDFacts"
-local Temp "/Users/meghancornacchia/Desktop/DataRepository/Connecticut.nosync/Temp"
+set trace off
+global Output "/Volumes/T7/State Test Project/Connecticut/Output"
+global EDFacts "/Volumes/T7/State Test Project/EDFACTS"
+global Temp "/Volumes/T7/State Test Project/Connecticut/Temp"
 
 foreach subject in ela math {
 foreach dl in district school {
 clear
-use "`EDFacts'/edfactspart2021`subject'`dl'.dta"
+use "${EDFacts}/edfactspart2021`subject'`dl'.dta"
 keep if STNAM == "CONNECTICUT"
 
 //Renaming
@@ -79,7 +80,7 @@ if "`dl'" == "district" sort NCESDistrictID GradeLevel StudentSubGroup
 if "`dl'" == "district" egen StateStudentSubGroup_TotalTested = total(StudentSubGroup_TotalTested), by(StudentSubGroup GradeLevel) 
 
 //Saving
-save "`Temp'/2021_`subject'_count_`dl'", replace
+save "${Temp}/2021_`subject'_count_`dl'", replace
 clear
 }
 }
@@ -88,18 +89,18 @@ tempfile temp_2021_count
 save "`temp_2021_count'", replace emptyok
 foreach dl in district school {
 	foreach subject in ela math {
-	use "`Temp'/2021_`subject'_count_`dl'"
+	use "${Temp}/2021_`subject'_count_`dl'"
 	append using "`temp_2021_count'"
 	save "`temp_2021_count'", replace
-	save "`Temp'/_2021_count", replace
+	save "${Temp}/_2021_count", replace
 	clear	
 	}
 }
 
  **MERGING**
-use "`Output'/CT_AssmtData_2021"
+use "${Output}/CT_AssmtData_2021"
 drop StudentSubGroup_TotalTested StudentGroup_TotalTested
-merge 1:1 NCESDistrictID NCESSchoolID Subject GradeLevel StudentSubGroup using "`Temp'/_2021_count", update
+merge 1:1 NCESDistrictID NCESSchoolID Subject GradeLevel StudentSubGroup using "${Temp}/_2021_count", update
 drop if _merge == 2
 drop _merge
 
@@ -110,7 +111,7 @@ keep if DataLevel == 1
 tempfile tempstate
 save "`tempstate'", replace
 clear
-use "`Temp'/_2021_count"
+use "${Temp}/_2021_count"
 drop if missing(StateStudentSubGroup_TotalTested)
 duplicates drop StudentSubGroup GradeLevel Subject, force
 merge 1:1 StudentSubGroup GradeLevel Subject using "`tempstate'"
@@ -165,6 +166,6 @@ recast str80 SchName
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-save "`Output'/CT_AssmtData_2021", replace
-export delimited "`Output'/CT_AssmtData_2021", replace
+save "${Output}/CT_AssmtData_2021", replace
+export delimited "${Output}/CT_AssmtData_2021", replace
 
