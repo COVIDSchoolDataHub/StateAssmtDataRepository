@@ -6,7 +6,7 @@ This is a ReadMe for Connecticut's data cleaning process, from 2015 to 2023.
 
 ### NOTE: Install the "labutil" package for the code to run (necessary for "labmask" command):
 
-Type the following code into the command module.
+Type the following code into the command module:
 ```
 ssc install labutil
 ```
