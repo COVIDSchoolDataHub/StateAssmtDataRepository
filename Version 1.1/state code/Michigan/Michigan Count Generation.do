@@ -2,18 +2,18 @@ clear
 set more off
 set trace off
 
-global output "/Users/minnamgung/Desktop/SADR/Michigan/Output"
-global NCES "/Users/minnamgung/Desktop/SADR/Michigan/NCES"
+global output "/Volumes/T7/State Test Project/Michigan/Original Data"
+global NCES "/Volumes/T7/State Test Project/Michigan/NCES"
 
-cd "/Users/minnamgung/Desktop/SADR/Michigan"
+cd "/Volumes/T7/State Test Project/Michigan"
 
-foreach year in 2015 2016 2017 2018 2019 2021 2022 2023
+*foreach year in 2015 2016 2017 2018 2019 2021 2022 2023
 
-foreach year in 2016 2017 2018 2019 2021 2022 2023 {
+foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 {
 	
 	use "${output}/MI_AssmtData_`year'.dta", clear
 	
-	browse State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested
+// 	browse State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested
 
 destring StudentGroup_TotalTested, gen(total_count) ignore("*")
 bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen All = max(total_count)

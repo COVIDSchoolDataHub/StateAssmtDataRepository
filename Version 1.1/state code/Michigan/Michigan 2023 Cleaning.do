@@ -1,10 +1,10 @@
 clear
 set more off
 
-global output "/Users/minnamgung/Desktop/SADR/Michigan/Output"
-global NCES "/Users/minnamgung/Desktop/SADR/Michigan/NCES"
+global output "/Volumes/T7/State Test Project/Michigan/Original Data"
+global NCES "/Volumes/T7/State Test Project/Michigan/NCES"
 
-cd "/Users/minnamgung/Desktop/SADR/Michigan"
+cd "/Volumes/T7/State Test Project/Michigan"
 
 use "${output}/MI_AssmtData_2023_all.dta", clear
 
@@ -152,7 +152,7 @@ replace State_leaid = "" if DataLevel == 1
 merge m:1 State_leaid using "${NCES}/NCES_2022_District.dta"
 drop if _merge == 2
 drop _merge
-
+/*
 **** Updating 2023 districts
 
 replace DistType = "Independent charter district" if DistName == "Muskegon Maritime Academy"
@@ -168,6 +168,7 @@ replace CountyCode = -1 if inlist(DistName, "Muskegon Maritime Academy", "Pittsf
 label def county_codedf -1 "Missing/not reported", modify
 
 **
+*/
 
 tostring seasch, gen(StateAssignedSchID)
 replace StateAssignedSchID = "" if DataLevel != 3
@@ -189,7 +190,7 @@ replace seasch = "" if DataLevel != 3
 merge m:1 seasch using "${NCES}/NCES_2022_School.dta"
 drop if _merge == 2
 drop _merge
-
+/*
 **** Updating 2023 schools
 
 replace SchType = "Alternative School" if SchName == "Covenant School - Spectrum"
@@ -218,6 +219,7 @@ replace StateAbbrev = "MI"
 replace State = "Michigan"
 destring StateFips, replace
 replace StateFips = 26
+*/
 
 ** Generating new variables
 
@@ -228,6 +230,7 @@ gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_soc = "N"
 gen Flag_CutScoreChange_sci = "N"
 
+/*
 ** 2024 Pre-review edit
 
 replace NCESSchoolID = "268052007963" if SchName== "Ingham Academy/Family Center"
@@ -243,6 +246,7 @@ replace SchLevel = "Primary" if SchName=="Pittsfield Acres Academy"
 replace SchVirtual = "No" if SchName=="Pittsfield Acres Academy"
 replace CountyCode = 26161 if SchName=="Pittsfield Acres Academy"
 replace CountyName = "Washtenaw County" if SchName=="Pittsfield Acres Academy"
+*/
 
 drop if SchName == "Ingham Academy/Family Center" // No studentcount for all groups/subgroups
 

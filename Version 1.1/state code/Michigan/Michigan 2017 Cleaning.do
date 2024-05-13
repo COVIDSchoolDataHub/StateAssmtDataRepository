@@ -1,10 +1,10 @@
 clear
 set more off
 
-global output "/Users/minnamgung/Desktop/SADR/Michigan/Output"
-global NCES "/Users/minnamgung/Desktop/SADR/Michigan/NCES"
+global output "/Volumes/T7/State Test Project/Michigan/Original Data"
+global NCES "/Volumes/T7/State Test Project/Michigan/NCES"
 
-cd "/Users/minnamgung/Desktop/SADR/Michigan"
+cd "/Volumes/T7/State Test Project/Michigan"
 
 use "${output}/MI_AssmtData_2017_all.dta", clear
 

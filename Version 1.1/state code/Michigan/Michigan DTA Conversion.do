@@ -1,11 +1,11 @@
 clear
 set more off
 
-cd "/Users/minnamgung/Desktop/SADR/Michigan"
+cd "/Volumes/T7/State Test Project/Michigan"
 
-global raw "/Users/minnamgung/Desktop/SADR/Michigan/Original Data Files"
-global output "/Users/minnamgung/Desktop/SADR/Michigan/Output"
-global NCES "/Users/minnamgung/Desktop/SADR/Michigan/NCES"
+global raw "/Volumes/T7/State Test Project/Michigan/Original Data"
+global output "/Volumes/T7/State Test Project/Michigan/Original Data"
+global NCES "/Volumes/T7/State Test Project/Michigan/NCES"
 
 global years 2015 2016 2017 2018 2019 2021 2022 2023
 
