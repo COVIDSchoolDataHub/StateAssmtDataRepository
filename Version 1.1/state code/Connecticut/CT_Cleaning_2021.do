@@ -4,11 +4,11 @@ clear
 set more off
 set trace off
 cap log close
-cd "/Users/meghancornacchia/Desktop/DataRepository/Connecticut.nosync"
-local Original "/Users/meghancornacchia/Desktop/DataRepository/Connecticut.nosync/Original_Data_Files"
-local Output "/Users/meghancornacchia/Desktop/DataRepository/Connecticut.nosync/Output_Data_Files"
-local NCES_School "/Users/meghancornacchia/Desktop/DataRepository/NCES_Data_Files"
-local NCES_District "/Users/meghancornacchia/Desktop/DataRepository/NCES_Data_Files"
+cd "/Volumes/T7/State Test Project/Connecticut"
+global Original "/Volumes/T7/State Test Project/Connecticut/Original Data Files"
+global Output "/Volumes/T7/State Test Project/Connecticut/Output"
+global NCES_School "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global NCES_District "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
 
 
 **** Need to install labutil for labelling to work properly. Type search labutil into Stata terminal and install first result. 
@@ -19,21 +19,21 @@ local NCES_District "/Users/meghancornacchia/Desktop/DataRepository/NCES_Data_Fi
 tempfile temp1
 save "`temp1'", emptyok
 clear
-import excel "`Original'/CT_OriginalData_2021_math_ela.xlsx", firstrow case(preserve) sheet(ALL)
+import excel "${Original}/CT_OriginalData_2021_math_ela.xlsx", firstrow case(preserve) sheet(ALL)
 append using "`temp1'"
 save "`temp1'", replace
 clear
-import excel "`Original'/CT_OriginalData_2021_sci.xlsx", firstrow case(preserve) sheet(ALL)
+import excel "${Original}/CT_OriginalData_2021_sci.xlsx", firstrow case(preserve) sheet(ALL)
 gen SUBJECT = "sci"
 append using "`temp1'"
-save "`Original/CT_OriginalData_2021_all'", replace
+save "${Original}/CT_OriginalData_2021_all", replace
 
 
 */
 
 //Unhide above code on first run
 clear
-use "`Original/CT_OriginalData_2021_all'"
+use "${Original}/CT_OriginalData_2021_all"
 
 //Renaming Variables
 rename DistrictCode StateAssignedDistID
@@ -139,7 +139,7 @@ keep if DataLevel ==2
 tempfile tempdist
 save "`tempdist'", replace
 clear
-use "`NCES_District'/NCES_2020_District"
+use "${NCES_District}/NCES_2020_District"
 keep if state_name == "Connecticut" | state_location == "CT"
 gen StateAssignedDistID2 = subinstr(state_leaid,"CT-","",.)
 merge 1:m StateAssignedDistID2 using "`tempdist'"
@@ -152,7 +152,7 @@ use "`temp1'"
 keep if DataLevel==3
 tempfile tempschool
 save "`tempschool'", replace
-use "`NCES_School'/NCES_2020_School"
+use "${NCES_School}/NCES_2020_School"
 keep if state_name == "Connecticut" | state_location == "CT"
 gen StateAssignedSchID2 = seasch 
 merge 1:m StateAssignedSchID2 using "`tempschool'"
@@ -278,8 +278,8 @@ order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistric
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "`Output'/CT_AssmtData_2021", replace
-export delimited "`Output'/CT_AssmtData_2021", replace
+save "${Output}/CT_AssmtData_2021", replace
+export delimited "${Output}/CT_AssmtData_2021", replace
 
 do CT_2021_EDFACTS
 

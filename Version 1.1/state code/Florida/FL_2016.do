@@ -238,7 +238,7 @@ replace AvgScaleScore = "*" if AvgScaleScore == ""
 
 //S2024 Changes
 gen Flag_CutScoreChange_sci = Flag_CutScoreChange_oth
-gen Flag_CutScoreChange_soc = "Not Applicable"
+gen Flag_CutScoreChange_soc = "Not applicable"
 replace ProficiencyCriteria = "Levels 3-5"
 drop Flag_CutScoreChange_oth Flag_CutScoreChange_read State_leaid seasch
 

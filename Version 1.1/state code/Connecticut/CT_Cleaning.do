@@ -2,11 +2,11 @@ clear
 //set more on
 set trace off
 cap log close
-cd "/Users/meghancornacchia/Desktop/DataRepository/Connecticut.nosync"
-local Original "/Users/meghancornacchia/Desktop/DataRepository/Connecticut.nosync/Original_Data_Files"
-local Output "/Users/meghancornacchia/Desktop/DataRepository/Connecticut.nosync/Output_Data_Files"
-local NCES_School "/Users/meghancornacchia/Desktop/DataRepository/NCES_Data_Files"
-local NCES_District "/Users/meghancornacchia/Desktop/DataRepository/NCES_Data_Files"
+cd "/Volumes/T7/State Test Project/Connecticut"
+global Original "/Volumes/T7/State Test Project/Connecticut/Original Data Files"
+global Output "/Volumes/T7/State Test Project/Connecticut/Output"
+global NCES_School "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global NCES_District "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
 log using variablescheck.log, replace
 //Standardizing Varnames (and variables if necessary) before appending
 forvalues year = 2015/2023 {
@@ -24,7 +24,7 @@ forvalues year = 2015/2023 {
 				di "`dl'"
 				di "`sg'"
 				di "`subject'"
-				import delimited "`Original'/`dl'_`sg'_CT_OriginalData_`year'_`subject'.csv", clear
+				import delimited "${Original}/`dl'_`sg'_CT_OriginalData_`year'_`subject'.csv", clear
 				if "`dl'" == "State" gen DataLevel = "State" 
 				if "`dl'" == "Dist" gen DataLevel = "District" 
 				if "`dl'" == "Sch" gen DataLevel = "School" 
@@ -706,7 +706,7 @@ forvalues year = 2015/2023 {
 					
 				}
 				drop in 1/4
-				save "`Original'/`dl'_`sg'_CT_OriginalData_`year'_`subject'.dta", replace
+				save "${Original}/`dl'_`sg'_CT_OriginalData_`year'_`subject'.dta", replace
 				append using "`temp_`year''"
 				save "`temp_`year''", replace
 				*save "/Volumes/T7/State Test Project/Connecticut/Testing/`year'", replace
@@ -811,10 +811,10 @@ tempfile tempdist
 save "`tempdist'", replace
 clear
 if `year' < 2023 {
-use "`NCES_District'/NCES_`prevyear'_District"
+use "${NCES_District}/NCES_`prevyear'_District"
 }
 else if `year'==2023{
-use "`NCES_District'/NCES_2021_District"
+use "${NCES_District}/NCES_2021_District"
 }
 keep if state_name == "Connecticut" | state_location == "CT"
 if `year' <2019 {
@@ -835,10 +835,10 @@ keep if DataLevel==3
 tempfile tempschool
 save "`tempschool'", replace
 if `year' <2023 {
-use "`NCES_School'/NCES_`prevyear'_School"
+use "${NCES_School}/NCES_`prevyear'_School"
 }
 else if `year' == 2023 {
-use "`NCES_School'/NCES_2021_School"
+use "${NCES_School}/NCES_2021_School"
 }
 keep if state_name == "Connecticut" | state_location == "CT"
 gen StateAssignedDistID1 = subinstr(state_leaid,"CT-","",.)
@@ -997,9 +997,11 @@ gen Flag_CutScoreChange_sci = "Not applicable"
 gen Flag_CutScoreChange_soc = "Not applicable"
 
 foreach var of varlist Flag* {
-	replace `var' = "Y" if `year' == 2015 & "`var'" != "Flag_CutScoreChange_soc" & `var' != "Flag_CutScoreChange_sci"
+	replace `var' = "Y" if `year' == 2015 & "`var'" != "Flag_CutScoreChange_soc" & "`var'" != "Flag_CutScoreChange_sci"
 	replace `var' = "N" if "`var'" == "Flag_CutScoreChange_sci" & `year' >= 2019
 	replace `var' = "Y" if `year' == 2022 & "`var'" != "Flag_AssmtNameChange" & "`var'" != "Flag_CutScoreChange_soc"
+	replace `var' = "Y" if `year' == 2019 & "`var'" == "Flag_AssmtNameChange" & Subject == "sci"
+	replace `var' = "Y" if `year' == 2019 & "`var'" == "Flag_CutScoreChange_sci"
 }
 replace Flag_CutScoreChange_soc = "Not applicable"
 
@@ -1023,8 +1025,8 @@ order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistric
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "`Output'/CT_AssmtData_`year'", replace
-export delimited "`Output'/CT_AssmtData_`year'", replace
+save "${Output}/CT_AssmtData_`year'", replace
+export delimited "${Output}/CT_AssmtData_`year'", replace
 clear
 
 }

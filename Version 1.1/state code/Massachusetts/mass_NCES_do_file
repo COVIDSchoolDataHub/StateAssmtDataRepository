@@ -3,9 +3,9 @@ log using massachussets_nces_cleaning.log, replace
 
 
 
-cd "/Users/benjaminm/Documents/State_Repository_Research/Massachusetts/NCES_New_Raw"
-
-global nces "/Users/benjaminm/Documents/State_Repository_Research/NCES"
+cd "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+*global nces "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global Massachusetts_Dir "/Volumes/T7/State Test Project/Massachusetts"
 
 //use NCES_2016_School.dta, clear
 // use NCES_2015_School.dta, clear
@@ -13,15 +13,16 @@ global nces "/Users/benjaminm/Documents/State_Repository_Research/NCES"
 
 //use 1_NCES_2013_School_Mass.dta, clear
 
-use "${NCES}/NCES_District/NCES_2009_District.dta", clear
-use "NCES_2009_District.dta", clear
+*use "${NCES}/NCES_District/NCES_2009_District.dta", clear
+*use "NCES_2009_District.dta", clear
 
 
 global years 2009 2010 2011 2012 2013 2014 2015 2016 2017 2018 2019 2020 2021
 
 foreach a in $years {
 	
-	use "${NCES}/NCES_School/NCES_`a'_School.dta", clear
+	*use "${NCES}/NCES_School/NCES_`a'_School.dta", clear
+	use "NCES_`a'_School.dta", clear
 	keep if state_fips == 25
 	
 	rename state_name State
@@ -50,9 +51,10 @@ keep State StateAbbrev StateFips SchType NCESDistrictID NCESSchoolID seasch Dist
 
 
 	
-save "2_NCES_`a'_School_Mass.dta", replace
+save "$Massachusetts_Dir/2_NCES_`a'_School_Mass.dta", replace
 	
-	use "${NCES}/NCES_District/NCES_`a'_District.dta", clear
+	*use "${NCES}/NCES_District/NCES_`a'_District.dta", clear
+	use "NCES_`a'_District.dta"
 	keep if state_fips == 25
 	
 	rename state_name State
@@ -81,16 +83,16 @@ save "2_NCES_`a'_School_Mass.dta", replace
 	
 keep State StateAbbrev StateFips DistType NCESDistrictID State_leaid DistCharter CountyName CountyCode DistLocale
 	
-save "2_NCES_`a'_District_Mass.dta", replace
+save "$Massachusetts_Dir/2_NCES_`a'_District_Mass.dta", replace
 	
 }
 
 // fix to Mass 2013 NCES
 
-use 2_NCES_2013_School_Mass, clear
+use "$Massachusetts_Dir/2_NCES_2013_School_Mass", clear
 duplicates drop seasch, force
 
-save 2_NCES_2013_School_Mass, replace
+save "$Massachusetts_Dir/2_NCES_2013_School_Mass", replace
 
 //use "2_NCES_2011_District_Mass.dta", clear
 	
