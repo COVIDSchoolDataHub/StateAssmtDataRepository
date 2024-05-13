@@ -260,6 +260,7 @@ rename DataLevel_n DataLevel
 //Post Launch Updates
 replace StateAbbrev = "WV"
 replace StateFips = 54
+replace DistName = "McDowell" if NCESDistrictID == "5400810"
 
 //StudentGroup_TotalTested Convention
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup

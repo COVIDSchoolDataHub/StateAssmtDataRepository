@@ -280,6 +280,8 @@ sort DataLevel_n
 drop DataLevel 
 rename DataLevel_n DataLevel
 
+replace DistName = "McDowell" if NCESDistrictID == "5400810"
+
 //StudentGroup_TotalTested Convention
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 gen All_Students = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
