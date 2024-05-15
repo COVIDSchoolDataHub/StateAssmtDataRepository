@@ -272,7 +272,7 @@ gen Lev5_percent = ""
 gen AssmtName = "STAAR"
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
-gen Flag_CutScoreChange_math = "N"
+gen Flag_CutScoreChange_math = "Y"
 gen Flag_CutScoreChange_soc = "N"
 gen Flag_CutScoreChange_sci = "N"
 gen AssmtType = "Regular"
@@ -355,6 +355,13 @@ replace StateFips = 48 if DistName == "TEXAS TECH UNIV"
 replace CountyName = proper(CountyName)
 drop seasch
 drop State_leaid
+replace DistType = trim(DistType)
+replace CountyName = "DeWitt County" if CountyCode== "48123"
+replace CountyName = "McCulloch County" if CountyCode== "48307"
+replace CountyName = "McLennan County" if CountyCode== "48309"
+replace CountyName = "McMullen County" if CountyCode== "48311"
+drop if SchName == "TEXAS TECH H S"
+replace SchName ="TEXAS TECH UNIV" if NCESSchoolID== "480148014286"
 
 // Reordering variables and sorting data
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
