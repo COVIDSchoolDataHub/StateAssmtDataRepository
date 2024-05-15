@@ -261,7 +261,7 @@ rename DataLevel_n DataLevel
 replace StateAbbrev = "WV"
 replace StateFips = 54
 replace DistName = "McDowell" if NCESDistrictID == "5400810"
-
+replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
 //StudentGroup_TotalTested Convention
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 gen All_Students = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
