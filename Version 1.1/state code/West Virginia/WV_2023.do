@@ -297,7 +297,7 @@ rename DataLevel_n DataLevel
 
 
 //Student Counts and ParticipationRate
-merge 1:1 DistName SchName GradeLevel Subject StudentSubGroup using "$counts/WV_2022_counts", keep(match master)
+merge 1:1 NCESDistrictID NCESSchoolID GradeLevel Subject StudentSubGroup using "$counts/WV_2022_counts", keep(match master)
 tostring StudentSubGroup_TotalTested StudentGroup_TotalTested, replace 
 replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
 replace StudentGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
@@ -358,9 +358,11 @@ foreach var of varlist *_percent {
 	replace `var' = string(real(`var'), "%9.3g") if regexm(`var', "[0-9]") !=0
 }
 
+replace DistName = "McDowell" if NCESDistrictID == "5400810"
+
 //Getting rid of empty observations
 drop if StudentSubGroup_TotalTested == "--" & Lev1_percent == "--" & Lev2_percent == "--" & Lev3_percent == "--" & Lev4_percent == "--" & ProficientOrAbove_percent == "--"
-
+replace ParticipationRate = "--" if ParticipationRate == "."
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 

@@ -1,15 +1,15 @@
 clear all
-
+set maxvar 10000
 // Define file paths
 
-global original_files "/Users/meghancornacchia/Desktop/DataRepository/Texas/Original_Data_Files"
-global NCES_files "/Users/meghancornacchia/Desktop/DataRepository/NCES_Data_Files"
-global output_files "/Users/meghancornacchia/Desktop/DataRepository/Texas/Output_Data_Files"
-global temp_files "/Users/meghancornacchia/Desktop/DataRepository/Texas/Temporary_Data_Files"
+global original_files "/Volumes/T7/State Test Project/Texas/Original"
+global NCES_files "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global output_files "/Volumes/T7/State Test Project/Texas/Output"
+global temp_files "/Volumes/T7/State Test Project/Texas/Temp"
 
 // 2022-2023
-
 /*
+
 // State Level
 
 forvalues i = 3/8 {
@@ -17,9 +17,9 @@ forvalues i = 3/8 {
 	export delimited using "$original_files/TX_OriginalData_2023_G0`i'_State.csv", replace
 	drop *cat*
 	drop *ti*
-	drop *mig*
+	*drop *mig*
 	drop *bil*
-	drop *spe*
+	*drop *spe*
 	drop *gif*
 	drop *atr*
 	drop *esl*
@@ -29,14 +29,15 @@ forvalues i = 3/8 {
 	drop *eco2*
 	drop *ecov*
 	drop *eco9*
-	drop *lepf*
+	*drop *lepf*
 	drop *leps*
 	drop *lept*
 	drop *lepr*
 	drop *lepe*
 	drop *lepv*
 	drop *504*
-	
+	drop *migv*
+	drop *spev*
 	rename (*_docs_n *_abs_n *_oth_n *_d *_docs_r *_abs_r *_oth_r *_unsatgl_nm *_approgl_nm *_meetsgl_nm *_mastrgl_nm *_unsatgl_rm *_approgl_rm *_meetsgl_rm *_mastrgl_rm *_rs) (docs_n_* abs_n_* oth_n_* d_* docs_r_* abs_r_* oth_r_* unsatgl_nm_* approgl_nm_* meetsgl_nm_* mastrgl_nm_* unsatgl_rm_* approgl_rm_* meetsgl_rm_* mastrgl_rm_* rs_*)
 	
 	reshape long docs_n_ abs_n_ oth_n_ d_ docs_r_ abs_r_ oth_r_ unsatgl_nm_ approgl_nm_ meetsgl_nm_ mastrgl_nm_ unsatgl_rm_ approgl_rm_ meetsgl_rm_ mastrgl_rm_ rs_, i(GRADE) j(subject_group, string)
@@ -63,9 +64,9 @@ forvalues i = 3/8 {
 	export delimited using "$original_files/TX_OriginalData_2023_G0`i'_District.csv", replace
 	drop *cat*
 	drop *ti*
-	drop *mig*
+	*drop *mig*
 	drop *bil*
-	drop *spe*
+	*drop *spe*
 	drop *gif*
 	drop *atr*
 	drop *esl*
@@ -75,14 +76,15 @@ forvalues i = 3/8 {
 	drop *eco2*
 	drop *ecov*
 	drop *eco9*
-	drop *lepf*
+	*drop *lepf*
 	drop *leps*
 	drop *lept*
 	drop *lepr*
 	drop *lepe*
 	drop *lepv*
 	drop *504*
-	
+	drop *migv*
+	drop *spev*
 	rename (*_docs_n *_abs_n *_oth_n *_d *_docs_r *_abs_r *_oth_r *_unsatgl_nm *_approgl_nm *_meetsgl_nm *_mastrgl_nm *_unsatgl_rm *_approgl_rm *_meetsgl_rm *_mastrgl_rm *_rs) (docs_n_* abs_n_* oth_n_* d_* docs_r_* abs_r_* oth_r_* unsatgl_nm_* approgl_nm_* meetsgl_nm_* mastrgl_nm_* unsatgl_rm_* approgl_rm_* meetsgl_rm_* mastrgl_rm_* rs_*)
 	
 	reshape long docs_n_ abs_n_ oth_n_ d_ docs_r_ abs_r_ oth_r_ unsatgl_nm_ approgl_nm_ meetsgl_nm_ mastrgl_nm_ unsatgl_rm_ approgl_rm_ meetsgl_rm_ mastrgl_rm_ rs_, i(DISTRICT) j(subject_group, string)
@@ -106,9 +108,9 @@ forvalues i = 3/8 {
 	export delimited using "$original_files/TX_OriginalData_2023_G0`i'_School.csv", replace
 	drop *cat*
 	drop *ti*
-	drop *mig*
+	*drop *mig*
 	drop *bil*
-	drop *spe*
+	*drop *spe*
 	drop *gif*
 	drop *atr*
 	drop *esl*
@@ -118,14 +120,15 @@ forvalues i = 3/8 {
 	drop *eco2*
 	drop *ecov*
 	drop *eco9*
-	drop *lepf*
+	*drop *lepf*
 	drop *leps*
 	drop *lept*
 	drop *lepr*
 	drop *lepe*
 	drop *lepv*
 	drop *504*
-	
+	drop *migv*
+	drop *spev*
 	rename (*_docs_n *_abs_n *_oth_n *_d *_docs_r *_abs_r *_oth_r *_unsatgl_nm *_approgl_nm *_meetsgl_nm *_mastrgl_nm *_unsatgl_rm *_approgl_rm *_meetsgl_rm *_mastrgl_rm *_rs) (docs_n_* abs_n_* oth_n_* d_* docs_r_* abs_r_* oth_r_* unsatgl_nm_* approgl_nm_* meetsgl_nm_* mastrgl_nm_* unsatgl_rm_* approgl_rm_* meetsgl_rm_* mastrgl_rm_* rs_*)
 	
 	reshape long docs_n_ abs_n_ oth_n_ d_ docs_r_ abs_r_ oth_r_ unsatgl_nm_ approgl_nm_ meetsgl_nm_ mastrgl_nm_ unsatgl_rm_ approgl_rm_ meetsgl_rm_ mastrgl_rm_ rs_, i(CAMPUS) j(subject_group, string)
@@ -170,6 +173,8 @@ replace StudentGroup = "RaceEth" if StudentGroup == "eth"
 replace StudentGroup = "EL Status" if StudentGroup == "lep"
 replace StudentGroup = "Economic Status" if StudentGroup == "eco"
 replace StudentGroup = "Gender" if StudentGroup == "sex"
+replace StudentGroup = "Disability Status" if StudentGroup == "spe"
+replace StudentGroup = "Migrant Status" if StudentGroup == "mig"
 
 replace StudentSubGroup = "All Students" if StudentSubGroup == "all"
 replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "ethi"
@@ -182,11 +187,16 @@ replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "ethh"
 replace StudentSubGroup = "Unknown" if StudentSubGroup == "ethv"
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "lepc"
 replace StudentSubGroup = "English Proficient" if StudentSubGroup == "lep0"
+replace StudentSubGroup = "EL Monit or Recently Ex" if StudentSubGroup == "lepf"
 replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "ecoy"
 replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "econ"
 replace StudentSubGroup = "Male" if StudentSubGroup == "sexm"
 replace StudentSubGroup = "Female" if StudentSubGroup == "sexf"
 replace StudentSubGroup = "Unknown" if StudentSubGroup == "sexv"
+replace StudentSubGroup = "SWD" if StudentSubGroup == "spey"
+replace StudentSubGroup = "Non-SWD" if StudentSubGroup == "spen"
+replace StudentSubGroup = "Migrant" if StudentSubGroup == "migy"
+replace StudentSubGroup = "Non-Migrant" if StudentSubGroup == "mign"
 
 // Renaming and Transforming Variables
 rename GRADE GradeLevel
@@ -249,7 +259,7 @@ foreach var of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent Profi
 
 // Dealing with Suppressed/Missing
 foreach var of varlist Lev1_count Lev2_count Lev3_count Lev4_count Lev1_percent Lev2_percent Lev3_percent Lev4_percent AvgScaleScore ProficientOrAbove_count ProficientOrAbove_percent {
-	tostring `var', replace force
+	tostring `var', replace force format ("%9.3g")
 	replace `var' = "--" if StudentSubGroup_TotalTested == 0
 	replace `var' = "*" if `var' == "."
 }
@@ -265,12 +275,12 @@ gen Lev5_count = ""
 gen Lev5_percent = ""
 gen AssmtName = "STAAR"
 gen Flag_AssmtNameChange = "N"
-gen Flag_CutScoreChange_ELA = "N"
-gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_read = ""
-gen Flag_CutScoreChange_oth = "N"
+gen Flag_CutScoreChange_ELA = "Y"
+gen Flag_CutScoreChange_math = "Y"
+gen Flag_CutScoreChange_soc = "Y"
+gen Flag_CutScoreChange_sci = "Y"
 gen AssmtType = "Regular"
-gen ProficiencyCriteria = "Levels 2, 3, 4"
+gen ProficiencyCriteria = "Levels 2-4"
 gen state_leaid = "TX-"+StateAssignedDistID
 replace state_leaid = "" if DataLevel == 1
 gen seasch = StateAssignedDistID+"-"+StateAssignedSchID
@@ -285,9 +295,9 @@ save "$output_files/TX_AssmtData_2023.dta", replace
 
 // Merging with NCES District Data
 
-use "$NCES_files/NCES_2021_District.dta", clear
+use "$NCES_files/NCES_2022_District.dta", clear
 
-keep state_location state_fips district_agency_type ncesdistrictid state_leaid DistCharter county_name county_code
+keep state_location state_fips district_agency_type ncesdistrictid state_leaid DistCharter county_name county_code DistLocale
 
 keep if state_location == "TX"
 
@@ -296,7 +306,7 @@ merge 1:m state_leaid using "${output_files}/TX_AssmtData_2023.dta", keep(match 
 save "$output_files/TX_AssmtData_2023.dta", replace
 
 // Merging with NCES School Data
-
+/*
 import delimited "$original_files/TX_Unmerged2023.csv", stringcols(1 5 8 9) clear
 drop seaschmatch
 drop districtmatch
@@ -319,19 +329,26 @@ drop schlevel
 drop schvirtual
 gen state_location = "TX"
 gen state_fips = 48
+*/
 
+use "$NCES_files/NCES_2022_School.dta"
 
-append using "$NCES_files/NCES_2021_School.dta"
-
-
+/*
 label def school_typedf 1 "Regular school" 2 "Special education school" 3 "Vocational school" 4 "Other/alternative school", modify
 label values school_type school_typedf
 label def school_leveldf -1 "Missing/not reported", modify
 label values SchLevel school_leveldf
 label def virtualdf -1 "Missing/not reported", modify
 label values SchVirtual virtualdf
+*/
 
-keep state_location state_fips school_type ncesschoolid seasch SchLevel SchVirtual county_name county_code
+foreach v of varlist SchLevel SchVirtual school_type district_agency_type {
+		decode `v', generate(`v'1)
+		drop `v' 
+		rename `v'1 `v'
+	}
+	
+keep state_location state_fips school_type ncesschoolid seasch SchLevel SchVirtual county_name county_code DistLocale
 
 keep if state_location == "TX"
 
@@ -356,11 +373,15 @@ replace StateAbbrev = "TX" if DataLevel == 1
 replace StateFips = 48 if DataLevel == 1
 
 // Relabelling missing SchVirtual
-replace SchVirtual = -1 if SchVirtual == . & DataLevel == 3 & NCESSchoolID != "Missing"
-label define SchVirtual -1 "Missing/not reported"
+replace SchVirtual = "Missing/not reported" if SchVirtual == "" & DataLevel == 3 & NCESSchoolID != "Missing"
+
+//Other Post Launch
+drop seasch State_leaid
+drop if SchName == "TEXAS TECH H S"
+replace SchName = "TEXAS TECH UNIV" if NCESSchoolID== "480148014286"
 
 // Reordering variables and sorting data
-order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 

@@ -1,20 +1,20 @@
 clear
 set more off
 
-cd "/Users/minnamgung/Desktop/SADR/Michigan"
+cd "/Volumes/T7/State Test Project/Michigan"
 
-global NCESNew "/Users/minnamgung/Desktop/SADR/Michigan/NCES"
-global NCESOld "/Users/minnamgung/Desktop/SADR/NCESOld"
+global NCESNew "/Volumes/T7/State Test Project/Michigan/NCES"
+global NCESOld "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
 
 
 **********************************************
 
-/// NCES cleaning from 2013 to 2021
+/// NCES cleaning from 2013 to 2022
 /// Update: we are adding DistLocale
 
 **********************************************
 
-global years 2013 2014 2015 2016 2017 2018 2020 2021 2021
+global years 2013 2014 2015 2016 2017 2018 2020 2021 2022
 
 foreach a in $years {
 	
@@ -30,20 +30,8 @@ foreach a in $years {
 	rename county_name CountyName
 	rename county_code CountyCode
 	rename lea_name DistName
-	rename urban_centric_locale DistLocale
-	drop year district_agency_type_num bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte
+	keep State StateAbbrev StateFips NCESDistrict State_leaid DistType CountyName CountyCode DistName DistLocale DistCharter
 	
-	decode DistType, generate(DistType1)
-	drop DistType 
-	rename DistType1 DistType
-	
-	decode DistLocale, generate(DistLocale1)
-	drop DistLocale
-	rename DistLocale1 DistLocale
-	
-	if(`a' != 2021){
-                 drop agency_charter_indicator
-				}
 	
 	save "${NCESNew}/NCES_`a'_District.dta", replace
 	
@@ -61,26 +49,25 @@ foreach a in $years {
 	rename lea_name DistName	
 	rename ncesschoolid NCESSchoolID
 	rename school_name SchName
-	rename school_type SchType
-	rename dist_urban_centric_locale DistLocale
+	if `a' == 2022 rename school_type SchType
 	
-	drop year district_agency_type_num school_id school_status DistEnrollment SchEnrollment dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_lowest_grade_offered dist_highest_grade_offered dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch
 	drop if seasch == ""
+	keep State StateAbbrev StateFips NCESDistrictID State_leaid DistType CountyName CountyCode DistName NCESSchoolID SchName SchType SchLevel SchVirtual seasch DistCharter DistLocale
 	
-	foreach v of varlist SchLevel SchType DistType DistLocale {
+	
+	if `a' == 2022 {
+	foreach v of varlist SchLevel SchVirtual SchType DistType {
 		decode `v', generate(`v'1)
 		drop `v' 
 		rename `v'1 `v'
 	}
+}
 	
-	if(`a' != 2021){
-                 drop dist_agency_charter_indicator
-              }
 	
 	save "${NCESNew}/NCES_`a'_School.dta", replace
 	
 }
-
+/*
 **********************************************
 
 /// NCES cleaning 2022 (incomplete file)
