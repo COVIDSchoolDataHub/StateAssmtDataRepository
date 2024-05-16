@@ -417,6 +417,11 @@ merge 1:m CountyCode using "${output}/IA_AssmtData_`year'"
 replace CountyName = newcountyname if newcountyname != ""
 drop newcountyname
 
+replace DistName = "Prescott Comm School District" if NCESDistrictID == "1923760" & DistName == "" & `year' == 2016
+replace SchName = "Maple Grove Elementary" if SchName == "" & `year' == 2023
+replace DistName = "Cedar Rapids Comm School District" if DistName == "" & `year' == 2023
+
+
 //Final Cleaning and Saving
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
