@@ -1,20 +1,14 @@
 clear
 set more off
 
-// global raw "/Users/minnamgung/Desktop/SADR/Iowa/Input"
-// global output "/Users/minnamgung/Desktop/SADR/Iowa/Output"
-// global int "/Users/minnamgung/Desktop/SADR/Iowa/Intermediate"
-//
-// global nces "/Users/minnamgung/Desktop/SADR/NCES"
-// global iowa "/Users/minnamgung/Desktop/SADR/Iowa/NCES"
-
-global iowa "/Users/benjaminm/Documents/State_Repository_Research/Iowa/NCES"
-global nces "/Users/benjaminm/Documents/State_Repository_Research/NCES"
-global raw "/Users/benjaminm/Documents/State_Repository_Research/Iowa/Input"
-global dr "/Users/benjaminm/Documents/State_Repository_Research/Iowa/Input/Data Request"
-global int "/Users/benjaminm/Documents/State_Repository_Research/Iowa/Intermediate"
-global output "/Users/benjaminm/Documents/State_Repository_Research/Iowa/Output"
-global output2 "/Users/benjaminm/Documents/State_Repository_Research/Iowa/Output - Version 1.0"
+global NCES "/Users/miramehta/Documents/NCES District and School Demographics"
+global Iowa "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+global iowa "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+global raw "/Users/miramehta/Documents/Iowa/Original Data Files"
+global dr "/Users/miramehta/Documents/Iowa/Original Data Files/Iowa data received via data request 12-1-23"
+global int "/Users/miramehta/Documents/Iowa/Intermediate"
+global output "/Users/miramehta/Documents/Iowa/Output - Version 1.1"
+global output2 "/Users/miramehta/Documents/Iowa/Output - Version 1.0"
 
 import delimited "${output2}/IA_AssmtData_2011", clear
 
@@ -30,7 +24,7 @@ import delimited "${output2}/IA_AssmtData_2011", clear
 program filesave11
 
 	* ELA
-	import excel "${raw}/Iowa - District/IA_OriginalData_`1'_district_all.`4'", sheet(`8') cellrange(`5':`2') firstrow clear
+	import excel "${raw}/District/IA_OriginalData_`1'_district_ela,math.`4'", sheet(`8') cellrange(`5':`2') firstrow clear
 
 	gen Subject="ela"
 
@@ -38,7 +32,7 @@ program filesave11
 
 	* Math 
 
-	import excel "${raw}/Iowa - District/IA_OriginalData_`1'_district_all.`4'", sheet(`9') cellrange(`6':`3') firstrow clear
+	import excel "${raw}/District/IA_OriginalData_`1'_district_ela,math.`4'", sheet(`9') cellrange(`6':`3') firstrow clear
 
 	gen Subject="math"
 
@@ -120,15 +114,103 @@ end
 
 filesave11 "2014" "AR349" "AR349" "xlsx" "A3" "A3" "J O T Y AD AI AJ AK AL AM AN AO AP AQ AR" "reading" "math"
 
-
+*** 2014 Cleaning
 
 use "${int}/IA_AssmtData_district_2014.dta", clear
 replace District=Dist if District==.
 drop Dist 
 gen District1=string(District,"%04.0f")
 drop District
-rename District1 District
-save "${int}/IA_AssmtData_district_2014.dta", replace
+rename District1 StateAssignedDistID
+
+rename DistrictName DistName
+
+reshape long NotProficient Proficient TotalTested PercentProficient, i(StateAssignedDistID DistName Subject) j(GradeLevel)
+
+rename TotalTested StudentGroup_TotalTested
+rename PercentProficient ProficientOrAbove_percent
+rename Proficient ProficientOrAbove_count
+
+tostring GradeLevel, replace
+replace GradeLevel="G0"+GradeLevel
+
+drop Co CountyName AEA NotProficient
+
+gen State_leaid=StateAssignedDistID
+merge m:1 State_leaid using "${iowa}/NCES_2013_district.dta"
+
+drop if _merge==2
+
+gen DataLevel="District"
+replace DataLevel="State" if DistName==""
+replace DistName="All Districts" if DataLevel=="State"
+replace StateAssignedDistID = "" if DataLevel == "State"
+
+replace State="Iowa"
+replace StateAbbrev="IA"
+replace StateFips=19
+
+gen SchName="All Schools"
+gen StateAssignedSchID = ""
+gen NCESSchoolID = ""
+gen SchType = ""
+gen SchLevel = ""
+gen SchVirtual = ""
+
+gen AssmtName = "Iowa Assessments"
+gen AssmtType="Regular and alt"
+gen SchYear="2013-14"
+gen Flag_AssmtNameChange = "N"
+gen Flag_CutScoreChange_ELA = "N"
+gen Flag_CutScoreChange_math = "N"
+gen Flag_CutScoreChange_sci = "N" 
+gen Flag_CutScoreChange_soc = "Not applicable"
+
+gen StudentGroup="All Students"
+gen StudentSubGroup="All Students"
+replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "small N"
+replace StudentGroup_TotalTested="--" if StudentGroup_TotalTested==""
+gen StudentSubGroup_TotalTested = StudentGroup_TotalTested
+
+gen AvgScaleScore="--"
+gen ParticipationRate = "--"
+gen ProficiencyCriteria="Levels 2-3"
+
+foreach x of numlist 1/5 {
+		if `x' < 4{
+			gen Lev`x'_count = "--"
+			gen Lev`x'_percent = "--"
+		}
+		if `x' > 3{
+			gen Lev`x'_count = ""
+			gen Lev`x'_percent = ""
+		}
+		label variable Lev`x'_count "Count of students within subgroup performing at Level `x'."
+		label variable Lev`x'_percent "Percent of students within subgroup performing at Level `x'."
+}
+
+destring ProficientOrAbove_percent, gen(Prof) force
+replace Prof = Prof/100
+tostring Prof, replace format("%7.3g") force
+replace ProficientOrAbove_percent = Prof if Prof != "."
+replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "small N"
+replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == ""
+replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "small N"
+replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == ""
+
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+sort DataLevel_n 
+drop DataLevel
+rename DataLevel_n DataLevel
+
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup	
+
+save "${output}/IA_AssmtData_2014.dta", replace
 
 
 
@@ -137,7 +219,7 @@ save "${int}/IA_AssmtData_district_2014.dta", replace
 /////////////////////////////////////////
 
 * 2013
-import excel "${raw}/Iowa - District/IA_OriginalData_2013_district_all.xls", sheet("Districts") cellrange(A2:M4670) firstrow clear
+import excel "${raw}/District/IA_OriginalData_2013_district_ela,math.xls", sheet("Districts") cellrange(A2:M4670) firstrow clear
 
 rename district StateAssignedDistID
 rename DistrictName DistName 
@@ -153,14 +235,14 @@ replace GradeLevel="G"+GradeLevel
 replace Subject="math" if Subject=="M"
 replace Subject="ela" if Subject=="R"
 
-gen ParticipationRate=""
+gen ParticipationRate="--"
 
 drop school aea commcollegenum year subgroup
 
-save "${int}/IA_AssmtData_all_2013.dta", replace
+save "${int}/IA_AssmtData_2013.dta", replace
 
 * 2012
-import excel "${raw}/Iowa - District/IA_OriginalData_2012_district_all.xlsx", cellrange(A1:N4693) firstrow clear
+import excel "${raw}/District/IA_OriginalData_2012_district_ela,math.xlsx", cellrange(A1:N4693) firstrow clear
 
 rename Dist StateAssignedDistID
 rename SchName DistName 
@@ -179,10 +261,10 @@ replace Subject="ela" if Subject=="Reading"
 
 drop aea year subgroup NumberFullAcademicYearTested Enroll
 
-save "${int}/IA_AssmtData_all_2012.dta", replace
+save "${int}/IA_AssmtData_2012.dta", replace
 
 * 2011
-import excel "${raw}/Iowa - District/IA_OriginalData_2011_district_all.xlsx", cellrange(A4:M4808) firstrow clear
+import excel "${raw}/District/IA_OriginalData_2011_district_ela,math.xlsx", cellrange(A4:M4808) firstrow clear
 
 rename District StateAssignedDistID
 rename Agencyname DistName 
@@ -201,10 +283,10 @@ replace Subject="ela" if Subject=="Reading"
 
 drop AEA Year NumberFullAcademicYearTested Enroll
 
-save "${int}/IA_AssmtData_all_2011.dta", replace
+save "${int}/IA_AssmtData_2011.dta", replace
 
 * 2010
-import excel "${raw}/Iowa - District/IA_OriginalData_2010_district_all.xls", cellrange(A4:M4812) firstrow clear
+import excel "${raw}/District/IA_OriginalData_2010_district_ela,math.xls", cellrange(A4:M4812) firstrow clear
 
 rename District StateAssignedDistID
 rename Agencyname DistName 
@@ -223,10 +305,10 @@ replace Subject="ela" if Subject=="Reading"
 
 drop AEA Year FullAcademicYearTested Enrollment
 
-save "${int}/IA_AssmtData_all_2010.dta", replace
+save "${int}/IA_AssmtData_2010.dta", replace
 
 * 2009
-import excel "${raw}/Iowa - District/IA_OriginalData_2009_district_all.xls", sheet(" for posting") cellrange(A6:M4840) firstrow clear
+import excel "${raw}/District/IA_OriginalData_2009_district_ela,math.xls", sheet(" for posting") cellrange(A6:M4840) firstrow clear
 
 rename District StateAssignedDistID
 rename Agencyname DistName 
@@ -247,17 +329,17 @@ drop if DistName=="" | DistName=="Agencyname"
 
 drop AEA Year FullAcademicYearTested Enrollment
 
-save "${int}/IA_AssmtData_all_2009.dta", replace
+save "${int}/IA_AssmtData_2009.dta", replace
 
 * 2008 
 
-import excel "${raw}/Iowa - District/IA_OriginalData_2008_district_all.xls", sheet("Math results") cellrange(A10:M2462) firstrow clear
+import excel "${raw}/District/IA_OriginalData_2008_district_ela,math.xls", sheet("Math results") cellrange(A10:M2462) firstrow clear
 
 rename Gr Grade
 
 save "${int}/IA_AssmtData_math_2009.dta", replace
 
-import excel "${raw}/Iowa - District/IA_OriginalData_2008_district_all.xls", sheet("Reading results") cellrange(A10:M2462) firstrow clear
+import excel "${raw}/District/IA_OriginalData_2008_district_ela,math.xls", sheet("Reading results") cellrange(A10:M2462) firstrow clear
 
 append using "${int}/IA_AssmtData_math_2009.dta"
 
@@ -280,7 +362,7 @@ drop if DistName=="" | DistName=="Agencyname"
 
 drop AEA Year FullAcademicYearTested Enrollment
 
-save "${int}/IA_AssmtData_all_2008.dta", replace
+save "${int}/IA_AssmtData_2008.dta", replace
 
 /////////////////////////////////////////
 *** Before 2007 (Data Cleaning) ***
@@ -288,7 +370,7 @@ save "${int}/IA_AssmtData_all_2008.dta", replace
 
 * 2007
 
-import excel "${raw}/Iowa - District/IA_OriginalData_2007_district_all.xls", sheet("Math & Reading") cellrange(A7:CH373) firstrow clear
+import excel "${raw}/District/IA_OriginalData_2007_district_ela,math.xls", sheet("Math & Reading") cellrange(A7:CH373) firstrow clear
 
 drop AM AN AO AP AQ AR CC CD CE CF CG CH
 
@@ -440,10 +522,10 @@ rename NumberTested StudentGroup_TotalTested
 rename NumberProficient ProficientOrAbove_count
 rename PercentageProficient ProficientOrAbove_percent 
 
-save "${int}/IA_AssmtData_all_2007.dta", replace
+save "${int}/IA_AssmtData_2007.dta", replace
 
 * 2006
-import excel "${raw}/Iowa - District/IA_OriginalData_2006_district_all.xls", sheet("Sheet1") cellrange(A6:CU372) firstrow clear
+import excel "${raw}/District/IA_OriginalData_2006_district_ela,math.xls", sheet("Sheet1") cellrange(A6:CU372) firstrow clear
 
 drop CP CQ CR CS CT CU AS AT AU AV AW AX
 
@@ -598,11 +680,11 @@ rename NumberTested StudentGroup_TotalTested
 rename NumberProficient ProficientOrAbove_count
 rename PercentageProficient ProficientOrAbove_percent
 
-save "${int}/IA_AssmtData_all_2006.dta", replace
+save "${int}/IA_AssmtData_2006.dta", replace
 
 
 * 2005
-import excel "${raw}/Iowa - District/IA_OriginalData_2005_district_all.xls", sheet("AYP_2005_ByDist_Summary") cellrange(A6:AQ373) firstrow clear
+import excel "${raw}/District/IA_OriginalData_2005_district_ela,math.xls", sheet("AYP_2005_ByDist_Summary") cellrange(A6:AQ373) firstrow clear
 
 drop AE AF AG AH AI AJ AK AL AM AN AO AP AQ
 
@@ -677,11 +759,11 @@ rename NumberTested StudentGroup_TotalTested
 rename NumberProficient ProficientOrAbove_count
 rename PercentageProficient ProficientOrAbove_percent
 
-save "${int}/IA_AssmtData_all_2005.dta", replace
+save "${int}/IA_AssmtData_2005.dta", replace
 
 
 * 2004
-import excel "${raw}/Iowa - District/IA_OriginalData_2004_district_all.xls", sheet("AYP_ByDist_2004") cellrange(A6:AQ374) firstrow clear
+import excel "${raw}/District/IA_OriginalData_2004_district_ela,math.xls", sheet("AYP_ByDist_2004") cellrange(A6:AQ374) firstrow clear
 
 drop AE AF AG AH AI AJ AK AL AM AN AO AP AQ
 
@@ -756,11 +838,11 @@ rename NumberTested StudentGroup_TotalTested
 rename NumberProficient ProficientOrAbove_count
 rename PercentageProficient ProficientOrAbove_percent
 
-save "${int}/IA_AssmtData_all_2004.dta", replace
+save "${int}/IA_AssmtData_2004.dta", replace
 
 
 * 2003
-import excel "${raw}/Iowa - District/IA_OriginalData_2003_district_all.xlsx", sheet("ayp_byDist_2003") cellrange(A6:AQ373) firstrow clear
+import excel "${raw}/District/IA_OriginalData_2003_district_ela,math.xlsx", sheet("ayp_byDist_2003") cellrange(A6:AQ373) firstrow clear
 
 drop AE AF AG AH AI AJ AK AL AM AN AO AP AQ
 
@@ -835,7 +917,7 @@ rename NumberTested StudentGroup_TotalTested
 rename NumberProficient ProficientOrAbove_count
 rename PercentageProficient ProficientOrAbove_percent
 
-save "${int}/IA_AssmtData_all_2003.dta", replace
+save "${int}/IA_AssmtData_2003.dta", replace
 
 
 
@@ -844,14 +926,9 @@ save "${int}/IA_AssmtData_all_2003.dta", replace
 *** 2003-2013 (Data Cleaning) ***
 /////////////////////////////////////////
 
-// use "${int}/IA_AssmtData_all_2013.dta", clear
-// use "${iowa}/NCES_2013_district.dta", clear
-
-
-
 **# Bookmark #3
 program cleaner139
-use "${int}/IA_AssmtData_all_`1'.dta", clear
+use "${int}/IA_AssmtData_`1'.dta", clear
 
 gen State_leaid=StateAssignedDistID
 merge m:1 State_leaid using "${iowa}/NCES_`2'_district.dta"
@@ -880,6 +957,7 @@ merge m:1 State_leaid using "${iowa}/NCES_`2'_district.dta"
 	replace SchName="All Districts" if DataLevel==1
 
 	gen AssmtName="ITBS"
+	replace AssmtName = "Iowa Assessments" if inlist(`1', 2012, 2013)
 	gen AssmtType="Regular and alt"
 	replace StudentGroup="All Students"
 
@@ -897,19 +975,12 @@ merge m:1 State_leaid using "${iowa}/NCES_`2'_district.dta"
 		label variable Lev`x'_percent "Percent of students within subgroup performing at Level `x'."
 	}
 
-// gen Flag_AssmtNameChange = "N"
-// gen Flag_CutScoreChange_ELA = "N"
-// gen Flag_CutScoreChange_math = "N"
-// gen Flag_CutScoreChange_oth = "Y"
-// gen Flag_CutScoreChange_read = ""
 
-// updated 
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_sci = "N" 
 gen Flag_CutScoreChange_soc = "Not applicable"
-// updated 
 
 ////////////////////////////////////
 *** Review 1 Edits ***
@@ -958,8 +1029,6 @@ save "${int}/IA_AssmtData_school_`1'.dta", replace
 
 keep if _merge==1 & DataLevel!=1
 
-//export delimited using "${output}/Unmerged/IA_unmerged_`1'.csv", replace
-
 use "${int}/IA_AssmtData_school_`1'.dta", clear
 
 ////////////////////////////////////
@@ -971,25 +1040,10 @@ replace ProficientOrAbove_percent=ProficientOrAbove_percent/100
 tostring ProficientOrAbove_percent, replace force
 replace ProficientOrAbove_percent="--" if ProficientOrAbove_percent=="."
 
-//label define agency_typedf -1 "Missing/not reported", add
-//label values DistType agency_typedf
-
 replace Lev4_count=""
 replace Lev4_percent=""
 
-//replace CountyCode=. if CountyCode==-1
-
-////////////////////////////////////
-*** Sorting ***
-////////////////////////////////////
-
-// keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
-//
-// order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read 
-
-
-// updated 
-	drop State_leaid seasch
+drop State_leaid seasch
 
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
  
@@ -997,14 +1051,9 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-// updated
-
-//sort
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-*replace SchVirtual = "Missing/not reported" if SchVirtual == "" & DataLevel == 3
-*replace SchLevel = "Missing/not reported" if SchLevel == "" & DataLevel == 3
 
-save "${output}/IA_AssmtData_all_`1'.dta", replace
+save "${output}/IA_AssmtData_`1'.dta", replace
 
 export delimited using "${output}/IA_AssmtData_`1'.csv", replace
 end
@@ -1023,23 +1072,12 @@ cleaner139 "2007" "2006" "2006-07" "Small cell size"
 cleaner139 "2006" "2005" "2005-06" "Small cell size"
 cleaner139 "2005" "2004" "2004-05" "Small Cell Size"
 
-//cleaner12 "2005" "2004" "2004-05" "Small Cell Size"
-// cleaner13 "2004" "2003" "2003-04" "Small Cell Size"
-// cleaner13 "2003" "2002" "2002-03" "Small Cell Size"
-
-
 
 /////////////////////////////////////////
 *** Label change for 2012 ***
 /////////////////////////////////////////
 
-use "${output}/IA_AssmtData_all_2012.dta", clear 
-
-// 		gen Flag_AssmtNameChange="Y"
-// 		gen Flag_CutScoreChange_ELA="Y"
-// 		gen Flag_CutScoreChange_math="Y"
-// 		gen Flag_CutScoreChange_read=""
-// 		gen Flag_CutScoreChange_oth="Y"
+use "${output}/IA_AssmtData_2012.dta", clear 
 		
 		replace Flag_AssmtNameChange = "Y"
 		replace Flag_CutScoreChange_ELA = "Y"
@@ -1047,7 +1085,7 @@ use "${output}/IA_AssmtData_all_2012.dta", clear
 		replace Flag_CutScoreChange_sci = "Not applicable" 
 		replace Flag_CutScoreChange_soc = "Not applicable"
 
-save "${output}/IA_AssmtData_all_2012.dta", replace
+save "${output}/IA_AssmtData_2012.dta", replace
 
 export delimited using "${output}/IA_AssmtData_2012.csv", replace
 
@@ -1060,11 +1098,11 @@ global years 2012 2013 2014
 foreach a in $years {
 	
 	
-	use "${output}/IA_AssmtData_all_`a'.dta", clear 
+	use "${output}/IA_AssmtData_`a'.dta", clear 
 	
 	replace AssmtName="Iowa Assessments"
 	
-	save "${output}/IA_AssmtData_all_`a'.dta", replace
+	save "${output}/IA_AssmtData_`a'.dta", replace
 	
 	export delimited using "${output}/IA_AssmtData_`a'.csv", replace
 	
@@ -1077,41 +1115,12 @@ global yearspar1 2003 2004 2006 2007 2008 2009 2010 2011 2012 //2005
 
 foreach a in $yearspar1 {
 	
-	//use "${output}/IA_AssmtData_all_2009.dta", clear 
-	use "${output}/IA_AssmtData_all_`a'.dta", clear 
+	use "${output}/IA_AssmtData_`a'.dta", clear 
 	
 	destring ParticipationRate, replace force
 replace ParticipationRate=ParticipationRate/100
 tostring ParticipationRate, replace force
 replace ParticipationRate="--" if ParticipationRate=="."
-
-////////////////////////////////////
-*** Review 3 Edits ***
-////////////////////////////////////
-
-// updated
-//tostring StateAssignedDistID, replace
-//tostring State_leaid, replace
-// updated
-
-// decode DataLevel, gen(DataLevel1)
-// drop DataLevel
-// rename DataLevel1 DataLevel
-
-//if `a' == 2003 {
-	
-// 	encode DataLevel, gen(DataLevel_n) label(DataLevel)
-// 	sort DataLevel_n 
-// 	drop DataLevel 
-// 	rename DataLevel_n DataLevel
-
-//} 
-
-// keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
-//
-// order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
-
-// updated
 
 
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
@@ -1119,12 +1128,8 @@ order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistric
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-
-// updated
-
-//sort
 	
-	save "${output}/IA_AssmtData_all_`a'.dta", replace
+	save "${output}/IA_AssmtData_`a'.dta", replace
 	
 	export delimited using "${output}/IA_AssmtData_`a'.csv", replace
 	
@@ -1136,7 +1141,7 @@ global yearspar 2003 2004 2005 2006 2007 2008 2009 2010 2011 2012
 
 foreach a in $yearspar {
 	
-use "${output}/IA_AssmtData_all_`a'.dta", clear 
+use "${output}/IA_AssmtData_`a'.dta", clear 
 		
 		
 	foreach i of varlist StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate {
@@ -1153,7 +1158,7 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 //sort
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 	
-	save "${output}/IA_AssmtData_all_`a'.dta", replace
+	save "${output}/IA_AssmtData_`a'.dta", replace
 	
 	export delimited using "${output}/IA_AssmtData_`a'.csv", replace
 	
@@ -1174,7 +1179,7 @@ forvalues year = 2003/2014 {
 use "IA_StableCounty", clear
 local prevyear = `=`year'-1'
 keep if SchYear == "`prevyear'-" + substr("`year'",-2,2)
-merge 1:m CountyCode using "${output}/IA_AssmtData_all_`year'" 
+merge 1:m CountyCode using "${output}/IA_AssmtData_`year'" 
 
 
 replace CountyName = newcountyname if newcountyname != ""
@@ -1185,16 +1190,11 @@ drop newcountyname
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup	
 
-	save "${output}/IA_AssmtData_all_`year'.dta", replace
+	save "${output}/IA_AssmtData_`year'.dta", replace
 	
 	export delimited using "${output}/IA_AssmtData_`year'.csv", replace
 
 }
-
-
-
-
-
-
