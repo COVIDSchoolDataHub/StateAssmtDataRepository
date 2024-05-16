@@ -2,8 +2,8 @@ clear
 set trace off
 set more off
 
-global NCESOLD "/Users/minnamgung/Desktop/SADR/NCESOld"
-global NCESNEW "/Users/minnamgung/Desktop/SADR/Delaware/NCESNew"
+global NCESOLD "/Users/miramehta/Documents/NCES District and School Demographics/NCES District Files, Fall 1997-Fall 2022"
+global NCESNEW "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
 
 foreach year in 2014 2015 2016 2017 2018 2019 2020 2021 2022 {
 use "${NCESOLD}/NCES_`year'_District.dta"
@@ -18,21 +18,10 @@ rename district_agency_type DistType
 
 
 if `year' != 2022 {
-	keep if state_name==10 
+	keep if state_name=="Delaware" 
 	rename state_name State
-	decode State, gen (State1)
-	drop State
-	rename State1 State
 	rename state_location StateAbbrev
 	rename state_fips StateFips
-	
-	rename urban_centric_locale DistLocale
-	
-	foreach v of varlist DistType DistLocale {
-	decode `v', gen (`v'1)
-	drop `v'
-	rename `v'1 `v'
-}
 }
 
 if `year' == 2022 {

@@ -2,10 +2,10 @@ clear
 set more off
 set trace off
 
-global original "/Users/minnamgung/Desktop/SADR/Delaware/Original Data Files"
-global output "/Users/minnamgung/Desktop/SADR/Delaware/Output"
-global nces "/Users/minnamgung/Desktop/SADR/Delaware/NCESNew"
-global PART2 "/Users/minnamgung/Documents/GitHub/StateAssmtDataRepository/Version 1.1/state code/Delaware/DE_2015_2022_PART2.do" //Set filepath for second do file
+global original "/Users/miramehta/Documents/DE State Testing Data/Original Data Files"
+global output "/Users/miramehta/Documents/DE State Testing Data/Output"
+global nces "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+global PART2 "/Users/miramehta/Documents/GitHub/StateAssmtDataRepository/Version 1.1/state code/Delaware/DE_2015_2022_PART2.do" //Set filepath for second do file
 
 // foreach year in 2015 2016 2017 2018 2019 2021 2022 2023
 foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 { //2020 data would be empty, is thus not included
@@ -259,8 +259,8 @@ replace DistType = "Regular local school district" if SchName == "Meadowood Prog
 replace NCESDistrictID = "1001300" if SchName == "Meadowood Program" & `year' == 2015
 replace State_leaid = "32" if SchName == "Meadowood Program" & `year' == 2015
 replace DistCharter = "No" if SchName == "Meadowood Program" & `year' == 2015
-replace CountyName = "NEW CASTLE COUNTY" if SchName == "Meadowood Program" & `year' == 2015
-replace CountyCode = 10003 if SchName == "Meadowood Program" & `year' == 2015
+replace CountyName = "New Castle County" if SchName == "Meadowood Program" & `year' == 2015
+replace CountyCode = "10003" if SchName == "Meadowood Program" & `year' == 2015
 replace SchType = "MISSING" if SchName == "Meadowood Program" & `year' == 2015
 replace seasch = "MISSING" if SchName == "Meadowood Program" & `year' == 2015
 replace SchLevel = "MISSING" if SchName == "Meadowood Program" & `year' == 2015
@@ -269,8 +269,8 @@ replace DistType = "State-operated agency" if DistName == "Dept. of Svs. for Chi
 replace NCESDistrictID = "1000022" if DistName == "Dept. of Svs. for Children Youth & Their Families" & DataLevel == 3
 replace State_leaid = "97" if DistName == "Dept. of Svs. for Children Youth & Their Families" & DataLevel == 3
 replace StateAssignedDistID = "97" if DistName == "Dept. of Svs. for Children Youth & Their Families" & DataLevel == 3
-replace CountyName = "NEW CASTLE COUNTY" if DistName == "Dept. of Svs. for Children Youth & Their Families" & DataLevel == 3
-replace CountyCode = 10003 if DistName == "Dept. of Svs. for Children Youth & Their Families" & DataLevel == 3
+replace CountyName = "New Castle County" if DistName == "Dept. of Svs. for Children Youth & Their Families" & DataLevel == 3
+replace CountyCode = "10003" if DistName == "Dept. of Svs. for Children Youth & Their Families" & DataLevel == 3
 replace SchType = "MISSING" if DistName == "Dept. of Svs. for Children Youth & Their Families" & DataLevel == 3
 replace seasch = "MISSING" if DistName == "Dept. of Svs. for Children Youth & Their Families" & DataLevel == 3
 replace SchLevel = "MISSING" if DistName == "Dept. of Svs. for Children Youth & Their Families" & DataLevel == 3
@@ -454,9 +454,13 @@ use "${output}/DE_AssmtData_`year'", clear
 
 	}
 	
-	keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter SchType SchLevel SchVirtual CountyName CountyCode
+	if `year' == 2015 | `year' ==2016{
+		replace DistLocale = "Suburb, large" if NCESSchoolID == "100023000378"
+	}
 	
-	order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter SchType SchLevel SchVirtual CountyName CountyCode
+	keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+	
+	order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 	
 	sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 

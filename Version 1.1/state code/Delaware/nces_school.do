@@ -1,8 +1,8 @@
 clear
 set more off
 
-global NCESOLD "/Users/minnamgung/Desktop/SADR/NCESOld"
-global NCESNEW "/Users/minnamgung/Desktop/SADR/Delaware/NCESNew"
+global NCESOLD "/Users/miramehta/Documents/NCES District and School Demographics/NCES School Files, Fall 1997-Fall 2022"
+global NCESNEW "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
 
 * foreach year in 2014 2015 2016 2017 2018 2019 2020 2021 2022
 foreach year in 2014 2015 2016 2017 2018 2019 2020 2021 2022 { 
@@ -11,11 +11,9 @@ use "${NCESOLD}/NCES_`year'_School.dta"
 drop year
 
 if `year' != 2022 {
-	keep if state_name==10 
+	keep if state_name=="Delaware" 
 	rename state_name State
-	decode State, gen (State1)
 	drop State
-	rename State1 State
 	rename state_location StateAbbrev
 	rename state_fips StateFips
 }
@@ -24,7 +22,6 @@ if `year' == 2022 {
 	keep if state_fips_id == 10
 	gen StateAbbrev = "DE"
 	rename state_fips_id StateFips
-	drop DistLocale
 }
 
 rename ncesdistrictid NCESDistrictID
@@ -33,12 +30,13 @@ rename lea_name DistName
 rename county_name CountyName
 rename county_code CountyCode
 rename school_name SchName
-rename school_type SchType
+if `year' == 2022{
+	rename school_type SchType
+}
 rename district_agency_type DistType
 rename ncesschoolid NCESSchoolID
-rename dist_urban_centric_locale DistLocale
 
-foreach v of varlist DistType SchVirtual SchLevel SchType DistLocale {
+foreach v of varlist SchVirtual SchLevel SchType {
 	decode `v', gen (`v'1)
 	drop `v'
 	rename `v'1 `v'

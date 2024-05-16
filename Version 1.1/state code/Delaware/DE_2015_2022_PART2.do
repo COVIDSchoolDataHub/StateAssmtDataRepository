@@ -7,7 +7,7 @@ cap log close
 
 //NOTE: To convert excel files to dta., please run Excel DCAS file do FIRST before running this code.
 
-global data "/Users/minnamgung/Desktop/SADR/Delaware/Original Data Files/Excel DCAS Datasets"
+global data "/Users/miramehta/Documents/DE State Testing Data/Original Data Files/Excel DCAS Datasets"
 
 foreach year in 2015 2016 2017 {
 	di as error "`year'"
@@ -195,8 +195,6 @@ foreach year in 2015 2016 2017 {
 
 //Additional Cleaning- SET ADDITIONAL FILE DIRECTORIES
 
-global data "/Users/minnamgung/Desktop/SADR/Delaware/Original Data Files/Excel DCAS Datasets"
-global cleaned "/Users/minnamgung/Desktop/SADR/Delaware/Output"
 	foreach year in 2015 2016 2017 {
 		use "${data}/Combined_`year'", clear
 		
@@ -267,7 +265,7 @@ global cleaned "/Users/minnamgung/Desktop/SADR/Delaware/Output"
 		clear
 		
 		//Using already cleaned ELA and Math data to get data for each scool and district
-		use "${cleaned}/DE_AssmtData_`year'.dta"
+		use "${output}/DE_AssmtData_`year'.dta"
 		drop if DataLevel !=3
 		keep NCESDistrictID DistType  StateAssignedDistID NCESSchoolID StateAssignedSchID SchLevel SchVirtual CountyName CountyCode SchName DistName SchType DistLocale DistCharter
 		duplicates drop
@@ -279,7 +277,7 @@ global cleaned "/Users/minnamgung/Desktop/SADR/Delaware/Output"
 		tempfile School
 		save "`School'"
 		clear
-		use "${cleaned}/DE_AssmtData_`year'.dta"
+		use "${output}/DE_AssmtData_`year'.dta"
 		drop if DataLevel !=2
 		keep NCESDistrictID StateAssignedDistID DistType CountyName CountyCode DistName DistLocale DistCharter
 		duplicates drop DistName, force
@@ -295,7 +293,7 @@ global cleaned "/Users/minnamgung/Desktop/SADR/Delaware/Output"
 		save "`idk'"
 //Change Directory for NCES School data below
 		local prevyear =`=`year'-1'
-		local NCES "/Users/minnamgung/Desktop/SADR/NCESOld"
+		local NCES "/Users/miramehta/Documents/NCES District and School Demographics/NCES School Files, Fall 1997-Fall 2022"
 		use "`NCES'/NCES_`prevyear'_School.dta", clear
 		rename school_name SchName
 		drop if state_fips != 10
@@ -305,17 +303,9 @@ global cleaned "/Users/minnamgung/Desktop/SADR/Delaware/Output"
 		rename lea_name DistName
 		gen StateAssignedDistID = state_leaid
 		rename state_leaid State_leaid
-		rename school_type SchType
 		rename county_code CountyCode
 		rename county_name CountyName
 		rename district_agency_type DistType
-		rename dist_urban_centric_locale DistLocale
-		decode DistType, gen(temp)
-		drop DistType
-		rename temp DistType
-		decode DistLocale, gen(temp)
-		drop DistLocale
-		rename temp DistLocale
 		decode SchLevel, gen(temp)
 		drop SchLevel
 		rename temp SchLevel
@@ -347,8 +337,8 @@ global cleaned "/Users/minnamgung/Desktop/SADR/Delaware/Output"
 		replace SchLevel = "Primary" if SchName == "Kent Elementary Intensive Learning Center"
 		replace SchVirtual = "Missing/not reported" if SchName == "Kent Elementary Intensive Learning Center"
 		replace seasch = "615" if SchName == "Kent Elementary Intensive Learning Center"
-		replace CountyName = "KENT COUNTY" if SchName == "Kent Elementary Intensive Learning Center"
-		replace CountyCode = 10001 if CountyName == "KENT COUNTY"
+		replace CountyName = "Kent County" if SchName == "Kent Elementary Intensive Learning Center"
+		replace CountyCode = "10001" if CountyName == "KENT COUNTY"
 		replace State_leaid = StateAssignedDistID if SchName == "Kent Elementary Intensive Learning Center"
 		replace DistCharter = "No" if SchName == "Kent Elementary Intensive Learning Center"
 		//Wallace Wallin (which always seems to be a problem lol)
@@ -363,8 +353,8 @@ global cleaned "/Users/minnamgung/Desktop/SADR/Delaware/Output"
 		replace SchLevel = "Missing/not reported" if SchName == "The Wallace Wallin School"
 		replace SchVirtual = "Missing/not reported" if SchName == "The Wallace Wallin School"
 		replace seasch = "522" if SchName == "The Wallace Wallin School"
-		replace CountyName = "NEW CASTLE COUNTY" if SchName == "The Wallace Wallin School"
-		replace CountyCode = 10003 if SchName == "The Wallace Wallin School"
+		replace CountyName = "New Castle County" if SchName == "The Wallace Wallin School"
+		replace CountyCode = "10003" if SchName == "The Wallace Wallin School"
 		replace State_leaid = "34" if SchName == "The Wallace Wallin School"
 		replace DistCharter = "No" if SchName == "The Wallace Wallin School"
 		
@@ -374,8 +364,8 @@ global cleaned "/Users/minnamgung/Desktop/SADR/Delaware/Output"
 		replace State_leaid = "39" if DistName == "POLYTECH School District"
 		replace DistType = "Regular local school district" if DistName == "POLYTECH School District"
 		replace DistCharter = "No" if DistName == "POLYTECH School District"
-		replace CountyName = "KENT COUNTY" if DistName == "POLYTECH School District"
-		replace CountyCode = 10001 if DistName == "POLYTECH School District"
+		replace CountyName = "Kent County" if DistName == "POLYTECH School District"
+		replace CountyCode = "10001" if DistName == "POLYTECH School District"
 		
 		if `year' == 2017 {
 			if strpos(seasch, "-") !=0 {
@@ -450,7 +440,7 @@ global cleaned "/Users/minnamgung/Desktop/SADR/Delaware/Output"
 		save "`final_`year''"
 		clear
 
-		use "${cleaned}/DE_AssmtData_`year'.dta"
+		use "${output}/DE_AssmtData_`year'.dta"
 		drop if Subject == "sci" | Subject == "soc"
 		
 		
@@ -475,8 +465,8 @@ replace ParticipationRate = range_part + ParticipationRate
 	order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 	sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-		save "${cleaned}/DE_AssmtData_`year'.dta", replace
-		export delimited using "${cleaned}/DE_AssmtData_`year'.csv", replace
+		save "${output}/DE_AssmtData_`year'.dta", replace
+		export delimited using "${output}/DE_AssmtData_`year'.csv", replace
 		
 		
 		clear
@@ -485,5 +475,4 @@ replace ParticipationRate = range_part + ParticipationRate
 
 		
 	}
-	log close
 	
