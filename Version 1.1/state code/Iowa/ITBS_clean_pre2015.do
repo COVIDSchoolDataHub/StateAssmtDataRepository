@@ -146,6 +146,8 @@ replace DataLevel="State" if DistName==""
 replace DistName="All Districts" if DataLevel=="State"
 replace StateAssignedDistID = "" if DataLevel == "State"
 
+replace DistName = DistName + " Comm School District" if DataLevel == "District"
+
 replace State="Iowa"
 replace StateAbbrev="IA"
 replace StateFips=19
@@ -163,7 +165,7 @@ gen SchYear="2013-14"
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_sci = "N" 
+gen Flag_CutScoreChange_sci = "Not applicable" 
 gen Flag_CutScoreChange_soc = "Not applicable"
 
 gen StudentGroup="All Students"

@@ -26,6 +26,7 @@ tostring CountyCode, replace
 save "${raw}/IA_Unmerged_1.dta", replace
 
 // saving files 
+/*
 foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 {
 	
 local prevyear =`=`year'-1'
@@ -49,10 +50,10 @@ append using "${output}/IA_AssmtData_`year'_NEW.dta"
 save "${output}/IA_AssmtData_`year'_NEW.dta", replace
 
 }
-
+*/
 use "${output}/IA_AssmtData_2023_NEW.dta", replace
 
-foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 {
+foreach year in 2023 {
 	
 	local prevyear =`=`year'-1'
 	local Year = "`prevyear'" + "-" + substr("`year'",-2,2)
@@ -127,34 +128,6 @@ foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 {
 	replace SchName="Odebolt Arthur Battle Creek Ida Grove Elementary-Odebolt" if SchName=="Odebolt Arthur Battle Creek Ida Grove Elementary School - Odebolt"
 	
 	gen State_leaid=StateAssignedDistID
-
-
-
-
-	
-	if  "`year'"=="2022" | "`year'"=="2023" {
-		
-		merge m:1 State_leaid using "${iowa}/NCES_2021_district.dta"
-		
-		drop if _merge==2
-		drop _merge
-
-		merge m:1 State_leaid SchName using "${iowa}/NCES_2021_school.dta" //, update replace
-		
-		drop if _merge==2
-		drop _merge
-		
-		
-		drop SchType
-		rename SchType_str SchType
-
-		
-
-
-		
-	}
-	
-	
 	
 	
 	if "`year'"=="2015" | "`year'"=="2016" | "`year'"=="2017" | "`year'"=="2018"| "`year'"=="2019"  {
@@ -164,7 +137,6 @@ foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 {
 		
 	}
 	
-	if "`year'"=="2015" | "`year'"=="2016" | "`year'"=="2017" | "`year'"=="2018"| "`year'"=="2019" | "`year'"=="2021"  {
 		
 
 		merge m:1 State_leaid using "${iowa}/NCES_`prevyear'_district.dta"
@@ -173,13 +145,10 @@ foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 {
 		drop _merge
 		
 
-	merge m:1 State_leaid SchName using "${iowa}/NCES_`prevyear'_school.dta" 
+		merge m:1 State_leaid SchName using "${iowa}/NCES_`prevyear'_school.dta"
 
 	 
 	 	drop if _merge==2
-
-	}
-
 
 	gen SchYear="`Year'"
 	gen AssmtType="Regular"
@@ -198,6 +167,7 @@ foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 {
 	tostring StudentGroup_TotalTested, replace force
 	replace StudentSubGroup_TotalTested="*" if StudentSubGroup_TotalTested=="."
 	replace StudentGroup_TotalTested="*" if StudentGroup_TotalTested=="."
+	replace StudentGroup_TotalTested="*" if StudentGroup_TotalTested == "0" & StudentGroup == "All Students"
 
 	foreach x of numlist 4/5 {
 		generate Lev`x'_count = ""
@@ -205,20 +175,11 @@ foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 {
 	}
 
 		if "`year'"=="2015" | "`year'"=="2016" | "`year'"=="2017" | "`year'"=="2018" {
-			
-			
-	// 		gen Flag_AssmtNameChange="N"
-// 		gen Flag_CutScoreChange_ELA="N"
-// 		gen Flag_CutScoreChange_math="N"
-// 		gen Flag_CutScoreChange_read=""
-// 		gen Flag_CutScoreChange_oth=""
-
 		gen Flag_AssmtNameChange = "N"
 		gen Flag_CutScoreChange_ELA = "N"
 		gen Flag_CutScoreChange_math = "N"
-		gen Flag_CutScoreChange_sci = "Not applicable" 
+		gen Flag_CutScoreChange_sci = "N" 
 		gen Flag_CutScoreChange_soc = "Not applicable"
-		
 		}
 
 	if "`year'"=="2019" {
@@ -249,7 +210,7 @@ rename DataLevel_n DataLevel
 replace DistName = "All Districts" if DataLevel ==1
 replace SchName = "All Schools" if DataLevel ==1 | DataLevel ==2
 
-	
+/*	
 	if  "`year'"=="2022" | "`year'"=="2023" {
 	replace SchType = "Regular school" if SchName == "Big Creek Elementary" 
 		replace NCESSchoolID = "192091002314" if SchName == "Big Creek Elementary" 
@@ -303,7 +264,7 @@ replace SchName = "All Schools" if DataLevel ==1 | DataLevel ==2
 		replace SchLevel = 1 if SchName == " Maple Grove Elementary"
 		replace SchVirtual = 0  if SchName == "Maple Grove Elementary"
 	}
-	
+*/	
 	if  "`year'"=="2019" | "`year'"=="2021" {
 		replace SchType = 1 if SchName == "Odebolt Arthur Battle Creek Ida Grove Elementary School - Ida Grove"
 		replace NCESSchoolID = "192160002247" if SchName == "Odebolt Arthur Battle Creek Ida Grove Elementary School - Ida Grove"
@@ -428,7 +389,7 @@ order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistric
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup	
 
-save "${output}/IA_AssmtData_`year'.dta", replace
+save "${output}/DTA/IA_AssmtData_`year'.dta", replace
 
 export delimited using "${output}/IA_AssmtData_`year'.csv", replace
 

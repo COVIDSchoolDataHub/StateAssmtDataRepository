@@ -45,11 +45,12 @@ foreach a in $years {
 	
 	if `a' == 2022{
 		rename school_type SchType
+		decode district_agency_type, gen(DistType)
+		drop district_agency_type
 	}
 	
 	replace CountyName = strproper(CountyName) if `a' <= 2015
-	
-	if `a' == 2014 | `a' == 2015 | `a' == 2016 | `a' == 2017 | `a' == 2017 | `a' == 2018 | `a' == 2019 | `a' == 2020 | `a' == 2021 {
+
 		split State_leaid, p(" ")
 		drop State_leaid State_leaid2
 		rename State_leaid1 State_leaid
@@ -58,7 +59,7 @@ foreach a in $years {
 		drop seasch seasch2
 		rename seasch1 seasch
 		replace seasch=substr(seasch,-4,.)
-	}
+
 	
 	drop if NCESDistrictID == ""
 	
@@ -66,6 +67,10 @@ foreach a in $years {
 	
 		gsort -school_status
 		duplicates drop State_leaid SchName,force
+	
+	if `a' == 2022{
+		keep State StateAbbrev StateFips NCESDistrictID NCESSchoolID seasch State_leaid DistType DistLocale CountyCode CountyName DistCharter SchType SchLevel SchVirtual SchName DistName
+	}
 	
 	save "${Iowa}/NCES_`a'_School.dta", replace
 	
@@ -97,13 +102,11 @@ foreach a in $years {
 	rename county_name CountyName
 	rename county_code CountyCode
 	rename lea_name DistName
-	
-	if `a' == 2015 | `a' == 2014 |`a' == 2013 |`a' == 2012 |`a' == 2011 |`a' == 2010 |`a' == 2009 |`a' == 2008 |`a' == 2007 |`a' == 2006 |`a' == 2005 |`a' == 2004 |`a' == 2003 |`a' == 2002 |`a' == 2016 | `a' == 2017 | `a' == 2017 | `a' == 2018 | `a' == 2019 | `a' == 2020 | `a' == 2021 {
+
 		split State_leaid, p(" ")
 		drop State_leaid State_leaid2
 		rename State_leaid1 State_leaid
 		replace State_leaid=substr(State_leaid,-4,.)
-	}
 	
 	replace CountyName = strproper(CountyName) if `a' <= 2015
 	
