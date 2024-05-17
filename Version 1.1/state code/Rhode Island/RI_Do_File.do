@@ -716,7 +716,7 @@ foreach y in $ngsayears {
 	replace NCESSchoolID = "440090000157" if SchName == "Times2 Academy"
 	replace NCESSchoolID = "440033000094" if SchName == "James R. D. Oldham School"
 	merge m:1 NCESSchoolID using "${nces_clean}/NCES_`z'_School_RI.dta"
-	drop if _merge == 1
+	drop if _merge == 2
 	rename _merge sci_merge
 	rename NCESSchoolID Sci_NCESSchoolID
 	drop SchVirtual SchType SchLevel
@@ -923,6 +923,6 @@ foreach y in $years {
 
 	** Export Assessment Data
 
-	save "${path}/Output/RI_AssmtData_`y'.dta", replace
+	save "${path}/Output/DTA/RI_AssmtData_`y'.dta", replace
 	export delimited using "${path}/Output/RI_AssmtData_`y'.csv", replace
 }
