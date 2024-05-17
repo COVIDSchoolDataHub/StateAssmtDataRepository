@@ -757,10 +757,6 @@ foreach y in $years {
 	drop if DataLevel == ""
 	
 	** Standardize School and District Names
-	
-	drop SchName DistName
-	rename school_name SchName
-	rename lea_name DistName 
 
 	** Standardize Non-School Level Data and Fix Variable Types
 
@@ -923,6 +919,6 @@ foreach y in $years {
 
 	** Export Assessment Data
 
-	save "${path}/Output/DTA/RI_AssmtData_`y'.dta", replace
+	save "${path}/Output/RI_AssmtData_`y'.dta", replace
 	export delimited using "${path}/Output/RI_AssmtData_`y'.csv", replace
 }
