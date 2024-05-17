@@ -106,6 +106,32 @@ foreach var of varlist Lev* {
 	replace `var' = subinstr(`var', "2-Approaching Expectations: ","",.)
 	replace `var' = subinstr(`var', "4-Exceeds Expectations: ","",.)
 }
+
+replace Lev1_percent = subinstr(Lev1_percent, "1-Not Meeting Expectations: ", "",.)
+replace Lev1_percent = subinstr(Lev1_percent, "1-Beginning to Meet Expectations: ", "",.)
+replace Lev2_percent = subinstr(Lev2_percent, "2-Partially Meeting Expectations: ", "",.)
+replace Lev2_percent = subinstr(Lev2_percent, "2-Approaching Expectations: ", "",.)
+replace Lev3_percent = subinstr(Lev3_percent, "3-Meeting Expectations: ", "",.)
+replace Lev4_percent = subinstr(Lev4_percent, "4-Exceeding Expectations: ", "",.)
+replace Lev4_percent = subinstr(Lev4_percent, "4-Exceeds Expectations: ", "",.)
+
+forvalues i = 1/4 {
+		replace Lev`i'_percent = "*" if Lev`i'_percent == "N/A"
+		replace Lev`i'_percent = subinstr(Lev`i'_percent, "%", "",.)
+		if `i' != 1 {
+			replace Lev`i'_percent = "*" if strpos(Lev`i'_percent, "1-Not Meeting Expectations: ") > 0
+		}
+		if `i' != 2 {
+			replace Lev`i'_percent = "*" if strpos(Lev`i'_percent, "2-Partially Meeting Expectations: ") > 0
+		}
+		if `i' != 3 {
+			replace Lev`i'_percent = "*" if strpos(Lev`i'_percent, "3-Meeting Expectations: ") > 0
+		}
+		if `i' != 4{
+			replace Lev`i'_percent = "*" if strpos(Lev`i'_percent, "4-Exceeding Expectations: ") > 0
+		}
+}
+
 foreach var of varlist Lev* Proficient* {
 	destring `var', gen(n`var') i(*%)
 	replace n`var' = n`var'/100
@@ -132,7 +158,7 @@ replace SchName = "Anthony Carnevale Elementary School" if SchName == "Anthony C
 replace SchName = "Archie R. Cole Middle School" if SchName == "Archie R. Cole MS"
 replace SchName = "Asa Messer Elementary School" if SchName == "Asa Messer El. School"
 replace SchName = "Blackstone Valley Prep Elementary 2 School" if SchName == "Blackstone Valley Prep E. 2"
-	replace SchName = "Blackstone Valley Prep Elementary School" if SchName == "Blackstone Valley Prep Element" | SchName == "Blackstone Valley Prep" & GradeLevel == "03" | SchName == "Blackstone Valley Prep" & GradeLevel == "04"
+replace SchName = "Blackstone Valley Prep Elementary School" if SchName == "Blackstone Valley Prep Element" | SchName == "Blackstone Valley Prep" & GradeLevel == "03" | SchName == "Blackstone Valley Prep" & GradeLevel == "04"
 replace SchName = "Blackstone Valley Prep Junior High School" if SchName == "Blackstone Valley Prep Jr High"
 replace SchName = "Blackstone Valley Prep Upper Elementary School" if SchName == "Blackstone Valley Prep Upper E"
 replace SchName = "Dr. Earl F. Calcutt Middle School" if SchName == "Calcutt Middle School"
@@ -283,6 +309,7 @@ save "`temp2'", replace
 //StateAssignedDistID
 duplicates drop DistName, force
 merge 1:m DistName using "`tempdist'"
+replace SchName = "All Schools"
 save "`tempdist'", replace
 clear
 
@@ -328,6 +355,7 @@ keep if state_location == "RI" | state_fips_id == 44
 gen StateAssignedDistID = subinstr(state_leaid, "RI-","",.)
 duplicates drop StateAssignedDistID, force
 merge 1:m StateAssignedDistID using "`tempdist'"
+drop if _merge == 1
 save "`tempdist'", replace
 clear
 
@@ -345,8 +373,9 @@ decode district_agency_type, gen(DistType)
 drop district_agency_type
 rename DistType district_agency_type
 duplicates drop StateAssignedSchID, force
+keep ncesdistrictid ncesschoolid seasch state_leaid district_agency_type DistLocale county_code county_name DistCharter school_type SchLevel SchVirtual StateAssignedSchID
 merge 1:m StateAssignedSchID using "`tempsch'"
-keep ncesdistrictid ncesschoolid school_name lea_name seasch state_leaid district_agency_type DistLocale county_code county_name DistCharter school_type SchLevel SchVirtual
+drop if _merge == 1
 save "`tempsch'", replace
 clear
 
@@ -398,6 +427,7 @@ drop if StudentSubGroup_TotalTested == "0"
 replace StateAssignedSchID = "" if DataLevel != 3
 replace SchName = "All Schools" if DataLevel !=3
 replace Lev4_percent = "0" if SchName == "West Broadway Middle School" & Subject == "ela" & GradeLevel == "G06" & StudentSubGroup == "Black or African American"
+replace Lev4_count = "0" if SchName == "West Broadway Middle School" & Subject == "ela" & GradeLevel == "G06" & StudentSubGroup == "Black or African American"
 
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
