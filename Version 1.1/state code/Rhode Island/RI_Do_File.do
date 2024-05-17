@@ -923,6 +923,6 @@ foreach y in $years {
 
 	** Export Assessment Data
 
-	save "${path}/Output/DTA/RI_AssmtData_`y'.dta", replace
+	save "${path}/Output/RI_AssmtData_`y'.dta", replace
 	export delimited using "${path}/Output/RI_AssmtData_`y'.csv", replace
 }
