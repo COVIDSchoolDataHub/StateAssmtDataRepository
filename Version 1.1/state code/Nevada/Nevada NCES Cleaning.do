@@ -7,7 +7,7 @@ global NCESSchool "/Users/maggie/Desktop/Nevada/NCES/School"
 global NCESDistrict "/Users/maggie/Desktop/Nevada/NCES/District"
 global NCES "/Users/maggie/Desktop/Nevada/NCES/Cleaned"
 
-global years 2015 2016 2017 2018 2020 2021
+global years 2015 2016 2017 2018 2020 2021 2022
 
 foreach a in $years {
 	
@@ -23,11 +23,14 @@ foreach a in $years {
 	rename county_name CountyName
 	rename county_code CountyCode
 	rename lea_name DistName
-	drop year district_agency_type_num urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte
 	
-	if(`a' != 2021){
-                 drop agency_charter_indicator
-				}
+	if(`a' == 2022){
+		labmask district_agency_type_num, values(DistType)
+		drop DistType
+		rename district_agency_type_num DistType
+	}
+	
+	keep State StateAbbrev StateFips NCESDistrictID State_leaid DistName DistType DistCharter DistLocale CountyCode CountyName
 	
 	save "${NCES}/NCES_`a'_District.dta", replace
 	
@@ -45,13 +48,12 @@ foreach a in $years {
 	rename lea_name DistName	
 	rename ncesschoolid NCESSchoolID
 	rename school_name SchName
-	rename school_type SchType
-	drop year district_agency_type_num school_id school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_lowest_grade_offered dist_highest_grade_offered dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch
-	drop if seasch == ""
 	
-	if(`a' != 2021){
-                 drop dist_agency_charter_indicator
-              }
+	if(`a' == 2022){
+		rename school_type SchType
+	}
+	
+	keep State StateFips NCESDistrictID State_leaid StateAbbrev DistName DistType NCESSchoolID SchName seasch CountyName CountyCode DistCharter SchLevel SchVirtual SchType DistLocale
 	
 	save "${NCES}/NCES_`a'_School.dta", replace
 	
