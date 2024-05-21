@@ -94,7 +94,7 @@ replace StudentSubGroup = "Non-Foster Care" if Group == "Not Foster"
 replace StudentSubGroup = "Military" if Group == "Military Connected"
 replace StudentSubGroup = "Non-Military" if Group == "Not Military Connected"
 replace StudentSubGroup = "LTEL" if Group == "LongTermEL"
-drop if Group == "Unknown LongTermEL"
+drop if Group == "Not LongTermEL"
 
 gen StudentGroup = "All Students"
 replace StudentGroup = "Gender" if inlist(StudentSubGroup, "Female", "Male")
@@ -116,10 +116,38 @@ gen AssmtType = "Regular"
 destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
 replace StudentSubGroup_TotalTested2 = 0 if StudentSubGroup_TotalTested2 == .
 bysort StateAssignedDistID StateAssignedSchID StudentGroup GradeLevel Subject: egen test = min(StudentSubGroup_TotalTested2)
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen max = max(StudentSubGroup_TotalTested2)
 bysort StateAssignedDistID StateAssignedSchID StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested2) if test != 0
+replace StudentGroup_TotalTested = max if !inlist(max, ., 0) & StudentGroup_TotalTested == .
 tostring StudentGroup_TotalTested, replace force
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
 replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "-"
+
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen Econ = sum(StudentSubGroup_TotalTested2) if StudentGroup == "Economic Status"
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen EL = sum(StudentSubGroup_TotalTested2) if StudentGroup == "EL Status"
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen Gender = sum(StudentSubGroup_TotalTested2) if StudentGroup == "Gender"
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen Migrant = sum(StudentSubGroup_TotalTested2) if StudentGroup == "Migrant Status"
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen Homeless = sum(StudentSubGroup_TotalTested2) if StudentGroup == "Homeless Enrolled Status"
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen Military = sum(StudentSubGroup_TotalTested2) if StudentGroup == "Military Connected Status"
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen Foster = sum(StudentSubGroup_TotalTested2) if StudentGroup == "Foster Care Status"
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen Disability = sum(StudentSubGroup_TotalTested2) if StudentGroup == "Disability Status"
+replace StudentSubGroup_TotalTested2 = max - Econ if StudentSubGroup == "Not Economically Disadvantaged" & max != 0 & StudentSubGroup_TotalTested == "*" & Econ != 0
+replace StudentSubGroup_TotalTested2 = max - Econ if StudentSubGroup == "Economically Disadvantaged" & max != 0 & StudentSubGroup_TotalTested == "*" & Econ != 0
+replace StudentSubGroup_TotalTested2 = max - EL if StudentSubGroup == "English Proficient" & max != 0 & StudentSubGroup_TotalTested == "*" & EL != 0
+replace StudentSubGroup_TotalTested2 = max - EL if StudentSubGroup == "English Learner" & max != 0 & StudentSubGroup_TotalTested == "*" & EL != 0
+replace StudentSubGroup_TotalTested2 = max - Gender if StudentSubGroup == "Male" & max != 0 & StudentSubGroup_TotalTested == "*" & Gender != 0
+replace StudentSubGroup_TotalTested2 = max - Gender if StudentSubGroup == "Female" & max != 0 & StudentSubGroup_TotalTested == "*" & Gender != 0
+replace StudentSubGroup_TotalTested2 = max - Migrant if StudentSubGroup == "Non-Migrant" & max != 0 & StudentSubGroup_TotalTested == "*" & Migrant != 0
+replace StudentSubGroup_TotalTested2 = max - Migrant if StudentSubGroup == "Migrant" & max != 0 & StudentSubGroup_TotalTested == "*" & Migrant != 0
+replace StudentSubGroup_TotalTested2 = max - Homeless if StudentSubGroup == "Non-Homeless" & max != 0 & StudentSubGroup_TotalTested == "*" & Homeless != 0
+replace StudentSubGroup_TotalTested2 = max - Homeless if StudentSubGroup == "Homeless" & max != 0 & StudentSubGroup_TotalTested == "*" & Homeless != 0
+replace StudentSubGroup_TotalTested2 = max - Military if StudentSubGroup == "Non-Military" & max != 0 & StudentSubGroup_TotalTested == "*" & Military != 0
+replace StudentSubGroup_TotalTested2 = max - Military if StudentSubGroup == "Military" & max != 0 & StudentSubGroup_TotalTested == "*" & Military != 0
+replace StudentSubGroup_TotalTested2 = max - Foster if StudentSubGroup == "Non-Foster Care" & max != 0 & StudentSubGroup_TotalTested == "*" & Foster != 0
+replace StudentSubGroup_TotalTested2 = max - Foster if StudentSubGroup == "Foster Care" & max != 0 & StudentSubGroup_TotalTested == "*" & Foster != 0
+replace StudentSubGroup_TotalTested2 = max - Disability if StudentSubGroup == "Non-SWD" & max != 0 & StudentSubGroup_TotalTested == "*" & Disability != 0
+replace StudentSubGroup_TotalTested2 = max - Disability if StudentSubGroup == "SWD" & max != 0 & StudentSubGroup_TotalTested == "*" & Disability != 0
+replace StudentSubGroup_TotalTested = string(StudentSubGroup_TotalTested2) if StudentSubGroup_TotalTested2 != 0
 
 local level Lev1 Lev2 Lev3 Lev4 ProficientOrAbove 
 foreach a of local level {
@@ -199,8 +227,6 @@ replace State = "Nevada" if DataLevel == 1
 replace StateFips = 32 if DataLevel == 1
 replace CountyName = proper(CountyName)
 replace DistName = proper(DistName)
-
-duplicates drop NCESDistrictID NCESSchoolID Subject GradeLevel StudentSubGroup, force
 
 ** Generating new variables
 
