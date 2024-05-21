@@ -1,5 +1,5 @@
 
-# Arizona Data Cleaning
+# Nevada Data Cleaning
 
 This is a ReadMe for Nevada's data cleaning process, from 2016 to 2023.
 
