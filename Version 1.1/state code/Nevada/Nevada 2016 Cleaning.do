@@ -147,7 +147,7 @@ foreach a of local level {
 	replace `a'_percent2 = "*" if `a'_percent2 == "."
 	tostring `a'_count, replace force
 	replace `a'_count = "0-" + `a'_count if strpos(`a'_percent, "<") > 0
-	replace `a'_count = `a'_count + "-" + StudentSubGroup_TotalTested if strpos(`a'_percent, ">") > 0 & StudentGroup_TotalTested != "*"
+	replace `a'_count = `a'_count + "-" + StudentSubGroup_TotalTested if strpos(`a'_percent, ">") > 0 & StudentGroup_TotalTested != "*" & `a'_count != StudentSubGroup_TotalTested
 	replace `a'_count = "*" if `a'_count == "."
 	drop `a'_percent
 }
