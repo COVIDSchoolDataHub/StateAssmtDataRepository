@@ -1,6 +1,7 @@
 clear
 set more off
 
+global raw "/Users/maggie/Desktop/Nevada/Original Data Files"
 global output "/Users/maggie/Desktop/Nevada/Output"
 global NCES "/Users/maggie/Desktop/Nevada/NCES/Cleaned"
 
@@ -100,7 +101,7 @@ gen StudentGroup = "All Students"
 replace StudentGroup = "Gender" if inlist(StudentSubGroup, "Female", "Male")
 replace StudentGroup = "RaceEth" if inlist(StudentSubGroup, "American Indian or Alaska Native", "Black or African American", "Hispanic or Latino", "White", "Two or More", "Asian", "Native Hawaiian or Pacific Islander")
 replace StudentGroup = "Disability Status" if inlist(StudentSubGroup, "SWD", "Non-SWD")
-replace StudentGroup = "EL Status" if inlist(StudentSubGroup, "English Learner", "English Proficient", "LTEL")
+replace StudentGroup = "EL Status" if inlist(StudentSubGroup, "English Learner", "English Proficient")
 replace StudentGroup = "Economic Status" if inlist(StudentSubGroup, "Economically Disadvantaged", "Not Economically Disadvantaged")
 replace StudentGroup = "Migrant Status" if inlist(StudentSubGroup, "Migrant", "Non-Migrant")
 replace StudentGroup = "Homeless Enrolled Status" if inlist(StudentSubGroup, "Homeless", "Non-Homeless")
@@ -117,8 +118,7 @@ destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
 replace StudentSubGroup_TotalTested2 = 0 if StudentSubGroup_TotalTested2 == .
 bysort StateAssignedDistID StateAssignedSchID StudentGroup GradeLevel Subject: egen test = min(StudentSubGroup_TotalTested2)
 bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen max = max(StudentSubGroup_TotalTested2)
-bysort StateAssignedDistID StateAssignedSchID StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested2) if test != 0
-replace StudentGroup_TotalTested = max if !inlist(max, ., 0) & StudentGroup_TotalTested == .
+gen StudentGroup_TotalTested = max if !inlist(max, ., 0)
 tostring StudentGroup_TotalTested, replace force
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
 replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "-"
@@ -148,6 +148,8 @@ replace StudentSubGroup_TotalTested2 = max - Foster if StudentSubGroup == "Foste
 replace StudentSubGroup_TotalTested2 = max - Disability if StudentSubGroup == "Non-SWD" & max != 0 & StudentSubGroup_TotalTested == "*" & Disability != 0
 replace StudentSubGroup_TotalTested2 = max - Disability if StudentSubGroup == "SWD" & max != 0 & StudentSubGroup_TotalTested == "*" & Disability != 0
 replace StudentSubGroup_TotalTested = string(StudentSubGroup_TotalTested2) if StudentSubGroup_TotalTested2 != 0
+
+replace StudentGroup = "EL Status" if StudentSubGroup == "LTEL"
 
 local level Lev1 Lev2 Lev3 Lev4 ProficientOrAbove 
 foreach a of local level {
@@ -230,8 +232,8 @@ replace State = "Nevada" if DataLevel == 1
 replace StateFips = 32 if DataLevel == 1
 replace CountyName = proper(CountyName)
 replace DistName = proper(DistName)
-
-duplicates drop NCESDistrictID NCESSchoolID Subject GradeLevel StudentSubGroup, force
+replace DistName = "All Districts" if DataLevel == 1
+replace SchName = "All Schools" if DataLevel != 3
 
 ** Generating new variables
 

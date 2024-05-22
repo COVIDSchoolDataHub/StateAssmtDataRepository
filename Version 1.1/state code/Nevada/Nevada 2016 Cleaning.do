@@ -1,6 +1,7 @@
 clear
 set more off
 
+global raw "/Users/maggie/Desktop/Nevada/Original Data Files"
 global output "/Users/maggie/Desktop/Nevada/Output"
 global NCES "/Users/maggie/Desktop/Nevada/NCES/Cleaned"
 
@@ -198,6 +199,8 @@ replace State = "Nevada" if DataLevel == 1
 replace StateFips = 32 if DataLevel == 1
 replace CountyName = proper(CountyName)
 replace DistName = proper(DistName)
+replace DistName = "All Districts" if DataLevel == 1
+replace SchName = "All Schools" if DataLevel != 3
 
 ** Generating new variables
 
