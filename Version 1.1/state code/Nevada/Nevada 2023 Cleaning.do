@@ -177,11 +177,17 @@ replace Lev3_percent3 = ProficientOrAbove_percent3 - Lev4_percent3 if Proficient
 replace Lev3_count = string(round(StudentSubGroup_TotalTested2 * Lev3_percent3)) if ProficientOrAbove_percent3 != . & Lev4_percent3 != .
 replace Lev4_percent3 = ProficientOrAbove_percent3 - Lev3_percent3 if ProficientOrAbove_percent3 != . & Lev3_percent3 != . & Lev4_percent3 == .
 replace Lev4_count = string(round(StudentSubGroup_TotalTested2 * Lev4_percent3)) if ProficientOrAbove_percent3 != . & Lev3_percent3 != .
+replace Lev1_percent3 = round(1 - Lev2_percent3 - ProficientOrAbove_percent3, 0.01) if Lev2_percent3 != . & ProficientOrAbove_percent3 != . & Lev1_percent3 == .
+replace Lev1_count = string(round(StudentSubGroup_TotalTested2 * Lev1_percent3)) if Lev2_percent3 != . & ProficientOrAbove_percent3 != .
+replace Lev2_percent3 = round(1 - Lev1_percent3 - ProficientOrAbove_percent3, 0.01) if Lev1_percent3 != . & ProficientOrAbove_percent3 != . & Lev2_percent3 == .
+replace Lev2_count = string(round(StudentSubGroup_TotalTested2 * Lev2_percent3)) if Lev1_percent3 != . & ProficientOrAbove_percent3 != .
 replace ProficientOrAbove_percent3 = round(1 - Lev1_percent3 - Lev2_percent3, 0.01) if Lev1_percent3 != . & Lev2_percent3 != . & ProficientOrAbove_percent3 == .
 replace ProficientOrAbove_count = string(round(StudentSubGroup_TotalTested2 * ProficientOrAbove_percent3)) if Lev1_percent3 != . & Lev2_percent3 != .
-replace Lev3_percent2 = string(Lev3_percent3) if Lev3_percent3 != .
-replace Lev4_percent2 = string(Lev4_percent3) if Lev4_percent3 != .
-replace ProficientOrAbove_percent2 = string(ProficientOrAbove_percent3) if ProficientOrAbove_percent3 != .
+
+foreach a of local level {
+	replace `a'_percent2 = string(`a'_percent3) if `a'_percent3 != .
+	drop `a'_percent3
+}
 
 gen Lev5_count = ""
 gen Lev5_percent = ""
