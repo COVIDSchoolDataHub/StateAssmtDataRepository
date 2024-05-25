@@ -193,10 +193,10 @@ forvalues year = 2017/2023 {
 	replace DistName = "All Districts" if DataLevel == 1
 	replace SchName = "All Schools" if DataLevel != 3
 	
-	gen Flag_AssmtNameChange = "Y"
-	gen Flag_CutScoreChange_ELA = "Y"
-	gen Flag_CutScoreChange_math = "Y"
-	gen Flag_CutScoreChange_sci = "Y"
+	gen Flag_AssmtNameChange = "N"
+	gen Flag_CutScoreChange_ELA = "N"
+	gen Flag_CutScoreChange_math = "N"
+	gen Flag_CutScoreChange_sci = "N"
 	gen Flag_CutScoreChange_soc = "Not applicable"
 	
 	if `year' == 2017 {
