@@ -44,5 +44,5 @@ global output "/Users/maggie/Desktop/Oklahoma/Output"
 
 ## Updates
 
-04/11/2024: Updated output files to incorporate new NCES variables.
-05/25/2024: Updated output files to use new data request files in place of old original data files.
+- 04/11/2024: Updated output files to incorporate new NCES variables.
+- 05/25/2024: Updated output files to use new data request files in place of old original data files.
