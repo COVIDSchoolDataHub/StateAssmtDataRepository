@@ -150,6 +150,12 @@ replace State_leaid = "" if DataLevel == 1
 gen seasch = countycode + "-" + StateAssignedDistID + "-" + StateAssignedSchID
 replace seasch = "" if DataLevel != 3
 
+replace StateAssignedDistID = countycode + "-" + StateAssignedDistID
+replace StateAssignedDistID = "" if DataLevel == 1
+
+replace StateAssignedSchID = seasch
+replace StateAssignedSchID = "" if DataLevel != 3
+
 forvalues year = 2017/2023 {
 	
 	if `year' == 2020 {
