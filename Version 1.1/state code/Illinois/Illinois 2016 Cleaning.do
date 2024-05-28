@@ -3,6 +3,7 @@ set more off
 
 global output "/Volumes/T7/State Test Project/Illinois/Original Data Files"
 global NCES "/Volumes/T7/State Test Project/Illinois/NCES"
+global EDFacts "/Volumes/T7/State Test Project/EDFACTS"
 
 cd "/Volumes/T7/State Test Project/Illinois"
 
