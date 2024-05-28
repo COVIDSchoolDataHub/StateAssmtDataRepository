@@ -89,12 +89,6 @@ replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeles
 replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Foster Care"
 replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Military"
 
-
-foreach a of varlist Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count StudentSubGroup_TotalTested {
-	replace `a' = "*" if `a' == "***"
-	replace `a' = "0-" + subinstr(`a', "< ", "", .) if strpos(`a', "<") > 0
-}
-
 gen AssmtName = "OSTP"
 gen AssmtType = "Regular"
 
@@ -103,32 +97,44 @@ gen Lev5_percent = ""
 
 gen ProficiencyCriteria = "Levels 3-4"
 
-foreach a of varlist Lev1_count Lev2_count Lev3_count Lev4_count StudentSubGroup_TotalTested {
+foreach a of varlist Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count StudentSubGroup_TotalTested {
+	replace `a' = "*" if `a' == "***"
+	replace `a' = "0-" + subinstr(`a', "< ", "", .) if strpos(`a', "<") > 0
 	destring `a', gen(`a'2) force
-}
-
-foreach a of numlist 1/4 {
-	replace Lev`a'_count2 = 3 if Lev`a'_count == "0-3"
-	gen Lev`a'_percent = round(Lev`a'_count2 / StudentSubGroup_TotalTested2, 0.01)
-	tostring Lev`a'_percent, replace format("%9.2g") force
-	replace Lev`a'_percent = "*" if Lev`a'_percent == "."
-	replace Lev`a'_percent = "0-" + Lev`a'_percent if Lev`a'_percent != "*" & Lev`a'_count == "0-3"
 }
 
 foreach a of varlist ProficientOrAbove_percent ParticipationRate {
 	destring `a', gen(`a'2) force
 	replace `a'2 = `a'2/100
-	tostring `a'2, replace format("%9.2g") force
-	replace `a'2 = "0-.05" if `a' == "< 5"
-	replace `a'2 = ".95-1" if `a' == "> 95"
+}
+
+replace ProficientOrAbove_percent2 = round(ProficientOrAbove_count2/StudentSubGroup_TotalTested2, 0.0001) if ProficientOrAbove_count2 != . & StudentSubGroup_TotalTested2 != .
+replace ProficientOrAbove_count2 = round(ProficientOrAbove_percent2 * StudentSubGroup_TotalTested2) if ProficientOrAbove_percent2 != . & StudentSubGroup_TotalTested2 != .
+tostring ProficientOrAbove_count2, replace force
+replace ProficientOrAbove_count2 = ProficientOrAbove_count if ProficientOrAbove_count2 == "."
+drop ProficientOrAbove_count
+rename ProficientOrAbove_count2 ProficientOrAbove_count
+
+foreach a of numlist 1/4 {
+	replace Lev`a'_count2 = 3 if Lev`a'_count == "0-3"
+	gen Lev`a'_percent = round(Lev`a'_count2 / StudentSubGroup_TotalTested2, 0.0001)
+	tostring Lev`a'_percent, replace format("%9.4g") force
+	replace Lev`a'_percent = "*" if Lev`a'_percent == "."
+	replace Lev`a'_percent = "0-" + Lev`a'_percent if Lev`a'_percent != "*" & Lev`a'_count == "0-3"
+}
+	
+foreach a of varlist ProficientOrAbove_percent ParticipationRate {
+	tostring `a'2, replace format("%9.4g") force
+	replace `a'2 = "0-.05" if `a' == "< 5" & `a'2 == "."
+	replace `a'2 = ".95-1" if `a' == "> 95" & `a'2 == "."
 	replace `a'2 = "--" if `a' == ""
 	drop `a'
 	rename `a'2 `a'
 }
 
-replace StudentSubGroup_TotalTested2 = 0 if StudentSubGroup_TotalTested2 == .
-bysort countycode StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen test = max(StudentSubGroup_TotalTested2)
-bysort countycode StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen StudentGroup_TotalTested = max(StudentSubGroup_TotalTested2) if test != 0
+replace StudentSubGroup_TotalTested2 = 0 if StudentSubGroup_TotalTested2 == . | StudentGroup != "All Students"
+bysort SchYear countycode StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen test = max(StudentSubGroup_TotalTested2)
+bysort SchYear countycode StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen StudentGroup_TotalTested = max(StudentSubGroup_TotalTested2) if test != 0
 tostring StudentGroup_TotalTested, replace force
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
 
@@ -195,6 +201,9 @@ forvalues year = 2017/2023 {
 	replace State = "Oklahoma" if DataLevel == 1
 	replace StateFips = 40 if DataLevel == 1
 	replace CountyName = proper(CountyName)
+	replace CountyName = "McClain County" if CountyName == "Mcclain County"
+	replace CountyName = "McCurtain County" if CountyName == "Mccurtain County"
+	replace CountyName = "McIntosh County" if CountyName == "Mcintosh County"
 	replace DistName = proper(DistName)
 	replace DistName = "All Districts" if DataLevel == 1
 	replace SchName = "All Schools" if DataLevel != 3
