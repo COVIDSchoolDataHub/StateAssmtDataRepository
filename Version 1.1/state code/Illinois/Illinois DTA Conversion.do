@@ -1,11 +1,11 @@
 clear
 set more off
 
-cd "/Users/benjaminm/Documents/State_Repository_Research/Illinois"
+cd "/Volumes/T7/State Test Project/Illinois"
 
-global raw "/Users/benjaminm/Documents/State_Repository_Research/Illinois/Original Data Files"
-global output "/Users/benjaminm/Documents/State_Repository_Research/Illinois/Output"
-global NCES "/Users/benjaminm/Documents/State_Repository_Research/Illinois/Cleaned"
+global raw "/Volumes/T7/State Test Project/Illinois/Original Data Files"
+global output "/Volumes/T7/State Test Project/Illinois/Original Data Files"
+global NCES "/Volumes/T7/State Test Project/Illinois/NCES"
 
 ** Converting to dta **
 
@@ -122,10 +122,10 @@ save "${output}/IL_AssmtData_2021_sci_5.dta", replace
 import excel "${raw}/IL_OriginalData_2021_sci.xlsx", sheet("Grade 8") firstrow clear
 save "${output}/IL_AssmtData_2021_sci_8.dta", replace
 
-import excel "${raw}/IL_OriginalData_2021_sci_Participation.xlsx", sheet("ISA_Grade 5") firstrow clear
+import excel "${raw}/IL_OriginalData_2021_sci_Participation.xlsx", sheet("Grade 5") firstrow clear
 save "${output}/IL_AssmtData_2021_sci_Participation_5.dta", replace
 
-import excel "${raw}/IL_OriginalData_2021_sci_Participation.xlsx", sheet("ISA_Grade 8") firstrow clear
+import excel "${raw}/IL_OriginalData_2021_sci_Participation.xlsx", sheet("Grade 8") firstrow clear
 save "${output}/IL_AssmtData_2021_sci_Participation_8.dta", replace
 
 import excel "${raw}/IL_OriginalData_2021_sci_AvgScaleScore.xlsx", sheet("Grade 5") firstrow clear
