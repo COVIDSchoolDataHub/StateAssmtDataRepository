@@ -4,7 +4,7 @@ This is a ReadMe for Texas's data cleaning process, from 2012 to 2023.
 
 ## Setup
 
-Create a folder for Nebraska. Inside that folder, create four more folders: "original_files", "NCES_files", "output_files", and "temp_files"
+Create a folder for TX. Inside that folder, create four more folders: "original_files", "NCES_files", "output_files", and "temp_files"
 
 1.  Download do-files and place them in the folder.
 2.  Set file directories at the top of each do file:
