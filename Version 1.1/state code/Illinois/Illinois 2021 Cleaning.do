@@ -565,6 +565,7 @@ replace DistName = "All Districts" if DataLevel == 1
 ** Generating new variables
 
 gen Flag_AssmtNameChange = "Y"
+replace Flag_AssmtNameChange = "N" if Subject != "sci"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_sci = "Y"
@@ -675,7 +676,13 @@ foreach percent of varlist Lev*_percent ProficientOrAbove_percent {
 }
 
 
+//Post Launch Review Response
+replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
 
+//ParticipationRate Review Response
+gen LE = "0-" if strpos(ParticipationRate, "LE") !=0
+replace ParticipationRate = subinstr(ParticipationRate, "LE","",.)
+replace ParticipationRate = LE + string(real(ParticipationRate)/100,"%9.3g") if !missing(LE)
 
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
  

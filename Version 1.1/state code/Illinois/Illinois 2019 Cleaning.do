@@ -504,7 +504,7 @@ replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup ==
 replace StudentSubGroup = "SWD" if StudentSubGroup == "IEP"
 replace StudentSubGroup = "Non-SWD" if StudentSubGroup == "NonIEP"
 replace StudentSubGroup = "Migrant" if StudentSubGroup == "mig"
-replace StudentSubGroup = "Homeless" if StudentSubGroup == "home"
+replace StudentSubGroup = "Homeless" if StudentSubGroup == "hom"
 replace StudentSubGroup = "Military" if StudentSubGroup == "mil"
 
 gen StudentGroup = "RaceEth"
@@ -594,10 +594,11 @@ replace DistName = "All Districts" if DataLevel == 1
 
 
 gen Flag_AssmtNameChange = "Y"
+replace Flag_AssmtNameChange = "N" if Subject == "sci"
 gen Flag_CutScoreChange_ELA = "Y"
 gen Flag_CutScoreChange_math = "Y"
 gen Flag_CutScoreChange_sci = "N"
-gen Flag_CutScoreChange_soc = ""
+gen Flag_CutScoreChange_soc = "Not applicable"
 
 drop State_leaid seasch
 
@@ -614,6 +615,7 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 // order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
 
 save "${output}/IL_AssmtData_2019_1.dta", replace
 
@@ -697,6 +699,11 @@ foreach percent of varlist Lev*_percent ProficientOrAbove_percent {
 	local count = subinstr("`percent'","percent","count",.)
 	replace `count' = string(round(real(`percent')*real(StudentSubGroup_TotalTested))) if regexm(StudentSubGroup_TotalTested, "[0-9]") !=0 & regexm(`percent', "[0-9]") !=0 & regexm(`count', "[0-9]") == 0 
 }
+
+//ParticipationRate Review Response
+gen LE = "0-" if strpos(ParticipationRate, "LE") !=0
+replace ParticipationRate = subinstr(ParticipationRate, "LE","",.)
+replace ParticipationRate = LE + string(real(ParticipationRate)/100,"%9.3g") if !missing(LE)
 
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
  

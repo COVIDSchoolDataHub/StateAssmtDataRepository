@@ -559,7 +559,7 @@ replace DistName = "All Districts" if DataLevel == 1
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_sci = "Y"
+gen Flag_CutScoreChange_sci = "N"
 gen Flag_CutScoreChange_soc = "Not applicable"
 
 drop State_leaid seasch
