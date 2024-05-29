@@ -1,14 +1,23 @@
 clear
 set more off
 
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics"
-global Iowa "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
-global iowa "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
-global raw "/Users/miramehta/Documents/Iowa/Original Data Files"
-global dr "/Users/miramehta/Documents/Iowa/Original Data Files/Iowa data received via data request 12-1-23"
-global int "/Users/miramehta/Documents/Iowa/Intermediate"
-global output "/Users/miramehta/Documents/Iowa/Output - Version 1.1"
-global output2 "/Users/miramehta/Documents/Iowa/Output - Version 1.0"
+
+global iowa "/Users/benjaminm/Documents/State_Repository_Research/Iowa/NCES"
+global nces "/Users/benjaminm/Documents/State_Repository_Research/NCES"
+global raw "/Users/benjaminm/Documents/State_Repository_Research/Iowa/Input"
+global dr "/Users/benjaminm/Documents/State_Repository_Research/Iowa/Input/Data Request"
+global int "/Users/benjaminm/Documents/State_Repository_Research/Iowa/Intermediate"
+global output "/Users/benjaminm/Documents/State_Repository_Research/Iowa/Output"
+global output2 "/Users/benjaminm/Documents/State_Repository_Research/Iowa/Output - Version 1.0"
+
+// global NCES "/Users/miramehta/Documents/NCES District and School Demographics"
+// global Iowa "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+// global iowa "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+// global raw "/Users/miramehta/Documents/Iowa/Original Data Files"
+// global dr "/Users/miramehta/Documents/Iowa/Original Data Files/Iowa data received via data request 12-1-23"
+// global int "/Users/miramehta/Documents/Iowa/Intermediate"
+// global output "/Users/miramehta/Documents/Iowa/Output - Version 1.1"
+// global output2 "/Users/miramehta/Documents/Iowa/Output - Version 1.0"
 
 import delimited "${output2}/IA_AssmtData_2011", clear
 
@@ -21,6 +30,7 @@ import delimited "${output2}/IA_AssmtData_2011", clear
 *** Iowa District Saving 2014-2017***
 /////////////////////////////////////////
 
+**# Bookmark #1
 program filesave11
 
 	* ELA
@@ -843,6 +853,8 @@ rename PercentageProficient ProficientOrAbove_percent
 save "${int}/IA_AssmtData_2004.dta", replace
 
 
+
+/*
 * 2003
 import excel "${raw}/District/IA_OriginalData_2003_district_ela,math.xlsx", sheet("ayp_byDist_2003") cellrange(A6:AQ373) firstrow clear
 
@@ -921,7 +933,7 @@ rename PercentageProficient ProficientOrAbove_percent
 
 save "${int}/IA_AssmtData_2003.dta", replace
 
-
+*/
 
 
 /////////////////////////////////////////
@@ -929,7 +941,7 @@ save "${int}/IA_AssmtData_2003.dta", replace
 /////////////////////////////////////////
 
 **# Bookmark #3
-program cleaner139
+program cleaner141
 use "${int}/IA_AssmtData_`1'.dta", clear
 
 gen State_leaid=StateAssignedDistID
@@ -1061,18 +1073,18 @@ export delimited using "${output}/IA_AssmtData_`1'.csv", replace
 end
 
 
-cleaner139 "2004" "2003" "2003-04" "Small Cell Size"
-cleaner139 "2003" "2002" "2002-03" "Small Cell Size"
-cleaner139 "2013" "2012" "2012-13" "small N"
-cleaner139 "2012" "2011" "2011-12" "small N"
-cleaner139 "2011" "2010" "2010-11" "SCS"
-cleaner139 "2010" "2009" "2009-10" "SCS"
+cleaner141 "2004" "2003" "2003-04" "Small Cell Size"
+//cleaner139 "2003" "2002" "2002-03" "Small Cell Size"
+cleaner141 "2013" "2012" "2012-13" "small N"
+cleaner141 "2012" "2011" "2011-12" "small N"
+cleaner141 "2011" "2010" "2010-11" "SCS"
+cleaner141 "2010" "2009" "2009-10" "SCS"
 
-cleaner139 "2009" "2008" "2008-09" "SCS"
-cleaner139 "2008" "2007" "2007-08" "SCS"
-cleaner139 "2007" "2006" "2006-07" "Small cell size"
-cleaner139 "2006" "2005" "2005-06" "Small cell size"
-cleaner139 "2005" "2004" "2004-05" "Small Cell Size"
+cleaner141 "2009" "2008" "2008-09" "SCS"
+cleaner141 "2008" "2007" "2007-08" "SCS"
+cleaner141 "2007" "2006" "2006-07" "Small cell size"
+cleaner141 "2006" "2005" "2005-06" "Small cell size"
+cleaner141 "2005" "2004" "2004-05" "Small Cell Size"
 
 
 /////////////////////////////////////////
@@ -1113,7 +1125,7 @@ foreach a in $years {
 * ParticipationRate issues
 
 
-global yearspar1 2003 2004 2006 2007 2008 2009 2010 2011 2012 //2005
+global yearspar1  2004 2006 2007 2008 2009 2010 2011 2012 //2005 2003
 
 foreach a in $yearspar1 {
 	
@@ -1139,7 +1151,7 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 	 
 
-global yearspar 2003 2004 2005 2006 2007 2008 2009 2010 2011 2012
+global yearspar  2004 2005 2006 2007 2008 2009 2010 2011 2012 // 2003
 
 foreach a in $yearspar {
 	
@@ -1176,7 +1188,7 @@ drop oldcountyname
 
 save "IA_StableCounty", replace
 
-forvalues year = 2003/2014 {  
+forvalues year = 2004/2014 {  // 2003
 	if `year' == 2020 continue
 use "IA_StableCounty", clear
 local prevyear = `=`year'-1'
@@ -1187,6 +1199,8 @@ merge 1:m CountyCode using "${output}/IA_AssmtData_`year'"
 replace CountyName = newcountyname if newcountyname != ""
 drop newcountyname
 
+//NEW 5/28/24
+replace DistName =strtrim(DistName)
 
 //Final Cleaning and Saving
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
@@ -1200,3 +1214,4 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 	export delimited using "${output}/IA_AssmtData_`year'.csv", replace
 
 }
+
