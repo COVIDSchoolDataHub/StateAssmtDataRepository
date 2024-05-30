@@ -1,31 +1,19 @@
 clear
 set more off
-set trace off
-cd "/Volumes/T7/State Test Project/Maine"
+
 global Original "/Volumes/T7/State Test Project/Maine/Original Data Files"
 global Output "/Volumes/T7/State Test Project/Maine/Output"
 global NCES_School "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
 global NCES_District "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
-global Unmerged "/Volumes/T7/State Test Project/Maine/Unmerged"
 
-forvalues year = 2016/2019 {
-	
-	
-local prevyear =`=`year'-1'
-	
-//Run code below to convert to dta format first
+//Unhide below code on first run
 
 /*
-
-import delimited "${Original}/Maine_OriginalData_`year'.csv", case(preserve)
-save "${Original}/Maine_OriginalData_`year'.dta", replace
-clear
-
+import delimited "${Original}/Maine_OriginalData_2023", case(preserve) clear
+save "${Original}/Maine_OriginalData_2023", replace
 */
 
-use "${Original}/Maine_OriginalData_`year'.dta"
-
-
+use "${Original}/Maine_OriginalData_2023", clear
 
 //Reshaping from long to wide
 replace AchievementLevel = subinstr(AchievementLevel," ","",.)
@@ -36,11 +24,24 @@ rename PercentageofStudentsTested Part_
 rename NumberofStudentsatAchievemen Count_
 rename PercentageofStudentsatAchiev Perc_
 rename StatewidePercentageofStuden State_
-label def AchievementLevel 4 "AboveStateExpectations" 3 "AtStateExpectations" 34 "AtOrAboveStateExpectations" 2 "BelowStateExpectations" 12 "BeloworWellBelowStateExpectations" 1 "WellBelowStateExpectations"
+label def AchievementLevel 4 "AboveStateExpectations" 3 "AtStateExpectations" 34 "AtOrAboveStateExpectations" 2 "BelowStateExpectations" 1 "WellBelowStateExpectations"
 encode AchievementLevel, gen(AchievementLevel_n) label(AchievementLevel)
 drop AchievementLevel State_
 rename AchievementLevel_n AchievementLevel
-reshape wide Count_ Perc_, i(SchoolName DistrictName SchoolID Assessment Population) j(AchievementLevel)
+drop Students PercentProficient NumberofStudentsRequiredtoT
+reshape wide Count_ Perc_ Tested_ Part_, i(SchoolName DistrictName SchoolID Assessment Population) j(AchievementLevel)
+
+//Cleaning up Tested_ and Part_
+gen ParticipationRate = ""
+gen StudentSubGroup_TotalTested = ""
+foreach n in 1 2 3 4 35 {
+	replace ParticipationRate = Part_`n' if regexm(Part_`n', "[0-9]") !=0
+	drop Part_`n'
+	replace StudentSubGroup_TotalTested = Tested_`n' if regexm(Tested_`n', "[0-9]") !=0
+	drop Tested_`n'
+}
+replace ParticipationRate = "*" if missing(ParticipationRate)
+replace StudentSubGroup_TotalTested = "*" if missing(StudentSubGroup_TotalTested)
 
 //Variable Names
 rename DistrictName DistName
@@ -52,14 +53,10 @@ foreach n in 1 2 3 4 {
 	rename Count_`n' Lev`n'_count
 	rename Perc_`n' Lev`n'_percent
 }
-drop Count_12 Perc_12
 rename Perc_35 ProficientOrAbove_percent
 rename Count_35 ProficientOrAbove_count
 drop LegacyData
 rename DistrictID StateAssignedDistID
-drop NumberofStudentsRequiredtoT
-rename Tested_ StudentSubGroup_TotalTested
-rename Part_ ParticipationRate
 
 //DataLevel
 gen DataLevel = ""
@@ -80,13 +77,21 @@ replace SchName = "All Schools" if DataLevel !=3
 
 //StudentSubGroup
 replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if strpos(StudentSubGroup, "Hawaiian") !=0
+replace StudentSubGroup = "English Learner" if StudentSubGroup == "Multilingual Learners"
 replace StudentSubGroup = "Two or More" if strpos(StudentSubGroup, "Two") !=0
-replace StudentSubGroup = "English Learner" if StudentSubGroup == "English Learners"
+replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic/Latino"
 replace StudentSubGroup = "SWD" if StudentSubGroup == "Students with Disabilities"
-replace StudentSubGroup = "EL Monit or Recently Ex" if StudentSubGroup == "English Learners (Monitoring)"
+replace StudentSubGroup = "Non-SWD" if StudentSubGroup == "Non Students with Disabilities"
+replace StudentSubGroup = "EL Monit or Recently Ex" if StudentSubGroup == "Multilingual Learners (Monitoring)"
 replace StudentSubGroup = "Foster Care" if StudentSubGroup == "Students in Foster Care"
+replace StudentSubGroup = "Non-Foster Care" if StudentSubGroup == "Non Students in Foster Care"
 replace StudentSubGroup = "Military" if StudentSubGroup == "Parent in Military on Active Duty"
+replace StudentSubGroup = "Non-Military" if StudentSubGroup == "Non Parent in Military on Active Duty"
+replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "Non Economically Disadvantaged"
+replace StudentSubGroup = "English Proficient" if StudentSubGroup == "Non Multilingual Learners"
+replace StudentSubGroup = subinstr(StudentSubGroup, "Non ", "Non-",.)
 
+drop if StudentSubGroup == "Not Selected"
 
 //StudentGroup
 gen StudentGroup = ""
@@ -101,15 +106,10 @@ replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeles
 replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Foster Care" | StudentSubGroup == "Non-Foster Care"
 replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Military" | StudentSubGroup == "Non-Military"
 
-
-//Year
-gen SchYear = "`prevyear'" + "-" + substr("`year'",-2,2)
-
 //Subject
-replace Subject = "ela" if strpos(Subject, "English") !=0
-replace Subject = "math" if strpos(Subject,"Math") !=0
+replace Subject = "ela" if Subject == "English Language Arts"
+replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "sci" if Subject == "Science"
-
 
 //Merging NCES Data
 tostring StateAssignedDistID, replace
@@ -118,23 +118,16 @@ gen StateAssignedSchID1 = StateAssignedDistID + "-" + StateAssignedSchID
 tempfile temp1
 save "`temp1'", replace
 
-//2015 NCES has totally wrong seasch for some reason. Using 2016 NCES for 2015-16 SchYear
-
 //District
-keep if DataLevel ==2
+keep if DataLevel == 2
 tempfile tempdist
 save "`tempdist'"
 clear
-if `year' != 2016 {
-use "${NCES_District}/NCES_`prevyear'_District"
-}
-if `year' == 2016 {
-use  "${NCES_District}/NCES_`year'_District"
-}
+use "${NCES_District}/NCES_2022_District"
+keep state_name state_fips_id ncesdistrictid state_leaid district_agency_type DistCharter DistLocale county_code county_name lowest_grade_offered state_location
 keep if state_name == "Maine" | state_location == "ME"
 gen StateAssignedDistID = subinstr(state_leaid,"ME-","",.)
-merge 1:m StateAssignedDistID using "`tempdist'"
-drop if _merge ==1
+merge 1:m StateAssignedDistID using "`tempdist'", keep(match using)
 save "`tempdist'", replace
 clear
 
@@ -144,16 +137,38 @@ keep if DataLevel==3
 tempfile tempschool
 save "`tempschool'", replace
 clear
-if `year' != 2016 {
-use "${NCES_School}/NCES_`prevyear'_School"
-}
-if `year' == 2016 {
-use "${NCES_School}/NCES_`year'_School"
+use "${NCES_School}/NCES_2022_School"
+keep state_name state_fips_id ncesdistrictid district_agency_type DistCharter DistLocale county_code county_name ncesschoolid SchVirtual SchLevel school_name school_type sch_lowest_grade_offered state_leaid seasch state_location
+foreach var of varlist district_agency_type SchVirtual SchLevel school_type sch_lowest_grade_offered {
+	decode `var', gen(n`var')
+	drop `var'
+	rename n`var' `var'
 }
 keep if state_name == "Maine" | state_location == "ME"
 gen StateAssignedSchID1 = seasch
-merge 1:m StateAssignedSchID1 using "`tempschool'"
-drop if _merge ==1
+replace StateAssignedSchID1 = "1013-1014" if school_name == "Beatrice Rafferty School"
+replace StateAssignedSchID1 = "1009-1010" if school_name == "Indian Island School"
+replace StateAssignedSchID1 = "1011-1012" if school_name == "Indian Township School"
+merge 1:m StateAssignedSchID1 using "`tempschool'", keep(match)
+//Unmerged Schools are Private, List:
+
+/*
+529. |       Sipayik Elementary School |
+530. | John Bapst Memorial High School |
+531. |          George Stevens Academy |
+532. |                 Erskine Academy |
+533. |                Foxcroft Academy |
+     |---------------------------------|
+534. |              Washington Academy |
+535. |                Fryeburg Academy |
+536. |                     Lee Academy |
+537. |                 Lincoln Academy |
+538. |         Maine Central Institute |
+     |---------------------------------|
+539. |                Thornton Academy |
+540. |         Blue Hill Harbor School |
+541. |          The Eddy Middle School |
+*/
 save "`tempschool'", replace
 clear
 
@@ -169,27 +184,17 @@ rename district_agency_type DistType
 rename ncesdistrictid NCESDistrictID
 rename state_leaid State_leaid
 rename ncesschoolid NCESSchoolID
+rename school_type SchType
 rename county_name CountyName
 rename county_code CountyCode
 replace StateFips = 23
 replace StateAbbrev = "ME"
 
-
-
 //GradeLevel
-drop if sch_lowest_grade_offered > 8 & !missing(sch_lowest_grade_offered)
-gen GradeLevel = "G38"
-
-
-//Proficiency Criteria
-gen ProficiencyCriteria = "Levels 3-4"
-
-//AssmtName
-gen AssmtName = "eMPowerME"
-replace AssmtName = "Maine Educational Assessment" if Subject == "sci"
-
-//State 
-gen State = "Maine"
+drop if real(lowest_grade_offered) > 8  & !missing(lowest_grade_offered)
+drop if real(sch_lowest_grade_offered) > 8 & !missing(sch_lowest_grade_offered)
+drop lowest_grade_offered sch_lowest_grade_offered
+gen GradeLevel = "GZ"
 
 //StudentGroup_TotalTested
 destring StudentSubGroup_TotalTested, gen(nStudentSubGroup_TotalTested) i(*)
@@ -198,50 +203,51 @@ egen StudentGroup_TotalTested = total(nStudentSubGroup_TotalTested), by(StudentG
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "0" | StudentGroup_TotalTested == "."
 
-
-//AssmtType
-gen AssmtType = "Regular"
-
-//Flags
-gen Flag_AssmtNameChange = "Y" if Subject != "sci" 
-replace Flag_AssmtNameChange = "N" if Subject == "sci"
-gen Flag_CutScoreChange_ELA = "Y"
-gen Flag_CutScoreChange_math = "Y"
-gen Flag_CutScoreChange_soc = "Not applicable"
-gen Flag_CutScoreChange_sci = "N"
-
-foreach var of varlist Flag* {
-	cap replace `var' = "N" if `year' !=2016
-}
-
 //Fixing StateAssignedDistID and StateAssignedSchID
 replace StateAssignedDistID = "" if DataLevel ==1
 replace StateAssignedSchID = "" if DataLevel !=3
 
-//Missing/empty Variables
-gen AvgScaleScore = "--"
+//Indicator Vars
+gen SchYear = "2022-23"
+gen State = "Maine"
+gen AssmtName = "Maine Through Year Assessment" if Subject != "sci"
+replace AssmtName = "Maine Science Assessment" if Subject == "sci"
+gen ProficiencyCriteria = "Levels 3-4"
+gen AssmtType = "Regular"
+gen Flag_AssmtNameChange = "Y"
+replace Flag_AssmtNameChange = "N" if Subject == "sci"
+gen Flag_CutScoreChange_ELA = "Y"
+gen Flag_CutScoreChange_math = "Y"
+gen Flag_CutScoreChange_sci = "N"
+gen Flag_CutScoreChange_soc = "Not applicable"
 gen Lev5_count = ""
-gen Lev5_percent= ""
+gen Lev5_percent = ""
+gen AvgScaleScore = "--"
 
-//Cleaning Percents
+//Cleaning up counts/percents
+foreach var of varlist Lev* ProficientOrAbove* {
+	replace `var' = "*" if missing(`var')
+}
 foreach percent of varlist *_percent ParticipationRate  {
 	replace `percent' = string(real(`percent'), "%9.3g") if regexm(`percent', "[0-9]") !=0
 }
 
-
+//StudentGroup_TotalTested Convention
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+gen AllStudents = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+replace AllStudents = AllStudents[_n-1] if missing(AllStudents)
+replace StudentGroup_TotalTested = AllStudents if regexm(StudentGroup_TotalTested, "[0-9]") ==0
 
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
  
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
-sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+save "${Output}/ME_AssmtData_2023", replace
+export delimited "${Output}/ME_AssmtData_2023.csv", replace
 
 
-save "${Output}/ME_AssmtData_`year'", replace
 
 
 
-	
-clear
-}
+

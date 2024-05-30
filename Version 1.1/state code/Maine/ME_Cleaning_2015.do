@@ -2,18 +2,18 @@ clear
 set more off
 set trace off
 cd "/Volumes/T7/State Test Project/Maine"
-local Original "/Volumes/T7/State Test Project/Maine/Original Data Files"
-local Output "/Volumes/T7/State Test Project/Maine/Output"
-local NCES_District "/Volumes/T7/State Test Project/NCES/District"
-local NCES_School "/Volumes/T7/State Test Project/NCES/School"
-local Unmerged "/Volumes/T7/State Test Project/Maine/Unmerged"
+global Original "/Volumes/T7/State Test Project/Maine/Original Data Files"
+global Output "/Volumes/T7/State Test Project/Maine/Output"
+global NCES_School "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global NCES_District "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global Unmerged "/Volumes/T7/State Test Project/Maine/Unmerged"
 
 //Combining Subjects
 tempfile temp_combined
 save "`temp_combined'", replace emptyok
 foreach Subject in ela math sci {
 	
-	import excel "`Original'/Maine_OriginalData_`Subject'_2015", firstrow case(preserve)
+	import excel "${Original}/Maine_OriginalData_`Subject'_2015", firstrow case(preserve)
 	gen Subject = "`Subject'"
 	append using "`temp_combined'"
 	save "`temp_combined'", replace
@@ -60,8 +60,8 @@ foreach var of varlist _all {
 //Merging NCES
 save "`temp_combined'", replace
 clear
-use "`NCES_School'/NCES_2014_School"
-keep if state_name == 23 | state_location == "ME"
+use "${NCES_School}/NCES_2014_School"
+keep if state_name == "Maine" | state_location == "ME"
 gen StateAssignedSchID = seasch
 replace StateAssignedSchID = "1822" if school_name == "Beatrice Rafferty School"
 replace StateAssignedSchID = "1820" if school_name == "Indian Island School"
@@ -84,7 +84,6 @@ rename county_code CountyCode
 rename county_name CountyName
 rename ncesschoolid NCESSchoolID
 gen SchYear = "2014-15"
-rename school_type SchType
 
 //StudentGroup and StudentSubGroup
 gen StudentGroup = "All Students"
@@ -95,7 +94,7 @@ gen StudentGroup_TotalTested = StudentSubGroup_TotalTested
 gen GradeLevel = "G38"
 
 //Proficiency Criteria
-gen ProficiencyCriteria = "Levels 3 and 4"
+gen ProficiencyCriteria = "Levels 3-4"
 
 //AssmtName
 gen AssmtName = "Smarter Balanced Assessment"
@@ -109,22 +108,30 @@ foreach n in 1 2 3 4 {
 	gen Lev`n'_count = "--"
 	gen Lev`n'_percent = "--"
 }
-gen Lev5_count =.
-gen Lev5_percent =.
+gen Lev5_count = ""
+gen Lev5_percent = ""
 gen AvgScaleScore = "--"
 
 //Flags
-gen Flag_AssmtNameChange = "Y"
-gen Flag_CutScoreChange_ELA = "Y"
-gen Flag_CutScoreChange_math = "Y"
-gen Flag_CutScoreChange_read=.
-gen Flag_CutScoreChange_oth = "Y"
+gen Flag_AssmtNameChange = "N"
+gen Flag_CutScoreChange_ELA = "N"
+gen Flag_CutScoreChange_math = "N"
+gen Flag_CutScoreChange_soc = "Not applicable"
+gen Flag_CutScoreChange_sci = "N"
+
+//Cleaning Percents
+foreach percent of varlist *_percent ParticipationRate  {
+	replace `percent' = string(real(`percent'), "%9.3g") if regexm(`percent', "[0-9]") !=0
+}
 
 //Final Cleaning
-order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
-keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+ 
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "`Output'/ME_AssmtData_2015", replace
+
+save "${Output}/ME_AssmtData_2015", replace
 clear
 
