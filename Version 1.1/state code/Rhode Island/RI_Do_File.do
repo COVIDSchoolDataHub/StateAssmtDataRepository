@@ -1,7 +1,17 @@
 clear
-global path "/Users/miramehta/Documents/RI State Testing Data"
-global nces "/Users/miramehta/Documents/NCES District and School Demographics"
-global nces_clean "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+
+
+global path "/Users/benjaminm/Documents/State_Repository_Research/Rhode Island"
+global nces "/Users/benjaminm/Documents/State_Repository_Research/NCES District and School Demographics"
+global nces_clean "/Users/benjaminm/Documents/State_Repository_Research/NCES District and School Demographics/Cleaned NCES Data"
+
+
+//
+// global path "/Users/miramehta/Documents/RI State Testing Data"
+// global nces "/Users/miramehta/Documents/NCES District and School Demographics"
+// global nces_clean "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+
+	import excel "${path}/Original Data Files/RI_OriginalData_2022_ela.xlsx", firstrow clear
 
 global ncesyears 2017 2018 2020 2021
 foreach n in $ncesyears {
@@ -58,6 +68,7 @@ foreach n in $ncesyears {
 	drop if StateFips != 44
 	save "${nces_clean}/NCES_`n'_District_RI.dta", replace
 }
+
 
 global years 2018 2019 2021 2022
 foreach y in $years {
@@ -535,6 +546,7 @@ foreach y in $years {
 	save "${path}/Semi-Processed Data Files/`y'_mat_unmerged.dta", replace
 }
 
+
 global ngsayears 2019 2021 2022
 foreach y in $ngsayears {
 	local z = `y' - 1
@@ -649,6 +661,7 @@ foreach y in $ngsayears {
 	save "${path}/Semi-Processed Data Files/`y'_merged.dta", replace
 }
 
+
 clear
 use "${path}/Semi-Processed Data Files/2018_mat_unmerged.dta"
 append using "${path}/Semi-Processed Data Files/2018_ela_unmerged.dta"
@@ -744,6 +757,8 @@ foreach y in $ngsayears {
 	replace StateAssignedSchID = Sci_StateAssignedSchID if StateAssignedSchID == ""
 	save "${path}/Semi-Processed Data Files/`y'_ncesmerge.dta", replace
 }	
+
+
 
 use "${path}/Semi-Processed Data Files/2018_distmerge.dta"
 rename seaschnumber seasch
@@ -842,7 +857,7 @@ foreach y in $years {
 	replace ProficientOrAbove_percent = nProficientOrAbove_percent if ProficientOrAbove_percent != "*"
 	drop nProficientOrAbove_percent x
 	replace ParticipationRate = subinstr(ParticipationRate, "%", "",.)
-	destring ParticipationRate, generate(nParticipationRate) force
+	destring ParticipationRate, generate(nParticipationRate) ignore("*")
 	replace nParticipationRate = nParticipationRate / 100 if nParticipationRate != .
 	tostring nParticipationRate, replace force
 	replace ParticipationRate = nParticipationRate if ParticipationRate != "*"
@@ -859,54 +874,54 @@ foreach y in $years {
 
 	** Label Variables
 
-	label var StateAbbrev "State abbreviation"
-	label var StateFips "State FIPS Id"
-	label var SchYear "School year in which the data were reported. (e.g., 2021-22)"
-	label var AssmtName "Name of state assessment"
-	label var AssmtType "Assessment type"
-	label var DataLevel "Level at which the data are reported"
-	label var DistName "District name"
-	label var DistCharter "Charter indicator - district"
-	label var StateAssignedDistID "State-assigned district ID"
-	label var SchName "School name"
-	label var StateAssignedSchID "State-assigned school ID"
-	label var Subject "Assessment subject area"
-	label var GradeLevel "Grade tested (Individual grade levels, Gr3-8, all grades)"
-	label var StudentGroup "Student demographic group"
-	label var StudentSubGroup "Student demographic subgroup"
-	label var StudentGroup_TotalTested "Number of students in the designated StudentGroup who were tested."
-	label var StudentSubGroup_TotalTested "Number of students in the designated Student Sub-Group who were tested."
-	label var Lev1_count "Count of students within subgroup performing at Level 1."
-	label var Lev1_percent "Percent of students within subgroup performing at Level 1."
-	label var Lev2_count "Count of students within subgroup performing at Level 2."
-	label var Lev2_percent "Percent of students within subgroup performing at Level 2."
-	label var Lev3_count "Count of students within subgroup performing at Level 3."
-	label var Lev3_percent "Percent of students within subgroup performing at Level 3 ."
-	label var Lev4_count "Count of students within subgroup performing at Level 4."
-	label var Lev4_percent "Percent of students within subgroup performing at Level 4."
-	label var Lev5_count "Count of students within subgroup performing at Level 5."
-	label var Lev5_percent "Percent of students within subgroup performing at Level 5."
-	label var AvgScaleScore "Avg scale score within subgroup."
-	label var ProficiencyCriteria "Levels included in determining proficiency status."
-	label var ProficientOrAbove_count "Count of students achieving proficiency or above on the state assessment."
-	label var ProficientOrAbove_percent "Percent of students achieving proficiency or above on the state assessment."
-	label var ParticipationRate "Participation rate."
-	label var NCESDistrictID "NCES district ID"
-	label var State_leaid "State LEA ID"
-	label var CountyName "County in which the district or school is located."
-	label var CountyCode "County code in which the district or school is located, also referred to as the county-level FIPS code"
-	label var State "State name"
-	label var StateAbbrev "State abbreviation"
-	label var StateFips "State FIPS Id"
-	label var DistType "District type as defined by NCES"
-	label var NCESDistrictID "NCES district ID"
-	label var NCESSchoolID "NCES school ID"
-	label var SchType "School type as defined by NCES"
-	label var SchVirtual "Virtual school indicator"
-	label var SchLevel "School level"
-	label var Flag_AssmtNameChange "Flag denoting a change in the assessment's name from the prior year only."
-	label var Flag_CutScoreChange_ELA "Flag denoting a change in scoring determinations in ELA from the prior year only."
-	label var Flag_CutScoreChange_math "Flag denoting a change in scoring determinations in math from the prior year only."
+// 	label var StateAbbrev "State abbreviation"
+// 	label var StateFips "State FIPS Id"
+// 	label var SchYear "School year in which the data were reported. (e.g., 2021-22)"
+// 	label var AssmtName "Name of state assessment"
+// 	label var AssmtType "Assessment type"
+// 	label var DataLevel "Level at which the data are reported"
+// 	label var DistName "District name"
+// 	label var DistCharter "Charter indicator - district"
+// 	label var StateAssignedDistID "State-assigned district ID"
+// 	label var SchName "School name"
+// 	label var StateAssignedSchID "State-assigned school ID"
+// 	label var Subject "Assessment subject area"
+// 	label var GradeLevel "Grade tested (Individual grade levels, Gr3-8, all grades)"
+// 	label var StudentGroup "Student demographic group"
+// 	label var StudentSubGroup "Student demographic subgroup"
+// 	label var StudentGroup_TotalTested "Number of students in the designated StudentGroup who were tested."
+// 	label var StudentSubGroup_TotalTested "Number of students in the designated Student Sub-Group who were tested."
+// 	label var Lev1_count "Count of students within subgroup performing at Level 1."
+// 	label var Lev1_percent "Percent of students within subgroup performing at Level 1."
+// 	label var Lev2_count "Count of students within subgroup performing at Level 2."
+// 	label var Lev2_percent "Percent of students within subgroup performing at Level 2."
+// 	label var Lev3_count "Count of students within subgroup performing at Level 3."
+// 	label var Lev3_percent "Percent of students within subgroup performing at Level 3 ."
+// 	label var Lev4_count "Count of students within subgroup performing at Level 4."
+// 	label var Lev4_percent "Percent of students within subgroup performing at Level 4."
+// 	label var Lev5_count "Count of students within subgroup performing at Level 5."
+// 	label var Lev5_percent "Percent of students within subgroup performing at Level 5."
+// 	label var AvgScaleScore "Avg scale score within subgroup."
+// 	label var ProficiencyCriteria "Levels included in determining proficiency status."
+// 	label var ProficientOrAbove_count "Count of students achieving proficiency or above on the state assessment."
+// 	label var ProficientOrAbove_percent "Percent of students achieving proficiency or above on the state assessment."
+// 	label var ParticipationRate "Participation rate."
+// 	label var NCESDistrictID "NCES district ID"
+// 	label var State_leaid "State LEA ID"
+// 	label var CountyName "County in which the district or school is located."
+// 	label var CountyCode "County code in which the district or school is located, also referred to as the county-level FIPS code"
+// 	label var State "State name"
+// 	label var StateAbbrev "State abbreviation"
+// 	label var StateFips "State FIPS Id"
+// 	label var DistType "District type as defined by NCES"
+// 	label var NCESDistrictID "NCES district ID"
+// 	label var NCESSchoolID "NCES school ID"
+// 	label var SchType "School type as defined by NCES"
+// 	label var SchVirtual "Virtual school indicator"
+// 	label var SchLevel "School level"
+// 	label var Flag_AssmtNameChange "Flag denoting a change in the assessment's name from the prior year only."
+// 	label var Flag_CutScoreChange_ELA "Flag denoting a change in scoring determinations in ELA from the prior year only."
+// 	label var Flag_CutScoreChange_math "Flag denoting a change in scoring determinations in math from the prior year only."
 
 	** Fix Variable Order 
 	replace StateAssignedSchID = "0" + StateAssignedSchID if strlen(StateAssignedSchID) == 4
@@ -922,3 +937,59 @@ foreach y in $years {
 	save "${path}/Output/RI_AssmtData_`y'.dta", replace
 	export delimited using "${path}/Output/RI_AssmtData_`y'.csv", replace
 }
+
+
+
+foreach y in $years {
+	
+use  "${path}/Output/RI_AssmtData_`y'.dta", clear
+
+destring StudentSubGroup_TotalTested, replace 
+
+local a  "1 2 3 4 5" 
+foreach b in `a' {
+
+
+destring Lev`b'_percent, replace ignore("*")
+destring Lev`b'_count, replace ignore("*")
+
+replace Lev`b'_count = Lev`b'_percent * StudentSubGroup_TotalTested if Lev`b'_count == . & Lev`b'_percent != .
+replace Lev`b'_count = round(Lev`b'_count, 1)
+
+tostring Lev`b'_percent, replace force 
+tostring Lev`b'_count, replace force
+
+replace Lev`b'_percent = "*" if  Lev`b'_percent == "." 
+replace Lev`b'_count = "*" if  Lev`b'_count == "." 
+
+}
+
+replace Lev5_percent = "" if  Lev5_percent == "*" 
+replace Lev5_count = "" if  Lev5_count == "*" 
+
+destring ProficientOrAbove_percent, replace ignore("*")
+destring ProficientOrAbove_count, replace ignore("*")
+
+replace ProficientOrAbove_count = ProficientOrAbove_percent * StudentSubGroup_TotalTested if ProficientOrAbove_count == . &  ProficientOrAbove_percent != .
+replace ProficientOrAbove_count = round(ProficientOrAbove_count, 1)
+
+tostring ProficientOrAbove_percent, replace force
+tostring ProficientOrAbove_count, replace force
+tostring StudentSubGroup_TotalTested, replace force
+
+replace ProficientOrAbove_percent = "*" if  ProficientOrAbove_percent == "." 
+replace ProficientOrAbove_count = "*" if  ProficientOrAbove_count == "." 
+replace StudentSubGroup_TotalTested = "*" if  StudentSubGroup_TotalTested == "." 
+
+	keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+	order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+	sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
+save "${path}/Output/RI_AssmtData_`y'.dta", replace
+export delimited using "${path}/Output/RI_AssmtData_`y'.csv", replace
+
+}
+
+
