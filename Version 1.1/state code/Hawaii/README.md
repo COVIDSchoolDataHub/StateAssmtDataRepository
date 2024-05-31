@@ -24,4 +24,6 @@ global NCES "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
 - "NCES" should link to a folder containing updated (as of Feb 2024) NCES District and School files.
 
 ## Recreate Cleaning
-Run the do-file.
+1. Unhide the Importing Code
+2. Run the do-file
+3. On future runs you'll want to hide the importing code
