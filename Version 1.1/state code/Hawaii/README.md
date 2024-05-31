@@ -9,8 +9,8 @@ Create a folder for HI. Inside that folder, create two more folders:
 "Original", and "Output"
 
 ### Files to Download
-From the drive, download the Original Data - Version 1.1 Folder
-From github, download only the file named "Hawaii_DataRequestCleaning_AllYears.do"
+- From the drive, download the Original Data - Version 1.1 Folder
+- From github, download only the file named "Hawaii_DataRequestCleaning_AllYears.do"
 
 ### Directories
 Set directories at the top of the do file:
