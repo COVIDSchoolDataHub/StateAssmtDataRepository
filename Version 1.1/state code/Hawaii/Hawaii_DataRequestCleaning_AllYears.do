@@ -5,7 +5,7 @@ global Original "/Volumes/T7/State Test Project/Hawaii/Original Data"
 global Output "/Volumes/T7/State Test Project/Hawaii/Output"
 global NCES "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
 
-//Importing (Hide on First Run)
+//Importing (Unhide on First Run)
 /*
 import excel "$Original/HI_OriginalData_DataRequest_All", firstrow sheet("SBAData")
 save "$Original/HI_OriginalData_DataRequest_All", replace
