@@ -1,8 +1,18 @@
 clear
 set more off
-local Original "/Users/miramehta/Documents/RI State Testing Data/Original Data Files"
-local Output "/Users/miramehta/Documents/RI State Testing Data/Output"
-local NCES "/Users/miramehta/Documents/NCES District and School Demographics"
+
+// fix paths 
+// run 
+
+local Original "/Users/benjaminm/Documents/State_Repository_Research/Rhode Island/Original Data Files"
+local Output "/Users/benjaminm/Documents/State_Repository_Research/Rhode Island/Output"
+local NCES "/Users/benjaminm/Documents/State_Repository_Research/NCES District and School Demographics"
+
+
+// local Original "/Users/miramehta/Documents/RI State Testing Data/Original Data Files"
+// local Output "/Users/miramehta/Documents/RI State Testing Data/Output"
+// local NCES "/Users/miramehta/Documents/NCES District and School Demographics"
+
 tempfile temp1
 save "`temp1'", emptyok
 clear
@@ -11,8 +21,8 @@ clear
 
 *Unhide below code on first run
 
-/*
 
+/*
 foreach Subject in ela math sci {
 	import excel "`Original'/RI_OriginalData_2023_`Subject'", firstrow case(preserve) allstring
 	keep if strpos(SchYear, "23") !=0
@@ -28,6 +38,8 @@ save "`Original'/RI_OriginalData_2023", replace
 
 use "`Original'/RI_OriginalData_2023", clear
 
+// new 5/31/24
+rename G ParticipationRate
 
 //DataLevel
 gen DataLevel = ""
@@ -92,6 +104,8 @@ replace StudentGroup_TotalTested = string(AllStudents_Tested) if Count > AllStud
 drop AllStudents_Tested StudentGroup_Suppressed
 
 replace StudentGroup = "EL Status" if StudentSubGroup=="EL Monit or Recently Ex"
+
+
 
 //Proficiency Levels
 rename NME Lev1_percent
@@ -420,7 +434,7 @@ forvalues n = 1/4 {
 gen ProficientOrAbove_count = round(nProficientOrAbove_percent * nStudentSubGroup_TotalTested)
 tostring ProficientOrAbove_count, replace
 replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
-gen ParticipationRate = "--"
+//gen ParticipationRate = "--"
 
 //StateAssignedDistID for previously unmerged
 replace StateAssignedDistID = subinstr(State_leaid, "RI-","",.) if missing(StateAssignedDistID) & DataLevel !=1
@@ -433,13 +447,61 @@ replace Lev4_percent = "0" if SchName == "West Broadway Middle School" & Subject
 replace Lev4_count = "0" if SchName == "West Broadway Middle School" & Subject == "ela" & GradeLevel == "G06" & StudentSubGroup == "Black or African American"
 replace StateAssignedDistID = "0" + StateAssignedDistID if DataLevel != 1 & strlen(StateAssignedDistID) == 1
 
+// ParticipationRate Cleaning
+	replace ParticipationRate = subinstr(ParticipationRate, "%", "",.)
+	destring ParticipationRate, generate(nParticipationRate) ignore("*")
+	replace nParticipationRate = nParticipationRate / 100 if nParticipationRate != .
+	tostring nParticipationRate, replace force
+	replace ParticipationRate = nParticipationRate if ParticipationRate != "*"
+	drop nParticipationRate
+
+	
+// generating counts 5/31/24
+destring StudentSubGroup_TotalTested, replace 
+
+local a  "1 2 3 4 5" 
+foreach b in `a' {
+
+
+destring Lev`b'_percent, replace ignore("*")
+destring Lev`b'_count, replace ignore("*")
+
+replace Lev`b'_count = Lev`b'_percent * StudentSubGroup_TotalTested if Lev`b'_count == . & Lev`b'_percent != .
+replace Lev`b'_count = round(Lev`b'_count, 1)
+
+tostring Lev`b'_percent, replace force 
+tostring Lev`b'_count, replace force
+
+replace Lev`b'_percent = "*" if  Lev`b'_percent == "." 
+replace Lev`b'_count = "*" if  Lev`b'_count == "." 
+
+}
+
+replace Lev5_percent = "" if  Lev5_percent == "*" 
+replace Lev5_count = "" if  Lev5_count == "*" 
+
+destring ProficientOrAbove_percent, replace ignore("*")
+destring ProficientOrAbove_count, replace ignore("*")
+
+replace ProficientOrAbove_count = ProficientOrAbove_percent * StudentSubGroup_TotalTested if ProficientOrAbove_count == . &  ProficientOrAbove_percent != .
+replace ProficientOrAbove_count = round(ProficientOrAbove_count, 1)
+
+tostring ProficientOrAbove_percent, replace force
+tostring ProficientOrAbove_count, replace force
+tostring StudentSubGroup_TotalTested, replace force
+
+replace ProficientOrAbove_percent = "*" if  ProficientOrAbove_percent == "." 
+replace ProficientOrAbove_count = "*" if  ProficientOrAbove_count == "." 
+replace StudentSubGroup_TotalTested = "*" if  StudentSubGroup_TotalTested == "." 
+	
+		
+
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
+
 save "`Output'/RI_AssmtData_2023", replace
 export delimited "`Output'/RI_AssmtData_2023", replace
-
-
