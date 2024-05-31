@@ -19,9 +19,9 @@ global Original "/Volumes/T7/State Test Project/Hawaii/Original Data"
 global Output "/Volumes/T7/State Test Project/Hawaii/Output"
 global NCES "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
 ```
-"Original" refers to the original data downloaded from the drive
-"Output" is the output folder
-"NCES" should link to a folder containing updated (as of Feb 2024) NCES District and School files.
+- "Original" refers to the original data downloaded from the drive
+- "Output" is the output folder
+- "NCES" should link to a folder containing updated (as of Feb 2024) NCES District and School files.
 
 ## Recreate Cleaning
 Run the do-file.
