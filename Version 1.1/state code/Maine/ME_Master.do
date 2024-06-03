@@ -18,32 +18,23 @@ use "${Output}/ME_AssmtData_`year'"
 drop if (missing(NCESDistrictID) & DataLevel== 2 | (missing(NCESSchoolID) & DataLevel == 3 | missing(NCESDistrictID) & DataLevel == 3)) & (!inlist(SchName, "Beatrice Rafferty School", "Indian Island School", "Indian Township School", "MDOE School", "Ashley Bryan School", "Governor Baxter School for the Deaf") & !inlist(SchName, "Hudson Elementary School", "Jay Elementary School", "Livermore Elementary School", "Lura Libby School", "Morison Memorial School", "Oceanside High School East", "Oceanside High School West") & !inlist(SchName, "Rockland District Middle School", "SAD 70 Hodgdon High School") & !inlist(DistName, "ME Educational Ctr for the Deaf & Hard of Hearing"))
 
 //Replacing missing NCES with Missing/not reported
-label def school_typedf 16 "Missing/not reported", add
-label def agency_typedf 16 "Missing/not reported", add
-label def school_leveldf 16 "Missing/not reported", add
 label def virtualdf 16 "Missing/not reported", add
 if `year' == 2015 {
-	replace DistType = "Missing/not reported" if SchName == "MDOE School"
-	replace SchType = 16 if SchName == "MDOE School"
-	replace SchLevel = 16 if SchName == "MDOE School"
-	replace NCESDistrictID = "Missing/not reported" if SchName == "MDOE School"
-	replace NCESSchoolID = "Missing/not reported" if SchName == "MDOE School"
-	replace DistCharter = "No" if SchName == "MDOE School"
-	replace CountyName = "Missing/not reported" if SchName == "MDOE School"
-	replace CountyCode = "Missing/not reported" if SchName == "MDOE School"
-	replace SchVirtual = 16 if SchName == "MDOE School"
+	drop if SchName == "MDOE School" //All values suppressed/missing, not in NCES
 }
 
 if `year' == 2016 {
-	replace DistType = "Missing/ not reported" if SchName == "Governor Baxter School for the Deaf"
-	replace SchType = 16 if SchName == "Governor Baxter School for the Deaf"
-	replace SchLevel = 16 if SchName == "Governor Baxter School for the Deaf"
-	replace NCESDistrictID = "Missing/not reported" if SchName == "Governor Baxter School for the Deaf"
-	replace NCESSchoolID = "Missing/not reported" if SchName == "Governor Baxter School for the Deaf"
+	replace DistType = "State-operated agency" if SchName == "Governor Baxter School for the Deaf"
+	replace SchType = 2 if SchName == "Governor Baxter School for the Deaf"
+	replace SchLevel = -2  if SchName == "Governor Baxter School for the Deaf"
+	replace NCESDistrictID = "2300051" if SchName == "Governor Baxter School for the Deaf"
+	replace NCESSchoolID = "230005100381" if SchName == "Governor Baxter School for the Deaf"
 	replace DistCharter = "No" if SchName == "Governor Baxter School for the Deaf"
-	replace CountyName = "Missing/not reported" if SchName == "Governor Baxter School for the Deaf"
-	replace CountyCode = "Missing/not reported" if SchName == "Governor Baxter School for the Deaf"
-	replace SchVirtual = 16 if SchName == "Governor Baxter School for the Deaf"
+	replace CountyName = "Cumberland County" if SchName == "Governor Baxter School for the Deaf"
+	replace CountyCode = "23005" if SchName == "Governor Baxter School for the Deaf"
+	replace SchVirtual = 0 if SchName == "Governor Baxter School for the Deaf"
+	replace DistLocale = "Rural, fringe" if SchName == "Governor Baxter School for the Deaf"
+	
 }
 
 
