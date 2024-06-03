@@ -1,8 +1,12 @@
 clear
 set more off
-local Original "/Volumes/T7/State Test Project/South Dakota/Original Data"
-local Output "/Volumes/T7/State Test Project/South Dakota/Output"
-local NCES "/Volumes/T7/State Test Project/NCES"
+
+local Original "/Users/benjaminm/Documents/State_Repository_Research/South Dakota/Original Data"
+local Output "/Users/benjaminm/Documents/State_Repository_Research/South Dakota/Output"
+local NCES_District "/Users/benjaminm/Documents/State_Repository_Research/NCES/District"
+local NCES_School "/Users/benjaminm/Documents/State_Repository_Research/NCES/School"
+local Stata_versions "/Users/benjaminm/Documents/State_Repository_Research/South Dakota/Stata .dta versions"
+
 
 ** Importing
 
@@ -18,12 +22,14 @@ local prevyear =`=`year'-1'
 //Unhide below code on first run
 
 /*
-
+clear 
 tempfile temp1
 save "`temp1'", emptyok
 	if `year' == 2020 continue
+	
+
 	foreach dl in State District School {
-		import excel "`Original'/SD_OriginalData_`year'", firstrow sheet ("`dl'") allstring
+		import excel "`Original'/SD_OriginalData_`year'", firstrow sheet ("`dl'") allstring 
 		append using "`temp1'"
 		save "`temp1'", replace
 		clear
@@ -41,6 +47,19 @@ save "`temp1'", emptyok
 clear
 use "`Original'/`year'"
 
+// clear
+// set more off
+// local Original "/Volumes/T7/State Test Project/South Dakota/Original Data"
+// local Output "/Volumes/T7/State Test Project/South Dakota/Output"
+// local NCES "/Volumes/T7/State Test Project/NCES"
+
+// local Original "/Users/benjaminm/Documents/State_Repository_Research/South Dakota/Original Data"
+// local Output "/Users/benjaminm/Documents/State_Repository_Research/South Dakota/Output"
+// local NCES_District "/Users/benjaminm/Documents/State_Repository_Research/NCES/District"
+// local NCES_School "/Users/benjaminm/Documents/State_Repository_Research/NCES/School"
+// local Stata_versions "/Users/benjaminm/Documents/State_Repository_Research/South Dakota/Stata .dta versions"
+
+// use "`Original'/2022"
 // Renaming
 rename Entity_Level DataLevel
 cap drop School_Level
@@ -144,19 +163,44 @@ tempfile temp1
 save "`temp1'", replace
 clear
 
+
+
 // District
 use "`temp1'"
 keep if DataLevel == 2
 tempfile tempdist
 if `year' > 2021 replace StateAssignedDistID = "0" + StateAssignedDistID if strlen(StateAssignedDistID) == 4
 save "`tempdist'", replace
-clear
-use "`NCES'/NCES_`prevyear'_District"
-keep if state_name == 46 | state_location == "SD"
+
+// clear
+// local Original "/Users/benjaminm/Documents/State_Repository_Research/South Dakota/Original Data"
+// local Output "/Users/benjaminm/Documents/State_Repository_Research/South Dakota/Output"
+// local NCES_District "/Users/benjaminm/Documents/State_Repository_Research/NCES/District"
+// local NCES_School "/Users/benjaminm/Documents/State_Repository_Research/NCES/School"
+// local Stata_versions "/Users/benjaminm/Documents/State_Repository_Research/South Dakota/Stata .dta versions"
+//
+// use "`NCES_District'/NCES_2021_District", clear
+
+
+
+use "`NCES_District'/NCES_`prevyear'_District"
+keep if state_fips_id == 46 | state_name == "South Dakota"
 gen StateAssignedDistID = subinstr(state_leaid, "SD-","",.)
 merge 1:m StateAssignedDistID using "`tempdist'"
+
+
+
+
 drop if _merge == 1
+drop if _merge == 2 // changed 6/3/24
+drop year
+// if `year' == 2023 { // EVERYTHING ELSE? 
+// decode district_agency_type, generate(district_agency_type1) 
+// drop district_agency_type
+// rename district_agency_type1 district_agency_type
+// }
 save "`tempdist'", replace
+
 clear
 
 // School
@@ -165,24 +209,43 @@ keep if DataLevel == 3
 tempfile tempsch
 save "`tempsch'", replace
 clear
-use "`NCES'/NCES_`prevyear'_School"
-keep if state_name == 46 | state_location == "SD"
+// use "`NCES_School'/NCES_2021_School"
+use "`NCES_School'/NCES_`prevyear'_School"
+keep if state_fips_id == 46 | state_name == "South Dakota"
 gen StateAssignedSchID = subinstr(seasch, "-","",.)
 merge 1:m StateAssignedSchID using "`tempsch'"
 drop if _merge == 1
+drop if _merge == 2 // changed 6/3/24
+drop year 
+
+if `year' == 2023 { // EVERYTHING ELSE?
+decode district_agency_type, generate(district_agency_type1) 
+drop district_agency_type
+rename district_agency_type1 district_agency_type
+drop boundary_change_indicator
+drop number_of_schools 
+drop fips
+}
+
 save "`tempsch'", replace
-clear
+
+
+
 
 //Appending
 use "`temp1'"
 keep if DataLevel==1
 append using "`tempdist'" "`tempsch'"
 
+
+// keep if DataLevel==1
 //Fixing NCES Variables
 rename state_location StateAbbrev
 rename state_fips StateFips
 rename district_agency_type DistType
-rename school_type SchType
+if `year' == 2023 { // FIX BACK
+ rename school_type SchType
+ }
 rename ncesdistrictid NCESDistrictID
 rename state_leaid State_leaid
 rename ncesschoolid NCESSchoolID
@@ -200,18 +263,36 @@ replace AssmtName = "SBAC" if Subject != "sci"
 replace AssmtName = "SDSA" if Subject == "sci"
 
 //Sci assessment names
-replace AssmtName = "SDSA 1.0" if (`year' == 2018 | `year' == 2019) & Subject == "sci"
-replace AssmtName = "SDSA 2.0" if (`year' ==2021 | `year' == 2022) & Subject == "sci"
+replace AssmtName = "SDSA 1.0"  if (`year' == 2018 | `year' == 2019) & Subject == "sci" 
+replace AssmtName = "SDSA 2.0" if (`year' == 2021 | `year' == 2022 | `year' == 2023 ) & Subject == "sci"
 
 //Generating additional variables
-gen State = "South Dakota"
+ gen State = "South Dakota"
+// gen Flag_AssmtNameChange = "N"
+// gen Flag_CutScoreChange_ELA = "N"
+// gen Flag_CutScoreChange_math = "N"
+// gen Flag_CutScoreChange_oth = "N"
+// replace Flag_CutScoreChange_oth = "Y" if `year' == 2018 | `year' == 2021 
+// gen Flag_CutScoreChange_read = ""
+//
+
 gen Flag_AssmtNameChange = "N"
+
+if `year' == 2021 {
+replace Flag_AssmtNameChange = "Y" if Subject == "sci"
+} 
+
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_oth = "N"
-replace Flag_CutScoreChange_oth = "Y" if `year' == 2018 | `year' == 2021
-gen Flag_CutScoreChange_read = ""
-gen ProficiencyCriteria = "Levels 3 and 4"
+gen Flag_CutScoreChange_sci = "N" 
+if `year' == 2021 {
+replace Flag_CutScoreChange_sci = "Y" // `year' == 2018
+}
+
+gen Flag_CutScoreChange_soc = "Not applicable"
+
+
+gen ProficiencyCriteria = "Levels 3-4" // Updated 6/2/24
 replace AssmtType = "Regular"
 gen SchYear = "`prevyear'" + "-" + substr("`year'",-2,2)
 
@@ -222,7 +303,7 @@ replace DistName = lea_name if DataLevel ==3
 replace StateAssignedDistID = subinstr(State_leaid, "SD-","",.) if DataLevel ==3
 
 //2022 had one unmerged district which contained only suppressed data. 2018 had unmerged schools which were all suppressed.
-if `year' == 2022 | `year' == 2018 drop if _merge ==2
+// if `year' == 2022 | `year' == 2018 drop if _merge ==2
 
 //Empty Variables
 gen Lev5_count = ""
@@ -230,8 +311,23 @@ gen Lev5_percent = ""
 gen AvgScaleScore = "--"
 
 //Final cleaning and dropping extra variables
-order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
-keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+
+replace CountyName = proper(CountyName) // added 6/3/24
+ 
+replace StateAssignedSchID = StateAssignedDistID + "-" + StateAssignedSchID if DataLevel ==3 
+
+drop State_leaid seasch
+
+
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
+// updated
+
+//sort
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 //Saving
@@ -239,3 +335,4 @@ save "`Output'/SD_AssmtData_`year'", replace
 export delimited "`Output'/SD_AssmtData_`year'", replace
 
 }
+
