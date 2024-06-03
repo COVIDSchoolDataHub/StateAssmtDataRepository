@@ -2,11 +2,11 @@ clear
 set more off
 set trace off
 global original "/Volumes/T7/State Test Project/Hawaii/Original Data"
-global cleaned  "/Volumes/T7/State Test Project/Hawaii/Cleaned Data"
+global cleaned  "/Volumes/T7/State Test Project/Hawaii/Output"
 global nces "/Volumes/T7/State Test Project/Hawaii/NCES/NCESCLEANED/"
 
 //loop for 2013 and 2014 school level(2012-13 and 2013-14 years)
-foreach year of numlist 2013 2014 {
+foreach year in 2013 2014 {
 import excel "${original}/HI_OriginalData_`year'_all", sheet ("School Data") cellrange(a1) firstrow case(preserve)
 
 //reshaping from wide to long
@@ -75,7 +75,7 @@ gen Lev4_percent="--"
 gen Lev5_count="--"
 gen Lev5_percent="--"
 gen AvgScaleScore="--"
-gen ProficiencyCriteria="Level 3 or 4"
+gen ProficiencyCriteria="Levels 3-4"
 gen ProficientOrAbove_count="--"
 gen ParticipationRate="--"
 gen Flag_AssmtNameChange ="N"
@@ -94,7 +94,6 @@ tostring temp_var, format(%10.3f) gen(ProficientOrAbove_decimal) force
 drop temp_var
 drop ProficientOrAbove_percent
 rename ProficientOrAbove_decimal ProficientOrAbove_percent
-//the code above works for some reason, idk why but not questioning
 
 //Response to R2
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
@@ -103,11 +102,23 @@ replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
 //Fixing AssmtName for HI
 replace AssmtName = "Hawaii Science Assessment" if Subject == "sci"
 
-//Ordering Variables and Dropping Extraneous Variables
-order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
-keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+//Replacing Subject with "ela" for reading
+replace Subject = "ela" if Subject == "read"
+replace Flag_CutScoreChange_ELA = Flag_CutScoreChange_read if missing(Flag_CutScoreChange_ELA) & !missing(Flag_CutScoreChange_read)
+replace Flag_CutScoreChange_read = ""
 
-//sorting
+//Post Launch Response to Review
+gen Flag_CutScoreChange_sci = Flag_CutScoreChange_oth
+gen Flag_CutScoreChange_soc = ""
+*DistLocale (One District In HI)
+gen DistLocale = "Suburb, large"
+replace DistName = "Hawaii Department of Education"
+replace CountyName = proper(CountyName)
+replace Flag_CutScoreChange_soc = "Not applicable"
+
+//Order Keep Sort
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode  
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 //Exporting

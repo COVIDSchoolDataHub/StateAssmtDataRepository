@@ -245,6 +245,24 @@ replace ProficientOrAbove_percent = string(1 - real(Lev1_percent) - real(Lev2_pe
 replace ProficientOrAbove_percent = "0" if strpos(ProficientOrAbove_percent, "e") !=0 | ProficientOrAbove_count == "0" | (real(ProficientOrAbove_percent)< 0.009 & regexm(ProficientOrAbove_percent, "[0-9]") !=0)
 replace ProficientOrAbove_count = "0" if real(ProficientOrAbove_count)< 0 & regexm(ProficientOrAbove_count, "[0-9]") !=0
 
+//Deriving Lev Counts/Percents if we have all others
+replace Lev1_percent = string(1-real(Lev2_percent)-real(Lev3_percent)-real(Lev4_percent), "%9.3g") if regexm(Lev1_percent, "[0-9]") == 0 & regexm(Lev2_percent, "[0-9]") !=0 & regexm(Lev3_percent, "[0-9]") !=0 & regexm(Lev4_percent, "[0-9]") !=0
+replace Lev2_percent = string(1-real(Lev1_percent)-real(Lev3_percent)-real(Lev4_percent), "%9.3g") if regexm(Lev2_percent, "[0-9]") == 0 & regexm(Lev1_percent, "[0-9]") !=0 & regexm(Lev3_percent, "[0-9]") !=0 & regexm(Lev4_percent, "[0-9]") !=0
+replace Lev3_percent = string(1-real(Lev2_percent)-real(Lev1_percent)-real(Lev4_percent), "%9.3g") if regexm(Lev3_percent, "[0-9]") == 0 & regexm(Lev1_percent, "[0-9]") !=0 & regexm(Lev2_percent, "[0-9]") !=0 & regexm(Lev4_percent, "[0-9]") !=0
+replace Lev4_percent = string(1-real(Lev1_percent)-real(Lev3_percent)-real(Lev2_percent), "%9.3g") if regexm(Lev4_percent, "[0-9]") == 0 & regexm(Lev1_percent, "[0-9]") !=0 & regexm(Lev3_percent, "[0-9]") !=0 & regexm(Lev2_percent, "[0-9]") !=0
+foreach var of varlist Lev*_percent {
+	replace `var' = "0" if strpos(`var', "e") !=0
+}
+replace Lev1_count = string(1-real(Lev2_count)-real(Lev3_count)-real(Lev4_count), "%9.3g") if regexm(Lev1_count, "[0-9]") == 0 & regexm(Lev2_count, "[0-9]") !=0 & regexm(Lev3_count, "[0-9]") !=0 & regexm(Lev4_count, "[0-9]") !=0
+replace Lev2_count = string(1-real(Lev1_count)-real(Lev3_count)-real(Lev4_count), "%9.3g") if regexm(Lev2_count, "[0-9]") == 0 & regexm(Lev1_count, "[0-9]") !=0 & regexm(Lev3_count, "[0-9]") !=0 & regexm(Lev4_count, "[0-9]") !=0
+replace Lev3_count = string(1-real(Lev2_count)-real(Lev1_count)-real(Lev4_count), "%9.3g") if regexm(Lev3_count, "[0-9]") == 0 & regexm(Lev1_count, "[0-9]") !=0 & regexm(Lev2_count, "[0-9]") !=0 & regexm(Lev4_count, "[0-9]") !=0
+replace Lev4_count = string(1-real(Lev1_count)-real(Lev3_count)-real(Lev2_count), "%9.3g") if regexm(Lev4_count, "[0-9]") == 0 & regexm(Lev1_count, "[0-9]") !=0 & regexm(Lev3_count, "[0-9]") !=0 & regexm(Lev2_count, "[0-9]") !=0
+foreach var of varlist Lev*_count {
+	replace `var' = "0" if strpos(`var', "e") !=0
+}
+
+
+
 //Final Cleaning and Exporting
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
  
