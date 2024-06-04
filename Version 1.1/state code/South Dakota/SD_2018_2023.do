@@ -1,12 +1,14 @@
 clear
 set more off
+// local Original "/Volumes/T7/State Test Project/South Dakota/Original Data"
+// local Output "/Volumes/T7/State Test Project/South Dakota/Output"
+// local NCES "/Volumes/T7/State Test Project/NCES"
 
 local Original "/Users/benjaminm/Documents/State_Repository_Research/South Dakota/Original Data"
 local Output "/Users/benjaminm/Documents/State_Repository_Research/South Dakota/Output"
 local NCES_District "/Users/benjaminm/Documents/State_Repository_Research/NCES/District"
 local NCES_School "/Users/benjaminm/Documents/State_Repository_Research/NCES/School"
 local Stata_versions "/Users/benjaminm/Documents/State_Repository_Research/South Dakota/Stata .dta versions"
-
 
 ** Importing
 
@@ -169,7 +171,7 @@ clear
 use "`temp1'"
 keep if DataLevel == 2
 tempfile tempdist
-if `year' > 2021 replace StateAssignedDistID = "0" + StateAssignedDistID if strlen(StateAssignedDistID) == 4
+// if `year' > 2021 replace StateAssignedDistID = "0" + StateAssignedDistID if strlen(StateAssignedDistID) == 4
 save "`tempdist'", replace
 
 // clear
@@ -313,10 +315,20 @@ gen AvgScaleScore = "--"
 //Final cleaning and dropping extra variables
 
 replace CountyName = proper(CountyName) // added 6/3/24
+
+
+
+
+ 
+replace StateAssignedSchID = substr(StateAssignedSchID, -2, 2)
  
 replace StateAssignedSchID = StateAssignedDistID + "-" + StateAssignedSchID if DataLevel ==3 
 
+
 drop State_leaid seasch
+
+replace CountyName = "McCook County" if CountyName == "Mccook County"
+replace CountyName = "McPherson County" if CountyName == "Mcpherson County"
 
 
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
@@ -335,4 +347,5 @@ save "`Output'/SD_AssmtData_`year'", replace
 export delimited "`Output'/SD_AssmtData_`year'", replace
 
 }
+
 
