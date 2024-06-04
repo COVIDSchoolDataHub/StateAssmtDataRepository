@@ -513,7 +513,19 @@ replace Subject = "ela" if Subject == "read"
 drop if NCESDistrictID == "MISSING"
 drop if NCESSchoolID == "MISSING"
 
+
+
+replace StateAssignedDistID = "0" + StateAssignedDistID if strlen(StateAssignedDistID) == 4
+replace StateAssignedSchID = "0" + StateAssignedSchID if strlen(StateAssignedSchID) == 1
+
 replace StateAssignedSchID = StateAssignedDistID + "-" + StateAssignedSchID if DataLevel ==3
+
+
+replace DistName=strtrim(DistName) // adjusted district spacing
+replace SchName =strtrim(SchName) // adjusted school spacing
+
+replace CountyName = "McCook County" if CountyName == "Mccook County"
+replace CountyName = "McPherson County" if CountyName == "Mcpherson County"
 
 drop State_leaid seasch
 
