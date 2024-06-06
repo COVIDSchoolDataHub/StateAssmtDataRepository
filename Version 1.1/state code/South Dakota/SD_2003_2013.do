@@ -557,8 +557,8 @@
 	foreach n in 1 2 3 4 {
 		gen Lev`n'_count = "--"
 		destring Lev`n'_percent, replace i(".")
-		replace Lev`n'_percent = Lev`n'_percent/100
-		format Lev`n'_percent %9.2f
+		replace Lev`n'_percent = round(Lev`n'_percent/100, .01)
+		// format Lev`n'_percent %9.2f
 	}
 	//Proficiency
 	gen ProficiencyCriteria = "Levels 3-4"
@@ -694,6 +694,13 @@ drop if NCESSchoolID == "MISSING"
 	
 replace CountyName = "McCook County" if CountyName == "Mccook County"
 replace CountyName = "McPherson County" if CountyName == "Mcpherson County"
+
+ //SD reivew added 6/6/24
+ sort GradeLevel Subject DataLevel SchName DistName StudentGroup
+by GradeLevel Subject DataLevel SchName DistName (StudentGroup): gen all_students_tested = StudentGroup_TotalTested if StudentGroup == "All Students"
+by GradeLevel Subject DataLevel SchName DistName: replace all_students_tested = all_students_tested[_n-1] if missing(all_students_tested)
+replace StudentGroup_TotalTested = all_students_tested
+
 
 
 	order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
