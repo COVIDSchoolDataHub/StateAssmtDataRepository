@@ -13,9 +13,11 @@ local NCES_District "/Users/benjaminm/Documents/State_Repository_Research/NCES/D
 local NCES_School "/Users/benjaminm/Documents/State_Repository_Research/NCES/School"
 local Stata_versions "/Users/benjaminm/Documents/State_Repository_Research/South Dakota/Stata .dta versions"
 
-local years 2014 2015 2016 2017 
+local years 2014 2015 2016 2017
 local subjects ela math sci
 local DataLevels State District School
+
+
 
 
 **Prepping Files**
@@ -391,8 +393,8 @@ gen StudentGroup_TotalTested = StudentSubGroup_TotalTested
 foreach n in 1 2 3 4 {
 	gen Lev`n'_count = "--"
 	destring Lev`n'_percent, replace i("*-")
-	replace Lev`n'_percent = Lev`n'_percent/100
-	format Lev`n'_percent %9.2f
+	replace Lev`n'_percent = round(Lev`n'_percent/100, .01)
+	//format Lev`n'_percent %9.2f
 }
 //Proficiency
 gen ProficiencyCriteria = "Levels 3-4"
@@ -527,6 +529,13 @@ replace SchName =strtrim(SchName) // adjusted school spacing
 replace CountyName = "McCook County" if CountyName == "Mccook County"
 replace CountyName = "McPherson County" if CountyName == "Mcpherson County"
 
+ //SD reivew added 6/6/24
+ sort GradeLevel Subject DataLevel SchName DistName StudentGroup
+by GradeLevel Subject DataLevel SchName DistName (StudentGroup): gen all_students_tested = StudentGroup_TotalTested if StudentGroup == "All Students"
+by GradeLevel Subject DataLevel SchName DistName: replace all_students_tested = all_students_tested[_n-1] if missing(all_students_tested)
+replace StudentGroup_TotalTested = all_students_tested
+
+
 drop State_leaid seasch
 
 //Final cleaning and dropping extra variables
@@ -544,5 +553,7 @@ export delimited "`Output'/SD_AssmtData_`year'", replace
 clear
 erase "`temp_`year''"
 }
+
+
 
 
