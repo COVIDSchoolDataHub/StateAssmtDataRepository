@@ -10,8 +10,10 @@ local NCES_District "/Users/benjaminm/Documents/State_Repository_Research/NCES/D
 local NCES_School "/Users/benjaminm/Documents/State_Repository_Research/NCES/School"
 local Stata_versions "/Users/benjaminm/Documents/State_Repository_Research/South Dakota/Stata .dta versions"
 
+
 ** Importing
 
+**# Bookmark #1
 
 forvalues year = 2018/2023 {
 di "~~~~~~~~~~~~"
@@ -147,7 +149,7 @@ foreach var of varlist _all {
 
 // ParticipationRate
 destring ParticipationRate, gen(nParticipationRate) i(*-)
-replace ParticipationRate = string(nParticipationRate/100, "%9.3g") if ParticipationRate != "*"
+replace ParticipationRate = string(round(nParticipationRate/100, .001)) if ParticipationRate != "*"
 
 
 // Proficiency Levels
@@ -330,6 +332,14 @@ drop State_leaid seasch
 replace CountyName = "McCook County" if CountyName == "Mccook County"
 replace CountyName = "McPherson County" if CountyName == "Mcpherson County"
 
+ 
+ //SD reivew added 6/6/24
+ sort GradeLevel Subject DataLevel SchName DistName StudentGroup
+by GradeLevel Subject DataLevel SchName DistName (StudentGroup): gen all_students_tested = StudentGroup_TotalTested if StudentGroup == "All Students"
+by GradeLevel Subject DataLevel SchName DistName: replace all_students_tested = all_students_tested[_n-1] if missing(all_students_tested)
+replace StudentGroup_TotalTested = all_students_tested
+
+ replace StudentGroup_TotalTested = "0" if StudentGroup_TotalTested == "*" & StudentSubGroup_TotalTested == "0" //SD reivew added 6/5/24
 
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
