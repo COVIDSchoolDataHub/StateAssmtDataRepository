@@ -10,7 +10,7 @@ Create a folder for HI. Inside that folder, create two more folders:
 
 ### Files to Download
 - From the drive, download the Original Data - Version 1.1 Folder
-- From github, download the files named "Hawaii2013_2014" and "Hawaii_DataRequestCleaning_AllYears.do"
+- From github, download the files named "Hawaii2013_2014" (with the nces_school do-file, only used for 2013 and 2014) and "Hawaii_DataRequestCleaning_AllYears.do"
 
 ### Directories
 Set directories at the top of the do file:
