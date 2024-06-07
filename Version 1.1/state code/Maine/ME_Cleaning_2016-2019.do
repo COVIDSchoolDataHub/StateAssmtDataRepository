@@ -17,7 +17,7 @@ local prevyear =`=`year'-1'
 
 /*
 
-import delimited "${Original}/Maine_OriginalData_`year'.csv", case(preserve)
+import delimited "${Original}/ME_OriginalData_`year'.csv", case(preserve)
 save "${Original}/Maine_OriginalData_`year'.dta", replace
 clear
 
@@ -118,7 +118,7 @@ gen StateAssignedSchID1 = StateAssignedDistID + "-" + StateAssignedSchID
 tempfile temp1
 save "`temp1'", replace
 
-//2015 NCES has totally wrong seasch for some reason. Using 2016 NCES for 2015-16 SchYear
+//2015 NCES has unsuable seasch. Using 2016 NCES for 2015-16 SchYear
 
 //District
 keep if DataLevel ==2

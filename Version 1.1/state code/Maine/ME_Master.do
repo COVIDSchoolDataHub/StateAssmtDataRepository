@@ -187,6 +187,10 @@ if `year' == 2022 {
 	replace Lev1_percent = "--" if Subject == "sci"
 }
 
+//Post Launch Review Response
+drop if DistName == "Indian Island" //NCESDistrictID == 5900160
+drop if DistName == "Indian Township" // NCESDistrictID == 5900042
+drop if SchName == "Beatrice Rafferty School" //NCESSchoolID == 590013700042
 
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode

@@ -13,7 +13,7 @@ tempfile temp_combined
 save "`temp_combined'", replace emptyok
 foreach Subject in ela math sci {
 	
-	import excel "${Original}/Maine_OriginalData_`Subject'_2015", firstrow case(preserve)
+	import excel "${Original}/ME_OriginalData_`Subject'_2015", firstrow case(preserve)
 	gen Subject = "`Subject'"
 	append using "`temp_combined'"
 	save "`temp_combined'", replace
@@ -114,8 +114,9 @@ gen AvgScaleScore = "--"
 
 //Flags
 gen Flag_AssmtNameChange = "N"
-gen Flag_CutScoreChange_ELA = "N"
-gen Flag_CutScoreChange_math = "N"
+replace Flag_AssmtNameChange = "Y" if Subject != "sci"
+gen Flag_CutScoreChange_ELA = "Y"
+gen Flag_CutScoreChange_math = "Y"
 gen Flag_CutScoreChange_soc = "Not applicable"
 gen Flag_CutScoreChange_sci = "N"
 
@@ -123,6 +124,9 @@ gen Flag_CutScoreChange_sci = "N"
 foreach percent of varlist *_percent ParticipationRate  {
 	replace `percent' = string(real(`percent'), "%9.3g") if regexm(`percent', "[0-9]") !=0
 }
+
+replace CountyName = proper(CountyName)
+
 
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode

@@ -9,7 +9,7 @@ global NCES_District "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
 //Unhide below code on first run
 
 /*
-import delimited "${Original}/Maine_OriginalData_2023", case(preserve) clear
+import delimited "${Original}/ME_OriginalData_2023", case(preserve) clear
 save "${Original}/Maine_OriginalData_2023", replace
 */
 
@@ -191,8 +191,8 @@ replace StateFips = 23
 replace StateAbbrev = "ME"
 
 //GradeLevel
-drop if real(lowest_grade_offered) > 8  & !missing(lowest_grade_offered)
-drop if real(sch_lowest_grade_offered) > 8 & !missing(sch_lowest_grade_offered)
+drop if real(lowest_grade_offered) > 8  & !missing(real(lowest_grade_offered))
+drop if real(sch_lowest_grade_offered) > 8 & !missing(real(sch_lowest_grade_offered))
 drop lowest_grade_offered sch_lowest_grade_offered
 gen GradeLevel = "GZ"
 
@@ -237,6 +237,11 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 gen AllStudents = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
 replace AllStudents = AllStudents[_n-1] if missing(AllStudents)
 replace StudentGroup_TotalTested = AllStudents if regexm(StudentGroup_TotalTested, "[0-9]") ==0
+
+//Review Response
+drop if DistName == "Indian Island" //NCESDistrictID == 5900160
+drop if DistName == "Indian Township" // NCESDistrictID == 5900042
+drop if SchName == "Beatrice Rafferty School" //NCESSchoolID == 5900137
 
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode

@@ -4,7 +4,7 @@ set more off
 global Original "/Volumes/T7/State Test Project/Maine/Original Data Files"
 
 //2016-2022
-import excel "$Original/Maine_OriginalData_2016-2022", firstrow case(preserve) sheet("Assessments")
+import excel "$Original/ME_OriginalData_2016-2022", firstrow case(preserve) sheet("Assessments")
 save "$Original/Maine_OriginalData_2016-2022", replace
 forvalues year = 2016/2022 {
 	if `year' == 2020 continue
