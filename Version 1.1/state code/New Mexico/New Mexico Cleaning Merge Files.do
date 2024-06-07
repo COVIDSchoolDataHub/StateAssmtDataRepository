@@ -1,12 +1,12 @@
 clear
 set more off
 
-cd "/Users/maggie/Desktop/New Mexico"
+cd "/Volumes/T7/State Test Project/New Mexico"
 
-global NCESSchool "/Users/maggie/Desktop/New Mexico/NCES/School"
-global NCESDistrict "/Users/maggie/Desktop/New Mexico/NCES/District"
-global NCES "/Users/maggie/Desktop/New Mexico/NCES/Cleaned"
-global EDFacts "/Users/maggie/Desktop/EDFacts/Datasets"
+global NCESSchool "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global NCESDistrict "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global NCES "/Volumes/T7/State Test Project/New Mexico/NCES"
+global EDFacts "/Volumes/T7/State Test Project/EDFACTS"
 
 ** Preparing EDFacts files
 
@@ -22,7 +22,7 @@ foreach year of local edyears1 {
 				local prevyear = `year' - 1
 				use "${EDFacts}/20`year'/edfacts`type'20`year'`sub'`lvl'.dta", clear
 				keep if STNAM == "NEW MEXICO"
-				drop DATE_CUR CWD* HOM* MIG*
+				drop DATE_CUR
 				rename *_`prevyear'`year' *
 				if ("`sub'" == "math") {
 					rename *_MTH* **
@@ -38,7 +38,7 @@ foreach year of local edyears1 {
 					rename *PCTPART Participation*
 					drop *NUMPART
 				}
-				drop *HS *00 
+				drop *HS 
 				if ("`lvl'" == "school") & ("`type'" == "count") {
 					reshape long Count, i(NCESSCH) j(StudentSubGroup) string
 					gen DataLevel = 3
@@ -104,6 +104,7 @@ foreach year of local edyears1 {
 				drop Participation3
 			}
 			gen GradeLevel = "G" + substr(StudentSubGroup, -2, 2)
+			replace GradeLevel = "GZ" if GradeLevel == "G00"
 			replace StudentSubGroup = subinstr(StudentSubGroup, substr(StudentSubGroup, -2, 2), "", .)
 			replace StudentSubGroup = "All Students" if StudentSubGroup == "ALL"
 			replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "ECD"
@@ -116,11 +117,21 @@ foreach year of local edyears1 {
 			replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "MHI"
 			replace StudentSubGroup = "Two or More" if StudentSubGroup == "MTR"
 			replace StudentSubGroup = "White" if StudentSubGroup == "MWH"
+			replace StudentSubGroup = "SWD" if StudentSubGroup == "CWD"
+			replace StudentSubGroup = "Homeless" if StudentSubGroup == "HOM"
+			replace StudentSubGroup = "Migrant" if StudentSubGroup == "MIG"
+			replace StudentSubGroup = "Foster Care" if StudentSubGroup == "FCS"
+			replace StudentSubGroup = "Military" if StudentSubGroup == "MIL"
 			gen StudentGroup = "RaceEth"
 			replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
 			replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged"
 			replace StudentGroup = "Gender" if inlist(StudentSubGroup, "Female", "Male")
 			replace StudentGroup = "EL Status" if StudentSubGroup == "English Learner"
+			replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD"
+			replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless"
+			replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant"
+			replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Foster Care"
+			replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Military"
 			save "${EDFacts}/20`year'/edfacts`type'20`year'`lvl'newmexico.dta", replace
 		}
 	}
@@ -186,10 +197,10 @@ foreach year of local edyears2 {
 				replace Participation = "0-" + Participation3 if strpos(Participation, "LT") > 0
 				drop Participation3
 			}
-			drop if inlist(GRADE, "00", "HS")
+			drop if inlist(GRADE, "HS")
 			rename GRADE GradeLevel
 			replace GradeLevel = "G" + GradeLevel
-			drop if inlist(CATEGORY, "CWD", "FCS", "HOM", "MIG", "MIL")
+			replace GradeLevel = "GZ" if GradeLevel == "G00"
 			rename CATEGORY StudentSubGroup
 			replace StudentSubGroup = "All Students" if StudentSubGroup == "ALL"
 			replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "ECD"
@@ -202,11 +213,21 @@ foreach year of local edyears2 {
 			replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "MHI"
 			replace StudentSubGroup = "Two or More" if StudentSubGroup == "MTR"
 			replace StudentSubGroup = "White" if StudentSubGroup == "MWH"
+			replace StudentSubGroup = "SWD" if StudentSubGroup == "CWD"
+			replace StudentSubGroup = "Homeless" if StudentSubGroup == "HOM"
+			replace StudentSubGroup = "Migrant" if StudentSubGroup == "MIG"
+			replace StudentSubGroup = "Foster Care" if StudentSubGroup == "FCS"
+			replace StudentSubGroup = "Military" if StudentSubGroup == "MIL"
 			gen StudentGroup = "RaceEth"
 			replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
 			replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged"
 			replace StudentGroup = "Gender" if inlist(StudentSubGroup, "Female", "Male")
 			replace StudentGroup = "EL Status" if StudentSubGroup == "English Learner"
+			replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD"
+			replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless"
+			replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant"
+			replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Foster Care"
+			replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Military"
 			save "${EDFacts}/`year'/edfacts`type'`year'`lvl'newmexico.dta", replace
 		}
 	}
@@ -214,7 +235,7 @@ foreach year of local edyears2 {
 
 ** Preparing NCES files
 
-global years 2014 2015 2016 2017 2018 2020 2021
+global years 2014 2015 2016 2017 2018 2020 2021 2022
 
 foreach a in $years {
 	
@@ -230,11 +251,8 @@ foreach a in $years {
 	rename county_name CountyName
 	rename county_code CountyCode
 	rename lea_name DistName
-	drop year district_agency_type_num urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte
+	keep State StateAbbrev StateFips NCESDistrictID State_leaid DistType CountyName CountyCode DistLocale DistCharter DistName
 	
-	if(`a' != 2021){
-                 drop agency_charter_indicator
-				}
 	
 	save "${NCES}/NCES_`a'_District.dta", replace
 	
@@ -252,13 +270,17 @@ foreach a in $years {
 	rename lea_name DistName	
 	rename ncesschoolid NCESSchoolID
 	rename school_name SchName
-	rename school_type SchType
-	drop year district_agency_type_num school_id school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_lowest_grade_offered dist_highest_grade_offered dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch
+	if `a' == 2022 rename school_type SchType
+	if `a' == 2022 {
+		foreach var of varlist SchType SchLevel SchVirtual DistType {
+			decode `var', gen(temp)
+			drop `var'
+			rename temp `var'
+		}
+	} 
+	keep State StateAbbrev StateFips NCESDistrictID NCESSchoolID State_leaid DistType CountyName CountyCode DistLocale DistCharter SchName SchType SchVirtual SchLevel seasch DistName sch_lowest_grade_offered
 	drop if seasch == ""
-	
-	if(`a' != 2021){
-                 drop dist_agency_charter_indicator
-              }
+
 	
 	save "${NCES}/NCES_`a'_School.dta", replace
 	
