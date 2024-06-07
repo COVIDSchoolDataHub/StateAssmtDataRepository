@@ -253,12 +253,13 @@ replace Lev4_percent = string(1-real(Lev1_percent)-real(Lev3_percent)-real(Lev2_
 foreach var of varlist Lev*_percent {
 	replace `var' = "0" if strpos(`var', "e") !=0
 }
-replace Lev1_count = string(1-real(Lev2_count)-real(Lev3_count)-real(Lev4_count), "%9.3g") if regexm(Lev1_count, "[0-9]") == 0 & regexm(Lev2_count, "[0-9]") !=0 & regexm(Lev3_count, "[0-9]") !=0 & regexm(Lev4_count, "[0-9]") !=0
-replace Lev2_count = string(1-real(Lev1_count)-real(Lev3_count)-real(Lev4_count), "%9.3g") if regexm(Lev2_count, "[0-9]") == 0 & regexm(Lev1_count, "[0-9]") !=0 & regexm(Lev3_count, "[0-9]") !=0 & regexm(Lev4_count, "[0-9]") !=0
-replace Lev3_count = string(1-real(Lev2_count)-real(Lev1_count)-real(Lev4_count), "%9.3g") if regexm(Lev3_count, "[0-9]") == 0 & regexm(Lev1_count, "[0-9]") !=0 & regexm(Lev2_count, "[0-9]") !=0 & regexm(Lev4_count, "[0-9]") !=0
-replace Lev4_count = string(1-real(Lev1_count)-real(Lev3_count)-real(Lev2_count), "%9.3g") if regexm(Lev4_count, "[0-9]") == 0 & regexm(Lev1_count, "[0-9]") !=0 & regexm(Lev3_count, "[0-9]") !=0 & regexm(Lev2_count, "[0-9]") !=0
+replace Lev1_count = string(real(StudentSubGroup_TotalTested)-real(Lev2_count)-real(Lev3_count)-real(Lev4_count), "%9.3g") if regexm(Lev1_count, "[0-9]") == 0 & regexm(Lev2_count, "[0-9]") !=0 & regexm(Lev3_count, "[0-9]") !=0 & regexm(Lev4_count, "[0-9]") !=0 & !missing(real(StudentSubGroup_TotalTested))
+replace Lev2_count = string(real(StudentSubGroup_TotalTested)-real(Lev1_count)-real(Lev3_count)-real(Lev4_count), "%9.3g") if regexm(Lev2_count, "[0-9]") == 0 & regexm(Lev1_count, "[0-9]") !=0 & regexm(Lev3_count, "[0-9]") !=0 & regexm(Lev4_count, "[0-9]") !=0 & !missing(real(StudentSubGroup_TotalTested))
+replace Lev3_count = string(real(StudentSubGroup_TotalTested)-real(Lev2_count)-real(Lev1_count)-real(Lev4_count), "%9.3g") if regexm(Lev3_count, "[0-9]") == 0 & regexm(Lev1_count, "[0-9]") !=0 & regexm(Lev2_count, "[0-9]") !=0 & regexm(Lev4_count, "[0-9]") !=0 & !missing(real(StudentSubGroup_TotalTested))
+replace Lev4_count = string(real(StudentSubGroup_TotalTested)-real(Lev1_count)-real(Lev3_count)-real(Lev2_count), "%9.3g") if regexm(Lev4_count, "[0-9]") == 0 & regexm(Lev1_count, "[0-9]") !=0 & regexm(Lev3_count, "[0-9]") !=0 & regexm(Lev2_count, "[0-9]") !=0 & !missing(real(StudentSubGroup_TotalTested))
 foreach var of varlist Lev*_count {
 	replace `var' = "0" if strpos(`var', "e") !=0
+	replace `var' = "0" if real(`var') < 0 & !missing(real(`var'))
 }
 
 
