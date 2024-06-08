@@ -415,15 +415,6 @@ replace CountyCode = 0 if DistName == "Heartwood Public Charter School"
 */
 
 
-//Editing Flags and Assessment names in response to R1
-if `year' < 2015 replace AssmtName = "NECAP"
-if `year' == 2015 {
-	replace Flag_AssmtNameChange = "Y" if Subject != "sci"
-	replace Flag_CutScoreChange_ELA = "Y"
-	replace Flag_CutScoreChange_math = "Y"
-	replace Flag_CutScoreChange_sci = "N"
-}
-
 //Response to R2
 if `year' <= 2017 & `year' >= 2015 replace AssmtName = "NECAP" if Subject == "sci"
 if `year' >= 2018 replace AssmtName = "NH SAS"
@@ -433,6 +424,21 @@ foreach count of varlist *_count {
 local percent = subinstr("`count'","count","percent",.)
 replace `count' = string(round(real(`percent')*real(substr(StudentSubGroup_TotalTested,1,strpos(StudentSubGroup_TotalTested,"-")-1)))) + "-" + string(round(real(`percent')*real(substr(StudentSubGroup_TotalTested,strpos(StudentSubGroup_TotalTested,"-")+1,5)))) if !missing(real(`percent')) & regexm(StudentSubGroup_TotalTested, "[0-9]") !=0
 }
+
+//Flags
+if `year' == 2015 {
+	replace Flag_AssmtNameChange = "Y" if Subject != "sci"
+	replace Flag_CutScoreChange_ELA = "Y"
+	replace Flag_CutScoreChange_math = "Y"
+	
+}
+if `year' == 2018 {
+	replace Flag_AssmtNameChange = "Y"
+	replace Flag_CutScoreChange_math = "Y"
+	replace Flag_CutScoreChange_ELA = "Y"
+	replace Flag_CutScoreChange_sci = "Y"
+}
+
 
 //Final Cleaning
 
@@ -444,6 +450,7 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 duplicates drop
 save "${Output}/NH_AssmtData_`year'", replace
+export delimited "${Output}/NH_AssmtData_`year'", replace
 
 clear	
 }
@@ -549,6 +556,20 @@ drop if SchName == "MicroSociety Academy Charter School of Southern NH" & `year'
 foreach count of varlist *_count {
 local percent = subinstr("`count'","count","percent",.)
 replace `count' = string(round(real(`percent')*real(substr(StudentSubGroup_TotalTested,1,strpos(StudentSubGroup_TotalTested,"-")-1)))) + "-" + string(round(real(`percent')*real(substr(StudentSubGroup_TotalTested,strpos(StudentSubGroup_TotalTested,"-")+1,5)))) if !missing(real(`percent')) & regexm(StudentSubGroup_TotalTested, "[0-9]") !=0
+}
+
+//Flags
+if `year' == 2015 {
+	replace Flag_AssmtNameChange = "Y" if Subject != "sci"
+	replace Flag_CutScoreChange_ELA = "Y"
+	replace Flag_CutScoreChange_math = "Y"
+	
+}
+if `year' == 2018 {
+	replace Flag_AssmtNameChange = "Y"
+	replace Flag_CutScoreChange_math = "Y"
+	replace Flag_CutScoreChange_ELA = "Y"
+	replace Flag_CutScoreChange_sci = "Y"
 }
 
 
