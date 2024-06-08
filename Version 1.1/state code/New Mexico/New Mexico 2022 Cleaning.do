@@ -61,6 +61,15 @@ drop DataLevel
 rename nDataLevel DataLevel
 sort DataLevel
 
+//Fixing ID's
+drop StateAssignedDistID //DistCodes are wrong for several observations at the school level (referred to Names Sch Dist sheet from data request)
+tostring StateAssignedSchID, replace
+gen StateAssignedDistID = StateAssignedSchID if DataLevel == 2
+replace StateAssignedDistID = StateAssignedSchID if DataLevel !=1
+replace StateAssignedDistID = substr(StateAssignedDistID, 1, strlen(StateAssignedDistID)-3) if DataLevel !=1
+replace StateAssignedSchID = substr(StateAssignedSchID,-3,3)
+replace StateAssignedSchID = "" if DataLevel !=3
+
 //StudentSubGroup
 replace StudentSubGroup = proper(StudentSubGroup)
 replace StudentSubGroup = "All Students" if StudentSubGroup == "All"
@@ -113,19 +122,10 @@ foreach var of varlist ProficientOrAbove_count ProficientOrAbove_percent Partici
 gen GradeLevel = "GZ" //Using GZ as there is no GradeLevel specified, cannot determine if it's G38 or also includes high school
 
 //Merging NCES
-drop StateAssignedDistID //DistCodes are wrong for several observations at the school level (referred to Names Sch Dist sheet from data request)
-tostring StateAssignedSchID, replace
-replace StateAssignedSchID = "" if DataLevel ==1
-gen StateAssignedDistID = substr(StateAssignedSchID, 1, strlen(StateAssignedSchID)-3)
-gen seasch = StateAssignedSchID
-replace seasch = substr(seasch,-3,3)
-gen State_leaid = StateAssignedDistID
-replace State_leaid = "00" + State_leaid if strlen(State_leaid) ==1
-replace State_leaid = "0" + State_leaid if strlen(State_leaid) ==2
-replace seasch = State_leaid + "-" + seasch
-replace State_leaid = "NM-" + State_leaid
-replace seasch = "" if DataLevel !=3
-replace StateAssignedSchID = "" if DataLevel !=3
+replace StateAssignedDistID = "00" + StateAssignedDistID if strlen(StateAssignedDistID) == 1
+replace StateAssignedDistID = "0" + StateAssignedDistID if strlen(StateAssignedDistID) == 2
+gen State_leaid = "NM-" + StateAssignedDistID if DataLevel !=1
+gen seasch = StateAssignedDistID + "-" + StateAssignedSchID if DataLevel == 3
 
 
 //District
@@ -183,7 +183,23 @@ replace SchName = "All Schools" if DataLevel !=3
 //Doña Ana County
 replace CountyName = "Dona Ana County" if CountyCode == "35013"
 
+//Post launch response
+replace DistName = stritrim(DistName)
+replace SchName = stritrim(SchName)
 
+replace ProficientOrAbove_percent = "0" if strpos(ProficientOrAbove_percent, "e") !=0
+
+** Deriving Count Ranges where possible
+foreach count of varlist *_count {
+	local percent = subinstr("`count'","count","percent",.)
+	replace `count' = string(round(real(substr(`percent',1,strpos(`percent', "-")-1))*real(StudentSubGroup_TotalTested))) + "-" + string(round(real(substr(`percent',strpos(`percent', "-")+1,5))*real(StudentSubGroup_TotalTested))) if regexm(`percent', "[0-9]") !=0 & strpos(`percent', "-") !=0 & !missing(real(StudentSubGroup_TotalTested))
+}
+
+//Deriving Counts Where Possible
+foreach count of varlist *_count {
+local percent = subinstr("`count'", "count","percent",.)
+replace `count' = string(round(real(`percent')*real(StudentSubGroup_TotalTested))) if regexm(`count', "[0-9]") == 0 & regexm(`percent', "-") == 0 & regexm(`percent', "[0-9]") !=0 & regexm(StudentSubGroup_TotalTested, "[0-9]") !=0
+}
 
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode

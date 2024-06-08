@@ -410,15 +410,29 @@ append using "${output}/NM_AssmtData_2017"
 replace CountyName = "Dona Ana County" if CountyName == "DoÃ±a Ana County"
 replace AvgScaleScore = "--"
 
+
+//Deriving ProficientOrAbove_percent Where Possible
+replace ProficientOrAbove_percent = string(1-real(Lev1_percent)-real(Lev2_percent), "%9.3g") if !missing(real(Lev1_percent)) & !missing(real(Lev2_percent))  & Subject == "sci"
+replace ProficientOrAbove_percent = string(1-real(Lev1_percent)-real(Lev2_percent)-real(Lev3_percent), "%9.3g") if !missing(real(Lev1_percent)) & !missing(real(Lev2_percent)) & !missing(real(Lev3_percent))  & Subject != "sci"
+replace ProficientOrAbove_percent = "0" if strpos(ProficientOrAbove_percent, "e") !=0
+
+//Post launch response
+replace DistName = stritrim(DistName)
+replace SchName = stritrim(SchName)
+
 //Deriving Counts Where Possible
 foreach count of varlist *_count {
 local percent = subinstr("`count'", "count","percent",.)
 replace `count' = string(round(real(`percent')*real(StudentSubGroup_TotalTested))) if regexm(`count', "[0-9]") == 0 & regexm(`percent', "-") == 0 & regexm(`percent', "[0-9]") !=0 & regexm(StudentSubGroup_TotalTested, "[0-9]") !=0
 }
 
-//Deriving ProficientOrAbove_percent Where Possible
-replace ProficientOrAbove_percent = string(1-real(Lev1_percent)-real(Lev2_percent), "%9.3g") if !missing(real(Lev1_percent)) & !missing(real(Lev2_percent))  & Subject == "sci"
-replace ProficientOrAbove_percent = string(1-real(Lev1_percent)-real(Lev2_percent)-real(Lev3_percent), "%9.3g") if !missing(real(Lev1_percent)) & !missing(real(Lev2_percent)) & !missing(real(Lev3_percent))  & Subject != "sci"
+** Deriving Count Ranges where possible
+foreach count of varlist *_count {
+	local percent = subinstr("`count'","count","percent",.)
+	replace `count' = string(round(real(substr(`percent',1,strpos(`percent', "-")-1))*real(StudentSubGroup_TotalTested))) + "-" + string(round(real(substr(`percent',strpos(`percent', "-")+1,5))*real(StudentSubGroup_TotalTested))) if regexm(`percent', "[0-9]") !=0 & strpos(`percent', "-") !=0 & !missing(real(StudentSubGroup_TotalTested))
+}
+
+
 
 
 
