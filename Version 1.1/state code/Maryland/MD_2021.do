@@ -119,11 +119,13 @@ replace StateAbbrev = "MD"
 gen Flag_AssmtNameChange = "Y"
 gen Flag_CutScoreChange_ELA = "Y"
 gen Flag_CutScoreChange_math = "Y"
-gen Flag_CutScoreChange_sci = "Y"
+gen Flag_CutScoreChange_sci = "N"
 gen Flag_CutScoreChange_soc = "Not applicable"
 gen ProficiencyCriteria = "Levels 2-3"
 gen AssmtName = ""
-replace AssmtName = "MCAP Early Fall 2021 Assessment"
+replace AssmtName = "MCAP Early Fall 2021 Assessment" if Subject != "sci"
+replace AssmtName = "MISA Early Fall 2021 Assessment" if Subject == "sci"
+
 gen AssmtType = "Regular"
 foreach n in 1 2 3 4 5 {
 	gen Lev`n'_count = "--"
@@ -142,6 +144,9 @@ local percent = subinstr("`count'","count", "percent",.)
 replace `count' = string(round(real(`percent') * real(StudentSubGroup_TotalTested))) if !missing(real(`percent')) & !missing(real(StudentSubGroup_TotalTested)) & missing(real(`count'))
 replace `count' = string(round(real(substr(`percent', 1, strpos(`percent', "-")-1))*real(StudentSubGroup_TotalTested))) + "-" + string(round(real(substr(`percent',strpos(`percent', "-")+1,5))*real(StudentSubGroup_TotalTested))) if missing(real(`count')) & strpos(`percent', "-") !=0 & regexm(`percent', "[0-9]") !=0 & regexm(StudentSubGroup_TotalTested, "[0-9]") !=0
 }
+
+//Post Launch Review
+replace CountyName= "Baltimore City" if CountyCode == "24510"
 
 
 //Final Cleaning
