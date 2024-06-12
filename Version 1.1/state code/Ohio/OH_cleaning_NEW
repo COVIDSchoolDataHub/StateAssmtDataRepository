@@ -1,11 +1,15 @@
 clear
 set more off
+// local Original "/Volumes/T7/State Test Project/South Dakota/Original Data"
+// local Output "/Volumes/T7/State Test Project/South Dakota/Output"
+// local NCES "/Volumes/T7/State Test Project/NCES"
 
 global Original "/Users/benjaminm/Documents/State_Repository_Research/Ohio2024/Original"
 global Output "/Users/benjaminm/Documents/State_Repository_Research/Ohio2024/Output"
 global NCES_District "/Users/benjaminm/Documents/State_Repository_Research/NCES/District"
 global NCES_School "/Users/benjaminm/Documents/State_Repository_Research/NCES/School"
 global Stata_versions "/Users/benjaminm/Documents/State_Repository_Research/South Dakota/Stata .dta versions"
+global Original1 "/Users/benjaminm/Documents/State_Repository_Research/Ohio2024/Original/Ohio_Original_Files"
 
 
 //import excel "${Original}/ohio_data_data_request.xlsx", sheet(SCHOOL) firstrow clear
@@ -125,13 +129,35 @@ replace StudentGroup = "Economic Status" if StudentSubGroup == "Not Economically
 //gen StudentSubGroup_TotalTested = StudentGroup_TotalTested
 //destring StudentGroup_TotalTested, replace force ignore(",")
 // replace StudentGroup_TotalTested = -1000000 if StudentGroup_TotalTested == .
-bys StudentGroup Subject GradeLevel DistName SchName: egen StudentGroup_TotalTested = total(StudentSubGroup_TotalTested)
-replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
-tostring StudentGroup_TotalTested, replace
-replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
-destring StudentGroup_TotalTested, replace
-destring StudentSubGroup_TotalTested, replace
+// bys StudentGroup Subject GradeLevel DistName SchName: egen StudentGroup_TotalTested = total(StudentSubGroup_TotalTested)
+// replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
+// tostring StudentGroup_TotalTested, replace
+// replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
+// destring StudentGroup_TotalTested, replace
+// destring StudentSubGroup_TotalTested, replace
 
+
+// * Step 1: Create a variable to store the total number of students tested for "All Students"
+// gen all_students_tested = . 
+//
+// sort GradeLevel Subject DataLevel SchName DistName StudentGroup
+// * Step 2: Set this variable for the "All Students" group
+// by GradeLevel Subject DataLevel SchName DistName StudentGroup: replace all_students_tested = StudentGroup_TotalTested if StudentSubGroup == "All Students"
+//
+// * Step 3: Propagate this value to all observations within the same district, grade, and subject
+// by GradeLevel Subject DataLevel SchName DistName StudentGroup: replace all_students_tested = all_students_tested[_n-1] if missing(all_students_tested)
+//
+// * Step 4: Replace the StudentGroup_TotalTested with this propagated value for all groups
+// replace StudentGroup_TotalTested = all_students_tested
+//
+//  //SD reivew added 6/6/24
+//  sort GradeLevel Subject DataLevel SchName DistName StudentGroup
+// by GradeLevel Subject DataLevel SchName DistName (StudentGroup): gen all_students_tested = StudentGroup_TotalTested if StudentGroup == "All Students"
+// by GradeLevel Subject DataLevel SchName DistName: replace all_students_tested = all_students_tested[_n-1] if missing(all_students_tested)
+// replace StudentGroup_TotalTested = all_students_tested
+
+save test1, replace 
+use test1, clear 
 
 // levels 
 local a  "1 2 3 4 5 6" 
@@ -180,10 +206,6 @@ replace Flag_CutScoreChange_soc = "Not applicable"  if SchYear == "2018" | SchYe
 
 save  "${Output}/OH_AssmtData_Intermediate", replace 
 
-
-use  "${Output}/OH_AssmtData_Intermediate_2018", clear 
-
-use "${NCES_District}/NCES_2016_District", clear
 
 forvalues year = 2016/2023 {
 if `year' == 2020 continue
@@ -266,6 +288,15 @@ destring NCESDistrictID NCESSchoolID, replace
 replace DistName=strtrim(DistName) // adjusted district spacing
 replace SchName =strtrim(SchName) // adjusted school spacing
 
+gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+tostring StudentGroup_TotalTested, replace
+sort GradeLevel Subject DataLevel SchName DistName StudentGroup
+by GradeLevel Subject DataLevel SchName DistName (StudentGroup): gen all_students_tested = StudentGroup_TotalTested if StudentGroup == "All Students"
+by GradeLevel Subject DataLevel SchName DistName: replace all_students_tested = all_students_tested[_n-1] if missing(all_students_tested)
+replace StudentGroup_TotalTested = all_students_tested
+destring StudentGroup_TotalTested, replace
+
+
 // final cleaning and organizing 
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent Lev6_count Lev6_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
@@ -277,3 +308,159 @@ save "${Output}/OH_AssmtData_`year'", replace
 export delimited "${Output}/OH_AssmtData_`year'", replace
 
 } 
+
+
+* Load the data
+use "${Output}/OH_AssmtData_2021", clear
+
+forvalues year = 2016/2023 {
+if `year' == 2020 continue
+
+use  "${Output}/OH_AssmtData_`year'", clear 
+
+keep if DataLevel == 2
+
+destring Lev1_count Lev2_count Lev3_count Lev4_count Lev5_count Lev6_count ProficientOrAbove_count, replace ignore("*")
+* Aggregate the data to the state level
+collapse (sum) StudentSubGroup_TotalTested Lev1_count Lev2_count Lev3_count Lev4_count Lev5_count Lev6_count ProficientOrAbove_count, by(State StateAbbrev StateFips AssmtName AssmtType AvgScaleScore ProficiencyCriteria Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc SchYear Subject Grade StudentGroup StudentSubGroup)
+
+keep if StudentGroup == "RaceEth" | StudentGroup == "Gender" | StudentGroup == "All Students" 
+
+gen DistName = "All Districts"
+gen SchName = "All Schools"
+gen NCESDistrictID = .
+gen StateAssignedDistID = ""
+gen NCESSchoolID = .
+gen StateAssignedSchID = ""
+
+gen DataLevel = "State"
+
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+sort DataLevel_n 
+drop DataLevel 
+rename DataLevel_n DataLevel 
+
+
+local a  "1 2 3 4 5 6" 
+foreach b in `a' {	
+gen Lev`b'_percent = Lev`b'_count/StudentSubGroup_TotalTested
+}
+
+
+
+replace ProficientOrAbove_count = Lev3_count + Lev4_count + Lev5_count + Lev6_count
+gen ProficientOrAbove_percent = ProficientOrAbove_count/StudentSubGroup_TotalTested
+gen ParticipationRate = . 
+
+gen DistType = ""
+gen DistCharter = ""
+gen DistLocale = ""
+
+gen SchType = . 
+gen SchLevel = . 
+gen SchVirtual = . 
+gen CountyName = ""
+gen CountyCode = ""
+
+gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+tostring StudentGroup_TotalTested, replace
+sort GradeLevel Subject DataLevel SchName DistName StudentGroup
+by GradeLevel Subject DataLevel SchName DistName (StudentGroup): gen all_students_tested = StudentGroup_TotalTested if StudentGroup == "All Students"
+by GradeLevel Subject DataLevel SchName DistName: replace all_students_tested = all_students_tested[_n-1] if missing(all_students_tested)
+replace StudentGroup_TotalTested = all_students_tested
+destring StudentGroup_TotalTested, replace
+
+
+
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent Lev6_count Lev6_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent Lev6_count Lev6_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
+// tostring StudentGroup_TotalTested, replace
+
+
+local a  "1 2 3 4 5 6" 
+foreach b in `a' {	
+tostring Lev`b'_percent, replace force 
+tostring Lev`b'_count, replace force
+}
+
+tostring ProficientOrAbove_count, replace force 
+tostring ProficientOrAbove_percent, replace force 
+
+append using  "${Output}/OH_AssmtData_`year'"
+ 
+
+save "${Output}/OH_AssmtData_`year'_x", replace
+}
+
+
+
+
+
+forvalues year = 2016/2023 {
+if `year' == 2020 continue
+	
+//import delimited "${Original1}/OH_AssmtData_`year'", case(preserve) clear  
+//save "${Original1}/OH_OG_AssmtData_`year'", replace 
+use "${Original1}/OH_OG_AssmtData_`year'", clear 
+
+
+
+// import all files, then run 
+
+// use "${Original1}/OH_OG_AssmtData_2016", clear 
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+sort DataLevel_n 
+drop DataLevel 
+rename DataLevel_n DataLevel 
+
+keep if DataLevel == 1
+
+destring StudentSubGroup_TotalTested ProficientOrAbove_percent, ignore("--") replace
+drop ProficientOrAbove_count
+gen ProficientOrAbove_count = round(ProficientOrAbove_percent*StudentSubGroup_TotalTested, 1)
+tostring ProficientOrAbove_percent ProficientOrAbove_count, replace force 
+// replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
+replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == "."
+replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == "."
+ 
+gen Lev6_count = "--"
+gen Lev6_percent = "--"
+
+keep Subject GradeLevel DataLevel Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent Lev6_count Lev6_percent StudentSubGroup_TotalTested ProficientOrAbove_percent ProficientOrAbove_count StudentSubGroup DistName SchName 
+
+merge 1:m DistName SchName Subject GradeLevel DataLevel StudentSubGroup using "${Output}/OH_AssmtData_`year'_x"
+drop if _merge == 1
+
+drop StudentGroup_TotalTested
+gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+tostring StudentGroup_TotalTested, replace
+sort GradeLevel Subject DataLevel SchName DistName StudentGroup
+by GradeLevel Subject DataLevel SchName DistName (StudentGroup): gen all_students_tested = StudentGroup_TotalTested if StudentGroup == "All Students"
+by GradeLevel Subject DataLevel SchName DistName: replace all_students_tested = all_students_tested[_n-1] if missing(all_students_tested)
+replace StudentGroup_TotalTested = all_students_tested
+destring StudentGroup_TotalTested, replace
+
+
+tostring StudentGroup_TotalTested StudentSubGroup_TotalTested, replace
+replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested == "."
+replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
+
+
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent Lev6_count Lev6_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent Lev6_count Lev6_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
+
+save "${Output}/OH_AssmtData_`year'", replace
+export delimited "${Output}/OH_AssmtData_`year'", replace
+
+}
+
+
