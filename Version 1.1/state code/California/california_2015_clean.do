@@ -10,11 +10,11 @@ log using california_cleaning.log, replace
 
 
 // set file directory to cleaned DTA folder
-cd "/Users/minnamgung/Desktop/SADR/California/Cleaned DTA"
+cd "/Volumes/T7/State Test Project/California/Cleaned DTA"
 
-global nces "/Users/minnamgung/Desktop/SADR/California/NCES"
-global output "/Users/minnamgung/Desktop/SADR/California/Output"
-global unmerged "/Users/minnamgung/Desktop/SADR/California/Unmerged Districts"
+global nces "/Volumes/T7/State Test Project/California/NCES"
+global output "/Volumes/T7/State Test Project/California/Output"
+global unmerged "/Volumes/T7/State Test Project/California/Unmerged Districts With NCES"
 
 
 
@@ -51,6 +51,7 @@ gen DataLevel = "School"
 replace DataLevel = "District" if SchoolCode == 0
 replace DataLevel = "County" if DistrictCode == 0 & SchoolCode == 0
 replace DataLevel = "State" if CountyCode == 0 & DistrictCode == 0 & SchoolCode == 0
+drop if DataLevel == "County"
 
 rename TestYear SchYear
 rename DistrictCode StateAssignedDistID
@@ -76,9 +77,18 @@ drop StudentGroupID
 replace DistName = ustrtitle(DistName)
 replace CountyName = ustrtitle(CountyName)
 
+drop CountyName
+
+tostring CountyCode StateAssignedDistID, replace
+replace CountyCode = "0" + CountyCode if strlen(CountyCode) == 1
+gen State_leaid = CountyCode + StateAssignedDistID
+
+
 drop CountyCode
 
-merge m:m DistName using "${nces}/1_NCES_2014_District_With_Extra_Districts", force
+
+//NCES Merging
+merge m:1 State_leaid using "${nces}/1_NCES_2014_District.dta"
 rename _merge DistMerge
 drop if DistMerge == 2
 
@@ -88,17 +98,14 @@ rename DUMMY StateAssignedSchID
 
 rename StateAssignedSchID seasch1
 
-merge m:m seasch1 using "${nces}/1_NCES_2014_School.dta", force
+merge m:1 seasch1 using "${nces}/1_NCES_2014_School.dta", force
 rename _merge SchoolMerge
 drop if SchoolMerge == 2
 drop if SchoolMerge == 1 & SchName != ""
 
 rename seasch1 StateAssignedSchID
 
-//New ADDED
-drop if DataLevel == "County"
-
-
+//DataLevel
 label def DataLevel 1 "State" 2 "District" 3 "School"
 encode DataLevel, gen(DataLevel_n) label(DataLevel)
 sort DataLevel_n 
@@ -124,8 +131,8 @@ gen Flag_AssmtNameChange = "Y"
 gen Flag_CutScoreChange_ELA = "Y"
 gen Flag_CutScoreChange_math = "Y"
 // gen Flag_CutScoreChange_read = ""
-gen Flag_CutScoreChange_sci = ""
-gen Flag_CutScoreChange_soc = ""
+gen Flag_CutScoreChange_sci = "Not applicable"
+gen Flag_CutScoreChange_soc = "Not applicable"
  
 
 gen SchYear2 = "2014-15"
@@ -266,19 +273,6 @@ rename StudentSubGroup_TotalTested1 StudentSubGroup_TotalTested
 
 
 
-// NEW ADDED 
-
-
-
-tostring StateAssignedDistID, gen (StateAssignedDistID1)
-drop StateAssignedDistID
-rename StateAssignedDistID1 StateAssignedDistID
-
-
-decode SchVirtual, gen (SchVirtual1)
-drop SchVirtual
-rename SchVirtual1 SchVirtual
-
 // New ADDED 2 
 replace Lev1_percent = "-99999999" if Lev1_percent == "*"
 replace Lev2_percent = "-99999999" if Lev2_percent == "*"
@@ -406,17 +400,31 @@ foreach var of local nomissing {
 	replace `var'="*" if `var'=="."
 }
 
-	keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+//Deriving Counts where possible
+replace ProficientOrAbove_count = "--" if missing(ProficientOrAbove_count)
+foreach count of varlist *_count {
+local percent = subinstr("`count'","count", "percent",.)
+replace `count' = string(round(real(`percent') * real(StudentSubGroup_TotalTested))) if !missing(real(`percent')) & !missing(real(StudentSubGroup_TotalTested)) & missing(real(`count'))
+}
+
+//ParticipationRate Updates
+format ParticipationRate %9.3g
+tostring ParticipationRate, replace usedisplayformat force
+replace ParticipationRate = "--" if ParticipationRate == "."
+
+//Other Updates
+replace CountyName = proper(CountyName) if CountyName != "Missing/not reported"
+
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 	
-	order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 	
-	sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 //NEW ADDED
 
 drop if missing(Subject)
 
 save "${output}/CA_AssmtData_2015_Stata", replace
-export delimited "${output}/CA_AssmtData_2015.csv", replace 
 
 
 

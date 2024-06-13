@@ -1,12 +1,14 @@
 cap log close
+set trace off
 log using california_cleaning.log, replace
 
-cd "/Users/minnamgung/Desktop/SADR/California"
+cd "/Volumes/T7/State Test Project/California"
 
 
 // unmerged districts, available on gdrive
-global unmerged "/Users/minnamgung/Desktop/SADR/California/Unmerged Districts"
-global nces "/Users/minnamgung/Desktop/SADR/California/NCES"
+global unmerged "/Volumes/T7/State Test Project/California/Unmerged Districts With NCES"
+global nces "/Volumes/T7/State Test Project/California/NCES"
+global NCESOld "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
 
 
 // 2022
@@ -17,7 +19,7 @@ gen State = "California"
 gen StateAbbrev = "CA"
 gen StateFips = 6 
 gen CountyName = ""
-gen CountyCode = . 
+gen CountyCode = .
 
 rename Charter DistCharter
 rename DistrictType DistType
@@ -80,8 +82,6 @@ rename State_leaid1 State_leaid
 
 append using "${unmerged}/CA_Unmerged_Districts_2022_With_NCES.dta"
 
-drop lea_type
-
 keep State StateAbbrev StateFips DistType NCESDistrictID State_leaid DistCharter DistLocale CountyName CountyCode DistName 
 
 save "${nces}/1_NCES_2022_District_With_Extra_Districts", replace
@@ -119,4 +119,15 @@ foreach a in $year {
 	append using "${unmerged}/CA_Unmerged_Districts_`a'_With_NCES.dta"
 	save "${nces}/1_NCES_`prevyear'_District_With_Extra_Districts", replace
 }
+
+
+
+
+
+
+
+
+
+
+
 

@@ -10,11 +10,11 @@ log using california_cleaning.log, replace
 
 
 // set file directory to cleaned DTA folder
-cd "/Users/minnamgung/Desktop/SADR/California/Cleaned DTA"
+cd "/Volumes/T7/State Test Project/California/Cleaned DTA"
 
-global nces "/Users/minnamgung/Desktop/SADR/California/NCES"
-global output "/Users/minnamgung/Desktop/SADR/California/Output"
-global unmerged "/Users/minnamgung/Desktop/SADR/California/Unmerged Districts"
+global nces "/Volumes/T7/State Test Project/California/NCES"
+global output "/Volumes/T7/State Test Project/California/Output"
+global unmerged "/Volumes/T7/State Test Project/California/Unmerged Districts With NCES"
 
 
 // 2022-23 School Year 
@@ -59,7 +59,7 @@ gen DataLevel = "School"
 replace DataLevel = "District" if SchoolCode == 0
 replace DataLevel = "County" if DistrictCode == 0 & SchoolCode == 0
 replace DataLevel = "State" if CountyCode == 0 & DistrictCode == 0 & SchoolCode == 0
-
+drop if DataLevel == "County"
 
 rename TestYear SchYear
 rename DistrictCode StateAssignedDistID
@@ -88,13 +88,17 @@ replace DistName = "Shanel Valley Academy" if DistName == "Shanél Valley Academ
 
 
 replace DistName = ustrtitle(DistName)
-replace CountyName = ustrtitle(CountyName)
+*replace CountyName = ustrtitle(CountyName)
+drop CountyName
+
+tostring CountyCode StateAssignedDistID, replace
+replace CountyCode = "0" + CountyCode if strlen(CountyCode) == 1
+gen State_leaid = CountyCode + StateAssignedDistID
+drop CountyCode
 
 replace DistName = "Voices College-Bound Language Academy At" if DistName == "Voices College Bound Language Academy At" 
 
-drop CountyCode
-
-merge m:m DistName using "${nces}/1_NCES_2022_District_With_Extra_Districts.dta", force // CHANGED
+merge m:m DistName using "${nces}/1_NCES_2022_District_With_Extra_Districts.dta"
 rename _merge DistMerge
 
 replace State_leaid = "Missing/Not Reported" if DistMerge == 1 & CountyCode != 0 //& StateAssignedSchID == 0
@@ -118,18 +122,17 @@ replace DistName=DistName+" District" if strpos(DistName, "District")<1 & DataLe
 merge m:m seasch2 using "${nces}/1_NCES_2022_School.dta", force // CHANGED
 rename _merge SchoolMerge
 
+/*
 merge m:m DistName using "${nces}/1_NCES_2022_School.dta", keepusing(DistType State_leaid DistCharter NCESDistrictID) update
 
 drop _merge
+*/
 
 drop if SchoolMerge == 2
 drop if SchoolMerge == 1 & SchName != ""
 // drop SchoolMerge
 
 rename seasch2 StateAssignedSchID // CHANGED
-
-//New ADDED
-drop if DataLevel == "County"
 
 
 label def DataLevel 1 "State" 2 "District" 3 "School"
@@ -156,8 +159,8 @@ gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
 // gen Flag_CutScoreChange_read = ""
-gen Flag_CutScoreChange_sci = ""
-gen Flag_CutScoreChange_soc = ""
+gen Flag_CutScoreChange_sci = "Not applicable"
+gen Flag_CutScoreChange_soc = "Not applicable"
 
 
 gen SchYear2 = "2022-23"
@@ -300,16 +303,6 @@ drop StudentGroup_TotalTested
 rename StudentGroup_TotalTested1 StudentGroup_TotalTested
 // CHANGED
 
-
-
-// NEW ADDED 
-
-tostring StateAssignedDistID, gen (StateAssignedDistID1)
-drop StateAssignedDistID
-rename StateAssignedDistID1 StateAssignedDistID
-
-// NEW EDITED
-
 // New ADDED 2 
 replace Lev1_percent = "-99999999" if Lev1_percent == "*"
 replace Lev2_percent = "-99999999" if Lev2_percent == "*"
@@ -427,6 +420,18 @@ local nomissing Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_
 foreach var of local nomissing {
 	replace `var'="*" if `var'=="."
 }
+
+//Deriving Counts where possible
+replace ProficientOrAbove_count = "--" if missing(ProficientOrAbove_count)
+foreach count of varlist *_count {
+local percent = subinstr("`count'","count", "percent",.)
+replace `count' = string(round(real(`percent') * real(StudentSubGroup_TotalTested))) if !missing(real(`percent')) & !missing(real(StudentSubGroup_TotalTested)) & missing(real(`count'))
+}
+
+//ParticipationRate Updates
+format ParticipationRate %9.3g
+tostring ParticipationRate, replace usedisplayformat force
+replace ParticipationRate = "--" if ParticipationRate == "."
 
 	keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 	

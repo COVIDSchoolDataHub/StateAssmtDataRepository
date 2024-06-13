@@ -1,22 +1,15 @@
 clear
 set more off
-
+set trace off
 cap log close
 log using california_nces_cleaning.log, replace
 
-cd "/Users/minnamgung/Desktop/SADR/California"
+cd "/Volumes/T7/State Test Project/California"
 
-global NCESOld "/Users/minnamgung/Desktop/SADR/NCESOld"
-global California1 "/Users/minnamgung/Desktop/SADR/California/NCES"
+global NCESOld "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global California1 "/Volumes/T7/State Test Project/California/NCES"
 
-**********************************************
-
-/// NCES cleaning from 2013 to 2021
-/// Update: we are adding DistLocale
-
-**********************************************
-
-global years 2009 2010 2011 2012 2013 2014 2015 2016 2017 2018 2019 2020 2021
+global years 2009 2010 2011 2012 2013 2014 2015 2016 2017 2018 2019 2020 2021 2022
 
 foreach a in $years {
 	
@@ -24,42 +17,52 @@ foreach a in $years {
 	use "${NCESOld}/NCES_`a'_School.dta", clear
 	keep if state_fips == 6
 	
-	// rename state_name State
 	gen State = "California"
 	rename state_location StateAbbrev
 	rename state_fips StateFips
 	rename ncesdistrictid NCESDistrictID
 	rename state_leaid State_leaid
 	rename district_agency_type DistType
-	// rename charter Charter
 	rename county_name CountyName
 	rename county_code CountyCode
+	destring CountyCode, replace
 	rename ncesschoolid NCESSchoolID
-	rename school_type SchType
-	rename dist_urban_centric_locale DistLocale
-	// rename virtual Virtual  // Might not work for 2021
-	//rename school_level SchLevel
+	rename lea_name DistName1
 	
-	foreach v of varlist SchLevel SchType DistType DistLocale {
+	if `a' == 2022 {
+		decode DistType, gen(temp)
+		drop DistType
+		rename temp DistType
+		rename school_type SchType
+	}
+	
+	foreach v of varlist SchLevel SchVirtual SchType {
 		decode `v', generate(`v'1)
 		drop `v' 
 		rename `v'1 `v'
 	}
 	
+	//Dealing with duplicate seasch values
+	duplicates tag seasch, gen(ind)
+	tab ind
+	tab school_name if ind !=0
+	duplicates drop seasch, force  //Arbitary decision, NCES ID's are different, DistTypes are different, but they all seem to be the same school based on ID and school_name
+	
+
 	replace State_leaid = subinstr(State_leaid, "CA-", "", .)
 	split seasch, parse("-")
 	
 	if `a' == 2009 | `a' == 2010 | `a' == 2011 | `a' == 2012 | `a' == 2013 | `a' == 2014 | `a' == 2015 {
 	
-	order State StateAbbrev StateFips SchType NCESDistrictID NCESSchoolID seasch1 DistType DistCharter DistLocale SchLevel SchVirtual CountyName CountyCode
-	keep State StateAbbrev StateFips SchType NCESDistrictID NCESSchoolID seasch1 DistType DistCharter DistLocale SchLevel SchVirtual CountyName CountyCode
+	order State StateAbbrev StateFips SchType NCESDistrictID DistName1 NCESSchoolID seasch1 DistType DistCharter DistLocale SchLevel SchVirtual CountyName CountyCode school_name
+	keep State StateAbbrev StateFips SchType NCESDistrictID DistName1 NCESSchoolID seasch1 DistType DistCharter DistLocale SchLevel SchVirtual CountyName CountyCode school_name
 	}
 	
 	
-	if `a' == 2016 | `a' == 2017 | `a' == 2018 | `a' == 2019 | `a' == 2020 | `a' == 2021 {
-	order State StateAbbrev StateFips SchType NCESDistrictID NCESSchoolID seasch2 DistType DistCharter DistLocale SchLevel SchVirtual CountyName CountyCode
-	keep State StateAbbrev StateFips SchType NCESDistrictID NCESSchoolID seasch2 DistType DistCharter DistLocale SchLevel SchVirtual CountyName CountyCode
-	
+	if `a' == 2016 | `a' == 2017 | `a' == 2018 | `a' == 2019 | `a' == 2020 | `a' == 2021 | `a' == 2022 {
+	order State StateAbbrev StateFips SchType NCESDistrictID DistName1 NCESSchoolID seasch2 DistType DistCharter DistLocale SchLevel SchVirtual CountyName CountyCode school_name
+	keep State StateAbbrev StateFips SchType NCESDistrictID DistName1 NCESSchoolID seasch2 DistType DistCharter DistLocale SchLevel SchVirtual CountyName CountyCode school_name
+	duplicates drop seasch2, force
 	}
 
 	
@@ -69,42 +72,23 @@ foreach a in $years {
 	keep if state_fips == 6
 	
 	gen State = "California"
-	// rename state_name State
 	rename state_location StateAbbrev
 	rename state_fips StateFips
 	rename ncesdistrictid NCESDistrictID
 	rename state_leaid State_leaid
 	rename lea_name DistName
+	rename district_agency_type DistType
 	// rename district_agency_type DistType
 	rename county_name CountyName
 	rename county_code CountyCode
-	rename urban_centric_locale DistLocale
+	destring CountyCode, replace force
 	
 	replace State_leaid = subinstr(State_leaid, "CA-", "", .)
 	replace DistName = subinstr(DistName, "District", "", .)
 	replace DistName = strrtrim(DistName)
 	
-	
-		if `a' != 2010 { // | `a' == 2017 | `a' == 2018 | `a' == 2019 | `a' == 2020 | `a' == 2021 
-	
-	rename district_agency_type DistType
-	
 
-	}
 	
-	if `a' == 2010 {
-
-	rename agency_type DistType
-
-	}
-	
-	decode DistType, gen (DistType1)
-    drop DistType
-    rename DistType1 DistType
-	
-	decode DistLocale, generate(DistLocale1)
-	drop DistLocale
-	rename DistLocale1 DistLocale
 	
 	if `a' == 2009 | `a' == 2010 | `a' == 2011 | `a' == 2012 | `a' == 2013 {
 	
@@ -133,68 +117,3 @@ replace DistName = subinstr(DistName," Elem", " Elementary" , .)
 	replace DistName = ustrtitle(DistName)
 	
 save "${California1}/1_NCES_2012_District.dta", replace
-
-
-**********************************************
-
-/// NCES cleaning 2022 (incomplete file)
-/// Merge in DistLocale, CountyName, CountyCode
-/// from the 2021 file until we receive update
-
-**********************************************
-
-/// School 
-
-use "${NCESOld}/NCES_2022_School.dta", clear
-
-keep if StateAbbrev=="CA"
-rename SchoolType SchType
-
-gen seasch = substr(st_schid, 4, .)
-
-replace NCESSchoolID="0"+NCESSchoolID
-
-merge 1:1 NCESSchoolID using "${California1}/1_NCES_2021_School.dta", keepusing (DistLocale CountyCode CountyName DistType)
-
-foreach v of varlist DistLocale CountyName DistType {
-	replace `v'="Missing/not reported" if _merge==1
-}
-
-replace CountyCode=. if _merge==1
-
-drop if _merge==2
-drop _merge SchYear sy_status_text st_schid schid
-
-drop StateFips
-gen StateFips=6
-
-save "${California1}/1_NCES_2022_School.dta", replace
-
-
-/// District
-
-use "${NCESOld}/NCES_2022_District.dta", clear
-
-keep if StateAbbrev=="CA"
-
-rename ncesdistrictid NCESDistrictID
-
-replace NCESDistrictID="0"+NCESDistrictID
-
-merge 1:1 NCESDistrictID using "${California1}/1_NCES_2021_District.dta", keepusing (DistLocale CountyCode CountyName DistCharter)
-
-foreach v of varlist DistLocale CountyName {
-	replace `v'="Missing/not reported" if _merge==1
-}
-
-replace CountyCode=. if _merge==1
-
-drop if _merge==2
-drop _merge SchYear effective_date updated_status_text
-
-
-
-drop StateFips
-gen StateFips=6
-
-save "${California1}/1_NCES_2022_District.dta", replace
