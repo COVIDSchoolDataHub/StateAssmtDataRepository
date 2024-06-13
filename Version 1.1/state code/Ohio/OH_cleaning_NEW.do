@@ -4,20 +4,20 @@ set more off
 // local Output "/Volumes/T7/State Test Project/South Dakota/Output"
 // local NCES "/Volumes/T7/State Test Project/NCES"
 
-global Original "/Users/benjaminm/Documents/State_Repository_Research/Ohio2024/Original"
-global Output "/Users/benjaminm/Documents/State_Repository_Research/Ohio2024/Output"
-global NCES_District "/Users/benjaminm/Documents/State_Repository_Research/NCES/District"
-global NCES_School "/Users/benjaminm/Documents/State_Repository_Research/NCES/School"
-global Stata_versions "/Users/benjaminm/Documents/State_Repository_Research/South Dakota/Stata .dta versions"
-global Original1 "/Users/benjaminm/Documents/State_Repository_Research/Ohio2024/Original/Ohio_Original_Files"
+global Original "/Volumes/T7/State Test Project/Ohio/Original"
+global Output "/Volumes/T7/State Test Project/Ohio/Output"
+global NCES_District "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global NCES_School "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global Stata_versions "/Volumes/T7/State Test Project/Ohio/Stata Versions"
+global Original1 "/Volumes/T7/State Test Project/Ohio/Old_Output_Data"
 
 
-//import excel "${Original}/ohio_data_data_request.xlsx", sheet(SCHOOL) firstrow clear
-//save "${Original}/OH_OriginalData_School.dta" , replace
-use "${Original}/OH_OriginalData_School.dta" , clear
+// import excel "${Original}/ohio_data_data_request.xlsx", sheet(SCHOOL) firstrow clear
+// save "${Original}/OH_OriginalData_School.dta" , replace
+// use "${Original}/OH_OriginalData_School.dta" , clear
 
-//import excel "${Original}/ohio_data_data_request.xlsx", sheet(DISTRICT) firstrow clear
-//save "${Original}/OH_OriginalData_District.dta" , replace
+// import excel "${Original}/ohio_data_data_request.xlsx", sheet(DISTRICT) firstrow clear
+// save "${Original}/OH_OriginalData_District.dta" , replace
 use "${Original}/OH_OriginalData_District.dta" , clear
 
 
@@ -403,8 +403,8 @@ save "${Output}/OH_AssmtData_`year'_x", replace
 forvalues year = 2016/2023 {
 if `year' == 2020 continue
 	
-//import delimited "${Original1}/OH_AssmtData_`year'", case(preserve) clear  
-//save "${Original1}/OH_OG_AssmtData_`year'", replace 
+// import delimited "${Original1}/OH_AssmtData_`year'", case(preserve) clear  
+// save "${Original1}/OH_OG_AssmtData_`year'", replace 
 use "${Original1}/OH_OG_AssmtData_`year'", clear 
 
 
@@ -449,6 +449,44 @@ destring StudentGroup_TotalTested, replace
 tostring StudentGroup_TotalTested StudentSubGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested == "."
 replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
+
+//Response to Review - 6/13/24
+replace SchName = stritrim(SchName)
+
+** Applying NCES labels to SchType SchLevel & SchVirtual
+label define SchType 1 "Regular school" , modify
+label define SchType 2 "Special education school", modify
+label define SchType 3 "Vocational school", modify
+label define SchType 4 "Other/alternative school", modify
+label define SchType 5 "Reportable program", modify
+label define SchLevel -2 "Not applicable", modify
+label define SchLevel -1 "Missing/not reported", modify
+label define SchLevel 0 "Prekindergarten", modify
+label define SchLevel 1 "Primary", modify
+label define SchLevel 2 "Middle", modify
+label define SchLevel 3 "High", modify
+label define SchLevel 4 "Other", modify
+label define SchLevel 5 "Ungraded", modify
+label define SchLevel 6 "Adult Education", modify
+label define SchLevel 7 "Secondary", modify
+label define SchVirtual -1 "Missing/not reported", modify
+label define SchVirtual 0 "No", modify
+label define SchVirtual 1 "Yes", modify
+label define SchVirtual 2 "Virtual with face to face options", modify
+label define SchVirtual 3 "Supplemental virtual", modify
+
+
+
+foreach var of varlist SchLevel SchType SchVirtual {
+	label values `var' `var'
+}
+
+//ParticipationRate
+gen sParticipationRate = string(ParticipationRate, "%9.3g")
+drop ParticipationRate
+rename sParticipationRate ParticipationRate
+replace ParticipationRate = "--" if ParticipationRate == "."
+
 
 
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent Lev6_count Lev6_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
