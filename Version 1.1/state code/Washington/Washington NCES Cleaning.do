@@ -1,91 +1,70 @@
 clear
 set more off
+set trace off
+global raw "/Volumes/T7/State Test Project/Washington/Original Data Files"
+global output "/Volumes/T7/State Test Project/Washington/Output"
+global NCESOLD "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global NCES "/Volumes/T7/State Test Project/Washington/NCES"
 
-cd "/Users/minnamgung/Desktop/SADR/Washington"
 
-global raw "/Users/minnamgung/Desktop/SADR/Washington/Original Data Files"
-global output "/Users/minnamgung/Desktop/SADR/Washington/Output"
-global NCES "/Users/minnamgung/Desktop/SADR/Washington/NCES"
-
-global NCESOLD "/Users/minnamgung/Desktop/SADR/NCESOld"
+** Preparing NCES files
 
 global years 2014 2015 2016 2017 2018 2020 2021 2022
 
-foreach year in $years {
+foreach a in $years {
 	
-	use "${NCESOLD}/NCES_`year'_District.dta", clear 
+	use "${NCESOLD}/NCES_`a'_District.dta", clear 
+	keep if state_location == "WA"
 	
+	rename state_name State
+	rename state_location StateAbbrev
+	rename state_fips StateFips
 	rename ncesdistrictid NCESDistrictID
 	rename state_leaid State_leaid
-	rename lea_name DistName
+	rename district_agency_type DistType
 	rename county_name CountyName
 	rename county_code CountyCode
-	rename district_agency_type DistType
+	rename lea_name DistName
+	keep State StateAbbrev StateFips NCESDistrictID State_leaid DistType CountyName CountyCode DistLocale DistCharter DistName
 	
-	if `year' != 2022 {
+	
+	save "${NCES}/NCES_`a'_District.dta", replace
+	
+	use "${NCESOLD}/NCES_`a'_School.dta", clear
 	keep if state_location == "WA"
+	
 	rename state_name State
-	decode State, gen (State1)
-	drop State
-	rename State1 State
 	rename state_location StateAbbrev
 	rename state_fips StateFips
-	
-	rename urban_centric_locale DistLocale
-	
-	foreach v of varlist DistType DistLocale {
-	decode `v', gen (`v'1)
-	drop `v'
-	rename `v'1 `v'
-	}
-	}
-	
-	if `year' == 2022 {
-	keep if state_fips_id == 53
-	gen StateAbbrev = "WA"
-	rename state_fips_id StateFips
-	}
-
-	
-	save "${NCES}/NCES_`year'_District.dta", replace
-	
-	use "${NCESOLD}/NCES_`year'_School.dta", clear
-	
-	if `year' != 2022 {
-	keep if state_location == "WA"
-	rename state_name State
-	decode State, gen (State1)
-	drop State
-	rename State1 State
-	rename state_location StateAbbrev
-	rename state_fips StateFips
-}
-
-if `year' == 2022 {
-	keep if state_fips_id == 53
-	gen StateAbbrev = "WA"
-	rename state_fips_id StateFips
-	drop DistLocale
-}
-	
 	rename ncesdistrictid NCESDistrictID
-rename state_leaid State_leaid
-rename lea_name DistName
-rename county_name CountyName
-rename county_code CountyCode
-rename school_name SchName
-rename school_type SchType
-rename district_agency_type DistType
-rename ncesschoolid NCESSchoolID
-rename dist_urban_centric_locale DistLocale
-
-foreach v of varlist DistType SchVirtual SchLevel SchType DistLocale {
-	decode `v', gen (`v'1)
-	drop `v'
-	rename `v'1 `v'
-}
+	rename state_leaid State_leaid
+	rename district_agency_type DistType	
+	rename county_name CountyName
+	rename county_code CountyCode
+	rename lea_name DistName	
+	rename ncesschoolid NCESSchoolID
+	rename school_name SchName
+	if `a' == 2022 rename school_type SchType
+	
+	if `a' !=2022 {
+		foreach var of varlist SchType SchLevel SchVirtual {
+			decode `var', gen(temp)
+			drop `var'
+			rename temp `var'
+		}
+	}
+	
+	if `a' == 2022 {
+		foreach var of varlist SchType SchLevel SchVirtual DistType {
+			decode `var', gen(temp)
+			drop `var'
+			rename temp `var'
+		}
+	} 
+	keep State StateAbbrev StateFips NCESDistrictID NCESSchoolID State_leaid DistType CountyName CountyCode DistLocale DistCharter SchName SchType SchVirtual SchLevel seasch DistName
+	drop if seasch == ""
 
 	
-	save "${NCES}/NCES_`year'_School.dta", replace
+	save "${NCES}/NCES_`a'_School.dta", replace
 	
 }

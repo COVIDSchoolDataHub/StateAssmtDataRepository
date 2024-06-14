@@ -1,11 +1,13 @@
 clear
 set more off
+set trace off
 
-cd "/Users/minnamgung/Desktop/SADR/Washington"
+cd "/Volumes/T7/State Test Project/Washington"
 
-global raw "/Users/minnamgung/Desktop/SADR/Washington/Original Data Files"
-global output "/Users/minnamgung/Desktop/SADR/Washington/Output"
-global NCES "/Users/minnamgung/Desktop/SADR/Washington/NCES"
+global raw "/Volumes/T7/State Test Project/Washington/Original Data Files"
+global output "/Volumes/T7/State Test Project/Washington/Output"
+global NCESOLD "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global NCES "/Volumes/T7/State Test Project/Washington/NCES"
 
 * 2015 2016 2017 2018 2019 2021 2022 2023
 foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 {
@@ -524,7 +526,6 @@ if `year' == 2017 | `year' == 2018 | `year' == 2019 | `year' == 2022 | `year' ==
 	replace seasch = State_leaid + "-" + seasch if DataLevel == 3
 	replace seasch = subinstr(seasch,"WA-","",.) if DataLevel == 3
 	
-	drop year
 
 	merge m:1 seasch using "${NCES}/NCES_`prevyear'_School.dta", keepusing(SchLevel SchVirtual NCESSchoolID SchType)
 	replace SchVirtual = "Missing/not reported" if NCESSchoolID == "530285003625" & `year' == 2017
@@ -546,14 +547,9 @@ if `year' == 2021 {
 	replace seasch = State_leaid + "-" + seasch if DataLevel == 3
 	replace seasch = subinstr(seasch,"WA-","",.) if DataLevel == 3
 	
-	drop year
 
 	merge m:1 seasch using "${NCES}/NCES_2021_School.dta", keepusing(SchLevel SchVirtual NCESSchoolID SchType)
 	replace SchVirtual = "Missing/not reported" if NCESSchoolID == "530285003625" & `year' == 2017
-}
-
-if `year' == 2023 {
-	gen State = ""
 }
 
 replace StateAbbrev = "WA" 
@@ -590,28 +586,25 @@ if `year' == 2018 {
 drop SchYear 
 gen SchYear = "`prevyear'"+ "-" + substr("`year'",-2,2)
 
-if `year' == 2023 {
-	destring CountyCode, replace force
-}
 
 ** Unmerged data
 replace DistType = "Charter agency" if DistName == "Why Not You Academy"
 replace NCESDistrictID = "5300349" if DistName == "Why Not You Academy"
 replace DistLocale = "Suburb, large" if DistName == "Why Not You Academy"
 replace DistCharter = "Yes" if DistName == "Why Not You Academy"
-replace CountyCode = 53033 if DistName == "Why Not You Academy"
+replace CountyCode = "53033" if DistName == "Why Not You Academy"
 
 replace DistType = "Charter agency" if DistName == "Pinnacles Prep Charter School"
 replace NCESDistrictID = "5300352" if DistName == "Pinnacles Prep Charter School"
 replace DistLocale = "City, small" if DistName == "Pinnacles Prep Charter School"
 replace DistCharter = "Yes" if DistName == "Pinnacles Prep Charter School"
-replace CountyCode = 53007 if DistName == "Pinnacles Prep Charter School"
+replace CountyCode = "53007" if DistName == "Pinnacles Prep Charter School"
 
 replace DistType = "Charter agency" if DistName == "Pullman Community Montessori"
 replace NCESDistrictID = "5300355" if DistName == "Pullman Community Montessori"
 replace DistLocale = "Town, distant" if DistName == "Pullman Community Montessori"
 replace DistCharter = "Yes" if DistName == "Pullman Community Montessori"
-replace CountyCode = 53075 if DistName == "Pullman Community Montessori"
+replace CountyCode = "53075" if DistName == "Pullman Community Montessori"
 
 replace SchType = "Regular school" if SchName == "Cascade Public Schools"
 replace NCESSchoolID = "530034903783" if SchName == "Cascade Public Schools"
@@ -684,12 +677,12 @@ replace StateAssignedSchID = "" if StateAssignedSchID == "NULL" & DataLevel != 3
 ** County name edits
 
 
-replace CountyName = "Clark" if CountyCode == 53011
-replace CountyName = "Douglas" if CountyCode == 53017
-replace CountyName = "Franklin" if CountyCode == 53021
-replace CountyName = "Island" if CountyCode == 53029
-replace CountyName = "Kitsap" if CountyCode == 53035
-replace CountyName = "Snohomish" if CountyCode == 53061
+replace CountyName = "Clark" if CountyCode == "53011"
+replace CountyName = "Douglas" if CountyCode == "53017"
+replace CountyName = "Franklin" if CountyCode == "53021"
+replace CountyName = "Island" if CountyCode == "53029"
+replace CountyName = "Kitsap" if CountyCode == "53035"
+replace CountyName = "Snohomish" if CountyCode == "53061"
 
 if `year' == 2018 {
 	replace SchVirtual = "No" if NCESSchoolID == "530285003625"
@@ -701,6 +694,12 @@ if `year' == 2018 {
 if `year' == 2021 {
 	drop if GradeLevel == "G011"
 }
+
+//Response to Review
+replace SchName = stritrim(SchName)
+
+if `year' >= 2018 drop if SchLevel == "Prekindergarten"
+
 
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 	

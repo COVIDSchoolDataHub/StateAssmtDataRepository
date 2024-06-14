@@ -1,11 +1,12 @@
 clear
 set more off
 
-cd "/Users/minnamgung/Desktop/SADR/Washington"
+cd "/Volumes/T7/State Test Project/Washington"
 
-global raw "/Users/minnamgung/Desktop/SADR/Washington/Original Data Files"
-global output "/Users/minnamgung/Desktop/SADR/Washington/Output"
-global NCES "/Users/minnamgung/Desktop/SADR/Washington/NCES"
+global raw "/Volumes/T7/State Test Project/Washington/Original Data Files"
+global output "/Volumes/T7/State Test Project/Washington/Output"
+global NCESOLD "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global NCES "/Volumes/T7/State Test Project/Washington/NCES"
 
 foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 {
 	
