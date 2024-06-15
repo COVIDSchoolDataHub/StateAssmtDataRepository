@@ -40,7 +40,6 @@ The file path setup should be as follows:
 FOR the california_NCES_do_file.do file ONLY: 
 
 ```
-
 global NCESOld "/Users/minnamgung/Desktop/SADR/NCESOld"
 
 global California1 "/Users/minnamgung/Desktop/SADR/California/NCES"
@@ -49,7 +48,6 @@ global California1 "/Users/minnamgung/Desktop/SADR/California/NCES"
 
 FOR the california_dta_conversion.do file ONLY: 
 ```
-
 global original "/Users/minnamgung/Desktop/SADR/California/Original Data Files"
 ```
 
