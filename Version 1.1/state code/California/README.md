@@ -43,7 +43,6 @@ FOR the california_NCES_do_file.do file ONLY:
 global NCESOld "/Users/minnamgung/Desktop/SADR/NCESOld"
 
 global California1 "/Users/minnamgung/Desktop/SADR/California/NCES"
-
 ```
 
 FOR the california_dta_conversion.do file ONLY: 
