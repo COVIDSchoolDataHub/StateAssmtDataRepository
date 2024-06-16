@@ -82,7 +82,7 @@ replace CountyCode = "0" + CountyCode if strlen(CountyCode) == 1
 gen State_leaid = CountyCode + StateAssignedDistID
 drop CountyCode
 
-merge m:m DistName using "${nces}/1_NCES_2018_District_With_Extra_Districts.dta"
+merge m:1 State_leaid using "${nces}/NCES_All_District.dta"
 rename _merge DistMerge
 drop if DistMerge == 2
 
@@ -393,6 +393,27 @@ replace `count' = string(round(real(`percent') * real(StudentSubGroup_TotalTeste
 format ParticipationRate %9.3g
 tostring ParticipationRate, replace usedisplayformat force
 replace ParticipationRate = "--" if ParticipationRate == "."
+
+//DistName Cleaning
+replace DistName =stritrim(DistName) 
+
+//SchName Cleaning
+replace SchName = strtrim(SchName)
+replace SchName = stritrim(SchName)
+
+//Response to review
+replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "."
+
+//StudentGroup_TotalTested updates based on new convention
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+drop StudentGroup_TotalTested
+gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+
+//Level Count Updates
+foreach var of varlist Lev*_count {
+	replace `var' = "--" if real(`var') < 0 & !missing(real(`var'))
+}
 
 	keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 	

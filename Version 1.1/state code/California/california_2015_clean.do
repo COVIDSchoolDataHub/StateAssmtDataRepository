@@ -415,6 +415,27 @@ replace ParticipationRate = "--" if ParticipationRate == "."
 //Other Updates
 replace CountyName = proper(CountyName) if CountyName != "Missing/not reported"
 
+//SchName Cleaning
+replace SchName = strtrim(SchName)
+replace SchName = stritrim(SchName)
+
+//Response to post-launch review
+replace StateAssignedDistID = "19982" if StateAssignedDistID == "0119982"
+
+//StudentGroup_TotalTested updates based on new convention
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+drop StudentGroup_TotalTested
+gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+
+//Level Count Updates
+foreach var of varlist Lev*_count {
+	replace `var' = "--" if real(`var') < 0 & !missing(real(`var'))
+}
+
+//AvgScaleScore Updates
+replace AvgScaleScore = "*" if AvgScaleScore == "0.0"
+
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 	
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode

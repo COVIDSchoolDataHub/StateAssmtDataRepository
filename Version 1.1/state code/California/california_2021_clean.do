@@ -91,7 +91,7 @@ gen State_leaid = CountyCode + StateAssignedDistID
 drop CountyCode
 
 //Using DistName with Unmerged NCES files for 2021-2023 since it produces no unmerged
-merge m:m DistName using "${nces}/1_NCES_2020_District_With_Extra_Districts.dta"
+merge m:1 State_leaid using "${nces}/NCES_All_District.dta"
 rename _merge DistMerge
 drop if DistMerge == 2
 
@@ -397,6 +397,21 @@ replace `count' = string(round(real(`percent') * real(StudentSubGroup_TotalTeste
 format ParticipationRate %9.3g
 tostring ParticipationRate, replace usedisplayformat force
 replace ParticipationRate = "--" if ParticipationRate == "."
+
+//StudentGroup_TotalTested updates based on new convention
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+drop StudentGroup_TotalTested
+gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+
+//Level Count Updates
+foreach var of varlist Lev*_count {
+	replace `var' = "--" if real(`var') < 0 & !missing(real(`var'))
+}
+
+//Flag Updates
+replace Flag_CutScoreChange_ELA = "N"
+replace Flag_CutScoreChange_math = "N"
 
 	keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 	

@@ -98,11 +98,11 @@ drop CountyCode
 
 replace DistName = "Voices College-Bound Language Academy At" if DistName == "Voices College Bound Language Academy At" 
 
-merge m:m DistName using "${nces}/1_NCES_2022_District_With_Extra_Districts.dta"
+merge m:1 State_leaid using "${nces}/NCES_All_District.dta"
 rename _merge DistMerge
 
-replace State_leaid = "Missing/Not Reported" if DistMerge == 1 & CountyCode != 0 //& StateAssignedSchID == 0
-replace NCESDistrictID = "00" if DistMerge == 1 & CountyCode != 0 // & StateAssignedSchID == 0
+*replace State_leaid = "Missing/Not Reported" if DistMerge == 1 & CountyCode != 0 //& StateAssignedSchID == 0
+*replace NCESDistrictID = "00" if DistMerge == 1 & CountyCode != 0 // & StateAssignedSchID == 0
 
 drop if DistMerge == 2
 // drop DistMerge
@@ -121,6 +121,8 @@ replace DistName=DistName+" District" if strpos(DistName, "District")<1 & DataLe
 
 merge m:m seasch2 using "${nces}/1_NCES_2022_School.dta", force // CHANGED
 rename _merge SchoolMerge
+replace StateAssignedDistID = State_leaid if DataLevel == "School"
+replace StateAssignedDistID = substr(StateAssignedDistID,3,5) if DataLevel == "School"
 
 /*
 merge m:m DistName using "${nces}/1_NCES_2022_School.dta", keepusing(DistType State_leaid DistCharter NCESDistrictID) update
@@ -411,7 +413,7 @@ drop if DataLevel==.
 drop if StudentSubGroup=="Never EL"
 
 replace NCESDistrictID="" if DataLevel==1
-replace NCESDistrictID="Missing/not reported" if DataLevel!=1 & NCESDistrictID=="00"
+*replace NCESDistrictID= "Missing/not reported" if DataLevel!=1 & NCESDistrictID=="00"
 
 replace StudentSubGroup="English Proficient" if StudentSubGroup=="Eng Proficient" 
 
@@ -433,13 +435,41 @@ format ParticipationRate %9.3g
 tostring ParticipationRate, replace usedisplayformat force
 replace ParticipationRate = "--" if ParticipationRate == "."
 
-	keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+//NCESDistrictID & NCESSchoolID fixes
+replace NCESDistrictID = "0691058" if DistName == "Alpine County Office Of Education District"
+replace NCESDistrictID = "0605910" if DistName == "Brentwood Union District"
+
+replace NCESDistrictID = "0601628" if SchName == "ABLE Charter"
+replace NCESDistrictID = "0601880" if SchName == "American Indian Public Charter School II"
+replace NCESDistrictID = "0602531" if SchName == "Citizens of the World Charter School West Valley"
+replace NCESDistrictID = "0601708" if SchName == "Environmental Charter Middle - Gardena"
+replace NCESDistrictID = "0602573" if SchName == "EPIC Academy"
+replace NCESDistrictID = "0601832" if SchName == "Kairos Public"
+replace NCESDistrictID = "0601712" if SchName == "Kid Street Charter"
+replace NCESDistrictID = "0602577" if SchName == "KIPP Generations Academy"
+replace NCESDistrictID = "0602563" if SchName == "KIPP Stockton"
+replace NCESDistrictID = "0602575" if SchName == "KIPP University Park"
+replace NCESDistrictID = "0602359" if SchName == "Options for Youth-Victor Valley Charter"
+replace NCESDistrictID = "0601956" if SchName == "Southern California Flex Academy"
+
+//StudentGroup_TotalTested updates based on new convention
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+drop StudentGroup_TotalTested
+gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+
+//Level Count Updates
+foreach var of varlist Lev*_count {
+	replace `var' = "--" if real(`var') < 0 & !missing(real(`var'))
+}
+
+
+	keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 	
-	order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+	order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 	
 	sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 //NEW ADDED
 
 
 save "${output}/CA_AssmtData_2023_Stata", replace
-export delimited "${output}/CA_AssmtData_2023.csv", replace 
