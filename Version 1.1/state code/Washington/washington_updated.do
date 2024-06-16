@@ -36,13 +36,13 @@ if `year' == 2015 {
 	rename TestAdministrationgroup AssmtType
 	rename TestAdministration AssmtName
 	rename TestSubject Subject
-	rename Countofstudentsexpectedtotestinc StudentSubGroup_TotalTested
+	rename Countofstudentsexpectedtotestinc ExpectedCount
 	rename CountMetStandard ProficientOrAbove_count
 	rename PercentMetTestedOnly ProficientOrAbove_percent
-	rename PercentLevel1 Lev1_percent
-	rename PercentLevel2 Lev2_percent
-	rename PercentLevel3 Lev3_percent
-	rename PercentLevel4 Lev4_percent
+// 	rename PercentLevel1 Lev1_percent
+// 	rename PercentLevel2 Lev2_percent
+// 	rename PercentLevel3 Lev3_percent
+// 	rename PercentLevel4 Lev4_percent
 	
 	keep if AssmtType == "General"
 }
@@ -64,14 +64,14 @@ if `year' == 2016 | `year' == 2017 {
 	rename TestAdministrationgroup AssmtType
 	rename TestAdministration AssmtName
 	rename TestSubject Subject
-	rename Countofstudentsexpectedtotestinc StudentSubGroup_TotalTested
+	rename Countofstudentsexpectedtotestinc ExpectedCount
 	rename CountMetStandard ProficientOrAbove_count
 	rename PercentMetTestedOnly ProficientOrAbove_percent
-	rename PercentLevel1 Lev1_percent
-	rename PercentLevel2 Lev2_percent
-	rename PercentLevel3 Lev3_percent
-	rename PercentLevel4 Lev4_percent
-	rename CountofStudentsExpectedtoTest testreplacement
+// 	rename PercentLevel1 Lev1_percent
+// 	rename PercentLevel2 Lev2_percent
+// 	rename PercentLevel3 Lev3_percent
+// 	rename PercentLevel4 Lev4_percent
+	drop CountofStudentsExpectedtoTest
 	
 	keep if AssmtType == "General"
 }
@@ -91,14 +91,14 @@ if `year' == 2018 | `year' == 2019 {
 	rename TestAdministrationgroup AssmtType
 	rename TestAdministration AssmtName
 	rename TestSubject Subject
-	rename Countofstudentsexpectedtotestinc StudentSubGroup_TotalTested
+	rename Countofstudentsexpectedtotestinc ExpectedCount
 	rename CountMetStandard ProficientOrAbove_count
 	rename PercentMetTestedOnly ProficientOrAbove_percent
-	rename PercentLevel1 Lev1_percent
-	rename PercentLevel2 Lev2_percent
-	rename PercentLevel3 Lev3_percent
-	rename PercentLevel4 Lev4_percent
-	rename CountofStudentsExpectedtoTest testreplacement
+// 	rename PercentLevel1 Lev1_percent
+// 	rename PercentLevel2 Lev2_percent
+// 	rename PercentLevel3 Lev3_percent
+// 	rename PercentLevel4 Lev4_percent
+	drop CountofStudentsExpectedtoTest
 	
 	keep if AssmtType == "SBAC" | AssmtType == "WCAS"
 }
@@ -117,13 +117,13 @@ if `year' == 2021 {
 	rename StudentGroupType StudentGroup
 	rename TestAdministration AssmtName
 	rename TestSubject Subject
-	rename DenominatorIncludingPPSuppressed StudentSubGroup_TotalTested
+	rename DenominatorIncludingPPSuppressed ExpectedCount
 	rename NumeratorSuppressed ProficientOrAbove_count
 	rename PercentMetTestedOnly ProficientOrAbove_percent
-	rename PercentLevel1 Lev1_percent
-	rename PercentLevel2 Lev2_percent
-	rename PercentLevel3 Lev3_percent
-	rename PercentLevel4 Lev4_percent
+// 	rename PercentLevel1 Lev1_percent
+// 	rename PercentLevel2 Lev2_percent
+// 	rename PercentLevel3 Lev3_percent
+// 	rename PercentLevel4 Lev4_percent
 	
 	gen AssmtType=""
 	
@@ -144,13 +144,13 @@ if `year' == 2022 {
 	rename StudentGroupType StudentGroup
 	rename TestAdministration AssmtName
 	rename TestSubject Subject
-	rename Countofstudentsexpectedtotestinc StudentSubGroup_TotalTested
+	rename Countofstudentsexpectedtotestinc ExpectedCount
 	rename CountMetStandard ProficientOrAbove_count
 	rename PercentMetTestedOnly ProficientOrAbove_percent
-	rename PercentLevel1 Lev1_percent
-	rename PercentLevel2 Lev2_percent
-	rename PercentLevel3 Lev3_percent
-	rename PercentLevel4 Lev4_percent
+// 	rename PercentLevel1 Lev1_percent
+// 	rename PercentLevel2 Lev2_percent
+// 	rename PercentLevel3 Lev3_percent
+// 	rename PercentLevel4 Lev4_percent
 	
 	gen AssmtType=""
 	
@@ -171,15 +171,15 @@ if `year' == 2023 {
 	rename StudentGroupType StudentGroup
 	rename TestAdministration AssmtName
 	rename TestSubject Subject
-	rename CountofStudentsExpectedtoTestinc StudentSubGroup_TotalTested
+	rename CountofStudentsExpectedtoTestinc ExpectedCount
 	rename CountMetStandard ProficientOrAbove_count
 	rename PercentMetTestedOnly ProficientOrAbove_percent
-	rename PercentLevel1 Lev1_percent
-	rename PercentLevel2 Lev2_percent
-	rename PercentLevel3 Lev3_percent
-	rename PercentLevel4 Lev4_percent
+// 	rename PercentLevel1 Lev1_percent
+// 	rename PercentLevel2 Lev2_percent
+// 	rename PercentLevel3 Lev3_percent
+// 	rename PercentLevel4 Lev4_percent
 	rename PercentParticipation ParticipationRate
-	rename CountofStudentsExpectedtoTest testreplacement
+	drop CountofStudentsExpectedtoTest
 	
 	gen AssmtType=""
 	
@@ -303,7 +303,7 @@ replace StudentSubGroup = "Non-Migrant" if StudentSubGroup == "Non Migrant"
 
 if `year' <= 2017 {
 	
-	foreach v of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent PercentNoScore{
+	foreach v of varlist PercentLevel* PercentNoScore {
 	replace `v' = subinstr(`v', "%", "",.) 
 	replace `v' = "*" if `v' == "NULL"
 	destring `v', replace ignore("*")
@@ -316,41 +316,6 @@ tostring PercentNoScore, replace force
 
 }
 
-/*
-replace ProficientOrAbove_percent = "999999" if ProficientOrAbove_percent == "Suppressed: N<10"
-
-replace ProficientOrAbove_percent = "0" if ProficientOrAbove_percent == "No Students"
-
-gen prof_above = ProficientOrAbove_percent
-
-replace ProficientOrAbove_percent = "888888" if strpos(ProficientOrAbove_percent, "<") | strpos(ProficientOrAbove_percent, ">")
-
-foreach v of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent PercentNoScore {
-	replace `v' = subinstr(`v', "%", "",.) 
-	replace `v' = "*" if `v' == "NULL"
-	destring `v', replace ignore("*")
-	replace `v' = `v' / 100
-	tostring `v', replace force
-	replace `v' = "*" if `v' == "."
-}
-
-replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "9999.99"
-
-replace prof_above = subinstr(prof_above, "%", "",.) 
-replace prof_above = subinstr(prof_above, ">", "> ",.) 
-replace prof_above = subinstr(prof_above, "<", "< ",.) 
-
-split prof_above, parse(" ")
-destring prof_above2, replace
-replace prof_above2 = prof_above2/100
-tostring prof_above2, format(%3.2f) replace force
-
-replace prof_above2 = "0-" + prof_above2 if prof_above1 == "<"
-replace prof_above2 = prof_above2 + "-1" if prof_above1 == ">"
-
-replace ProficientOrAbove_percent = prof_above2 if ProficientOrAbove_percent == "8888.88"
-*/
-
 
 ** make participationrate (ONLY FOR PRE-2023)
 
@@ -358,136 +323,64 @@ if `year' != 2023 {
 	replace PercentNoScore = "*" if PercentNoScore == "NULL"
 	destring PercentNoScore, replace ignore(*)
 	gen ParticipationRate = 1 - PercentNoScore
-	tostring ParticipationRate, replace force
+	tostring ParticipationRate, replace force format("%9.3g")
+	replace ParticipationRate = "*" if ParticipationRate == "."
+}
+replace ParticipationRate = "*" if ParticipationRate == "NULL"
+replace ParticipationRate = string(real(ParticipationRate), "%9.3g") if !missing(real(ParticipationRate))
+
+replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
+replace ProficientOrAbove_percent = string(real(ProficientOrAbove_percent), "%9.3g") if !missing(real(ProficientOrAbove_percent))
+
+
+//Deriving Level Counts & Percents based on ParticipationRate
+//Note: Currently Level percents are based on the ExpectedCount (basically enrollment), rather than the number of students tested. Process for deriving level counts & percents is as follows:
+
+// 1. Derive Level Counts as PercentLevel * Expected Count
+// 2. Derive StudentSubGroup_TotalTested as ParticipationRate * ExpectedCount
+// 3. Derive Lev*_percent as Lev*_count/StudentSubGroup_TotalTested
+
+destring ExpectedCount, replace force
+
+//1. Deriving Level Counts
+forvalues n = 1/4 {
+	gen Lev`n'_count = string(round(real(PercentLevel`n')*ExpectedCount)) if !missing(real(PercentLevel`n')) & !missing(ExpectedCount)
+	replace Lev`n'_count = "*" if missing(Lev`n'_count)
 }
 
-local level 1 2 3 4
+//2. Derive StudentSubGroup_TotalTested
+gen StudentSubGroup_TotalTested = string(round(real(ParticipationRate) * ExpectedCount)) if !missing(real(ParticipationRate)) & !missing(ExpectedCount)
+replace StudentSubGroup_TotalTested = "*" if missing(StudentSubGroup_TotalTested)
 
-foreach a of local level {
-	gen Lev`a'_count = "*"
+//3. Deriving Level Percents
+foreach count of varlist Lev*_count {
+	local percent = subinstr("`count'", "count", "percent",.)
+	gen `percent' = string(real(`count')/real(StudentSubGroup_TotalTested), "%9.3g") if !missing(real(`count')) & !missing(real(StudentSubGroup_TotalTested))
+	replace `percent' = "*" if missing(`percent')
 }
 
-gen Lev5_count = ""
-gen Lev5_percent = ""
+//Dropping Extra Variables
+drop PercentLevel* PercentMetStandard
 
-gen AvgScaleScore = "--"
+//Converting ProficientOrAbove_count to string
+tostring ProficientOrAbove_count, replace
+replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
 
-gen ProficiencyCriteria = "Levels 3-4"
+//StudentGroup_TotalTested (with new convention)
+gen UnsuppressedSSG = real(StudentSubGroup_TotalTested)
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
 
-replace ParticipationRate = "*" if Suppression != "None" & ParticipationRate == "NULL"
+//Deriving StudentSubGroup_TotalTested if possible
 
-** Converting Data to String
+/* //Unhide this code to turn on derivations. Currently Looks like no derivations are possible and this code is causing issues.
+egen UnsuppressedSG = total(UnsuppressedSSG), by(StudentGroup DistName SchName GradeLevel Subject)
+tostring UnsuppressedSG, replace
+replace UnsuppressedSG = "--" if UnsuppressedSG == "0"
+replace StudentSubGroup_TotalTested = string(real(StudentGroup_TotalTested) - real(UnsuppressedSG)) if !missing(real(StudentGroup_TotalTested)) & !missing(real(UnsuppressedSG)) & missing(real(StudentSubGroup_TotalTested)) & StudentGroup != "RaceEth" & StudentGroup != "All Students" & (real(StudentGroup_TotalTested) - real(UnsuppressedSG) > 0 )
+*/
 
-foreach a of local level {
-	replace Lev`a'_percent = "*" if Suppression != "None" & Lev`a'_percent == "NULL"
-}
-
-if `year' <= 2017 {
-	tostring ProficientOrAbove_count, replace force
-}
-
-if `year' >= 2018 {
-	replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "NULL"
-	destring StudentSubGroup_TotalTested, replace ignore("*")
-}
-
-** Generating no score counts
-
-if `year' == 2023 {
-destring PercentNoScore, replace ignore(*) force
-}
-gen CountNoScore = StudentSubGroup_TotalTested * PercentNoScore
-replace CountNoScore = trunc(CountNoScore)
-
-** Generate new denominator for scaling purpose
-
-gen denominator = StudentSubGroup_TotalTested - CountNoScore
-rename StudentSubGroup_TotalTested StudentSubGroup_TotalTested1
-rename denominator StudentSubGroup_TotalTested
-
-** Generate StudentGroup counts (using "All Students")
-
-bysort DataLevel DistName SchName GradeLevel Subject (StudentSubGroup): gen StudentGroup_TotalTested = StudentSubGroup_TotalTested[1]
-
-** Generate missing StudentSubGroup counts (using "All Students")
-
-gen total_count = StudentGroup_TotalTested
-gen Count_n = StudentSubGroup_TotalTested
-
-bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject (StudentSubGroup): egen Econ = sum(Count_n) if StudentGroup == "Economic Status"
-bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject (StudentSubGroup): egen Disability = sum(Count_n) if StudentGroup == "Disability Status"
-bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject (StudentSubGroup): egen Migrant = sum(Count_n) if StudentGroup == "Migrant Status"
-bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject (StudentSubGroup): egen Homeless = sum(Count_n) if StudentGroup == "Homeless Enrolled Status"
-bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject (StudentSubGroup): egen Eng = sum(Count_n) if StudentGroup == "EL Status"
-bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject (StudentSubGroup): egen Military = sum(Count_n) if StudentGroup == "Military Connected Status"
-
-gen not_count=.
-
-bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject StudentGroup: gen howmany=_N
-
-replace not_count = total_count - Econ if StudentSubGroup == "Economically Disadvantaged" & howmany == 2 & Econ != 0
-replace not_count = total_count - Disability if StudentSubGroup == "SWD"  & howmany == 2 & Disability != 0
-replace not_count = total_count - Migrant if StudentSubGroup == "Migrant"  & howmany == 2 & Migrant != 0
-replace not_count = total_count - Homeless if StudentSubGroup == "Homeless"  & howmany == 2 & Homeless != 0
-replace not_count = total_count - Eng if StudentSubGroup == "English Proficient" & howmany == 2 & Eng != 0
-replace not_count = total_count - Military if StudentSubGroup == "Military"  & howmany == 2 & Military != 0
-
-replace StudentSubGroup_TotalTested=not_count if StudentSubGroup_TotalTested==. & StudentSubGroup == "Economically Disadvantaged"
-replace StudentSubGroup_TotalTested=not_count if StudentSubGroup_TotalTested==. & StudentSubGroup == "SWD"
-replace StudentSubGroup_TotalTested=not_count if StudentSubGroup_TotalTested==. & StudentSubGroup == "Migrant"
-replace StudentSubGroup_TotalTested=not_count if StudentSubGroup_TotalTested==. & StudentSubGroup == "Homeless"
-replace StudentSubGroup_TotalTested=not_count if StudentSubGroup_TotalTested==. & StudentSubGroup == "English Proficient"
-replace StudentSubGroup_TotalTested=not_count if StudentSubGroup_TotalTested==. & StudentSubGroup == "Military"
-
-** Generating initial level counts
-
-global a 1 2 3 4 
-
-foreach a in $a {
-	destring Lev`a'_percent, gen(n`a'_percent) ignore("*" "--")
-	gen n`a'_count = StudentSubGroup_TotalTested1 * n`a'_percent
-	replace n`a'_count = trunc(n`a'_count)
-}
-
-** Rescale Levn_percent values using denominator
-
-foreach a in $a {
-	replace n`a'_percent = n`a'_count / StudentSubGroup_TotalTested
-	
-	tostring n`a'_percent, replace force
-	replace Lev`a'_percent = n`a'_percent
-	tostring n`a'_count, replace
-	replace Lev`a'_count = n`a'_count
-	
-	replace Lev`a'_count = "*" if Lev`a'_percent == "*"
-	replace Lev`a'_percent = "*" if Lev`a'_percent == "."
-	replace Lev`a'_count = "*" if Lev`a'_count == "."
-}
-	
-** Generate missing ProficientOrAbove_percent and count using values above
-
-replace ProficientOrAbove_percent = "." if ProficientOrAbove_count == "NULL"
-replace ProficientOrAbove_count = "." if ProficientOrAbove_count == "NULL"
-
-gen n_profpercent = ProficientOrAbove_percent
-replace n_profpercent = "99999" if strpos(n_profpercent, "-")
-destring n_profpercent, replace ignore("*")
-
-gen n_profcount = n_profpercent * StudentSubGroup_TotalTested
-tostring n_profcount, replace format(%100.0f) force
-replace ProficientOrAbove_count = n_profcount if StudentSubGroup_TotalTested !=. & ProficientOrAbove_count == "."
-	
-** dealing with missing/suppressed variables
-
-tostring StudentGroup_TotalTested, replace force
-tostring StudentSubGroup_TotalTested, replace force
-
-replace StudentGroup_TotalTested="*" if StudentGroup_TotalTested=="."
-replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested=="."
-
-replace ParticipationRate = "*" if ParticipationRate == "."
-replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "." 
-replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "." 
 
 ** Merging with NCES
 
@@ -695,6 +588,19 @@ if `year' == 2021 {
 	drop if GradeLevel == "G011"
 }
 
+//Missing & Indicator Variables
+gen Lev5_count = ""
+gen Lev5_percent = ""
+gen AvgScaleScore = "--"
+gen ProficiencyCriteria = "Levels 3-4"
+
+//Fixing Some Variables
+replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "NULL"
+replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "NULL"
+
+//Deriving ProficientOrAbove_count if possible
+replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent)*real(StudentSubGroup_TotalTested))) if !missing(real(ProficientOrAbove_percent)) & !missing(real(StudentSubGroup_TotalTested)) & missing(real(ProficientOrAbove_percent))
+
 //Response to Review
 replace SchName = stritrim(SchName)
 
@@ -712,33 +618,3 @@ save "${output}/WA_AssmtData_`year'.dta", replace
 export delimited using "${output}/csv/WA_AssmtData_`year'.csv", replace
 }
 
-
-/*
-foreach year in 2015 2016 2017  {
-	
-use "${output}/WA_AssmtData_`year'.dta", clear
-
-* Checks 
-** Check if Lev3_percent + Lev4_percent is equal to data
-gen lev3_np = Lev3_count
-gen lev4_np = Lev4_count
-destring lev3_np, replace ignore(*) 
-destring lev4_np, replace ignore(*) 
-gen ProfOrAbove_count_lev3pluslev4 = lev3_np + lev4_np
-
-gen ProfCount_basedonprofpercent = ProficientOrAbove_count
-
-export delimited using "${output}/csv/WA_AssmtData_`year'_discrepancy.csv", replace
-}
-
-** Check if Lev3_count + Lev4_count is equal to the multiplication method
-gen lev3_n = Lev3_count
-gen lev4_n = Lev4_count
-destring lev3_n, replace ignore(*) 
-destring lev4_n, replace ignore(*) 
-gen proflev_n = lev3_n + lev4_n
-
-destring ProficientOrAbove_count, gen(prof_n) ignore(*)
-gen diff = prof_n - proflev_n
-browse if abs(diff) > 2 & diff != .
-*/
