@@ -1,7 +1,7 @@
 clear
 set more off
-local Original "/Volumes/T7/State Test Project/Montana/Original"
-local Output "/Volumes/T7/State Test Project/Montana/Output" 
+global Original "/Volumes/T7/State Test Project/Montana/Original"
+global Output "/Volumes/T7/State Test Project/Montana/Output"
 
 //Combining
 local Grades "3 4 5 6 7 8 3-8"
@@ -12,7 +12,7 @@ tempfile temp1
 save "`temp1'", emptyok replace
 foreach grade of local Grades {
 	foreach Subject in ELA Math {
-		import delimited "`Original'/Montana `grade' `Subject' 2015-2023 `Data'", varnames(1) case(preserve) stringcols(_all)
+		import delimited "${Original}/Montana `grade' `Subject' 2015-2023 `Data'", varnames(1) case(preserve) stringcols(_all)
 		rename SchoolYear SchYear
 		if "`Data'" == "Levels" {
 			rename AdvancedStudents Lev4_count
@@ -39,7 +39,7 @@ foreach grade of local Grades {
 	}
 }
 use "`temp1'"
-save "`Original'/`Data'_ELA_Math", replace
+save "${Original}/`Data'_ELA_Math", replace
 clear
 }
 
@@ -48,7 +48,7 @@ foreach Data in Levels PartRate {
 tempfile temp1
 save "`temp1'", emptyok replace
 foreach grade of local Grades {
-	import delimited "`Original'/Montana `grade' Science 2015-2023 `Data'", varnames(1) case(preserve) stringcols(_all)
+	import delimited "${Original}/Montana `grade' Science 2015-2023 `Data'", varnames(1) case(preserve) stringcols(_all)
 	rename SchoolYear SchYear
 		if "`Data'" == "Levels" {
 			rename AdvancedStudents Lev4_count
@@ -71,25 +71,25 @@ foreach grade of local Grades {
 	clear
 }
 use "`temp1'"
-save "`Original'/`Data'_Science", replace
+save "${Original}/`Data'_Science", replace
 clear	
 }
-use "`Original'/Levels_ELA_Math"
-append using "`Original'/Levels_Science"
-save "`Original'/Levels", replace
+use "${Original}/Levels_ELA_Math"
+append using "${Original}/Levels_Science"
+save "${Original}/Levels", replace
 clear
-use "`Original'/PartRate_ELA_Math"
-append using "`Original'/PartRate_Science"
-save "`Original'/PartRate", replace
+use "${Original}/PartRate_ELA_Math"
+append using "${Original}/PartRate_Science"
+save "${Original}/PartRate", replace
 clear
-use "`Original'/PercentProf_ELA_Math"
-save "`Original'/PercentProf", replace
+use "${Original}/PercentProf_ELA_Math"
+save "${Original}/PercentProf", replace
 clear
 
 //Merging
-use "`Original'/Levels"
-merge 1:1 GradeLevel Subject SchYear using "`Original'/PartRate", nogen
-merge 1:1 GradeLevel Subject SchYear using "`Original'/PercentProf", nogen
+use "${Original}/Levels"
+merge 1:1 GradeLevel Subject SchYear using "${Original}/PartRate", nogen
+merge 1:1 GradeLevel Subject SchYear using "${Original}/PercentProf", nogen
 
 //SchYear
 replace SchYear = substr(SchYear, 1,4) + "-" + substr(SchYear,-2,2)
@@ -120,7 +120,7 @@ replace Subject = "sci" if strpos(Subject, "sci") !=0
 foreach n in 1 2 3 4 {
 	destring Lev`n'_count, gen(nLev`n'_count)
 }
-gen ProficientOrAbove_count = nLev3_count + nLev4_count
+gen ProficientOrAbove_count = string(nLev3_count + nLev4_count)
 
 //Indicator Variables
 gen DistName = "All Districts"
@@ -131,8 +131,8 @@ gen AssmtType = "Regular"
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_read = ""
-gen Flag_CutScoreChange_oth = "N"
+gen Flag_CutScoreChange_soc = "Not applicable"
+gen Flag_CutScoreChange_sci = "Not applicable"
 gen DataLevel = "State"
 gen State = "Montana"
 gen StateFips = 30
@@ -154,7 +154,8 @@ gen DistCharter = ""
 gen SchLevel = ""
 gen SchVirtual = ""
 gen CountyName = ""
-gen CountyCode =.
+gen CountyCode =""
+gen DistLocale = ""
 gen Lev5_percent = ""
 gen Lev5_count = ""
 gen AvgScaleScore = "--"
@@ -167,20 +168,22 @@ drop DataLevel
 rename DataLevel_n DataLevel
 
 //Final Cleaning
-order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
-keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+ 
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-save "`Output'/All", replace
+save "${Output}/All_State", replace
 clear
 
 //Seperating SchYear, exporting and saving
-forvalues year = 2015/2023 {
-use "`Output'/All"
+forvalues year = 2016/2023 {
+use "${Output}/All_State"
 local prevyear =`=`year'-1'	
 if `year' == 2020 continue
 keep if "`year'" == substr(SchYear,1,2) + substr(SchYear, -2,2)
-save "`Output'/MT_AssmtData_`year'", replace
-export delimited "`Output'/MT_AssmtData_`year'", replace
+replace Flag_CutScoreChange_sci = "N" if `year' >= 2022
+save "${Output}/MT_AssmtData_`year'_State", replace
 clear
 }
 	
