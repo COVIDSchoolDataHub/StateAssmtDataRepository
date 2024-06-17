@@ -30,3 +30,4 @@ global nces "/Users/minnamgung/Desktop/SADR/NCESOld"
 ## Updates
 
 03/29/2024: Made 2024 updates.
+06/17/24: Made changes based on state tasks. Changes should be implemented to the main cleaning file in the future, but currently separate for timing reasons.
