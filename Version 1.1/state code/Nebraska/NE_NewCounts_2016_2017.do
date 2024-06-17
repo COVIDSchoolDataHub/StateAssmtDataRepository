@@ -2,7 +2,7 @@ clear
 set more off
 cd "/Volumes/T7/State Test Project/Nebraska"
 global data "/Volumes/T7/State Test Project/Nebraska/Original Data Files/NE Counts, 2016 and 2017"
-global counts "/Volumes/T7/State Test Project/Nebraska/Counts_2016_2017"
+global counts "/Volumes/T7/State Test Project/Nebraska/Counts_2016_2017_2018"
 global NCES "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
 global output "/Volumes/T7/State Test Project/Nebraska/Output"
 
@@ -74,7 +74,7 @@ replace Subject = "math" if Subject == "Mathematics"
 drop if real(GradeLevel) > 8
 replace GradeLevel = "G" + GradeLevel
 
-//StudentSubGroup
+//StudentSubGroup & StudentGroup
 drop if StudentGroup == "Mobile"
 replace StudentSubGroup = "All Students" if StudentGroup == "All Students"
 replace StudentGroup = "RaceEth" if StudentGroup == "Race/Ethnicity"

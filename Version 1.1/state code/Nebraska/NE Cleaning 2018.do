@@ -50,7 +50,7 @@ gen Flag_AssmtNameChange = "Y"
 gen Flag_CutScoreChange_ELA = "Y"
 gen Flag_CutScoreChange_math = "Y"
 gen Flag_CutScoreChange_soc = "Not Applicable"
-gen Flag_CutScoreChange_sci = "Y"
+gen Flag_CutScoreChange_sci = "N"
 gen ProficiencyCriteria = "Levels 2-3"
 gen ParticipationRate = 1 - nottestedpct
 drop dataasof nottested nottestedpct

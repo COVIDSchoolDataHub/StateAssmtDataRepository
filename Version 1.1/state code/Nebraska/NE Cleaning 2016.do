@@ -6,7 +6,7 @@ set more off
 cd "/Volumes/T7/State Test Project/Nebraska"
 global data "/Volumes/T7/State Test Project/Nebraska/Original Data Files"
 global NCES "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
-global counts "/Volumes/T7/State Test Project/Nebraska/Counts_2016_2017"
+global counts "/Volumes/T7/State Test Project/Nebraska/Counts_2016_2017_2018"
 global output "/Volumes/T7/State Test Project/Nebraska/Output"
 
 //Import and Append Subject Files
@@ -48,6 +48,7 @@ gen DistName = ""
 gen AssmtName = "Nebraska State Accountability test (NeSA)"
 gen AssmtType = "Regular"
 gen Flag_AssmtNameChange = "N"
+
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_soc = "Not Applicable"
@@ -295,6 +296,9 @@ replace StateAssignedDistID = subinstr(State_leaid, "NE-","",.)
 //Deriving ProficientOrAbove_percent and ProficientOrAbove_count when we have Lev1_percent
 replace ProficientOrAbove_percent = string(1-real(Lev1_percent), "%9.3g") if regexm(Lev1_percent, "[0-9]") !=0 & regexm(ProficientOrAbove_percent, "[0-9]") ==0 
 replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent) * real(StudentSubGroup_TotalTested))) if regexm(ProficientOrAbove_count, "[0-9]") == 0 & regexm(ProficientOrAbove_percent, "[0-9]") !=0 & regexm(StudentSubGroup_TotalTested, "[0-9]") !=0
+
+//State Tasks 06/17/24
+replace Flag_AssmtNameChange = "Y" if Subject == "ela" | Subject == "math"
 
 
 //Final Cleaning

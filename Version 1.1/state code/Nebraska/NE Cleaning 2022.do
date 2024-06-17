@@ -47,7 +47,7 @@ gen DistName = ""
 gen AssmtName = "Nebraska Student-Centered Assessment System (NSCAS)"
 gen AssmtType = "Regular"
 gen Flag_AssmtNameChange = "N"
-gen Flag_CutScoreChange_ELA = "Y"
+gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_soc = "Not Applicable"
 gen Flag_CutScoreChange_sci = "Y"
@@ -187,7 +187,7 @@ drop DataLevel
 rename DataLevel_n DataLevel
 
 //StudentSubGroup_TotalTested
-gen StudentSubGroup_TotalTested = studentcount - nottested
+gen StudentSubGroup_TotalTested = studentcount //Updated 06/17/24 for StudentSubGroup_TotalTested to reflect Student Count rather than StudentCount - nottested
 drop studentcount nottested
 replace StudentSubGroup_TotalTested =. if StudentSubGroup_TotalTested <0
 
