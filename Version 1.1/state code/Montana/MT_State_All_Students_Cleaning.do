@@ -182,7 +182,6 @@ use "${Output}/All_State"
 local prevyear =`=`year'-1'	
 if `year' == 2020 continue
 keep if "`year'" == substr(SchYear,1,2) + substr(SchYear, -2,2)
-replace Flag_CutScoreChange_sci = "N" if `year' >= 2022
 save "${Output}/MT_AssmtData_`year'_State", replace
 clear
 }
