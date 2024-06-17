@@ -41,3 +41,5 @@ global output "/Users/miramehta/Documents/KS State Testing Data/Output"
 04/16/2024: Updated to remove school and district IDs from their names and to adjust StudentGroup counts to match the "All Students" value if the StudentGroup only contains one StudentSubGroup.
 
 05/01/24: Updated to pull in updated NCES Fall 2022 data.
+
+6/17/24: Uploaded Kansas_Updates_Jun24.do to apply new StudentGroup_TotalTested convention and derive Student counts for English Proficient where possible. This is a stopgap measure to get kansas ready for V1.1 and should probably be incorporated into the individual cleaning files at a future date.
