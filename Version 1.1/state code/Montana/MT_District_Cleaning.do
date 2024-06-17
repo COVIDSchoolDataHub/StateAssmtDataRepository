@@ -10,7 +10,7 @@ set more off
 global Excel_Files "/Volumes/T7/State Test Project/Montana/Original/MT District Data"
 global Combined_Stata "/Volumes/T7/State Test Project/Montana/Original"
 global Output "/Volumes/T7/State Test Project/Montana/Output"
-global NCES "/Volumes/T7/State Test Project/Montana/NCES"
+global NCES_MT "/Volumes/T7/State Test Project/Montana/NCES"
 
 
 
@@ -128,7 +128,7 @@ forvalues year = 2016/2023 {
 	if `year' == 2020 continue
 	local prevyear = `year' - 1
 	use "${Combined_Stata}/MT_District_`year'", clear
-	merge m:1 NCESDistrictID using "${NCES}/NCES_`prevyear'_District", update replace
+	merge m:1 NCESDistrictID using "${NCES_MT}/NCES_`prevyear'_District", update replace
 	drop if _merge == 2
 	drop _merge
 	save "${Combined_Stata}/MT_District_`year'", replace
@@ -162,7 +162,6 @@ gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_sci = "Not applicable"
 gen Flag_CutScoreChange_soc = "Not applicable"
-replace Flag_CutScoreChange_sci = "N" if `year' >= 2022
 
 //Missing Variables
 gen AvgScaleScore = "--"
