@@ -16,12 +16,19 @@ Download the entire folder "Original Data Files Version 1.1". **DELETE THE DATA 
 
 ## Directories
 `global NCES_Original` should link to original NCES files
+
 `global NCES_MT` should link to a new folder inside your Montana folder
+
 `global Original` should link to the folder containing Original data  *for the do-file you're currently running*
+
 `local Original` (in the MT_State_DemograohicData.do file) should link to the Montana state-level data downloads folder
+
 `global Output` should link to a new folder containing output data.
+
 `local Output` (in the MT_State_Demographic data) should link to the same output folder as above
+
 `global Excel_Files` should link to the folder containing the district level excel files
+
 `global Combined_Stata` should link to any folder that makes organizing easier. Currently set to the original data folder.
 
 ## Notes for MT_District_Cleaning
