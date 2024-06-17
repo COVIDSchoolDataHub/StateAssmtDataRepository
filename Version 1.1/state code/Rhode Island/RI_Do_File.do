@@ -1,24 +1,18 @@
 clear
+set more off
 
+global path "/Volumes/T7/State Test Project/Rhode Island pre2023/Original Data Files"
+global nces "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global nces_clean "/Volumes/T7/State Test Project/Rhode Island pre2023/NCES"
 
-global path "/Users/benjaminm/Documents/State_Repository_Research/Rhode Island"
-global nces "/Users/benjaminm/Documents/State_Repository_Research/NCES District and School Demographics"
-global nces_clean "/Users/benjaminm/Documents/State_Repository_Research/NCES District and School Demographics/Cleaned NCES Data"
-
-
-//
-// global path "/Users/miramehta/Documents/RI State Testing Data"
-// global nces "/Users/miramehta/Documents/NCES District and School Demographics"
-// global nces_clean "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
-
-	import excel "${path}/Original Data Files/RI_OriginalData_2022_ela.xlsx", firstrow clear
+	import excel "${path}/RI_OriginalData_2022_ela.xlsx", firstrow clear
 
 global ncesyears 2017 2018 2020 2021
 foreach n in $ncesyears {
 	
 	** NCES School Data
 
-	use "${nces}/NCES School Files, Fall 1997-Fall 2022/NCES_`n'_School.dta", clear
+	use "${nces}/NCES_`n'_School.dta", clear
 
 	** Rename Variables
 
@@ -48,7 +42,7 @@ foreach n in $ncesyears {
 	** NCES District Data
 
 	clear
-	use "${nces}/NCES District Files, Fall 1997-Fall 2022/NCES_`n'_District.dta"
+	use "${nces}/NCES_`n'_District.dta"
 
 	** Rename Variables
 
@@ -77,7 +71,7 @@ foreach y in $years {
 	
 	** State-Assigned IDs
 	
-	import excel "${path}/Original Data Files/RI_OriginalData_`y'_ela.xlsx", firstrow clear
+	import excel "${path}/RI_OriginalData_`y'_ela.xlsx", firstrow clear
 	rename DistrictCode StateAssignedDistID
 	rename DistrictName DistName
 	keep StateAssignedDistID DistName
@@ -99,7 +93,7 @@ foreach y in $years {
 	replace DistName = "UCAP" if DistName == "Urban Collaborative"
 	save "${path}/Semi-Processed Data Files/`y'_distid.dta", replace
 	
-	import excel "${path}/Original Data Files/RI_OriginalData_`y'_ela.xlsx", firstrow clear
+	import excel "${path}/RI_OriginalData_`y'_ela.xlsx", firstrow clear
 	rename SchoolCode StateAssignedSchID
 	rename SchoolName SchName
 	keep StateAssignedSchID SchName
@@ -109,9 +103,9 @@ foreach y in $years {
 	drop dup
 	save "${path}/Semi-Processed Data Files/`y'_schid.dta", replace
 	
-	** Math Data
+	** ELA Data // FIXED 6/17/24 WAS PREVIOUSLY IMPORTING MATH DATA TWICE
 	
-	import excel "${path}/Original Data Files/ri_ricas_math.xlsx", firstrow clear
+	import excel "${path}/ri_ricas_english.xlsx", firstrow clear
 	replace SchName = "AF Iluminar Mayoral Academy Middle" if SchName == "AF Iluminar Mayoral Middle Sch"
 	replace SchName = "AF Providence Mayoral Academy Middle" if SchName == "AF Providence Mayoral Middle"
 	replace SchName = "Achievement First Iluminar Mayoral Academy" if SchName == "Achievement First Iluminar"
@@ -328,7 +322,7 @@ foreach y in $years {
 	
 	** Math Data
 	
-	import excel "${path}/Original Data Files/ri_ricas_math.xlsx", firstrow clear
+	import excel "${path}/ri_ricas_math.xlsx", firstrow clear
 	replace SchName = "AF Iluminar Mayoral Academy Middle School" if SchName == "AF Iluminar Mayoral Middle Sch"
 	replace SchName = "AF Providence Mayoral Academy Middle" if SchName == "AF Providence Mayoral Middle"
 	replace SchName = "Achievement First Iluminar Mayoral Academy" if SchName == "Achievement First Iluminar"
@@ -554,7 +548,7 @@ foreach y in $ngsayears {
 	
 	** Science Data
 
-	import delimited "${path}/Original Data Files/RI_OriginalData_2019,2021,2022_sci.csv", case(preserve) stringcols(7) clear 
+	import delimited "${path}/RI_OriginalData_2019,2021,2022_sci.csv", case(preserve) stringcols(7) clear 
 	keep if School_Year == "`z'-`x'"
 	rename Percent_of_Students_Tested ParticipationRate
 	rename District DistName
@@ -872,57 +866,6 @@ foreach y in $years {
 	gen Lev5_count = ""
 	gen Lev5_percent = ""
 
-	** Label Variables
-
-// 	label var StateAbbrev "State abbreviation"
-// 	label var StateFips "State FIPS Id"
-// 	label var SchYear "School year in which the data were reported. (e.g., 2021-22)"
-// 	label var AssmtName "Name of state assessment"
-// 	label var AssmtType "Assessment type"
-// 	label var DataLevel "Level at which the data are reported"
-// 	label var DistName "District name"
-// 	label var DistCharter "Charter indicator - district"
-// 	label var StateAssignedDistID "State-assigned district ID"
-// 	label var SchName "School name"
-// 	label var StateAssignedSchID "State-assigned school ID"
-// 	label var Subject "Assessment subject area"
-// 	label var GradeLevel "Grade tested (Individual grade levels, Gr3-8, all grades)"
-// 	label var StudentGroup "Student demographic group"
-// 	label var StudentSubGroup "Student demographic subgroup"
-// 	label var StudentGroup_TotalTested "Number of students in the designated StudentGroup who were tested."
-// 	label var StudentSubGroup_TotalTested "Number of students in the designated Student Sub-Group who were tested."
-// 	label var Lev1_count "Count of students within subgroup performing at Level 1."
-// 	label var Lev1_percent "Percent of students within subgroup performing at Level 1."
-// 	label var Lev2_count "Count of students within subgroup performing at Level 2."
-// 	label var Lev2_percent "Percent of students within subgroup performing at Level 2."
-// 	label var Lev3_count "Count of students within subgroup performing at Level 3."
-// 	label var Lev3_percent "Percent of students within subgroup performing at Level 3 ."
-// 	label var Lev4_count "Count of students within subgroup performing at Level 4."
-// 	label var Lev4_percent "Percent of students within subgroup performing at Level 4."
-// 	label var Lev5_count "Count of students within subgroup performing at Level 5."
-// 	label var Lev5_percent "Percent of students within subgroup performing at Level 5."
-// 	label var AvgScaleScore "Avg scale score within subgroup."
-// 	label var ProficiencyCriteria "Levels included in determining proficiency status."
-// 	label var ProficientOrAbove_count "Count of students achieving proficiency or above on the state assessment."
-// 	label var ProficientOrAbove_percent "Percent of students achieving proficiency or above on the state assessment."
-// 	label var ParticipationRate "Participation rate."
-// 	label var NCESDistrictID "NCES district ID"
-// 	label var State_leaid "State LEA ID"
-// 	label var CountyName "County in which the district or school is located."
-// 	label var CountyCode "County code in which the district or school is located, also referred to as the county-level FIPS code"
-// 	label var State "State name"
-// 	label var StateAbbrev "State abbreviation"
-// 	label var StateFips "State FIPS Id"
-// 	label var DistType "District type as defined by NCES"
-// 	label var NCESDistrictID "NCES district ID"
-// 	label var NCESSchoolID "NCES school ID"
-// 	label var SchType "School type as defined by NCES"
-// 	label var SchVirtual "Virtual school indicator"
-// 	label var SchLevel "School level"
-// 	label var Flag_AssmtNameChange "Flag denoting a change in the assessment's name from the prior year only."
-// 	label var Flag_CutScoreChange_ELA "Flag denoting a change in scoring determinations in ELA from the prior year only."
-// 	label var Flag_CutScoreChange_math "Flag denoting a change in scoring determinations in math from the prior year only."
-
 	** Fix Variable Order 
 	replace StateAssignedSchID = "0" + StateAssignedSchID if strlen(StateAssignedSchID) == 4
 	
@@ -935,7 +878,6 @@ foreach y in $years {
 	** Export Assessment Data
 
 	save "${path}/Output/RI_AssmtData_`y'.dta", replace
-	export delimited using "${path}/Output/RI_AssmtData_`y'.csv", replace
 }
 
 
