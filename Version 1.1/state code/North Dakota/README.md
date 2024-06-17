@@ -45,3 +45,5 @@ global Request "/Users/maggie/Desktop/Mississippi/Data Request"
 ## Updates
 
 04/11/2024: Updated output files to incorporate new EDFacts files for 2022 and 2023, derived new student subgroups, and incorporated new NCES variables.
+
+06/17/2024: Updated 2015 Flag_AssmtNameChange for math and ela to "Y". Updated StudentGroup_TotalTested to reflect the all students count for 2022 & 2023, and derived StudentSubGroup_TotalTested based on this value. This was done through an additional do-file, "North Dakota_StateTasks_Jun24. In the future, these changes should be made directly to the yearly do-files, but it is being uploaded separately as a stop-gap measure to get V1.1 out. 
