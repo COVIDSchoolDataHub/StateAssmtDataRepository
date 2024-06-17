@@ -31,3 +31,6 @@ On the first run, you need to update file paths and unhide import code in WY_Cle
 If you are running into errors with the WY_EDFacts files, run WY_Cleaning.do again before trying to run WY_EDFACTS (You shouldn't have to run the NCES file). Running the EDFacts files back to back can cause type errors. 
 
 In its current form WY_Cleaning.do automatically runs the subsequent files. To run them individually, delete/comment out the final two lines. 
+
+## Updates
+- 6/27/24: Updated AssmtType to Regular and alt using the WY_StateTask_Jun24 do-file. This should be incorporated into the cleaning do-file at a later date.
