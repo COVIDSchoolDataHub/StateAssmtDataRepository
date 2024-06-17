@@ -287,7 +287,7 @@ gen Suppressed = 0
 replace Suppressed = 1 if StudentSubGroup_TotalTested == "*"
 egen StudentGroup_Suppressed = max(Suppressed), by(StudentGroup GradeLevel Subject DataLevel NCESSchoolID NCESDistrictID)
 drop Suppressed
-replace StudentGroup_TotalTested = AllStudents_Tested if StudentGroup_Suppressed == 1
+replace StudentGroup_TotalTested = AllStudents_Tested if StudentGroup_Suppressed == 1 | StudentGroup == "EL Status"
 drop AllStudents_Tested StudentGroup_Suppressed
 
 //Deriving Lev*_count
