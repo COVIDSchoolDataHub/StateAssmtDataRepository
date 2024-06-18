@@ -41,7 +41,7 @@ replace GradeLevel = subinstr(GradeLevel, "Grade ", "G0",.) //Converts Grade Lev
 
 //Replace with a condition example
 replace StudentSubGroup = "Migrant" if StudentSubGroup == "Migratory Students"
-//should be done for all subgroups. in the edfacts file to match with the existing values in StudentSubGroup. The values are linked in the Participation Rate spreadsheet under the "File Format" tab.
+//should be done for all subgroups in the edfacts file to match with the existing values in StudentSubGroup. The values are linked in the Participation Rate spreadsheet under the "File Format" tab.
 
 //Numeric to String Conversion Examples (variable formats in both files must match)
 tostring NCESDistrictID, replace
