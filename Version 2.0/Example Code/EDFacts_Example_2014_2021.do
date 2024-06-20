@@ -1,15 +1,16 @@
 clear
 set more off
-cd "C:/Users/hxu15/Downloads/EDFactsDatasets"
 *global NCESSchool "/Users/maggie/Desktop/Arizona/NCES/School"
 *global NCESDistrict "/Users/maggie/Desktop/Arizona/NCES/District"
 *global NCES "/Users/maggie/Desktop/Arizona/NCES/Cleaned"
-global EDFacts "C:/Users/hxu15/Downloads/EDFactsDatasets"
+global EDFacts "/Volumes/T7/State Test Project/EDFACTS"
+global State_Output "/Volumes/T7/State Test Project/Arizona/Output" // Version 1.1 Output directory here
+global New_Output "/Volumes/T7/State Test Project/Arizona/Version 2.0 Output"
 ** Preparing EDFacts files
 local edyears1 14 15 16 17 18
 local edyears2 2019 2021
 local subject math ela
-local datatype count part
+local datatype part
 local datalevel school district
 
 foreach year of local edyears1 {
@@ -254,3 +255,35 @@ foreach year of local edyears2 {
 		}
 	}
 }
+
+//Merging Example
+forvalues year = 2014/2021 {
+	if `year' == 2020 continue
+	import delimited "${State_Output}/AZ_AssmtData_`year'.csv", case(preserve) allstring clear
+	
+//DataLevel
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+sort DataLevel_n 
+drop DataLevel 
+rename DataLevel_n DataLevel
+
+//Merging
+merge 1:1 NCESDistrictID StudentSubGroup GradeLevel Subject using "${EDFacts}/edfactsparticipation`year'districtarizona.dta'", gen(DistMerge)
+merge 1:1 NCESSchoolID StudentSubGroup GradeLevel Subject using "${EDFacts}/edfactsparticipation`year'schoolarizona.dta'", gen(SchMerge)
+drop if DistMerge == 2 | SchMerge == 2
+
+//New Participation Data
+replace ParticipationRate = Participation if !missing(Participation)
+
+//Final Cleaning
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+ 
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
+save "${New_Output}/AZ_AssmtData_`year'", replace
+export delimited "${New_Output}/AZ_AssmtData_`year'"
+}
+
