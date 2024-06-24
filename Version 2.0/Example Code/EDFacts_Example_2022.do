@@ -37,7 +37,7 @@ drop range`var'
 }
 
 //StudentSubGroup
-replace StudentSubGroup = "All Students" if StudentSubGroup == "All Students in SEA"
+replace StudentSubGroup = "All Students" if strpos(StudentSubGroup, "All Students") !=0
 replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "American Indian/Alaska Native/Native American"
 replace StudentSubGroup = "Black or African American" if StudentSubGroup == "Black (not Hispanic) African American"
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic/Latino"
