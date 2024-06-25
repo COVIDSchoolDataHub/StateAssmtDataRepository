@@ -11,7 +11,7 @@ foreach s in ela math sci {
 }
 
 use "${Original}/AR_EFParticipation_2022_ela.dta"
-append using "${Original}/AR_EFParticipation_2022_math.dta" "${EDFacts}/AR_EFParticipation_2022_sci.dta"
+append using "${Original}/AR_EFParticipation_2022_math.dta" "${Original}/AR_EFParticipation_2022_sci.dta"
 
 //Rename and Drop Vars
 drop SchoolYear State
