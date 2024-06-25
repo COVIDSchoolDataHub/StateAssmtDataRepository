@@ -5,10 +5,13 @@ global Output_11 "/Volumes/T7/State Test Project/Arkansas/Output"
 global Output_20 "/Volumes/T7/State Test Project/Arkansas/Output 2.0"
 global Original "/Volumes/T7/State Test Project/Arkansas/Original Data"
 
-import delimited "${Original}/AR_EFParticipation_2022.csv", case(preserve) clear
+foreach s in ela math sci {
+	import delimited "${EDFacts}/AR_EFParticipation_2022_`s'.csv", case(preserve) clear
+	save "${Original}/AR_EFParticipation_2022_`s'.dta", replace
+}
 
-//Keep ParticipationRate
-keep if strpos(DataDescription, "Participation") !=0
+use "${Original}/AR_EFParticipation_2022_ela.dta"
+append using "${Original}/AR_EFParticipation_2022_math.dta" "${EDFacts}/AR_EFParticipation_2022_sci.dta"
 
 //Rename and Drop Vars
 drop SchoolYear State
