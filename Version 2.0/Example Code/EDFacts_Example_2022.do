@@ -6,7 +6,7 @@ global Output_20 "/Volumes/T7/State Test Project/Arkansas/Output 2.0"
 global Original "/Volumes/T7/State Test Project/Arkansas/Original Data"
 
 foreach s in ela math sci {
-	import delimited "${EDFacts}/AR_EFParticipation_2022_`s'.csv", case(preserve) clear
+	import delimited "${Original}/AR_EFParticipation_2022_`s'.csv", case(preserve) clear
 	save "${Original}/AR_EFParticipation_2022_`s'.dta", replace
 }
 
