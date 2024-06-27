@@ -4,9 +4,6 @@
 This is a ReadMe for California's data cleaning process, from 2010 to 2023 (with the exception of 2014 and 2020).
 
 
-
-
-
 ## Setup
 
 There are four folders you need to create: 
@@ -26,9 +23,9 @@ california_NCES_do_file.do;
 
 california_missing_NCES_updated.do;
 
-california_`year'_clean.do. 
+california_`year'_clean.do;
 
-CA_Science_2019_2023.do
+CA_Science_2019_2023.do;
 
 california_unmerged_PostClean.do
 
@@ -69,3 +66,4 @@ global unmerged "/Users/minnamgung/Desktop/SADR/California/Unmerged Districts"
 - 03/10/2024: Responded to first round of 2024 data update review comments.
 - 06/11/2023: Moved to new NCES files for all years and updated unmerged observations. Added new code to deal with additional unmerged observations.
 - 6/15/23: Fixed mismatched ID's for all years.
+- 6/27/24 Incorporated science data for 2019-2023.
