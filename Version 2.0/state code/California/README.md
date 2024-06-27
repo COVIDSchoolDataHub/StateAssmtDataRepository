@@ -16,7 +16,7 @@ Download the original .xlsx files and place them into the "Original Data Files" 
 
 Download the PostClean folder from the drive and save it to the California folder.
 
-There are 16 .do files. 
+There are 17 .do files. 
 
 Run them in the following order:
 
@@ -27,6 +27,8 @@ california_NCES_do_file.do;
 california_missing_NCES_updated.do;
 
 california_`year'_clean.do. 
+
+CA_Science_2019_2023.do
 
 california_unmerged_PostClean.do
 
