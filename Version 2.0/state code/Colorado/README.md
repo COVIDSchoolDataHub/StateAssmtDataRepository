@@ -25,9 +25,13 @@ First run Colorado NCES Cleaning.do, and then you can run any of the individual 
 The file path setup should be as follows: 
 
 global path: Folder containing original data files for the given year.
+
 global NCES Folder containing cleaned NCES data.
+
 global NCESSchool Folder containing school level NCES data files.
+
 global NCESDistrict: Folder containing district level NCES data files.
+
 global Output: Folder in which output files will be saved (CO State Testing Data).
 
 Note that "path" will need to change for every year
