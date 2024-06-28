@@ -2,8 +2,8 @@ clear
 set more off
 
 global EDFacts "/Users/kaitlynlucas/Desktop/EDFacts Drive Data"
-global State_Output "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/arkansas data" // Version 1.1 Output directory here
-global New_Output "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/clean arkansas data" // Version 2.0 Output directory here
+global State_Output "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/Arkansas Assessment" // Version 1.1 Output directory here
+global New_Output "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/Arkansas V2.0" // Version 2.0 Output directory here
 
 ** Preparing EDFacts files
 local edyears1 14 15 16 17 18
@@ -117,7 +117,18 @@ foreach year of local edyears1 {
             replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD"
             replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless"
             replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant Status"
-            save "${EDFacts}/20`year'/edfacts`type'20`year'`lvl'arkansas.dta", replace
+			//Using ELA for eng and read
+			tempfile temp1
+			save "`temp1'", replace
+			keep if Subject == "ela"
+			expand 3, gen(exp)
+			drop if exp == 0
+			gen row = _n
+			replace Subject = "eng" if mod(row,2) == 0
+			replace Subject = "read" if mod(row,2) !=0
+			drop exp row
+			append using "`temp1'"
+			save "${EDFacts}/20`year'/edfacts`type'20`year'`lvl'arkansas.dta", replace
         }
     }
 }
@@ -240,6 +251,17 @@ foreach year of local edyears2 {
 			replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless"
 			replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Military"
 			replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Foster Care"
+			//Using ELA for eng and read
+			tempfile temp1
+			save "`temp1'", replace
+			keep if Subject == "ela"
+			expand 3, gen(exp)
+			drop if exp == 0
+			gen row = _n
+			replace Subject = "eng" if mod(row,2) == 0
+			replace Subject = "read" if mod(row,2) !=0
+			drop exp row
+			append using "`temp1'"
 			save "${EDFacts}/`year'/edfacts`type'`year'`lvl'arkansas.dta", replace
 		}
 	}
