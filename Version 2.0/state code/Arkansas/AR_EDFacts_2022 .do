@@ -2,9 +2,9 @@ clear
 set more off
 
 global Original "/Users/kaitlynlucas/Desktop/EDFacts Drive Data" //Folder with Output .dta
-global EDFacts "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/2022" //Folder with downloaded state-specific 2022 participation data from EDFacts
-global State_Output "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/arkansas data" //Folder with state-specific data
-global Output_20 "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/clean arkansas data" //Folder for Output 2.0
+global EDFacts "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/AR_2022" //Folder with downloaded state-specific 2022 participation data from EDFacts
+global State_Output "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/Arkansas Assessment" //Folder with state-specific data
+global Output_20 "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/Arkansas V2.0" //Folder for Output 2.0
 
 
 foreach s in ela math sci {
@@ -75,20 +75,24 @@ append using "`temp1'"
 //GradeLevel
 replace GradeLevel = subinstr(GradeLevel, "Grade ", "G0",.)
 
+
 //Saving EDFacts Output
 save "${EDFacts}/AR_EFParticipation_2022", replace
 
 //Merging with 2022
 use "${State_Output}/AR_AssmtData_2022", clear
 
-forvalues year = 2010/2023 {
+forvalues year = 2010/2022 {
 if `year' == 2020 continue
 import delimited "${State_Output}/AR_AssmtData_`year'", case(preserve) clear
 save "${State_Output}/AR_AssmtData_`year'", replace
 }
-
-//Convert to numeric if necessary
-destring NCESDistrictID NCESSchoolID, replace
+//DataLevel
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+sort DataLevel_n 
+drop DataLevel 
+rename DataLevel_n DataLevel
 
 //Merging
 merge 1:1 NCESDistrictID NCESSchoolID GradeLevel Subject StudentSubGroup using "${EDFacts}/AR_EFParticipation_2022"
@@ -106,10 +110,3 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${Output_20}/AR_AssmtData_2022", replace
 export delimited "${Output_20}/AR_AssmtData_2022", replace
-
-
-
-
-
-
-
