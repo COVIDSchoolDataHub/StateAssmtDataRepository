@@ -87,8 +87,12 @@ import delimited "${State_Output}/DE_AssmtData_`year'", case(preserve) clear
 save "${State_Output}/DE_AssmtData_`year'", replace
 }
 
-//Convert to numeric if necessary
-destring NCESDistrictID NCESSchoolID, replace
+//DataLevel
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+sort DataLevel_n 
+drop DataLevel 
+rename DataLevel_n DataLevel
 
 //Merging
 merge 1:1 NCESDistrictID NCESSchoolID GradeLevel Subject StudentSubGroup using "${EDFacts}/DE_EFParticipation_2022"
