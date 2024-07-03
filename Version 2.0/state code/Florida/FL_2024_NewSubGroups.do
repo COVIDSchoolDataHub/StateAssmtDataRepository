@@ -2,7 +2,7 @@ clear
 set more off
 set trace off
 
-global Original "/Volumes/T7/State Test Project/Florida post-launch/Original Data/FL_OriginalData_2018_2023"
+global Original "/Volumes/T7/State Test Project/Florida post-launch/Original Data/FL_OriginalData_2024"
 global Output "/Volumes/T7/State Test Project/Florida post-launch/Output"
 global Temp "/Volumes/T7/State Test Project/Florida post-launch/Temp"
 global NCES "/Volumes/T7/State Test Project/Florida post-launch/NCES"
@@ -13,8 +13,8 @@ global NCES "/Volumes/T7/State Test Project/Florida post-launch/NCES"
 
 foreach dl in State District School {
 	foreach sg in AllStudents Disability Econ ELcode ELstatus Gender Homeless Migrant Military Race {
-		import excel "${Original}/FL_OriginalData_2018_2023_`dl'_Grade_`sg'.xlsx", firstrow case(preserve) allstring
-		save "${Temp}/FL_OriginalData_2018_2023_`dl'_`sg'.dta", replace
+		import excel "${Original}/FL_OriginalData_2024_`dl'_Grade_`sg'.xlsx", firstrow case(preserve) allstring
+		save "${Temp}/FL_OriginalData_2024_`dl'_`sg'.dta", replace
 		clear
 		
 	} 
@@ -31,7 +31,7 @@ clear
 //Creating one big dataset for all years
 foreach dl in State District School {
 	foreach sg in AllStudents Disability Econ ELcode ELstatus Gender Homeless Migrant Military Race {
-	use "${Temp}/FL_OriginalData_2018_2023_`dl'_`sg'.dta"
+	use "${Temp}/FL_OriginalData_2024_`dl'_`sg'.dta"
 	
 	if "`dl'" == "State" {
 	gen DataLevel = "State"	
@@ -41,7 +41,7 @@ foreach dl in State District School {
 	rename P Lev4_percent
 	rename R Lev5_percent
 	rename T ProficientOrAbove_percent
-	save "${Temp}/FL_OriginalData_2018_2023_`dl'_`sg'.dta", replace
+	save "${Temp}/FL_OriginalData_2024_`dl'_`sg'.dta", replace
 	}
 	
 	if "`dl'" == "District" {
@@ -52,7 +52,7 @@ foreach dl in State District School {
 	rename R Lev4_percent
 	rename T Lev5_percent
 	rename V ProficientOrAbove_percent
-	save "${Temp}/FL_OriginalData_2018_2023_`dl'_`sg'.dta", replace
+	save "${Temp}/FL_OriginalData_2024_`dl'_`sg'.dta", replace
 	}
 	
 	if "`dl'" == "School" {
@@ -63,7 +63,7 @@ foreach dl in State District School {
 	rename T Lev4_percent
 	rename V Lev5_percent
 	rename X ProficientOrAbove_percent
-	save "${Temp}/FL_OriginalData_2018_2023_`dl'_`sg'.dta", replace
+	save "${Temp}/FL_OriginalData_2024_`dl'_`sg'.dta", replace
 	}
 
 append using "`temp1'"
@@ -73,36 +73,18 @@ clear
 	}
 }
 use "`temp1'"
-save "${Temp}/FL_OriginalData_2018_2023", replace
-clear
-
-
-//Run above code on first run only
-
-
-//Separating the dataset by year
-forvalues year = 2018/2023 {
-if `year' == 2020 continue	
-local prevyear =`=`year'-1'
-use "${Temp}/FL_OriginalData_2018_2023"
-rename SchoolYear SchYear
 drop if Indicator2 == "Not Reported" // Dropping "Not Reported" StudentSubGroup for viewing original data
-keep if SchYear == "`prevyear'-" + substr("`year'",-2,2)
-save "${Temp}/FL_OriginalData_`year'", replace
+rename SchoolYear SchYear
+save "${Temp}/FL_OriginalData_2024", replace
 clear
-}
+
 
 
 */
 
 //Run above code when first cleaning or if you need to incorporate additional data
 
-
-//Looping Through Years
-forvalues year = 2018/2023 {
-	if `year' == 2020 continue
-local prevyear =`=`year'-1'
-use "${Temp}/FL_OriginalData_`year'"
+use "${Temp}/FL_OriginalData_2024"
 
 //Renaming and Dropping Variables
 drop Index
@@ -197,12 +179,13 @@ replace StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGrou
 //StudentSubGroup_TotalTested
 drop if missing(StudentSubGroup_TotalTested) | StudentSubGroup_TotalTested == 0 //I would guess these values are suppressed, but the data just has them missing. Tranforming assuming StudentSubGroup_TotalTested == 0
 
+
 //Merging NCES
 gen State_leaid = "FL-" + StateAssignedDistID if DataLevel != 1
 gen seasch = StateAssignedDistID + "-" + StateAssignedSchID if DataLevel == 3
 
-merge m:1 State_leaid using "$NCES/NCES_`prevyear'_District", gen(DistMerge)
-merge m:1 seasch using "$NCES/NCES_`prevyear'_School", gen(SchMerge)
+merge m:1 State_leaid using "$NCES/NCES_2022_District", gen(DistMerge)
+merge m:1 seasch using "$NCES/NCES_2022_School", gen(SchMerge)
 
 drop if DistMerge == 2
 drop if SchMerge == 2
@@ -213,15 +196,13 @@ gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_sci = "N"
 gen Flag_CutScoreChange_soc = "Not applicable"
-gen AssmtName = "FSA"
+gen AssmtName = "FAST"
 replace AssmtName = "Statewide Science Assessment" if Subject == "sci"
-if `year' == 2023 replace AssmtName = "FAST" if Subject == "ela" | Subject == "math"
-if `year' == 2023 {
-	replace Flag_AssmtNameChange = "Y" if Subject != "sci"
-	replace Flag_CutScoreChange_math = "Y"
-	replace Flag_CutScoreChange_ELA = "Y"
-	replace Flag_CutScoreChange_sci = "N"
-}
+
+replace Flag_AssmtNameChange = "N"
+replace Flag_CutScoreChange_math = "N"
+replace Flag_CutScoreChange_ELA = "N"
+replace Flag_CutScoreChange_sci = "N"
 replace StateAbbrev = "FL"
 replace StateFips = 12
 gen AssmtType = "Regular"
@@ -238,8 +219,8 @@ foreach var of varlist Lev* ProficientOrAbove* {
 replace AvgScaleScore = string(real(AvgScaleScore), "%9.4g")
 replace AvgScaleScore = "--" if AvgScaleScore == "."
 
-//Dropping Online Unmerged School for 2023
-if `year' == 2023 drop if DataLevel ==3 & missing(NCESSchoolID) & SchName == "Hendry Online Learning School-7006"
+//Dropping Online Unmerged School
+drop if DataLevel ==3 & missing(NCESSchoolID) & SchName == "Hendry Online Learning School-7006"
 
 //Post Launch review response
 replace DistName = subinstr(DistName, substr(DistName, 1, strpos(DistName, "-")),"",.)
@@ -260,11 +241,10 @@ foreach var of varlist DistName SchName {
 	replace `var' = stritrim(`var')
 	replace `var' = strtrim(`var')
 }
-
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${Output}/FL_AssmtData_`year'", replace
-export delimited "${Output}/FL_AssmtData_`year'", replace
-}
+save "${Output}/FL_AssmtData_2024", replace
+export delimited "${Output}/FL_AssmtData_2024", replace
+
