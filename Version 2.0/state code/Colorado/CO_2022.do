@@ -1,11 +1,12 @@
 clear all
 set more off
 
-cd "/Users/miramehta/Documents"
+cd "/Volumes/T7/State Test Project/Colorado"
 
-global path "/Users/miramehta/Documents/CO State Testing Data/2022"
-global nces "/Users/miramehta/Documents/NCES District and School Demographics"
-global output "/Users/miramehta/Documents/CO State Testing Data"
+global path "/Volumes/T7/State Test Project/Colorado/Original Data Files"
+global nces "/Volumes/T7/State Test Project/Colorado/NCES"
+global output "/Volumes/T7/State Test Project/Colorado/Output"
+global nces_raw "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
 
 
 ///////// Section 1: Appending Aggregate Data
@@ -196,13 +197,13 @@ save "${path}/CO_OriginalData_2022_all.dta", replace
 
 		// Merges district variables from NCES
 	
-use "${nces}/NCES District Files, Fall 1997-Fall 2022/NCES_2021_District.dta"
+use "${nces_raw}/NCES_2021_District.dta"
 drop if state_fips != 8
-save "${nces}/Cleaned NCES Data/NCES_2021_District_CO.dta", replace
+save "${nces}/NCES_2021_District_CO.dta", replace
 
 
 use "${path}/CO_OriginalData_2022_all.dta"
-merge m:1 state_leaid using "${nces}/Cleaned NCES Data/NCES_2021_District_CO.dta"
+merge m:1 state_leaid using "${nces}/NCES_2021_District_CO.dta"
 
 rename _merge district_merge
 
@@ -214,13 +215,13 @@ save "${path}/CO_OriginalData_2022_all.dta", replace
 
 	// Merges school variables from NCES
 	
-use "${nces}/NCES School Files, Fall 1997-Fall 2022/NCES_2021_School.dta"
+use "${nces_raw}/NCES_2021_School.dta"
 drop if state_fips != 8
-save "${nces}/Cleaned NCES Data/NCES_2021_School_CO.dta", replace
+save "${nces}/NCES_2021_School_CO.dta", replace
 
 use "${path}/CO_OriginalData_2022_all.dta", clear
 
-merge m:1 seasch using "${nces}/Cleaned NCES Data/NCES_2021_School_CO.dta"	
+merge m:1 seasch using "${nces}/NCES_2021_School_CO.dta"	
 drop if state_fips != 8
 
 
@@ -432,6 +433,8 @@ encode DataLevel, gen(DataLevel_n) label(DataLevel)
 sort DataLevel_n 
 drop DataLevel 
 rename DataLevel_n DataLevel
+
+replace SchName = stritrim(SchName)
 
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 

@@ -1,11 +1,12 @@
 clear
 set more off
 
-global path "/Users/miramehta/Documents/CO State Testing Data/2023"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
-global output "/Users/miramehta/Documents/CO State Testing Data"
+cd "/Volumes/T7/State Test Project/Colorado"
 
-cd "/Users/miramehta/Documents/CO State Testing Data"
+global path "/Volumes/T7/State Test Project/Colorado/Original Data Files"
+global nces "/Volumes/T7/State Test Project/Colorado/NCES"
+global output "/Volumes/T7/State Test Project/Colorado/Output"
+
 
 ** Appending ela & math
 
@@ -261,13 +262,13 @@ gen AssmtType = "Regular"
 
 ** Merging with NCES
 
-merge m:1 State_leaid using "${NCES}/NCES_2022_District_CO.dta"
+merge m:1 State_leaid using "${nces}/NCES_2022_District_CO.dta"
 
 drop if _merge == 2
 drop _merge 
 drop supervisory_union_number boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment teachers_total_fte staff_total_fte FLAG state_mailing urban_centric_locale
 
-merge m:1 State_leaid seasch using "${NCES}/NCES_2022_School_CO"
+merge m:1 State_leaid seasch using "${nces}/NCES_2022_School_CO"
 
 drop if _merge == 2
 drop _merge
@@ -285,6 +286,8 @@ gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_soc = "Not applicable"
 gen Flag_CutScoreChange_sci = "Y"
+
+replace SchName = stritrim(SchName)
 
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 

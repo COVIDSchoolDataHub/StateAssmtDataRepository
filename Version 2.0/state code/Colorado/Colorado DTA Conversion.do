@@ -1,10 +1,11 @@
 clear
 set more off
 
-cd "/Users/miramehta/Documents/CO State Testing Data"
+cd "/Volumes/T7/State Test Project/Colorado"
 
-global path "/Users/miramehta/Documents/CO State Testing Data/2023"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+global path "/Volumes/T7/State Test Project/Colorado/Original Data Files"
+global nces "/Volumes/T7/State Test Project/Colorado/NCES"
+global output "/Volumes/T7/State Test Project/Colorado/Output"
 
 local studentgroup `" "Gender" "Race Ethnicity" "Language Proficiency" "Migrant" "IEP" "'
 local subject ELA Math Science

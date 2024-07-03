@@ -1,11 +1,12 @@
 clear all
 set more off
 
-cd "/Users/miramehta/Documents"
+cd "/Volumes/T7/State Test Project/Colorado"
 
-global path "/Users/miramehta/Documents/CO State Testing Data/2016"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics"
-global output "/Users/miramehta/Documents/CO State Testing Data"
+global path "/Volumes/T7/State Test Project/Colorado/Original Data Files"
+global nces "/Volumes/T7/State Test Project/Colorado/NCES"
+global nces_raw "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global output "/Volumes/T7/State Test Project/Colorado/Output"
 
 
 ///////// Section 1: Appending Aggregate Data
@@ -438,7 +439,7 @@ replace DistName = "All Districts" if DataLevel == "State"
 replace SchName = "All Schools" if DataLevel != "School"
 gen State_leaid = StateAssignedDistID
 	
-merge m:1 State_leaid using "${nces}/Cleaned NCES Data/NCES_2015_District_CO.dta"
+merge m:1 State_leaid using "${nces}/NCES_2015_District_CO.dta"
 
 drop if _merge == 2
 drop _merge	
@@ -446,7 +447,7 @@ drop _merge
 replace StateAssignedSchID = "" if DataLevel != "School"
 gen seasch = StateAssignedSchID
 	
-merge m:1 seasch using "${nces}/Cleaned NCES Data/NCES_2015_School_CO.dta"
+merge m:1 seasch using "${nces}/NCES_2015_School_CO.dta"
 
 drop if _merge == 2
 drop _merge	
@@ -560,8 +561,8 @@ replace EL_group = "English Learner" if StudentSubGroup == "NEP - Non English Pr
 replace EL_group = "English Proficient" if StudentSubGroup == "FEP - Fluent English Proficient" | StudentSubGroup == "PHLOTE/FELL/NA"
 gen K = StudentSubGroup_TotalTested
 destring K, replace force
-replace K = -1000000 if K == .
-bys SchName EL_group GradeLevel Subject: egen L = total(K)
+*replace K = -1000000 if K == .
+bys DistName SchName EL_group GradeLevel Subject: egen L = total(K)
 replace L =. if L < 0
 
 gen proportion = K/L
@@ -569,29 +570,29 @@ replace proportion = . if K ==. | L == .
 
 gen Avg = AvgScaleScore
 destring Avg, replace force
-replace Avg = -1000000 if Avg == .
+*replace Avg = -1000000 if Avg == .
 replace Avg = proportion * Avg
 bys SchName EL_group GradeLevel Subject: egen Average = total(Avg)
 replace Average = . if Average < 0
 
 gen Part = ParticipationRate
 destring Part, replace force
-replace Part = -1000000 if Part == .
+*replace Part = -1000000 if Part == .
 replace Part = proportion * Part
-bys SchName EL_group GradeLevel Subject: egen Participation = total(Part)
+bys DistName SchName EL_group GradeLevel Subject: egen Participation = total(Part)
 replace Participation = . if Participation <= 0
 
 forvalues n = 1/5{
 	gen K`n' = Lev`n'_count
 	destring K`n', replace force
-	replace K`n' = -1000000 if K`n' == .
-	bys SchName EL_group GradeLevel Subject: egen L`n' = total(K`n')
+	*replace K`n' = -1000000 if K`n' == .
+	bys DistName SchName EL_group GradeLevel Subject: egen L`n' = total(K`n')
 	replace L`n' = . if L`n' < 0
 	gen K`n'_percent = Lev`n'_percent
 	destring K`n'_percent, replace force
-	replace K`n'_percent = -1000000 if K`n'_percent == .
+	*replace K`n'_percent = -1000000 if K`n'_percent == .
 	gen weighted`n' = proportion*K`n'_percent
-	bys SchName EL_group GradeLevel Subject: egen L`n'_percent = total(weighted`n')
+	bys DistName SchName EL_group GradeLevel Subject: egen L`n'_percent = total(weighted`n')
 	replace L`n'_percent = . if L`n'_percent < 0
 	
 	tostring L`n', replace
@@ -605,15 +606,15 @@ forvalues n = 1/5{
 
 gen Prof = ProficientOrAbove_count
 destring Prof, replace force
-replace Prof = -1000000 if Prof == .
-bys SchName EL_group GradeLevel Subject: egen Prof_count = total(Prof)
+*replace Prof = -1000000 if Prof == .
+bys DistName SchName EL_group GradeLevel Subject: egen Prof_count = total(Prof)
 replace Prof_count = . if Prof_count < 0
 
 gen P = ProficientOrAbove_percent
 destring P, replace force
-replace P = -1000000 if P == .
+*replace P = -1000000 if P == .
 gen weightedP = proportion * P
-bys SchName EL_group GradeLevel Subject: egen P_pct = total(weightedP)
+bys DistName SchName EL_group GradeLevel Subject: egen P_pct = total(weightedP)
 replace P_pct = . if P_pct < 0
 
 tostring Prof_count, replace
@@ -693,6 +694,13 @@ replace SchName = "Adams Youth Service Center" if NCESSchoolID == "080258006343"
 replace SchName = "Spring Creek Youth Services Center" if NCESSchoolID == "080453006342"
 replace SchName = "Platte Valley Youth Services Center" if NCESSchoolID == "080441006355"
 
+//Cleaning EL Groups more
+replace StudentSubGroup_TotalTested = "1-15" if StudentSubGroup_TotalTested == "0" & (StudentSubGroup == "English Learner" | StudentSubGroup == "English Proficient")
+
+foreach var of varlist *_count *_percent ParticipationRate AvgScaleScore {
+	replace `var' = "*" if `var' == "0" & StudentSubGroup_TotalTested == "1-15" & (StudentSubGroup == "English Learner" | StudentSubGroup == "English Proficient")
+}
+
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 label def DataLevel 1 "State" 2 "District" 3 "School"
@@ -700,6 +708,8 @@ encode DataLevel, gen(DataLevel_n) label(DataLevel)
 sort DataLevel_n 
 drop DataLevel 
 rename DataLevel_n DataLevel
+
+replace SchName = stritrim(SchName)
 
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
