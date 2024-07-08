@@ -247,6 +247,7 @@ foreach year of local edyears2 {
 forvalues year = 2014/2019 {
 import delimited "${State_Output}/NY_AssmtData_`year'.csv", case(preserve) clear
 
+tostring ParticipationRate, replace
 	
 //DataLevel
 label def DataLevel 1 "State" 2 "District" 3 "School"
