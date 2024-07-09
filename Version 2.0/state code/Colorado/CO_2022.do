@@ -370,41 +370,16 @@ gen Prof = Lev4 + Lev5
 replace ProficientOrAbove_count = string(Prof) if inlist(ProficientOrAbove_count, "*", "") & Prof !=.
 drop Lev4 Lev5 Prof
 
-//Aggregating Total Tested
-replace StudentGroup = "EL Exited" if StudentSubGroup == "EL Exited"
-replace StudentSubGroup_TotalTested = strtrim(StudentSubGroup_TotalTested)
-replace StudentSubGroup_TotalTested = subinstr(StudentSubGroup_TotalTested, ",", "", 1)
-replace StudentSubGroup_TotalTested = "1-15" if StudentSubGroup_TotalTested == "< 16"
-split StudentSubGroup_TotalTested, parse("-")
-destring StudentSubGroup_TotalTested1, replace force
-destring StudentSubGroup_TotalTested2, replace force
-replace StudentSubGroup_TotalTested1 = 0 if StudentSubGroup_TotalTested1 == .
-replace StudentSubGroup_TotalTested2 = 0 if StudentSubGroup_TotalTested2 == .
-bysort DistName SchName StudentGroup GradeLevel Subject: egen test = min(StudentSubGroup_TotalTested1)
-bysort DistName SchName StudentGroup GradeLevel Subject: egen test2 = min(StudentSubGroup_TotalTested2)
-bysort DistName SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested1) if test != 0
-bysort DistName SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested2 = sum(StudentSubGroup_TotalTested2) if test2 != 0
-tostring StudentGroup_TotalTested, replace force
-tostring StudentGroup_TotalTested2, replace force
-replace StudentGroup_TotalTested = StudentGroup_TotalTested + "-" + StudentGroup_TotalTested2 if !inlist(StudentGroup_TotalTested2, ".", "0")
-replace StudentGroup_TotalTested = "*" if strpos(StudentGroup_TotalTested, ".") > 0
-drop StudentSubGroup_TotalTested1 StudentSubGroup_TotalTested2 StudentGroup_TotalTested2 test
-replace StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
-
+//StudentGroup_TotalTested
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-gen Suppressed = 0
-replace Suppressed = 1 if inlist(StudentSubGroup_TotalTested, "--", "*")
-egen StudentGroup_Suppressed = max(Suppressed), by(StudentGroup GradeLevel Subject DataLevel seasch StateAssignedDistID DistName SchName)
-drop Suppressed
-gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
-replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
-replace StudentGroup_TotalTested = AllStudents_Tested if StudentGroup_Suppressed == 1
-replace StudentGroup_TotalTested = AllStudents_Tested if AllStudents_Tested == "1-15"
-drop AllStudents_Tested StudentGroup_Suppressed
-replace StudentGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "--"
-replace StudentGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "*"
-replace StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "EL Exited"
-replace StudentGroup = "EL Status" if StudentSubGroup == "EL Exited"
+gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+
+//Deriving StudentSubGroup_TotalTested where suppressed
+gen UnsuppressedSSG = real(StudentSubGroup_TotalTested)
+egen UnsuppressedSG = total(UnsuppressedSSG), by(StudentGroup GradeLevel Subject DistName SchName)
+replace StudentSubGroup_TotalTested = string(real(StudentGroup_TotalTested)-UnsuppressedSG) if missing(real(StudentSubGroup_TotalTested)) & !missing(real(StudentGroup_TotalTested)) & real(StudentGroup_TotalTested) - UnsuppressedSG >=0 & UnsuppressedSG > 0 & StudentGroup != "RaceEth" & StudentSubGroup != "EL Exited"
+drop Unsuppressed*
 
 ////
 replace StateAbbrev="CO" if StateAbbrev==""
@@ -426,7 +401,6 @@ replace Lev5_count="*" if Lev5_count==""
 replace ProficientOrAbove_count="*" if ProficientOrAbove_count==""
 replace AvgScaleScore="*" if AvgScaleScore==""
 
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 label def DataLevel 1 "State" 2 "District" 3 "School"
 encode DataLevel, gen(DataLevel_n) label(DataLevel)
@@ -434,10 +408,15 @@ sort DataLevel_n
 drop DataLevel 
 rename DataLevel_n DataLevel
 
-replace SchName = stritrim(SchName)
+replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent)* real(StudentSubGroup_TotalTested))) if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(ProficientOrAbove_percent)) & missing(real(ProficientOrAbove_count))
 
+//Final Cleaning
+foreach var of varlist DistName SchName {
+	replace `var' = stritrim(`var')
+	replace `var' = strtrim(`var')
+}
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${output}/CO_AssmtData_2022.dta", replace

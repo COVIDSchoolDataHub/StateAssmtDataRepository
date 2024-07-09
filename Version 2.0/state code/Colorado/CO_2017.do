@@ -164,7 +164,7 @@ foreach percent of varlist *_percent ParticipationRate {
 	replace `percent' = string(real(`percent')/100, "%9.3g") if !missing(real(`percent'))
 }
 
-replace StudentSubGroup_TotalTested = "1-15" if StudentSubGroup_TotalTested == "< 16"
+replace StudentSubGroup_TotalTested = "0-15" if StudentSubGroup_TotalTested == "< 16"
 
 //EL Groups Aggregation
 tempfile temp1
@@ -202,7 +202,7 @@ rename StudentSubGroup_TotalTested_Agg StudentSubGroup_TotalTested
 sort DataLevel DistName SchName Subject GradeLevel StudentSubGroup
 duplicates drop DistName SchName Subject GradeLevel StudentSubGroup, force
 tostring StudentSubGroup_TotalTested, replace
-replace StudentSubGroup_TotalTested = "1-15" if StudentSubGroup_TotalTested == "0"
+replace StudentSubGroup_TotalTested = "0-15" if StudentSubGroup_TotalTested == "0"
 append using "`temp1'"
 drop if StudentSubGroup == "LEP - Limited English Proficient" | StudentSubGroup == "NEP - Non English Proficient" | StudentSubGroup == "PHLOTE/FELL/NA"
 replace StudentSubGroup = "EL Exited" if StudentSubGroup == "FEP - Fluent English Proficient" 
@@ -243,7 +243,12 @@ order DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
 replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
-replace StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "EL Exited"
+
+//Deriving StudentSubGroup_TotalTested where suppressed
+gen UnsuppressedSSG = real(StudentSubGroup_TotalTested)
+egen UnsuppressedSG = total(UnsuppressedSSG), by(StudentGroup GradeLevel Subject DistName SchName)
+replace StudentSubGroup_TotalTested = string(real(StudentGroup_TotalTested)-UnsuppressedSG) if missing(real(StudentSubGroup_TotalTested)) & !missing(real(StudentGroup_TotalTested)) & real(StudentGroup_TotalTested) - UnsuppressedSG >=0 & UnsuppressedSG > 0 & StudentGroup != "RaceEth" & StudentSubGroup != "EL Exited"
+drop Unsuppressed*
 
 //Indicator Variables
 replace State = "Colorado"
@@ -276,12 +281,16 @@ replace SchName = "Spring Creek Youth Services Center" if NCESSchoolID == "08045
 replace SchName = "Mountview Youth Service Center" if NCESSchoolID == "080480006347"
 replace SchName = "Pueblo Youth Service Center" if NCESSchoolID == "080612006350"
 
+replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent)* real(StudentSubGroup_TotalTested))) if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(ProficientOrAbove_percent)) & missing(real(ProficientOrAbove_count))
+
 
 //Final Cleaning
+foreach var of varlist DistName SchName {
+	replace `var' = stritrim(`var')
+	replace `var' = strtrim(`var')
+}
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
- 
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "$output/CO_AssmtData_2017", replace
