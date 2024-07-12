@@ -225,6 +225,10 @@ drop if DataLevel ==3 & missing(NCESSchoolID) & SchName == "Hendry Online Learni
 //Post Launch review response
 replace DistName = subinstr(DistName, substr(DistName, 1, strpos(DistName, "-")),"",.)
 replace SchName = proper(SchName)
+destring StateAssigned*, replace
+tostring StateAssignedSchID, replace
+replace StateAssignedSchID = "" if DataLevel !=3
+replace StateAssignedSchID = string(StateAssignedDistID) + "-" + StateAssignedSchID if DataLevel == 3
 
 **Updating CountyName and CountyCode of Select Districts
 replace CountyName = "Duval County" if NCESSchoolID == "120008410710" | NCESSchoolID == "120008410711" 
@@ -234,7 +238,39 @@ replace CountyCode = "12057" if NCESSchoolID == "120008410712" | NCESSchoolID ==
 replace CountyName = "Hidalgo County" if NCESDistrictID == "1200084" & DataLevel == 2
 replace CountyCode = "48215" if NCESDistrictID == "1200084" & DataLevel == 2
 
+//Fixing Unmerged & SchLevel/SchVirtual (Download spreadsheet from drive)
+tempfile temp1
+save "`temp1'", replace
+clear
+import excel "$Original/FL_Unmerged, SchLevel, SchVirtual_2024", firstrow case(preserve) allstring clear
+drop if missing(State)
+keep NCESDistrictID NCESSchoolID SchName DistName DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+merge 1:m DistName SchName using "`temp1'", update gen(Unmerged_Merge)
+drop if SchName == "Duval District Office-9001"
+tempfile  temp1
+save "`temp1'", replace
+clear
+import excel "$Original/FL_Unmerged, SchLevel, SchVirtual_2024", cellrange(A2) firstrow case(preserve) allstring sheet("SchLevel SchVirtual") clear
+drop if missing(DistName)
+keep DistName SchName SchLevel SchVirtual
+rename SchLevel NewSchLevel
+rename SchVirtual NewSchVirtual
+merge 1:m DistName SchName using "`temp1'", gen(SchLevel_Virtual_Merge)
+drop if SchLevel_Virtual_Merge == 1
+replace SchLevel = NewSchLevel if !missing(NewSchLevel)
+replace SchVirtual = NewSchVirtual if !missing(NewSchVirtual)
+drop New*
 
+
+
+//Adding the following code to standardize names across all years, but should be checked for yearly changes
+replace DistName = "UF Lab School" if NCESDistrictID == "1202015"
+replace DistName = "Miami-Dade" if NCESDistrictID == "1200390"
+replace DistName = "FAMU Lab School" if NCESDistrictID == "1202014"
+replace DistName = "FSU Lab School" if NCESDistrictID == "1202013"
+replace DistName = "FAU Lab School" if NCESDistrictID == "1202012"
+replace DistName = "FL Virtual" if NCESDistrictID == "1200002"
+replace DistName = "Florida School for the Deaf and the Blind (FSDB)" if NCESDistrictID == "1202016"
 
 //Final Cleaning
 foreach var of varlist DistName SchName {

@@ -244,6 +244,10 @@ if `year' == 2023 drop if DataLevel ==3 & missing(NCESSchoolID) & SchName == "He
 //Post Launch review response
 replace DistName = subinstr(DistName, substr(DistName, 1, strpos(DistName, "-")),"",.)
 replace SchName = proper(SchName)
+destring StateAssigned*, replace
+tostring StateAssignedSchID, replace
+replace StateAssignedSchID = "" if DataLevel !=3
+replace StateAssignedSchID = string(StateAssignedDistID) + "-" + StateAssignedSchID if DataLevel == 3
 
 **Updating CountyName and CountyCode of Select Districts
 replace CountyName = "Duval County" if NCESSchoolID == "120008410710" | NCESSchoolID == "120008410711" 
@@ -253,7 +257,14 @@ replace CountyCode = "12057" if NCESSchoolID == "120008410712" | NCESSchoolID ==
 replace CountyName = "Hidalgo County" if NCESDistrictID == "1200084" & DataLevel == 2
 replace CountyCode = "48215" if NCESDistrictID == "1200084" & DataLevel == 2
 
-
+//Adding the following code to standardize names across all years, but should be checked for yearly changes
+replace DistName = "UF Lab School" if NCESDistrictID == "1202015"
+replace DistName = "Miami-Dade" if NCESDistrictID == "1200390"
+replace DistName = "FAMU Lab School" if NCESDistrictID == "1202014"
+replace DistName = "FSU Lab School" if NCESDistrictID == "1202013"
+replace DistName = "FAU Lab School" if NCESDistrictID == "1202012"
+replace DistName = "FL Virtual" if NCESDistrictID == "1200002"
+replace DistName = "Florida School for the Deaf and the Blind (FSDB)" if NCESDistrictID == "1202016"
 
 //Final Cleaning
 foreach var of varlist DistName SchName {

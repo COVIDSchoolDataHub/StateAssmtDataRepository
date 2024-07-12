@@ -1,9 +1,9 @@
 clear
 set more off
 
-global Output_11 "C:/Users/hxu15/Downloads/Output - Version 1.1"
-global Output_20 "C:/Users/hxu15/Downloads/EDFactsDatasets/NewOutput"
-global Original "C:/Users/hxu15/Downloads/EDFactsDatasets/2022"
+global Output_11 "/Volumes/T7/State Test Project/Florida post-launch/Output"
+global Output_20 "/Volumes/T7/State Test Project/Florida post-launch/Output - Version 2.0"
+global Original "/Volumes/T7/State Test Project/Florida post-launch/Original Data"
 
 
 foreach s in ela math sci {

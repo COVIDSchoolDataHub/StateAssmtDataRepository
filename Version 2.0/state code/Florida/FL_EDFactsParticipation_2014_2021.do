@@ -1,9 +1,9 @@
 clear
 set more off
 
-global EDFacts "C:/Users/hxu15/Downloads/EDFactsDatasets"
-global State_Output "C:/Users/hxu15/Downloads/Output - Version 1.1" 
-global New_Output "C:/Users/hxu15/Downloads/EDFactsDatasets/NewOutput"
+global EDFacts "/Volumes/T7/State Test Project/EDFACTS"
+global State_Output "/Volumes/T7/State Test Project/Florida post-launch/Output" 
+global New_Output "/Volumes/T7/State Test Project/Florida post-launch/Output - Version 2.0"
 
 ** Preparing EDFacts files
 local edyears1 14 15 16 17 18
@@ -243,9 +243,9 @@ foreach year of local edyears2 {
 }
 
 //Merging Example
-forvalues year = 2014/2021 {
+forvalues year = 2015/2021 {
 if `year' == 2020 continue
-import delimited "${State_Output}/AZ_AssmtData_`year'.csv", case(preserve) clear
+import delimited "${State_Output}/FL_AssmtData_`year'.csv", case(preserve) clear
 
 	
 //DataLevel
@@ -303,6 +303,6 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${New_Output}/AZ_AssmtData_`year'", replace
-export delimited "${New_Output}/AZ_AssmtData_`year'", replace
+save "${New_Output}/FL_AssmtData_`year'", replace
+export delimited "${New_Output}/FL_AssmtData_`year'", replace
 }
