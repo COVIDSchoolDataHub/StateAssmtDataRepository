@@ -266,6 +266,7 @@ replace DistName = "FAU Lab School" if NCESDistrictID == "1202012"
 replace DistName = "FL Virtual" if NCESDistrictID == "1200002"
 replace DistName = "Florida School for the Deaf and the Blind (FSDB)" if NCESDistrictID == "1202016"
 
+
 //Final Cleaning
 foreach var of varlist DistName SchName {
 	replace `var' = stritrim(`var')

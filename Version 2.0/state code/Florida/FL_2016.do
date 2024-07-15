@@ -280,7 +280,11 @@ replace DistName = "FAU Lab School" if NCESDistrictID == "1202012"
 replace DistName = "FL Virtual" if NCESDistrictID == "1200002"
 replace DistName = "Florida School for the Deaf and the Blind (FSDB)" if NCESDistrictID == "1202016"
 
-
+//Deriving Counts Where Possible
+foreach count of varlist *_count {
+	local percent = subinstr("`count'", "count", "percent",.)
+	replace `count' = string(round(real(`percent')*real(StudentSubGroup_TotalTested))) if !missing(real(`percent')) & !missing(real(StudentSubGroup_TotalTested)) & missing(real(`count'))
+}
 
 // Final Cleaning
 foreach var of varlist DistName SchName {
