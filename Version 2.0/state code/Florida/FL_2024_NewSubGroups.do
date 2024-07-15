@@ -260,8 +260,14 @@ drop if SchLevel_Virtual_Merge == 1
 replace SchLevel = NewSchLevel if !missing(NewSchLevel)
 replace SchVirtual = NewSchVirtual if !missing(NewSchVirtual)
 drop New*
-
-
+tempfile temp1
+save "`temp1'", replace
+clear
+import excel "$Original/FL_Unmerged, SchLevel, SchVirtual_2024", firstrow case(preserve) allstring sheet("IDEA PUB SCH") clear
+drop StateAssigned* DataLevel StateFips
+save "$Temp/IDEA_PUB_SCH", replace
+use "`temp1'", clear
+merge m:1 NCESSchoolID using "$Temp/IDEA_PUB_SCH", update replace nogen
 
 //Adding the following code to standardize names across all years, but should be checked for yearly changes
 replace DistName = "UF Lab School" if NCESDistrictID == "1202015"

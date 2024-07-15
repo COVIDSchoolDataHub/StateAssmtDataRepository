@@ -266,6 +266,16 @@ replace DistName = "FAU Lab School" if NCESDistrictID == "1202012"
 replace DistName = "FL Virtual" if NCESDistrictID == "1200002"
 replace DistName = "Florida School for the Deaf and the Blind (FSDB)" if NCESDistrictID == "1202016"
 
+//IDEA PUB SCH
+if `year' == 2023 {
+tempfile temp1
+save "`temp1'", replace
+import excel "$Original/FL_Unmerged, SchLevel, SchVirtual_2024", firstrow case(preserve) allstring sheet("IDEA PUB SCH") clear
+drop StateAssigned* DataLevel StateFips
+save "$Temp/IDEA_PUB_SCH", replace
+use "`temp1'", clear
+merge m:1 NCESSchoolID using "$Temp/IDEA_PUB_SCH", update replace nogen
+}
 
 //Final Cleaning
 foreach var of varlist DistName SchName {
