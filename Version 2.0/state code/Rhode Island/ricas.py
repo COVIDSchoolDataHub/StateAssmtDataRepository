@@ -1,33 +1,39 @@
-from selenium import webdriver
 
+from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-import xlsxwriter
-import requests
+from selenium.webdriver.common.action_chains import ActionChains
 from bs4 import BeautifulSoup
+
+import xlsxwriter
 import time
 
-
-browser = webdriver.Chrome(r'/Volumes/T7/State Test Project/Rhode Island 2023/chromedriver_mac_arm64/chromedriver')
+# Initialize WebDriver
+browser = webdriver.Chrome()
 browser.get('https://www3.ride.ri.gov/ADP')
-workbook = xlsxwriter.Workbook('ricas.xlsx')
+workbook = xlsxwriter.Workbook('ricas_math.xlsx')
 worksheet = workbook.add_worksheet()
+worksheet.write('R1', 'Subject')
 
-WebDriverWait(browser, 1000).until(EC.element_to_be_clickable((By.ID, 'ddlTest')))
+# Here starts the modified section for selecting 'RICAS - Mathematics'
+subjects_to_scrape = ['RICAS - Mathematics']
+for subject in subjects_to_scrape:
+    subject_dropdown = WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.ID, 'ddlTest')))
+    ActionChains(browser).move_to_element(subject_dropdown).perform()
+    all_options = subject_dropdown.find_elements(By.TAG_NAME, 'option')
+    for option in all_options:
+        if option.text == subject:
+            option.click()
+            break
+    # Use a static sleep duration
+    time.sleep(5)
 
 time.sleep(1)
-browser.find_element(By.ID, 'ddlTest').find_elements(By.TAG_NAME, 'option')[8].click()
+browser.find_element(By.ID, 'ddlTest').find_elements(By.TAG_NAME, 'option')[5].click()
 time.sleep(1)
-browser.find_elements(By.CLASS_NAME, 'chosen-search-input')[0].send_keys('2020-21\n')
+browser.find_elements(By.CLASS_NAME, 'chosen-search-input')[0].send_keys('2021-22\n')
 time.sleep(1)
-browser.find_elements(By.CLASS_NAME, 'chosen-search-input')[0].send_keys('2018-19\n')
-time.sleep(1)
-browser.find_elements(By.CLASS_NAME, 'chosen-search-input')[0].send_keys('2017-18\n')
-time.sleep(1)
-
-browser.find_elements(By.CLASS_NAME, 'form-check-label')[1].click()
-browser.find_elements(By.CLASS_NAME, 'form-check-label')[2].click()
 browser.find_elements(By.CLASS_NAME, 'chosen-search-input')[2].send_keys('All Students\n')
 time.sleep(1)
 browser.find_elements(By.CLASS_NAME, 'chosen-search-input')[2].send_keys('All Students\n')
@@ -40,19 +46,9 @@ browser.find_elements(By.CLASS_NAME, 'chosen-search-input')[2].send_keys('Gender
 time.sleep(1)
 browser.find_elements(By.CLASS_NAME, 'chosen-search-input')[2].send_keys('Race/Ethnicity\n')
 time.sleep(1)
-
-
-browser.find_elements(By.CLASS_NAME, 'chosen-search-input')[3].send_keys('03\n')
-time.sleep(1)
-browser.find_elements(By.CLASS_NAME, 'chosen-search-input')[3].send_keys('03\n')
-time.sleep(1)
-browser.find_elements(By.CLASS_NAME, 'chosen-search-input')[3].send_keys('04\n')
-time.sleep(1)
 browser.find_elements(By.CLASS_NAME, 'chosen-search-input')[3].send_keys('05\n')
 time.sleep(1)
-browser.find_elements(By.CLASS_NAME, 'chosen-search-input')[3].send_keys('06\n')
-time.sleep(1)
-browser.find_elements(By.CLASS_NAME, 'chosen-search-input')[3].send_keys('07\n')
+browser.find_elements(By.CLASS_NAME, 'chosen-search-input')[3].send_keys('05\n')
 time.sleep(1)
 browser.find_elements(By.CLASS_NAME, 'chosen-search-input')[3].send_keys('08\n')
 time.sleep(1)
@@ -312,6 +308,8 @@ for district_type in range(len(browser.find_element(By.ID, 'ddlLEA').find_elemen
                 worksheet.write(f'O{current_spreadsheet_col}', exceeding_expectations)
                 worksheet.write(f'P{current_spreadsheet_col}', meeting_or_exceeding_expectations)
                 worksheet.write(f'Q{current_spreadsheet_col}', avg_scale_score)
+                worksheet.write(f'R{current_spreadsheet_col}', subject)
+
             # print(array_new)
     chosen_single_selected = 0
 workbook.close()
