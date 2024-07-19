@@ -75,6 +75,7 @@ foreach year of local edyears1 {
                 drop if Participation == ""
                 replace Participation = "--" if Participation == "n/a"
                 replace Participation = "*" if Participation == "PS"
+		replace Participation = "--" if Participation == "."
                 split Participation, parse("-")
                 destring Participation1, replace force
                 replace Participation1 = Participation1/100
