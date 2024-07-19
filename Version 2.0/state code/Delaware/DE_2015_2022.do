@@ -2,10 +2,10 @@ clear
 set more off
 set trace off
 
-global original "/Volumes/T7/State Test Project/Delaware/Original Data Files"
-global output "/Volumes/T7/State Test Project/Delaware/Cleaned"
-global nces "/Volumes/T7/State Test Project/Delaware/NCESNew"
-global PART2 "/Volumes/T7/State Test Project/Delaware/DE_2015_2022_PART2.do" //Set filepath for second do file
+global original "/Users/kaitlynlucas/Desktop/Delaware State Task/Original Data Files"
+global output "/Users/kaitlynlucas/Desktop/Delaware State Task/Output"
+global nces "/Users/kaitlynlucas/Desktop/Delaware State Task/NCESNew"
+global PART2 "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/Delaware/DE_2015_2022_PART2.do" //Set filepath for second do file
 
 // foreach year in 2015 2016 2017 2018 2019 2021 2022 2023
 foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 { //2020 data would be empty, is thus not included
@@ -88,7 +88,9 @@ replace State_leaid = State_leaid1 if DataLevel==2
 replace DistCharter = DistCharter1 if DataLevel==2 //For some reason, NCES has DistCharter indicators for individual schools in DE, but there are no charter districts in DE. Thus, all DistCharter indicators will be "No" at DataLevel==2. 
 replace CountyName = CountyName1 if DataLevel==2
 replace CountyCode = CountyCode1 if DataLevel==2
-replace DistType = DistType1 if DataLevel==2
+decode DistType1, gen (DistType1_str)
+replace DistType = DistType1_str if DataLevel == 2
+drop DistType1_str
 replace DistLocale = DistLocale1 if DataLevel==2
 
 
@@ -287,6 +289,7 @@ if `year' == 2018 {
 }
 if `year' == 2023 {
 	drop if AssmtName == "DeSSA Alternate Assessment"
+	drop if SchName == "Appoquinimink PreSchool Center"
 }
 
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
@@ -300,8 +303,9 @@ save "${output}/DE_AssmtData_`year'.dta", replace
 clear
 }
 
-
+set trace on
 do "${PART2}"
+
 
 //RESPONSE TO R3
 
@@ -309,6 +313,7 @@ do "${PART2}"
 foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 {
 	
 clear 
+local prevyear = `year'-1
 
 use "${output}/DE_AssmtData_`year'"
 
@@ -349,6 +354,8 @@ Social Studies:
 
 // 2024 updates
 // Subgroup testing is edited in the original loop
+
+
 
 foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 {
 
@@ -471,7 +478,7 @@ if `year' == 2015 | `year' == 2016 {
 	keep if missing(DistName)
 	replace SchName = "Sussex Academy" if strpos(SchName, "Sussex") !=0
 	replace SchName = "Delaware School for the Deaf" if strpos(SchName, "Deaf") !=0
-	merge m:1 SchName using "${nces}/NCES_`prevyear'_School", update force
+	merge m:1 SchName using "${nces}/NCES_`prevyear'_school.dta", update force
 	drop if _merge == 2
 	drop _merge
 	tempfile tempunmerged
@@ -481,6 +488,8 @@ if `year' == 2015 | `year' == 2016 {
 	drop if missing(DistName)
 	append using "`tempunmerged'"
 }
+
+
 
 
 	
