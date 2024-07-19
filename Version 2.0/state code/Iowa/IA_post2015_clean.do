@@ -1,6 +1,8 @@
 clear
 set more off
 
+// global output "C:\Users\hxu15\Downloads\Iowa"
+
 // global NCES "/Users/miramehta/Documents/NCES District and School Demographics"
 // global Iowa "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
 // global iowa "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
@@ -436,4 +438,14 @@ use "${output}/IA_AssmtData_`year'", clear
 tab SchName if StudentGroup_TotalTested == "*" & StudentSubGroup_TotalTested == "0" 
 list SchName Grade Subject StudentSubGroup if StudentGroup_TotalTested == "*" & StudentSubGroup_TotalTested == "0" 
 
+}
+
+forvalues year = 2015/2023 {
+if `year' == 2020 continue
+use "${output}/IA_AssmtData_`year'", clear
+replace Lev1_percent = "--" if Lev1_percent == "." | missing(Lev1_percent)
+replace Lev2_percent = "--" if Lev2_percent == "." | missing(Lev2_percent)
+replace Lev3_percent = "--" if Lev3_percent == "." | missing(Lev3_percent)
+replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == "." | missing(ProficientOrAbove_percent)
+export delimited using "${output}/IA_AssmtData_`year'.csv", replace
 }
