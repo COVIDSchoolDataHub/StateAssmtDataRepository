@@ -440,6 +440,8 @@ list SchName Grade Subject StudentSubGroup if StudentGroup_TotalTested == "*" & 
 
 }
 
+// removing improperly formatted variables for 2015-2023 7/19/24
+
 forvalues year = 2015/2023 {
 if `year' == 2020 continue
 use "${output}/IA_AssmtData_`year'", clear
