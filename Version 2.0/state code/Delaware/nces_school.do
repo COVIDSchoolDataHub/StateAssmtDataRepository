@@ -1,8 +1,10 @@
 clear
 set more off
+set trace off
 
-global NCESOLD "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
-global NCESNEW "/Volumes/T7/State Test Project/Delaware/NCESNew"
+
+global NCESOLD "/Users/kaitlynlucas/Desktop/Delaware State Task/NCESOld1"
+global NCESNEW "/Users/kaitlynlucas/Desktop/Delaware State Task/NCESNew"
 
 * foreach year in 2014 2015 2016 2017 2018 2019 2020 2021 2022
 foreach year in 2014 2015 2016 2017 2018 2019 2020 2021 2022 { 
@@ -36,7 +38,7 @@ if `year' == 2022{
 rename district_agency_type DistType
 rename ncesschoolid NCESSchoolID
 
-foreach v of varlist DistType SchVirtual SchLevel SchType {
+foreach v of varlist SchVirtual SchLevel SchType {
 	decode `v', gen (`v'1)
 	drop `v'
 	rename `v'1 `v'
