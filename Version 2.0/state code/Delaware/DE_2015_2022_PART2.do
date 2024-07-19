@@ -7,8 +7,9 @@ cap log close
 
 //NOTE: To convert excel files to dta., please run Excel DCAS file do FIRST before running this code.
 
-global data "/Volumes/T7/State Test Project/Delaware/Original Data Files"
-global NCES "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024" //Jun 2024: file path for Uncleaned NCES data
+global data "/Users/kaitlynlucas/Desktop/Delaware State Task/2015-2017 DCAS files"
+global NCES "/Users/kaitlynlucas/Desktop/Delaware State Task/NCESOld1" //Jun 2024: file path for Uncleaned NCES data
+global output "/Users/kaitlynlucas/Desktop/Delaware State Task/Output"
 
 foreach year in 2015 2016 2017 {
 	di as error "`year'"
@@ -191,7 +192,7 @@ foreach year in 2015 2016 2017 {
 	}
 	
 	
-	
+//above is completely fine
 	
 
 //Additional Cleaning- SET ADDITIONAL FILE DIRECTORIES
@@ -476,4 +477,3 @@ replace ParticipationRate = range_part + ParticipationRate
 
 		
 	}
-	
