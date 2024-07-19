@@ -20,7 +20,9 @@ Download the original .xlsx files and place them into the "Original Data Files" 
 There are 4 .do files. Run them in the following order.
 
 nces_district.do
+
 nces_school.do
+
 DE_2015_2022.do 
 
 (You should not have to run DE_2015_2022_PART2.do separately)
