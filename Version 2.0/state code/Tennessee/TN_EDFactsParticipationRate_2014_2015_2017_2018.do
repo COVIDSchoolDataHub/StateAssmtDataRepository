@@ -1,9 +1,9 @@
 clear
 set more off
 
-global EDFacts "/Users/kaitlynlucas/Desktop/EDFacts Drive Data"
-global State_Output "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/Tennessee Assessment" // Version 1.1 Output directory here
-global New_Output "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/Tennessee V2.0" // Version 2.0 Output directory here
+global EDFacts "/Volumes/T7/State Test Project/EDFACTS"
+global State_Output "/Volumes/T7/State Test Project/Tennessee/Output" // Version 1.1 Output directory here
+global New_Output "/Volumes/T7/State Test Project/Tennessee/Output" // Version 2.0 Output directory here
 
 ** Preparing EDFacts files
 local edyears1 14 15 17 18
@@ -121,25 +121,8 @@ foreach year of local edyears1 {
     }
 }
 
-
-//Conversion to DTA
-forvalues year = 2014/2015 {
-if `year' == 2020 continue
-import delimited "${State_Output}/TN_AssmtData_`year'", case(preserve) clear
-save "${State_Output}/TN_AssmtData_`year'", replace
-}
-
-//Conversion to DTA
-forvalues year = 2017/2018 {
-if `year' == 2020 continue
-import delimited "${State_Output}/TN_AssmtData_`year'", case(preserve) clear
-save "${State_Output}/TN_AssmtData_`year'", replace
-}
-
-//for years 2014 and 2015
-//Merging Example
-forvalues year = 2014/2015 {
-if `year' == 2020 continue
+//Merging 
+foreach year in 2014 2015 2017 2018 {
 import delimited "${State_Output}/TN_AssmtData_`year'.csv", case(preserve) clear
 
 	
@@ -202,69 +185,4 @@ save "${New_Output}/TN_AssmtData_`year'", replace
 export delimited "${New_Output}/TN_AssmtData_`year'", replace
 }
 
-//for years 2017 and 2018
-//Merging Example
-forvalues year = 2017/2018 {
-if `year' == 2020 continue
-import delimited "${State_Output}/TN_AssmtData_`year'.csv", case(preserve) clear
-
-	
-//DataLevel
-label def DataLevel 1 "State" 2 "District" 3 "School"
-encode DataLevel, gen(DataLevel_n) label(DataLevel)
-sort DataLevel_n 
-drop DataLevel 
-rename DataLevel_n DataLevel
-
-
-//Merging
-
-tempfile tempall
-save "`tempall'", replace
-keep if DataLevel == 2
-tempfile tempdist
-save "`tempdist'", replace
-clear
-use "`tempall'"
-keep if DataLevel == 3
-tempfile tempsch
-save "`tempsch'", replace
-clear
-
-//District Merge
-use "`tempdist'"
-duplicates report NCESDistrictID StudentSubGroup GradeLevel Subject
-duplicates drop NCESDistrictID StudentSubGroup GradeLevel Subject, force
-merge 1:1 NCESDistrictID StudentSubGroup GradeLevel Subject using "${EDFacts}/`year'/edfactspart`year'districttennessee.dta", gen(DistMerge)
-drop if DistMerge == 2
-save "`tempdist'", replace
-clear
-
-//School Merge
-use "`tempsch'"
-duplicates report NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject
-duplicates drop NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject, force
-merge 1:1 NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject using "${EDFacts}/`year'/edfactspart`year'schooltennessee.dta", gen(SchMerge)
-drop if SchMerge == 2
-save "`tempsch'", replace
-clear
-
-//Combining DataLevels
-use "`tempall'"
-keep if DataLevel == 1
-append using "`tempdist'" "`tempsch'"
-
-//New Participation Data
-replace ParticipationRate = Participation if !missing(Participation)
-
-//Final Cleaning
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
- 
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
-sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-
-save "${New_Output}/TN_AssmtData_`year'", replace
-export delimited "${New_Output}/TN_AssmtData_`year'", replace
-}
 
