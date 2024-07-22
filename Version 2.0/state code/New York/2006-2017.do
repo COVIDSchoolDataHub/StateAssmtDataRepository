@@ -329,3 +329,13 @@ export delimited "${output}/NY_AssmtData_`year'", replace
 
 		
 }
+
+// global newyork "C:/Users/hxu15/Downloads/NY"
+// remove . from participationrate in 2006-2014 (7/22/24)
+forvalues year = 2006/2014{
+import delimited "${newyork}/NY_AssmtData_`year'", clear
+tostring participationrate, replace
+replace participationrate = "--" if participationrate == "."
+export delimited "${newyork}/NY_AssmtData_`year'", replace
+}
+
