@@ -316,7 +316,7 @@ if `year' == 2012 {
 
 if `year' == 2006 replace CountyCode = "36103" if CountyName == "Suffolk"
 
-replace ParticipationRate = "." if ParticipationRate == "--" //explicitly asked for in review, done to merge more easily in future years
+replace ParticipationRate = "--" if ParticipationRate == "." //explicitly asked for in review, done to merge more easily in future years
 
 //Final Cleaning and dropping extra variables
 
@@ -328,14 +328,5 @@ save "${output}/NY_AssmtData_`year'", replace
 export delimited "${output}/NY_AssmtData_`year'", replace
 
 		
-}
-
-// global newyork "C:/Users/hxu15/Downloads/NY"
-// remove . from participationrate in 2006-2014 (7/22/24)
-forvalues year = 2006/2019{
-import delimited "${newyork}/NY_AssmtData_`year'", clear
-tostring participationrate, replace
-replace participationrate = "--" if participationrate == "."
-export delimited "${newyork}/NY_AssmtData_`year'", replace
 }
 
