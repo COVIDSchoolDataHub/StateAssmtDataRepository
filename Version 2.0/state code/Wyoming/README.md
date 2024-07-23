@@ -18,8 +18,6 @@ There are 4 .do files.
 
 Run them in the following order:
 
-Cleaning NCES.do; 
-
 WY_Cleaning.do; 
 
 WY_EDFACTS.do;
@@ -29,6 +27,8 @@ WY_EDFACTS_2022.do;
 On the first run, you need to update file paths and unhide import code in WY_Cleaning.do.
 
 If you are running into errors with the WY_EDFacts files, run WY_Cleaning.do again before trying to run WY_EDFACTS (You shouldn't have to run the NCES file). Running the EDFacts files back to back can cause type errors. 
+
+*WY_Cleaning.do has been combined with Cleaning_NCES.do and combines the process of cleaning the NCES files and then merging them with WY_Assmt_Data. WY_EDFacts.do has been updated to use the current cleaning code for wide-form Original Data and accounts for "All Students" count. Also accounts for changing AssmtType from "regular" to "regular and alt".
 
 In its current form WY_Cleaning.do automatically runs the subsequent files. To run them individually, delete/comment out the final two lines. 
 
