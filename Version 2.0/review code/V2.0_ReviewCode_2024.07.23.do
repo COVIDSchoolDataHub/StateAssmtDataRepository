@@ -2461,7 +2461,7 @@ di as error "Confirm which proficiency levels are not used for the state for a g
 
 // NOTE: UPDATE CODE AS NEEDED FOR EACH STATE'S SUBJECT-AREA CRITERIA FOR A GIVEN YEAR.
 
-*break //Hide this after updating code
+break //Hide this after updating code
 
 ** converting level counts from string to num 
 destring Lev1_count, generate(Lev1_n) ignore("*" & "--")
@@ -2647,7 +2647,7 @@ foreach var of local levcounts {
 
 // NOTE: UPDATE CODE AS NEEDED FOR EACH STATE'S SUBJECT-AREA CRITERIA FOR A GIVEN YEAR.
 
-*break //hide after updating
+break //hide after updating
 
 ** converting level percents from string to num 
 
