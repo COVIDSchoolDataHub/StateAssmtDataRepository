@@ -316,7 +316,7 @@ if `year' == 2012 {
 
 if `year' == 2006 replace CountyCode = "36103" if CountyName == "Suffolk"
 
-replace ParticipationRate = "--" if ParticipationRate == "." //explicitly asked for in review, done to merge more easily in future years
+replace ParticipationRate = "--" if ParticipationRate == "." //Updated 7/23/24
 
 //Final Cleaning and dropping extra variables
 
