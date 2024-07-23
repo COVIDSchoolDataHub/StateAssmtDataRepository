@@ -1,10 +1,10 @@
 clear
-cd "/Users/meghancornacchia/Desktop/DataRepository/Wyoming"
-local Original "/Users/meghancornacchia/Desktop/DataRepository/Wyoming/Original_Data_Files"
-local Output "/Users/meghancornacchia/Desktop/DataRepository/Wyoming/Output"
-local NCES "/Users/meghancornacchia/Desktop/DataRepository/Wyoming/New_NCES"
-local EDFacts "/Users/meghancornacchia/Desktop/DataRepository/Wyoming/EDFacts"
-local Temp "/Users/meghancornacchia/Desktop/DataRepository/Wyoming/Temporary Data Files"
+local Original "/Users/kaitlynlucas/Desktop/Wyoming State Task/Original Data Files"
+local Output "/Users/kaitlynlucas/Desktop/Wyoming State Task/Output"
+local NCES "/Users/kaitlynlucas/Desktop/Wyoming State Task/NCESNew"
+local EDFacts "/Users/kaitlynlucas/Desktop/EDFacts Drive Data"
+local EDFacts2022 "/Users/kaitlynlucas/Desktop/Wyoming State Task/EDFacts"
+local New_Output "/Users/kaitlynlucas/Desktop/Wyoming State Task/Wyoming V2.0"
 
 
 import delimited "`EDFacts'/EDFacts2022.csv", case(preserve) clear 
@@ -94,14 +94,17 @@ rename DataLevel_n DataLevel
 order DataLevel
 
 // Save
-save "`Temp'/_2022_count", replace
+save "`EDFacts2022'/_2022_count", replace
 
 forvalues year = 2022/2023 {
 
 use "`Output'/WY_AssmtData_`year'", clear
-merge 1:1 DataLevel NCESDistrictID NCESSchoolID Subject GradeLevel StudentSubGroup using "`Temp'/_2022_count"
+merge 1:1 DataLevel NCESDistrictID NCESSchoolID Subject GradeLevel StudentSubGroup using "`EDFacts2022'/_2022_count"
 drop if _merge == 2
 drop _merge
+
+// change AssmtType label
+replace AssmtType = "Regular and alt"
 
 //Cleaning StudentSubGroup_TotalTested and Generating StudentGroup_TotalTested
 egen EDStudentGroup_TotalTested = total(EDStudentSubGroup_TotalTested), by(StudentGroup GradeLevel Subject DataLevel StateAssignedSchID StateAssignedDistID)
@@ -141,13 +144,14 @@ foreach var of varlist Lev* ParticipationRate ProficientOrAbove* {
 	replace Lev5_percent = "" if StudentSubGroup_TotalTested == "0"
 }
 
+
 //Final Cleaning
 recast str80 SchName
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-save "`Output'/WY_AssmtData_`year'", replace
-export delimited "`Output'/WY_AssmtData_`year'", replace
+save "`New_Output'/WY_AssmtData_`year'", replace
+export delimited "`New_Output'/WY_AssmtData_`year'", replace
 
 
 }
