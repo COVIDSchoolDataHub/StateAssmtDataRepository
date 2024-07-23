@@ -14,7 +14,7 @@ Original Data Files, NCES, Output, EDFacts, and Temp.
 
 Download the three original files (one for each data level). Place them in the "Original Data Files" folder. Download the EDFacts count files from the Long DTA Versions folder and place them in the EDFacts folder. Also download the WY 2022 EDFacts file from the WY original data folder and place it in the EDFacts folder. The NCES cleaning file will generate altered NCES files, so you may also want a folder to store these files. 
 
-There are 4 .do files. 
+There are 3 .do files. 
 
 Run them in the following order:
 
