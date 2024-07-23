@@ -271,10 +271,10 @@ if `year' == 2023 {
 tempfile temp1
 save "`temp1'", replace
 import excel "$Original/FL_Unmerged, SchLevel, SchVirtual_2024", firstrow case(preserve) allstring sheet("IDEA PUB SCH") clear
-drop StateAssigned* DataLevel StateFips
+drop StateAssigned* DataLevel StateFips SchYear
 save "$Temp/IDEA_PUB_SCH", replace
 use "`temp1'", clear
-merge m:1 NCESSchoolID using "$Temp/IDEA_PUB_SCH", update replace nogen
+merge m:1 DistName SchName using "$Temp/IDEA_PUB_SCH", update replace nogen
 }
 
 //Final Cleaning

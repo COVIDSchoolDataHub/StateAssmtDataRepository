@@ -228,7 +228,7 @@ replace SchName = proper(SchName)
 destring StateAssigned*, replace
 tostring StateAssignedSchID, replace
 replace StateAssignedSchID = "" if DataLevel !=3
-replace StateAssignedSchID = string(StateAssignedDistID) + "-" + StateAssignedSchID if DataLevel == 3
+// replace StateAssignedSchID = string(StateAssignedDistID) + "-" + StateAssignedSchID if DataLevel == 3
 
 **Updating CountyName and CountyCode of Select Districts
 replace CountyName = "Duval County" if NCESSchoolID == "120008410710" | NCESSchoolID == "120008410711" 
@@ -264,7 +264,7 @@ tempfile temp1
 save "`temp1'", replace
 clear
 import excel "$Original/FL_Unmerged, SchLevel, SchVirtual_2024", firstrow case(preserve) allstring sheet("IDEA PUB SCH") clear
-drop StateAssigned* DataLevel StateFips
+drop StateAssigned* DataLevel StateFips SchYear
 save "$Temp/IDEA_PUB_SCH", replace
 use "`temp1'", clear
 merge m:1 NCESSchoolID using "$Temp/IDEA_PUB_SCH", update replace nogen

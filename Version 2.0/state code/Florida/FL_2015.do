@@ -245,7 +245,7 @@ replace DistName = "St. Lucie" if DistName=="St Lucie"
 destring StateAssigned*, replace
 tostring StateAssignedSchID, replace
 replace StateAssignedSchID = "" if DataLevel !=3
-replace StateAssignedSchID = string(StateAssignedDistID) + "-" + StateAssignedSchID if DataLevel == 3
+// replace StateAssignedSchID = string(StateAssignedDistID) + "-" + StateAssignedSchID if DataLevel == 3
 
 **Updating CountyName and CountyCode of Select Districts
 replace CountyName = "Duval County" if NCESSchoolID == "120008410710" | NCESSchoolID == "120008410711" 
