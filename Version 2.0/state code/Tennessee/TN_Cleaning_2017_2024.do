@@ -126,7 +126,7 @@ replace ProficientOrAbove_percent = "*" if strpos(ProficientOrAbove_percent,"*")
 
 //ParticipationRate
 if `year' <= 2018 gen ParticipationRate = "--"
-if `year' == 2019 gen ParticipationRate = string(tested/enrolled, "%9.3g")
+if `year' == 2019 gen ParticipationRate = string(tested/enrolled, "%9.3g") if !missing(tested) & !missing(enrolled)
 if `year' > 2019 {
 	replace ParticipationRate = string(real(ParticipationRate)/100) if !missing(real(ParticipationRate))
 	drop tested enrolled
@@ -171,6 +171,7 @@ tostring StudentSubGroup_TotalTested, replace
 replace StudentSubGroup_TotalTested = "--" if missing(StudentSubGroup_TotalTested)
 
 //StudentGroup_TotalTested
+if `year' == 2017 drop if SchName == "Westhaven Elementary" & StudentGroup_TotalTested == 1 & GradeLevel == "G04" //Really weird data that makes no sense and screws up the code, dropping.
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
 replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
@@ -206,7 +207,7 @@ if `year' == 2018 {
 	replace Flag_CutScoreChange_soc = "Y"
 	replace Flag_AssmtNameChange = "Y" if Subject == "soc"
 } 
-
+if `year' == 2019 replace Flag_CutScoreChange_sci = "Not applicable"
 if `year' == 2021 replace Flag_CutScoreChange_sci = "Y"
 
 
@@ -221,19 +222,27 @@ replace CountyName = proper(CountyName)
 replace CountyName = "McMinn County" if CountyName == "Mcminn County"
 replace CountyName = "McNairy County" if CountyName == "Mcnairy County"
 
+//Self review
+replace SchVirtual = "Missing/not reported" if missing(SchVirtual) & DataLevel == 3
+replace CountyName = "DeKalb County" if CountyName == "Dekalb County"
+
 //Dropping All Suppressed Unmerged
 gen AllSuppressed = 0
 	foreach var of varlist *_percent {
 		replace AllSuppressed = AllSuppressed + 1 if !missing(real(`var'))
 
 	}
-egen AllSchoolsSuppressed = min(AllSuppressed), by(NCESSchoolID)
+egen AllSchoolsSuppressed = min(AllSuppressed), by(SchName)
 drop if AllSchoolsSuppressed > 0 & missing(NCESSchoolID) & DataLevel == 3
 drop All*
 
 if `year' == 2024 {
 merge m:1 SchName using TN_Unmerged_2024.dta, update nogen
 }
+
+//Additional Dropping
+drop if SchLevel ==  "Prekindergarten"
+
 
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 

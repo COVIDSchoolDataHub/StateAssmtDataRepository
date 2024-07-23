@@ -202,6 +202,16 @@ replace CountyName = proper(CountyName)
 replace CountyName = "McMinn County" if CountyName == "Mcminn County"
 replace CountyName = "McNairy County" if CountyName == "Mcnairy County"
 
+//Self review
+replace SchVirtual = "Missing/not reported" if missing(SchVirtual) & DataLevel == 3
+replace CountyName = "DeKalb County" if CountyName == "Dekalb County"
+
+//Weird SchName & DistName in 2012
+if `year' == 2012 replace DistName = "Memphis" if NCESSchoolID == "470294001164" & DistName == "*"
+if `year' == 2012 replace SchName = "Treadwell Elementary" if NCESSchoolID == "470294001164" & SchName == "*"
+
+
+
 //Dropping All Suppressed Unmerged
 gen AllSuppressed = 0
 	foreach var of varlist *_percent {
@@ -209,6 +219,12 @@ gen AllSuppressed = 0
 
 	}
 drop if AllSuppressed ==0 & missing(NCESSchoolID) & DataLevel == 3
+
+if `year' == 2013 drop if SchName == "Martin Luther King Transition Center" & SchType == "High"
+
+
+//Additional Dropping
+drop if SchLevel ==  "Prekindergarten"
 
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
