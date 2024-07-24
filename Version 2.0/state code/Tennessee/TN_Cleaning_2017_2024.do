@@ -171,10 +171,10 @@ tostring StudentSubGroup_TotalTested, replace
 replace StudentSubGroup_TotalTested = "--" if missing(StudentSubGroup_TotalTested)
 
 //StudentGroup_TotalTested
-if `year' == 2017 drop if SchName == "Westhaven Elementary" & StudentGroup_TotalTested == 1 & GradeLevel == "G04" //Really weird data that makes no sense and screws up the code, dropping.
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
 replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+if `year' == 2017 drop if SchName == "Westhaven Elementary" & StudentGroup_TotalTested == "1" & GradeLevel == "G04" //Really weird data that makes no sense and screws up the code, dropping.
 
 //ProficientOrAbove_count
 gen ProficientOrAbove_count = string(real(Lev3_count) + real(Lev4_count)) if !missing(real(Lev3_count)) & !missing(real(Lev4_count))
