@@ -359,3 +359,17 @@ export delimited "`Output'/SD_AssmtData_`year'", replace
 }
 
 
+// global SoDak "C:/Users/hxu15/Downloads/SD"
+
+forvalues year = 2018/2023{
+if `year' == 2020 continue
+import delimited "${SoDak}/SD_AssmtData_`year'", clear
+tostring lev1_percent lev2_percent lev3_percent lev4_percent proficientorabove_percent, replace force format("%9.2g")
+replace lev1_percent = "--" if lev1_percent == "."
+replace lev2_percent = "--" if lev2_percent == "."
+replace lev3_percent = "--" if lev3_percent == "."
+replace lev4_percent = "--" if lev4_percent == "."
+replace proficientorabove_percent = "--" if proficientorabove_percent == "."
+export delimited "${SoDak}/SD_AssmtData_`year'", replace
+}
+
