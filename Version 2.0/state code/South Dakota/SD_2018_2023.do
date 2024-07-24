@@ -144,7 +144,7 @@ replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "0"
 
 //Missing Data
 foreach var of varlist _all {
-	cap replace `var' = "0" if `var' == "NULL" \\ edited 7/24/24 since values of NULL are paired with a count value of 0
+	cap replace `var' = "0" if `var' == "NULL"// edited 7/24/24 since values of NULL are paired with a count value of 0
 }
 
 // ParticipationRate
