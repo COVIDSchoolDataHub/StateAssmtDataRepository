@@ -51,7 +51,7 @@ gen Flag_AssmtNameChange = "N"
 
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_soc = "Not Applicable"
+gen Flag_CutScoreChange_soc = "Not applicable"
 gen Flag_CutScoreChange_sci = "N"
 gen ProficiencyCriteria = "Levels 2-3"
 gen ParticipationRate = 1 - nottestedpct
@@ -210,29 +210,7 @@ drop if merge3 == 2
 replace StudentSubGroup_TotalTested = "--" if merge3 == 1
 replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
 
-destring StudentSubGroup_TotalTested, gen(num) force
-egen StudentGroup_TotalTested = total(num), by(StudentGroup GradeLevel Subject DataLevel seasch StateAssignedDistID DistName SchName)
-
-
-//Deriving StudentSubGroup_TotalTested where possible
-sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
-replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
-gen ind = 1 if StudentGroup == "Gender" & StudentSubGroup_TotalTested == "*" & StudentGroup_TotalTested !=0
-replace StudentSubGroup_TotalTested = string(real(AllStudents_Tested) - StudentGroup_TotalTested) if StudentGroup == "Gender" & StudentSubGroup_TotalTested == "*" & StudentGroup_TotalTested !=0
-replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "."
-
-**NEW Convention: All Students StudentGroup_TotalTested used when 1 or more members of StudentSubGroup suppressed
-gen Suppressed = 0
-replace Suppressed = 1 if StudentSubGroup_TotalTested == "*" | ind ==1
-egen StudentGroup_Suppressed = max(Suppressed), by(StudentGroup GradeLevel Subject DataLevel seasch StateAssignedDistID DistName SchName)
-drop Suppressed
-replace StudentGroup_TotalTested = real(AllStudents_Tested) if StudentGroup_Suppressed == 1
-drop AllStudents_Tested StudentGroup_Suppressed
-
-tostring StudentGroup_TotalTested, replace
-replace StudentGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "--"
-replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested == "."
+gen num = real(StudentSubGroup_TotalTested)
 
 //Proficiency Levels
 replace Lev1_percent = 1 - (Lev2_percent + Lev3_percent) if Lev1_percent == -1 & Lev2_percent != -1 & Lev3_percent != -1
@@ -269,7 +247,16 @@ foreach var of local prof_vars {
 	replace `var' = "--" if `var' == ""
 }
 
+//StudentGroup_TotalTested (Updated 7/24/24 to reflect new convention and in response to state task.)
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
 
+//Deriving StudentSubGroup_TotalTested where possible
+gen UnsuppressedSSG = real(StudentSubGroup_TotalTested)
+egen UnsuppressedSG = total(UnsuppressedSSG), by(StudentGroup GradeLevel Subject DistName SchName)
+replace StudentSubGroup_TotalTested = string(real(StudentGroup_TotalTested)-UnsuppressedSG) if missing(real(StudentSubGroup_TotalTested)) & !missing(real(StudentGroup_TotalTested)) & real(StudentGroup_TotalTested) - UnsuppressedSG >=0 & UnsuppressedSG > 0 & StudentGroup != "RaceEth" & StudentSubGroup != "EL Exited" & StudentSubGroup != "All Students"
+drop Unsuppressed*
 
 
 //Weird Lev*_percent Values

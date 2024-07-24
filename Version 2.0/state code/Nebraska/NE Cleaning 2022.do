@@ -49,7 +49,7 @@ gen AssmtType = "Regular"
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_soc = "Not Applicable"
+gen Flag_CutScoreChange_soc = "Not applicable"
 gen Flag_CutScoreChange_sci = "Y"
 gen ProficiencyCriteria = "Levels 2-3"
 gen ParticipationRate = 1 - nottestedpct
@@ -190,37 +190,8 @@ rename DataLevel_n DataLevel
 gen StudentSubGroup_TotalTested = studentcount //Updated 06/17/24 for StudentSubGroup_TotalTested to reflect Student Count rather than StudentCount - nottested
 drop studentcount nottested
 replace StudentSubGroup_TotalTested =. if StudentSubGroup_TotalTested <0
-
-//StudentGroup_TotalTested
-egen StudentGroup_TotalTested = total(StudentSubGroup_TotalTested), by(StudentGroup GradeLevel Subject DataLevel seasch StateAssignedDistID DistName SchName)
 tostring StudentSubGroup_TotalTested, replace
 replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "."
-
-//Calculating Native Hawaiian StudentSubGroup_TotalTested AT STATE LEVEL 
-sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
-replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
-replace StudentSubGroup_TotalTested = string(real(AllStudents_Tested) - StudentGroup_TotalTested) if StudentSubGroup == "Native Hawaiian or Pacific Islander" & DataLevel == 1
-
-//Deriving StudentSubGroup_TotalTested where possible by subtracting StudentSubGroup_TotalTested for binary StudentGroups (Economically Disadvanged, etc)
-gen ind = 1 if StudentGroup != "All Students" & StudentGroup != "RaceEth" & StudentSubGroup_TotalTested == "*" & StudentGroup_TotalTested !=0
-replace StudentSubGroup_TotalTested = string(real(AllStudents_Tested) - StudentGroup_TotalTested) if StudentGroup != "All Students" & StudentGroup != "RaceEth" & StudentSubGroup_TotalTested == "*" & StudentGroup_TotalTested !=0
-replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "."
-
-
-tostring StudentGroup_TotalTested, replace
-replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
-replace StudentGroup_TotalTested = AllStudents_Tested if StudentGroup == "RaceEth" & DataLevel ==1
-
-**NEW Convention: All Students StudentGroup_TotalTested used when 1 or more members of StudentSubGroup suppressed
-gen Suppressed = 0
-replace Suppressed = 1 if StudentSubGroup_TotalTested == "*" | ind == 1
-egen StudentGroup_Suppressed = max(Suppressed), by(StudentGroup GradeLevel Subject DataLevel seasch StateAssignedDistID DistName SchName)
-drop Suppressed
-replace StudentGroup_TotalTested = AllStudents_Tested if StudentGroup_Suppressed == 1
-drop AllStudents_Tested StudentGroup_Suppressed ind
-replace StudentGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "--"
-replace StudentGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "*" & StudentGroup_TotalTested == "0"
 
 
 
@@ -259,6 +230,17 @@ replace DistName = lea_name if DataLevel == 3
 drop state_name year _merge merge2 district_agency_type_num urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type district_agency_type_num school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_lowest_grade_offered dist_highest_grade_offered dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch lea_name
 */
 
+//StudentGroup_TotalTested (Updated 7/24/24 to reflect new convention and in response to state task.)
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+
+//Deriving StudentSubGroup_TotalTested where possible
+gen UnsuppressedSSG = real(StudentSubGroup_TotalTested)
+egen UnsuppressedSG = total(UnsuppressedSSG), by(StudentGroup GradeLevel Subject DistName SchName)
+replace StudentSubGroup_TotalTested = string(real(StudentGroup_TotalTested)-UnsuppressedSG) if missing(real(StudentSubGroup_TotalTested)) & !missing(real(StudentGroup_TotalTested)) & real(StudentGroup_TotalTested) - UnsuppressedSG >=0 & UnsuppressedSG > 0 & StudentGroup != "RaceEth" & StudentSubGroup != "EL Exited" & StudentSubGroup != "All Students"
+replace StudentSubGroup_TotalTested = string(real(StudentGroup_TotalTested) - UnsuppressedSG) if StudentSubGroup == "Native Hawaiian or Pacific Islander" & DataLevel == 1
+drop Unsuppressed*
 
 
 //Weird Lev*_percent Values

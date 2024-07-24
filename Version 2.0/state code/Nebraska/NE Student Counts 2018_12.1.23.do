@@ -124,8 +124,9 @@ drop if StudentSubGroup == "Special Education Students - Alternate Assessment"
 //StudentSubGroup_TotalTested & StudentGroup_TotalTested
 gen StudentSubGroup_TotalTested = studentcount //Updated 06/17/24 to reflect just StudentCount rather than StudentCount - nottested
 replace StudentSubGroup_TotalTested =. if StudentSubGroup_TotalTested <0
-egen StudentGroup_TotalTested = total(StudentSubGroup_TotalTested), by(StudentGroup GradeLevel Subject DataLevel seasch StateAssignedDistID DistName SchName)
 tostring StudentSubGroup_TotalTested, replace
+replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "."
+
 //DataLevel
 label def DataLevel 1 "State" 2 "District" 3 "School"
 encode DataLevel, gen(DataLevel_n) label(DataLevel)
