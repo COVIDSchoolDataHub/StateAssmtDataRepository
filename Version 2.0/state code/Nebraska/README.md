@@ -38,3 +38,4 @@ global output "/Volumes/T7/State Test Project/Nebraska/Output"
 
 ## Updates
 - 6/17/24: Updated flags. Updated StudentSubGroup_TotalTested to reflect StudentCount rather than StudentCount - nottested
+- 7/24/24: Updated 2023 file to not include negative Student counts. Updated "Not Applicable" flags to "Not applicable". Applied StudentGroup_TotalTested convention.
