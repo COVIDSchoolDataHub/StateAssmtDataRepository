@@ -11,7 +11,7 @@ This is a ReadMe for Mississippi's data cleaning process, from 2014 to 2023.
 There are six folders you need: 
 Original Data Files, Data Request, NCES (a School, District, and Cleaned folder within it), Output (and a csv folder within it), MS_2022. 
 
-Download the folder titled "Data Request" and the original raw data .xlsx files ending in _all within the Original Data Files folder on Google Drive. The former is the "Data Request" folder, while the latter should be placed within an "Original Data Files" folder.
+Download the folder titled "Data Request" and the original raw data .xlsx files ending in "_all" within the Original Data Files folder on Google Drive. The former is the "Data Request" folder, while the latter should be placed within an "Original Data Files" folder.
 The cleaning code currently only uses the 2014 original raw data file due to inconsistencies with the data request files but original raw data files for all years are available. Download the MS_EFParticipation_2022_`subject'.csv files from Original Data Files folder on Google Drive and put them in the "MS_2022" folder.
 
 There are 11 .do files. 
