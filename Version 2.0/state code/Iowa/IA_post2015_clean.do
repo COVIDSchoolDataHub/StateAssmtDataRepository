@@ -133,6 +133,7 @@ foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 {
 		replace `var'=`var'/100
 		tostring `var', replace force
 		replace `var'="*" if `var'=="100"
+                replace `var' = "--" if `var' == "."
 	}
 
 	foreach var of varlist StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev2_count Lev3_count ProficientOrAbove_count {
