@@ -1,13 +1,12 @@
 clear
 set more off
 
-cd "/Users/maggie/Desktop/Mississippi"
-
-global MS "/Users/maggie/Desktop/Mississippi"
-global raw "/Users/maggie/Desktop/Mississippi/Original Data Files"
-global output "/Users/maggie/Desktop/Mississippi/Output"
-global NCES "/Users/maggie/Desktop/Mississippi/NCES/Cleaned"
-global Request "/Users/maggie/Desktop/Mississippi/Data Request"
+global MS "/Users/kaitlynlucas/Desktop/Mississippi State Task/Original Data Files"
+global raw "/Users/kaitlynlucas/Desktop/Mississippi State Task/Original Data Files"
+global output "/Users/kaitlynlucas/Desktop/Mississippi State Task/Output"
+global NCES "/Users/kaitlynlucas/Desktop/Mississippi State Task/NCES/Cleaned"
+global EDFacts "/Users/kaitlynlucas/Desktop/EDFacts Drive Data"
+global Request "/Users/kaitlynlucas/Desktop/Mississippi State Task/Data Request"
 
 ** Data Request files (proficient counts and student counts w/ subgroups)
 

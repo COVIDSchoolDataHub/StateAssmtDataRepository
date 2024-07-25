@@ -1,12 +1,11 @@
 clear
 set more off
 
-cd "/Users/maggie/Desktop/Mississippi"
 
-global raw "/Users/maggie/Desktop/Mississippi/Original Data Files"
-global output "/Users/maggie/Desktop/Mississippi/Output"
-global NCES "/Users/maggie/Desktop/Mississippi/NCES/Cleaned"
-global Request "/Users/maggie/Desktop/Mississippi/Data Request"
+global raw "/Users/kaitlynlucas/Desktop/Mississippi State Task/Original Data Files"
+global output "/Users/kaitlynlucas/Desktop/Mississippi State Task/Output"
+global NCES "/Users/kaitlynlucas/Desktop/Mississippi State Task/NCES"
+global Request "/Users/kaitlynlucas/Desktop/Mississippi State Task/Data Request"
 
 ** Preparing data request files
 
@@ -15,6 +14,7 @@ local subject math ela sci
 local datatype performance participation
 local datalevel district school state
 
+/*
 // converting to dta
 foreach year of local requestyear {
 	foreach sub of local subject {
@@ -26,6 +26,7 @@ foreach year of local requestyear {
 		}
 	}
 }
+*/
 
 // checking variables
 foreach year of local requestyear {

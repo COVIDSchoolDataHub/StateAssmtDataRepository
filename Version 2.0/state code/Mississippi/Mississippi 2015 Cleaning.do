@@ -1,13 +1,12 @@
 clear
 set more off
 
-cd "/Users/maggie/Desktop/Mississippi"
-
-global MS "/Users/maggie/Desktop/Mississippi"
-global raw "/Users/maggie/Desktop/Mississippi/Original Data Files"
-global output "/Users/maggie/Desktop/Mississippi/Output"
-global NCES "/Users/maggie/Desktop/Mississippi/NCES/Cleaned"
-global Request "/Users/maggie/Desktop/Mississippi/Data Request"
+global MS "/Users/kaitlynlucas/Desktop/Mississippi State Task/Original Data Files"
+global raw "/Users/kaitlynlucas/Desktop/Mississippi State Task/Original Data Files"
+global output "/Users/kaitlynlucas/Desktop/Mississippi State Task/Output"
+global NCES "/Users/kaitlynlucas/Desktop/Mississippi State Task/NCES/Cleaned"
+global EDFacts "/Users/kaitlynlucas/Desktop/EDFacts Drive Data"
+global Request "/Users/kaitlynlucas/Desktop/Mississippi State Task/Data Request"
 
 local subject math ela sci
 local datatype performance participation
@@ -130,7 +129,6 @@ drop StudentSubGroup_TotalTested2
 ** Generating proficiencies
 
 destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
-
 gen ProficientOrAbove_count = Lev4_count2 + Lev5_count2 if Subject != "sci"
 replace ProficientOrAbove_count = StudentSubGroup_TotalTested2 - (Lev1_count2 + Lev2_count2 + Lev3_count2) if ProficientOrAbove_count == . & Subject != "sci"
 replace ProficientOrAbove_count = Lev3_count2 + Lev4_count2 if Subject == "sci"
@@ -144,8 +142,8 @@ replace ProficientOrAbove_percent = "0" if ProficientOrAbove_count == "0"
 
 drop StudentSubGroup_TotalTested2 test *_count2
 
-** Merging with standardized name file
 
+** Merging with standardized name file
 merge m:1 NCESDistrictID using "${MS}/standarddistnames.dta"
 replace DistName = newdistname if _merge != 1
 drop if _merge == 2 
@@ -157,8 +155,99 @@ drop if DataLevel == 3 & _merge == 1
 drop if _merge == 2
 drop newdistname newschname _merge
 
+
+** Merging with EDFacts data
+tempfile tempall
+destring NCESSchoolID, replace
+save "`tempall'", replace
+keep if DataLevel == 2
+tempfile tempdist
+save "`tempdist'", replace
+clear
+use "`tempall'"
+keep if DataLevel == 3
+tempfile tempsch
+save "`tempsch'", replace
+clear
+
+//District Merge
+use "`tempdist'"
+duplicates report NCESDistrictID StudentSubGroup GradeLevel Subject
+duplicates drop NCESDistrictID StudentSubGroup GradeLevel Subject, force
+merge 1:1 NCESDistrictID StudentSubGroup GradeLevel Subject using "${EDFacts}/2015/edfactspart2015districtmississippi.dta", gen(DistMerge)
+drop if DistMerge == 2
+save "`tempdist'", replace
+clear
+
+//School Merge
+use "`tempsch'"
+duplicates report NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject
+duplicates drop NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject, force
+destring NCESSchoolID, replace
+merge 1:1 NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject using "${EDFacts}/2015/edfactspart2015schoolmississippi.dta", gen(SchMerge)
+drop if SchMerge == 2
+save "`tempsch'", replace
+clear
+
+//Combining DataLevels
+use "`tempall'"
+keep if DataLevel == 1
+append using "`tempdist'" "`tempsch'"
+
+//New Participation Data
+replace ParticipationRate = Participation if !missing(Participation)
+
 replace CountyName = proper(CountyName)
 replace CountyName = "DeSoto County" if CountyName == "Desoto County"
+
+/*
+** Merging with EDFacts Datasets
+gen test = 1
+append using "${EDFacts}/2015/edfactscount2015districtmississippi.dta", force
+merge m:1 DataLevel NCESDistrictID StudentGroup StudentSubGroup GradeLevel Subject using "${EDFacts}/2015/edfactspart2015districtmississippi.dta", update
+drop if _merge == 2
+drop _merge
+
+destring NCESSchoolID, replace
+append using "${EDFacts}/2015/edfactscount2015schoolmississippi.dta"
+merge m:1 DataLevel NCESSchoolID StudentGroup StudentSubGroup GradeLevel Subject using "${EDFacts}/2015/edfactspart2015schoolmississippi.dta", update
+drop if _merge == 2
+drop _merge
+
+replace test = 2 if test == .
+sort DataLevel NCESDistrictID NCESSchoolID test
+
+replace AvgScaleScore = "--" if AvgScaleScore == ""
+replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == ""
+local level 1 2 3 4
+foreach a of local level {
+	replace Lev`a'_percent = "--" if Lev`a'_percent == ""
+	replace Lev`a'_count = "--" if Lev`a'_count == ""
+}
+replace DistName = DistName[_n-1] if test == 2 & NCESDistrictID == NCESDistrictID[_n-1] & NCESSchoolID == NCESSchoolID[_n-1]
+replace SchName = SchName[_n-1] if test == 2 & NCESDistrictID == NCESDistrictID[_n-1] & NCESSchoolID == NCESSchoolID[_n-1]
+replace StateAssignedDistID = StateAssignedDistID[_n-1] if StateAssignedDistID == "" & NCESDistrictID == NCESDistrictID[_n-1] & NCESSchoolID == NCESSchoolID[_n-1]
+replace StateAssignedSchID = StateAssignedSchID[_n-1] if StateAssignedSchID == "" & NCESDistrictID == NCESDistrictID[_n-1] & NCESSchoolID == NCESSchoolID[_n-1]
+replace State_leaid = State_leaid[_n-1] if State_leaid == "" & NCESDistrictID == NCESDistrictID[_n-1] & NCESSchoolID == NCESSchoolID[_n-1]
+replace seasch = seasch[_n-1] if seasch == "" & NCESDistrictID == NCESDistrictID[_n-1] & NCESSchoolID == NCESSchoolID[_n-1]
+replace DistType = DistType[_n-1] if DistType == "" & NCESDistrictID == NCESDistrictID[_n-1] & NCESSchoolID == NCESSchoolID[_n-1]
+replace SchType = SchType[_n-1] if SchType == . & NCESDistrictID == NCESDistrictID[_n-1] & NCESSchoolID == NCESSchoolID[_n-1]
+replace SchVirtual = SchVirtual[_n-1] if SchVirtual == . & NCESDistrictID == NCESDistrictID[_n-1] & NCESSchoolID == NCESSchoolID[_n-1]
+replace SchLevel = SchLevel[_n-1] if SchLevel == . & NCESDistrictID == NCESDistrictID[_n-1] & NCESSchoolID == NCESSchoolID[_n-1]
+replace DistCharter = DistCharter[_n-1] if DistCharter == "" & NCESDistrictID == NCESDistrictID[_n-1] & NCESSchoolID == NCESSchoolID[_n-1]
+replace DistLocale = DistLocale[_n-1] if DistLocale == "" & NCESDistrictID == NCESDistrictID[_n-1] & NCESSchoolID == NCESSchoolID[_n-1]
+replace CountyCode = CountyCode[_n-1] if CountyCode == "" & NCESDistrictID == NCESDistrictID[_n-1] & NCESSchoolID == NCESSchoolID[_n-1]
+replace CountyName = CountyName[_n-1] if CountyName == "" & NCESDistrictID == NCESDistrictID[_n-1] & NCESSchoolID == NCESSchoolID[_n-1]
+drop if CountyName == "" & DataLevel != 1
+
+replace ParticipationRate = Participation if !missing(Participation)
+
+
+destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
+replace StudentSubGroup_TotalTested2 = 0 if StudentSubGroup_TotalTested2 == .
+bysort DistName SchName StudentGroup GradeLevel Subject: egen test2 = min(StudentSubGroup_TotalTested2)
+drop StudentSubGroup_TotalTested2 test test2
+*/
 
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 

@@ -1,13 +1,12 @@
 clear
 set more off
 
-cd "/Users/maggie/Desktop/Mississippi"
-
-global MS "/Users/maggie/Desktop/Mississippi"
-global raw "/Users/maggie/Desktop/Mississippi/Original Data Files"
-global output "/Users/maggie/Desktop/Mississippi/Output"
-global NCES "/Users/maggie/Desktop/Mississippi/NCES/Cleaned"
-global Request "/Users/maggie/Desktop/Mississippi/Data Request"
+global MS "/Users/kaitlynlucas/Desktop/Mississippi State Task/Original Data Files"
+global raw "/Users/kaitlynlucas/Desktop/Mississippi State Task/Original Data Files"
+global output "/Users/kaitlynlucas/Desktop/Mississippi State Task/Output"
+global NCES "/Users/kaitlynlucas/Desktop/Mississippi State Task/NCES/Cleaned"
+global EDFacts "/Users/kaitlynlucas/Desktop/EDFacts Drive Data"
+global Request "/Users/kaitlynlucas/Desktop/Mississippi State Task/Data Request"
 
 local subject math ela sci
 local datatype performance participation
@@ -81,6 +80,7 @@ replace StateAssignedSchID = substr(StateAssignedSchID, 6, 7)
 replace StateAssignedSchID = "" if DataLevel != 3
 
 gen AssmtName = "MAAP"
+replace AssmtName = "MST2" if Subject == "sci"
 
 gen ProficiencyCriteria = "Levels 4-5" if Subject != "sci"
 replace ProficiencyCriteria = "Levels 3-4" if Subject == "sci"
@@ -90,7 +90,7 @@ gen AvgScaleScore = "--"
 gen ParticipationRate = "--"
 
 gen Flag_AssmtNameChange = "N" if Subject != "sci"
-replace Flag_AssmtNameChange = "Y" if Subject == "sci"
+replace Flag_AssmtNameChange = "N" if Subject == "sci"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_sci = "N"
@@ -151,6 +151,50 @@ replace SchName = newschname if _merge != 1
 drop if DataLevel == 3 & _merge == 1
 drop if _merge == 2
 drop newdistname newschname _merge
+
+** Merging with EDFacts data
+tempfile tempall
+destring NCESSchoolID, replace
+save "`tempall'", replace
+keep if DataLevel == 2
+tempfile tempdist
+save "`tempdist'", replace
+clear
+use "`tempall'"
+keep if DataLevel == 3
+tempfile tempsch
+save "`tempsch'", replace
+clear
+
+//District Merge
+use "`tempdist'"
+duplicates report NCESDistrictID StudentSubGroup GradeLevel Subject
+duplicates drop NCESDistrictID StudentSubGroup GradeLevel Subject, force
+merge 1:1 NCESDistrictID StudentSubGroup GradeLevel Subject using "${EDFacts}/2018/edfactspart2018districtmississippi.dta", gen(DistMerge)
+drop if DistMerge == 2
+save "`tempdist'", replace
+clear
+
+//School Merge
+use "`tempsch'"
+duplicates report NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject
+duplicates drop NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject, force
+destring NCESSchoolID, replace
+merge 1:1 NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject using "${EDFacts}/2018/edfactspart2018schoolmississippi.dta", gen(SchMerge)
+drop if SchMerge == 2
+save "`tempsch'", replace
+clear
+
+//Combining DataLevels
+use "`tempall'"
+keep if DataLevel == 1
+append using "`tempdist'" "`tempsch'"
+
+//New Participation Data
+replace ParticipationRate = Participation if !missing(Participation)
+
+replace CountyName = proper(CountyName)
+replace CountyName = "DeSoto County" if CountyName == "Desoto County"
 
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 

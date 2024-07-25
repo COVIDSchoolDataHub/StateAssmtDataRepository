@@ -1,13 +1,11 @@
 clear
 set more off
 
-cd "/Users/maggie/Desktop/Mississippi"
-
-global MS "/Users/maggie/Desktop/Mississippi"
-global NCESSchool "/Users/maggie/Desktop/Mississippi/NCES/School"
-global NCESDistrict "/Users/maggie/Desktop/Mississippi/NCES/District"
-global NCES "/Users/maggie/Desktop/Mississippi/NCES/Cleaned"
-global EDFacts "/Users/maggie/Desktop/EDFacts/Datasets"
+global MS "/Users/kaitlynlucas/Desktop/Mississippi State Task/Original Data Files"
+global NCESSchool "/Users/kaitlynlucas/Desktop/Mississippi State Task/NCES/School"
+global NCESDistrict "/Users/kaitlynlucas/Desktop/Mississippi State Task/NCES/District"
+global NCES "/Users/kaitlynlucas/Desktop/Mississippi State Task/NCES/Cleaned"
+global EDFacts "/Users/kaitlynlucas/Desktop/EDFacts Drive Data"
 
 ** Preparing district/school name standardization file
 
@@ -30,7 +28,7 @@ duplicates drop NCESDistrictID, force
 keep NCESDistrictID newdistname olddistname DataLevel
 save "${MS}/standarddistnames.dta", replace
 
-/*
+
 ** Preparing EDFacts files
 
 local edyears1 14 15 16 17 18
@@ -44,45 +42,40 @@ foreach year of local edyears1 {
 			foreach lvl of local datalevel {
 				local prevyear = `year' - 1
 				use "${EDFacts}/20`year'/edfacts`type'20`year'`sub'`lvl'.dta", clear
-				keep if STNAM == "MISSISSIPPI"
-				drop ALL*
-				if ("`year'" != "14") {
-					drop DATE_CUR
-				}
-				drop CWD* HOM* MIG*
-				rename *_`prevyear'`year' *
-				if ("`sub'" == "math") {
-					rename *_MTH* **
-				}
-				if ("`sub'" == "ela") {
-					rename *_RLA* **
-				}
-				if ("`type'" == "count") {
-					rename *NUMVALID Count*
-					rename *PCTPROF Proficient*
-				}
-				if ("`type'" == "part") {
-					rename *PCTPART Participation*
-					drop *NUMPART
-				}
-				drop *HS *00 
-				if ("`lvl'" == "school") & ("`type'" == "count") {
-					reshape long Count Proficient, i(NCESSCH) j(StudentSubGroup) string
-					gen DataLevel = 3
-				}
-				if ("`lvl'" == "district") & ("`type'" == "count") {
-					reshape long Count Proficient, i(LEAID) j(StudentSubGroup) string
-					gen DataLevel = 2
-				}
-				if ("`lvl'" == "school") & ("`type'" == "part") {
-					reshape long Participation, i(NCESSCH) j(StudentSubGroup) string
-					gen DataLevel = 3 
-				}
-				if ("`lvl'" == "district") & ("`type'" == "part") {
-					reshape long Participation, i(LEAID) j(StudentSubGroup) string
-					gen DataLevel = 2
-				}				
-				gen Subject = "`sub'"
+				keep if stnam == "MISSISSIPPI"
+                rename *_`prevyear'`year' *
+                if ("`sub'" == "math") {
+                    rename *_mth* **
+                }
+                if ("`sub'" == "ela") {
+                    rename *_rla* **
+                }
+                if ("`type'" == "count") {
+                    rename *numvalid Count*
+                    drop *pctprof
+                }
+                if ("`type'" == "part") {
+                    rename *pctpart Participation*
+                    drop *numpart
+                }
+                drop *hs *00 
+                if ("`lvl'" == "school") & ("`type'" == "count") {
+                    reshape long Count, i(ncessch) j(StudentSubGroup) string
+                    gen DataLevel = 3
+                }
+                if ("`lvl'" == "district") & ("`type'" == "count") {
+                    reshape long Count, i(leaid) j(StudentSubGroup) string
+                    gen DataLevel = 2
+                }
+                if ("`lvl'" == "school") & ("`type'" == "part") {
+                    reshape long Participation, i(ncessch) j(StudentSubGroup) string
+                    gen DataLevel = 3
+                }
+                if ("`lvl'" == "district") & ("`type'" == "part") {
+                    reshape long Participation, i(leaid) j(StudentSubGroup) string
+                    gen DataLevel = 2
+                }  
+                gen Subject = "`sub'"
 				save "${EDFacts}/20`year'/edfacts`type'20`year'`sub'`lvl'mississippi.dta", replace
 			}
 		}
@@ -94,91 +87,78 @@ foreach year of local edyears1 {
 		foreach lvl of local datalevel {
 			use "${EDFacts}/20`year'/edfacts`type'20`year'math`lvl'mississippi.dta", clear
 			append using "${EDFacts}/20`year'/edfacts`type'20`year'ela`lvl'mississippi.dta"
-			drop STNAM FIPST
-			if ("`lvl'" == "school"){
-				rename SCHNAM SchName
-				rename NCESSCH NCESSchoolID
-				recast long NCESSchoolID
-				format NCESSchoolID %18.0g
-				tostring NCESSchoolID, replace usedisplayformat
-			}
-			rename LEAID NCESDistrictID
-			rename LEANM DistName
+            if ("`lvl'" == "school"){
+                rename ncessch NCESSchoolID
+            }
+            rename leaid NCESDistrictID
 			tostring NCESDistrictID, replace
-			if ("`type'" == "count") {
-				drop if Count == .
-				drop if Proficient == ""
-				replace Proficient = "--" if Proficient == "n/a"
-				replace Proficient = "*" if Proficient == "PS"
-				split Proficient, parse("-")
-				destring Proficient1, replace force
-				replace Proficient1 = Proficient1/100
-				tostring Proficient1, replace format("%9.2g") force
-				destring Proficient2, replace force
-				replace Proficient2 = Proficient2/100			
-				tostring Proficient2, replace format("%9.2g") force
-				replace Proficient = Proficient1 + "-" + Proficient2 if Proficient1 != "." & Proficient2 != "."
-				replace Proficient = Proficient1 if Proficient1 != "." & Proficient2 == "."
-				gen Proficient3 = subinstr(Proficient, "GE", "", .) if strpos(Proficient, "GE") > 0
-				replace Proficient3 = subinstr(Proficient, "GT", "", .) if strpos(Proficient, "GT") > 0
-				replace Proficient3 = subinstr(Proficient, "LE", "", .) if strpos(Proficient, "LE") > 0
-				replace Proficient3 = subinstr(Proficient, "LT", "", .) if strpos(Proficient, "LT") > 0
-				destring Proficient3, replace force
-				replace Proficient3 = Proficient3/100
-				tostring Proficient3, replace format("%9.2g") force
-				replace Proficient = Proficient3 + "-1" if strpos(Proficient, "GE") | strpos(Proficient, "GT") > 0
-				replace Proficient = "0-" + Proficient3 if strpos(Proficient, "LE") | strpos(Proficient, "LT") > 0
-				drop Proficient1 Proficient2 Proficient3
-				rename Count StudentSubGroup_TotalTested
-				tostring StudentSubGroup_TotalTested, replace force
-				rename Proficient ProficientOrAbove_percent
-			}
-			if ("`type'" == "part") {
-				drop if Participation == ""
-				replace Participation = "--" if Participation == "n/a"
-				replace Participation = "*" if Participation == "PS"
-				split Participation, parse("-")
-				destring Participation1, replace force
-				replace Participation1 = Participation1/100
-				tostring Participation1, replace format("%9.2g") force
-				destring Participation2, replace force
-				replace Participation2 = Participation2/100			
-				tostring Participation2, replace format("%9.2g") force
-				replace Participation = Participation1 + "-" + Participation2 if Participation1 != "." & Participation2 != "."
-				replace Participation = Participation1 if Participation1 != "." & Participation2 == "."
-				gen Participation3 = subinstr(Participation, "GE", "", .) if strpos(Participation, "GE") > 0
-				replace Participation3 = subinstr(Participation, "GT", "", .) if strpos(Participation, "GT") > 0
-				replace Participation3 = subinstr(Participation, "LE", "", .) if strpos(Participation, "LE") > 0
-				replace Participation3 = subinstr(Participation, "LT", "", .) if strpos(Participation, "LT") > 0
-				destring Participation3, replace force
-				replace Participation3 = Participation3/100
-				tostring Participation3, replace format("%9.2g") force
-				replace Participation = Participation3 + "-1" if strpos(Participation, "GE") | strpos(Participation, "GT") > 0
-				replace Participation = "0-" + Participation3 if strpos(Participation, "LE") | strpos(Participation, "LT") > 0
-				drop Participation1 Participation2 Participation3
-				rename Participation ParticipationRate
-			}
-			gen GradeLevel = "G" + substr(StudentSubGroup, -2, 2)
-			replace StudentSubGroup = subinstr(StudentSubGroup, substr(StudentSubGroup, -2, 2), "", .)
-			replace StudentSubGroup = "All Students" if StudentSubGroup == "ALL"
-			replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "ECD"
-			replace StudentSubGroup = "Female" if StudentSubGroup == "F"
-			replace StudentSubGroup = "English Learner" if StudentSubGroup == "LEP"
-			replace StudentSubGroup = "Male" if StudentSubGroup == "M"
-			replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "MAM"
-			replace StudentSubGroup = "Asian" if StudentSubGroup == "MAS"
-			replace StudentSubGroup = "Black or African American" if StudentSubGroup == "MBL"
-			replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "MHI"
-			replace StudentSubGroup = "Two or More" if StudentSubGroup == "MTR"
-			replace StudentSubGroup = "White" if StudentSubGroup == "MWH"
-			gen StudentGroup = "RaceEth"
-			replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
-			replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged"
-			replace StudentGroup = "Gender" if inlist(StudentSubGroup, "Female", "Male")
-			replace StudentGroup = "EL Status" if StudentSubGroup == "English Learner"
+            if ("`type'" == "count") {
+                drop if Count == .
+            }
+            if ("`type'" == "part") {
+                drop if Participation == ""
+                replace Participation = "--" if Participation == "n/a"
+                replace Participation = "*" if Participation == "PS"
+                split Participation, parse("-")
+                destring Participation1, replace force
+                replace Participation1 = Participation1/100
+                tostring Participation1, replace format("%9.2g") force
+                destring Participation2, replace force
+                replace Participation2 = Participation2/100         
+                tostring Participation2, replace format("%9.2g") force
+                replace Participation = Participation1 + "-" + Participation2 if Participation1 != "." & Participation2 != "."
+                replace Participation = Participation1 if Participation1 != "." & Participation2 == "."
+                gen Participation3 = subinstr(Participation, "GE", "", .) if strpos(Participation, "GE") > 0
+                replace Participation3 = subinstr(Participation, "LT", "", .) if strpos(Participation, "LT") > 0
+                replace Participation3 = subinstr(Participation, "LE", "", .) if strpos(Participation, "LE") > 0
+                destring Participation3, replace force
+                replace Participation3 = Participation3/100
+                tostring Participation3, replace format("%9.2g") force
+                replace Participation = Participation3 + "-1" if strpos(Participation, "GE") > 0
+                replace Participation = "0-" + Participation3 if strpos(Participation, "LT") > 0 | strpos(Participation, "LE") > 0
+                drop Participation1 Participation2 Participation3
+            }
+            gen GradeLevel = "G" + substr(StudentSubGroup, -2, 2)
+            replace StudentSubGroup = subinstr(StudentSubGroup, substr(StudentSubGroup, -2, 2), "", .)
+            replace StudentSubGroup = "All Students" if StudentSubGroup == "all"
+            replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "ecd"
+            replace StudentSubGroup = "Female" if StudentSubGroup == "f"
+            replace StudentSubGroup = "English Learner" if StudentSubGroup == "lep"
+            replace StudentSubGroup = "Male" if StudentSubGroup == "m"
+            replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "mam"
+            replace StudentSubGroup = "Asian" if StudentSubGroup == "mas"
+            replace StudentSubGroup = "Black or African American" if StudentSubGroup == "mbl"
+            replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "mhi"
+            replace StudentSubGroup = "Two or More" if StudentSubGroup == "mtr"
+            replace StudentSubGroup = "White" if StudentSubGroup == "mwh"
+            replace StudentSubGroup = "SWD" if StudentSubGroup == "cwd"
+            replace StudentSubGroup = "Homeless" if StudentSubGroup == "hom"
+            replace StudentSubGroup = "Migrant" if StudentSubGroup == "mig"
+            gen StudentGroup = "RaceEth"
+            replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
+            replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged"
+            replace StudentGroup = "Gender" if inlist(StudentSubGroup, "Female", "Male")
+            replace StudentGroup = "EL Status" if StudentSubGroup == "English Learner"
+            replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD"
+            replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless"
+            replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant Status"
+			
+			
+			//Using ELA for eng and read
+			tempfile temp1
+			save "`temp1'", replace
+			keep if Subject == "ela"
+			expand 3, gen(exp)
+			drop if exp == 0
+			gen row = _n
+			replace Subject = "eng" if mod(row,2) == 0
+			replace Subject = "read" if mod(row,2) !=0
+			drop exp row
+			append using "`temp1'"
 			save "${EDFacts}/20`year'/edfacts`type'20`year'`lvl'mississippi.dta", replace
-		}
-	}
+			clear
+        }
+    }
 }
 
 local edyears2 2019 2021
@@ -188,18 +168,17 @@ foreach year of local edyears2 {
 		foreach type of local datatype {
 			foreach lvl of local datalevel {
 				use "${EDFacts}/`year'/edfacts`type'`year'`sub'`lvl'.dta", clear
-				keep if STNAM == "MISSISSIPPI"
-				drop DATE_CUR
-				drop if CATEGORY == "ALL"
+				keep if stnam == "MISSISSIPPI"
+				drop date_cur
 				if ("`type'" == "count") {
-					rename NUMVALID Count
-					rename PCTPROF Proficient
+					rename numvalid Count
+					rename pctprof PctProf
 				}
 				if ("`type'" == "part") {
-					rename PCTPART Participation
-					drop NUMPART
+					rename pctpart Participation
+					drop numpart
 				}
-				rename SUBJECT Subject
+				rename subject Subject
 				replace Subject = "`sub'"
 				if ("`lvl'" == "school") {
 					gen DataLevel = 3
@@ -218,47 +197,35 @@ foreach year of local edyears2 {
 		foreach lvl of local datalevel {
 			use "${EDFacts}/`year'/edfacts`type'`year'math`lvl'mississippi.dta", clear
 			append using "${EDFacts}/`year'/edfacts`type'`year'ela`lvl'mississippi.dta"
-			drop STNAM FIPST
-			if ("`lvl'" == "district"){
-				rename ST_LEAID State_leaid
+if ("`lvl'" == "school"){
+				rename ncessch NCESSchoolID
 			}
-			if ("`lvl'" == "school"){
-				rename SCHNAM SchName
-				rename NCESSCH NCESSchoolID
-				recast long NCESSchoolID
-				format NCESSchoolID %18.0g
-				tostring NCESSchoolID, replace usedisplayformat
-			}
-			rename LEAID NCESDistrictID
-			rename LEANM DistName
+			rename leaid NCESDistrictID
 			tostring NCESDistrictID, replace
 			if ("`type'" == "count") {
 				drop if Count == .
-				drop if Proficient == ""
-				replace Proficient = "--" if Proficient == "n/a"
-				replace Proficient = "*" if Proficient == "PS"
-				split Proficient, parse("-")
-				destring Proficient1, replace force
-				replace Proficient1 = Proficient1/100
-				tostring Proficient1, replace format("%9.2g") force
-				destring Proficient2, replace force
-				replace Proficient2 = Proficient2/100			
-				tostring Proficient2, replace format("%9.2g") force
-				replace Proficient = Proficient1 + "-" + Proficient2 if Proficient1 != "." & Proficient2 != "."
-				replace Proficient = Proficient1 if Proficient1 != "." & Proficient2 == "."
-				gen Proficient3 = subinstr(Proficient, "GE", "", .) if strpos(Proficient, "GE") > 0
-				replace Proficient3 = subinstr(Proficient, "GE", "", .) if strpos(Proficient, "GT") > 0
-				replace Proficient3 = subinstr(Proficient, "LT", "", .) if strpos(Proficient, "LE") > 0
-				replace Proficient3 = subinstr(Proficient, "LT", "", .) if strpos(Proficient, "LT") > 0
-				destring Proficient3, replace force
-				replace Proficient3 = Proficient3/100
-				tostring Proficient3, replace format("%9.2g") force
-				replace Proficient = Proficient3 + "-1" if strpos(Proficient, "GE") | strpos(Proficient, "GT") > 0
-				replace Proficient = "0-" + Proficient3 if strpos(Proficient, "LE") | strpos(Proficient, "LT") > 0
-				drop Proficient1 Proficient2 Proficient3
-				rename Count StudentSubGroup_TotalTested
-				tostring StudentSubGroup_TotalTested, replace force
-				rename Proficient ProficientOrAbove_percent
+				drop if PctProf == ""
+				replace PctProf = "--" if PctProf == "n/a"
+				replace PctProf = "*" if PctProf == "PS"
+				split PctProf, parse("-")
+				destring PctProf1, replace force
+				replace PctProf1 = PctProf1/100
+				tostring PctProf1, replace format("%9.2g") force
+				destring PctProf2, replace force
+				replace PctProf2 = PctProf2/100			
+				tostring PctProf2, replace format("%9.2g") force
+				replace PctProf = PctProf1 + "-" + PctProf2 if PctProf1 != "." & PctProf2 != "."
+				replace PctProf = PctProf1 if PctProf1 != "." & PctProf2 == "."
+				gen PctProf3 = subinstr(PctProf, "GE", "", .) if strpos(PctProf, "GE") > 0
+				replace PctProf3 = subinstr(PctProf, "LT", "", .) if strpos(PctProf, "LT") > 0
+				replace PctProf3 = subinstr(PctProf, "LE", "", .) if strpos(PctProf, "LE") > 0
+				destring PctProf3, replace force
+				replace PctProf3 = PctProf3/100
+				tostring PctProf3, replace format("%9.2g") force
+				replace PctProf = PctProf3 + "-1" if strpos(PctProf, "GE") > 0
+				replace PctProf = "0-" + PctProf3 if strpos(PctProf, "LT") > 0
+				replace PctProf = "0-" + PctProf3 if strpos(PctProf, "LE") > 0
+				drop PctProf1 PctProf2 PctProf3
 			}
 			if ("`type'" == "part") {
 				drop if Participation == ""
@@ -274,22 +241,21 @@ foreach year of local edyears2 {
 				replace Participation = Participation1 + "-" + Participation2 if Participation1 != "." & Participation2 != "."
 				replace Participation = Participation1 if Participation1 != "." & Participation2 == "."
 				gen Participation3 = subinstr(Participation, "GE", "", .) if strpos(Participation, "GE") > 0
-				replace Participation3 = subinstr(Participation, "GT", "", .) if strpos(Participation, "GT") > 0
-				replace Participation3 = subinstr(Participation, "LE", "", .) if strpos(Participation, "LE") > 0
 				replace Participation3 = subinstr(Participation, "LT", "", .) if strpos(Participation, "LT") > 0
+				replace Participation3 = subinstr(Participation, "LE", "", .) if strpos(Participation, "LE") > 0
 				destring Participation3, replace force
 				replace Participation3 = Participation3/100
 				tostring Participation3, replace format("%9.2g") force
-				replace Participation = Participation3 + "-1" if strpos(Participation, "GE") | strpos(Participation, "GT") > 0
-				replace Participation = "0-" + Participation3 if strpos(Participation, "LE") | strpos(Participation, "LT") > 0
+				replace Participation = Participation3 + "-1" if strpos(Participation, "GE") > 0
+				replace Participation = "0-" + Participation3 if strpos(Participation, "LT") > 0
+				replace Participation = "0-" + Participation3 if strpos(Participation, "LE") > 0
 				drop Participation1 Participation2 Participation3
-				rename Participation ParticipationRate
 			}
-			drop if inlist(GRADE, "00", "HS")
-			rename GRADE GradeLevel
+			drop if grade == "HS"
+			rename grade GradeLevel
 			replace GradeLevel = "G" + GradeLevel
-			drop if inlist(CATEGORY, "CWD", "FCS", "HOM", "MIG", "MIL")
-			rename CATEGORY StudentSubGroup
+			replace GradeLevel = "G38" if GradeLevel == "G00"
+			rename category StudentSubGroup
 			replace StudentSubGroup = "All Students" if StudentSubGroup == "ALL"
 			replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "ECD"
 			replace StudentSubGroup = "Female" if StudentSubGroup == "F"
@@ -301,11 +267,32 @@ foreach year of local edyears2 {
 			replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "MHI"
 			replace StudentSubGroup = "Two or More" if StudentSubGroup == "MTR"
 			replace StudentSubGroup = "White" if StudentSubGroup == "MWH"
+			replace StudentSubGroup = "SWD" if StudentSubGroup == "CWD"
+			replace StudentSubGroup = "Migrant" if StudentSubGroup == "MIG"
+			replace StudentSubGroup = "Homeless" if StudentSubGroup == "HOM"
+			replace StudentSubGroup = "Military" if StudentSubGroup == "MIL"
+			replace StudentSubGroup = "Foster Care" if StudentSubGroup == "FCS"
 			gen StudentGroup = "RaceEth"
 			replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
 			replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged"
 			replace StudentGroup = "Gender" if inlist(StudentSubGroup, "Female", "Male")
 			replace StudentGroup = "EL Status" if StudentSubGroup == "English Learner"
+			replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD"
+			replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant"
+			replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless"
+			replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Military"
+			replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Foster Care"
+			//Using ELA for eng and read
+			tempfile temp1
+			save "`temp1'", replace
+			keep if Subject == "ela"
+			expand 3, gen(exp)
+			drop if exp == 0
+			gen row = _n
+			replace Subject = "eng" if mod(row,2) == 0
+			replace Subject = "read" if mod(row,2) !=0
+			drop exp row
+			append using "`temp1'"
 			save "${EDFacts}/`year'/edfacts`type'`year'`lvl'mississippi.dta", replace
 		}
 	}
