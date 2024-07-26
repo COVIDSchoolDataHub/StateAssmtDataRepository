@@ -590,6 +590,15 @@ replace n_profabove = n3_percent + n4_percent if Lev3_percent != "*" & Lev4_perc
 replace n_profabove = 1-(n1_percent + n2_percent) if Lev3_percent == "*" & subject_flag == 1
 replace n_profabove = 1-(n1_percent + n2_percent) if Lev4_percent == "*" & subject_flag == 1
 
+/// added on 7/26/24 to fix "." issue
+replace n_profabove = n4_percent if missing(n1_percent) & missing(n2_percent) & missing(n3_percent) & subject_flag == 1
+replace n_profabove = n3_percent if missing(n1_percent) & missing(n2_percent) & missing(n4_percent) & subject_flag == 1
+replace n_profabove = n4_percent if missing(n2_percent) & missing(n3_percent) & subject_flag == 1
+replace n_profabove = n3_percent if missing(n1_percent) & missing(n4_percent) & subject_flag == 1
+replace n_profabove = n3_percent if missing(n2_percent) & missing(n4_percent) & subject_flag == 1
+
+// ended here
+
 replace n_profabove = n3_percent + n2_percent if Lev2_percent != "*" & Lev3_percent != "*" & subject_flag == 0
 replace n_profabove = 1-(n1_percent) if Lev2_percent == "*" & subject_flag == 0
 replace n_profabove = 1-(n1_percent) if Lev3_percent == "*" & subject_flag == 0
@@ -598,7 +607,9 @@ replace Lev4_percent = "" if ProficiencyCriteria == "Levels 2-3"
 replace Lev4_count = "" if ProficiencyCriteria == "Levels 2-3"
 
 gen nprof_count = total_count*n_profabove
-		
+
+replace nprof_count = total_count if n1_percent == 1 | n2_percent == 2 // added 7/26/24
+
 replace nprof_count = trunc(nprof_count)
 tostring nprof_count, replace
 replace ProficientOrAbove_count = nprof_count
