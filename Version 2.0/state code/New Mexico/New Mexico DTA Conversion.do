@@ -17,10 +17,8 @@ import excel "${raw}/NM_OriginalData_2017_sci.xlsx", sheet(Webfiles SBASCI 2016)
 drop I-M
 save "${raw}/NM_AssmtData_2017_SBA.dta", replace
 
-foreach s in ELA Math Science {
-	import excel "${raw}/NM_OriginalData_2015_2023_all_DataRequest.xlsx", sheet("2017 `s'") firstrow clear
-	save "${raw}/NM_AssmtData_2017_`s'", replace
-}
+import excel "${raw}/NM_OriginalData_2017_all_RegularAlt.xlsx", firstrow cellrange(B3) clear
+save  "${raw}/NM_AssmtData_2017_all_RegularAlt", replace
 
 import excel "${raw}/NM_OriginalData_2018_elamath.xlsx", sheet(PARCC 2018) cellrange(A4) firstrow clear
 save "${raw}/NM_AssmtData_2018_PARCC.dta", replace
@@ -28,10 +26,8 @@ import excel "${raw}/NM_OriginalData_2018_sci.xlsx", sheet(SBA Science by Grade 
 drop I-K
 save "${raw}/NM_AssmtData_2018_SBA.dta", replace
 
-foreach s in ELA Math Science {
-	import excel "${raw}/NM_OriginalData_2015_2023_all_DataRequest.xlsx", sheet("2018 `s'") firstrow clear
-	save "${raw}/NM_AssmtData_2018_`s'", replace
-}
+import excel "${raw}/NM_OriginalData_2018_all_RegularAlt.xlsx", firstrow cellrange(B3) clear
+save  "${raw}/NM_AssmtData_2018_all_RegularAlt", replace
 	
 
 import excel "${raw}/NM_OriginalData_2019_elamath.xlsx", sheet(TAMELA Proficiencies 2019 MASKE) cellrange(A4) firstrow clear
@@ -41,9 +37,8 @@ drop I-K
 drop if Code == ""
 save "${raw}/NM_AssmtData_2019_SBA.dta", replace
 
-import excel "${raw}/NM_OriginalData_2015_2023_all_DataRequest.xlsx", sheet("2019 All Grades") firstrow clear
-drop in 1/3
-save "${raw}/NM_AssmtData_2019_SubGroups", replace
+import excel "${raw}/NM_OriginalData_2019_all_RegularAlt.xlsx", firstrow cellrange(B3) clear
+save  "${raw}/NM_AssmtData_2019_all_RegularAlt", replace 
 
 import excel "${raw}/NM_OriginalData_2021_elamath.xlsx", sheet(MSSA ESSA 2021) cellrange(A3) firstrow clear
 drop J-N
