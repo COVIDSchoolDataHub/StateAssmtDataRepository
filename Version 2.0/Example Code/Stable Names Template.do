@@ -1,7 +1,7 @@
 clear
 set more off
 
-
+cd "/Volumes/T7/State Test Project/New Mexico"
 global OldOutput "/Volumes/T7/State Test Project/New Mexico/Output" 
 global NewOutput "/Volumes/T7/State Test Project/New Mexico/Output with Stable Names"
 
