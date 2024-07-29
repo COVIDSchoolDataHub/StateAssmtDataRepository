@@ -1887,7 +1887,7 @@ if "${StateAbbrev}" == "CA" | "${StateAbbrev}" == "TX" {
 else {
 	di "N/A"
 }
-drop testedcount
+cap drop testedcount
 ***********************************************************
 
 ** • Have low StudentSubGroup_TotalTested values across all years been reviewed for irregularities?
