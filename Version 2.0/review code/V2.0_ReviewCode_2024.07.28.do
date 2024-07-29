@@ -13,7 +13,7 @@
 **	4. This do file should be saved in the state folder with the .csvs.
 
 ***************************************
-clear
+clear all
 cap log close
 global Filepath "\Desktop\Zelma V2.0\Tennessee - Version 2.0" //Set path to csv files
 global StateAbbrev "TN" //Set StateAbbrev
@@ -569,7 +569,7 @@ local sch_nomiss "SchType"
 count if DataLevel =="School" & !inlist(schtype_chk, 1)
 	if r(N)>0 {
 		di as error "SchType values DO NOT align with labeling conventions in the following files."
-		tab  SchType FILE if schtype_flag == 1
+		tab  SchType FILE if schtype_chk == 1
 
 	}
 
@@ -1529,8 +1529,6 @@ foreach var of local nomissing_sg {
 ** • Is there an "All Students" value for each 'unique group' in the file? (A unique group is defined as the same SchYear-DataLevel-DistID-SchID-Subject-GradeLevel)
 
 // generating num DataLevel for ordering & adding state-level values for dist and sch IDs
-label def DataLevel 1 "State" 2 "District" 3 "School"
-encode DataLevel, gen(DataLevel_n) label(DataLevel)
 replace StateAssignedDistID = "000000" if DataLevel=="State"
 replace StateAssignedSchID = "000000" if DataLevel=="State"
 replace StateAssignedSchID = "000000" if DataLevel=="District"
