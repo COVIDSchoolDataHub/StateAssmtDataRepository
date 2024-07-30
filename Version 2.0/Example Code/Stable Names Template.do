@@ -22,7 +22,6 @@ foreach year in $years {
 use "`temp1'"
 duplicates drop NCESDistrictID, force
 rename DistName DistName1
-drop SchYear
 save "${StateAbbrev}_StableNames", replace
 
 foreach year in $years {
