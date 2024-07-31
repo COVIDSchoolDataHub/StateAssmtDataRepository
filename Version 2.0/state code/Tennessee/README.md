@@ -10,5 +10,6 @@ Run the files in the following order
 2. TN_DTA_Conversion
 3. TN_Cleaning_`year'
 4. TN_EDFactsParticipationRate
+5. TN_StableNames.do
 
 Make sure to download TN_Unmerged_2024.xlsx to your main Tennessee folder before running code.
