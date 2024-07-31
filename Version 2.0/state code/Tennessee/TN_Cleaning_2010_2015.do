@@ -14,6 +14,7 @@ forvalues year = 2010/2015 {
 	foreach dl in state dist sch {
 		use "$Original/TN_OriginalData_`year'_`dl'", clear
 		cap drop P-Z
+		gen DataLevel = "`dl'"
 		append using "$Original/TN_OriginalData_`year'"
 		save "$Original/TN_OriginalData_`year'", replace
 	}
@@ -72,8 +73,11 @@ replace Subject = "soc" if Subject == "Social Studies"
 keep if inlist(Subject, "ela", "math", "sci","soc")
 
 //GradeLevel
+replace GradeLevel = "38" if GradeLevel == "All Grades"
 drop if missing(real(GradeLevel))
-replace GradeLevel = "G0" + GradeLevel
+keep if (real(GradeLevel) >= 3 & real(GradeLevel) <= 8) | GradeLevel == "38"
+replace GradeLevel = "G" + string(real(GradeLevel), "%02.0f")
+
 
 //StudentSubGroup
 replace StudentSubGroup = "All Students" if strpos(StudentSubGroup, "All") !=0
@@ -128,11 +132,9 @@ else {
 }
 
 //DataLevel
-gen DataLevel = ""
-drop if missing(SchName) & !missing(DistName)
-replace DataLevel = "State" if SchName == "State" | (missing(SchName) & missing(DistName))
-replace DataLevel = "District" if SchName == "District" | SchName == "District Data"
-replace DataLevel = "School" if missing(DataLevel)
+replace DataLevel = "State" if DataLevel == "state"
+replace DataLevel = "District" if DataLevel == "dist"
+replace DataLevel = "School" if DataLevel == "sch"
 
 label def DataLevel 1 "State" 2 "District" 3 "School"
 encode DataLevel, gen(nDataLevel) label(DataLevel)
@@ -166,9 +168,16 @@ tostring StudentSubGroup_TotalTested, replace
 replace StudentSubGroup_TotalTested = "--" if missing(StudentSubGroup_TotalTested)
 
 //StudentGroup_TotalTested
-sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
-replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+gen StateAssignedDistID1 = StateAssignedDistID
+replace StateAssignedDistID1 = 000000 if DataLevel == 1
+gen StateAssignedSchID1 = StateAssignedSchID
+replace StateAssignedSchID1 = 000000 if DataLevel !=3
+egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
+sort group_id StudentGroup StudentSubGroup
+by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+drop group_id StateAssignedDistID1 StateAssignedSchID1
+
 
 //ProficientOrAbove_count
 gen ProficientOrAbove_count = string(real(Lev3_count) + real(Lev4_count)) if !missing(real(Lev3_count)) & !missing(real(Lev4_count))
@@ -222,6 +231,14 @@ drop if AllSuppressed ==0 & missing(NCESSchoolID) & DataLevel == 3
 
 if `year' == 2013 drop if SchName == "Martin Luther King Transition Center" & SchType == "High"
 
+//Response to R1
+
+** Creating unique StateAssignedSchID
+tostring StateAssignedSchID, replace
+replace StateAssignedSchID = string(StateAssignedDistID) + "-" + StateAssignedSchID if DataLevel == 3
+replace StateAssignedSchID = "" if DataLevel !=3
+
+if `year' == 2010 replace SchName = proper("WEST CARROLL PRIMARY") if NCESSchoolID == "470449000149" & missing(SchName)
 
 //Additional Dropping
 drop if SchLevel ==  "Prekindergarten"

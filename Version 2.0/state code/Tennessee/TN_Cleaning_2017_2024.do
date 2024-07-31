@@ -16,6 +16,7 @@ forvalues year = 2017/2024 {
 	save "$Original/TN_OriginalData_`year'", replace emptyok
 	foreach dl in state dist sch {
 		use "$Original/TN_OriginalData_`year'_`dl'", clear
+		gen DataLevel = "`dl'"
 		append using "$Original/TN_OriginalData_`year'"
 		save "$Original/TN_OriginalData_`year'", replace
 	}
@@ -73,9 +74,10 @@ replace Subject = "soc" if Subject == "Social Studies"
 keep if inlist(Subject, "ela", "math", "sci","soc")
 
 //GradeLevel
+replace GradeLevel = "38" if GradeLevel == "All Grades"
 drop if missing(real(GradeLevel))
-keep if real(GradeLevel) >= 3 & real(GradeLevel) <= 8
-replace GradeLevel = "G0" + GradeLevel
+keep if (real(GradeLevel) >= 3 & real(GradeLevel) <= 8) | GradeLevel == "38"
+replace GradeLevel = "G" + string(real(GradeLevel), "%02.0f")
 
 //StudentSubGroup
 replace StudentSubGroup = "All Students" if strpos(StudentSubGroup, "All") !=0
@@ -133,18 +135,14 @@ if `year' > 2019 {
 }
 
 //DataLevel
-gen DataLevel = ""
-replace DataLevel = "State" if missing(StateAssignedSchID) & StateAssignedDistID == 0
-replace DataLevel = "District" if missing(StateAssignedSchID) & StateAssignedDistID !=0
-replace DataLevel = "School" if !missing(StateAssignedSchID)
-
+replace DataLevel = "State" if DataLevel == "state"
+replace DataLevel = "District" if DataLevel == "dist"
+replace DataLevel = "School" if DataLevel == "sch"
 label def DataLevel 1 "State" 2 "District" 3 "School"
-encode DataLevel, gen(nDataLevel) label(DataLevel)
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
 drop DataLevel
-rename nDataLevel DataLevel
+rename DataLevel_n DataLevel
 sort DataLevel
-
-
 
 
 //NCES Merging
@@ -169,12 +167,6 @@ replace StateAssignedSchID =. if DataLevel !=3
 //StudentSubGroup_TotalTested
 tostring StudentSubGroup_TotalTested, replace
 replace StudentSubGroup_TotalTested = "--" if missing(StudentSubGroup_TotalTested)
-
-//StudentGroup_TotalTested
-sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
-replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
-if `year' == 2017 drop if SchName == "Westhaven Elementary" & StudentGroup_TotalTested == "1" & GradeLevel == "G04" //Really weird data that makes no sense and screws up the code, dropping.
 
 //ProficientOrAbove_count
 gen ProficientOrAbove_count = string(real(Lev3_count) + real(Lev4_count)) if !missing(real(Lev3_count)) & !missing(real(Lev4_count))
@@ -232,10 +224,9 @@ gen AllSuppressed = 0
 		replace AllSuppressed = AllSuppressed + 1 if !missing(real(`var'))
 
 	}
-egen AllSchoolsSuppressed = min(AllSuppressed), by(SchName)
-drop if AllSchoolsSuppressed > 0 & missing(NCESSchoolID) & DataLevel == 3
-drop All*
+drop if AllSuppressed ==0 & missing(NCESSchoolID) & DataLevel == 3
 
+//2024 Merging New Schools
 if `year' == 2024 {
 merge m:1 SchName using TN_Unmerged_2024.dta, update nogen
 }
@@ -243,6 +234,26 @@ merge m:1 SchName using TN_Unmerged_2024.dta, update nogen
 //Additional Dropping
 drop if SchLevel ==  "Prekindergarten"
 
+//Response to R1
+
+//StudentGroup_TotalTested
+gen StateAssignedDistID1 = StateAssignedDistID
+replace StateAssignedDistID1 = 000000 if DataLevel == 1
+gen StateAssignedSchID1 = StateAssignedSchID
+replace StateAssignedSchID1 = 000000 if DataLevel !=3
+egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
+sort group_id StudentGroup StudentSubGroup
+by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+drop group_id StateAssignedDistID1 StateAssignedSchID1
+if `year' == 2017 drop if SchName == "Westhaven Elementary" & StudentGroup_TotalTested == "1" & GradeLevel == "G04" //Really weird data that makes no sense and screws up the code, dropping.
+
+if `year' == 2017 drop if missing(SchName) //No way of determining which schools these are because there's no School Name variable in the 2017 files. All G38 data.
+
+** Creating unique StateAssignedSchID
+tostring StateAssignedSchID, replace
+replace StateAssignedSchID = string(StateAssignedDistID) + "-" + StateAssignedSchID if DataLevel == 3
+replace StateAssignedSchID = "" if DataLevel !=3
 
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
