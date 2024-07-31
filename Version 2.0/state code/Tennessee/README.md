@@ -13,3 +13,5 @@ Run the files in the following order
 5. TN_StableNames.do
 
 Make sure to download TN_Unmerged_2024.xlsx to your main Tennessee folder before running code.
+
+You may also run the Do_All do-file to fully recreate the cleaning process after you've set appropriate directories. 
