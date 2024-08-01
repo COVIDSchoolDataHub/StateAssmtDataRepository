@@ -366,20 +366,6 @@ drop PercentLevel* PercentMetStandard
 tostring ProficientOrAbove_count, replace
 replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
 
-//StudentGroup_TotalTested (with new convention)
-gen UnsuppressedSSG = real(StudentSubGroup_TotalTested)
-sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
-replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
-
-//Deriving StudentSubGroup_TotalTested if possible
-
-/* //Unhide this code to turn on derivations. Currently Looks like no derivations are possible and this code is causing issues.
-egen UnsuppressedSG = total(UnsuppressedSSG), by(StudentGroup DistName SchName GradeLevel Subject)
-tostring UnsuppressedSG, replace
-replace UnsuppressedSG = "--" if UnsuppressedSG == "0"
-replace StudentSubGroup_TotalTested = string(real(StudentGroup_TotalTested) - real(UnsuppressedSG)) if !missing(real(StudentGroup_TotalTested)) & !missing(real(UnsuppressedSG)) & missing(real(StudentSubGroup_TotalTested)) & StudentGroup != "RaceEth" & StudentGroup != "All Students" & (real(StudentGroup_TotalTested) - real(UnsuppressedSG) > 0 )
-*/
 
 
 ** Merging with NCES
@@ -598,11 +584,24 @@ gen ProficiencyCriteria = "Levels 3-4"
 replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "NULL"
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "NULL"
 
+//StudentGroup_TotalTested
+tostring StateAssigned*, replace
+replace StateAssignedDistID = "" if DataLevel == 1
+replace StateAssignedSchID = "" if DataLevel !=3
+gen StateAssignedDistID1 = StateAssignedDistID
+replace StateAssignedDistID1 = "000000" if DataLevel == 1
+gen StateAssignedSchID1 = StateAssignedSchID
+replace StateAssignedSchID1 = "000000" if DataLevel !=3
+egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
+sort group_id StudentGroup StudentSubGroup
+by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+drop group_id StateAssignedDistID1 StateAssignedSchID1
+
 //Deriving ProficientOrAbove_count if possible
 replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent)*real(StudentSubGroup_TotalTested))) if !missing(real(ProficientOrAbove_percent)) & !missing(real(StudentSubGroup_TotalTested)) & missing(real(ProficientOrAbove_percent))
 
 //Response to Review
-replace SchName = stritrim(SchName)
 
 if `year' >= 2018 drop if SchLevel == "Prekindergarten"
 
@@ -610,7 +609,12 @@ if `year' >= 2018 drop if SchLevel == "Prekindergarten"
 replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent) * real(StudentSubGroup_TotalTested)))
 replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
 
+//Final Cleaning
 
+foreach var of varlist DistName SchName {
+	replace `var' = stritrim(`var')
+	replace `var' = strtrim(`var')
+}
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 	
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
