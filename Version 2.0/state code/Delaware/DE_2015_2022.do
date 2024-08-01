@@ -10,16 +10,8 @@ global PART2 "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/Delaware/DE_2015_20
 // foreach year in 2015 2016 2017 2018 2019 2021 2022 2023
 foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 { //2020 data would be empty, is thus not included
 
-if `year' >= 2019 {
-	import excel "${original}/DE_OriginalData_`year'_all.xlsx", sheet("Sheet1") firstrow allstring clear
-}
-
-if `year' < 2019 & `year' != 2015 {
-	import excel "${original}/DE_OriginalData_`year'_SMARTER.xlsx", sheet("Sheet1") firstrow allstring clear
-}
-
 if `year' == 2015 {
-	import excel "${original}/DE_OriginalData_`year'_SMARTER.xlsx", sheet("Sheet1") allstring clear
+	import excel "${original}/DE_OriginalData_`year'_SMARTER_ela_math_sci_soc_wri.xlsx", sheet("Sheet1") allstring clear
 	rename A SchoolYear	
 	rename B DistrictCode	
 	rename C District	
@@ -38,8 +30,31 @@ if `year' == 2015 {
 	rename P Proficient	
 	rename Q PctProficient	
 	rename R ScaleScoreAvg
-}
-
+	}
+	else if `year' == 2016 {
+		import excel "${original}/DE_OriginalData_`year'_SMARTER_ela_math_sci_soc_essay.xlsx", sheet("Sheet1") firstrow allstring clear
+	}
+	else if `year' == 2017 {
+		import excel "${original}/DE_OriginalData_`year'_SMARTER_ela_math_sci_essay.xlsx", sheet("Sheet1") firstrow allstring clear
+    }
+	else if `year' == 2018 {
+		import excel "${original}/DE_OriginalData_`year'_SMARTER_ela_math_sci_essay.xlsx", sheet("Sheet1") firstrow allstring clear
+    }
+	else if `year' == 2019 {
+		import excel "${original}/DE_OriginalData_`year'_ela_math_sci_soc_essay_cmp.xlsx", sheet("Sheet1") firstrow allstring clear
+    }
+	    else if `year' == 2021 {
+        import excel "${original}/DE_OriginalData_`year'_ela_math_sci_soc_essay_cmp.xlsx", sheet("Sheet1") firstrow allstring clear
+    }
+    
+    else if `year' == 2022 {
+        import excel "${original}/DE_OriginalData_`year'_ela_math_sci_soc_essay_cmp.xlsx", sheet("Sheet1") firstrow allstring clear
+    }
+    
+    else if `year' == 2023 {
+        import excel "${original}/DE_OriginalData_`year'_ela_math_sci_soc_essay_cmp.xlsx", sheet("Sheet1") firstrow allstring clear
+    }
+			
 //Defining DataLevel
 gen DataLevel =""
 replace DataLevel = "School" if SchoolCode != "0" & DistrictCode !="0"
@@ -303,7 +318,7 @@ save "${output}/DE_AssmtData_`year'.dta", replace
 clear
 }
 
-set trace on
+set trace off
 do "${PART2}"
 
 
