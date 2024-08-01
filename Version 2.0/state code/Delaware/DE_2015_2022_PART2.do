@@ -11,10 +11,11 @@ global data "/Users/kaitlynlucas/Desktop/Delaware State Task/2015-2017 DCAS file
 global NCES "/Users/kaitlynlucas/Desktop/Delaware State Task/NCESOld1" //Jun 2024: file path for Uncleaned NCES data
 global output "/Users/kaitlynlucas/Desktop/Delaware State Task/Output"
 
-foreach year in 2015 2016 2017 {
+
+foreach year in 2015 2016 {
 	di as error "`year'"
 //State
-	import excel "${data}/State_`year'_DCAS.xlsx", sheet("Sheet1") firstrow clear
+	import excel "${data}/DE_OriginalData_`year'_State_DCAS_sci_soc.xlsx", sheet("Sheet1") firstrow clear
 	if `year' == 2017 {
 		rename PercentProficient PercentProficiency
 	}
@@ -48,7 +49,7 @@ foreach year in 2015 2016 2017 {
 	
 	
 //District 
-	import excel "${data}/District_`year'_DCAS.xlsx", sheet("Sheet1") firstrow clear
+	import excel "${data}/DE_OriginalData_`year'_District_DCAS_sci_soc.xlsx", sheet("Sheet1") firstrow clear
 	if `year' != 2017 {
 	drop G PercentProficient I
 	}
@@ -93,7 +94,7 @@ foreach year in 2015 2016 2017 {
 	save "`District_`year''"
 
 //School
-	import excel "${data}/School_`year'_DCAS.xlsx", sheet("Sheet1") firstrow clear
+	import excel "${data}/DE_OriginalData_`year'_School_DCAS_sci_soc.xlsx", sheet("Sheet1") firstrow clear
 	if `year' != 2017 {
 	drop G PercentProficient I
 	}
@@ -134,7 +135,189 @@ foreach year in 2015 2016 2017 {
 	save "`School_`year''"
 //Charter (for 2016 & 17)
 	if `year' != 2015 {
-	import excel "${data}/Charter_`year'_DCAS.xlsx", sheet("Sheet1") firstrow clear
+	import excel "${data}/DE_OriginalData_`year'_Charter_DCAS_sci_soc.xlsx", sheet("Sheet1") firstrow clear
+	rename School SchoolName
+	if `year' != 2017 {
+	drop G H I
+	rename PercentProficient PercentProficiency
+	}
+	else if `year' == 2017 {
+		drop F G H
+		rename PercentProficient PercentProficiency
+	}
+	gen range_part = ""
+	replace range_part = substr(ParticipationRate,strpos(ParticipationRate,">"),1)
+	//Converting to Percents
+	destring PercentProficiency, replace i(<>=%*)
+	replace PercentProficiency = round(PercentProficiency/100, 0.001)
+	destring ParticipationRate, replace i(<>%*)
+	replace ParticipationRate = round(ParticipationRate/100, 0.001)
+	
+	//Fixing Grade and Subject
+	gen Subject1 ="" 
+	replace Subject1 = substr(Subject, strpos(Subject, "-")+2,10) if strpos(Subject,"-") !=0
+	replace Subject1 = Subject if strpos(Subject,"-") !=0
+	drop Subject
+	rename Subject1 Subject
+	capture drop if Subject = "The Wallace Wallin School"
+	tostring Grade, replace
+	gen Grade1 = "G0" + Grade
+	drop Grade
+	rename Grade1 Grade
+	//Generating Empty Variables
+	foreach s in 1 2 3 4 {
+		gen PL`s'=.
+	}
+	gen District = ""
+	gen NumberTested =.
+	gen Group = "All Students"
+	//Variables: Subject SchoolName Grade MeanScaleScore PercentProficiency ParticipationRate PL1-4 District NumberTested Group
+	tostring MeanScaleScore, replace
+	tostring NumberTested, replace
+	tempfile Charter_`year'
+	save "`Charter_`year''"
+	clear
+	}
+	if `year' == 2015 {
+	append using "`State_`year''" "`District_`year''" "`School_`year''"
+	save "${data}/Combined_`year'", replace
+	}
+	else {
+	append using "`State_`year''" "`District_`year''"  "`School_`year''" "`Charter_`year''"
+	save "${data}/Combined_`year'", replace
+	}
+	
+	clear
+	
+	
+	}
+	
+//For year 2017 since it only contains science
+
+foreach year in 2017 {
+	di as error "`year'"
+//State
+	import excel "${data}/DE_OriginalData_`year'_State_DCAS_sci.xlsx", sheet("Sheet1") firstrow clear
+	if `year' == 2017 {
+		rename PercentProficient PercentProficiency
+	}
+	//Converting to Percents
+	
+		foreach n in 1 2 3 4 {
+			gen rangeind`n'= "" //RESPONSE TO R2
+			cap replace rangeind`n' = substr(PL`n',strpos(PL`n',"<"),1)
+			destring PL`n', replace i(<)
+			replace PL`n' = round(PL`n'/100,0.001)
+		}
+		gen range_part = ""
+		replace range_part = substr(ParticipationRate,strpos(ParticipationRate,">"),1)
+		destring ParticipationRate, replace i(>)
+		replace ParticipationRate = round(ParticipationRate/100, 0.001)
+		replace PercentProficiency = round(PercentProficiency/100, 0.001)
+		
+	//Fixing Grade and Subject
+		gen Grade = "G0" + substr(Subject, strpos(Subject, "Grade")+6,1)
+		gen Subject1 = substr(Subject, strpos(Subject, "Grade")+7,10)
+		drop Subject
+		rename Subject1 Subject
+	//Generating empty variables
+		gen District = ""
+		gen SchoolName = ""
+	//Variables: Group NumberTested MeanScaleScore PercentProficiency ParticipationRate PL1-4 Subject Grade District SchoolName
+	tostring MeanScaleScore, replace
+	tostring NumberTested, replace
+	tempfile State_`year'
+	save "`State_`year''"
+	
+	
+//District 
+	import excel "${data}/DE_OriginalData_`year'_District_DCAS_sci.xlsx", sheet("Sheet1") firstrow clear
+	if `year' != 2017 {
+	drop G PercentProficient I
+	}
+	else if `year' == 2017 {
+		drop G H I
+		rename PercentProficient PercentProficiency
+	}
+	gen range_part = ""
+	replace range_part = substr(ParticipationRate,strpos(ParticipationRate,">"),1)
+	//Fixing District for 2016 & 2017
+	if `year' !=2015 {
+	gen District1 = subinstr(District," Performance and Participation","", .)
+	drop District
+	rename District1 District
+	}
+	//Converting to Percents
+	destring PercentProficiency, replace i(<>=%*)
+	replace PercentProficiency = round(PercentProficiency/100,0.001)
+	destring ParticipationRate, replace i(<>%*)
+	replace ParticipationRate = round(ParticipationRate/100,0.001)
+	
+	//Fixing Grade and Subject
+	rename Data Subject
+	gen Grade = "G0" + substr(Subject, strpos(Subject, "Grade")+6,1)
+	gen Subject1 = substr(Subject, strpos(Subject, "Grade")+7,10)
+	drop Subject
+	rename Subject1 Subject
+	//Generating empty variables
+	foreach s in 1 2 3 4 {
+		gen PL`s'=.
+	}
+	gen SchoolName = ""
+	gen NumberTested =.
+	//Variables: District Group MeanScaleScore PercentProficiency ParticipationRate PL1-4 Subject Grade SchoolName NumberTested
+	tostring MeanScaleScore, replace
+	tostring NumberTested, replace
+	tempfile District_`year'
+
+	
+	
+	
+	save "`District_`year''"
+
+//School
+	import excel "${data}/DE_OriginalData_`year'_School_DCAS_sci.xlsx", sheet("Sheet1") firstrow clear
+	if `year' != 2017 {
+	drop G PercentProficient I
+	}
+	else if `year' == 2017 {
+		drop F G H
+		rename PercentProficient PercentProficiency
+	}
+	gen range_part = ""
+	replace range_part = substr(ParticipationRate,strpos(ParticipationRate,">"),1)
+	//Converting to Percents
+	destring PercentProficiency, replace i(<>=%*)
+	replace PercentProficiency = round(PercentProficiency/100,0.001)
+	destring ParticipationRate, replace i(<>%*)
+	replace ParticipationRate = round(ParticipationRate/100,0.001)
+	
+	//Fixing Grade and Subject
+	gen Subject1 ="" 
+	replace Subject1 = substr(Subject, strpos(Subject, "-")+2,10) if strpos(Subject,"-") !=0
+	replace Subject1 = Subject if strpos(Subject,"-") !=0
+	drop Subject
+	capture noisily rename Subject1 Subject
+	capture drop if Subject = "The Wallace Wallin School"
+	tostring Grade, replace
+	gen Grade1 = "G0" + Grade
+	drop Grade
+	rename Grade1 Grade
+	//Generating Empty Variables
+	foreach s in 1 2 3 4 {
+		gen PL`s'=.
+	}
+	gen District = ""
+	gen NumberTested =.
+	gen Group = "All Students"
+	//Variables: Subject SchoolName Grade MeanScaleScore PercentProficiency ParticipationRate PL1-4 District NumberTested Group
+	tostring MeanScaleScore, replace
+	tostring NumberTested, replace
+	tempfile School_`year'
+	save "`School_`year''"
+//Charter (for 2016 & 17)
+	if `year' != 2015 {
+	import excel "${data}/DE_OriginalData_`year'_Charter_DCAS_sci.xlsx", sheet("Sheet1") firstrow clear
 	rename School SchoolName
 	if `year' != 2017 {
 	drop G H I
@@ -477,3 +660,4 @@ replace ParticipationRate = range_part + ParticipationRate
 
 		
 	}
+	
