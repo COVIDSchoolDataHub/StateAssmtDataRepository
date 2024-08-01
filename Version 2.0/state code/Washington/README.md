@@ -34,3 +34,6 @@ foreach count of varlist Lev*_count {
 	replace `percent' = "*" if missing(`percent')
 }
 ```
+# Updates
+
+8/1/24: Applied new StudentGroup_TotalTested convention to all files. Investigated "NULL" values in raw data, confirmed they were correctly coded as suppressed.
