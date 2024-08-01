@@ -234,6 +234,9 @@ drop NoTestOth_count
 drop NoTestOth_percent
 drop REGION
 
+// ** Version 2.0 Update (TX Specific)
+drop if StudentSubGroup_TotalTested == 0
+
 // Relabeling Data Levels
 label def DataLevel 1 "State" 2 "District" 3 "School"
 encode DataLevel, gen(DataLevel_n) label(DataLevel)
@@ -271,9 +274,6 @@ gen state_leaid = "TX-"+StateAssignedDistID
 replace state_leaid = "" if DataLevel == 1
 gen seasch = StateAssignedDistID+"-"+StateAssignedSchID
 replace seasch = "" if DataLevel != 3
-
-// Generating Student Group Counts
-bysort StateAssignedDistID StateAssignedSchID StudentGroup Grade Subject: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
 
 // Saving transformed data
 save "$output_files/TX_AssmtData_2017.dta", replace
@@ -345,6 +345,20 @@ replace DistType = trim(DistType)
 drop if SchName == "TEXAS TECH H S"
 replace SchName ="TEXAS TECH UNIV" if NCESSchoolID== "480148014286"
 replace StateAssignedSchID = "152504001" if NCESSchoolID == "480148014286" //Applying 2023 StateAssignedSchID to All Years
+
+//StudentGroup_TotalTested
+tostring StateAssigned*, replace
+replace StateAssignedDistID = "" if DataLevel == 1
+replace StateAssignedSchID = "" if DataLevel !=3
+gen StateAssignedDistID1 = StateAssignedDistID
+replace StateAssignedDistID1 = "000000" if DataLevel == 1
+gen StateAssignedSchID1 = StateAssignedSchID
+replace StateAssignedSchID1 = "000000" if DataLevel !=3
+egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
+sort group_id StudentGroup StudentSubGroup
+by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+drop group_id StateAssignedDistID1 StateAssignedSchID1
 
 
 // Reordering variables and sorting data
