@@ -2,7 +2,8 @@
 
 ## Process
 
-You should only run three do files in the following order: 
+You should run four do files in the following order: 
+
 Iowa_NCES_clean.do,
 
 ITBS_clean_pre2015.do,
