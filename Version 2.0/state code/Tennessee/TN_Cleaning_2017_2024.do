@@ -218,6 +218,11 @@ replace CountyName = "McNairy County" if CountyName == "Mcnairy County"
 replace SchVirtual = "Missing/not reported" if missing(SchVirtual) & DataLevel == 3
 replace CountyName = "DeKalb County" if CountyName == "Dekalb County"
 
+//2024 Merging New Schools
+if `year' == 2024 {
+merge m:1 SchName using TN_Unmerged_2024.dta, update nogen
+}
+
 //Dropping All Suppressed Unmerged
 gen AllSuppressed = 0
 	foreach var of varlist *_percent {
@@ -226,10 +231,6 @@ gen AllSuppressed = 0
 	}
 drop if AllSuppressed ==0 & missing(NCESSchoolID) & DataLevel == 3
 
-//2024 Merging New Schools
-if `year' == 2024 {
-merge m:1 SchName using TN_Unmerged_2024.dta, update nogen
-}
 
 //Additional Dropping
 drop if SchLevel ==  "Prekindergarten"
