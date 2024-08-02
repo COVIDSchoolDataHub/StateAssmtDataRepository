@@ -10,11 +10,11 @@ ITBS_clean_pre2015.do,
 
 IA_post2015_clean.do,
 
-IA_EDFactsParticipation_2014_2021
+IA_EDFactsParticipation_2014_2021.do,
 
-IA_EDFactsParticipation_2022
+IA_EDFactsParticipation_2022.do,
 
-IA_StableNames.do
+IA_StableNames.do.
 
 Download the Iowa folder from Google Drive, and all files you will need to reference will be sorted into the correct subpaths.  You will then need to add a subfolder called "Intermediate" to the Iowa folder and change the part of the global file paths to reference the correct places on your computer.  You will also need to create a folder for NCES Data with one subfolder for district data, one subfolder for school data, and one folder for cleaned data.
 
