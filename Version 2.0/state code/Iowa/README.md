@@ -2,13 +2,17 @@
 
 ## Process
 
-You should run four do files in the following order: 
+You should run six do files in the following order: 
 
 Iowa_NCES_clean.do,
 
 ITBS_clean_pre2015.do,
 
 IA_post2015_clean.do,
+
+IA_EDFactsParticipation_2014_2021
+
+IA_EDFactsParticipation_2022
 
 IA_StableNames.do
 
