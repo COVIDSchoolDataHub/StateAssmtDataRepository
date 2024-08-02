@@ -22,4 +22,6 @@ Benjamin Moshes and Mira Mehta were the last editors; feel free to contact them 
 
 ## Updates
 
+7/4/24: Added EDFacts Participation Data to 2014 through 2022
+
 8/2/24: Applied new stable district names to all years (referenced by IA_StableNames do-file, which should be run last).
