@@ -1,5 +1,5 @@
 # Massachusetts ReadMe
-This ReadMe describes Massachusettss' cleaning process, from 2017-2023. Note that 2010-2023 is available on Zelma, and the do-files to clean it are located here, however this document focuses exclusively on 2017-2023.
+This ReadMe describes Massachusetts' cleaning process, from 2017-2023. Note that 2010-2023 is available on Zelma, and the do-files to clean it are located here, however this document focuses exclusively on 2017-2023.
 
 ## Recreating Cleaning Process
 
