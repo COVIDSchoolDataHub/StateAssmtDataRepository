@@ -98,7 +98,7 @@ foreach n in $ncesyears {
 
 ** Import Data
 
-/*
+
 global screadyyears 2016 2017
 foreach v in $screadyyears { 
 	import excel "${path}/Original Data Files/SC_OriginalData_`v'.xlsx", sheet("`v' SC READY STATE") firstrow allstring clear
@@ -250,7 +250,7 @@ rename Scipct34 ProficientOrAbove_percentsci
 rename SciN StudentSubGroup_TotalTestedsci
 rename SciMean AvgScaleScoresci
 save "${path}/Intermediate/SC_OriginalData_2023_all.dta", replace
-*/
+
 
 
 ** Merge subject files together
