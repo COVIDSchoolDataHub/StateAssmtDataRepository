@@ -1000,7 +1000,7 @@ tab SchName StateAssignedSchID if (sch_select == 10 | sch_select == 11 | sch_sel
 *StateAssignedSchID
 
 ** • Are IDs consistent across years (e.g., we don't want hyphens in the IDs for half the years and no hyphens for the other half)
-tab StateAssignedSchID FILE 
+tab StateAssignedSchID FILE if sch_select == 1 | sch_select == 2 | sch_select == 3 | sch_select == 4 | sch_select == 5
 
 //string NCESSchoolID to help with display format
 tostring NCESSchoolID, gen(ncesschid_str) usedisplayformat
