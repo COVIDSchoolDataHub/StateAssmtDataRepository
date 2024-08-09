@@ -1,6 +1,7 @@
 clear
-global path "/Users/minnamgung/Desktop/SADR/South Carolina"
-global nces "/Users/minnamgung/Desktop/SADR/NCESOld"
+global path "/Volumes/T7/State Test Project/South Carolina"
+global nces "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+set trace on
 
 ** Clean NCES data for SC
 
@@ -13,10 +14,6 @@ foreach n in $ncesyears {
 
 	** Rename Variables
 	
-	if `n' == 2022 {
-		drop DistLocale
-	}
-	
 	rename state_location StateAbbrev
 	rename state_fips StateFips
 	rename ncesdistrictid NCESDistrictID
@@ -25,15 +22,20 @@ foreach n in $ncesyears {
 	rename county_name CountyName
 	rename county_code CountyCode
 	rename ncesschoolid NCESSchoolID
-	rename school_type SchType
-	rename dist_urban_centric_locale DistLocale
+    if `n' == 2022 rename school_type SchType
+	*rename dist_urban_centric_locale DistLocale
 	
 	** Fix Variable Types
 	
-	foreach v of varlist SchLevel SchType DistType DistLocale SchVirtual {
+	foreach v of varlist SchLevel SchType SchVirtual {
 		decode `v', generate(`v'1)
 		drop `v' 
 		rename `v'1 `v'
+	}
+	if `n' == 2022 {
+		decode DistType, gen(temp)
+		drop DistType
+		rename temp DistType
 	}
 	
 	replace seasch = State_leaid + seasch  if `n' < 2016
@@ -57,12 +59,9 @@ foreach n in $ncesyears {
 	use "${nces}/NCES_`n'_District.dta"
 
 	** Rename Variables
-	
-	if `n' == 2022 {
-		drop DistLocale
-	}
 
-	rename urban_centric_locale DistLocale
+
+	*rename urban_centric_locale DistLocale
 	rename district_agency_type DistType
 	rename ncesdistrictid NCESDistrictID
 	rename state_leaid State_leaid
@@ -72,17 +71,18 @@ foreach n in $ncesyears {
 	
 	** Fix Variable Types
 	
-	if `n' != 2022 {
-		
-		decode DistType, gen(DistType2)
-		drop DistType
-		rename DistType2 DistType
-		
-		decode DistLocale, gen(DistLocale2)
-		drop DistLocale
-		rename DistLocale2 DistLocale
-		
-	}
+//	
+// 	if `n' != 2022 {
+//		
+// 		decode DistType, gen(DistType2)
+// 		drop DistType
+// 		rename DistType2 DistType
+//		
+// 		decode DistLocale, gen(DistLocale2)
+// 		drop DistLocale
+// 		rename DistLocale2 DistLocale
+//		
+// 	}
 	
 	replace State_leaid = "SC-" + State_leaid if `n' < 2016
 
@@ -98,6 +98,7 @@ foreach n in $ncesyears {
 
 ** Import Data
 
+/*
 global screadyyears 2016 2017
 foreach v in $screadyyears { 
 	import excel "${path}/Original Data Files/SC_OriginalData_`v'.xlsx", sheet("`v' SC READY STATE") firstrow allstring clear
@@ -126,16 +127,16 @@ foreach v in $screadyyears {
 	save "${path}/Intermediate/SC_OriginalData_`v'_all.dta", replace
 }
 
-foreach v in $screadyyears { 
-	import excel "${path}/Original Data Files/SC_OriginalData_`v'_soc_sci.xlsx", sheet("`v' SCPASS STATE") firstrow allstring clear
+forvalues year = 2016/2017 { 
+	import excel "${path}/Original Data Files/SC_OriginalData_`year'_soc_sci.xlsx", sheet("`year' SCPASS STATE") firstrow allstring clear
 	gen DataLevel = "State"
-	save "${path}/Intermediate/SC_OriginalData_`v'_state_soc_sci.dta", replace
-	import excel "${path}/Original Data Files/SC_OriginalData_`v'_soc_sci.xlsx", sheet("`v' SCPASS DISTRICT") firstrow allstring clear
+	save "${path}/Intermediate/SC_OriginalData_`year'_state_soc_sci.dta", replace
+	import excel "${path}/Original Data Files/SC_OriginalData_`year'_soc_sci.xlsx", sheet("`year' SCPASS DISTRICT") firstrow allstring clear
 	gen DataLevel = "District"
-	save "${path}/Intermediate/SC_OriginalData_`v'_dist_soc_sci.dta", replace
-	import excel "${path}/Original Data Files/SC_OriginalData_`v'_soc_sci.xlsx", sheet("`v' SCPASS SCHOOL") firstrow allstring clear
+	save "${path}/Intermediate/SC_OriginalData_`year'_dist_soc_sci.dta", replace
+	import excel "${path}/Original Data Files/SC_OriginalData_`year'_soc_sci.xlsx", sheet("`year' SCPASS SCHOOL") firstrow allstring clear
 	gen DataLevel = "School"
-	append using "${path}/Intermediate/SC_OriginalData_`v'_dist_soc_sci.dta" "${path}/Intermediate/SC_OriginalData_`v'_state_soc_sci.dta"
+	append using "${path}/Intermediate/SC_OriginalData_`year'_dist_soc_sci.dta" "${path}/Intermediate/SC_OriginalData_`year'_state_soc_sci.dta"
 	
 	drop if missing(schoolname)
 	
@@ -143,7 +144,7 @@ foreach v in $screadyyears {
 	rename scipct2 Lev2_percentsci
 	rename scipct3 Lev3_percentsci
 	
-	if `v' == 2017 {
+	if `year' == 2017 {
 		rename scipct4 Lev4_percentsci
 	}
 	
@@ -155,11 +156,11 @@ foreach v in $screadyyears {
 		destring `y', replace 
 	}
 	
-	if `v' == 2017 {
+	if `year' == 2017 {
 		gen ProficientOrAbove_percentsci = Lev3_percentsci + Lev4_percentsci
 	}
 	
-	if `v' == 2016 {
+	if `year' == 2016 {
 		gen ProficientOrAbove_percentsci = Lev2_percentsci + Lev3_percentsci
 	}
 	
@@ -177,7 +178,7 @@ foreach v in $screadyyears {
 		tostring `v', replace force
 	}
 	
-	save "${path}/Intermediate/SC_OriginalData_`v'_soc_sci.dta", replace
+	save "${path}/Intermediate/SC_OriginalData_`year'_soc_sci.dta", replace
 }
 
 global lateryears 2018 2019 2021 2022 2023
@@ -249,6 +250,8 @@ rename Scipct34 ProficientOrAbove_percentsci
 rename SciN StudentSubGroup_TotalTestedsci
 rename SciMean AvgScaleScoresci
 save "${path}/Intermediate/SC_OriginalData_2023_all.dta", replace
+*/
+
 
 ** Merge subject files together
 
@@ -473,7 +476,6 @@ foreach y in $years {
 	sort DataLevel_n 
 	drop DataLevel 
 	rename DataLevel_n DataLevel 
-	recast int CountyCode
 	drop StateFips
 	gen State = "South Carolina"
 	gen StateAbbrev = "SC"
@@ -549,13 +551,29 @@ foreach y in $years {
 }
 
 
-** 2024 review updates 
+** 2024 updates 
 
 global years 2016 2017 2018 2019 2021 2022 2023
 foreach y in $years {
 	
 	use "${path}/Intermediate/SC_AssmtData_`y'.dta", clear
+
+//Incorporating state task into code
+
+if `y' == 2016 {
+	replace Flag_AssmtNameChange = "Y" if Subject == "math" | Subject == "ela"
+	replace Flag_CutScoreChange_ELA = "Y"
+	replace Flag_CutScoreChange_math = "Y"
+}
+
+if `y' == 2023 {
+	replace AssmtName = "SC PASS" if Subject == "sci"
 	
+	foreach count of varlist *_count {
+	local percent = subinstr("`count'", "count", "percent",.)
+	replace `count' = string(round(real(`percent') * real(StudentSubGroup_TotalTested))) if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(`percent')) & missing(real(`count'))
+	}
+}
 	** generate Lev*_counts
 
 destring StudentSubGroup_TotalTested, gen(total_count) ignore("*" "--")
