@@ -1,9 +1,9 @@
 clear
 set more off
 
-global EDFacts "/Users/kaitlynlucas/Desktop/EDFacts Drive Data"
-global State_Output "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/South Carolina Assessment" // Version 1.1 Output directory here
-global New_Output "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/South Carolina V2.0" // Version 2.0 Output directory here
+global EDFacts "/Volumes/T7/State Test Project/EDFACTS"
+global State_Output "/Volumes/T7/State Test Project/South Carolina/Output" // Version 1.1 Output directory here
+global New_Output "/Volumes/T7/State Test Project/South Carolina/Output - Version 2.0" // Version 2.0 Output directory here
 
 ** Preparing EDFacts files
 local edyears1 17

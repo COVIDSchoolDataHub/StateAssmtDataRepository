@@ -1,10 +1,9 @@
 clear
 set more off
 
-global Original "/Users/kaitlynlucas/Desktop/EDFacts Drive Data" //Folder with Output .dta
-global EDFacts "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/SC_2022" //Folder with downloaded state-specific 2022 participation data from EDFacts
-global State_Output "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/South Carolina Assessment" //Folder with state-specific data
-global Output_20 "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/South Carolina V2.0" //Folder for Output 2.0
+global EDFacts "/Volumes/T7/State Test Project/South Carolina/Original Data Files" //Folder with downloaded state-specific 2022 participation data from EDFacts
+global State_Output "/Volumes/T7/State Test Project/South Carolina/Output" //Folder with state-specific data
+global Output_20 "/Volumes/T7/State Test Project/South Carolina/Output - Version 2.0" //Folder for Output 2.0
 
 
 foreach s in ela math sci {
@@ -80,12 +79,6 @@ save "${EDFacts}/SC_EFParticipation_2022", replace
 
 //Merging with 2022
 use "${State_Output}/SC_AssmtData_2022", clear
-
-forvalues year = 2016/2022 {
-if `year' == 2020 continue
-import delimited "${State_Output}/SC_AssmtData_`year'", case(preserve) clear
-save "${State_Output}/SC_AssmtData_`year'", replace
-}
 
 //DataLevel
 label def DataLevel 1 "State" 2 "District" 3 "School"
