@@ -19,3 +19,6 @@ These folders correspond to the directories in the do-files.
 
 1. MA_NCES_New
 2. MA_Cleaning_2017_2023
+
+## Notes & Updates
+- When 2024 data is released, the code only needs to be modified slightly so that the loops include 2024, since the data will be in the same format as the data we currently have.
