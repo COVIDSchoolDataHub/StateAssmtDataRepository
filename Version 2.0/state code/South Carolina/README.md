@@ -18,6 +18,8 @@ There is 1 .do file. You can run the entire file at once.
 
 (The NCESOld file should be the most recent available NCES files.)
 
+To include EDFacts Participation data for Version 2.0, run the EDFacts files after fully running the above do-file.
+
     
 ## File Path
 
@@ -32,3 +34,9 @@ global nces "/Users/minnamgung/Desktop/SADR/NCESOld"
 03/29/2024: Made 2024 updates.
 
 06/17/24: Made changes based on state tasks. Changes should be implemented to the main cleaning file in the future, but currently separate for timing reasons.
+
+7/16/24: Incorporated EDFacts Participation Data.
+
+7/26/24: Updated Flags.
+
+8/9/24: Incorporated State Task form 6/17/24 into main do-file
