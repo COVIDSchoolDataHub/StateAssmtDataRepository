@@ -8,7 +8,7 @@ This ReadMe describes Massachusettss' cleaning process, from 2017-2023. Note tha
 - Output
 - NCES
 
-These folders correspond to the directories in the do-file
+These folders correspond to the directories in the do-files.
 
 #### Download the following files from the Original Data folder in the drive and place them in your Original Data folder:
 - MA_OriginalData_2017_2023.csv
