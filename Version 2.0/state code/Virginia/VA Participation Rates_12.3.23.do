@@ -1,10 +1,10 @@
 clear all
 set more off
 
-cd "/Users/maggie/Desktop/Virginia"
+// cd "/Users/maggie/Desktop/Virginia"
 
-global participation "/Users/maggie/Desktop/Virginia/Original Data/Participation Rates"
-global output "/Users/maggie/Desktop/Virginia/Output"
+global participation "C:/Users/hxu15/Downloads/Original VA Participation Rates"
+global output "C:/Users/hxu15/Downloads/Virginia - Version 2.0"
 
 // ELA
 forvalues year = 2016/2023{
@@ -61,6 +61,7 @@ forvalues year = 2016/2023{
 	destring ParticipationRate, gen(part) force
 	replace part = part/100
 	tostring part, replace format("%6.0g") force
+	replace part = "*" if part == "."
 	replace ParticipationRate = part if ParticipationRate != "<"
 	
 	drop part
@@ -123,6 +124,7 @@ forvalues year = 2016/2023{
 	destring ParticipationRate, gen(part) force
 	replace part = part/100
 	tostring part, replace format("%6.0g") force
+	replace part = "*" if part == "."
 	replace ParticipationRate = part if ParticipationRate != "<"
 	
 	drop part
@@ -185,6 +187,7 @@ forvalues year = 2016/2023{
 	destring ParticipationRate, gen(part) force
 	replace part = part/100
 	tostring part, replace format("%6.0g") force
+	replace part = "*" if part == "."
 	replace ParticipationRate = part if ParticipationRate != "<"
 	
 	drop part
@@ -248,6 +251,7 @@ forvalues year = 2016/2023{
 	destring ParticipationRate, gen(part) force
 	replace part = part/100
 	tostring part, replace format("%6.0g") force
+	replace part = "*" if part == "."
 	replace ParticipationRate = part if ParticipationRate != "<"
 	
 	drop part
@@ -271,9 +275,19 @@ forvalues year = 2016/2023{
 	encode DataLevel, gen(DataLevel_n) label(DataLevel)
 	sort DataLevel_n 
 	drop DataLevel 
-	rename DataLevel_n DataLevel
+	rename DataLevel_n DataLevelKeep
+	
+	gen DataLevelMerge = ""
+	replace DataLevelMerge = "State" if DataLevelKeep == 1
+	replace DataLevelMerge = "District" if DataLevelKeep == 2
+	replace DataLevelMerge = "School" if DataLevelKeep == 3
+	rename DataLevelMerge DataLevel
+
 	save "$participation/VA_Participation_`year'.dta", replace
 }
+
+
+
 
 //Merge
 forvalues year = 2016/2023{
@@ -284,10 +298,18 @@ forvalues year = 2016/2023{
 	
 	use "$output/VA_AssmtData_`year'.dta", clear
 	drop ParticipationRate
+	tostring StateAssignedDistID, replace
+	tostring StateAssignedSchID, replace
 	merge 1:1 StateAssignedDistID StateAssignedSchID Subject GradeLevel StudentSubGroup using "$participation/VA_Participation_`year'.dta"
 	replace ParticipationRate = "--" if _merge == 1
 	drop if _merge == 2
 	drop _merge
+	
+	//label def DataLevel 1 "State" 2 "District" 3 "School"
+	encode DataLevel, gen(DataLevel_n) label(DataLevel)
+	sort DataLevel_n 
+	drop DataLevel 
+	rename DataLevel_n DataLevel
 	
 	keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
@@ -296,6 +318,6 @@ forvalues year = 2016/2023{
 	sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 	save "$output/VA_AssmtData_`year'.dta", replace
-	export delimited "$output/csv/VA_AssmtData_`year'.csv", replace
+	export delimited "$output/VA_AssmtData_`year'.csv", replace
 }
 
