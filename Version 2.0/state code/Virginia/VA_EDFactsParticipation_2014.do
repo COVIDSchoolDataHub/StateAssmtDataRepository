@@ -1,15 +1,22 @@
 clear
 set more off
 
-global EDFacts "C:/Users/hxu15/Downloads/EDFactsDatasets"
-global State_Output "C:/Users/hxu15/Downloads/Output - Version 1.1" 
-global New_Output "C:/Users/hxu15/Downloads/EDFactsDatasets/NewOutput"
+global EDFacts "C:/Users/hxu15/Downloads/EDFacts"
+global State_Output "C:/Users/hxu15/Downloads/Virginia - Version 2.0"
+global New_Output "C:/Users/hxu15/Downloads/Virginia - Version 2.0"
 
 ** Preparing EDFacts files
-local edyears1 14 
+local edyears1 15 
 local subject math ela
 local datatype part
 local datalevel school district
+/*
+foreach sub of local subject{
+	foreach lvl of local datalevel {
+		import delimited "${EDFacts}/2015/edfactspart2015`sub'`lvl'.csv", clear
+		save "${EDFacts}/2015/edfactspart2015`sub'`lvl'.dta", replace
+		}
+		}*/
 
 foreach year of local edyears1 {
     foreach sub of local subject {
@@ -117,16 +124,16 @@ foreach year of local edyears1 {
         }
     }
 }
-
+/*
 	foreach type of local datatype {
 		foreach lvl of local datalevel {
-			use "${EDFacts}/`year'/edfacts`type'`year'math`lvl'virginia.dta", clear
-			append using "${EDFacts}/`year'/edfacts`type'`year'ela`lvl'virginia.dta"
+			use "${EDFacts}/2015/edfacts`type'2015math`lvl'virginia.dta", clear
+			append using "${EDFacts}/2015/edfacts`type'2015ela`lvl'virginia.dta"
 			if "`lvl'" == "school" {
 				rename ncessch NCESSchoolID
 			}
 				rename leaid NCESDistrictID
-			if ("`type'" == "count") {
+			/*if ("`type'" == "count") {
 				drop if Count == .
 				drop if PctProf == ""
 				replace PctProf = "--" if PctProf == "n/a"
@@ -150,7 +157,7 @@ foreach year of local edyears1 {
 				replace PctProf = "0-" + PctProf3 if strpos(PctProf, "LT") > 0
 				replace PctProf = "0-" + PctProf3 if strpos(PctProf, "LE") > 0
 				drop PctProf1 PctProf2 PctProf3
-			}
+			}*/
 			if ("`type'" == "part") {
 				drop if Participation == ""
 				replace Participation = "--" if Participation == "n/a"
@@ -175,8 +182,8 @@ foreach year of local edyears1 {
 				replace Participation = "0-" + Participation3 if strpos(Participation, "LE") > 0
 				drop Participation1 Participation2 Participation3
 			}
-			drop if grade == "HS"
-			rename grade GradeLevel
+			//drop if grade == "HS"
+			//rename grade GradeLevel
 			replace GradeLevel = "G" + GradeLevel
 			replace GradeLevel = "G38" if GradeLevel == "G00"
 			rename category StudentSubGroup
@@ -206,14 +213,14 @@ foreach year of local edyears1 {
 			replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless"
 			replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Military"
 			replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Foster Care"
-			save "${EDFacts}/`year'/edfacts`type'`year'`lvl'virginia.dta", replace
+			save "${EDFacts}/`year'/edfacts`type'2015`lvl'virginia.dta", replace
 		}
 	}
-
+*/
 
 
 //Merging Example
-import delimited "${State_Output}/VA_AssmtData_2014.csv", case(preserve) clear
+import delimited "${State_Output}/VA_AssmtData_2015.csv", case(preserve) clear
 
 	
 //DataLevel
@@ -242,7 +249,7 @@ clear
 use "`tempdist'"
 duplicates report NCESDistrictID StudentSubGroup GradeLevel Subject
 duplicates drop NCESDistrictID StudentSubGroup GradeLevel Subject, force
-merge 1:1 NCESDistrictID StudentSubGroup GradeLevel Subject using "${EDFacts}/2014/edfactspart2014districtvirginia.dta", gen(DistMerge)
+merge 1:1 NCESDistrictID StudentSubGroup GradeLevel Subject using "${EDFacts}/2015/edfactspart2015districtvirginia.dta", gen(DistMerge)
 drop if DistMerge == 2
 save "`tempdist'", replace
 clear
@@ -251,7 +258,7 @@ clear
 use "`tempsch'"
 duplicates report NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject
 duplicates drop NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject, force
-merge 1:1 NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject using "${EDFacts}/2014/edfactspart2014schoolvirginia.dta", gen(SchMerge)
+merge 1:1 NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject using "${EDFacts}/2015/edfactspart2015schoolvirginia.dta", gen(SchMerge)
 drop if SchMerge == 2
 save "`tempsch'", replace
 clear 
@@ -271,6 +278,6 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${New_Output}/VA_AssmtData_2014", replace
-export delimited "${New_Output}/VA_AssmtData_2014", replace
+save "${New_Output}/VA_AssmtData_2015", replace
+export delimited "${New_Output}/VA_AssmtData_2015", replace
 
