@@ -32,7 +32,7 @@ rename PercentageofStudentsTested Part_
 rename NumberofStudentsatAchievemen Count_
 rename PercentageofStudentsatAchiev Perc_
 rename StatewidePercentageofStuden State_
-label def AchievementLevel 3 "AboveStateExpectations" 2 "AtStateExpectations" 23 "AtOrAboveStateExpectations" 1 "BelowStateExpectations"
+label def AchievementLevel 4 "AboveStateExpectations" 3 "AtStateExpectations" 34 "AtOrAboveStateExpectations" 2 "BelowStateExpectations"
 encode AchievementLevel, gen(AchievementLevel_n) label(AchievementLevel)
 drop AchievementLevel State_
 rename AchievementLevel_n AchievementLevel
@@ -44,12 +44,12 @@ rename SchoolID StateAssignedSchID
 rename SchoolName SchName
 rename Population StudentSubGroup
 rename Assessment Subject
-foreach n in 1 2 3 {
+foreach n in 2 3 4 {
 	rename Count_`n' Lev`n'_count
 	rename Perc_`n' Lev`n'_percent
 }
-rename Perc_24 ProficientOrAbove_percent
-rename Count_24 ProficientOrAbove_count
+rename Perc_35 ProficientOrAbove_percent
+rename Count_35 ProficientOrAbove_count
 drop LegacyData
 rename DistrictID StateAssignedDistID
 drop NumberofStudentsRequiredtoT
@@ -179,23 +179,33 @@ gen GradeLevel = "GZ"
 
 
 //Proficiency Criteria
-gen ProficiencyCriteria = "Levels 2-3"
+gen ProficiencyCriteria = "Levels 3-4"
 
 //AssmtName
 
 gen AssmtName = "MAP Growth"
-replace AssmtName = "Maine Educational Assessment" if Subject == "sci"
+replace AssmtName = "Maine Science Assessment" if Subject == "sci"
 
 
 //State 
 gen State = "Maine"
 
+//Fixing missing values
+foreach var of varlist Lev* Proficient* ParticipationRate StudentSubGroup_TotalTested {
+	cap replace `var' = "*" if `var' == ""
+}
+
 //StudentGroup_TotalTested
-destring StudentSubGroup_TotalTested, gen(nStudentSubGroup_TotalTested) i(*)
-sort StudentGroup
-egen StudentGroup_TotalTested = total(nStudentSubGroup_TotalTested), by(StudentGroup GradeLevel Subject DataLevel StateAssignedSchID StateAssignedDistID)
-tostring StudentGroup_TotalTested, replace
-replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "0" | StudentGroup_TotalTested == "."
+cap drop StateAssignedSchID1
+gen StateAssignedDistID1 = StateAssignedDistID
+replace StateAssignedDistID1 = "000000" if DataLevel == 1
+gen StateAssignedSchID1 = StateAssignedSchID
+replace StateAssignedSchID1 = "000000" if DataLevel !=3
+egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
+sort group_id StudentGroup StudentSubGroup
+by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+drop group_id StateAssignedDistID1 StateAssignedSchID1
 
 
 //AssmtType
@@ -226,17 +236,22 @@ replace StateAssignedSchID = "" if DataLevel !=3
 
 //Missing/empty Variables
 gen AvgScaleScore = "--"
-gen Lev4_count = "--"
-gen Lev4_percent= "--"
+gen Lev1_count = "--"
+gen Lev1_percent= "--"
 gen Lev5_count = ""
 gen Lev5_percent= ""
 
 //Cleaning Percents
 foreach percent of varlist *_percent ParticipationRate  {
-	replace `percent' = string(real(`percent'), "%9.3g") if regexm(`percent', "[0-9]") !=0
+	replace `percent' = string(real(`percent'), "%9.3g") if !missing(real(`percent')) !=0
 }
 
+//Deriving Lev1_count & percent for sci
+replace Lev1_count = string(real(StudentSubGroup_TotalTested)-real(Lev4_count)-real(Lev3_count)-real(Lev2_count)) if Subject == "sci" & !missing(real(Lev4_count)) & !missing(real(Lev3_count)) & !missing(real(Lev2_count)) & !missing(real(StudentSubGroup_TotalTested)) & Subject == "sci"
 
+replace Lev1_percent = string(real(Lev1_count)/real(StudentSubGroup_TotalTested), "%9.3g") if !missing(real(Lev1_count)) & !missing(real(StudentSubGroup_TotalTested)) & Subject == "sci"
+
+replace Lev1_percent = string(1-real(Lev4_percent)-real(Lev3_percent)-real(Lev2_percent), "%9.3g") if !missing(real(Lev4_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev2_percent)) & 1-real(Lev4_percent)-real(Lev3_percent)-real(Lev2_percent) >=0.01 & Subject == "sci" & missing(real(Lev1_percent))
 
 
 //Final Cleaning
@@ -247,7 +262,7 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 
-save "${Output}/ME_AssmtData_`year'", replace
+save "${Output}/ME_WebsiteData_`year'", replace
 
 
 clear

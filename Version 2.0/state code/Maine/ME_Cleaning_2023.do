@@ -197,11 +197,16 @@ drop lowest_grade_offered sch_lowest_grade_offered
 gen GradeLevel = "GZ"
 
 //StudentGroup_TotalTested
-destring StudentSubGroup_TotalTested, gen(nStudentSubGroup_TotalTested) i(*)
-sort StudentGroup
-egen StudentGroup_TotalTested = total(nStudentSubGroup_TotalTested), by(StudentGroup GradeLevel Subject DataLevel StateAssignedSchID StateAssignedDistID)
-tostring StudentGroup_TotalTested, replace
-replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "0" | StudentGroup_TotalTested == "."
+cap drop StateAssignedSchID1
+gen StateAssignedDistID1 = StateAssignedDistID
+replace StateAssignedDistID1 = "000000" if DataLevel == 1
+gen StateAssignedSchID1 = StateAssignedSchID
+replace StateAssignedSchID1 = "000000" if DataLevel !=3
+egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
+sort group_id StudentGroup StudentSubGroup
+by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+drop group_id StateAssignedDistID1 StateAssignedSchID1
 
 //Fixing StateAssignedDistID and StateAssignedSchID
 replace StateAssignedDistID = "" if DataLevel ==1
@@ -232,11 +237,6 @@ foreach percent of varlist *_percent ParticipationRate  {
 	replace `percent' = string(real(`percent'), "%9.3g") if regexm(`percent', "[0-9]") !=0
 }
 
-//StudentGroup_TotalTested Convention
-sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-gen AllStudents = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
-replace AllStudents = AllStudents[_n-1] if missing(AllStudents)
-replace StudentGroup_TotalTested = AllStudents if regexm(StudentGroup_TotalTested, "[0-9]") ==0
 
 //Review Response
 drop if DistName == "Indian Island" //NCESDistrictID == 5900160
@@ -248,8 +248,7 @@ order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistric
  
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
-save "${Output}/ME_AssmtData_2023", replace
-export delimited "${Output}/ME_AssmtData_2023.csv", replace
+save "${Output}/ME_WebsiteData_2023", replace
 
 
 

@@ -192,11 +192,16 @@ replace AssmtName = "Maine Educational Assessment" if Subject == "sci"
 gen State = "Maine"
 
 //StudentGroup_TotalTested
-destring StudentSubGroup_TotalTested, gen(nStudentSubGroup_TotalTested) i(*)
-sort StudentGroup
-egen StudentGroup_TotalTested = total(nStudentSubGroup_TotalTested), by(StudentGroup GradeLevel Subject DataLevel StateAssignedSchID StateAssignedDistID)
-tostring StudentGroup_TotalTested, replace
-replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "0" | StudentGroup_TotalTested == "."
+cap drop StateAssignedSchID1
+gen StateAssignedDistID1 = StateAssignedDistID
+replace StateAssignedDistID1 = "000000" if DataLevel == 1
+gen StateAssignedSchID1 = StateAssignedSchID
+replace StateAssignedSchID1 = "000000" if DataLevel !=3
+egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
+sort group_id StudentGroup StudentSubGroup
+by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+drop group_id StateAssignedDistID1 StateAssignedSchID1
 
 
 //AssmtType
@@ -211,6 +216,7 @@ gen Flag_CutScoreChange_soc = "Not applicable"
 gen Flag_CutScoreChange_sci = "N"
 
 foreach var of varlist Flag* {
+	if "`var'" == "Flag_CutScoreChange_soc" continue
 	cap replace `var' = "N" if `year' !=2016
 }
 
@@ -238,7 +244,7 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 
-save "${Output}/ME_AssmtData_`year'", replace
+save "${Output}/ME_WebsiteData_`year'", replace
 
 
 
