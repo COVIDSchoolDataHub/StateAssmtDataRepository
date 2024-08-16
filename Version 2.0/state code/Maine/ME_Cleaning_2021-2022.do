@@ -6,7 +6,6 @@ global Original "/Volumes/T7/State Test Project/Maine/Original Data Files"
 global Output "/Volumes/T7/State Test Project/Maine/Output"
 global NCES_School "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
 global NCES_District "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
-global Unmerged "/Volumes/T7/State Test Project/Maine/Unmerged"
 
 forvalues year = 2021/2022 {
 local prevyear =`=`year'-1'

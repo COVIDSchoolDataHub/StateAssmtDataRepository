@@ -2,14 +2,13 @@ clear
 set more off
 
 cd "/Volumes/T7/State Test Project/Maine"
-global Original "/Volumes/T7/State Test Project/Maine/Original Data Files"
+global Original "/Volumes/T7/State Test Project/Maine/Original Data Files/For V2.0+ Data Received from Maine - August 2024"
 global Output "/Volumes/T7/State Test Project/Maine/Output"
 global NCES_School "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
 global NCES_District "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
-global Unmerged "/Volumes/T7/State Test Project/Maine/Unmerged"
 
 //2015-2022 State Level Data
-import excel "${Original}/For V2.0+ Data Received from Maine - August 2024/ME_2008 to 2023_state_ela,math_by grade and prof level_no counts", clear firstrow sheet("ALL DATA (2007-2023)")
+import excel "${Original}/ME_2008 to 2023_state_ela,math_by grade and prof level_no counts", clear firstrow sheet("ALL DATA (2007-2023)")
 
 //Renaming & Dropping
 drop if missing(Year)
@@ -132,10 +131,10 @@ save "$Output/ME_DataRequest_`year'", replace
 clear
 tempfile temp2
 save "`temp2'", replace empty
-import excel "${Original}/For V2.0+ Data Received from Maine - August 2024/ME_2023_state by grade_dist aggregated_ela,math,sci", firstrow clear sheet("Data, Grades 3-8 Combined") allstring
+import excel "${Original}/ME_2023_state by grade_dist aggregated_ela,math,sci", firstrow clear sheet("Data, Grades 3-8 Combined") allstring
 append using "`temp2'"
 save "`temp2'", replace
-import excel "${Original}/For V2.0+ Data Received from Maine - August 2024/ME_2023_state by grade_dist aggregated_ela,math,sci", firstrow clear sheet("Statewide Data, By Grade") allstring
+import excel "${Original}/ME_2023_state by grade_dist aggregated_ela,math,sci", firstrow clear sheet("Statewide Data, By Grade") allstring
 append using "`temp2'"
 save "`temp2'", replace
 
