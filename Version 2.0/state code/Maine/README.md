@@ -5,13 +5,17 @@ This is a ReadMe for Maine's data cleaning process, from 2015 to 2023.
 
 ## Directories
 - Set directories at the top of each do-file next to the global macros. The directories are as follows:
-```
+
 cd "/Volumes/T7/State Test Project/Maine" //This should link to the Main Maine folder
-global Original "/Volumes/T7/State Test Project/Maine/Original Data Files" //This should link to the original data folder. 
+
+global Original "/Volumes/T7/State Test Project/Maine/Original Data Files" //This should link to the original data folder.
+
 global Output "/Volumes/T7/State Test Project/Maine/Output" //This should link to an empty folder where the output will be generated.
+
 global NCES_School "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024" //NCES school files available from the drive
+
 global NCES_District "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024" //NCES District files available from the drive
-```
+
 
 ## Recreating Cleaning Process
 - Two options for first step: 
