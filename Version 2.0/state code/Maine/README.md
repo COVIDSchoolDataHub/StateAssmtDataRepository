@@ -8,7 +8,7 @@ This is a ReadMe for Maine's data cleaning process, from 2015 to 2023.
 
 cd "/Volumes/T7/State Test Project/Maine" //This should link to the Main Maine folder
 
-global Original "/Volumes/T7/State Test Project/Maine/Original Data Files" //This should link to the original data folder.
+global Original "/Volumes/T7/State Test Project/Maine/Original Data Files" //This should link to the folder containing all original data
 
 global Output "/Volumes/T7/State Test Project/Maine/Output" //This should link to an empty folder where the output will be generated.
 
