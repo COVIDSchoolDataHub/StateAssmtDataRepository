@@ -4,7 +4,7 @@ set more off
 
 global Abbrev "TN" //Set State Abbreviation Here
 global NCES_Original "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
-global NCES_$Abbrev "/Volumes/T7/State Test Project/Tennessee/NCES"
+global NCES_$Abbrev "/Volumes/T7/State Test Project/Tennessee/NCES" //Create a folder for state specific NCES files
 
 
 ** Preparing NCES files
