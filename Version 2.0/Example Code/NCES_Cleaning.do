@@ -27,7 +27,7 @@ foreach a in $years {
 	rename lea_name DistName
 	keep State StateAbbrev StateFips NCESDistrictID State_leaid DistType CountyName CountyCode DistLocale DistCharter DistName
 	
-	save "${NCES_TN}/NCES_`a'_District.dta", replace
+	save "${NCES_$Abbrev}/NCES_`a'_District.dta", replace
 	
 	use "${NCES_Original}/NCES_`a'_School.dta", clear
 	keep if state_location == "$Abbrev"
