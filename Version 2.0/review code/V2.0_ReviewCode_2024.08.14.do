@@ -1312,7 +1312,6 @@ di as error "Review county names below to check for incorrect capitalization, su
 tab CountyName FILE 
 
 
-keep SchYear DataLevel DistNam 
 ***********************************************************
 
 * CountyName
