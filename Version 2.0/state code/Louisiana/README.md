@@ -13,4 +13,4 @@ Download all of the files from the LA "Original Data Files for Version 1.1." Pla
 
 ## Code
 
-Each year from 2015 to 2024 has its own do file which can be run in any order. The only updates needed to the do files are to the file paths at the top, and to unhide the importing code.
+Each year from 2015 to 2024 has its own do file which can be run in any order. To run, only need to update file paths and unihide importing code at the top of each file. 
