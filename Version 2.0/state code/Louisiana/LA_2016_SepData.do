@@ -7,8 +7,9 @@ global NCES_files "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
 global output_files "/Volumes/T7/State Test Project/Louisiana Post Launch/Output"
 global temp_files "/Volumes/T7/State Test Project/Louisiana Post Launch/Temp"
 
-** 2015-16 Proficiency Data
 /*
+** 2015-16 Proficiency Data
+
 import excel "${original_files}/LA_OriginalData_2016.xlsx", sheet("2016 LEAP SUPPRESSED SCI") cellrange(A2) firstrow allstring clear
 rename NumberofStudents StudentSubGroup_TotalTestedsci
 rename Average*ScaledScore AvgScaleScoresci
@@ -26,6 +27,29 @@ drop Subject
 rename Subgroup StudentSubGroup
 rename Summary DataLevel
 replace DistrictCode = "" if DistrictCode == "≤"
+save "${temp_files}/2016_sci.dta", replace
+
+import excel "${original_files}/LA_OriginalData_2016.xlsx", sheet("Sci Totals") cellrange(A2) firstrow allstring clear
+rename NumberofStudents StudentSubGroup_TotalTestedsci
+rename Average*ScaledScore AvgScaleScoresci
+rename NumberADVANCED Lev5_countsci
+rename PercentADVANCED Lev5_percentsci
+rename NumberMASTERY Lev4_countsci
+rename PercentMASTERY Lev4_percentsci
+rename NumberBASIC Lev3_countsci
+rename PercentBASIC Lev3_percentsci
+rename NumberAPPROACHINGBASIC Lev2_countsci
+rename PercentAPPROACHINGBASIC Lev2_percentsci
+rename NumberUNSATISFACTORY Lev1_countsci
+rename PercentUNSATISFACTORY Lev1_percentsci
+drop Subject
+rename Subgroup StudentSubGroup
+rename Summary DataLevel
+replace DistrictCode = "" if DistrictCode == "≤"
+drop Percent*
+drop Year
+replace StudentSubGroup_TotalTestedsci
+append using "${temp_files}/2016_sci.dta"
 save "${temp_files}/2016_sci.dta", replace
 
 import excel "${original_files}/LA_OriginalData_2016.xlsx", sheet("2016 LEAP SUPPRESSED ELA_MATH") cellrange(A3) firstrow allstring clear
@@ -74,8 +98,9 @@ drop if StudentSubGroup_TotalTested == ""
 drop if DistrictCode == "" & DataLevel != "State"
 
 save "${temp_files}/2016_all_subjects.dta", replace
-
 */
+
+
 
 use "${temp_files}/2016_all_subjects.dta", clear
 
@@ -92,7 +117,6 @@ rename Group StudentGroup
 
 replace GradeLevel = "0" + GradeLevel if (Subject == "ela" | Subject == "math") & DataLevel == "State" 
 replace GradeLevel = "G" + GradeLevel
-
 
 
 // Generating Student Group Counts
@@ -171,8 +195,8 @@ replace StudentSubGroup = "All Students" if StudentGroup == "All Students"
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic/Latino"
 replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "Native Hawaiian or Other Pacific Islander"
 replace StudentSubGroup = "SWD" if StudentSubGroup == "Special Education"
-replace StudentSubGroup = "Non-SWD" if StudentSubGroup == "Total Regular Education Including Section 504"
-drop if StudentSubGroup == "Regular Education Without Section 504" | StudentSubGroup == "Regular Education without Section 504" | StudentSubGroup == "Section 504 - Yes"
+replace StudentSubGroup = "Non-SWD" if StudentSubGroup == "Total Regular Education Including Section 504" | StudentSubGroup == "TotalRegEd (Section504+RegularEd)"
+drop if StudentSubGroup == "Regular Education Without Section 504" | StudentSubGroup == "Regular Education without Section 504" | StudentSubGroup == "Section 504 - Yes" | StudentSubGroup == "Regular Education"
 replace StudentSubGroup = "Two or More" if StudentSubGroup == "Two or more races"
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "Yes" & StudentGroup == "EL Status"
 replace StudentSubGroup = "English Proficient" if StudentSubGroup == "No" & StudentGroup == "EL Status"
@@ -191,28 +215,28 @@ foreach v of varlist Lev*_percent {
 	generate greaterthan`v' = 1 if `v'==">95"
 	tostring n`v', replace force format("%9.3g")
 	replace `v' = n`v' if `v' != "*"
-	replace `v' = "0-0.05" if lessthan`v' == 1
-	replace `v' = "0.95-1" if greaterthan`v' == 1
+	replace `v' = "0-.05" if lessthan`v' == 1
+	replace `v' = ".95-1" if greaterthan`v' == 1
 }
 
 
 ** Generate Proficient or Above Percent
 
 gen Lev4max = Lev4_percent
-replace Lev4max = ".05" if Lev4_percent== "0-0.05"
-replace Lev4max = "1" if Lev4_percent== "0.95-1"
+replace Lev4max = ".05" if Lev4_percent== "0-.05"
+replace Lev4max = "1" if Lev4_percent== ".95-1"
 destring Lev4max, generate(Lev4maxnumber) force
 gen Lev4min = Lev4_percent
-replace Lev4min = "0" if Lev4_percent== "0-0.05"
-replace Lev4min = "0.95" if Lev4_percent== "0.95-1"
+replace Lev4min = "0" if Lev4_percent== "0-.05"
+replace Lev4min = ".95" if Lev4_percent== ".95-1"
 destring Lev4min, generate(Lev4minnumber) force
 gen Lev5max = Lev5_percent
-replace Lev5max = ".05" if Lev5_percent== "0-0.05"
-replace Lev5max = "1" if Lev5_percent== "0.95-1"
+replace Lev5max = ".05" if Lev5_percent== "0-.05"
+replace Lev5max = "1" if Lev5_percent== ".95-1"
 destring Lev5max, generate(Lev5maxnumber) force
 gen Lev5min = Lev5_percent
-replace Lev5min = "0" if Lev5_percent== "0-0.05"
-replace Lev5min = "0.95" if Lev5_percent== "0.95-1"
+replace Lev5min = "0" if Lev5_percent== "0-.05"
+replace Lev5min = ".95" if Lev5_percent== ".95-1"
 destring Lev5min, generate(Lev5minnumber) force
 gen ProficientOrAbovemin = Lev4minnumber + Lev5minnumber
 gen ProficientOrAbovemax = Lev4maxnumber + Lev5maxnumber
@@ -409,13 +433,34 @@ replace State_leaid = "" if DataLevel == 1
 
 //Post Launch Review Response
 
-**Deriving Counts where possible & New convention for StudentGroup_TotalTested
-sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-gen AllStudents = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
-replace AllStudents = AllStudents[_n-1] if missing(AllStudents)
-destring StudentSubGroup_TotalTested, gen(UnsuppressedSSG) force
-egen UnsuppressedSG = sum(UnsuppressedSSG), by(DataLevel NCESDistrictID NCESSchoolID Subject GradeLevel StudentGroup)
-replace StudentSubGroup_TotalTested = string(real(AllStudents) - UnsuppressedSG) if StudentGroup != "RaceEth" & strpos(StudentSubGroup_TotalTested, "<") !=0 & UnsuppressedSG !=0
+// Fixing StudentSubGroup_TotalTested for state level sci data
+replace StudentSubGroup_TotalTested = string(real(Lev1_count)+real(Lev2_count)+real(Lev3_count)+real(Lev4_count)+real(Lev5_count)) if DataLevel == 1
+replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
+
+//StudentGroup_TotalTested
+cap drop StudentGroup_TotalTested
+gen StateAssignedDistID1 = StateAssignedDistID
+replace StateAssignedDistID1 = "000000" if DataLevel == 1
+gen StateAssignedSchID1 = StateAssignedSchID
+replace StateAssignedSchID1 = "000000" if DataLevel !=3
+egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
+sort group_id StudentGroup StudentSubGroup
+by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+drop group_id StateAssignedDistID1 StateAssignedSchID1
+
+
+//Deriving StudentSubGroup_TotalTested where possible
+gen UnsuppressedSSG = real(StudentSubGroup_TotalTested)
+egen UnsuppressedSG = total(UnsuppressedSSG), by(StudentGroup DistName SchName GradeLevel Subject)
+gen missing_SSG = 1 if missing(real(StudentSubGroup_TotalTested))
+egen missing_multiple = total(missing_SSG), by(StudentGroup DistName SchName GradeLevel Subject)
+
+order StudentGroup_TotalTested UnsuppressedSG StudentSubGroup_TotalTested UnsuppressedSSG missing_multiple
+
+replace StudentSubGroup_TotalTested = string(real(StudentGroup_TotalTested)-UnsuppressedSG) if missing(real(StudentSubGroup_TotalTested)) & missing_multiple <2
+
+drop Unsuppressed* missing_*
 
 **Deriving ProficientOrAbove_count and percent if we have Levels 1-3
 replace ProficientOrAbove_count = string(real(StudentSubGroup_TotalTested) - real(Lev1_count) - real(Lev2_count) - real(Lev3_count)) if strpos(StudentSubGroup_TotalTested, "-") ==0 & regexm(Lev1_count, "[*-]") == 0 & regexm(Lev2_count, "[*-]") == 0 & regexm(Lev3_count, "[*-]") == 0
@@ -424,20 +469,31 @@ replace ProficientOrAbove_percent = string(1 - real(Lev1_percent) - real(Lev2_pe
 **Deriving Exact Counts & Percents Where Possible
 foreach percent of varlist Lev*_percent ProficientOrAbove_percent {
 	local count = subinstr("`percent'","percent","count",.)
-	replace `count' = string(round(real(`percent') * real(StudentSubGroup_TotalTested))) if strpos(`count', "-") !=0 & regexm(StudentSubGroup_TotalTested, "[-<*]") ==0 & regexm(`percent', "[*-]") ==0
-	replace `percent' = string((real(`count')/real(StudentSubGroup_TotalTested)),"%9.3g") if regexm(`percent', "[*-]") !=0 & strpos(`count', "*-") ==0 & regexm(StudentSubGroup_TotalTested, "[*-<]") ==0
+	replace `count' = string(round(real(`percent')*real(StudentSubGroup_TotalTested))) if !missing(real(`percent')) & !missing(real(StudentSubGroup_TotalTested)) & missing(real(`count'))
+	replace `percent' = string(real(`count')/real(StudentSubGroup_TotalTested), "%9.3g") if !missing(real(`count')) & !missing(real(StudentSubGroup_TotalTested)) & missing(real(`percent'))
+	
 }
 
-
-**Standardizing ranges
+** Fixing & Standardizing ranges (Updated 8/18/24)
 foreach var of varlist StudentGroup_TotalTested StudentSubGroup_TotalTested {
 	replace `var' = "0-9" if `var' == "<10"
 }
+foreach count of varlist ProficientOrAbove_count {
+	local percent = subinstr("`count'", "count", "percent",.)
+	replace `count' = subinstr(`count', substr(`count',strpos(`count',"-")+1,10), substr(StudentSubGroup_TotalTested,strpos(StudentSubGroup_TotalTested,"-")+1,10),.) if real(substr(`count',strpos(`count',"-")+1,10)) > real(substr(StudentSubGroup_TotalTested, strpos(StudentSubGroup_TotalTested,"-")+1,10))
+	
+	replace `percent' = subinstr(`percent', substr(`percent', strpos(`percent',"-")+1,10),"1",.) if real(substr(`percent', strpos(`percent',"-")+1,10)) > 1
+}
+
 
 **Misc
 replace AvgScaleScore = "*" if AvgScaleScore == "NA" | AvgScaleScore == " "
 
 replace ProficientOrAbove_percent = "0" if real(ProficientOrAbove_percent) < 0 | strpos(ProficientOrAbove_percent, "e") !=0
+
+replace StudentSubGroup_TotalTested = "0-9" if StudentSubGroup_TotalTested == "."
+
+replace ProficientOrAbove_count = "0" if ProficientOrAbove_count == "-1"
 
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
