@@ -11,7 +11,7 @@ global output_files "C:/Users/hxu15/Downloads/Idaho/Output" //"/Volumes/T7/State
 global temp_files "C:/Users/hxu15/Downloads/Idaho/Temp" // "/Volumes/T7/State Test Project/Idaho/Temp"
 
 // 2023-2024
-/*
+
 import excel "${original_files}/ID_OriginalData_2024_ela_math_sci.xlsx", sheet("State of Idaho") firstrow clear
 gen DataLevel = "State"
 save "${temp_files}/ID_AssmtData_2024_state.dta", replace
@@ -30,7 +30,7 @@ append using "${temp_files}/ID_AssmtData_2024_state.dta" "${temp_files}/ID_Assmt
 
 save "${temp_files}/ID_AssmtData_2024_all.dta", replace
 
-*/
+
 // Renaming Variables
 
 use "${temp_files}/ID_AssmtData_2024_all.dta", clear
@@ -198,6 +198,20 @@ replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
 // Saving transformed data
 save "${output_files}/ID_AssmtData_2024.dta", replace
 
+// Merging with NCES District Data
+
+use "${NCES_files}/NCES_2022_District.dta" 
+
+rename state_leaid State_leaid
+keep state_location state_fips district_agency_type ncesdistrictid State_leaid DistCharter DistLocale county_name county_code
+keep if substr(ncesdistrictid, 1, 2) == "16"
+
+merge 1:m State_leaid using "${output_files}/ID_AssmtData_2024.dta"
+export excel using "C:\Users\hxu15\Downloads\Idaho\Output\NCESUnMergedDistricts.xlsx" if _merge == 2, firstrow(variables) replace
+keep if _merge == 2 | _merge == 3
+drop _merge
+
+save "${output_files}/ID_AssmtData_2024.dta", replace
 
 
 // Merging with NCES School Data
@@ -215,25 +229,12 @@ keep if substr(ncesschoolid, 1, 2) == "16"
 
 merge 1:m seasch using "${output_files}/ID_AssmtData_2024.dta"
 export excel using "C:\Users\hxu15\Downloads\Idaho\Output\NCESUnMergedSchools.xlsx" if _merge == 2, firstrow(variables) replace
-keep if _merge == 2
+keep if _merge == 2 | _merge == 3
 drop _merge
 
 save "${output_files}/ID_AssmtData_2024.dta", replace
 
-// Merging with NCES District Data
 
-use "${NCES_files}/NCES_2022_District.dta" 
-
-rename state_leaid State_leaid
-keep state_location state_fips district_agency_type ncesdistrictid State_leaid DistCharter DistLocale county_name county_code
-keep if substr(ncesdistrictid, 1, 2) == "16"
-
-merge 1:m State_leaid using "${output_files}/ID_AssmtData_2024.dta"
-export excel using "C:\Users\hxu15\Downloads\Idaho\Output\NCESUnMergedDistricts.xlsx" if _merge == 2, firstrow(variables) replace
-keep if _merge == 2
-drop _merge
-
-save "${output_files}/ID_AssmtData_2024.dta", replace
 
 
 // Removing extra variables and renaming NCES variables
@@ -278,10 +279,17 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 save "${output_files}/ID_AssmtData_2024.dta", replace
 export delimited using "${output_files}/ID_AssmtData_2024.csv", replace
 
-// extra fixing of additional districts
+// extra fixing of additional files
 import excel "C:\Users\hxu15\Downloads\Idaho\Output\NCESUnMergedSchools_2024.xlsx", firstrow clear
 drop if DataLevel == "State"
-export excel using "C:\Users\hxu15\Downloads\Idaho\Output\NCESUnMergedSchools.xlsx", firstrow(variables) replace
+drop if DataLevel == "District"
+export excel using "C:\Users\hxu15\Downloads\Idaho\Output\NCESUnMergedSchools_2024.xlsx", firstrow(variables) replace
+
+
+import excel "C:\Users\hxu15\Downloads\Idaho\Output\NCESUnMergedDistricts_2024.xlsx", firstrow clear
+drop if DataLevel == "State"
+export excel using "C:\Users\hxu15\Downloads\Idaho\Output\NCESUnMergedDistricts_2024.xlsx", firstrow(variables) replace
+
 
 
 
