@@ -286,10 +286,6 @@ drop if DataLevel == "District"
 export excel using "C:\Users\hxu15\Downloads\Idaho\Output\NCESUnMergedSchools_2024.xlsx", firstrow(variables) replace
 
 
-import excel "C:\Users\hxu15\Downloads\Idaho\Output\NCESUnMergedDistricts_2024.xlsx", firstrow clear
-drop if DataLevel == "State"
-export excel using "C:\Users\hxu15\Downloads\Idaho\Output\NCESUnMergedDistricts_2024.xlsx", firstrow(variables) replace
-
 
 
 
