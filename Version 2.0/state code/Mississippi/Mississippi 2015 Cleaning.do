@@ -1,12 +1,12 @@
 clear
 set more off
 
-global MS "/Users/kaitlynlucas/Desktop/Mississippi State Task/Original Data Files"
-global raw "/Users/kaitlynlucas/Desktop/Mississippi State Task/Original Data Files"
-global output "/Users/kaitlynlucas/Desktop/Mississippi State Task/Output"
-global NCES "/Users/kaitlynlucas/Desktop/Mississippi State Task/NCES/Cleaned"
-global EDFacts "/Users/kaitlynlucas/Desktop/EDFacts Drive Data"
-global Request "/Users/kaitlynlucas/Desktop/Mississippi State Task/Data Request"
+global MS "/Volumes/T7/State Test Project/Mississippi"
+global raw "/Volumes/T7/State Test Project/Mississippi/Original Data Files"
+global output "/Volumes/T7/State Test Project/Mississippi/Output"
+global NCES "/Volumes/T7/State Test Project/Mississippi/NCES"
+global EDFacts "/Volumes/T7/State Test Project/EDFACTS"
+global Request "/Volumes/T7/State Test Project/Mississippi/Original Data Files/Data Request"
 
 local subject math ela sci
 local datatype performance participation
@@ -108,14 +108,18 @@ drop StudentSubGroup_TotalTested2 sum diff
 
 ** Generating student group total counts
 
-destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
-replace StudentSubGroup_TotalTested2 = 0 if StudentSubGroup_TotalTested2 == .
-bysort StateAssignedDistID StateAssignedSchID StudentGroup GradeLevel Subject: egen test = min(StudentSubGroup_TotalTested2)
-bysort StateAssignedDistID StateAssignedSchID StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested2) if test != 0
-tostring StudentGroup_TotalTested, replace force
-replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
+gen StateAssignedDistID1 = StateAssignedDistID
+replace StateAssignedDistID1 = "000000" if DataLevel == 1
+gen StateAssignedSchID1 = StateAssignedSchID
+replace StateAssignedSchID1 = "000000" if DataLevel !=3
+egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
+sort group_id StudentGroup StudentSubGroup
+by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+drop group_id StateAssignedDistID1 StateAssignedSchID1
 
 ** Generating level percents
+destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
 
 foreach v of numlist 1/5 {
 	gen Lev`v'_percent = Lev`v'_count2/StudentSubGroup_TotalTested2
@@ -124,11 +128,9 @@ foreach v of numlist 1/5 {
 	replace Lev`v'_percent = "0" if Lev`v'_count == "0"
 }
 replace Lev5_percent = "" if Subject == "sci"
-drop StudentSubGroup_TotalTested2 
 
 ** Generating proficiencies
 
-destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
 gen ProficientOrAbove_count = Lev4_count2 + Lev5_count2 if Subject != "sci"
 replace ProficientOrAbove_count = StudentSubGroup_TotalTested2 - (Lev1_count2 + Lev2_count2 + Lev3_count2) if ProficientOrAbove_count == . & Subject != "sci"
 replace ProficientOrAbove_count = Lev3_count2 + Lev4_count2 if Subject == "sci"
@@ -140,7 +142,7 @@ replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
 replace ProficientOrAbove_percent = "0" if ProficientOrAbove_count == "0"
 
-drop StudentSubGroup_TotalTested2 test *_count2
+drop StudentSubGroup_TotalTested2 *_count2
 
 
 ** Merging with standardized name file
@@ -158,7 +160,6 @@ drop newdistname newschname _merge
 
 ** Merging with EDFacts data
 tempfile tempall
-destring NCESSchoolID, replace
 save "`tempall'", replace
 keep if DataLevel == 2
 tempfile tempdist
@@ -183,7 +184,7 @@ clear
 use "`tempsch'"
 duplicates report NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject
 duplicates drop NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject, force
-destring NCESSchoolID, replace
+*destring NCESSchoolID, replace
 merge 1:1 NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject using "${EDFacts}/2015/edfactspart2015schoolmississippi.dta", gen(SchMerge)
 drop if SchMerge == 2
 save "`tempsch'", replace
@@ -248,6 +249,59 @@ replace StudentSubGroup_TotalTested2 = 0 if StudentSubGroup_TotalTested2 == .
 bysort DistName SchName StudentGroup GradeLevel Subject: egen test2 = min(StudentSubGroup_TotalTested2)
 drop StudentSubGroup_TotalTested2 test test2
 */
+
+//Derivations
+
+**Deriving Count if we have all other counts
+
+*ela/math
+replace Lev1_count = string(real(StudentSubGroup_TotalTested)-real(Lev5_count)-real(Lev4_count)-real(Lev3_count)-real(Lev2_count)) if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Lev5_count)) & !missing(real(Lev4_count)) & !missing(real(Lev3_count)) & !missing(real(Lev2_count)) & missing(real(Lev1_count)) & (real(StudentSubGroup_TotalTested)-real(Lev5_count)-real(Lev4_count)-real(Lev3_count)-real(Lev2_count)) > 0 & Subject != "sci"
+
+replace Lev2_count = string(real(StudentSubGroup_TotalTested)-real(Lev5_count)-real(Lev4_count)-real(Lev3_count)-real(Lev1_count)) if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Lev5_count)) & !missing(real(Lev4_count)) & !missing(real(Lev3_count)) & !missing(real(Lev1_count)) & missing(real(Lev2_count)) & (real(StudentSubGroup_TotalTested)-real(Lev5_count)-real(Lev4_count)-real(Lev3_count)-real(Lev1_count)) > 0 & Subject != "sci"
+
+replace Lev3_count = string(real(StudentSubGroup_TotalTested)-real(Lev5_count)-real(Lev4_count)-real(Lev1_count)-real(Lev2_count)) if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Lev5_count)) & !missing(real(Lev4_count)) & !missing(real(Lev1_count)) & !missing(real(Lev2_count)) & missing(real(Lev3_count)) & (real(StudentSubGroup_TotalTested)-real(Lev5_count)-real(Lev4_count)-real(Lev1_count)-real(Lev2_count)) > 0 & Subject != "sci"
+
+replace Lev4_count = string(real(StudentSubGroup_TotalTested)-real(Lev5_count)-real(Lev1_count)-real(Lev3_count)-real(Lev2_count)) if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Lev5_count)) & !missing(real(Lev1_count)) & !missing(real(Lev3_count)) & !missing(real(Lev2_count)) & missing(real(Lev4_count)) & (real(StudentSubGroup_TotalTested)-real(Lev5_count)-real(Lev1_count)-real(Lev3_count)-real(Lev2_count)) > 0 & Subject != "sci"
+
+replace Lev5_count = string(real(StudentSubGroup_TotalTested)-real(Lev1_count)-real(Lev4_count)-real(Lev3_count)-real(Lev2_count)) if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Lev1_count)) & !missing(real(Lev4_count)) & !missing(real(Lev3_count)) & !missing(real(Lev2_count)) & missing(real(Lev5_count)) & (real(StudentSubGroup_TotalTested)-real(Lev1_count)-real(Lev4_count)-real(Lev3_count)-real(Lev2_count)) > 0 & Subject != "sci"
+
+*sci
+replace Lev1_count = string(real(StudentSubGroup_TotalTested)-real(Lev4_count)-real(Lev3_count)-real(Lev2_count)) if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Lev4_count)) & !missing(real(Lev3_count)) & !missing(real(Lev2_count)) & missing(real(Lev1_count)) & (real(StudentSubGroup_TotalTested)-real(Lev4_count)-real(Lev3_count)-real(Lev2_count)) > 0 & Subject == "sci"
+
+replace Lev2_count = string(real(StudentSubGroup_TotalTested)-real(Lev4_count)-real(Lev3_count)-real(Lev1_count)) if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Lev4_count)) & !missing(real(Lev3_count)) & !missing(real(Lev1_count)) & missing(real(Lev2_count)) & (real(StudentSubGroup_TotalTested)-real(Lev4_count)-real(Lev3_count)-real(Lev1_count)) > 0 & Subject == "sci"
+
+replace Lev3_count = string(real(StudentSubGroup_TotalTested)-real(Lev4_count)-real(Lev2_count)-real(Lev1_count)) if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Lev4_count)) & !missing(real(Lev2_count)) & !missing(real(Lev1_count)) & missing(real(Lev3_count)) & (real(StudentSubGroup_TotalTested)-real(Lev4_count)-real(Lev2_count)-real(Lev1_count)) > 0 & Subject == "sci"
+
+replace Lev4_count = string(real(StudentSubGroup_TotalTested)-real(Lev3_count)-real(Lev2_count)-real(Lev1_count)) if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Lev3_count)) & !missing(real(Lev2_count)) & !missing(real(Lev1_count)) & missing(real(Lev4_count)) & (real(StudentSubGroup_TotalTested)-real(Lev3_count)-real(Lev2_count)-real(Lev1_count)) > 0 & Subject == "sci"
+
+
+
+
+
+** Deriving Percents if we have all other percents
+*ela/math
+replace Lev1_percent = string(1-real(Lev5_percent)-real(Lev4_percent)-real(Lev3_percent)-real(Lev2_percent), "%9.3g") if !missing(1) & !missing(real(Lev5_percent)) & !missing(real(Lev4_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev2_percent)) & missing(real(Lev1_percent))  & (1-real(Lev5_percent)-real(Lev4_percent)-real(Lev3_percent)-real(Lev2_percent) > 0.005) & Subject != "sci"
+
+replace Lev2_percent = string(1-real(Lev5_percent)-real(Lev4_percent)-real(Lev3_percent)-real(Lev1_percent), "%9.3g") if !missing(1) & !missing(real(Lev5_percent)) & !missing(real(Lev4_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev1_percent)) & missing(real(Lev2_percent))  & (1-real(Lev5_percent)-real(Lev4_percent)-real(Lev3_percent)-real(Lev1_percent) > 0.005) & Subject != "sci"
+
+replace Lev3_percent = string(1-real(Lev5_percent)-real(Lev4_percent)-real(Lev1_percent)-real(Lev2_percent), "%9.3g") if !missing(1) & !missing(real(Lev5_percent)) & !missing(real(Lev4_percent)) & !missing(real(Lev1_percent)) & !missing(real(Lev2_percent)) & missing(real(Lev3_percent))  & (1-real(Lev5_percent)-real(Lev4_percent)-real(Lev1_percent)-real(Lev2_percent) > 0.005) & Subject != "sci"
+
+replace Lev4_percent = string(1-real(Lev5_percent)-real(Lev1_percent)-real(Lev3_percent)-real(Lev2_percent), "%9.3g") if !missing(1) & !missing(real(Lev5_percent)) & !missing(real(Lev1_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev2_percent)) & missing(real(Lev4_percent))  & (1-real(Lev5_percent)-real(Lev1_percent)-real(Lev3_percent)-real(Lev2_percent) > 0.005) & Subject != "sci"
+
+replace Lev5_percent = string(1-real(Lev1_percent)-real(Lev4_percent)-real(Lev3_percent)-real(Lev2_percent), "%9.3g") if !missing(1) & !missing(real(Lev1_percent)) & !missing(real(Lev4_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev2_percent)) & missing(real(Lev5_percent))  & (1-real(Lev1_percent)-real(Lev4_percent)-real(Lev3_percent)-real(Lev2_percent) > 0.005) & Subject != "sci"
+*sci
+*sci
+replace Lev1_percent = string(1-real(Lev4_percent)-real(Lev3_percent)-real(Lev2_percent)) if !missing(1) & !missing(real(Lev4_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev2_percent)) & missing(real(Lev1_percent)) & (1-real(Lev4_percent)-real(Lev3_percent)-real(Lev2_percent)) > 0 & Subject == "sci"
+
+replace Lev2_percent = string(1-real(Lev4_percent)-real(Lev3_percent)-real(Lev1_percent)) if !missing(1) & !missing(real(Lev4_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev1_percent)) & missing(real(Lev2_percent)) & (1-real(Lev4_percent)-real(Lev3_percent)-real(Lev1_percent)) > 0 & Subject == "sci"
+
+replace Lev3_percent = string(1-real(Lev4_percent)-real(Lev2_percent)-real(Lev1_percent)) if !missing(1) & !missing(real(Lev4_percent)) & !missing(real(Lev2_percent)) & !missing(real(Lev1_percent)) & missing(real(Lev3_percent)) & (1-real(Lev4_percent)-real(Lev2_percent)-real(Lev1_percent)) > 0 & Subject == "sci"
+
+replace Lev4_percent = string(1-real(Lev3_percent)-real(Lev2_percent)-real(Lev1_percent)) if !missing(1) & !missing(real(Lev3_percent)) & !missing(real(Lev2_percent)) & !missing(real(Lev1_percent)) & missing(real(Lev4_percent)) & (1-real(Lev3_percent)-real(Lev2_percent)-real(Lev1_percent)) > 0 & Subject == "sci"
+
+//Clean up AvgScaleScore
+replace AvgScaleScore = string(real(AvgScaleScore), "%9.3f") if !missing(real(AvgScaleScore))
+
 
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 

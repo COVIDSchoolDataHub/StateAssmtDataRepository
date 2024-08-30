@@ -1,78 +1,13 @@
 clear
 set more off
 
-global MS "/Users/kaitlynlucas/Desktop/Mississippi State Task/Original Data Files"
-global raw "/Users/kaitlynlucas/Desktop/Mississippi State Task/Original Data Files"
-global output "/Users/kaitlynlucas/Desktop/Mississippi State Task/Output"
-global NCES "/Users/kaitlynlucas/Desktop/Mississippi State Task/NCES/Cleaned"
-global EDFacts "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/MS_2022"
-global Request "/Users/kaitlynlucas/Desktop/Mississippi State Task/Data Request"
-
-//Create MS_EFParticipation_2022 if needed!
-foreach s in ela math sci {
-	import delimited "${EDFacts}/MS_EFParticipation_2022_`s'.csv", case(preserve) clear
-	save "${EDFacts}/MS_EFParticipation_2022_`s'.dta", replace
-}
-
-use "${EDFacts}/MS_EFParticipation_2022_ela.dta"
-append using "${EDFacts}/MS_EFParticipation_2022_math.dta" "${EDFacts}/MS_EFParticipation_2022_sci.dta"
+global MS "/Volumes/T7/State Test Project/Mississippi"
+global raw "/Volumes/T7/State Test Project/Mississippi/Original Data Files"
+global output "/Volumes/T7/State Test Project/Mississippi/Output"
+global NCES "/Volumes/T7/State Test Project/Mississippi/NCES"
+global Request "/Volumes/T7/State Test Project/Mississippi/Original Data Files/Data Request"
 
 
-//Rename and Drop Vars
-drop SchoolYear State
-rename NCESLEAID NCESDistrictID
-drop LEA School
-rename NCESSCHID NCESSchoolID
-rename Value Participation
-drop DataGroup DataDescription Denominator Numerator Population
-rename Subgroup StudentSubGroup
-replace StudentSubGroup = Characteristics if missing(StudentSubGroup) & !missing(Characteristics)
-rename AgeGrade GradeLevel
-rename AcademicSubject Subject
-drop ProgramType Outcome Characteristics
-
-//Clean ParticipationRate
-foreach var of varlist Participation {
-replace `var' = "*" if `var' == "S"	
-gen range`var' = substr(`var',1,1) if regexm(`var',"[<>]") !=0
-replace `var' = subinstr(`var', "=","",.)
-destring `var', gen(n`var') i(*%<>-)
-replace `var' = range`var' + string(n`var'/100, "%9.3g") if `var' != "*" & `var' != "--"
-replace `var' = subinstr(`var',">","",.) + "-1" if strpos(`var', ">") !=0
-replace `var' = subinstr(`var', "<","0-",.) if strpos(`var', "<") !=0
-drop n`var'
-drop range`var'
-}
-
-//StudentSubGroup
-replace StudentSubGroup = "All Students" if strpos(StudentSubGroup, "All Students") !=0
-replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "American Indian/Alaska Native/Native American"
-replace StudentSubGroup = "Black or African American" if StudentSubGroup == "Black (not Hispanic) African American"
-replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic/Latino"
-replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "Native Hawaiian or Other Pacific Islander"
-replace StudentSubGroup = "Two or More" if StudentSubGroup == "Multicultural/Multiethnic/Multiracial/other"
-replace StudentSubGroup = "White" if StudentSubGroup == "White or Caucasian (not Hispanic)"
-replace StudentSubGroup = "SWD" if StudentSubGroup == "Children with disabilities"
-replace StudentSubGroup = "Migrant" if StudentSubGroup == "Migratory students"
-replace StudentSubGroup = "Military" if StudentSubGroup == "Military connected"
-replace StudentSubGroup = "Foster Care" if StudentSubGroup == "Foster care students"
-replace StudentSubGroup = "Asian" if StudentSubGroup == "Asian/Pacific Islander"
-
-
-//Subject
-replace Subject = "ela" if Subject == "Reading/Language Arts"
-replace Subject = "math" if Subject == "Mathematics"
-replace Subject = "sci" if Subject == "Science"
-
-//GradeLevel
-replace GradeLevel = subinstr(GradeLevel, "Grade ", "G0",.)
-
-duplicates drop NCESDistrictID NCESSchoolID GradeLevel Subject StudentSubGroup, force
-
-//Saving EDFacts Output
-save "${EDFacts}/MS_EFParticipation_2022", replace
-
-//Create MS_EFParticipation_2022 if needed!
 
 ** Data Request files (proficient counts and student counts w/ subgroups)
 
@@ -165,13 +100,17 @@ replace StateFips = 28
 
 ** Generating student group total counts
 
-destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
-replace StudentSubGroup_TotalTested2 = 0 if StudentSubGroup_TotalTested2 == .
-bysort StateAssignedDistID StateAssignedSchID StudentGroup GradeLevel Subject: egen test = min(StudentSubGroup_TotalTested2)
-bysort StateAssignedDistID StateAssignedSchID StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested2) if test != 0
-tostring StudentGroup_TotalTested, replace force
-replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
+gen StateAssignedDistID1 = StateAssignedDistID
+replace StateAssignedDistID1 = "000000" if DataLevel == 1
+gen StateAssignedSchID1 = StateAssignedSchID
+replace StateAssignedSchID1 = "000000" if DataLevel !=3
+egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
+sort group_id StudentGroup StudentSubGroup
+by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+drop group_id StateAssignedDistID1 StateAssignedSchID1
 
+destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
 ** Generating proficiencies
 
 destring ProficientOrAbove_count, gen(ProficientOrAbove_count2) force
@@ -180,7 +119,7 @@ tostring ProficientOrAbove_percent, replace format("%9.4g") force
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
 replace ProficientOrAbove_percent = "0" if ProficientOrAbove_count == "0"
 
-drop StudentSubGroup_TotalTested2 test *_count2
+drop StudentSubGroup_TotalTested2 *_count2
 
 ** Merging with standardized name file
 
@@ -523,13 +462,51 @@ replace StateFips = 28
 append using "${output}/MS_AssmtData_2022.dta"
 
 **Merging with EDFacts
-destring NCESSchoolID, replace
-destring NCESDistrictID, replace
-merge 1:1 NCESDistrictID NCESSchoolID GradeLevel Subject StudentSubGroup using "${EDFacts}/MS_EFParticipation_2022"
+merge 1:1 NCESDistrictID NCESSchoolID GradeLevel Subject StudentSubGroup using "${MS}/MS_EFParticipation_2022"
 drop if _merge ==2
 replace ParticipationRate = Participation
 replace ParticipationRate = "--" if missing(ParticipationRate)
 drop _merge Participation
+
+** Generating student group total counts
+cap drop StudentGroup_TotalTested
+gen StateAssignedDistID1 = StateAssignedDistID
+replace StateAssignedDistID1 = "000000" if DataLevel == 1
+gen StateAssignedSchID1 = StateAssignedSchID
+replace StateAssignedSchID1 = "000000" if DataLevel !=3
+egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
+sort group_id StudentGroup StudentSubGroup
+by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+drop group_id StateAssignedDistID1 StateAssignedSchID1
+
+//Derivations
+
+**Deriving Count if we have all other counts
+
+replace Lev1_count = string(real(StudentSubGroup_TotalTested)-real(Lev5_count)-real(Lev4_count)-real(Lev3_count)-real(Lev2_count)) if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Lev5_count)) & !missing(real(Lev4_count)) & !missing(real(Lev3_count)) & !missing(real(Lev2_count)) & missing(real(Lev1_count)) & (real(StudentSubGroup_TotalTested)-real(Lev5_count)-real(Lev4_count)-real(Lev3_count)-real(Lev2_count)) > 0
+
+replace Lev2_count = string(real(StudentSubGroup_TotalTested)-real(Lev5_count)-real(Lev4_count)-real(Lev3_count)-real(Lev1_count)) if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Lev5_count)) & !missing(real(Lev4_count)) & !missing(real(Lev3_count)) & !missing(real(Lev1_count)) & missing(real(Lev2_count)) & (real(StudentSubGroup_TotalTested)-real(Lev5_count)-real(Lev4_count)-real(Lev3_count)-real(Lev1_count)) > 0
+
+replace Lev3_count = string(real(StudentSubGroup_TotalTested)-real(Lev5_count)-real(Lev4_count)-real(Lev1_count)-real(Lev2_count)) if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Lev5_count)) & !missing(real(Lev4_count)) & !missing(real(Lev1_count)) & !missing(real(Lev2_count)) & missing(real(Lev3_count)) & (real(StudentSubGroup_TotalTested)-real(Lev5_count)-real(Lev4_count)-real(Lev1_count)-real(Lev2_count)) > 0
+
+replace Lev4_count = string(real(StudentSubGroup_TotalTested)-real(Lev5_count)-real(Lev1_count)-real(Lev3_count)-real(Lev2_count)) if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Lev5_count)) & !missing(real(Lev1_count)) & !missing(real(Lev3_count)) & !missing(real(Lev2_count)) & missing(real(Lev4_count)) & (real(StudentSubGroup_TotalTested)-real(Lev5_count)-real(Lev1_count)-real(Lev3_count)-real(Lev2_count)) > 0
+
+replace Lev5_count = string(real(StudentSubGroup_TotalTested)-real(Lev1_count)-real(Lev4_count)-real(Lev3_count)-real(Lev2_count)) if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Lev1_count)) & !missing(real(Lev4_count)) & !missing(real(Lev3_count)) & !missing(real(Lev2_count)) & missing(real(Lev5_count)) & (real(StudentSubGroup_TotalTested)-real(Lev1_count)-real(Lev4_count)-real(Lev3_count)-real(Lev2_count)) > 0
+
+** Deriving Percents if we have all other percents
+replace Lev1_percent = string(1-real(Lev5_percent)-real(Lev4_percent)-real(Lev3_percent)-real(Lev2_percent), "%9.3g") if !missing(1) & !missing(real(Lev5_percent)) & !missing(real(Lev4_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev2_percent)) & missing(real(Lev1_percent))  & (1-real(Lev5_percent)-real(Lev4_percent)-real(Lev3_percent)-real(Lev2_percent) > 0.005)
+
+replace Lev2_percent = string(1-real(Lev5_percent)-real(Lev4_percent)-real(Lev3_percent)-real(Lev1_percent), "%9.3g") if !missing(1) & !missing(real(Lev5_percent)) & !missing(real(Lev4_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev1_percent)) & missing(real(Lev2_percent))  & (1-real(Lev5_percent)-real(Lev4_percent)-real(Lev3_percent)-real(Lev1_percent) > 0.005)
+
+replace Lev3_percent = string(1-real(Lev5_percent)-real(Lev4_percent)-real(Lev1_percent)-real(Lev2_percent), "%9.3g") if !missing(1) & !missing(real(Lev5_percent)) & !missing(real(Lev4_percent)) & !missing(real(Lev1_percent)) & !missing(real(Lev2_percent)) & missing(real(Lev3_percent))  & (1-real(Lev5_percent)-real(Lev4_percent)-real(Lev1_percent)-real(Lev2_percent) > 0.005)
+
+replace Lev4_percent = string(1-real(Lev5_percent)-real(Lev1_percent)-real(Lev3_percent)-real(Lev2_percent), "%9.3g") if !missing(1) & !missing(real(Lev5_percent)) & !missing(real(Lev1_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev2_percent)) & missing(real(Lev4_percent))  & (1-real(Lev5_percent)-real(Lev1_percent)-real(Lev3_percent)-real(Lev2_percent) > 0.005)
+
+replace Lev5_percent = string(1-real(Lev1_percent)-real(Lev4_percent)-real(Lev3_percent)-real(Lev2_percent), "%9.3g") if !missing(1) & !missing(real(Lev1_percent)) & !missing(real(Lev4_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev2_percent)) & missing(real(Lev5_percent))  & (1-real(Lev1_percent)-real(Lev4_percent)-real(Lev3_percent)-real(Lev2_percent) > 0.005)
+
+//Clean up AvgScaleScore
+replace AvgScaleScore = string(real(AvgScaleScore), "%9.3f") if !missing(real(AvgScaleScore))
 
 
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
