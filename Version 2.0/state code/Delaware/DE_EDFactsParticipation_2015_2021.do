@@ -2,8 +2,8 @@ clear
 set more off
 
 global EDFacts "/Users/kaitlynlucas/Desktop/EDFacts Drive Data"
-global State_Output "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/Delaware Assessment" // Version 1.1 Output directory here
-global New_Output "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/Delaware V2.0" // Version 2.0 Output directory here
+global State_Output "/Users/kaitlynlucas/Desktop/Delaware State Task/Output" // Version 1.1 Output directory here
+global New_Output "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/Delaware V2.0 2" // Version 2.0 Output directory here
 
 ** Preparing EDFacts files
 local edyears1 15 16 17 18
