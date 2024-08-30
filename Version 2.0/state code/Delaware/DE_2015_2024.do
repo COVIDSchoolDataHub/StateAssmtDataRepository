@@ -73,46 +73,69 @@ rename DataLevel_n DataLevel
 order DataLevel
 
 //Merging NCES school and district files
-
+drop if SchoolYear == "SchoolYear"
+destring SchoolYear, gen (schyr_n)
 rename SchoolCode StateAssignedSchID
 local prevyear =`=`year'-1'
-if `year' < 2023 {
+
+if schyr_n < 2017 {
+	rename DistrictCode State_leaid
+	merge m:1 State_leaid using "${nces}/NCES_`prevyear'_district.dta"
+	drop _merge
+}
+
+if schyr_n > 2016 & schyr_n < 2023 {
+/*tostring StateAssignedDistID, replace*/
+gen State_leaid = "DE-" + DistrictCode // this is a change from before
+merge m:1 State_leaid using "${nces}/NCES_`prevyear'_district.dta"
+drop _merge
+}
+if schyr_n > 2022 {
+	gen State_leaid = "DE-" + DistrictCode // this is a change from before
+	/*tostring StateAssignedDistID, replace*/
+	merge m:1 State_leaid using "${nces}/NCES_2022_district.dta"
+	drop _merge
+}
+
+if schyr_n < 2017 {
+rename State_leaid StateAssignedDistID 
 tostring StateAssignedSchID, replace
-merge m:1 StateAssignedSchID using "${nces}/NCES_`prevyear'_school.dta", force
+gen seasch = StateAssignedDistID + "-" + StateAssignedSchID
+merge m:1 seasch using "${nces}/NCES_`prevyear'_school.dta"
 drop _merge
 }
-if `year' == 2023 | `year' == 2024 {
+if schyr_n > 2016 & schyr_n <2023 {
+	replace State_leaid = subinstr(State_leaid, "DE-", "", .)
+	rename State_leaid StateAssignedDistID
+	gen seasch = StateAssignedDistID + "-" + StateAssignedSchID
+	merge m:1 seasch using "${nces}/NCES_`prevyear'_school.dta"
+	drop _merge
+}
+	
+if schyr_n > 2022 {
 	tostring StateAssignedSchID, replace
-	merge m:1 StateAssignedSchID using "${nces}/NCES_2022_school.dta", force
+	replace State_leaid = subinstr(State_leaid, "DE-", "", .)
+	rename State_leaid StateAssignedDistID
+	gen seasch = StateAssignedDistID + "-" + StateAssignedSchID
+	merge m:1 seasch using "${nces}/NCES_2022_school.dta"
 	drop _merge
 }
 
-if `year' < 2023 {
-
-rename DistrictCode StateAssignedDistID
-tostring StateAssignedDistID, replace
-merge m:1 StateAssignedDistID using "${nces}/NCES_`prevyear'_district.dta", force
-drop _merge
-}
-if `year' == 2023 | `year' == 2024 {
-	rename DistrictCode StateAssignedDistID
-	tostring StateAssignedDistID, replace
-	merge m:1 StateAssignedDistID using "${nces}/NCES_2022_district.dta", force
-	drop _merge
-}
+/*
+decode DistType1, gen (DistType1_str)
+replace DistType = DistType1_str if DataLevel == 2
+drop DistType1_str
+replace DistLocale = DistLocale1 if DataLevel==2
 
 //Fixing District Level Variables from merge
-/*
+
 replace NCESDistrictID = NCESDistrictID1 if DataLevel==2
 replace State_leaid = State_leaid1 if DataLevel==2
 replace DistCharter = DistCharter1 if DataLevel==2 //For some reason, NCES has DistCharter indicators for individual schools in DE, but there are no charter districts in DE. Thus, all DistCharter indicators will be "No" at DataLevel==2. 
 replace CountyName = CountyName1 if DataLevel==2
 replace CountyCode = CountyCode1 if DataLevel==2
-decode DistType1, gen (DistType1_str)
-replace DistType = DistType1_str if DataLevel == 2
-drop DistType1_str
-replace DistLocale = DistLocale1 if DataLevel==2
 */
+
 
 
 
@@ -327,7 +350,7 @@ save "${output}/DE_AssmtData_`year'.dta", replace
 clear
 }
 
-set trace off
+
 do "${PART2}"
 
 
@@ -501,7 +524,7 @@ if `year' == 2015 | `year' == 2016 {
 	keep if missing(DistName)
 	replace SchName = "Sussex Academy" if strpos(SchName, "Sussex") !=0
 	replace SchName = "Delaware School for the Deaf" if strpos(SchName, "Deaf") !=0
-	merge m:1 SchName using "${nces}/NCES_`prevyear'_school.dta", update force
+	merge m:1 SchName using "${nces}/NCES_`prevyear'_school.dta"
 	drop if _merge == 2
 	drop _merge
 	tempfile tempunmerged
@@ -511,7 +534,18 @@ if `year' == 2015 | `year' == 2016 {
 	drop if missing(DistName)
 	append using "`tempunmerged'"
 }
-	
+	//For 2015 change
+	replace CountyName = proper(CountyName)
+	//For 2024 New Schools
+if `year' == 2024 {
+replace SchLevel = "Middle" if SchName == "Middle School of Excellence"
+replace SchVirtual = "No" if SchName == "Middle School of Excellence"
+replace SchLevel = "Middle" if SchName == "Middle School of Innovation"
+replace SchVirtual = "No" if SchName == "Middle School of Innovation"
+replace SchLevel = "Primary" if SchName == "Crystal Run Elementary School"
+replace SchVirtual = "No" if SchName == "Crystal Run Elementary School"
+}
+
 	keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 	
 	order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
