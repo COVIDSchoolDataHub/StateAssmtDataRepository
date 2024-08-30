@@ -1,7 +1,7 @@
 
 # Delaware Data Cleaning
 
-This is a ReadMe for Delaware's data cleaning process, from Spring 2015 to Spring 2023 
+This is a ReadMe for Delaware's data cleaning process, from Spring 2015 to Spring 2024 
 
 *Has been adapted for the 2024 Zelma 2.0 review.
 
@@ -9,22 +9,20 @@ This is a ReadMe for Delaware's data cleaning process, from Spring 2015 to Sprin
 
 
 ## Setup
-There are seven folders you need to create: 
-NCESNew, Original Data Files, Output, 2015-2017 DCAS files, Delaware Assessment, Delaware V2.0, DE_2022
+There are eight folders you need to create: 
+NCESOld, NCESNew, Original Data Files, Output, 2015-2017 DCAS files, Delaware Assessment, Delaware V2.0, DE_2022
 
 Download the original .xlsx files and place them into the "Original Data Files" folder. 
 
 (With the exception of the 2015-2017 DCAS files, which should be place separately in a "2015-2017 DCAS files" folder.
 
-There are 4 .do files. Run them in the following order.
+There are 2 .do files. Run them in the following order.
 
-nces_district.do
+NCES_Cleaning_DE_final.do
 
-nces_school.do
+DE_2015_2024.do 
 
-DE_2015_2022.do 
-
-(You should not have to run DE_2015_2022_PART2.do separately)
+(You should not have to run DE_2015_2024_PART2.do separately)
 
 (The NCESOld file should be the most recent available NCES files.)
 
@@ -47,13 +45,14 @@ The files in the "Delaware V2.0" folder are your final files.
 The file path setup should be as follows: 
 
 ```bash
+global Abbrev "DE" //Set State Abbreviation Here
+global NCES_Original "/Users/kaitlynlucas/Desktop/Delaware State Task/NCESOld"
+global NCES_$Abbrev "/Users/kaitlynlucas/Desktop/Delaware State Task/NCESNew" //Create a folder for state specific NCES files
+
 global original "/Users/kaitlynlucas/Desktop/Delaware State Task/Original Data Files"
 global output "/Users/kaitlynlucas/Desktop/Delaware State Task/Output"
 global nces "/Users/kaitlynlucas/Desktop/Delaware State Task/NCESNew"
-global PART2 "/Users/kaitlynlucas/Desktop/Delaware State Task/DE_2015_2022_PART2.do"
-
-global NCESOLD "/Users/kaitlynlucas/Desktop/Delaware State Task/NCESOld"
-global NCESNEW "/Users/kaitlynlucas/Desktop/Delaware State Task/NCESNew"
+global PART2 "/Users/kaitlynlucas/Desktop/Delaware State Task/DE_2015_2024_PART2.do"
 
 //ParticipationRate file path setup
 global EDFacts "/Users/kaitlynlucas/Desktop/EDFacts Drive Data"
@@ -70,3 +69,4 @@ global Output_20 "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/Delaware V2.0" 
 03/29/2024: Made 2024 updates.
 04/12/2024: Responded to 2024 review comments.
 08/1/2024: Made filename updates.
+08/30/2024: Added code for 2024 data.
