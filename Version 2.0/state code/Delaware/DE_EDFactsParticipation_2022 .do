@@ -2,9 +2,9 @@ clear
 set more off
 
 global Original "/Users/kaitlynlucas/Desktop/EDFacts Drive Data" //Folder with Output .dta
-global EDFacts "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/DE_2022" //Folder with downloaded state-specific 2022 participation data from EDFacts
-global State_Output "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/Delaware Assessment" //Folder with state-specific data
-global Output_20 "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/Delaware V2.0" //Folder for Output 2.0
+global EDFacts "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/DE_2022 2" //Folder with downloaded state-specific 2022 participation data from EDFacts
+global State_Output "/Users/kaitlynlucas/Desktop/Delaware State Task/Output" //Folder with state-specific data
+global Output_20 "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/Delaware V2.0 2" //Folder for Output 2.0
 
 
 foreach s in ela math sci {
@@ -95,11 +95,14 @@ drop DataLevel
 rename DataLevel_n DataLevel
 
 //Merging
-merge 1:1 NCESDistrictID NCESSchoolID GradeLevel Subject StudentSubGroup using "${EDFacts}/DE_EFParticipation_2022"
+merge m:1 NCESDistrictID NCESSchoolID GradeLevel Subject StudentSubGroup using "${EDFacts}/DE_EFParticipation_2022"
 drop if _merge ==2
 replace ParticipationRate = Participation
 replace ParticipationRate = "--" if missing(ParticipationRate)
 drop _merge Participation
+
+replace ProficientOrAbove_count = subinstr(ProficientOrAbove_count, ",", "", .)
+replace AvgScaleScore = subinstr(AvgScaleScore, ",", "", .)
 
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
@@ -110,6 +113,7 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${Output_20}/DE_AssmtData_2022", replace
 export delimited "${Output_20}/DE_AssmtData_2022", replace
+
 
 
 
