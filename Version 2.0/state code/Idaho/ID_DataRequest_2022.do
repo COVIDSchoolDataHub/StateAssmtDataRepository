@@ -7,7 +7,7 @@ cd "/Volumes/T7/State Test Project/Idaho"
 
 global original_files "/Volumes/T7/State Test Project/Idaho/Original Data"
 global NCES_files "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
-global output_files "/Volumes/T7/State Test Project/Idaho/Output"
+global output_files "C:/Users/hxu15/Downloads/Idaho/Output" // "/Volumes/T7/State Test Project/Idaho/Output"
 global temp_files "/Volumes/T7/State Test Project/Idaho/Temp"
 
 // 2021-2022
@@ -273,4 +273,12 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${output_files}/ID_AssmtData_2022.dta", replace
 export delimited using "$output_files/ID_AssmtData_2022.csv", replace
+
+import delimited using "${output_files}/ID_AssmtData_2022.csv", case(preserve)
+replace DistName =stritrim(DistName) // returns var with all consecutive, internal blanks collapsed to one blank.
+replace DistName =strtrim(DistName) // returns var with leading and trailing blanks removed.
+replace SchName=stritrim(SchName) // returns var with all consecutive, internal blanks collapsed to one blank.
+replace SchName=strtrim(SchName) // returns var with leading and trailing blanks removed
+
+export delimited using "${output_files}/ID_AssmtData_2022.csv", replace
 
