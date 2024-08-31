@@ -207,7 +207,7 @@ keep state_location state_fips district_agency_type ncesdistrictid State_leaid D
 keep if substr(ncesdistrictid, 1, 2) == "16"
 
 merge 1:m State_leaid using "${output_files}/ID_AssmtData_2024.dta"
-export excel using "C:\Users\hxu15\Downloads\Idaho\Output\NCESUnMergedDistricts.xlsx" if _merge == 2, firstrow(variables) replace
+//export excel using "C:\Users\hxu15\Downloads\Idaho\Output\NCESUnMergedDistricts.xlsx" if _merge == 2, firstrow(variables) replace
 keep if _merge == 2 | _merge == 3
 drop _merge
 
@@ -228,12 +228,132 @@ drop if seasch == ""
 keep if substr(ncesschoolid, 1, 2) == "16"
 
 merge 1:m seasch using "${output_files}/ID_AssmtData_2024.dta"
-export excel using "C:\Users\hxu15\Downloads\Idaho\Output\NCESUnMergedSchools.xlsx" if _merge == 2, firstrow(variables) replace
+//export excel using "C:\Users\hxu15\Downloads\Idaho\Output\NCESUnMergedSchools.xlsx" if _merge == 2, firstrow(variables) replace
 keep if _merge == 2 | _merge == 3
 drop _merge
 
 save "${output_files}/ID_AssmtData_2024.dta", replace
 
+tabulate SchVirtual
+
+* This shows us the following value labels:
+*	0 = No
+*	1 = Yes
+* 	2 = Virtual with face to face options
+
+* Let's get our SchVirtual variable set up in a way that will allow merging
+
+tostring SchVirtual, gen(schvirt_str)
+
+* This pulls in the value labels of 0, 1 and 2 as strings into our new variable. Let's change these to the right string labels.
+
+replace schvirt_str = "No" if schvirt_str == "0"
+replace schvirt_str = "Yes" if schvirt_str == "1"
+replace schvirt_str = "Virtual with face to face options" if schvirt_str == "2"
+
+* Always test your work
+tab SchVirtual schvirt_str // this shows us we converted everything properly.
+
+* Drop vars we don't need
+drop SchVirtual
+
+* Rename 
+rename schvirt_str SchVirtual
+
+******************
+* SchLevel
+******************* 
+
+tabulate SchLevel
+
+* This shows us the following value labels:
+*	-1: Missing/not reported
+*	1 = Primary
+*	2 = Middle
+* 	3 = High
+*	4 = Other
+*	7 = Secondary
+
+* Let's get our SchLevel variable set up in a way that will allow merging
+
+tostring SchLevel, gen(schlev_str)
+
+* This pulls in the value labels of 0, 1 and 2 as strings into our new variable. Let's change these to the right string labels.
+
+replace schlev_str = "Missing/not reported" if schlev_str == "-1"
+replace schlev_str = "Primary" if schlev_str == "1"
+replace schlev_str = "Middle" if schlev_str == "2"
+replace schlev_str = "High" if schlev_str == "3"
+replace schlev_str = "Other" if schlev_str == "4"
+replace schlev_str = "Secondary" if schlev_str == "7"
+
+* Always test your work
+tab SchLevel schlev_str // this shows us we converted everything properly.
+
+* Drop vars we don't need
+drop SchLevel
+
+* Rename 
+rename schlev_str SchLevel
+
+
+**SchType
+* 1 = Regular school
+* 2 = Special Education school
+* 4 = Other/alternative school
+tostring school_type, gen(schtype_str)
+replace schtype_str = "Regular school" if schtype_str == "1"
+replace schtype_str = "Special education school" if schtype_str == "2"
+replace schtype_str = "Other/alternative school" if schtype_str == "4"
+tab school_type schtype_str
+drop school_type
+rename schtype_str school_type
+
+save "${output_files}/ID_AssmtData_2024.dta", replace
+
+
+// merging with NCES new schools
+
+import excel "C:/Users/hxu15/Downloads/Idaho/NCES/Idaho 2024 new schools.xlsx", firstrow allstring clear
+
+/*keep state_location state_fips district_agency_type school_type ncesdistrictid State_leaid ncesschoolid seasch DistCharter SchLevel SchVirtual county_name county_code
+decode district_agency_type, gen(temp)
+drop district_agency_type
+rename temp district_agency_type
+
+drop if seasch == ""
+
+keep if substr(ncesschoolid, 1, 2) == "16"
+*/
+/*
+encode SchVirtual, generate(schvirtu)
+drop SchVirtual
+rename schvirtu SchVirtual 
+
+encode SchLevel, generate(schlev)
+drop SchLevel
+rename schlev SchLevel
+
+encode school_type, generate(schtype)
+drop school_type
+rename schtype school_type 
+
+recast byte SchVirtual SchLevel school_type, force
+ */
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+drop DataLevel
+rename DataLevel_n DataLevel 
+
+
+merge 1:m seasch using "${output_files}/ID_AssmtData_2024.dta"
+
+keep if _merge == 2 | _merge == 3
+drop _merge
+
+
+save "${output_files}/ID_AssmtData_2024.dta", replace
+*/
 
 
 
@@ -269,6 +389,17 @@ local count = subinstr("`percent'", "percent", "count",.)
 replace `percent' = string(real(`count')/real(StudentSubGroup_TotalTested), "%9.3g") if regexm(`percent', "[*-]") !=0 & regexm(StudentSubGroup_TotalTested, "[*-]") == 0 & regexm(`count', "[-*]") == 0 
 }
 
+// removing spaces in names
+replace DistName =stritrim(DistName) // returns var with all consecutive, internal blanks collapsed to one blank.
+replace DistName =strtrim(DistName) // returns var with leading and trailing blanks removed.
+replace SchName=stritrim(SchName) // returns var with all consecutive, internal blanks collapsed to one blank.
+replace SchName=strtrim(SchName) // returns var with leading and trailing blanks removed
+replace SchType =stritrim(SchType)
+
+replace SchType = "" if SchType == "."
+replace SchType = "Special education school" if SchType == "Special Education school"
+
+
 // Reordering variables and sorting data
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
@@ -278,7 +409,7 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${output_files}/ID_AssmtData_2024.dta", replace
 export delimited using "${output_files}/ID_AssmtData_2024.csv", replace
-
+/*
 // extra fixing of additional files
 import excel "C:\Users\hxu15\Downloads\Idaho\Output\NCESUnMergedSchools_2024.xlsx", firstrow clear
 drop if DataLevel == "State"
@@ -287,5 +418,6 @@ export excel using "C:\Users\hxu15\Downloads\Idaho\Output\NCESUnMergedSchools_20
 
 
 
+*/
 
 
