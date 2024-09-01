@@ -143,7 +143,7 @@ drop if StudentSubGroup == "Special Education Students - Alternate Assessment"
 
 
 //StudentSubGroup_TotalTested
-gen StudentSubGroup_TotalTested = studentcount - nottested
+gen StudentSubGroup_TotalTested = studentcount //Updated 06/17/24 for StudentSubGroup_TotalTested to reflect Student Count rather than StudentCount - nottested
 drop studentcount nottested
 replace StudentSubGroup_TotalTested =. if StudentSubGroup_TotalTested <0
 

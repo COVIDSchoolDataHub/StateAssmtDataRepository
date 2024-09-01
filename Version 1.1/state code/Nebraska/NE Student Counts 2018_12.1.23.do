@@ -4,7 +4,7 @@ set more off
 cd "/Volumes/T7/State Test Project/Nebraska"
 global data "/Volumes/T7/State Test Project/Nebraska/Original Data Files"
 global NCES "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
-global counts "/Volumes/T7/State Test Project/EDFACTS"
+global counts "/Volumes/T7/State Test Project/Nebraska/Counts_2016_2017_2018"
 
 //Import and Append Subject Files
 import delimited "$data/NE_OriginalData_2021_ela.csv", clear
@@ -122,7 +122,7 @@ replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeles
 drop if StudentSubGroup == "Special Education Students - Alternate Assessment"
 
 //StudentSubGroup_TotalTested & StudentGroup_TotalTested
-gen StudentSubGroup_TotalTested = studentcount - nottested
+gen StudentSubGroup_TotalTested = studentcount //Updated 06/17/24 to reflect just StudentCount rather than StudentCount - nottested
 replace StudentSubGroup_TotalTested =. if StudentSubGroup_TotalTested <0
 egen StudentGroup_TotalTested = total(StudentSubGroup_TotalTested), by(StudentGroup GradeLevel Subject DataLevel seasch StateAssignedDistID DistName SchName)
 tostring StudentSubGroup_TotalTested, replace

@@ -2,10 +2,10 @@ clear
 set more off
 set trace off
 
-global original "/Users/miramehta/Documents/DE State Testing Data/Original Data Files"
-global output "/Users/miramehta/Documents/DE State Testing Data/Output"
-global nces "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
-global PART2 "/Users/miramehta/Documents/GitHub/StateAssmtDataRepository/Version 1.1/state code/Delaware/DE_2015_2022_PART2.do" //Set filepath for second do file
+global original "/Volumes/T7/State Test Project/Delaware/Original Data Files"
+global output "/Volumes/T7/State Test Project/Delaware/Cleaned"
+global nces "/Volumes/T7/State Test Project/Delaware/NCESNew"
+global PART2 "/Volumes/T7/State Test Project/Delaware/DE_2015_2022_PART2.do" //Set filepath for second do file
 
 // foreach year in 2015 2016 2017 2018 2019 2021 2022 2023
 foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 { //2020 data would be empty, is thus not included
@@ -359,6 +359,12 @@ use "${output}/DE_AssmtData_`year'", clear
 	replace Flag_CutScoreChange_sci="N"
 	replace Flag_CutScoreChange_soc="N"
 	
+	if `year' == 2015 {
+		replace Flag_AssmtNameChange = "Y" if Subject == "math" | Subject == "ela"
+		replace Flag_CutScoreChange_ELA = "Y"
+		replace Flag_CutScoreChange_math = "Y"
+	}
+	
 	if `year' == 2017 {
 	replace Flag_CutScoreChange_soc="Not applicable"
 	}
@@ -457,6 +463,26 @@ use "${output}/DE_AssmtData_`year'", clear
 	if `year' == 2015 | `year' ==2016{
 		replace DistLocale = "Suburb, large" if NCESSchoolID == "100023000378"
 	}
+
+//Update Jun 2024: Unmerged Schools from sci and soc data (Delaware School for the Deaf and Sussex Academy)
+if `year' == 2015 | `year' == 2016 {
+	tempfile temp1
+	save "`temp1'", replace
+	keep if missing(DistName)
+	replace SchName = "Sussex Academy" if strpos(SchName, "Sussex") !=0
+	replace SchName = "Delaware School for the Deaf" if strpos(SchName, "Deaf") !=0
+	merge m:1 SchName using "${nces}/NCES_`prevyear'_School", update force
+	drop if _merge == 2
+	drop _merge
+	tempfile tempunmerged
+	save "`tempunmerged'", replace
+	clear
+	use "`temp1'"
+	drop if missing(DistName)
+	append using "`tempunmerged'"
+}
+
+
 	
 	keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 	

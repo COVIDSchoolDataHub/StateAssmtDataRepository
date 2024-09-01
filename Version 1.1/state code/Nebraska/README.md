@@ -35,3 +35,6 @@ global output "/Volumes/T7/State Test Project/Nebraska/Output"
 
 -   Inside the NE_MASTER do-file, change the directory `global dir "/Volumes/T7/State Test Project/Nebraska"`
 -   Run the do-file. This is a simple file to run all do files in the correct order.
+
+## Updates
+- 6/17/24: Updated flags. Updated StudentSubGroup_TotalTested to reflect StudentCount rather than StudentCount - nottested

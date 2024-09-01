@@ -2,8 +2,8 @@ clear
 set trace off
 set more off
 
-global NCESOLD "/Users/miramehta/Documents/NCES District and School Demographics/NCES District Files, Fall 1997-Fall 2022"
-global NCESNEW "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+global NCESOLD "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global NCESNEW "/Volumes/T7/State Test Project/Delaware/NCESNew"
 
 foreach year in 2014 2015 2016 2017 2018 2019 2020 2021 2022 {
 use "${NCESOLD}/NCES_`year'_District.dta"
@@ -49,6 +49,9 @@ rename CountyName CountyName1
 rename CountyCode CountyCode1
 rename State_leaid State_leaid1
 rename DistLocale DistLocale1
+decode DistType1, gen(temp)
+drop DistType1
+rename temp DistType1
 save "${NCESNEW}/NCES_`year'_district.dta", replace
 clear
 }

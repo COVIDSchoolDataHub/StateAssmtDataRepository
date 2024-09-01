@@ -7,7 +7,8 @@ cap log close
 
 //NOTE: To convert excel files to dta., please run Excel DCAS file do FIRST before running this code.
 
-global data "/Users/miramehta/Documents/DE State Testing Data/Original Data Files/Excel DCAS Datasets"
+global data "/Volumes/T7/State Test Project/Delaware/Original Data Files"
+global NCES "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024" //Jun 2024: file path for Uncleaned NCES data
 
 foreach year in 2015 2016 2017 {
 	di as error "`year'"
@@ -293,8 +294,7 @@ foreach year in 2015 2016 2017 {
 		save "`idk'"
 //Change Directory for NCES School data below
 		local prevyear =`=`year'-1'
-		local NCES "/Users/miramehta/Documents/NCES District and School Demographics/NCES School Files, Fall 1997-Fall 2022"
-		use "`NCES'/NCES_`prevyear'_School.dta", clear
+		use "${NCES}/NCES_`prevyear'_School.dta", clear
 		rename school_name SchName
 		drop if state_fips != 10
 		rename ncesschoolid NCESSchoolID
@@ -316,8 +316,7 @@ foreach year in 2015 2016 2017 {
 		drop SchType
 		rename temp SchType
 		keep NCESSchoolID SchName NCESDistrictID StateAssignedSchID DistName StateAssignedDistID SchType CountyCode CountyName DistType DistCharter DistLocale SchType seasch SchLevel SchVirtual State_leaid
-		keep if SchName == "Carver (G.W.) Educational Center" | SchName == "Central School (The)" | SchName == "Douglass School" | SchName == "First State School" | SchName == "Kent County Secondary ILC" | SchName == "Penn (William) High School" | SchName == "Delaware School for the Deaf" | SchName == "Sussex Consortium" | SchName == "Richardson Park Learning Center" | SchName == "Family Foundations Academy" | SchName == "Sussex Academy of Arts and Sciences"
-		replace SchName = "Delaware School for the Deaf School (DSD)" if SchName == "Delaware School for the Deaf" 
+		keep if SchName == "Carver (G.W.) Educational Center" | SchName == "Central School (The)" | SchName == "Douglass School" | SchName == "First State School" | SchName == "Kent County Secondary ILC" | SchName == "Penn (William) High School" | SchName == "Delaware School for the Deaf"| SchName == "Delaware School for the Deaf School (DSD)" | SchName == "Sussex Consortium" | SchName == "Richardson Park Learning Center" | SchName == "Family Foundations Academy" | SchName == "Sussex Academy of Arts and Sciences"
 		merge 1:m SchName using "`idk'"
 		rename _merge _merge3
 		drop if _merge3 ==1
@@ -425,7 +424,9 @@ foreach year in 2015 2016 2017 {
 		gen ProficientOrAbove_count = "--"
 		gen Flag_AssmtNameChange = "N"
 		gen Flag_CutScoreChange_ELA = "N"
+		replace Flag_CutScoreChange_ELA = "Y" if `year' == 2015
 		gen Flag_CutScoreChange_math = "N"
+		replace Flag_CutScoreChange_math = "Y" if `year' == 2015
 		gen Flag_CutScoreChange_oth = "N"
 		replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested== "~"
 		if `year' == 2017 {

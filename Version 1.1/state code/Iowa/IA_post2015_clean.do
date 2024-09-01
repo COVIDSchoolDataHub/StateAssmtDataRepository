@@ -1,16 +1,26 @@
 clear
 set more off
 
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics"
-global Iowa "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
-global iowa "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
-global raw "/Users/miramehta/Documents/Iowa/Original Data Files"
-global dr "/Users/miramehta/Documents/Iowa/Original Data Files/Iowa data received via data request 12-1-23"
-global int "/Users/miramehta/Documents/Iowa/Intermediate"
-global output "/Users/miramehta/Documents/Iowa/Output - Version 1.1"
-global output2 "/Users/miramehta/Documents/Iowa/Output - Version 1.0"
+// global NCES "/Users/miramehta/Documents/NCES District and School Demographics"
+// global Iowa "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+// global iowa "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+// global raw "/Users/miramehta/Documents/Iowa/Original Data Files"
+// global dr "/Users/miramehta/Documents/Iowa/Original Data Files/Iowa data received via data request 12-1-23"
+// global int "/Users/miramehta/Documents/Iowa/Intermediate"
+// global output "/Users/miramehta/Documents/Iowa/Output - Version 1.1"
+// global output2 "/Users/miramehta/Documents/Iowa/Output - Version 1.0"
 
-import excel "${raw}/Iowa unmerged_.xlsx", firstrow clear
+global iowa "/Users/benjaminm/Documents/State_Repository_Research/Iowa/NCES"
+global NCES "/Users/benjaminm/Documents/State_Repository_Research/NCES"
+global raw "/Users/benjaminm/Documents/State_Repository_Research/Iowa/Input"
+global dr "/Users/benjaminm/Documents/State_Repository_Research/Iowa/Input/Data Request"
+global int "/Users/benjaminm/Documents/State_Repository_Research/Iowa/Intermediate"
+global output "/Users/benjaminm/Documents/State_Repository_Research/Iowa/Output"
+//cd "/Users/benjaminm/Documents/State_Repository_Research/NCES"
+
+
+import excel "${raw}/Iowa_Unmerged.xlsx", firstrow clear
+// import excel "${raw}/Iowa unmerged_.xlsx", firstrow clear
 
 tostring DistType, replace
 tostring SchType, replace 
@@ -51,10 +61,13 @@ save "${output}/IA_AssmtData_`year'_NEW.dta", replace
 
 }
 */
-use "${output}/IA_AssmtData_2023_NEW.dta", replace
 
-foreach year in 2023 {
+	use "${output}/IA_AssmtData_`year'_NEW.dta", clear
+use "${output}/IA_AssmtData_2015_NEW.dta", replace
+
+foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 {  
 	
+
 	local prevyear =`=`year'-1'
 	local Year = "`prevyear'" + "-" + substr("`year'",-2,2)
 	
@@ -167,8 +180,23 @@ foreach year in 2023 {
 	tostring StudentGroup_TotalTested, replace force
 	replace StudentSubGroup_TotalTested="*" if StudentSubGroup_TotalTested=="."
 	replace StudentGroup_TotalTested="*" if StudentGroup_TotalTested=="."
+	
+
+	
+	
+	
+   // list SchName Grade Subject StudentSubGroup if StudentGroup == "All Students" & StudentSubGroup_TotalTested == "0" // StudentGroup_TotalTested == "*"  & 
 	replace StudentGroup_TotalTested="*" if StudentGroup_TotalTested == "0" & StudentGroup == "All Students"
 
+	replace StudentGroup_TotalTested="0" if StudentSubGroup_TotalTested == "0" & StudentGroup == "All Students"
+
+
+
+
+
+
+
+	
 	foreach x of numlist 4/5 {
 		generate Lev`x'_count = ""
 		generate Lev`x'_percent = ""
@@ -383,15 +411,29 @@ replace SchName = "Maple Grove Elementary" if SchName == "" & `year' == 2023
 replace DistName = "Cedar Rapids Comm School District" if DistName == "" & `year' == 2023
 
 
+// Updated 5/27/24
+replace DistName = strtrim(DistName)
+
 //Final Cleaning and Saving
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup	
 
-save "${output}/DTA/IA_AssmtData_`year'.dta", replace
+save "${output}/IA_AssmtData_`year'.dta", replace
 
 export delimited using "${output}/IA_AssmtData_`year'.csv", replace
 
+
+}
+
+
+forvalues year = 2015/2023 {  // /2023 { 
+	if `year' == 2020 continue	
+//use "${output}/IA_AssmtData_all_`year'", clear
+use "${output}/IA_AssmtData_`year'", clear
+
+tab SchName if StudentGroup_TotalTested == "*" & StudentSubGroup_TotalTested == "0" 
+list SchName Grade Subject StudentSubGroup if StudentGroup_TotalTested == "*" & StudentSubGroup_TotalTested == "0" 
 
 }
