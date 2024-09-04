@@ -10,7 +10,7 @@ global utah "/Users/miramehta/Documents/NCES District and School Demographics/Cl
 
 global edfacts "/Users/miramehta/Documents/EdFacts"
 
-foreach year in 2022 2023 {
+foreach year in 2022 2023 2024 {
 	
 	foreach dl in School LEA {
 		
@@ -21,6 +21,7 @@ foreach year in 2022 2023 {
 			keep SchoolYear LEAName SchoolName Grade_3 Grade_4 Grade_5 Grade_6 Grade_7 Grade_8
 
 			drop if SchoolName=="Minersville School"
+			drop if SchoolName==""
 
 			reshape long Grade_, i(LEAName SchoolName) j(Grade)
 
@@ -49,6 +50,7 @@ foreach year in 2022 2023 {
 		if "`dl'"=="LEA" {
 			
 			keep SchoolYear LEAName Grade_3 Grade_4 Grade_5 Grade_6 Grade_7 Grade_8
+			drop if LEAName==""
 
 			reshape long Grade_, i(LEAName) j(Grade)
 

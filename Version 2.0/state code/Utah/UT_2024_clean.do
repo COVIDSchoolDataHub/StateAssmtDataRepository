@@ -15,7 +15,7 @@ global edfacts "/Users/miramehta/Documents/EdFacts"
 
 * Proficiency levels
 
-import excel "${raw}/UT_OriginalData_2023_proflevels_ela_math_sci.xlsx", sheet("School Prof Levels by Test") firstrow allstring clear
+import excel "${raw}/UT_OriginalData_2024_proflevels_ela_math_sci.xlsx", sheet("School Prof Levels by Test") firstrow allstring clear
 
 rename SchoolYear SchYear
 rename TestName GradeLevel
@@ -29,9 +29,9 @@ rename School SchName
 
 keep if strpos(AssessmentType, "RISE")>0
 
-save "${int}/UT_2023_levels_school.dta", replace 
+save "${int}/UT_2024_levels_school.dta", replace 
 
-import excel "${raw}/UT_OriginalData_2023_proficiency.xlsx", sheet("School Results by Test") firstrow allstring clear
+import excel "${raw}/UT_OriginalData_2024_proficiency.xlsx", sheet("School Results by Test") firstrow allstring clear
 
 rename SchoolYear SchYear
 rename TestName GradeLevel
@@ -42,14 +42,14 @@ rename PercentProficient ProficientOrAbove_percent
 
 keep if strpos(AssessmentType, "RISE")>0
 
-merge 1:1 DistName SchName GradeLevel Subject using "${int}/UT_2023_levels_school.dta"
+merge 1:1 DistName SchName GradeLevel Subject using "${int}/UT_2024_levels_school.dta"
 
 drop _merge
 
-save "${int}/UT_2023_levels_school.dta", replace
+save "${int}/UT_2024_levels_school.dta", replace
 
 * Append aggregated school data
-import excel "${raw}/UT_OriginalData_2023_proflevels_ela_math_sci.xlsx", sheet("School Prof Levels by Subject") firstrow allstring clear
+import excel "${raw}/UT_OriginalData_2024_proflevels_ela_math_sci.xlsx", sheet("School Prof Levels by Subject") firstrow allstring clear
 
 rename SchoolYear SchYear
 rename SubjectArea Subject
@@ -62,9 +62,9 @@ rename School SchName
 
 keep if strpos(AssessmentType, "RISE")>0
 
-save "${int}/UT_2023_levels_school_all.dta", replace
+save "${int}/UT_2024_levels_school_all.dta", replace
 
-import excel "${raw}/UT_OriginalData_2023_proficiency.xlsx", sheet("Overall School Results") firstrow allstring clear
+import excel "${raw}/UT_OriginalData_2024_proficiency.xlsx", sheet("Overall School Results") firstrow allstring clear
 
 rename SchoolYear SchYear
 rename SubjectArea Subject
@@ -74,11 +74,11 @@ rename PercentProficient ProficientOrAbove_percent
 
 keep if strpos(AssessmentType, "RISE")>0
 
-merge 1:1 DistName SchName Subject using "${int}/UT_2023_levels_school_all.dta"
+merge 1:1 DistName SchName Subject using "${int}/UT_2024_levels_school_all.dta"
 
 gen GradeLevel=Subject +" All"
 
-append using "${int}/UT_2023_levels_school.dta"
+append using "${int}/UT_2024_levels_school.dta"
 
 foreach x of numlist 3/8 {
 	replace GradeLevel="G0`x'" if strpos(GradeLevel, "`x'")>0
@@ -98,24 +98,24 @@ foreach i of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent {
 gen StudentSubGroup = "All Students"
 gen StudentGroup = "All Students"
 
-save "${int}/UT_2023_levels_school.dta", replace 
+save "${int}/UT_2024_levels_school.dta", replace 
 
 * Subgroups
-import excel "${raw}/UT_OriginalData_2023_subgroup.xlsx", sheet("School by Test") firstrow allstring clear
+import excel "${raw}/UT_OriginalData_2024_subgroup.xlsx", sheet("School by Test") firstrow allstring clear
 
 keep if strpos(AssessmentType, "RISE")>0
 
-save "${int}/UT_2023_subgroup_school.dta", replace 
+save "${int}/UT_2024_subgroup_school.dta", replace 
 
 * Append aggregated school data
-import excel "${raw}/UT_OriginalData_2023_subgroup.xlsx", sheet("School by Subject") firstrow allstring clear
+import excel "${raw}/UT_OriginalData_2024_subgroup.xlsx", sheet("School by Subject") firstrow allstring clear
 drop AllStudents
 
 keep if strpos(AssessmentType, "RISE")>0
 
 gen TestName=SubjectArea+" All"
 
-append using "${int}/UT_2023_subgroup_school.dta"
+append using "${int}/UT_2024_subgroup_school.dta"
 
 foreach i of varlist AfAmBlack AmericanIndian Asian HispanicLatino MultipleRaces PacificIslander White LowIncome StudentswDisabilities EnglishLearners {
 	rename `i' subgroup`i'
@@ -143,9 +143,9 @@ rename SchoolYear SchYear
 rename LEAName DistName
 rename SchoolName SchName
 
-save "${int}/UT_2023_subgroup_school.dta", replace 
+save "${int}/UT_2024_subgroup_school.dta", replace 
 
-append using "${int}/UT_2023_levels_school.dta"
+append using "${int}/UT_2024_levels_school.dta"
 drop _merge
 
 replace DistName="Intech Collegiate Academy" if strpos(DistName, "InTech")>0
@@ -185,16 +185,16 @@ replace StudentGroup="Economic Status" if StudentSubGroup=="Economically Disadva
 replace StudentGroup="Disability Status" if StudentSubGroup=="SWD"
 
 *** Merge Enrollment Data
-merge m:1 DataLevel NCESDistrictID NCESSchoolID GradeLevel StudentSubGroup using "${raw}/UT_Enrollment_School_2023.dta"
+merge m:1 DataLevel NCESDistrictID NCESSchoolID GradeLevel StudentSubGroup using "${raw}/UT_Enrollment_School_2024.dta"
 replace StudentSubGroup_TotalTested = "--" if _merge == 1
 drop if _merge == 2
 drop _merge
-save "${int}/UT_2023_school.dta", replace 
+save "${int}/UT_2024_school.dta", replace 
 
 *** UT Districts ***
 
 * Proficiency levels
-import excel "${raw}/UT_OriginalData_2023_proflevels_ela_math_sci.xlsx", sheet("LEA Prof Levels by Test") firstrow allstring clear
+import excel "${raw}/UT_OriginalData_2024_proflevels_ela_math_sci.xlsx", sheet("LEA Prof Levels by Test") firstrow allstring clear
 
 rename SchoolYear SchYear
 rename TestName GradeLevel
@@ -207,9 +207,9 @@ rename LEAName DistName
 
 keep if strpos(AssessmentType, "RISE")>0
 
-save "${int}/UT_2023_levels_district.dta", replace
+save "${int}/UT_2024_levels_district.dta", replace
 
-import excel "${raw}/UT_OriginalData_2023_proficiency.xlsx", sheet("LEA Results by Test") firstrow allstring clear
+import excel "${raw}/UT_OriginalData_2024_proficiency.xlsx", sheet("LEA Results by Test") firstrow allstring clear
 
 rename SchoolYear SchYear
 rename TestName GradeLevel
@@ -218,16 +218,16 @@ rename LEADistrictorCharter DistName
 rename PercentProficient ProficientOrAbove_percent
 
 keep if strpos(AssessmentType, "RISE")>0
-drop if SchYear != "2023"
+drop if SchYear != "2024"
 
-merge 1:1 DistName GradeLevel Subject using "${int}/UT_2023_levels_district.dta"
+merge 1:1 DistName GradeLevel Subject using "${int}/UT_2024_levels_district.dta"
 
 drop _merge
 
-save "${int}/UT_2023_levels_district.dta", replace
+save "${int}/UT_2024_levels_district.dta", replace
 
 * Append aggregated district data
-import excel "${raw}/UT_OriginalData_2023_proflevels_ela_math_sci.xlsx", sheet("LEA Prof Levels by Subject") firstrow allstring clear
+import excel "${raw}/UT_OriginalData_2024_proflevels_ela_math_sci.xlsx", sheet("LEA Prof Levels by Subject") firstrow allstring clear
 
 rename SchoolYear SchYear
 rename SubjectArea Subject
@@ -239,9 +239,9 @@ rename LEAName DistName
 
 keep if strpos(AssessmentType, "RISE")>0
 
-save "${int}/UT_2023_levels_district_all.dta", replace
+save "${int}/UT_2024_levels_district_all.dta", replace
 
-import excel "${raw}/UT_OriginalData_2023_proficiency.xlsx", sheet("Overall LEA Results") firstrow allstring clear
+import excel "${raw}/UT_OriginalData_2024_proficiency.xlsx", sheet("Overall LEA Results") firstrow allstring clear
 
 rename SchoolYear SchYear
 rename SubjectArea Subject
@@ -250,12 +250,12 @@ rename PercentProficient ProficientOrAbove_percent
 
 keep if strpos(AssessmentType, "RISE")>0
 
-merge 1:1 DistName Subject using "${int}/UT_2023_levels_district_all.dta"
+merge 1:1 DistName Subject using "${int}/UT_2024_levels_district_all.dta"
 drop _merge
 
 gen GradeLevel=Subject +" All"
 
-append using "${int}/UT_2023_levels_district.dta"
+append using "${int}/UT_2024_levels_district.dta"
 
 foreach x of numlist 3/8 {
 	replace GradeLevel="G0`x'" if strpos(GradeLevel, "`x'")>0
@@ -273,23 +273,23 @@ foreach i of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent {
 gen StudentSubGroup="All Students"
 gen StudentGroup = "All Students"
 
-save "${int}/UT_2023_levels_district.dta", replace 
+save "${int}/UT_2024_levels_district.dta", replace 
 
 * Subgroups
-import excel "${raw}/UT_OriginalData_2023_subgroup.xlsx", sheet("LEA by Test") firstrow allstring clear
+import excel "${raw}/UT_OriginalData_2024_subgroup.xlsx", sheet("LEA by Test") firstrow allstring clear
 
 keep if strpos(AssessmentType, "RISE")>0
 
-save "${int}/UT_2023_subgroup_district.dta", replace 
+save "${int}/UT_2024_subgroup_district.dta", replace 
 
 * Append aggregated subgroup data
-import excel "${raw}/UT_OriginalData_2023_subgroup.xlsx", sheet("LEA by Subject") firstrow allstring clear
+import excel "${raw}/UT_OriginalData_2024_subgroup.xlsx", sheet("LEA by Subject") firstrow allstring clear
 drop AllStudents
 keep if strpos(AssessmentType, "RISE")>0
 
 gen TestName=SubjectArea+" All"
 
-append using "${int}/UT_2023_subgroup_district.dta"
+append using "${int}/UT_2024_subgroup_district.dta"
 
 foreach i of varlist AfAmBlack AmericanIndian Asian HispanicLatino MultipleRaces PacificIslander White LowIncome StudentswDisabilities EnglishLearners {
 	rename `i' subgroup`i'
@@ -316,11 +316,12 @@ rename AssessmentType AssmtName
 rename SchoolYear SchYear
 rename LEAName DistName
 
-save "${int}/UT_2023_subgroup_district.dta", replace 
+save "${int}/UT_2024_subgroup_district.dta", replace 
 
-append using "${int}/UT_2023_levels_district.dta"
+append using "${int}/UT_2024_levels_district.dta"
 
 replace DistName="Intech Collegiate Academy" if strpos(DistName, "InTech")>0
+replace DistName="Utah Schools for Deaf & Blind" if DistName == "Utah Schools for the Deaf and the Blind"
 
 merge m:1 DistName using "${utah}/NCES_2022_District.dta"
 drop if _merge==2
@@ -353,16 +354,16 @@ replace StudentGroup="Economic Status" if StudentSubGroup=="Economically Disadva
 replace StudentGroup="Disability Status" if StudentSubGroup=="SWD"
 
 *** Merge Enrollment Data
-merge m:1 DataLevel NCESDistrictID GradeLevel StudentSubGroup using "${raw}/UT_Enrollment_LEA_2023.dta"
+merge m:1 DataLevel NCESDistrictID GradeLevel StudentSubGroup using "${raw}/UT_Enrollment_LEA_2024.dta"
 replace StudentSubGroup_TotalTested = "--" if _merge == 1
 drop if _merge == 2
 drop _merge
-save "${int}/UT_2023_district.dta", replace 
+save "${int}/UT_2024_district.dta", replace 
 
 *** UT state ***
 * Proficiency levels
 
-import excel "${raw}/UT_OriginalData_2023_proflevels_ela_math_sci.xlsx", sheet("State Prof Levels by Test") firstrow allstring clear
+import excel "${raw}/UT_OriginalData_2024_proflevels_ela_math_sci.xlsx", sheet("State Prof Levels by Test") firstrow allstring clear
 
 rename SchoolYear SchYear
 rename TestName GradeLevel
@@ -374,9 +375,9 @@ rename HighlyProficient Lev4_percent
 
 keep if strpos(AssessmentType, "RISE")>0
 
-save "${int}/UT_2023_levels_state.dta", replace 
+save "${int}/UT_2024_levels_state.dta", replace 
 
-import excel "${raw}/UT_OriginalData_2023_proficiency.xlsx", sheet("State Results by Test") firstrow allstring clear
+import excel "${raw}/UT_OriginalData_2024_proficiency.xlsx", sheet("State Results by Test") firstrow allstring clear
 
 rename SchoolYear SchYear
 rename TestName GradeLevel
@@ -387,13 +388,13 @@ rename PercentProficient ProficientOrAbove_percent
 
 keep if strpos(AssessmentType, "RISE")>0
 
-merge 1:1 GradeLevel Subject using "${int}/UT_2023_levels_state.dta"
+merge 1:1 GradeLevel Subject using "${int}/UT_2024_levels_state.dta"
 drop _merge
 
-save "${int}/UT_2023_levels_state.dta", replace 
+save "${int}/UT_2024_levels_state.dta", replace 
 
 * Append aggregated state data
-import excel "${raw}/UT_OriginalData_2023_proflevels_ela_math_sci.xlsx", sheet("State Prof Levels by Subject") firstrow allstring clear
+import excel "${raw}/UT_OriginalData_2024_proflevels_ela_math_sci.xlsx", sheet("State Prof Levels by Subject") firstrow allstring clear
 
 rename SchoolYear SchYear
 rename SubjectArea Subject
@@ -404,9 +405,9 @@ rename HighlyProficient Lev4_percent
 
 keep if strpos(AssessmentType, "RISE")>0
 
-save "${int}/UT_2023_levels_state_all.dta", replace
+save "${int}/UT_2024_levels_state_all.dta", replace
 
-import excel "${raw}/UT_OriginalData_2023_proficiency.xlsx", sheet("Overall State Results") firstrow allstring clear
+import excel "${raw}/UT_OriginalData_2024_proficiency.xlsx", sheet("Overall State Results") firstrow allstring clear
 
 rename SchoolYear SchYear
 rename SubjectArea Subject
@@ -417,12 +418,12 @@ rename PercentProficient ProficientOrAbove_percent
 keep if strpos(AssessmentType, "RISE")>0
 drop H I J
 
-merge 1:1 Subject using "${int}/UT_2023_levels_state_all.dta"
+merge 1:1 Subject using "${int}/UT_2024_levels_state_all.dta"
 drop _merge
 
 gen GradeLevel=Subject +" All"
 
-append using "${int}/UT_2023_levels_state.dta"
+append using "${int}/UT_2024_levels_state.dta"
 
 foreach x of numlist 3/8 {
 	replace GradeLevel="G0`x'" if strpos(GradeLevel, "`x'")>0
@@ -435,17 +436,17 @@ drop if strpos(GradeLevel, "Secondary")>0
 gen StudentSubGroup="All Students"
 gen StudentGroup = "All Students"
 
-save "${int}/UT_2023_levels_state.dta", replace
+save "${int}/UT_2024_levels_state.dta", replace
 
 * Subgroups
-import excel "${raw}/UT_OriginalData_2023_subgroup.xlsx", sheet("State by Test") firstrow allstring clear
+import excel "${raw}/UT_OriginalData_2024_subgroup.xlsx", sheet("State by Test") firstrow allstring clear
 
 keep if strpos(AssessmentType, "RISE")>0
 
-save "${int}/UT_2023_subgroup_state.dta", replace 
+save "${int}/UT_2024_subgroup_state.dta", replace 
 
 * Append aggregated state data
-import excel "${raw}/UT_OriginalData_2023_subgroup.xlsx", sheet("State by Subject") firstrow allstring clear
+import excel "${raw}/UT_OriginalData_2024_subgroup.xlsx", sheet("State by Subject") firstrow allstring clear
 
 drop AllStudents
 
@@ -453,7 +454,7 @@ keep if strpos(AssessmentType, "RISE")>0
 
 gen TestName=SubjectArea+" All"
 
-append using "${int}/UT_2023_subgroup_state.dta"
+append using "${int}/UT_2024_subgroup_state.dta"
 drop AllStudents
 
 foreach i of varlist AfAmBlack AmericanIndian Asian HispanicLatino MultipleRaces PacificIslander White LowIncome StudentswDisabilities EnglishLearners {
@@ -480,9 +481,9 @@ rename SubjectArea Subject
 rename AssessmentType AssmtName
 rename SchoolYear SchYear
 
-save "${int}/UT_2023_subgroup_state.dta", replace 
+save "${int}/UT_2024_subgroup_state.dta", replace 
 
-append using "${int}/UT_2023_levels_state.dta"
+append using "${int}/UT_2024_levels_state.dta"
 
 replace Subject = "ela" if Subject == "English Language Arts"
 replace Subject = "math" if Subject == "Mathematics"
@@ -504,13 +505,14 @@ replace StudentGroup="EL Status" if StudentSubGroup=="English Learner"
 replace StudentGroup="Economic Status" if StudentSubGroup=="Economically Disadvantaged"
 replace StudentGroup="Disability Status" if StudentSubGroup=="SWD"
 
+replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == ""
+
 gen DataLevel= 1
+save "${int}/UT_2024_state.dta", replace 
 
-save "${int}/UT_2023_state.dta", replace 
+append using "${int}/UT_2024_district.dta"
 
-append using "${int}/UT_2023_district.dta"
-
-append using "${int}/UT_2023_school.dta"
+append using "${int}/UT_2024_school.dta"
 
 *** Other Cleaning
 replace AssmtName="RISE"
@@ -526,7 +528,7 @@ gen Flag_CutScoreChange_soc = "Not applicable"
 
 destring StateFips, replace force
 
-replace SchYear = "2022-23"
+replace SchYear = "2023-24"
 replace State = "Utah"
 replace StateAbbrev = "UT"
 replace StateFips = 49
@@ -660,22 +662,10 @@ gen Lev5_count = ""
 gen Lev5_percent = ""
 
 ** StudentGroup_TotalTested
-replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == ""
-replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "0"
-gen StudentGroup_TotalTested = StudentSubGroup_TotalTested
-
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-gen Suppressed = 0
-replace Suppressed = 1 if inlist(StudentSubGroup_TotalTested, "--", "*")
-egen StudentGroup_Suppressed = max(Suppressed), by(StudentGroup GradeLevel Subject DataLevel seasch StateAssignedDistID DistName SchName)
-drop Suppressed
 gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
 replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
-replace StudentGroup_TotalTested = AllStudents_Tested if StudentGroup_Suppressed == 1
-replace StudentGroup_TotalTested = AllStudents_Tested if inlist(StudentGroup, "Disability Status", "Economic Status", "EL Status")
-drop AllStudents_Tested StudentGroup_Suppressed
-replace StudentGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "--"
-replace StudentGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "*"
+gen StudentGroup_TotalTested = AllStudents_Tested
 
 ** Clean up from unmerged
 replace StateAssignedSchID = subinstr(StateAssignedSchID, "UT-", "", .) if strpos(StateAssignedSchID, "UT-") > 0
@@ -728,6 +718,6 @@ order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistric
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${output}/UT_AssmtData_2023.dta", replace
+save "${output}/UT_AssmtData_2024.dta", replace
 
-export delimited using "${output}/UT_AssmtData_2023.csv", replace
+export delimited using "${output}/UT_AssmtData_2024.csv", replace
