@@ -565,7 +565,7 @@ local sch_nomiss "SchType"
 count if DataLevel =="School" & !inlist(schtype_chk, 1)
 	if r(N)>0 {
 		di as error "SchType values DO NOT align with labeling conventions in the following files."
-		tab  SchType FILE if schtype_chk != 1 // changed from schtype_chk == 1 
+		tab  SchType FILE if schtype_chk != 1 & DataLevel=="School" // changed from schtype_chk == 1 
 
 	}
 
