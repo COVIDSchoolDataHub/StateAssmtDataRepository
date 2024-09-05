@@ -1,6 +1,6 @@
 clear
 global path "/Volumes/T7/State Test Project/South Carolina"
-global nces "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global nces "/Volumes/T7/State Test Project/NCES"
 set trace on
 
 ** Clean NCES data for SC
