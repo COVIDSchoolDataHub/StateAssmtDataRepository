@@ -234,9 +234,16 @@ drop DataLevel
 rename DataLevel_n DataLevel
 
 //Student Counts and ParticipationRate
-merge 1:1 NCESDistrictID NCESSchoolID GradeLevel Subject DataLevel StudentSubGroup using "$counts/WV_2022_counts",
+merge 1:1 NCESDistrictID NCESSchoolID GradeLevel Subject DataLevel StudentSubGroup using "$counts/WV_2024_counts",
 
 drop if _merge == 2 
+
+replace StateAbbrev = "WV" if StateAbbrev == ""
+replace StateFips = 54 if missing(StateFips)
+
+replace SchName = stritrim(SchName) // returns SchName with all consecutive, internal blanks collapsed to one blank.2
+
+replace SchName = "Mason Dixon Elementary" if NCESSchoolID == "540093000750"
 
 tostring StudentSubGroup_TotalTested StudentGroup_TotalTested, replace 
 replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
