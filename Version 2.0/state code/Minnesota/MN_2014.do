@@ -1,12 +1,12 @@
 clear
 
 // Define file paths
-/*
-global original_files "/Volumes/T7/State Test Project/Minnesota post launch/Original Data"
-global NCES_files "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
-global output_files "/Volumes/T7/State Test Project/Minnesota post launch/Output"
-global temp_files "/Volumes/T7/State Test Project/Minnesota post launch/Temp"
-*/
+
+
+global original_files "/Users/kaitlynlucas/Desktop/Minnesota State Task"
+global NCES_files "/Users/kaitlynlucas/Desktop/Minnesota State Task/NCES_MN"
+global output_files "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN Output"
+global temp_files "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN_Temp"
 
 
 // 2013-2014
@@ -229,7 +229,7 @@ gen AssmtName = "Minnesota Comprehensive Assessment III"
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_soc = ""
+gen Flag_CutScoreChange_soc = "Not Applicable"
 gen Flag_CutScoreChange_sci = "N"
 gen AssmtType = "Regular"
 gen ProficiencyCriteria = "Levels 3-4"
