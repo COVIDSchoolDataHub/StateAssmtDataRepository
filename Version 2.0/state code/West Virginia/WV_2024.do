@@ -1,27 +1,7 @@
-//Name: West Virgina 2024 State Assessment
-//purpose: Cleaning WV State Assessment Data
-//author: Mikael Oberlin
-//date created: 8/19/24
-
-
-clear all 
-set more off
-
-global Abbrev "WV"
-global NCES "/Users/mikaeloberlin/Desktop/West Virginia/counts"
-global NCES "/Users/mikaeloberlin/Desktop/West Virginia/data"
-global NCES "/Users/mikaeloberlin/Desktop//West Virginia/NCES"
-global NCES_WV "/Users/mikaeloberlin/Desktop/West Virginia/NCES_clean/"
-
-** Preparing NCES files
-
-global years 2009 2010 2011 2012 2013 2014 2015 2016 2017 2018 2019 2020 2021 2022
-
-cd "/Users/mikaeloberlin/Desktop/West Virginia/data"
-capture log close
-log using 2024_WV, replace
+//2023-2024
 import excel WV_OriginalData_2024_all.xlsx, sheet("SY24 Schl & Dist Comp. Results") clear 
 
+//Variable Names
 rename A StateAssignedDistID
 rename B DistName
 rename C StateAssignedSchID
@@ -192,9 +172,10 @@ replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Foster Care"
 replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Military-Connected"
 replace StudentSubGroup = "Military" if StudentSubGroup == "Military-Connected"
 
-save "/Users/mikaeloberlin/Desktop/West Virginia/data/WV_2024", replace
+save "$data/WV_AssmtData_2024", replace
 
-use "/Users/mikaeloberlin/Desktop/West Virginia/NCES_2022_School.dta", clear
+//Clean NCES Data
+use "$NCES/NCES_2022_School.dta", clear
 drop if state_location != "WV"
 gen StateAssignedSchID = substr(seasch, 11, 13)
 gen StateAssignedDistID = substr(state_leaid, 4, 6)
@@ -207,9 +188,10 @@ foreach var of varlist school_type SchLevel SchVirtual district_agency_type {
 	rename temp `var'
 }
 keep state_location state_fips ncesdistrictid district_agency_type county_name county_code state_leaid school_type ncesschoolid StateAssignedDistID StateAssignedSchID DistCharter SchVirtual SchLevel DistLocale
-save "/Users/mikaeloberlin/Desktop/West Virginia/NCES_clean/NCES_2024_School_WV", replace
 
-use "/Users/mikaeloberlin/Desktop/West Virginia/NCES_2022_District.dta", clear
+save "$NCES_clean/NCES_2024_School_WV", replace
+
+use "$NCES/NCES_2022_District.dta", clear
 drop if state_location != "WV"
 gen StateAssignedDistID = substr(state_leaid, 4, 6)
 replace StateAssignedDistID = substr(StateAssignedDistID, 1,2)
@@ -218,17 +200,19 @@ replace StateAssignedDistID = substr(state_leaid, strpos(state_leaid, "-") +1,3)
 drop if lea_name == "WIN Academy at BVCTC"
 replace StateAssignedDistID = "101" if lea_name == "West Virginia Academy"
 keep state_location state_fips ncesdistrictid district_agency_type county_name county_code state_leaid StateAssignedDistID DistCharter DistLocale
-save "/Users/mikaeloberlin/Desktop/West Virginia/NCES_clean/NCES_2024_District_WV.dta", replace
+save "$NCES_clean/NCES_2024_District_WV", replace
 
-use "/Users/mikaeloberlin/Desktop/West Virginia/data/WV_2024", clear
-merge m:1 StateAssignedDistID using "/Users/mikaeloberlin/Desktop/West Virginia/NCES_clean/NCES_2024_District_WV.dta"
+
+use "$data/WV_AssmtData_2023"
+merge m:1 StateAssignedDistID using "$NCES_clean/NCES_2024_District_WV.dta"
 drop if _merge ==2
 
-merge m:1 StateAssignedSchID StateAssignedDistID using "/Users/mikaeloberlin/Desktop/West Virginia/NCES_clean/NCES_2024_School_WV.dta", gen (merge2)
+merge m:1 StateAssignedSchID StateAssignedDistID using "$NCES_clean/NCES_2024_School_WV.dta", gen (merge2)
 drop if merge2 == 2
 
 drop _merge merge2
 
+//Clean Merged Data
 rename county_code CountyCode
 rename county_name CountyName
 rename district_agency_type DistType
@@ -239,15 +223,27 @@ rename state_fips_id StateFips
 rename state_leaid State_leaid
 rename state_location StateAbbrev
 
+//Charter Schools are Districts in NCES, Districts and Schools in Raw data. Schools have duplicate values as districts. Dropping here.
+drop if DataLevel == "School" & (SchName == "Eastern Panhandle Preparatory Academy" | SchName == "Virtual Preparatory Academy of West Virginia" | SchName == "West Virginia Academy" | SchName == "West Virginia Virtual Academy")
+
+//Variable Types
 label def DataLevel 1 "State" 2 "District" 3 "School"
 encode DataLevel, gen(DataLevel_n) label(DataLevel)
 sort DataLevel_n 
 drop DataLevel 
 rename DataLevel_n DataLevel
 
-merge 1:1 NCESDistrictID NCESSchoolID GradeLevel Subject DataLevel StudentSubGroup using "/Users/mikaeloberlin/Desktop/West Virginia/counts/WV_2024_counts"
+//Student Counts and ParticipationRate
+merge 1:1 NCESDistrictID NCESSchoolID GradeLevel Subject DataLevel StudentSubGroup using "$counts/WV_2024_counts",
 
 drop if _merge == 2 
+
+replace StateAbbrev = "WV" if StateAbbrev == ""
+replace StateFips = 54 if missing(StateFips)
+
+replace SchName = stritrim(SchName) // returns SchName with all consecutive, internal blanks collapsed to one blank.2
+
+replace SchName = "Mason Dixon Elementary" if NCESSchoolID == "540093000750"
 
 tostring StudentSubGroup_TotalTested StudentGroup_TotalTested, replace 
 replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
@@ -298,6 +294,7 @@ replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == "."
 
 drop Lev1_pct Lev2_pct Lev3_pct Lev4_pct Prof_pct num _merge
 
+//StudentGroup_TotalTested Convention
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 gen All_Students = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
 replace All_Students = All_Students[_n-1] if missing(All_Students)
@@ -312,8 +309,10 @@ foreach var of varlist *_percent {
 drop if StudentSubGroup_TotalTested == "--" & Lev1_percent == "--" & Lev2_percent == "--" & Lev3_percent == "--" & Lev4_percent == "--" & ProficientOrAbove_percent == "--"
 replace ParticipationRate = "--" if ParticipationRate == "."
 //Final Cleaning
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale CountyName CountyCode
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale CountyName CountyCode
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
-save  "/Users/mikaeloberlin/Desktop/West Virginia/data/WV_2024", replace
+save  "$data/WV_AssmtData_2024", replace
+export delimited "$data/WV_AssmtData_2024", replace
+clear

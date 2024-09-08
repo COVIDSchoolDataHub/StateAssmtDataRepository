@@ -2,12 +2,11 @@ clear
 
 // Define file paths
 
-/*
-global original_files "/Volumes/T7/State Test Project/Minnesota post launch/Original Data"
-global NCES_files "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
-global output_files "/Volumes/T7/State Test Project/Minnesota post launch/Output"
-global temp_files "/Volumes/T7/State Test Project/Minnesota post launch/Temp"
-*/
+
+global original_files "/Users/kaitlynlucas/Desktop/Minnesota State Task"
+global NCES_files "/Users/kaitlynlucas/Desktop/Minnesota State Task/NCES_MN"
+global output_files "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN Output"
+global temp_files "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN_Temp"
 
 
 // 1997-1998
@@ -100,6 +99,7 @@ gen Flag_CutScoreChange_math = "Y"
 *gen Flag_CutScoreChange_oth = "Y"
 gen Flag_CutScoreChange_sci = "Y"
 gen Flag_CutScoreChange_soc = ""
+replace Flag_CutScoreChange_sci = "Not Applicable"
 gen AssmtType = "Regular"
 gen StudentGroup = "All Students"
 gen StudentSubGroup = "All Students"
@@ -193,6 +193,8 @@ drop State_leaid seasch
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 // Saving and exporting transformed data
+
+replace StateFips = 27 if StateFips ==. 
 
 save "${output_files}/MN_AssmtData_1998.dta", replace
 export delimited using "$output_files/MN_AssmtData_1998.csv", replace

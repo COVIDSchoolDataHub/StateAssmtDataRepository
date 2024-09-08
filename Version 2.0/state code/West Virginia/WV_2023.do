@@ -304,6 +304,8 @@ replace StudentGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
 replace ParticipationRate = ParticipationRate1
 replace ParticipationRate = "--" if missing(ParticipationRate)
 
+replace SchName = "Mason Dixon Elementary" if NCESSchoolID == "540093000750"
+
 //Missing & Suppressed Data
 replace Lev1_percent = "--" if Lev1_percent == ""
 replace Lev2_percent = "--" if Lev2_percent == ""

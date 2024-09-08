@@ -2,20 +2,19 @@ clear
 
 // Define file paths
 
-/*
-global original_files "/Volumes/T7/State Test Project/Minnesota post launch/Original Data"
-global NCES_files "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
-global output_files "/Volumes/T7/State Test Project/Minnesota post launch/Output"
-global temp_files "/Volumes/T7/State Test Project/Minnesota post launch/Temp"
-*/
 
+global original_files "/Users/kaitlynlucas/Desktop/Minnesota State Task"
+global NCES_files "/Users/kaitlynlucas/Desktop/Minnesota State Task/NCES_MN"
+global output_files "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN Output"
+global temp_files "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN_Temp"
+/*
 
 
 // 2020-2021
 
 // Separating large subject files by datalevel sheets and combining
 // Math
-/*
+
 import excel "$original_files/MN_OriginalData_2021_mat.xlsx", sheet("State") firstrow cellrange(A2:AF194) clear
 drop CountyNumber
 drop CountyName
@@ -369,7 +368,7 @@ gen Flag_CutScoreChange_math = "N"
 *gen Flag_CutScoreChange_read = ""
 *gen Flag_CutScoreChange_oth = "N"
 gen Flag_CutScoreChange_sci = "N"
-gen Flag_CutScoreChange_soc = ""
+gen Flag_CutScoreChange_soc = "Not Applicable"
 gen AssmtType = "Regular and Alt"
 gen ProficiencyCriteria = "Levels 3-4"
 gen ParticipationRate = "--"

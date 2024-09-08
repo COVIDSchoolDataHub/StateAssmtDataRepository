@@ -9,14 +9,14 @@ This is a ReadMe for South Carolina's data cleaning process, from Spring 2016 to
 
 ## Setup
 
-There are three folders you need to create: 
-Original Data Files, Intermediate, Output.
+There are 4 folders you need to create: 
+Original Data Files, Intermediate, Output, and NCES.
 
 Download the original .xlsx files and place them into the "Original Data Files" folder. 
 
 There is 1 .do file. You can run the entire file at once.
 
-(The NCESOld file should be the most recent available NCES files.)
+(The NCES file should be the most recent available NCES files.)
 
 To include EDFacts Participation data for Version 2.0, run the EDFacts files after fully running the above do-file.
 

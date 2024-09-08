@@ -1,9 +1,9 @@
 clear
 global path "/Volumes/T7/State Test Project/South Carolina"
-global nces "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global nces "/Volumes/T7/State Test Project/NCES"
 set trace on
 
-** Clean NCES data for SC
+** Clean NCES data for SC (as of 9/5/24, the 2022 file is the most recent NCES file we have)
 
 global ncesyears 2015 2016 2017 2018 2020 2021 2022
 foreach n in $ncesyears {
@@ -551,7 +551,7 @@ foreach y in $years {
 }
 
 
-** 2024 updates 
+**  updates 
 
 global years 2016 2017 2018 2019 2021 2022 2023
 foreach y in $years {
