@@ -1,14 +1,14 @@
 clear all
 set more off
 
-cd "/Volumes/T7/State Test Project/Idaho"
+cd "/Users/miramehta/Documents"
 
 // Define file paths
 
-global original_files "/Volumes/T7/State Test Project/Idaho/Original Data"
-global NCES_files "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
-global output_files "C:/Users/hxu15/Downloads/Idaho/Output" //"/Volumes/T7/State Test Project/Idaho/Output"
-global temp_files "/Volumes/T7/State Test Project/Idaho/Temp"
+global original_files "/Users/miramehta/Documents/ID State Testing Data/Original Data"
+global NCES_files "/Users/miramehta/Documents/NCES District and School Demographics"
+global output_files "/Users/miramehta/Documents/ID State Testing Data/Output"
+global temp_files "/Users/miramehta/Documents/ID State Testing Data/Temp"
 
 // 2020-2021
 /*
@@ -164,6 +164,20 @@ replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == "." & Lev3_
 replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == "." & Lev4_percent == "--"
 drop Part
 
+foreach i in Lev1 Lev2 Lev3 Lev4 ProficientOrAbove {	
+	split `i'_percent, parse("-")
+	replace `i'_percent1 = "" if `i'_percent == `i'_percent1
+	destring `i'_percent1, replace force
+	destring `i'_percent2, replace force
+	gen `i'_count1 = round(`i'_percent1 * StudentSubGroup_TotalTested)
+	gen `i'_count2 = round(`i'_percent2 * StudentSubGroup_TotalTested)
+	tostring `i'_count1, replace
+	tostring `i'_count2, replace
+	replace `i'_count = `i'_count1 + "-" + `i'_count2 if inlist(`i'_count, "*", "--") & `i'_count1 != "." & `i'_count2 != "." & `i'_count1 != `i'_count2
+	replace `i'_count = `i'_count1 if inlist(`i'_count, "*", "--") & `i'_count1 != "." & `i'_count2 != "." & `i'_count1 == `i'_count2
+	replace `i'_count = `i'_count1 if inlist(`i'_count, "*", "--") & `i'_count1 != "." & `i'_count2 == "."
+}
+
 // Subject
 replace Subject = "ela" if Subject == "ELA"
 replace Subject = "math" if Subject == "Math"
@@ -180,25 +194,26 @@ gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_soc = "Not Applicable"
-gen Flag_CutScoreChange_sci = "N"
+gen Flag_CutScoreChange_sci = "Not Applicable"
 gen AssmtName = "ISAT"
 gen AssmtType = "Regular"
 gen state_leaid = "ID-"+StateAssignedDistID
 gen seasch = StateAssignedDistID+"-"+StateAssignedSchID
 
 // Generating + Formatting Student Group Counts
-bysort state_leaid seasch StudentGroup Grade Subject: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
-tostring StudentSubGroup_TotalTested, replace
-replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "."
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
+gen StudentGroup_TotalTested = AllStudents_Tested
 tostring StudentGroup_TotalTested, replace
-replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
+tostring StudentSubGroup_TotalTested, replace
 
 // Saving transformed data
 save "${output_files}/ID_AssmtData_2021.dta", replace
 
 // Merging with NCES School Data
 
-use "$NCES_files/NCES_2020_School.dta", clear 
+use "$NCES_files/NCES School Files, Fall 1997-Fall 2022/NCES_2020_School.dta", clear 
 
 keep state_location state_fips district_agency_type SchType ncesdistrictid state_leaid ncesschoolid seasch DistCharter SchLevel SchVirtual county_name county_code
 
@@ -212,7 +227,7 @@ save "${output_files}/ID_AssmtData_2021.dta", replace
 
 // Merging with NCES District Data
 
-use "$NCES_files/NCES_2020_District.dta", clear 
+use "$NCES_files/NCES District Files, Fall 1997-Fall 2022/NCES_2020_District.dta", clear 
 
 keep state_location state_fips district_agency_type ncesdistrictid state_leaid DistCharter DistLocale county_name county_code
 
@@ -265,6 +280,10 @@ local count = subinstr("`percent'", "percent", "count",.)
 replace `percent' = string(real(`count')/real(StudentSubGroup_TotalTested), "%9.3g") if regexm(`percent', "[*-]") !=0 & regexm(StudentSubGroup_TotalTested, "[*-]") == 0 & regexm(`count', "[-*]") == 0 
 }
 
+//Standardizing District & School Names
+replace DistName = subinstr(DistName, " INC.", ", INC.", 1) if strpos(DistName, ", INC.") <= 0 & strpos(DistName, "INC.") > 0
+replace SchName = subinstr(SchName, " INC.", ", INC.", 1) if strpos(SchName, ", INC.") <= 0 & strpos(SchName, "INC.") > 0
+
 // Reordering variables and sorting data
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
@@ -277,7 +296,7 @@ export delimited using "$output_files/ID_AssmtData_2021.csv", replace
 
 //removing blank spaces
 
-import delimited using "${output_files}/ID_AssmtData_2021.csv", case(preserve)
+import delimited using "${output_files}/ID_AssmtData_2021.csv", case(preserve) clear
 replace DistName =stritrim(DistName) // returns var with all consecutive, internal blanks collapsed to one blank.
 replace DistName =strtrim(DistName) // returns var with leading and trailing blanks removed.
 replace SchName=stritrim(SchName) // returns var with all consecutive, internal blanks collapsed to one blank.

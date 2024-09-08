@@ -383,6 +383,8 @@ import excel "${raw}/UT_OriginalData_2018_subgroup.xlsx", sheet("StateByTestAndD
 
 drop AllStudents
 
+drop if Test == ""
+
 foreach i of varlist AfAmBlack AmericanIndian Asian HispanicLatino MultipleRaces PacificIslander White LowIncome StudentswDisabilities EnglishLearners {
 	rename `i' subgroup`i'
 }
@@ -563,6 +565,19 @@ replace ProficientOrAbove_count = string(Prof1) + "-" + string(Prof2) if flag ==
 
 replace ProficientOrAbove_count = "--" if inlist(ProficientOrAbove_count, "", ".")
 replace ParticipationRate = "--" if ParticipationRate == ""
+
+gen flag_derive_pct = 1 if inlist(ProficientOrAbove_percent, "*", "--") & !inlist(Lev3_percent, "*", "--") & !inlist(Lev4_percent, "*", "--")
+destring Lev3_percent, gen(pct3) force
+destring Lev4_percent, gen(pct4) force
+gen derived_pct = pct3 + pct4
+tostring derived_pct, replace format("%9.2g") force
+replace ProficientOrAbove_percent = derived_pct if flag_derive_pct == 1
+
+gen flag_derive_count = 1 if inlist(ProficientOrAbove_count, "*", "--") & !inlist(Lev3_count, "*", "--") & !inlist(Lev4_count, "*", "--")
+destring Lev3_count, gen(count3) force
+destring Lev4_count, gen(count4) force
+gen derived_count = count3 + count4
+replace ProficientOrAbove_count = string(round(derived_count)) if flag_derive_count == 1
 
 gen Lev5_count = ""
 gen Lev5_percent = ""

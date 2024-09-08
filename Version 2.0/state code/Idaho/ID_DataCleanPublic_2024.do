@@ -1,14 +1,13 @@
 clear all
 set more off
-cd "C:/Users/hxu15/Downloads/Idaho"
-
+cd "/Users/miramehta/Documents"
 
 // Define file paths
 
-global original_files "C:/Users/hxu15/Downloads/Idaho/OriginalData" //"/Volumes/T7/State Test Project/Idaho/Original Data"
-global NCES_files "C:/Users/hxu15/Downloads/Idaho/NCES" //"/Volumes/T7/State Test Project/NCES/NCES_Feb_2024" //waiting on files
-global output_files "C:/Users/hxu15/Downloads/Idaho/Output" //"/Volumes/T7/State Test Project/Idaho/Output"
-global temp_files "C:/Users/hxu15/Downloads/Idaho/Temp" // "/Volumes/T7/State Test Project/Idaho/Temp"
+global original_files "/Users/miramehta/Documents/ID State Testing Data/Original Data"
+global NCES_files "/Users/miramehta/Documents/NCES District and School Demographics"
+global output_files "/Users/miramehta/Documents/ID State Testing Data/Output"
+global temp_files "/Users/miramehta/Documents/ID State Testing Data/Temp"
 
 // 2023-2024
 
@@ -164,6 +163,20 @@ replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == "." & Lev3_
 replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == "." & Lev4_percent == "--"
 drop Part
 
+foreach i in Lev1 Lev2 Lev3 Lev4 ProficientOrAbove {	
+	split `i'_percent, parse("-")
+	replace `i'_percent1 = "" if `i'_percent == `i'_percent1
+	destring `i'_percent1, replace force
+	destring `i'_percent2, replace force
+	gen `i'_count1 = round(`i'_percent1 * StudentSubGroup_TotalTested)
+	gen `i'_count2 = round(`i'_percent2 * StudentSubGroup_TotalTested)
+	tostring `i'_count1, replace
+	tostring `i'_count2, replace
+	replace `i'_count = `i'_count1 + "-" + `i'_count2 if inlist(`i'_count, "*", "--") & `i'_count1 != "." & `i'_count2 != "." & `i'_count1 != `i'_count2
+	replace `i'_count = `i'_count1 if inlist(`i'_count, "*", "--") & `i'_count1 != "." & `i'_count2 != "." & `i'_count1 == `i'_count2
+	replace `i'_count = `i'_count1 if inlist(`i'_count, "*", "--") & `i'_count1 != "." & `i'_count2 == "."
+}
+
 // Subject
 replace Subject = "ela" if Subject == "ELA"
 replace Subject = "math" if Subject == "Math"
@@ -187,20 +200,20 @@ gen State_leaid = "ID-"+StateAssignedDistID
 gen seasch = StateAssignedDistID+"-"+StateAssignedSchID
 
 // Generating + Formatting Student Group Counts
-bysort State_leaid seasch StudentGroup Grade Subject: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
 tostring StudentSubGroup_TotalTested, replace
-replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "."
+replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
+gen StudentGroup_TotalTested = AllStudents_Tested
 tostring StudentGroup_TotalTested, replace
-replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
-
-
 
 // Saving transformed data
 save "${output_files}/ID_AssmtData_2024.dta", replace
 
 // Merging with NCES District Data
 
-use "${NCES_files}/NCES_2022_District.dta" 
+use "${NCES_files}/NCES District Files, Fall 1997-Fall 2022/NCES_2022_District.dta" 
 
 rename state_leaid State_leaid
 keep state_location state_fips district_agency_type ncesdistrictid State_leaid DistCharter DistLocale county_name county_code
@@ -216,7 +229,7 @@ save "${output_files}/ID_AssmtData_2024.dta", replace
 
 // Merging with NCES School Data
 
-use "${NCES_files}/NCES_2022_School.dta" 
+use "${NCES_files}/NCES School Files, Fall 1997-Fall 2022/NCES_2022_School.dta" 
 rename state_leaid State_leaid
 keep state_location state_fips district_agency_type school_type ncesdistrictid State_leaid ncesschoolid seasch DistCharter SchLevel SchVirtual county_name county_code
 decode district_agency_type, gen(temp)
@@ -314,32 +327,8 @@ save "${output_files}/ID_AssmtData_2024.dta", replace
 
 // merging with NCES new schools
 
-import excel "C:/Users/hxu15/Downloads/Idaho/NCES/Idaho 2024 new schools.xlsx", firstrow allstring clear
+import excel "${original_files}/Idaho 2024 new schools.xlsx", firstrow allstring clear
 
-/*keep state_location state_fips district_agency_type school_type ncesdistrictid State_leaid ncesschoolid seasch DistCharter SchLevel SchVirtual county_name county_code
-decode district_agency_type, gen(temp)
-drop district_agency_type
-rename temp district_agency_type
-
-drop if seasch == ""
-
-keep if substr(ncesschoolid, 1, 2) == "16"
-*/
-/*
-encode SchVirtual, generate(schvirtu)
-drop SchVirtual
-rename schvirtu SchVirtual 
-
-encode SchLevel, generate(schlev)
-drop SchLevel
-rename schlev SchLevel
-
-encode school_type, generate(schtype)
-drop school_type
-rename schtype school_type 
-
-recast byte SchVirtual SchLevel school_type, force
- */
 label def DataLevel 1 "State" 2 "District" 3 "School"
 encode DataLevel, gen(DataLevel_n) label(DataLevel)
 drop DataLevel
@@ -348,12 +337,10 @@ rename DataLevel_n DataLevel
 
 merge 1:m seasch using "${output_files}/ID_AssmtData_2024.dta"
 
-keep if _merge == 2 | _merge == 3
 drop _merge
 
 
 save "${output_files}/ID_AssmtData_2024.dta", replace
-*/
 
 
 
@@ -361,16 +348,14 @@ save "${output_files}/ID_AssmtData_2024.dta", replace
 rename district_agency_type DistType
 rename ncesschoolid NCESSchoolID
 rename ncesdistrictid NCESDistrictID
-rename state_location StateAbbrev
 rename county_code CountyCode
-rename state_fips StateFips
 rename county_name CountyName
 rename school_type SchType
-keep State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+keep State SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc
 
 // Fixing missing state data
-replace StateAbbrev = "ID" if DataLevel == 1
-replace StateFips = 16 if DataLevel == 1
+gen StateAbbrev = "ID"
+gen StateFips = 16
 replace DistName = "All Districts" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel == 2
@@ -394,11 +379,18 @@ replace DistName =stritrim(DistName) // returns var with all consecutive, intern
 replace DistName =strtrim(DistName) // returns var with leading and trailing blanks removed.
 replace SchName=stritrim(SchName) // returns var with all consecutive, internal blanks collapsed to one blank.
 replace SchName=strtrim(SchName) // returns var with leading and trailing blanks removed
-replace SchType =stritrim(SchType)
 
+//Cleaning up NCES Data
+replace SchType =stritrim(SchType)
 replace SchType = "" if SchType == "."
 replace SchType = "Special education school" if SchType == "Special Education school"
+replace SchLevel = "" if SchLevel == "." & SchName == "All Schools"
+replace SchVirtual = "" if SchVirtual == "." & SchName == "All Schools"
+replace SchVirtual = "Missing/not reported" if SchVirtual == "." & SchName != "All Schools"
 
+//Removing leading zeroes in District IDs
+replace StateAssignedDistID = subinstr(StateAssignedDistID, "0", "", 1) if strpos(StateAssignedDistID, "0") == 1
+replace StateAssignedSchID = subinstr(StateAssignedSchID, "0", "", 1) if strpos(StateAssignedSchID, "0") == 1
 
 // Reordering variables and sorting data
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode

@@ -667,6 +667,9 @@ gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All 
 replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
 gen StudentGroup_TotalTested = AllStudents_Tested
 
+drop if StudentGroup_TotalTested == "0" & inlist(ProficientOrAbove_percent, "*", "--")
+replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested == "0"
+
 ** Clean up from unmerged
 replace StateAssignedSchID = subinstr(StateAssignedSchID, "UT-", "", .) if strpos(StateAssignedSchID, "UT-") > 0
 replace StateAssignedDistID = "UT-" + StateAssignedDistID if strpos(StateAssignedDistID, "UT-") <= 0 & DataLevel != 1
