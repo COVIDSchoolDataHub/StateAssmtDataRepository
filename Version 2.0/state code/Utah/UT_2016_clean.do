@@ -63,8 +63,8 @@ replace SchName="Tsebiinidzisgai School" if strpos(SchName, "Tse'Bii")>0
 replace SchName="The Center for Creativity Innovation and Discovery" if strpos(SchName, "Innovation")>0
 replace DistName="The Center for Creativity Innovation and Discovery" if strpos(SchName, "Innovation")>0
 
-replace SchName="Minersville School (Middle)" if SchName=="Minersville School" & (GradeLevel=="G03" | GradeLevel=="G04" | GradeLevel=="G05")
-replace SchName="Minersville School (Primary)" if SchName=="Minersville School" & (GradeLevel=="G06" | GradeLevel=="G07" | GradeLevel=="G08")
+replace SchName="Minersville School (Primary)" if SchName=="Minersville School" & (GradeLevel=="G03" | GradeLevel=="G04" | GradeLevel=="G05")
+replace SchName="Minersville School (Middle)" if SchName=="Minersville School" & (GradeLevel=="G06" | GradeLevel=="G07" | GradeLevel=="G08")
 replace SchName="Canyon View School (Middle)" if SchName=="Canyon View School" & inlist(GradeLevel, "GO6", "G07", "G08")
 replace SchName="Canyon View School (Primary)" if SchName=="Canyon View School" & inlist(GradeLevel, "G03", "G04", "G05")
 replace SchName="San Rafael Middle School" if SchName == "San Rafael Jr High"
@@ -514,7 +514,8 @@ gen ProficientOrAbove_count2 = round(ProficientOrAbove_percent2 * Count_n)
 tostring ProficientOrAbove_count1, replace
 tostring ProficientOrAbove_count2, replace
 replace ProficientOrAbove_count1 = "" if ProficientOrAbove_count1 == "."
-replace ProficientOrAbove_count = ProficientOrAbove_count1 + "-" + ProficientOrAbove_count2 if ProficientOrAbove_count1 != "" & ProficientOrAbove_count2 != "."
+replace ProficientOrAbove_count = ProficientOrAbove_count1 + "-" + ProficientOrAbove_count2 if ProficientOrAbove_count1 != "" & ProficientOrAbove_count2 != "." & ProficientOrAbove_count1 != ProficientOrAbove_count2
+replace ProficientOrAbove_count = ProficientOrAbove_count1 if ProficientOrAbove_count1 != "" & ProficientOrAbove_count == ProficientOrAbove_count2
 tostring ProficientOrAbove_percent1, replace format("%9.2g") force
 tostring ProficientOrAbove_percent2, replace format("%9.2g") force
 replace ProficientOrAbove_percent = ProficientOrAbove_percent1 + "-" + ProficientOrAbove_percent2 if !inlist(ProficientOrAbove_percent1, "", ".")
@@ -545,27 +546,14 @@ gen Lev5_count = ""
 gen Lev5_percent = ""
 
 ** StudentGroup_TotalTested
-replace Count_n = 0 if Count_n == .
-bysort State_leaid seasch StudentGroup GradeLevel Subject: egen test = min(Count_n)
-bysort State_leaid seasch StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = sum(Count_n) if test != 0
-tostring Count_n, replace force
-replace Count_n = "--" if Count_n == "."
-drop Count_n test
-tostring StudentGroup_TotalTested, replace
-replace StudentGroup_TotalTested = "--" if inlist(StudentGroup_TotalTested, "", ".")
-
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-gen Suppressed = 0
-replace Suppressed = 1 if inlist(StudentSubGroup_TotalTested, "--", "*")
-egen StudentGroup_Suppressed = max(Suppressed), by(StudentGroup GradeLevel Subject DataLevel seasch StateAssignedDistID DistName SchName)
-drop Suppressed
 gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
 replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
-replace StudentGroup_TotalTested = AllStudents_Tested if StudentGroup_Suppressed == 1
-replace StudentGroup_TotalTested = AllStudents_Tested if inlist(StudentGroup, "Disability Status", "Economic Status", "EL Status")
-drop AllStudents_Tested StudentGroup_Suppressed
-replace StudentGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "--"
-replace StudentGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "*"
+gen StudentGroup_TotalTested = AllStudents_Tested
+
+drop if StudentGroup_TotalTested == "0" & inlist(ProficientOrAbove_percent, "*", "--")
+replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested == "0"
+replace StudentSubGroup_TotalTested = "--" if StudentGroup_TotalTested == "--" & StudentGroup == "All Students"
 
 *** Cleaning Inconsistent School & District Names
 merge m:m SchYear NCESSchoolID NCESDistrictID using "${raw}/ut_full-dist-sch-stable-list_through2023.dta"

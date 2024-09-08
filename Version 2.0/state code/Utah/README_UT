@@ -1,8 +1,8 @@
 
 # Utah Data Cleaning
 
-This is a ReadMe for Utah's data cleaning process, from 2014 to 2023.
-* Note that 2020 is excluded, as MO did not administer spring tests during that year due to COVID.
+This is a ReadMe for Utah's data cleaning process, from 2014 to 2024.
+* Note that 2020 is excluded, as UT did not administer spring tests during that year due to COVID.
 
 
 ## Setup
@@ -14,10 +14,10 @@ Download the original excel files (including the enrollment data and unmerged sc
 Also create an Intermediate subfolder and an Output subfolder of the UT State Testing Data folder to which to save intermediate and cleaned files.
 The EdFacts folder should have subfolders for each year from 2014 to 2021.  Save original EdFacts files into the appropriate folder here.
 
-There are 12 .do files.
+There are 13 .do files.
 You should run "UT_NCES_clean.do" first to clean NCES files and convert the unmerged school file to .dta format.
-Then run "UT_edfacts_clean.do" to clean the EdFacts data, and then run "UT_Enrollment_22_23_clean.do" to obtain student counts.
-The other nine files are for each year of data and can be run in any order you choose.
+Then run "UT_edfacts_clean.do" to clean the EdFacts data, and then run "UT_Enrollment_22_24_clean.do" to obtain student counts.
+The other 10 files are for each year of data and can be run in any order you choose.
 
 ## File Path
 
@@ -45,3 +45,5 @@ global edfacts "/Users/miramehta/Documents/EdFacts"
 04/19/2024: Updated to match new StudentGroup_TotalTested convention, address issues in merging, and correct issue with derived performance counts at the state level.
 
 05/01/2024: Updated to fix inconsistent school names across years.
+
+09/08/2024: Updated to include 2024 data and match version 2.0 conventions (e.g. StudentGroup_TotalTested values).

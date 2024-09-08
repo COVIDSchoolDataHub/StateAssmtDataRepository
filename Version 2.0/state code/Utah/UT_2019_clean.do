@@ -151,8 +151,8 @@ append using "${int}/UT_2019_levels_school.dta"
 replace SchName=strproper(SchName)
 replace DistName=strproper(DistName)
 
-replace SchName="Minersville School (Middle)" if SchName=="Minersville School" & (GradeLevel=="G03" | GradeLevel=="G04" | GradeLevel=="G05")
-replace SchName="Minersville School (Primary)" if SchName=="Minersville School" & (GradeLevel=="G06" | GradeLevel=="G07" | GradeLevel=="G08")
+replace SchName="Minersville School (Primary)" if SchName=="Minersville School" & (GradeLevel=="G03" | GradeLevel=="G04" | GradeLevel=="G05")
+replace SchName="Minersville School (Middle)" if SchName=="Minersville School" & (GradeLevel=="G06" | GradeLevel=="G07" | GradeLevel=="G08")
 
 replace SchName= "Canyon View School (Primary)" if SchName == "Canyon View School"
 
@@ -725,8 +725,8 @@ split ProficientOrAbove_percent, parse("-")
 replace ProficientOrAbove_percent1 = "" if ProficientOrAbove_percent == ProficientOrAbove_percent1
 destring ProficientOrAbove_percent1, replace force
 destring ProficientOrAbove_percent2, replace force
-replace ProficientOrAbove_percent1 = ProficientOrAbove_percent1/100 if Above == 0 & Below == 0
-replace ProficientOrAbove_percent2 = ProficientOrAbove_percent2/100 if Above == 0 & Below == 0
+replace ProficientOrAbove_percent1 = ProficientOrAbove_percent1/100 if ProficientOrAbove_percent1!= 0 & ProficientOrAbove_percent2 != 1
+replace ProficientOrAbove_percent2 = ProficientOrAbove_percent2/100 if ProficientOrAbove_percent1 != 0 & ProficientOrAbove_percent2 != 1
 gen ProficientOrAbove_count1 = round(ProficientOrAbove_percent1 * Count_n)
 gen ProficientOrAbove_count2 = round(ProficientOrAbove_percent2 * Count_n)
 tostring ProficientOrAbove_count1, replace
@@ -758,28 +758,14 @@ replace SchName="Canyon View School" if SchName == "Canyon View School (Primary)
 replace StateAssignedSchID = subinstr(StateAssignedSchID, "UT-", "", .) if strpos(StateAssignedSchID, "UT-") > 0
 
 ** StudentGroup_TotalTested
-replace Count_n = 0 if Count_n == .
-bysort State_leaid seasch StudentGroup GradeLevel Subject: egen test = min(Count_n)
-bysort State_leaid seasch StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = sum(Count_n) if test != 0
-tostring Count_n, replace force
-replace Count_n = "--" if Count_n == "."
-drop Count_n test
-tostring StudentGroup_TotalTested, replace
-replace StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
-replace StudentGroup_TotalTested = "--" if inlist(StudentGroup_TotalTested, "", ".")
-
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-gen Suppressed = 0
-replace Suppressed = 1 if inlist(StudentSubGroup_TotalTested, "--", "*")
-egen StudentGroup_Suppressed = max(Suppressed), by(StudentGroup GradeLevel Subject DataLevel seasch StateAssignedDistID DistName SchName)
-drop Suppressed
 gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
 replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
-replace StudentGroup_TotalTested = AllStudents_Tested if StudentGroup_Suppressed == 1
-replace StudentGroup_TotalTested = AllStudents_Tested if inlist(StudentGroup, "Disability Status", "Economic Status", "EL Status")
-drop AllStudents_Tested StudentGroup_Suppressed
-replace StudentGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "--"
-replace StudentGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "*"
+gen StudentGroup_TotalTested = AllStudents_Tested
+
+drop if StudentGroup_TotalTested == "0" & inlist(ProficientOrAbove_percent, "*", "--")
+replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested == "0"
+replace StudentSubGroup_TotalTested = "--" if StudentGroup_TotalTested == "--" & StudentGroup == "All Students"
 
 ** Cleaning up from unmerged
 gen flag = 1 if inlist(SchName, "East School", "Legacy School")

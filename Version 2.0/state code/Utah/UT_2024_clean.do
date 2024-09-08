@@ -148,14 +148,26 @@ save "${int}/UT_2024_subgroup_school.dta", replace
 append using "${int}/UT_2024_levels_school.dta"
 drop _merge
 
-replace DistName="Intech Collegiate Academy" if strpos(DistName, "InTech")>0
+replace SchName = "Minersville School (Primary)" if SchName=="Minersville School" & (GradeLevel=="G03" | GradeLevel=="G04" | GradeLevel=="G05")
+replace SchName = "Minersville School (Middle)" if SchName=="Minersville School" & (GradeLevel=="G06" | GradeLevel=="G07" | GradeLevel=="G08" | GradeLevel == "G38")
+replace DistName = "Intech Collegiate Academy" if strpos(DistName, "InTech")>0
 replace SchName = strtrim(SchName)
+replace DistName = "Utah Schools for Deaf & Blind" if DistName == "Utah Schools for the Deaf and the Blind"
+replace SchName = "Parleys Park School" if SchName == "Parley's Park School"
+replace SchName = "Mcpolin School" if SchName == "McPolin School"
+replace SchName = "Dixon Middle" if SchName == "Shoreline Middle School"
+drop if SchName == "Private School (Vanguard Academy)" //private school, so not applicable
 
 merge m:1 SchName DistName using "${utah}/NCES_2022_School.dta"
 
+replace SchName = "Parley's Park School" if SchName == "Parleys Park School"
+replace SchName = "McPolin School" if SchName == "Mcpolin School"
+replace SchName = "Minersville School" if strpos(SchName, "Minersville School") > 0
+replace SchName = "Schoreline Middle School" if SchName == "Dixon Middle"
+
 gen DataLevel=3
 
-drop if _merge!= 3
+drop if _merge == 2
 drop _merge 
 
 gen StateAssignedDistID = State_leaid
@@ -669,6 +681,7 @@ gen StudentGroup_TotalTested = AllStudents_Tested
 
 drop if StudentGroup_TotalTested == "0" & inlist(ProficientOrAbove_percent, "*", "--")
 replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested == "0"
+replace StudentSubGroup_TotalTested = "--" if StudentGroup_TotalTested == "--" & StudentGroup == "All Students"
 
 ** Clean up from unmerged
 replace StateAssignedSchID = subinstr(StateAssignedSchID, "UT-", "", .) if strpos(StateAssignedSchID, "UT-") > 0
@@ -678,6 +691,57 @@ gen flag = 1 if inlist(SchName, "East School", "Legacy School")
 replace SchName = SchName + " (" + DistName + ")" if flag == 1
 replace SchName = subinstr(SchName, " District", "", 1) if flag == 1
 drop flag
+
+replace CountyCode="49049" if strpos(DistName, "Alpine")>0 & CountyCode == ""
+replace CountyName="Utah County" if strpos(DistName, "Alpine")>0 & CountyName == ""
+replace DistType="Regular local school district" if strpos(DistName, "Alpine")>0 & DistType == ""
+replace NCESDistrictID="4900030" if strpos(DistName, "Alpine")>0 & NCESDistrictID == ""
+replace StateAssignedDistID="UT-01" if strpos(DistName, "Alpine")>0 & StateAssignedDistID == ""
+replace DistCharter="No" if strpos(DistName, "Alpine")>0 & DistCharter == ""
+replace DistLocale="Suburb, large" if strpos(DistName, "Alpine")>0 & DistLocale == ""
+
+replace CountyCode="49001" if strpos(DistName, "Beaver")>0 & CountyCode == ""
+replace CountyName="Beaver County" if strpos(DistName, "Beaver")>0 & CountyName == ""
+replace DistType="Regular local school district" if strpos(DistName, "Beaver")>0 & DistType == ""
+replace NCESDistrictID="4900060" if strpos(DistName, "Beaver")>0 & NCESDistrictID == ""
+replace StateAssignedDistID="UT-02" if strpos(DistName, "Beaver")>0 & StateAssignedDistID == ""
+replace DistCharter="No" if strpos(DistName, "Beaver")>0 & DistCharter == ""
+replace DistLocale="Town, remote" if strpos(DistName, "Beaver")>0 & DistLocale == ""
+
+replace CountyCode="49049" if strpos(DistName, "John Hancock")>0 & CountyCode == ""
+replace CountyName="Utah County" if strpos(DistName, "John Hancock")>0 & CountyName == ""
+replace DistType="Charter agency" if strpos(DistName, "John Hancock")>0 & DistType == ""
+replace NCESDistrictID="4900014" if strpos(DistName, "John Hancock")>0 & NCESDistrictID == ""
+replace StateAssignedDistID="UT-93" if strpos(DistName, "John Hancock")>0 & StateAssignedDistID == ""
+replace DistCharter="Yes" if strpos(DistName, "John Hancock")>0 & DistCharter == ""
+replace DistLocale="Suburb, large" if strpos(DistName, "John Hancock")>0 & DistLocale == ""
+
+replace CountyCode="49057" if strpos(DistName, "Weber")>0 & CountyCode == ""
+replace CountyName="Weber County" if strpos(DistName, "Weber")>0 & CountyName == ""
+replace DistType="Regular local school district" if strpos(DistName, "Weber")>0 & DistType == ""
+replace NCESDistrictID="4901200" if strpos(DistName, "Weber")>0 & NCESDistrictID == ""
+replace StateAssignedDistID="UT-35" if strpos(DistName, "Weber")>0 & StateAssignedDistID == ""
+replace DistCharter="No" if strpos(DistName, "Weber")>0 & DistCharter == ""
+replace DistLocale="Suburb, large" if strpos(DistName, "Weber")>0 & DistLocale == ""
+
+** Add Information for 2024 New Schools
+replace NCESSchoolID = "490003001640" if SchName == "Desert Sky" & DistName == "Alpine District"
+replace StateAssignedSchID = "01-01110" if SchName == "Desert Sky" & DistName == "Alpine District"
+replace SchType = 1 if SchName == "Desert Sky" & DistName == "Alpine District"
+replace SchLevel = 1 if SchName == "Desert Sky" & DistName == "Alpine District"
+replace SchVirtual = -1 if SchName == "Desert Sky" & DistName == "Alpine District"
+
+replace NCESSchoolID = "490001401653" if SchName == "John Hancock Charters School Eagle Mountain" & DistName == "John Hancock Charter School"
+replace StateAssignedSchID = "93-93110" if SchName == "John Hancock Charters School Eagle Mountain" & DistName == "John Hancock Charter School"
+replace SchType = 1 if SchName == "John Hancock Charters School Eagle Mountain" & DistName == "John Hancock Charter School"
+replace SchLevel = 4 if SchName == "John Hancock Charters School Eagle Mountain" & DistName == "John Hancock Charter School"
+replace SchVirtual = -1 if SchName == "John Hancock Charters School Eagle Mountain" & DistName == "John Hancock Charter School"
+
+replace NCESSchoolID = "490120000966" if SchName == "Canyon View School" & DistName == "Weber District"
+replace StateAssignedSchID = "35-35180" if SchName == "Canyon View School" & DistName == "Weber District"
+replace SchType = 2 if SchName == "Canyon View School" & DistName == "Weber District"
+replace SchLevel = 1 if SchName == "Canyon View School" & DistName == "Weber District"
+replace SchVirtual = -1 if SchName == "Canyon View School" & DistName == "Weber District"
 
 *** Cleaning Inconsistent School & District Names
 merge m:m SchYear NCESSchoolID NCESDistrictID using "${raw}/ut_full-dist-sch-stable-list_through2023.dta"

@@ -71,8 +71,8 @@ replace SchName="Tsebiinidzisgai School" if strpos(SchName, "Tse'Bii")>0
 replace SchName="The Center for Creativity Innovation and Discovery" if strpos(SchName, "Innovation")>0
 replace DistName="The Center for Creativity Innovation and Discovery" if strpos(SchName, "Innovation")>0
 
-replace SchName="Minersville School (Middle)" if SchName=="Minersville School" & (GradeLevel=="G03" | GradeLevel=="G04" | GradeLevel=="G05")
-replace SchName="Minersville School (Primary)" if SchName=="Minersville School" & (GradeLevel=="G06" | GradeLevel=="G07" | GradeLevel=="G08")
+replace SchName="Minersville School (Primary)" if SchName=="Minersville School" & (GradeLevel=="G03" | GradeLevel=="G04" | GradeLevel=="G05")
+replace SchName="Minersville School (Middle)" if SchName=="Minersville School" & (GradeLevel=="G06" | GradeLevel=="G07" | GradeLevel=="G08")
 replace SchName="Canyon View School (Middle)" if SchName=="Canyon View School" & inlist(GradeLevel, "GO6", "G07", "G08")
 replace SchName="Canyon View School (Primary)" if SchName=="Canyon View School" & inlist(GradeLevel, "G03", "G04", "G05")
 replace DistName = "American Preparatory Academy--Lea" if DistName == "American Preparatory Academy"
@@ -326,9 +326,10 @@ gen AvgScaleScore = "--"
 gen ProficiencyCriteria = "Levels 3-4"
 
 gen Flag_AssmtNameChange = "Y"
+replace Flag_AssmtNameChange = "N" if Subject == "sci"
 gen Flag_CutScoreChange_ELA = "Y"
 gen Flag_CutScoreChange_math = "Y"
-gen Flag_CutScoreChange_sci = "Y"
+gen Flag_CutScoreChange_sci = "N"
 gen Flag_CutScoreChange_soc = "Not applicable"
 
 replace SchYear = "2013-14"
@@ -440,15 +441,14 @@ gen Lev5_count = ""
 gen Lev5_percent = ""
 
 ** StudentGroup_TotalTested
-replace Count_n = 0 if Count_n == .
-bysort State_leaid seasch StudentGroup GradeLevel Subject: egen test = min(Count_n)
-bysort State_leaid seasch StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = sum(Count_n) if test != 0
-tostring Count_n, replace force
-replace Count_n = "--" if Count_n == "."
-replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == ""
-drop Count_n test
-tostring StudentGroup_TotalTested, replace
-replace StudentGroup_TotalTested = "--" if inlist(StudentGroup_TotalTested, "", ".")
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
+gen StudentGroup_TotalTested = AllStudents_Tested
+
+drop if StudentGroup_TotalTested == "0" & inlist(ProficientOrAbove_percent, "*", "--")
+replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested == "0"
+replace StudentSubGroup_TotalTested = "--" if StudentGroup_TotalTested == "--" & StudentGroup == "All Students"
 
 ** Cleaning up from unmerged
 replace CountyName = "Utah County" if SchName == "Liberty Academy" & CountyName == ""

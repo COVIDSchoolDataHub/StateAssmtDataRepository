@@ -98,8 +98,8 @@ replace SchName="Kays Creek Elementary" if strpos(SchName, "Kay's")>0
 replace SchName="TseBiiNidzisgai School" if strpos(SchName, "Tse'Bii")>0
 replace SchName="Laverkin School" if strpos(SchName, "La Verkin")>0
 
-replace SchName="Minersville School (Middle)" if SchName=="Minersville School" & (GradeLevel=="G03" | GradeLevel=="G04" | GradeLevel=="G05")
-replace SchName="Minersville School (Primary)" if SchName=="Minersville School" & (GradeLevel=="G06" | GradeLevel=="G07" | GradeLevel=="G08")
+replace SchName="Minersville School (Primary)" if SchName=="Minersville School" & (GradeLevel=="G03" | GradeLevel=="G04" | GradeLevel=="G05")
+replace SchName="Minersville School (Middle)" if SchName=="Minersville School" & (GradeLevel=="G06" | GradeLevel=="G07" | GradeLevel=="G08")
 replace SchName="Canyon View School (Middle)" if SchName=="Canyon View School" & inlist(GradeLevel, "GO6", "G07", "G08")
 replace SchName="Canyon View School (Primary)" if SchName=="Canyon View School" & inlist(GradeLevel, "G03", "G04", "G05")
 replace SchName = strproper(SchName)
@@ -459,6 +459,7 @@ gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_sci = "N"
+replace Flag_CutScoreChange_sci = "Y" if inlist(GradeLevel, "G06", "G07", "G08", "G38")
 gen Flag_CutScoreChange_soc = "Not applicable"
 
 replace SchYear = "2017-18"
@@ -583,28 +584,14 @@ gen Lev5_count = ""
 gen Lev5_percent = ""
 
 ** StudentGroup_TotalTested
-replace Count_n = 0 if Count_n == .
-bysort State_leaid seasch StudentGroup GradeLevel Subject: egen test = min(Count_n)
-bysort State_leaid seasch StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = sum(Count_n) if test != 0
-tostring Count_n, replace force
-replace Count_n = "--" if Count_n == "."
-drop Count_n test
-tostring StudentGroup_TotalTested, replace
-replace StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
-replace StudentGroup_TotalTested = "--" if inlist(StudentGroup_TotalTested, "", ".")
-
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-gen Suppressed = 0
-replace Suppressed = 1 if inlist(StudentSubGroup_TotalTested, "--", "*")
-egen StudentGroup_Suppressed = max(Suppressed), by(StudentGroup GradeLevel Subject DataLevel seasch StateAssignedDistID DistName SchName)
-drop Suppressed
 gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
 replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
-replace StudentGroup_TotalTested = AllStudents_Tested if StudentGroup_Suppressed == 1
-replace StudentGroup_TotalTested = AllStudents_Tested if inlist(StudentGroup, "Disability Status", "Economic Status", "EL Status")
-drop AllStudents_Tested StudentGroup_Suppressed
-replace StudentGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "--"
-replace StudentGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "*"
+gen StudentGroup_TotalTested = AllStudents_Tested
+
+drop if StudentGroup_TotalTested == "0" & inlist(ProficientOrAbove_percent, "*", "--")
+replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested == "0"
+replace StudentSubGroup_TotalTested = "--" if StudentGroup_TotalTested == "--" & StudentGroup == "All Students"
 
 ** Cleaning up from unmerged
 
@@ -627,6 +614,10 @@ replace SchName="Canyon View School" if strpos(SchName, "Canyon View")>0
 replace SchLevel="Missing/not reported" if SchName=="North Sanpete Special Purpose School"
 replace SchType="Missing/not reported" if SchName=="North Sanpete Special Purpose School"
 replace SchVirtual="Missing/not reported" if SchName=="North Sanpete Special Purpose School"
+
+replace SchType = "Other/alternative school" if NCESSchoolID== "490066001431"
+replace SchLevel= "Other" if NCESSchoolID== "490066001431"
+replace SchVirtual = "No" if NCESSchoolID== "490066001431"
 
 gen flag = 1 if inlist(SchName, "East School", "Legacy School")
 replace SchName = SchName + " (" + DistName + ")" if flag == 1
