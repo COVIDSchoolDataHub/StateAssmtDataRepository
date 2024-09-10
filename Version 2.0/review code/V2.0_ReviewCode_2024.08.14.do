@@ -3124,15 +3124,12 @@ foreach var of local part_nomiss {
 local part "ParticipationRate"
 
 foreach var of local part {
-	count if real(`var') < 0 & !missing(real(`var'))
+	count if (real(`var') < 0 | real(`var') > 1.01) & !missing(real(`var'))
 	if r(N) !=0 {
-		di as error "`var' has negative values in the files below."
-		tab `var' FILE if real(`var') < 0 & !missing(real(`var'))
+		di as error "`var' has values greater than 1 or less than 0 in the files below."
+		tab `var' FILE if (real(`var') < 0 | real(`var') > 1.01) & !missing(real(`var'))
 	} 
 }
-
-
-**********************************************************
 ** ParticipationRate 
 
 ** • Have ParticipationRate values across years been reviewed to ensure that irregularities have already been flagged?
