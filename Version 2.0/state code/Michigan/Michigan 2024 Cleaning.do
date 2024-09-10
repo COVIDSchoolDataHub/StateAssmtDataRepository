@@ -6,7 +6,7 @@ global NCES "/Volumes/T7/State Test Project/Michigan/NCES"
 
 cd "/Volumes/T7/State Test Project/Michigan"
 
-use "${output}/MI_AssmtData_2019_all.dta", clear
+use "${output}/MI_AssmtData_2024_all.dta", clear
 
 ** Rename existing variables
 
@@ -55,21 +55,17 @@ rename DataLevel_n DataLevel
 
 ** Replacing variables
 
-replace SchYear = "2018-19"
+replace SchYear = "2023-24"
 
 replace SchName = "All Schools" if DataLevel != 3
 
 replace Subject = "ela" if Subject == "ELA" 
 replace Subject = "math" if Subject == "Mathematics"
+replace Subject = "sci" if Subject == "Science"
 replace Subject = "soc" if Subject == "Social Studies"
 
 tostring GradeLevel, replace
-replace GradeLevel = "G03" if GradeLevel == "3"
-replace GradeLevel = "G04" if GradeLevel == "4"
-replace GradeLevel = "G05" if GradeLevel == "5"
-replace GradeLevel = "G06" if GradeLevel == "6"
-replace GradeLevel = "G07" if GradeLevel == "7"
-replace GradeLevel = "G08" if GradeLevel == "8"
+replace GradeLevel = "G0" + GradeLevel
 
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "English Learners"
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic of Any Race"
@@ -142,7 +138,6 @@ drop test
 ** Merging with NCES
 
 tostring State_leaid, gen(StateAssignedDistID)
-replace StateAssignedDistID = "61000" if SchName == "Muskegon County Juvenile Transition Center"
 replace StateAssignedDistID = "33020" if SchName == "Ingham Academy/Family Center"
 replace StateAssignedDistID = "" if DataLevel == 1
 
@@ -151,12 +146,10 @@ tostring State_leaid, replace
 replace State_leaid = "0" + State_leaid if leadingzero == 1
 drop leadingzero
 replace State_leaid = "MI-" + State_leaid
-replace State_leaid = "MI-61000" if SchName == "Muskegon County Juvenile Transition Center"
 replace State_leaid = "MI-33020" if SchName == "Ingham Academy/Family Center"
 replace State_leaid = "" if DataLevel == 1
 
-merge m:1 State_leaid using "${NCES}/NCES_2018_District.dta"
-
+merge m:1 State_leaid using "${NCES}/NCES_2022_District.dta"
 drop if _merge == 2
 drop _merge
 
@@ -177,52 +170,48 @@ replace seasch = State_leaid + "-" + seasch
 replace seasch = subinstr(seasch,"MI-","",.)
 replace seasch = "" if DataLevel != 3
 
-merge m:1 seasch using "${NCES}/NCES_2018_School.dta"
-
+merge m:1 seasch using "${NCES}/NCES_2022_School.dta"
 drop if _merge == 2
 drop _merge
 
-replace NCESSchoolID = "268062005335" if seasch == "41000-02806"
-replace NCESSchoolID = "268085007799" if seasch == "61000-09766"
-replace NCESSchoolID = "260110308093" if seasch == "82015-09994"
+drop if SchName == "Ingham Academy/Family Center"
 
-merge m:1 NCESSchoolID using "${NCES}/NCES_2021_School.dta", update
-
-drop if _merge == 2
-drop _merge
-
-replace NCESSchoolID = "260112608888" if seasch == "13905-03457"
-
-merge m:1 NCESSchoolID using "${NCES}/NCES_2020_School.dta", update
-
-drop if _merge == 2
-drop _merge
-
-replace SchVirtual = 0 if NCESSchoolID == "260112608888"
-
-drop State
-replace StateAbbrev = "MI"
-gen State = "Michigan"
-destring StateFips, replace
-replace StateFips = 26
+** Unmerged 2024
+merge m:1 DistName SchName using "MI_Unmerged_2024", update nogen
+replace SchVirtual = "Missing/not reported" if missing(SchVirtual) & DataLevel == 3
 
 ** Generating new variables
 
 gen Flag_AssmtNameChange = "N"
-replace Flag_AssmtNameChange = "Y" if AssmtName == "PSAT"
 gen Flag_CutScoreChange_ELA = "N"
-replace Flag_CutScoreChange_ELA = "Y" if AssmtName == "PSAT"
 gen Flag_CutScoreChange_math = "N"
-replace Flag_CutScoreChange_math = "Y" if AssmtName == "PSAT"
 /// gen Flag_CutScoreChange_read = ""
-gen Flag_CutScoreChange_sci = "Not applicable"
 gen Flag_CutScoreChange_soc = "N"
+gen Flag_CutScoreChange_sci = "N"
 
-foreach v of varlist SchType SchLevel SchVirtual {
-		decode `v', generate(`v'1)
-		drop `v' 
-		rename `v'1 `v'
-	}
+/*
+** 2024 Pre-review edit
+
+replace NCESSchoolID = "268052007963" if SchName== "Ingham Academy/Family Center"
+
+replace DistLocale = "City, small" if SchName=="Muskegon Maritime Academy"
+replace SchLevel = "Primary" if SchName=="Muskegon Maritime Academy"
+replace SchVirtual = "No" if SchName=="Muskegon Maritime Academy"
+replace CountyCode = 26121 if SchName=="Muskegon Maritime Academy"
+replace CountyName = "Muskegon County" if SchName=="Muskegon Maritime Academy"
+
+replace DistLocale = "Suburb, large" if SchName=="Pittsfield Acres Academy"
+replace SchLevel = "Primary" if SchName=="Pittsfield Acres Academy"
+replace SchVirtual = "No" if SchName=="Pittsfield Acres Academy"
+replace CountyCode = 26161 if SchName=="Pittsfield Acres Academy"
+replace CountyName = "Washtenaw County" if SchName=="Pittsfield Acres Academy"
+*/
+
+*drop if SchName == "Ingham Academy/Family Center" // No studentcount for all groups/subgroups
+
+replace State = "Michigan"
+replace StateFips = 26
+replace StateAbbrev = "MI"
 
 //////////////////
 *COUNT GENERATION*
@@ -287,6 +276,8 @@ by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if Stude
 by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
 drop group_id StateAssignedDistID1 StateAssignedSchID1
 
+replace AvgScaleScore = string(real(AvgScaleScore), "%9.3g") if !missing(real(AvgScaleScore))
+
 //Setting ID digits to 5 to make consistent across years
 foreach var of varlist StateAssigned* {
 	replace `var' = string(real(`var'), "%05.0f") if !missing(real(`var'))
@@ -333,6 +324,6 @@ order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistric
 	
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${output}/MI_AssmtData_2019.dta", replace
+save "${output}/MI_AssmtData_2024.dta", replace
 
-export delimited using "${output}/csv/MI_AssmtData_2019.csv", replace
+export delimited using "${output}/csv/MI_AssmtData_2024.csv", replace

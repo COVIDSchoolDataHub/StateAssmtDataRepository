@@ -211,7 +211,110 @@ foreach v of varlist SchType SchLevel SchVirtual {
 		drop `v' 
 		rename `v'1 `v'
 	}
+	
+//////////////////
+*COUNT GENERATION*
+//////////////////
 
+destring StudentGroup_TotalTested, gen(total_count) ignore("*")
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen All = max(total_count)
+
+* drop if StudentGroup=="All Students" & All ==.
+destring StudentSubGroup_TotalTested, gen(Count_n) ignore("<10")
+replace Count_n=0 if StudentSubGroup_TotalTested == "<10"
+* drop All total_count
+
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen Econ = sum(Count_n) if StudentGroup == "Economic Status"
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen Disability = sum(Count_n) if StudentGroup == "Disability Status"
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen Eng = sum(Count_n) if StudentGroup == "EL Status"
+
+gen not_count=.
+
+replace not_count = All - Econ if StudentSubGroup == "Economically Disadvantaged"
+replace not_count = All - Disability if StudentSubGroup == "SWD"
+replace not_count = All - Eng if StudentSubGroup == "English Learner"
+
+tostring not_count, replace
+
+replace StudentSubGroup_TotalTested=not_count if StudentSubGroup_TotalTested=="<10" & StudentSubGroup == "Economically Disadvantaged"
+replace StudentSubGroup_TotalTested=not_count if StudentSubGroup_TotalTested=="<10" & StudentSubGroup == "SWD"
+replace StudentSubGroup_TotalTested=not_count if StudentSubGroup_TotalTested=="<10" & StudentSubGroup == "English Learner"
+
+tostring All, replace
+replace StudentGroup_TotalTested=All if StudentGroup_TotalTested=="*"
+
+replace StudentSubGroup_TotalTested = "0-9" if StudentSubGroup_TotalTested == "<10"
+* replace Lev*_count = "1-2" if Lev*_count == "<3"
+foreach v of varlist Lev*_percent ProficientOrAbove_percent {
+	gen `v'1 = subinstr(`v', "<=", "0-", .)
+	replace `v'=`v'1 if strpos(`v', "<=")
+	drop `v'1
+	
+	replace `v'=`v'+"-1" if substr(`v', 1, 1)==">"
+	gen `v'1 = substr(`v', 3, .)
+	replace `v' = `v'1 if strpos(`v', ">=")
+	drop `v'1
+	
+}
+foreach v of varlist Lev*_count ProficientOrAbove_count{
+	replace `v' = "0-2" if `v' == "<3"
+}
+
+replace StudentGroup_TotalTested="*" if StudentGroup_TotalTested=="."
+replace StudentSubGroup_TotalTested="0-9" if StudentSubGroup_TotalTested=="." 
+
+//StudentGroup_TotalTested new convention
+cap drop StudentGroup_TotalTested
+gen StateAssignedDistID1 = StateAssignedDistID
+replace StateAssignedDistID1 = "000000" if DataLevel == 1
+gen StateAssignedSchID1 = StateAssignedSchID
+replace StateAssignedSchID1 = "000000" if DataLevel !=3
+egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
+sort group_id StudentGroup StudentSubGroup
+by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+drop group_id StateAssignedDistID1 StateAssignedSchID1
+
+//Setting ID digits to 5 to make consistent across years
+foreach var of varlist StateAssigned* {
+	replace `var' = string(real(`var'), "%05.0f") if !missing(real(`var'))
+}
+
+//Derive Exact count/percent where we have range and corresponding exact count/percent and StudentSubGroup_TotalTested
+foreach percent of varlist Lev*_percent ProficientOrAbove_percent {
+	local count = subinstr("`percent'", "percent", "count",.)
+	replace `percent' = string(real(`count')/real(StudentSubGroup_TotalTested), "%9.3g") if !missing(real(`count')) & !missing(real(StudentSubGroup_TotalTested)) & missing(real(`percent'))
+	replace `count' = string(round(real(`percent')* real(StudentSubGroup_TotalTested))) if !missing(real(`percent')) & !missing(real(StudentSubGroup_TotalTested)) & missing(real(`count'))
+}
+
+//Derivations
+
+**Deriving Count if we have all other counts
+
+replace Lev1_count = string(real(StudentSubGroup_TotalTested)-real(Lev4_count)-real(Lev3_count)-real(Lev2_count)) if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Lev4_count)) & !missing(real(Lev3_count)) & !missing(real(Lev2_count)) & missing(real(Lev1_count)) & (real(StudentSubGroup_TotalTested)-real(Lev4_count)-real(Lev3_count)-real(Lev2_count)) > 0
+
+replace Lev2_count = string(real(StudentSubGroup_TotalTested)-real(Lev4_count)-real(Lev3_count)-real(Lev1_count)) if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Lev4_count)) & !missing(real(Lev3_count)) & !missing(real(Lev1_count)) & missing(real(Lev2_count)) & (real(StudentSubGroup_TotalTested)-real(Lev4_count)-real(Lev3_count)-real(Lev1_count)) > 0
+
+replace Lev3_count = string(real(StudentSubGroup_TotalTested)-real(Lev4_count)-real(Lev1_count)-real(Lev2_count)) if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Lev4_count)) & !missing(real(Lev1_count)) & !missing(real(Lev2_count)) & missing(real(Lev3_count)) & (real(StudentSubGroup_TotalTested)-real(Lev4_count)-real(Lev1_count)-real(Lev2_count)) > 0
+
+replace Lev4_count = string(real(StudentSubGroup_TotalTested)-real(Lev1_count)-real(Lev3_count)-real(Lev2_count)) if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Lev5_count)) & !missing(real(Lev1_count)) & !missing(real(Lev3_count)) & !missing(real(Lev2_count)) & missing(real(Lev4_count)) & (real(StudentSubGroup_TotalTested)-real(Lev1_count)-real(Lev3_count)-real(Lev2_count)) > 0
+
+
+** Deriving Percents if we have all other percents
+replace Lev1_percent = string(1-real(Lev4_percent)-real(Lev3_percent)-real(Lev2_percent), "%9.3g") if !missing(1) & !missing(real(Lev4_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev2_percent)) & missing(real(Lev1_percent)) & (1-real(Lev4_percent)-real(Lev3_percent)-real(Lev2_percent) > 0.005)
+
+replace Lev2_percent = string(1-real(Lev4_percent)-real(Lev3_percent)-real(Lev1_percent), "%9.3g") if !missing(1) & !missing(real(Lev4_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev1_percent)) & missing(real(Lev2_percent)) & (1-real(Lev4_percent)-real(Lev3_percent)-real(Lev1_percent) > 0.005)
+
+replace Lev3_percent = string(1-real(Lev4_percent)-real(Lev1_percent)-real(Lev2_percent), "%9.3g") if !missing(1) & !missing(real(Lev4_percent)) & !missing(real(Lev1_percent)) & !missing(real(Lev2_percent)) & missing(real(Lev3_percent))  & (1-real(Lev4_percent)-real(Lev1_percent)-real(Lev2_percent) > 0.005)
+
+replace Lev4_percent = string(1-real(Lev1_percent)-real(Lev3_percent)-real(Lev2_percent), "%9.3g") if !missing(1) & !missing(real(Lev1_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev2_percent)) & missing(real(Lev4_percent))  & (1-real(Lev1_percent)-real(Lev3_percent)-real(Lev2_percent) > 0.005)
+
+//Final Cleaning
+
+foreach var of varlist DistName SchName {
+	replace `var' = stritrim(`var')
+	replace `var' = strtrim(`var')
+}
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 	
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode

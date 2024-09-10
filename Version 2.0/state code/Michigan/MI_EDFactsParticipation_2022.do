@@ -1,10 +1,9 @@
 clear
 set more off
 
-global Original "/Users/kaitlynlucas/Desktop/EDFacts Drive Data" //Folder with Output .dta
-global EDFacts "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/MI_2022" //Folder with downloaded state-specific 2022 participation data from EDFacts
-global State_Output "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/Michigan Assessment" //Folder with state-specific data
-global Output_20 "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/Michigan V2.0" //Folder for Output 2.0
+global EDFacts "/Volumes/T7/State Test Project/Michigan/Original Data" //Folder with downloaded state-specific 2022 participation data from EDFacts
+global State_Output "/Volumes/T7/State Test Project/Michigan/Original Data/csv" //Folder with state-specific data
+global Output_20 "/Volumes/T7/State Test Project/Michigan/Original Data/csv" //Folder for Output 2.0
 
 
 foreach s in ela math sci {
@@ -41,6 +40,7 @@ replace `var' = subinstr(`var', "<","0-",.) if strpos(`var', "<") !=0
 drop n`var'
 drop range`var'
 }
+replace Participation = string(real(Participation)/100, "%9.3g") if real(Participation) > 1.01 & !missing(real(Participation))
 
 //StudentSubGroup
 replace StudentSubGroup = "All Students" if strpos(StudentSubGroup, "All Students") !=0
@@ -60,17 +60,6 @@ replace Subject = "ela" if Subject == "Reading/Language Arts"
 replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "sci" if Subject == "Science"
 
-//Using ELA for eng and read
-tempfile temp1
-save "`temp1'", replace
-keep if Subject == "ela"
-expand 3, gen(exp)
-drop if exp == 0
-gen row = _n
-replace Subject = "eng" if mod(row,2) == 0
-replace Subject = "read" if mod(row,2) !=0
-drop exp row
-append using "`temp1'"
 
 //GradeLevel
 replace GradeLevel = subinstr(GradeLevel, "Grade ", "G0",.)
@@ -80,12 +69,6 @@ save "${EDFacts}/MI_EFParticipation_2022", replace
 
 //Merging with 2022
 use "${State_Output}/MI_AssmtData_2022", clear
-
-forvalues year = 2015/2022 {
-if `year' == 2020 continue
-import delimited "${State_Output}/MI_AssmtData_`year'", case(preserve) clear
-save "${State_Output}/MI_AssmtData_`year'", replace
-}
 
 //DataLevel
 label def DataLevel 1 "State" 2 "District" 3 "School"
@@ -98,7 +81,7 @@ rename DataLevel_n DataLevel
 merge 1:1 NCESDistrictID NCESSchoolID GradeLevel Subject StudentSubGroup using "${EDFacts}/MI_EFParticipation_2022"
 drop if _merge ==2
 replace ParticipationRate = Participation
-replace ParticipationRate = "--" if missing(ParticipationRate)
+replace ParticipationRate = "--" if missing(ParticipationRate) | ParticipationRate == "."
 drop _merge Participation
 
 //Final Cleaning
