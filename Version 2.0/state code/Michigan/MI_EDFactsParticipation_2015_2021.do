@@ -1,9 +1,9 @@
 clear
 set more off
 
-global EDFacts "/Users/kaitlynlucas/Desktop/EDFacts Drive Data"
-global State_Output "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/Michigan Assessment" // Version 1.1 Output directory here
-global New_Output "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/Michigan V2.0" // Version 2.0 Output directory here
+global EDFacts "/Volumes/T7/State Test Project/EDFACTS"
+global State_Output "/Volumes/T7/State Test Project/Michigan/Original Data/csv" // Version 1.1 Output directory here
+global New_Output "/Volumes/T7/State Test Project/Michigan/Original Data/csv" // Version 2.0 Output directory here
 
 ** Preparing EDFacts files
 local edyears1 15 16 17 18
@@ -305,6 +305,7 @@ append using "`tempdist'" "`tempsch'"
 
 //New Participation Data
 replace ParticipationRate = Participation if !missing(Participation)
+replace ParticipationRate = "--" if missing(ParticipationRate) | ParticipationRate == "."
 
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
