@@ -684,9 +684,6 @@ replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested == "0"
 replace StudentSubGroup_TotalTested = "--" if StudentGroup_TotalTested == "--" & StudentGroup == "All Students"
 
 ** Clean up from unmerged
-replace StateAssignedSchID = subinstr(StateAssignedSchID, "UT-", "", .) if strpos(StateAssignedSchID, "UT-") > 0
-replace StateAssignedDistID = "UT-" + StateAssignedDistID if strpos(StateAssignedDistID, "UT-") <= 0 & DataLevel != 1
-
 gen flag = 1 if inlist(SchName, "East School", "Legacy School")
 replace SchName = SchName + " (" + DistName + ")" if flag == 1
 replace SchName = subinstr(SchName, " District", "", 1) if flag == 1
@@ -724,18 +721,21 @@ replace StateAssignedDistID="UT-35" if strpos(DistName, "Weber")>0 & StateAssign
 replace DistCharter="No" if strpos(DistName, "Weber")>0 & DistCharter == ""
 replace DistLocale="Suburb, large" if strpos(DistName, "Weber")>0 & DistLocale == ""
 
+replace StateAssignedSchID = subinstr(StateAssignedSchID, "UT-", "", .) if strpos(StateAssignedSchID, "UT-") > 0
+replace StateAssignedDistID = "UT-" + StateAssignedDistID if strpos(StateAssignedDistID, "UT-") <= 0 & DataLevel != 1
+
 ** Add Information for 2024 New Schools
 replace NCESSchoolID = "490003001640" if SchName == "Desert Sky" & DistName == "Alpine District"
 replace StateAssignedSchID = "01-01110" if SchName == "Desert Sky" & DistName == "Alpine District"
 replace SchType = 1 if SchName == "Desert Sky" & DistName == "Alpine District"
 replace SchLevel = 1 if SchName == "Desert Sky" & DistName == "Alpine District"
-replace SchVirtual = -1 if SchName == "Desert Sky" & DistName == "Alpine District"
+replace SchVirtual = 0 if SchName == "Desert Sky" & DistName == "Alpine District"
 
 replace NCESSchoolID = "490001401653" if SchName == "John Hancock Charters School Eagle Mountain" & DistName == "John Hancock Charter School"
 replace StateAssignedSchID = "93-93110" if SchName == "John Hancock Charters School Eagle Mountain" & DistName == "John Hancock Charter School"
 replace SchType = 1 if SchName == "John Hancock Charters School Eagle Mountain" & DistName == "John Hancock Charter School"
 replace SchLevel = 4 if SchName == "John Hancock Charters School Eagle Mountain" & DistName == "John Hancock Charter School"
-replace SchVirtual = -1 if SchName == "John Hancock Charters School Eagle Mountain" & DistName == "John Hancock Charter School"
+replace SchVirtual = 0 if SchName == "John Hancock Charters School Eagle Mountain" & DistName == "John Hancock Charter School"
 
 replace NCESSchoolID = "490120000966" if SchName == "Canyon View School" & DistName == "Weber District"
 replace StateAssignedSchID = "35-35180" if SchName == "Canyon View School" & DistName == "Weber District"
@@ -748,6 +748,8 @@ merge m:m SchYear NCESSchoolID NCESDistrictID using "${raw}/ut_full-dist-sch-sta
 drop if _merge == 2
 replace SchName = newschname if _merge == 3 & SchName != newschname
 replace DistName = newdistname if _merge == 3 & DistName != newdistname
+
+replace SchName = "American Academy Of Innovation" if NCESSchoolID == "490018601483"
 
 replace DistName = "Weilenmann School of Discovery" if NCESDistrictID == "4900145"
 replace DistName = "Walden School of Liberal Arts" if NCESDistrictID == "4900061"

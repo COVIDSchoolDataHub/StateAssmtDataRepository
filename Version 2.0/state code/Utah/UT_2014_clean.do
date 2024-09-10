@@ -73,8 +73,8 @@ replace DistName="The Center for Creativity Innovation and Discovery" if strpos(
 
 replace SchName="Minersville School (Primary)" if SchName=="Minersville School" & (GradeLevel=="G03" | GradeLevel=="G04" | GradeLevel=="G05")
 replace SchName="Minersville School (Middle)" if SchName=="Minersville School" & (GradeLevel=="G06" | GradeLevel=="G07" | GradeLevel=="G08")
-replace SchName="Canyon View School (Middle)" if SchName=="Canyon View School" & inlist(GradeLevel, "GO6", "G07", "G08")
-replace SchName="Canyon View School (Primary)" if SchName=="Canyon View School" & inlist(GradeLevel, "G03", "G04", "G05")
+replace SchName="Canyon View School (Middle)" if SchName=="Canyon View School" & inlist(GradeLevel, "G07", "G08")
+replace SchName="Canyon View School (Primary)" if SchName=="Canyon View School" & inlist(GradeLevel, "G03", "G04", "G05", "G06")
 replace DistName = "American Preparatory Academy--Lea" if DistName == "American Preparatory Academy"
 replace DistName = "Thomas Edison - Lea" if DistName == "Thomas Edison"
 

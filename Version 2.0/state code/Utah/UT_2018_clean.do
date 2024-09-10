@@ -60,17 +60,15 @@ gen StudentGroup = "All Students"
 replace SchName=strproper(SchName)
 replace DistName=strproper(DistName)
 
-replace SchName="The Center for Creativity Innovation and Discovery" if strpos(SchName, "Innovation")>0
-replace DistName="The Center for Creativity Innovation and Discovery" if strpos(DistName, "Innovation")>0
+replace SchName="The Center for Creativity Innovation and Discovery" if SchName == "The Center for Creativity, Innovation and Discovery"
+replace DistName="The Center for Creativity Innovation and Discovery" if DistName == "The Center for Creativity, Innovation and Discovery"
 
 save "${int}/UT_2018_school.dta", replace
 
 * Subgroups
 import excel "${raw}/UT_OriginalData_2018_subgroup.xlsx", sheet("SchoolByTestAndDemographic") firstrow allstring clear
 
-drop AllStudents
-
-foreach i of varlist AfAmBlack AmericanIndian Asian HispanicLatino MultipleRaces PacificIslander White LowIncome StudentswDisabilities EnglishLearners {
+foreach i of varlist AllStudents AfAmBlack AmericanIndian Asian HispanicLatino MultipleRaces PacificIslander White LowIncome StudentswDisabilities EnglishLearners {
 	rename `i' subgroup`i'
 }
 
@@ -83,6 +81,10 @@ foreach x of numlist 3/8 {
 }
 
 drop if inlist(Test, "G03", "G04", "G05", "G06", "G07", "G08")==0
+
+//Remove Observations that Duplicate Info from Other Files
+drop if StudentSubGroup == "AllStudents" & Subject != "Science"
+drop if StudentSubGroup == "AllStudents" & inlist(Test, "G04", "G05")
 
 rename Test GradeLevel
 rename SchoolYear SchYear
@@ -248,9 +250,7 @@ save "${int}/UT_2018_district.dta", replace
 * Subgroups
 import excel "${raw}/UT_OriginalData_2018_subgroup.xlsx", sheet("LEAByTestAndDemographic") firstrow allstring clear
 
-drop AllStudents
-
-foreach i of varlist AfAmBlack AmericanIndian Asian HispanicLatino MultipleRaces PacificIslander White LowIncome StudentswDisabilities EnglishLearners {
+foreach i of varlist AllStudents AfAmBlack AmericanIndian Asian HispanicLatino MultipleRaces PacificIslander White LowIncome StudentswDisabilities EnglishLearners {
 	rename `i' subgroup`i'
 }
 
@@ -263,6 +263,10 @@ foreach x of numlist 3/8 {
 }
 
 drop if inlist(Test, "G03", "G04", "G05", "G06", "G07", "G08")==0
+
+//Remove Observations that Duplicate Info from Other Files
+drop if StudentSubGroup == "AllStudents" & Subject != "Science"
+drop if StudentSubGroup == "AllStudents" & inlist(Test, "G04", "G05")
 
 rename Test GradeLevel
 rename SchoolYear SchYear
@@ -381,11 +385,9 @@ save "${int}/UT_2018_state.dta", replace
 * Subgroups
 import excel "${raw}/UT_OriginalData_2018_subgroup.xlsx", sheet("StateByTestAndDemographic") firstrow allstring clear
 
-drop AllStudents
-
 drop if Test == ""
 
-foreach i of varlist AfAmBlack AmericanIndian Asian HispanicLatino MultipleRaces PacificIslander White LowIncome StudentswDisabilities EnglishLearners {
+foreach i of varlist AllStudents AfAmBlack AmericanIndian Asian HispanicLatino MultipleRaces PacificIslander White LowIncome StudentswDisabilities EnglishLearners {
 	rename `i' subgroup`i'
 }
 
@@ -397,6 +399,10 @@ foreach x of numlist 3/8 {
 }
 
 drop if inlist(Test, "G03", "G04", "G05", "G06", "G07", "G08")==0
+
+//Remove Observations that Duplicate Info from Other Files
+drop if StudentSubGroup == "AllStudents" & Subject != "Science"
+drop if StudentSubGroup == "AllStudents" & inlist(Test, "G04", "G05")
 
 rename Test GradeLevel
 rename LEAName DataLevel

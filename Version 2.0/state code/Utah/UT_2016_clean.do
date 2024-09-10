@@ -151,6 +151,16 @@ save "${int}/UT_2016_school.dta", replace
 *** UT Districts ***
 
 * Proficiency levels
+import excel "${raw}/UT_OriginalData_2016_proficiency.xlsx", sheet("Overall District Results") firstrow allstring clear
+
+rename SchoolYear SchYear
+rename LEADistrictorCharter DistName
+rename SubjectArea Subject
+rename PercentProficient ProficientOrAbove_percent
+gen GradeLevel = "G38"
+
+save "${int}/UT_2016_district_allstud_g38.dta", replace
+
 import excel "${raw}/UT_OriginalData_2016_all.xlsx", sheet("LEA Proficiency Levels") firstrow allstring clear
 
 foreach x of numlist 3/8 {
@@ -192,6 +202,8 @@ rename PercentProficient ProficientOrAbove_percent
 merge 1:1 DistName Subject GradeLevel using "${int}/UT_2016_district.dta"
 
 drop _merge
+
+append using "${int}/UT_2016_district_allstud_g38.dta"
 
 replace DistName=strproper(DistName)
 
