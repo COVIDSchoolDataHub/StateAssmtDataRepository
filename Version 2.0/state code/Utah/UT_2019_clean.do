@@ -595,7 +595,7 @@ gen ProficiencyCriteria = "Levels 3-4"
 gen Flag_AssmtNameChange = "Y"
 gen Flag_CutScoreChange_ELA = "Y"
 gen Flag_CutScoreChange_math = "Y"
-gen Flag_CutScoreChange_sci = "Y"
+gen Flag_CutScoreChange_sci = "N"
 gen Flag_CutScoreChange_soc = "Not applicable"
 
 replace SchYear = "2018-19"
