@@ -67,7 +67,7 @@ foreach grdsci of local gradesci {
 
 reshape long NM NB NP NA PM PB PP PA StudentSubGroup_TotalTested AvgScaleScore, i(StateAssignedDistID StateAssignedSchID DistName SchName Subject) j(GradeLevel) string
 
-drop if StudentSubGroup_TotalTested == ""
+drop if missing(StudentSubGroup_TotalTested)
 
 rename NM Lev1_count
 rename NB Lev2_count
@@ -254,6 +254,7 @@ sort group_id StudentGroup StudentSubGroup
 by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
 by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
 drop group_id StateAssignedDistID1 StateAssignedSchID1
+drop if missing(StudentGroup_TotalTested) //All data missing/suppressed
 
 replace CountyName = proper(CountyName)
 replace CountyName = "DeSoto County" if CountyName == "Desoto County"
@@ -313,6 +314,11 @@ replace AvgScaleScore = string(real(AvgScaleScore), "%9.3f") if !missing(real(Av
 
 //Clean up ParticipationRate
 replace ParticipationRate = "--" if ParticipationRate == "."
+
+** Getting rid of ranges where high and low ranges are the same
+foreach var of varlist *_count *_percent {
+replace `var' = substr(`var',1, strpos(`var', "-")-1) if real(substr(`var',1, strpos(`var', "-")-1)) == real(substr(`var', strpos(`var', "-")+1,10)) & strpos(`var', "-") !=0 & regexm(`var', "[0-9]") !=0
+}
 
 
 //Final Cleaning

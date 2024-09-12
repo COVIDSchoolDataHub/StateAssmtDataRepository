@@ -8,21 +8,12 @@ global NCES "/Volumes/T7/State Test Project/Mississippi/NCES"
 global EDFacts "/Volumes/T7/State Test Project/EDFACTS"
 global Request "/Volumes/T7/State Test Project/Mississippi/Original Data Files/Data Request"
 
-local subject math ela sci
+local subject math ela
 local datatype performance participation
 local datalevel district school state
 
 
-** Fixing weird data formatting issue with science school performance file
-
-use "${Request}/2019/sciperformance/schoolcleaned.dta", clear
-tostring Lev*_count, replace force
-foreach v of numlist 1/5{
-	replace Lev`v'_count = "*" if Lev`v'_count == "."
-}
-save "${Request}/2019/sciperformance/schoolcleaned.dta", replace
-
-
+//Only using ela/math from request, science unreliable
 foreach sub of local subject {
 	use "${Request}/2019/`sub'performance/statecleaned.dta", clear
 	append using "${Request}/2019/`sub'performance/districtcleaned.dta"
@@ -47,7 +38,6 @@ foreach sub of local subject {
 
 use "${Request}/2019/ela.dta", clear
 append using "${Request}/2019/math.dta"
-append using "${Request}/2019/sci.dta"
 
 drop if StudentSubGroup_TotalTested == "0" | (Lev1_count == "0" & Lev2_count == "0" & Lev3_count == "0" & Lev4_count == "0" & Lev5_count == "0")
 replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == ""
@@ -215,6 +205,11 @@ replace ParticipationRate = Participation if !missing(Participation)
 replace CountyName = proper(CountyName)
 replace CountyName = "DeSoto County" if CountyName == "Desoto County"
 
+** Getting rid of ranges where high and low ranges are the same
+foreach var of varlist *_count *_percent {
+replace `var' = substr(`var',1, strpos(`var', "-")-1) if real(substr(`var',1, strpos(`var', "-")-1)) == real(substr(`var', strpos(`var', "-")+1,10)) & strpos(`var', "-") !=0 & regexm(`var', "[0-9]") !=0
+}
+
 //Derivations
 
 **Deriving Count if we have all other counts
@@ -242,6 +237,139 @@ replace Lev5_percent = string(1-real(Lev1_percent)-real(Lev4_percent)-real(Lev3_
 
 //Clean up AvgScaleScore
 replace AvgScaleScore = string(real(AvgScaleScore), "%9.3f") if !missing(real(AvgScaleScore))
+save "$raw/MS_AssmtData_2019_ela_math", replace
+
+//////////////////////////////////////////////////////////
+//INCORPORATING SCIENCE DATA FROM WEBSITE (unique to 2019)
+//////////////////////////////////////////////////////////
+
+//Combining
+use "$raw/MS_AssmtData_2019_G5sci", clear
+rename Grade5 Entity
+gen GradeLevel = "G05"
+tempfile g5
+save "`g5'", replace
+use "$raw/MS_AssmtData_2019_G8sci", clear
+rename Grade8 Entity
+gen GradeLevel = "G08"
+append using "`g5'"
+gen olddistname = Entity
+gen oldschname = Entity
+drop if missing(Entity)
+
+
+//Merging in IDs
+use "$MS/ms_full-dist-sch-stable-list_through2024", clear
+keep if SchYear == "2018-19"
+duplicates drop olddistname, force
+replace DataLevel = "District"
+gen Entity = olddistname
+drop newschname NCESSchoolID
+save "$MS/2019_DistrictIDs", replace
+use "$MS/ms_full-dist-sch-stable-list_through2024", clear
+gen Entity = oldschname
+keep if SchYear == "2018-19"
+duplicates drop Entity, force
+save "$MS/2019_SchoolIDs", replace
+
+use "$raw/MS_AssmtData_2019_sci", clear
+merge m:1 Entity using "$MS/2019_DistrictIDs", gen(DistMerge)
+drop if DistMerge == 2
+merge m:1 Entity using "$MS/2019_SchoolIDs", gen(SchMerge) update replace
+drop if SchMerge == 2
+drop if missing(Entity)
+
+merge m:1 Entity using "$MS/MS Unmerged_2019_Sci", gen(NewMerged) update replace
+drop if Notes == "DROP"
+drop if NewMerged == 2
+drop Notes SameName newschname newdistname
+
+//Stablenames
+merge m:1 NCESDistrictID using "$MS/2019_DistrictIDs", gen(StableDistMerge)
+drop if StableDistMerge == 2
+merge m:1 NCESSchoolID using "$MS/2019_SchoolIDs", gen(StableSchMerge)
+drop if StableSchMerge == 2
+replace newschname = "Central Elementary School" if NCESSchoolID == "280348000668"
+
+//DataLevel
+replace DataLevel = "State" if Entity == "Grand Total"
+replace newdistname = "All Districts" if DataLevel == "State"
+replace newschname = "All Schools" if DataLevel != "School"
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(nDataLevel) label(DataLevel)
+drop DataLevel
+rename nDataLevel DataLevel
+sort DataLevel
+
+//Renaming and Dropping variables
+rename AverageScaleScore AvgScaleScore
+rename Level*PCT Lev*_percent
+rename TestTakers StudentSubGroup_TotalTested
+gen DistName = Entity if DataLevel == 2
+gen SchName = Entity if DataLevel == 3
+replace DistName = newdistname if !missing(newdistname)
+replace SchName = newschname if !missing(newschname)
+keep Lev* AvgScaleScore *Name NCES* DataLevel State SchYear StudentSubGroup_TotalTested GradeLevel
+order State SchYear DataLevel *Name NCES*
+replace DistName = "Ms Sch For the Blind and Deaf" if NCESDistrictID == "2801189"
+
+//Counts and percents
+foreach percent of varlist *_percent {
+	local count = subinstr("`percent'", "percent", "count",.)
+	gen `count' = string(round(real(`percent')* real(StudentSubGroup_TotalTested))) if !missing(real(`percent')) & !missing(real(StudentSubGroup_TotalTested))
+	replace `percent' = string(real(`percent'), "%9.3g") if !missing(real(`percent'))
+
+}
+gen ProficientOrAbove_count = string(real(Lev4_count) + real(Lev5_count)) if !missing(real(Lev4_count)) & !missing(real(Lev5_count))
+gen ProficientOrAbove_percent = string(real(Lev4_percent) + real(Lev5_percent)) if !missing(real(Lev4_percent)) & !missing(real(Lev5_percent))
+foreach var of varlist *_count *_percent {
+	replace `var' = "*" if missing(`var')
+}
+
+//AvgScaleScore
+replace AvgScaleScore = string(real(AvgScaleScore), "%9.3f") if !missing(real(AvgScaleScore))
+
+//Merging NCES
+merge m:1 NCESDistrictID using "$NCES/NCES_2018_District", nogen keep(match master)
+merge m:1 NCESSchoolID using "$NCES/NCES_2018_School", nogen keep(match master)
+
+//StateAssignedDistID & StateAssignedSchID
+gen StateAssignedDistID = subinstr(State_leaid, "MS-","",.)
+gen StateAssignedSchID = substr(seasch,strpos(seasch, "-") +1,10)
+drop State_leaid seasch
+
+//Indicator & missing
+replace State = "Mississippi"
+replace SchYear = "2018-19"
+replace StateFips = 28
+replace StateAbbrev = "MS"
+
+gen AssmtName = "MAAP"
+
+gen AssmtType = "Regular"
+
+gen ProficiencyCriteria = "Levels 4-5"
+
+gen Subject = "sci"
+
+gen StudentGroup = "All Students"
+gen StudentSubGroup = "All Students"
+
+gen StudentGroup_TotalTested = StudentSubGroup_TotalTested
+
+gen Flag_AssmtNameChange = "N"
+replace Flag_AssmtNameChange = "Y" if Subject == "sci"
+gen Flag_CutScoreChange_ELA = "N"
+gen Flag_CutScoreChange_math = "N"
+gen Flag_CutScoreChange_sci = "Y"
+gen Flag_CutScoreChange_soc = "Not applicable"
+
+gen ParticipationRate = "--"
+
+//Combining with ela/math
+append using "$raw/MS_AssmtData_2019_ela_math"
+
+
 
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 

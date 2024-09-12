@@ -1,11 +1,11 @@
 clear
 set more off
 
-
-global raw "/Users/kaitlynlucas/Desktop/Mississippi State Task/Original Data Files"
-global output "/Users/kaitlynlucas/Desktop/Mississippi State Task/Output"
-global NCES "/Users/kaitlynlucas/Desktop/Mississippi State Task/NCES"
-global Request "/Users/kaitlynlucas/Desktop/Mississippi State Task/Data Request"
+global MS "/Volumes/T7/State Test Project/Mississippi"
+global raw "/Volumes/T7/State Test Project/Mississippi/Original Data Files"
+global output "/Volumes/T7/State Test Project/Mississippi/Output"
+global NCES "/Volumes/T7/State Test Project/Mississippi/NCES"
+global Request "/Volumes/T7/State Test Project/Mississippi/Original Data Files/Data Request"
 
 ** Preparing data request files
 
@@ -241,3 +241,38 @@ foreach yr3 of local year3 {
 		save "${raw}/MS_AssmtData_`yr3'_G`grdsci'sci.dta", replace
 	}
 }
+
+
+
+	** 2024
+	//ELA and math data
+foreach sub in ELA Math {
+	forvalues n = 3/8 {
+		import excel "${raw}/MS_OriginalData_2024_ela_math_WITH IDs ADDED", sheet("G`n' `sub'") firstrow clear
+		rename Grade`n'`sub'DistrictSchool Entity
+		drop if Entity == "Grand Total" | Entity == "*N-counts less than 10 are suppressed." | Entity == "‡ Assessment results unavailable due to ongoing test security investigations."
+		save "${raw}/MS_OriginalData_2024_`sub'_G`n'", replace
+	}
+}
+import excel "${raw}/MS_OriginalData_2024_ela_math_WITH IDs ADDED", sheet("State Summary") firstrow clear
+save "${raw}/MS_OriginalData_2024_ela_math_state", replace
+
+	// Science data
+foreach n in 5 8 {
+		import excel "${raw}/MS_OriginalData_2024_sci_WITH IDs ADDED", sheet("G`n' Science") firstrow clear
+		rename Grade`n'ScienceDistrictSchool Entity
+		drop if Entity == "Grand Total" | Entity == "*N-counts less than 10 are suppressed." | Entity == "‡ Assessment results unavailable due to ongoing test security investigations."
+		save "${raw}/MS_OriginalData_2024_sci_G`n'", replace
+}
+import excel "${raw}/MS_OriginalData_2024_sci_WITH IDs ADDED", sheet("State Summary") firstrow clear
+save "${raw}/MS_OriginalData_2024_sci_state", replace
+
+//Stable Names and Unmerged Spreadsheets
+import excel "$MS/ms_full-dist-sch-stable-list_through2024", firstrow clear allstring
+save "$MS/ms_full-dist-sch-stable-list_through2024", replace
+import excel "$MS/MS Unmerged_2019_Sci", firstrow clear allstring
+save "$MS/MS Unmerged_2019_Sci", replace
+
+
+	
+	

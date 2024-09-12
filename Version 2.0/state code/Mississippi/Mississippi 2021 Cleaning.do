@@ -42,7 +42,7 @@ append using "${Request}/2021/sci.dta"
 
 drop if StudentSubGroup_TotalTested == "0"
 replace ProficientOrAbove_count = "0" if ProficientOrAbove_count == ""
-drop if StudentGroup == "All Students"
+*drop if StudentGroup == "All Students" //Commenting this out so that StudentGroup_TotalTested has a value for All Students regardless of where the data came from.
 
 foreach v of numlist 1/5 {
 	gen Lev`v'_count = "--"
@@ -143,6 +143,7 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+gen Priority = 2 //Dealing with duplicate observations for "All Students"
 
 save "${output}/MS_AssmtData_2021.dta", replace
 
@@ -467,7 +468,12 @@ replace State = "Mississippi"
 replace StateAbbrev = "MS"
 replace StateFips = 28
 
+//Appending and Dealing with Duplicate "All Students" values
+gen Priority = 1
 append using "${output}/MS_AssmtData_2021.dta"
+sort Priority DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+duplicates drop DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup, force
+drop Priority
 
 ** Merging with EDFacts data
 tempfile tempall
@@ -524,6 +530,11 @@ drop group_id StateAssignedDistID1 StateAssignedSchID1
 
 replace CountyName = proper(CountyName)
 replace CountyName = "DeSoto County" if CountyName == "Desoto County"
+
+** Getting rid of ranges where high and low ranges are the same
+foreach var of varlist *_count *_percent {
+replace `var' = substr(`var',1, strpos(`var', "-")-1) if real(substr(`var',1, strpos(`var', "-")-1)) == real(substr(`var', strpos(`var', "-")+1,10)) & strpos(`var', "-") !=0 & regexm(`var', "[0-9]") !=0
+}
 
 //Derivations
 

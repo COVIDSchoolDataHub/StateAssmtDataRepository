@@ -193,6 +193,11 @@ replace ParticipationRate = Participation if !missing(Participation)
 replace CountyName = proper(CountyName)
 replace CountyName = "DeSoto County" if CountyName == "Desoto County"
 
+** Getting rid of ranges where high and low ranges are the same
+foreach var of varlist *_count *_percent {
+replace `var' = substr(`var',1, strpos(`var', "-")-1) if real(substr(`var',1, strpos(`var', "-")-1)) == real(substr(`var', strpos(`var', "-")+1,10)) & strpos(`var', "-") !=0 & regexm(`var', "[0-9]") !=0
+}
+
 //Derivations
 
 **Deriving Count if we have all other counts
