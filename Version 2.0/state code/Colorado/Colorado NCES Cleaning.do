@@ -1,11 +1,11 @@
 clear
 set more off
 
-cd "/Volumes/T7/State Test Project/Colorado"
+cd "/Users/miramehta/Documents"
 
-global NCESSchool "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
-global NCESDistrict "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
-global NCES "/Volumes/T7/State Test Project/Colorado/NCES"
+global NCESSchool "/Users/miramehta/Documents/NCES District and School Demographics/NCES School Files, Fall 1997-Fall 2022"
+global NCESDistrict "/Users/miramehta/Documents/NCES District and School Demographics/NCES District Files, Fall 1997-Fall 2022"
+global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
 
 local year 2014 2015 2016 2017 2018 2019 2020 2021
 

@@ -192,7 +192,7 @@ gen ProficiencyCriteria = "Levels 3-4"
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_soc = "Not Applicable"
+gen Flag_CutScoreChange_soc = "Not applicable"
 gen Flag_CutScoreChange_sci = "N"
 gen AssmtName = "ISAT"
 gen AssmtType = "Regular"
@@ -388,6 +388,18 @@ replace SchLevel = "" if SchLevel == "." & SchName == "All Schools"
 replace SchVirtual = "" if SchVirtual == "." & SchName == "All Schools"
 replace SchVirtual = "Missing/not reported" if SchVirtual == "." & SchName != "All Schools"
 
+* Add information for 2024 new schools
+replace SchLevel = "Primary" if NCESSchoolID == "160036001166"
+replace SchVirtual = "No" if NCESSchoolID == "160036001166"
+replace SchLevel = "Primary" if NCESSchoolID == "160351201179"
+replace SchVirtual = "No" if NCESSchoolID == "160351201179"
+replace SchLevel = "Primary" if NCESSchoolID == "160351301180"
+replace SchVirtual = "No" if NCESSchoolID == "160351301180"
+replace SchLevel = "Primary" if NCESSchoolID == "160351401181"
+replace SchVirtual = "No" if NCESSchoolID == "160351401181"
+replace SchLevel = "Other" if NCESSchoolID == "160351501182"
+replace SchVirtual = "No" if NCESSchoolID == "160351501182"
+
 //Removing leading zeroes in District IDs
 replace StateAssignedDistID = subinstr(StateAssignedDistID, "0", "", 1) if strpos(StateAssignedDistID, "0") == 1
 replace StateAssignedSchID = subinstr(StateAssignedSchID, "0", "", 1) if strpos(StateAssignedSchID, "0") == 1
@@ -401,15 +413,5 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${output_files}/ID_AssmtData_2024.dta", replace
 export delimited using "${output_files}/ID_AssmtData_2024.csv", replace
-/*
-// extra fixing of additional files
-import excel "C:\Users\hxu15\Downloads\Idaho\Output\NCESUnMergedSchools_2024.xlsx", firstrow clear
-drop if DataLevel == "State"
-drop if DataLevel == "District"
-export excel using "C:\Users\hxu15\Downloads\Idaho\Output\NCESUnMergedSchools_2024.xlsx", firstrow(variables) replace
-
-
-
-*/
 
 
