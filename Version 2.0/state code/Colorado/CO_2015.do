@@ -1,16 +1,16 @@
 clear
 set more off
 
-cd "/Volumes/T7/State Test Project/Colorado"
+cd "/Users/miramehta/Documents"
 
-global path "/Volumes/T7/State Test Project/Colorado/Original Data Files"
-global nces "/Volumes/T7/State Test Project/Colorado/NCES"
-global output "/Volumes/T7/State Test Project/Colorado/Output"
+global path "/Users/miramehta/Documents/CO State Testing Data"
+global nces "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+global output "/Users/miramehta/Documents/CO State Testing Data/Output"
 
 //Importing & Renaming
 /*
 ** All Students Data
-import excel "${path}/CO_OriginalData_2015_ela&mat.xlsx", cellrange(A3) allstring sheet("Achievement Results") firstrow case(lower) clear
+import excel "${path}/Original Data/2015/CO_OriginalData_2015_ela&mat.xlsx", cellrange(A3) allstring sheet("Achievement Results") firstrow case(lower) clear
 drop if missing(districtcode)
 rename level DataLevel
 rename districtcode StateAssignedDistID
@@ -41,7 +41,7 @@ rename percentmetorexceededexpectat ProficientOrAbove_percent
 save "${path}/CO_OriginalData_2015_ela&mat", replace
 
 **Science Data
-import excel "${path}/CO_OriginalData_2015_sci.xlsx", cellrange(A5) allstring clear
+import excel "${path}/Original Data/2015/CO_OriginalData_2015_sci.xlsx", cellrange(A5) allstring clear
 rename A Subject
 rename B StateAssignedDistID
 rename C DistName
@@ -80,7 +80,7 @@ save "${path}/CO_OriginalData_2015_allstudents", replace
 clear
 
 **Soc Data
-import excel "${path}/CO_OriginalData_2015_soc.xlsx", cellrange(A5) allstring clear
+import excel "${path}/Original Data/2015/CO_OriginalData_2015_soc.xlsx", cellrange(A5) allstring clear
 rename A Subject
 rename B StateAssignedDistID
 rename C DistName
@@ -121,7 +121,7 @@ tempfile temp1
 save "`temp1'", replace emptyok
 foreach s in ela mat {
 	foreach sg in FreeReducedLunch raceEthnicity gender individualEd language migrant {
-		import excel "$path/CO_2015_`s'_`sg'.xlsx", cellrange(A4) allstring clear
+		import excel "$path/Original Data/2015/CO_2015_`s'_`sg'.xlsx", cellrange(A4) allstring clear
 		foreach var of varlist _all {
 		replace `var' = trim(`var')
 		replace `var' = stritrim(`var')
@@ -295,7 +295,8 @@ replace StateAbbrev = "CO"
 replace StateFips = 8
 
 gen AssmtName="Colorado Measures of Academic Success"
-gen Flag_AssmtNameChange="N"
+gen Flag_AssmtNameChange="Y"
+replace Flag_AssmtNameChange="N" if inlist(Subject, "sci", "soc")
 gen Flag_CutScoreChange_ELA="Y"
 gen Flag_CutScoreChange_math="Y"
 gen Flag_CutScoreChange_sci="N"
@@ -311,6 +312,69 @@ replace DistName = "HARRISON 2" if NCESDistrictID == "0804530"
 
 replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent)* real(StudentSubGroup_TotalTested))) if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(ProficientOrAbove_percent)) & missing(real(ProficientOrAbove_count))
 
+** Standardize Names
+replace DistName = strproper(DistName)
+replace DistName = "Aguilar Reorganized 6" if NCESDistrictID == "0802010"
+replace DistName = "Alamosa Re-11J" if NCESDistrictID == "0802070"
+replace DistName = "Archuleta County 50 Jt" if NCESDistrictID == "0802190"
+replace DistName = "Bayfield 10 Jt-R" if NCESDistrictID == "0802400"
+replace DistName = "Boulder Valley Re 2" if NCESDistrictID == "0802490"
+replace DistName = "Branson Reorganized 82" if NCESDistrictID == "0802520"
+replace DistName = "Brush Re-2(J)" if NCESDistrictID == "0802610"
+replace DistName = "Buffalo Re-4J" if NCESDistrictID == "0805640"
+replace DistName = "Center 26 Jt" if NCESDistrictID == "0802850"
+replace DistName = "Colorado School For The Deaf And Blind" if NCESDistrictID == "0800023"
+replace DistName = "Creede School District" if NCESDistrictID == "0803150"
+replace DistName = "Crowley County Re-1-J" if NCESDistrictID == "0803210"
+replace DistName = "Custer County School District C-1" if NCESDistrictID == "0807200"
+replace DistName = "De Beque 49Jt" if NCESDistrictID == "0803240"
+replace DistName = "Deer Trail 26J" if NCESDistrictID == "0803270"
+replace DistName = "Del Norte C-7" if NCESDistrictID == "0803300"
+replace DistName = "Delta County 50(J)" if NCESDistrictID == "0803330"
+replace DistName = "Dolores County Re No.2" if NCESDistrictID == "0803420"
+replace DistName = "Douglas County Re 1" if NCESDistrictID == "0803450"
+replace DistName = "Eagle County Re 50" if NCESDistrictID == "0803540"
+replace DistName = "Edison 54 Jt" if NCESDistrictID == "0803630"
+replace DistName = "Genoa-Hugo C113" if NCESDistrictID == "0804740"
+replace DistName = "Gunnison Watershed Re1J" if NCESDistrictID == "0804470"
+replace DistName = "Hinsdale County Re 1" if NCESDistrictID == "0804620"
+replace DistName = "Hoehne Reorganized 3" if NCESDistrictID == "0804650"
+replace DistName = "Ignacio 11 Jt" if NCESDistrictID == "0804770"
+replace DistName = "Kim Reorganized 88" if NCESDistrictID == "0804980"
+replace DistName = "Kit Carson R-1" if NCESDistrictID == "0805040"
+replace DistName = "Manzanola 3J" if NCESDistrictID == "0805520"
+replace DistName = "Miami/Yoder 60 Jt" if NCESDistrictID == "0805670"
+replace DistName = "Moffat County Re: No 1" if NCESDistrictID == "0805730"
+replace DistName = "Mountain Valley Re 1" if NCESDistrictID == "0806300"
+replace DistName = "North Conejos Re-1J" if NCESDistrictID == "0805100"
+replace DistName = "Peyton 23 Jt" if NCESDistrictID == "0806060"
+replace DistName = "Primero Reorganized 2" if NCESDistrictID == "0807260"
+replace DistName = "Pueblo County 70" if NCESDistrictID == "0806150"
+replace DistName = "Salida R-32" if NCESDistrictID == "0806330"
+replace DistName = "Sanford 6J" if NCESDistrictID == "0806390"
+replace DistName = "Sangre De Cristo Re-22J" if NCESDistrictID == "0806420"
+replace DistName = "Sargent Re-33J" if NCESDistrictID == "0806450"
+replace DistName = "South Routt Re 3" if NCESDistrictID == "0805910"
+replace DistName = "St Vrain Valley Re1J" if NCESDistrictID == "0805370"
+replace DistName = "Strasburg 31J" if NCESDistrictID == "0806750"
+replace DistName = "Walsh Re-1" if NCESDistrictID == "0807110"
+replace DistName = "Weldon Valley Re-20(J)" if NCESDistrictID == "0807140"
+replace DistName = "Westminster Public Schools" if NCESDistrictID == "0807230"
+replace DistName = "Wiggins Re-50(J)" if NCESDistrictID == "0807290"
+replace DistName = "Wiley Re-13 Jt" if NCESDistrictID == "0807320"
+replace DistName = "Ault-Highland Re-9" if NCESDistrictID == "0802310"
+replace DistName = "Briggsdale Re-10" if NCESDistrictID == "0802550"
+replace DistName = "School District 27J" if NCESDistrictID == "0802580"
+replace DistName = "Weld Re-8 Schools" if NCESDistrictID == "0804020"
+replace DistName = "Greeley 6" if NCESDistrictID == "0804410"
+replace DistName = "Johnstown-Milliken Re-5J" if NCESDistrictID == "0804830"
+replace DistName = "Weld County School District Re-3J" if NCESDistrictID == "0804920"
+replace DistName = "Revere School District" if NCESDistrictID == "0806000" // originally Platte Valley Re-3 and Revere; coding as Revere 
+replace DistName = "Windsor Re-4" if NCESDistrictID == "0807350"
+replace DistName = "Meeker Re-1" if NCESDistrictID == "0805610"
+replace DistName = "McClave Re-2" if NCESDistrictID == "0805580"
+replace DistName = "Weld Re-4" if NCESDistrictID == "0807350"
+replace DistName = "Elizabeth School District" if NCESDistrictID == "0803720"
 
 //Final Cleaning
 foreach var of varlist DistName SchName {

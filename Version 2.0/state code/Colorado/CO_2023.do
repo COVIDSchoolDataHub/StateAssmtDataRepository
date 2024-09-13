@@ -1,11 +1,11 @@
 clear
 set more off
 
-cd "/Volumes/T7/State Test Project/Colorado"
+cd "/Users/miramehta/Documents"
 
-global path "/Volumes/T7/State Test Project/Colorado/Original Data Files"
-global nces "/Volumes/T7/State Test Project/Colorado/NCES"
-global output "/Volumes/T7/State Test Project/Colorado/Output"
+global path "/Users/miramehta/Documents/CO State Testing Data"
+global nces "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+global output "/Users/miramehta/Documents/CO State Testing Data/Output"
 
 
 ** Appending ela & math
@@ -221,12 +221,23 @@ replace StudentSubGroup_TotalTested = string(real(StudentGroup_TotalTested)-Unsu
 drop Unsuppressed*
 
 
-** Other Cleaning
+//Other Cleaning
 replace Lev5_percent = "" if Subject == "sci"
 replace Lev5_count = "" if Subject == "sci"
 replace AvgScaleScore="*" if AvgScaleScore=="- -"
 replace ParticipationRate="*" if ParticipationRate=="- -"
+destring ParticipationRate, gen(part) force
+replace part = part/100
+tostring part, replace format (%9.3g) force
+replace ParticipationRate = part if ParticipationRate != "*"
 
+//Removing "Empty" Observations for Subgroups
+drop if StudentSubGroup_TotalTested == "0" & StudentSubGroup != "All Students"
+gen AllPart = ParticipationRate if StudentSubGroup == "All Students"
+replace AllPart = AllPart[_n-1] if missing(AllPart) & StudentSubGroup != "All Students"
+gen flag = 1 if AllPart == "0" & StudentSubGroup != "All Students" & inlist(ProficientOrAbove_percent, "*", "--")
+drop if flag == 1
+drop AllPart flag
 
 ** Generating new variables
 gen SchYear = "2022-23"
@@ -269,6 +280,11 @@ gen Flag_CutScoreChange_sci = "Y"
 
 replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent)* real(StudentSubGroup_TotalTested))) if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(ProficientOrAbove_percent)) & missing(real(ProficientOrAbove_count))
 
+** Standardize Names
+replace DistName = strproper(DistName)
+replace DistName = "McClave Re-2" if NCESDistrictID == "0805580"
+replace DistName = "Weld Re-4" if NCESDistrictID == "0807350"
+replace DistName = "Elizabeth School District" if NCESDistrictID == "0803720"
 
 //Final Cleaning
 foreach var of varlist DistName SchName {

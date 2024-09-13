@@ -191,6 +191,8 @@ replace StateAssignedSchID = "" if DataLevel != 3
 replace SchName = "All Districts" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel != 3
 
+replace Subject = "math" if Subject == "mat"
+
 replace DistName = strtrim(DistName)
 replace SchName = strtrim(SchName)
 
@@ -237,7 +239,6 @@ tostring ProficientOrAbove_percent, replace format("%9.2g") force
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
 replace ProficientOrAbove_count="*" if ProficientOrAbove_count=="- -"
 
-
 //StudentGroup_TotalTested
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
@@ -249,18 +250,23 @@ egen UnsuppressedSG = total(UnsuppressedSSG), by(StudentGroup GradeLevel Subject
 replace StudentSubGroup_TotalTested = string(real(StudentGroup_TotalTested)-UnsuppressedSG) if missing(real(StudentSubGroup_TotalTested)) & !missing(real(StudentGroup_TotalTested)) & real(StudentGroup_TotalTested) - UnsuppressedSG >=0 & UnsuppressedSG > 0 & StudentGroup != "RaceEth" & StudentSubGroup != "EL Exited"
 drop Unsuppressed*
 
-
-** Other Cleaning
+// Other Cleaning
 replace Lev5_percent = "" if Subject == "sci"
 replace Lev5_count = "" if Subject == "sci"
 replace AvgScaleScore="*" if AvgScaleScore=="- -"
 replace ParticipationRate="*" if ParticipationRate=="- -"
-drop if ParticipationRate == "0.0"
 destring ParticipationRate, gen(part) force
 replace part = part/100
 tostring part, replace format (%9.3g) force
 replace ParticipationRate = part if ParticipationRate != "*"
 
+//Removing "Empty" Observations for Subgroups
+drop if StudentSubGroup_TotalTested == "0" & StudentSubGroup != "All Students"
+gen AllPart = ParticipationRate if StudentSubGroup == "All Students"
+replace AllPart = AllPart[_n-1] if missing(AllPart) & StudentSubGroup != "All Students"
+gen flag = 1 if AllPart == "0" & StudentSubGroup != "All Students" & inlist(ProficientOrAbove_percent, "*", "--")
+drop if flag == 1
+drop AllPart flag
 
 ** Generating new variables
 gen SchYear = "2023-24"
@@ -364,6 +370,11 @@ gen Flag_CutScoreChange_sci = "N"
 
 replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent)* real(StudentSubGroup_TotalTested))) if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(ProficientOrAbove_percent)) & missing(real(ProficientOrAbove_count))
 
+** Standardize Names
+replace DistName = strproper(DistName)
+replace DistName = "McClave Re-2" if NCESDistrictID == "0805580"
+replace DistName = "Weld Re-4" if NCESDistrictID == "0807350"
+replace DistName = "Elizabeth School District" if NCESDistrictID == "0803720"
 
 //Final Cleaning
 foreach var of varlist DistName SchName {

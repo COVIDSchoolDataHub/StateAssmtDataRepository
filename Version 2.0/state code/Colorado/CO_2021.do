@@ -1,12 +1,13 @@
 clear all
 set more off
 
-cd "/Volumes/T7/State Test Project/Colorado"
+cd "/Users/miramehta/Documents"
 
-global path "/Volumes/T7/State Test Project/Colorado/Original Data Files"
-global nces "/Volumes/T7/State Test Project/Colorado/NCES"
-global output "/Volumes/T7/State Test Project/Colorado/Output"
-global nces_raw "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global path "/Users/miramehta/Documents/CO State Testing Data"
+global nces "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+global output "/Users/miramehta/Documents/CO State Testing Data/Output"
+global NCESSchool "/Users/miramehta/Documents/NCES District and School Demographics/NCES School Files, Fall 1997-Fall 2022"
+global NCESDistrict "/Users/miramehta/Documents/NCES District and School Demographics/NCES District Files, Fall 1997-Fall 2022"
 
 ///////// Section 1: Appending Aggregate Data
 
@@ -17,7 +18,7 @@ global nces_raw "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
 	//Imports and saves math/ela
 
 	
-import excel "${path}/CO_OriginalData_2021_ela&mat.xlsx", sheet("CMAS ELA and Math") cellrange(A28:Y6477) firstrow case(lower) clear
+import excel "${path}/Original Data/2021/CO_OriginalData_2021_ela&mat.xlsx", sheet("CMAS ELA and Math") cellrange(A28:Y6477) firstrow case(lower) clear
 
 rename numberdidnotyetmeetexpectat Lev1_count
 rename percentdidnotyetmeetexpecta Lev1_percent
@@ -34,7 +35,7 @@ save "${output}/CO_OriginalData_2021_ela&mat.dta", replace
 
 	//imports and saves sci
 	
-import excel "${path}/CO_OriginalData_2021_sci.xlsx", sheet("CMAS Science") cellrange(A28:V831) firstrow case(lower) clear
+import excel "${path}/Original Data/2021/CO_OriginalData_2021_sci.xlsx", sheet("CMAS Science") cellrange(A28:V831) firstrow case(lower) clear
 
 rename numberpartiallymetexpectation Lev1_count
 rename percentpartiallymetexpectatio Lev1_percent
@@ -72,7 +73,7 @@ save "${output}/CO_OriginalData_2021_all.dta", replace
 	//// ENGLISH/LANGUAGE ARTS
 	
 	
-import excel "${path}/2021 CMAS ELA District and School Achievement Results Disaggregated by Subgroups - Required Tests.xlsx", sheet("Gender") cellrange(A28:Y6745) firstrow case(lower) clear
+import excel "${path}/Original Data/2021/2021 CMAS ELA District and School Achievement Results Disaggregated by Subgroups - Required Tests.xlsx", sheet("Gender") cellrange(A28:Y6745) firstrow case(lower) clear
 
 rename numberdidnotyetmeetexpectat Lev1_count
 rename percentdidnotyetmeetexpecta Lev1_percent
@@ -92,7 +93,7 @@ save "${output}/CO_2021_ELA_gender.dta", replace
 
 
 
-import excel "${path}/2021 CMAS ELA District and School Achievement Results Disaggregated by Subgroups - Required Tests.xlsx", sheet("Language Proficiency") cellrange(A28:Y20176) firstrow case(lower) clear
+import excel "${path}/Original Data/2021/2021 CMAS ELA District and School Achievement Results Disaggregated by Subgroups - Required Tests.xlsx", sheet("Language Proficiency") cellrange(A28:Y20176) firstrow case(lower) clear
 
 rename numberdidnotyetmeetexpectat Lev1_count
 rename percentdidnotyetmeetexpecta Lev1_percent
@@ -112,7 +113,7 @@ save "${output}/CO_2021_ELA_language.dta", replace
 
 
 
-import excel "${path}/2021 CMAS ELA District and School Achievement Results Disaggregated by Subgroups - Required Tests.xlsx", sheet("Race Ethnicity") cellrange(A28:Y23582) firstrow case(lower) clear
+import excel "${path}/Original Data/2021/2021 CMAS ELA District and School Achievement Results Disaggregated by Subgroups - Required Tests.xlsx", sheet("Race Ethnicity") cellrange(A28:Y23582) firstrow case(lower) clear
 
 rename numberdidnotyetmeetexpectat Lev1_count
 rename percentdidnotyetmeetexpecta Lev1_percent
@@ -131,7 +132,7 @@ gen subject="ela"
 save "${output}/CO_2021_ELA_raceEthnicity.dta", replace
 
 
-import excel "${path}/2021 CMAS ELA District and School Achievement Results Disaggregated by Subgroups - Required Tests.xlsx", sheet("Free Reduced Lunch") cellrange(A30:Y6747) firstrow case(lower) clear
+import excel "${path}/Original Data/2021/2021 CMAS ELA District and School Achievement Results Disaggregated by Subgroups - Required Tests.xlsx", sheet("Free Reduced Lunch") cellrange(A30:Y6747) firstrow case(lower) clear
 
 rename numberdidnotyetmeetexpectat Lev1_count
 rename percentdidnotyetmeetexpecta Lev1_percent
@@ -149,7 +150,7 @@ gen subject="ela"
 
 save "${output}/CO_2021_ELA_econstatus.dta", replace
 
-import excel "${path}/2021 CMAS ELA District and School Achievement Results Disaggregated by Subgroups - Required Tests.xlsx", sheet("Migrant") cellrange(A28:Y6744) firstrow case(lower) clear
+import excel "${path}/Original Data/2021/2021 CMAS ELA District and School Achievement Results Disaggregated by Subgroups - Required Tests.xlsx", sheet("Migrant") cellrange(A28:Y6744) firstrow case(lower) clear
 
 rename numberdidnotyetmeetexpectat Lev1_count
 rename percentdidnotyetmeetexpecta Lev1_percent
@@ -167,7 +168,7 @@ gen subject="ela"
 
 save "${output}/CO_2021_ELA_migrantstatus.dta", replace
 
-import excel "${path}/2021 CMAS ELA District and School Achievement Results Disaggregated by Subgroups - Required Tests.xlsx", sheet("IEP") cellrange(A28:Y6744) firstrow case(lower) clear
+import excel "${path}/Original Data/2021/2021 CMAS ELA District and School Achievement Results Disaggregated by Subgroups - Required Tests.xlsx", sheet("IEP") cellrange(A28:Y6744) firstrow case(lower) clear
 
 rename numberdidnotyetmeetexpectat Lev1_count
 rename percentdidnotyetmeetexpecta Lev1_percent
@@ -189,7 +190,7 @@ save "${output}/CO_2021_ELA_disabilitystatus.dta", replace
 	//// MATH
 
 
-import excel "${path}/2021 CMAS Math District and School Achievement Results Disaggregated by Subgroups - Required Tests.xlsx", sheet("Gender") cellrange(A28:Y5909) firstrow case(lower) clear
+import excel "${path}/Original Data/2021/2021 CMAS Math District and School Achievement Results Disaggregated by Subgroups - Required Tests.xlsx", sheet("Gender") cellrange(A28:Y5909) firstrow case(lower) clear
 
 rename numberdidnotyetmeetexpectat Lev1_count
 rename percentdidnotyetmeetexpecta Lev1_percent
@@ -209,7 +210,7 @@ save "${output}/CO_2021_mat_gender.dta", replace
 
 
 
-import excel "${path}/2021 CMAS Math District and School Achievement Results Disaggregated by Subgroups - Required Tests.xlsx", sheet("Language Proficiency") cellrange(A28:Y17667) firstrow case(lower) clear
+import excel "${path}/Original Data/2021/2021 CMAS Math District and School Achievement Results Disaggregated by Subgroups - Required Tests.xlsx", sheet("Language Proficiency") cellrange(A28:Y17667) firstrow case(lower) clear
 
 rename numberdidnotyetmeetexpectat Lev1_count
 rename percentdidnotyetmeetexpecta Lev1_percent
@@ -229,7 +230,7 @@ save "${output}/CO_2021_mat_language.dta", replace
 
 
 
-import excel "${path}/2021 CMAS Math District and School Achievement Results Disaggregated by Subgroups - Required Tests.xlsx", sheet("Race Ethnicity") cellrange(A28:Y20645) firstrow case(lower) clear
+import excel "${path}/Original Data/2021/2021 CMAS Math District and School Achievement Results Disaggregated by Subgroups - Required Tests.xlsx", sheet("Race Ethnicity") cellrange(A28:Y20645) firstrow case(lower) clear
 
 rename numberdidnotyetmeetexpectat Lev1_count
 rename percentdidnotyetmeetexpecta Lev1_percent
@@ -248,7 +249,7 @@ gen subject="math"
 save "${output}/CO_2021_mat_raceEthnicity.dta", replace
 
 
-import excel "${path}/2021 CMAS Math District and School Achievement Results Disaggregated by Subgroups - Required Tests.xlsx", sheet("Free Reduced Lunch") cellrange(A30:Y5911) firstrow case(lower) clear
+import excel "${path}/Original Data/2021/2021 CMAS Math District and School Achievement Results Disaggregated by Subgroups - Required Tests.xlsx", sheet("Free Reduced Lunch") cellrange(A30:Y5911) firstrow case(lower) clear
 
 rename numberdidnotyetmeetexpectat Lev1_count
 rename percentdidnotyetmeetexpecta Lev1_percent
@@ -266,7 +267,7 @@ gen subject="math"
 
 save "${output}/CO_2021_mat_econstatus.dta", replace
 
-import excel "${path}/2021 CMAS Math District and School Achievement Results Disaggregated by Subgroups - Required Tests.xlsx", sheet("Migrant") cellrange(A28:Y5908) firstrow case(lower) clear
+import excel "${path}/Original Data/2021/2021 CMAS Math District and School Achievement Results Disaggregated by Subgroups - Required Tests.xlsx", sheet("Migrant") cellrange(A28:Y5908) firstrow case(lower) clear
 
 rename numberdidnotyetmeetexpectat Lev1_count
 rename percentdidnotyetmeetexpecta Lev1_percent
@@ -284,7 +285,7 @@ gen subject="math"
 
 save "${output}/CO_2021_mat_migrantstatus.dta", replace
 
-import excel "${path}/2021 CMAS Math District and School Achievement Results Disaggregated by Subgroups - Required Tests.xlsx", sheet("IEP") cellrange(A28:Y5908) firstrow case(lower) clear
+import excel "${path}/Original Data/2021/2021 CMAS Math District and School Achievement Results Disaggregated by Subgroups - Required Tests.xlsx", sheet("IEP") cellrange(A28:Y5908) firstrow case(lower) clear
 
 rename numberdidnotyetmeetexpectat Lev1_count
 rename percentdidnotyetmeetexpecta Lev1_percent
@@ -307,7 +308,7 @@ save "${output}/CO_2021_mat_disabilitystatus.dta", replace
 	//// SCIENCE
 	
 	
-import excel "${path}/2021 CMAS Science District and School Achievement Results Disaggregated by Subgroups.xlsx", sheet("Gender") cellrange(A28:W1633) firstrow case(lower) clear
+import excel "${path}/Original Data/2021/2021 CMAS Science District and School Achievement Results Disaggregated by Subgroups.xlsx", sheet("Gender") cellrange(A28:W1633) firstrow case(lower) clear
 
 rename numberpartiallymetexpectation Lev1_count
 rename percentpartiallymetexpectatio Lev1_percent
@@ -326,7 +327,7 @@ save "${output}/CO_2021_sci_gender.dta", replace
 
 
 
-import excel "${path}/2021 CMAS Science District and School Achievement Results Disaggregated by Subgroups.xlsx", sheet("Language Proficiency") cellrange(A28:W4841) firstrow case(lower) clear
+import excel "${path}/Original Data/2021/2021 CMAS Science District and School Achievement Results Disaggregated by Subgroups.xlsx", sheet("Language Proficiency") cellrange(A28:W4841) firstrow case(lower) clear
 
 rename numberpartiallymetexpectation Lev1_count
 rename percentpartiallymetexpectatio Lev1_percent
@@ -344,7 +345,7 @@ save "${output}/CO_2021_sci_language.dta", replace
 
 
 
-import excel "${path}/2021 CMAS Science District and School Achievement Results Disaggregated by Subgroups.xlsx", sheet("Race Ethnicity") cellrange(A28:W5654) firstrow case(lower) clear
+import excel "${path}/Original Data/2021/2021 CMAS Science District and School Achievement Results Disaggregated by Subgroups.xlsx", sheet("Race Ethnicity") cellrange(A28:W5654) firstrow case(lower) clear
 
 rename numberpartiallymetexpectation Lev1_count
 rename percentpartiallymetexpectatio Lev1_percent
@@ -361,7 +362,7 @@ gen subject="sci"
 
 save "${output}/CO_2021_sci_raceEthnicity.dta", replace
 
-import excel "${path}/2021 CMAS Science District and School Achievement Results Disaggregated by Subgroups.xlsx", sheet("Free Reduced Lunch") cellrange(A30:W1634) firstrow case(lower) clear
+import excel "${path}/Original Data/2021/2021 CMAS Science District and School Achievement Results Disaggregated by Subgroups.xlsx", sheet("Free Reduced Lunch") cellrange(A30:W1634) firstrow case(lower) clear
 
 rename numberpartiallymetexpectation Lev1_count
 rename percentpartiallymetexpectatio Lev1_percent
@@ -379,7 +380,7 @@ gen subject="sci"
 save "${output}/CO_2021_sci_econstatus.dta", replace
 
 
-import excel "${path}/2021 CMAS Science District and School Achievement Results Disaggregated by Subgroups.xlsx", sheet("Migrant") cellrange(A28:W1632) firstrow case(lower) clear
+import excel "${path}/Original Data/2021/2021 CMAS Science District and School Achievement Results Disaggregated by Subgroups.xlsx", sheet("Migrant") cellrange(A28:W1632) firstrow case(lower) clear
 
 rename numberpartiallymetexpectation Lev1_count
 rename percentpartiallymetexpectatio Lev1_percent
@@ -395,7 +396,7 @@ gen subject="sci"
 
 save "${output}/CO_2021_sci_migrantstatus.dta", replace
 
-import excel "${path}/2021 CMAS Science District and School Achievement Results Disaggregated by Subgroups.xlsx", sheet("IEP") cellrange(A28:W1632) firstrow case(lower) clear
+import excel "${path}/Original Data/2021/2021 CMAS Science District and School Achievement Results Disaggregated by Subgroups.xlsx", sheet("IEP") cellrange(A28:W1632) firstrow case(lower) clear
 
 rename numberpartiallymetexpectation Lev1_count
 rename percentpartiallymetexpectatio Lev1_percent
@@ -467,7 +468,7 @@ save "${output}/CO_OriginalData_2021_all.dta", replace
 
 	// Merges district variables from NCES
 	
-use "${nces_raw}/NCES_2020_District.dta", clear
+use "${NCESDistrict}/NCES_2020_District.dta", clear
 drop if state_fips != 8
 save "${nces}/NCES_2020_District_CO.dta", replace
 
@@ -485,7 +486,7 @@ save "${output}/CO_OriginalData_2021_all.dta", replace
 
 	// Merges school variables from NCES
 	
-use "${nces_raw}/NCES_2020_School.dta"
+use "${NCESSchool}/NCES_2020_School.dta"
 drop if state_fips != 8
 save "${nces}/NCES_2020_School_CO.dta", replace
 
@@ -663,6 +664,15 @@ drop Unsuppressed*
 
 
 replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent)* real(StudentSubGroup_TotalTested))) if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(ProficientOrAbove_percent)) & missing(real(ProficientOrAbove_count))
+
+//Removing "Empty" Observations for Subgroups
+drop if StudentSubGroup_TotalTested == "0" & StudentSubGroup != "All Students"
+
+//Standardize Names
+replace DistName = strproper(DistName)
+replace DistName = "McClave Re-2" if NCESDistrictID == "0805580"
+replace DistName = "Weld Re-4" if NCESDistrictID == "0807350"
+replace DistName = "Elizabeth School District" if NCESDistrictID == "0803720"
 
 //Final Cleaning
 foreach var of varlist DistName SchName {

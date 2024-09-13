@@ -1,17 +1,17 @@
 clear
 set more off
 
-cd "/Volumes/T7/State Test Project/Colorado"
+cd "/Users/miramehta/Documents"
 
-global path "/Volumes/T7/State Test Project/Colorado/Original Data Files"
-global nces "/Volumes/T7/State Test Project/Colorado/NCES"
-global output "/Volumes/T7/State Test Project/Colorado/Output"
+global path "/Users/miramehta/Documents/CO State Testing Data"
+global nces "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+global output "/Users/miramehta/Documents/CO State Testing Data/Output"
 
 
 //Importing & Renaming
 /*
 ** All Students Data
-import excel "${path}/CO_OriginalData_2017_ela&mat.xlsx", cellrange(A5) firstrow case(lower) clear
+import excel "${path}/Original Data/2017/CO_OriginalData_2017_ela&mat.xlsx", cellrange(A5) firstrow case(lower) clear
 drop if missing(districtcode)
 drop y-changeinmetor
 rename numberdidnotyetmeetexpect Lev1_count
@@ -28,7 +28,7 @@ rename exceededexpectations Lev5_percent
 
 save "${path}/CO_OriginalData_2017_ela&mat", replace
 
-import excel "${path}/CO_OriginalData_2017_sci.xlsx", cellrange(A4) case(lower) firstrow clear
+import excel "${path}/Original Data/2017/CO_OriginalData_2017_sci.xlsx", cellrange(A4) case(lower) firstrow clear
 drop if missing(districtcode)
 drop w-changeinmetor
 
@@ -66,7 +66,7 @@ tempfile temp1
 save "`temp1'", replace emptyok
 foreach s in ela mat sci {
 	foreach sg in FreeReducedLunch raceEthnicity gender individualEd language migrant {
-		import excel "$path/CO_2017_`s'_`sg'.xlsx", cellrange(A5) clear
+		import excel "$path/Original Data/2017/CO_2017_`s'_`sg'.xlsx", cellrange(A5) clear
 		drop if missing(B)
 		if "`s'" != "sci" {
 		rename M Lev1_count
@@ -209,6 +209,14 @@ replace StudentSubGroup = "EL Exited" if StudentSubGroup == "FEP - Fluent Englis
 replace Lev5_count = "" if Subject == "sci"
 replace Lev5_percent = "" if Subject == "sci"
 
+//Derive Additional Performance Information where Possible
+destring Lev1_count, gen(Lev1_c) force
+destring ProficientOrAbove_count, gen(prof_c) force
+destring StudentSubGroup_TotalTested, gen(studcount) force
+replace Lev2_count = string(studcount - prof_c - Lev1_c) if Subject == "sci" & inlist(Lev2_count, "*", "--") & !inlist(Lev1_count, "*", "--") & !inlist(ProficientOrAbove_count, "*", "--")
+
+drop Lev1_c prof_c studcount
+
 //StudentSubGroup_TotalTested
 replace StudentSubGroup_TotalTested = "0-15" if strpos(StudentSubGroup_TotalTested, "<16") !=0 | strpos(StudentSubGroup_TotalTested, "< 16") !=0
 replace StudentSubGroup_TotalTested = "--" if missing(StudentSubGroup_TotalTested)
@@ -254,6 +262,8 @@ egen UnsuppressedSG = total(UnsuppressedSSG), by(StudentGroup GradeLevel Subject
 replace StudentSubGroup_TotalTested = string(real(StudentGroup_TotalTested)-UnsuppressedSG) if missing(real(StudentSubGroup_TotalTested)) & !missing(real(StudentGroup_TotalTested)) & real(StudentGroup_TotalTested) - UnsuppressedSG >=0 & UnsuppressedSG > 0 & StudentGroup != "RaceEth" & StudentSubGroup != "EL Exited"
 drop Unsuppressed*
 
+//Removing "Empty" Observations for Subgroups
+drop if StudentSubGroup_TotalTested == "0" & StudentSubGroup != "All Students"
 
 //Indicator Variables
 replace State = "Colorado"
@@ -288,6 +298,15 @@ replace SchName = "Pueblo Youth Service Center" if NCESSchoolID == "080612006350
 
 replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent)* real(StudentSubGroup_TotalTested))) if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(ProficientOrAbove_percent)) & missing(real(ProficientOrAbove_count))
 
+** Standardize Names
+replace DistName = strproper(DistName)
+replace DistName = "Moffat County Re: No 1" if NCESDistrictID == "0805730"
+replace DistName = "St Vrain Valley Re1J" if NCESDistrictID == "0805370"
+replace DistName = "Weld Re-8 Schools" if NCESDistrictID == "0804020"
+replace DistName = "Meeker Re-1" if NCESDistrictID == "0805610"
+replace DistName = "McClave Re-2" if NCESDistrictID == "0805580"
+replace DistName = "Weld Re-4" if NCESDistrictID == "0807350"
+replace DistName = "Elizabeth School District" if NCESDistrictID == "0803720"
 
 //Final Cleaning
 foreach var of varlist DistName SchName {

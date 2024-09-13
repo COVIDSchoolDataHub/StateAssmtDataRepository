@@ -1,12 +1,13 @@
 clear all
 set more off
 
-cd "/Volumes/T7/State Test Project/Colorado"
+cd "/Users/miramehta/Documents"
 
-global path "/Volumes/T7/State Test Project/Colorado/Original Data Files"
-global nces "/Volumes/T7/State Test Project/Colorado/NCES"
-global output "/Volumes/T7/State Test Project/Colorado/Output"
-global nces_raw "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global path "/Users/miramehta/Documents/CO State Testing Data"
+global nces "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+global output "/Users/miramehta/Documents/CO State Testing Data/Output"
+global NCESSchool "/Users/miramehta/Documents/NCES District and School Demographics/NCES School Files, Fall 1997-Fall 2022"
+global NCESDistrict "/Users/miramehta/Documents/NCES District and School Demographics/NCES District Files, Fall 1997-Fall 2022"
 
 
 ///////// Section 1: Appending Aggregate Data
@@ -18,7 +19,7 @@ global nces_raw "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
 	//Imports and saves math/ela
 
 	
-import excel "/${path}/CO_OriginalData_2022_ela&mat.xlsx", sheet("CMAS ELA and Math") cellrange(A13:AC16856) firstrow case(lower) clear
+import excel "${path}/Original Data/2022/CO_OriginalData_2022_ela&mat.xlsx", sheet("CMAS ELA and Math") cellrange(A13:AC16856) firstrow case(lower) clear
 
 gen StudentGroup = "All Students"
 gen StudentSubGroup = "All Students"
@@ -32,7 +33,7 @@ save "${path}/CO_OriginalData_2022_all.dta", replace
 	//// ENGLISH/LANGUAGE ARTS
 	
 	
-import excel "${path}/2022 CMAS ELA School and District Achievement Results - Disaggregated by Group.xlsx", sheet("Gender") cellrange(A13:Y16170) firstrow case(lower) clear
+import excel "${path}/Original Data/2022/2022 CMAS ELA School and District Achievement Results - Disaggregated by Group.xlsx", sheet("Gender") cellrange(A13:Y16170) firstrow case(lower) clear
 
 rename gender StudentSubGroup
 gen StudentGroup = "Gender"
@@ -42,7 +43,7 @@ save "${output}/CO_2022_ELA_gender.dta", replace
 
 
 
-import excel "${path}/2022 CMAS ELA School and District Achievement Results - Disaggregated by Group.xlsx", sheet("Language Proficiency") cellrange(A13:Y48482) firstrow case(lower) clear
+import excel "${path}/Original Data/2022/2022 CMAS ELA School and District Achievement Results - Disaggregated by Group.xlsx", sheet("Language Proficiency") cellrange(A13:Y48482) firstrow case(lower) clear
 
 
 rename languageproficiency StudentSubGroup
@@ -53,7 +54,7 @@ save "${output}/CO_2022_ELA_language.dta", replace
 
 
 
-import excel "${path}/2022 CMAS ELA School and District Achievement Results - Disaggregated by Group.xlsx", sheet("Race Ethnicity") cellrange(A13:Y56673) firstrow case(lower) clear
+import excel "${path}/Original Data/2022/2022 CMAS ELA School and District Achievement Results - Disaggregated by Group.xlsx", sheet("Race Ethnicity") cellrange(A13:Y56673) firstrow case(lower) clear
 
 
 rename raceethnicity StudentSubGroup
@@ -64,7 +65,7 @@ save "${output}/CO_2022_ELA_raceEthnicity.dta", replace
 
 
 
-import excel "${path}/2022 CMAS ELA School and District Achievement Results - Disaggregated by Group.xlsx", sheet("Free Reduced Lunch") cellrange(A13:Y16170) firstrow case(lower) clear
+import excel "${path}/Original Data/2022/2022 CMAS ELA School and District Achievement Results - Disaggregated by Group.xlsx", sheet("Free Reduced Lunch") cellrange(A13:Y16170) firstrow case(lower) clear
 
 rename freereducedlunchstatus StudentSubGroup
 gen StudentGroup = "Economic Status"
@@ -72,7 +73,7 @@ gen subject="ela"
 
 save "${output}/CO_2022_ELA_econstatus.dta", replace
 
-import excel "${path}/2022 CMAS ELA School and District Achievement Results - Disaggregated by Group.xlsx", sheet("Migrant") cellrange(A13:Y16169) firstrow case(lower) clear
+import excel "${path}/Original Data/2022/2022 CMAS ELA School and District Achievement Results - Disaggregated by Group.xlsx", sheet("Migrant") cellrange(A13:Y16169) firstrow case(lower) clear
 
 rename migrant StudentSubGroup
 gen StudentGroup = "Migrant Status"
@@ -80,7 +81,7 @@ gen subject="ela"
 
 save "${output}/CO_2022_ELA_migrantstatus.dta", replace
 
-import excel "${path}/2022 CMAS ELA School and District Achievement Results - Disaggregated by Group.xlsx", sheet("IEP") cellrange(A13:Y16169) firstrow case(lower) clear
+import excel "${path}/Original Data/2022/2022 CMAS ELA School and District Achievement Results - Disaggregated by Group.xlsx", sheet("IEP") cellrange(A13:Y16169) firstrow case(lower) clear
 
 rename iepstatus StudentSubGroup
 gen StudentGroup = "Disability Status"
@@ -93,7 +94,7 @@ save "${output}/CO_2022_ELA_disabilitystatus.dta", replace
 	//// MATH
 
 
-import excel "${path}/2022 CMAS Math School and District Achievement Results - Disaggregated by Group.xlsx", sheet("Gender") cellrange(A13:Y16166) firstrow case(lower) clear
+import excel "${path}/Original Data/2022/2022 CMAS Math School and District Achievement Results - Disaggregated by Group.xlsx", sheet("Gender") cellrange(A13:Y16166) firstrow case(lower) clear
 
 
 rename gender StudentSubGroup
@@ -104,7 +105,7 @@ save "${output}/CO_2022_mat_gender.dta", replace
 
 
 
-import excel "${path}/2022 CMAS Math School and District Achievement Results - Disaggregated by Group.xlsx", sheet("Language Proficiency") cellrange(A13:Y48470) firstrow case(lower) clear
+import excel "${path}/Original Data/2022/2022 CMAS Math School and District Achievement Results - Disaggregated by Group.xlsx", sheet("Language Proficiency") cellrange(A13:Y48470) firstrow case(lower) clear
 
 
 rename languageproficiency StudentSubGroup
@@ -114,7 +115,7 @@ gen subject="math"
 save "${output}/CO_2022_mat_language.dta", replace
 
 
-import excel "${path}/2022 CMAS Math School and District Achievement Results - Disaggregated by Group.xlsx", sheet("Race Ethnicity") cellrange(A13:Y56659) firstrow case(lower) clear
+import excel "${path}/Original Data/2022/2022 CMAS Math School and District Achievement Results - Disaggregated by Group.xlsx", sheet("Race Ethnicity") cellrange(A13:Y56659) firstrow case(lower) clear
 
 rename raceethnicity StudentSubGroup
 gen StudentGroup = "RaceEth"
@@ -123,7 +124,7 @@ gen subject="math"
 save "${output}/CO_2022_mat_raceEthnicity.dta", replace
 
 
-import excel "${path}/2022 CMAS Math School and District Achievement Results - Disaggregated by Group.xlsx", sheet("Free Reduced Lunch") cellrange(A13:Y16166) firstrow case(lower) clear
+import excel "${path}/Original Data/2022/2022 CMAS Math School and District Achievement Results - Disaggregated by Group.xlsx", sheet("Free Reduced Lunch") cellrange(A13:Y16166) firstrow case(lower) clear
 
 rename freereducedlunchstatus StudentSubGroup
 gen StudentGroup = "Economic Status"
@@ -131,7 +132,7 @@ gen subject="math"
 
 save "${output}/CO_2022_mat_econstatus.dta", replace
 
-import excel "${path}/2022 CMAS Math School and District Achievement Results - Disaggregated by Group.xlsx", sheet("Migrant") cellrange(A13:Y16165) firstrow case(lower) clear
+import excel "${path}/Original Data/2022/2022 CMAS Math School and District Achievement Results - Disaggregated by Group.xlsx", sheet("Migrant") cellrange(A13:Y16165) firstrow case(lower) clear
 
 rename migrant StudentSubGroup
 gen StudentGroup = "Migrant Status"
@@ -139,7 +140,7 @@ gen subject="math"
 
 save "${output}/CO_2022_mat_migrantstatus.dta", replace
 
-import excel "${path}/2022 CMAS Math School and District Achievement Results - Disaggregated by Group.xlsx", sheet("IEP") cellrange(A13:Y16165) firstrow case(lower) clear
+import excel "${path}/Original Data/2022/2022 CMAS Math School and District Achievement Results - Disaggregated by Group.xlsx", sheet("IEP") cellrange(A13:Y16165) firstrow case(lower) clear
 
 rename iepstatus StudentSubGroup
 gen StudentGroup = "Disability Status"
@@ -197,7 +198,7 @@ save "${path}/CO_OriginalData_2022_all.dta", replace
 
 		// Merges district variables from NCES
 	
-use "${nces_raw}/NCES_2021_District.dta"
+use "${NCESDistrict}/NCES_2021_District.dta"
 drop if state_fips != 8
 save "${nces}/NCES_2021_District_CO.dta", replace
 
@@ -215,7 +216,7 @@ save "${path}/CO_OriginalData_2022_all.dta", replace
 
 	// Merges school variables from NCES
 	
-use "${nces_raw}/NCES_2021_School.dta"
+use "${NCESSchool}/NCES_2021_School.dta"
 drop if state_fips != 8
 save "${nces}/NCES_2021_School_CO.dta", replace
 
@@ -385,6 +386,13 @@ egen UnsuppressedSG = total(UnsuppressedSSG), by(StudentGroup GradeLevel Subject
 replace StudentSubGroup_TotalTested = string(real(StudentGroup_TotalTested)-UnsuppressedSG) if missing(real(StudentSubGroup_TotalTested)) & !missing(real(StudentGroup_TotalTested)) & real(StudentGroup_TotalTested) - UnsuppressedSG >=0 & UnsuppressedSG > 0 & StudentGroup != "RaceEth" & StudentSubGroup != "EL Exited"
 drop Unsuppressed*
 
+//Removing "Empty" Observations for Subgroups
+drop if StudentSubGroup_TotalTested == "0" & StudentSubGroup != "All Students"
+gen AllPart = ParticipationRate if StudentSubGroup == "All Students"
+replace AllPart = AllPart[_n-1] if missing(AllPart) & StudentSubGroup != "All Students"
+gen flag = 1 if AllPart == "0" & StudentSubGroup != "All Students" & inlist(ProficientOrAbove_percent, "*", "--")
+drop if flag == 1
+drop AllPart flag
 
 ////
 replace StateAbbrev="CO" if StateAbbrev==""
@@ -414,6 +422,12 @@ drop DataLevel
 rename DataLevel_n DataLevel
 
 replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent)* real(StudentSubGroup_TotalTested))) if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(ProficientOrAbove_percent)) & missing(real(ProficientOrAbove_count))
+
+** Standardize Names
+replace DistName = strproper(DistName)
+replace DistName = "McClave Re-2" if NCESDistrictID == "0805580"
+replace DistName = "Weld Re-4" if NCESDistrictID == "0807350"
+replace DistName = "Elizabeth School District" if NCESDistrictID == "0803720"
 
 //Final Cleaning
 foreach var of varlist DistName SchName {

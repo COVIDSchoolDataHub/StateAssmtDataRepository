@@ -1,11 +1,11 @@
 clear all
 set more off
 
-cd "/Volumes/T7/State Test Project/Colorado"
+cd "/Users/miramehta/Documents"
 
-global path "/Volumes/T7/State Test Project/Colorado/Original Data Files"
-global nces "/Volumes/T7/State Test Project/Colorado/NCES"
-global output "/Volumes/T7/State Test Project/Colorado/Output"
+global path "/Users/miramehta/Documents/CO State Testing Data"
+global nces "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+global output "/Users/miramehta/Documents/CO State Testing Data/Output"
 
 
 ///////// Section 1: Appending Aggregate Data
@@ -17,7 +17,7 @@ global output "/Volumes/T7/State Test Project/Colorado/Output"
 	//Imports and saves math/ela
 
 
-import excel "${path}/CO_OriginalData_2018_ela&mat.xlsx", sheet("District and School Detail_1") cellrange(A7:X16187) firstrow case(lower) clear
+import excel "${path}/Original Data/2018/CO_OriginalData_2018_ela&mat.xlsx", sheet("District and School Detail_1") cellrange(A7:X16187) firstrow case(lower) clear
 
 rename content Subject
 rename test GradeLevel
@@ -35,7 +35,7 @@ rename x ProficientOrAbove_percent
 
 save "${output}/CO_OriginalData_2018_ela_math.dta", replace
 	
-import excel "${path}/CO_OriginalData_2018_sci.xlsx", sheet("District and School Detail_1") cellrange(A5:U4661) firstrow case(lower) clear
+import excel "${path}/Original Data/2018/CO_OriginalData_2018_sci.xlsx", sheet("District and School Detail_1") cellrange(A5:U4661) firstrow case(lower) clear
 
 gen Subject = "sci"
 rename testgrade GradeLevel
@@ -81,7 +81,7 @@ save "${output}/CO_OriginalData_2018_all.dta", replace
 
 	//// ENGLISH/LANGUAGE ARTS
 
-import excel "${path}/CO_2018_ELA_gender.xlsx", sheet("Sheet1_1") cellrange(A3:W15648) firstrow case(lower) clear
+import excel "${path}/Original Data/2018/CO_2018_ELA_gender.xlsx", sheet("Sheet1_1") cellrange(A3:W15648) firstrow case(lower) clear
 
 gen Subject = "ela"
 rename didnotyetmeetexpectations Lev1_count
@@ -99,7 +99,7 @@ save "${output}/CO_2018_ELA_gender.dta", replace
 
 
 
-import excel "${path}/CO_2018_ELA_language.xlsx", sheet("Sheet1_1") cellrange(A3:W22799) firstrow case(lower) clear
+import excel "${path}/Original Data/2018/CO_2018_ELA_language.xlsx", sheet("Sheet1_1") cellrange(A3:W22799) firstrow case(lower) clear
 
 gen Subject = "ela"
 rename didnotyetmeetexpectations Lev1_count
@@ -116,7 +116,7 @@ gen StudentGroup = "EL Status"
 save "${output}/CO_2018_ELA_language.dta", replace
 
 
-import excel "${path}/CO_2018_ELA_raceEthnicity.xlsx", sheet("Sheet1_1") cellrange(A3:W34708) firstrow case(lower) clear
+import excel "${path}/Original Data/2018/CO_2018_ELA_raceEthnicity.xlsx", sheet("Sheet1_1") cellrange(A3:W34708) firstrow case(lower) clear
 
 gen Subject = "ela"
 rename didnotyetmeetexpectations Lev1_count
@@ -133,7 +133,7 @@ gen StudentGroup = "RaceEth"
 save "${output}/CO_2018_ELA_raceEthnicity.dta", replace
 
 
-import excel "${path}/CO_2018_ELA_FreeReducedLunch.xlsx", sheet("Sheet1_1") cellrange(A3:W15478) firstrow case(lower) clear
+import excel "${path}/Original Data/2018/CO_2018_ELA_FreeReducedLunch.xlsx", sheet("Sheet1_1") cellrange(A3:W15478) firstrow case(lower) clear
 
 gen Subject = "ela"
 rename didnotyetmeetexpectations Lev1_count
@@ -149,7 +149,7 @@ gen StudentGroup = "Economic Status"
 
 save "${output}/CO_2018_ELA_econstatus.dta", replace
 
-import excel "${path}/CO_2018_ELA_migrant.xlsx", sheet("Sheet1_1") cellrange(A3:W9166) firstrow case(lower) clear
+import excel "${path}/Original Data/2018/CO_2018_ELA_migrant.xlsx", sheet("Sheet1_1") cellrange(A3:W9166) firstrow case(lower) clear
 
 gen Subject = "ela"
 rename didnotyetmeetexpectations Lev1_count
@@ -165,7 +165,7 @@ gen StudentGroup = "Migrant Status"
 
 save "${output}/CO_2018_ELA_migrantstatus.dta", replace
 
-import excel "${path}/CO_2018_ELA_individualEd.xlsx", sheet("Sheet1_1") cellrange(A3:W15293) firstrow case(lower) clear
+import excel "${path}/Original Data/2018/CO_2018_ELA_individualEd.xlsx", sheet("Sheet1_1") cellrange(A3:W15293) firstrow case(lower) clear
 
 gen Subject = "ela"
 rename didnotyetmeetexpectations Lev1_count
@@ -185,7 +185,7 @@ save "${output}/CO_2018_ELA_disabilitystatus.dta", replace
 	//// MATH
 
 
-import excel "${path}/CO_2018_mat_gender.xlsx", sheet("Sheet1_1") cellrange(A3:W16400) firstrow case(lower) clear
+import excel "${path}/Original Data/2018/CO_2018_mat_gender.xlsx", sheet("Sheet1_1") cellrange(A3:W16400) firstrow case(lower) clear
 
 gen Subject = "math"
 rename didnotyetmeetexpectations Lev1_count
@@ -203,7 +203,7 @@ save "${output}/CO_2018_mat_gender.dta", replace
 
 
 
-import excel "${path}/CO_2018_mat_language.xlsx", sheet("Sheet1_1") cellrange(A3:W23480) firstrow case(lower) clear
+import excel "${path}/Original Data/2018/CO_2018_mat_language.xlsx", sheet("Sheet1_1") cellrange(A3:W23480) firstrow case(lower) clear
 
 gen Subject = "math"
 rename didnotyetmeetexpectations Lev1_count
@@ -220,7 +220,7 @@ gen StudentGroup = "EL Status"
 save "${output}/CO_2018_mat_language.dta", replace
 
 
-import excel "${path}/CO_2018_mat_raceEthnicity.xlsx", sheet("Sheet1_1") cellrange(A3:W35937) firstrow case(lower) clear
+import excel "${path}/Original Data/2018/CO_2018_mat_raceEthnicity.xlsx", sheet("Sheet1_1") cellrange(A3:W35937) firstrow case(lower) clear
 
 gen Subject = "math"
 rename didnotyetmeetexpectations Lev1_count
@@ -237,7 +237,7 @@ gen StudentGroup = "RaceEth"
 save "${output}/CO_2018_mat_raceEthnicity.dta", replace
 
 
-import excel "${path}/CO_2018_mat_FreeReducedLunch.xlsx", sheet("Sheet1_1") cellrange(A3:W16153) firstrow case(lower) clear
+import excel "${path}/Original Data/2018/CO_2018_mat_FreeReducedLunch.xlsx", sheet("Sheet1_1") cellrange(A3:W16153) firstrow case(lower) clear
 
 gen Subject = "math"
 rename didnotyetmeetexpectations Lev1_count
@@ -253,7 +253,7 @@ gen StudentGroup = "Economic Status"
 
 save "${output}/CO_2018_mat_econstatus.dta", replace
 
-import excel "${path}/CO_2018_mat_migrant.xlsx", sheet("Sheet1_1") cellrange(A3:W9595) firstrow case(lower) clear
+import excel "${path}/Original Data/2018/CO_2018_mat_migrant.xlsx", sheet("Sheet1_1") cellrange(A3:W9595) firstrow case(lower) clear
 
 gen Subject = "math"
 rename didnotyetmeetexpectations Lev1_count
@@ -269,7 +269,7 @@ gen StudentGroup = "Migrant Status"
 
 save "${output}/CO_2018_mat_migrantstatus.dta", replace
 
-import excel "${path}/CO_2018_mat_individualEd.xlsx", sheet("Sheet1_1") cellrange(A3:W15808) firstrow case(lower) clear
+import excel "${path}/Original Data/2018/CO_2018_mat_individualEd.xlsx", sheet("Sheet1_1") cellrange(A3:W15808) firstrow case(lower) clear
 
 gen Subject = "math"
 rename didnotyetmeetexpectations Lev1_count
@@ -289,7 +289,7 @@ save "${output}/CO_2018_mat_disabilitystatus.dta", replace
 	//// SCIENCE
 	
 	
-import excel "${path}/CO_2018_sci_gender.xlsx", sheet("Sheet1_1") cellrange(A3:U9248) firstrow case(lower) clear
+import excel "${path}/Original Data/2018/CO_2018_sci_gender.xlsx", sheet("Sheet1_1") cellrange(A3:U9248) firstrow case(lower) clear
 
 gen Subject = "sci"
 rename partiallymetexpectations Lev1_count
@@ -305,7 +305,7 @@ save "${output}/CO_2018_sci_gender.dta", replace
 
 
 
-import excel "${path}/CO_2018_sci_language.xlsx", sheet("Sheet1_1") cellrange(A3:U13174) firstrow case(lower) clear
+import excel "${path}/Original Data/2018/CO_2018_sci_language.xlsx", sheet("Sheet1_1") cellrange(A3:U13174) firstrow case(lower) clear
 
 gen Subject = "sci"
 rename partiallymetexpectations Lev1_count
@@ -321,7 +321,7 @@ save "${output}/CO_2018_sci_language.dta", replace
 
 
 
-import excel "${path}/CO_2018_sci_raceEthnicity.xlsx", sheet("Sheet1_1") cellrange(A3:U20327) firstrow case(lower) clear
+import excel "${path}/Original Data/2018/CO_2018_sci_raceEthnicity.xlsx", sheet("Sheet1_1") cellrange(A3:U20327) firstrow case(lower) clear
 
 gen Subject = "sci"
 rename partiallymetexpectations Lev1_count
@@ -336,7 +336,7 @@ gen StudentGroup = "RaceEth"
 save "${output}/CO_2018_sci_raceEthnicity.dta", replace
 
 
-import excel "${path}/CO_2018_sci_FreeReducedLunch.xlsx", sheet("Sheet1_1") cellrange(A3:U9147) firstrow case(lower) clear
+import excel "${path}/Original Data/2018/CO_2018_sci_FreeReducedLunch.xlsx", sheet("Sheet1_1") cellrange(A3:U9147) firstrow case(lower) clear
 
 gen Subject = "sci"
 rename partiallymetexpectations Lev1_count
@@ -350,7 +350,7 @@ gen StudentGroup = "Economic Status"
 
 save "${output}/CO_2018_sci_econstatus.dta", replace
 
-import excel "${path}/CO_2018_sci_migrant.xlsx", sheet("Sheet1_1") cellrange(A3:U5347) firstrow case(lower) clear
+import excel "${path}/Original Data/2018/CO_2018_sci_migrant.xlsx", sheet("Sheet1_1") cellrange(A3:U5347) firstrow case(lower) clear
 
 gen Subject = "sci"
 rename partiallymetexpectations Lev1_count
@@ -364,7 +364,7 @@ gen StudentGroup = "Migrant Status"
 
 save "${output}/CO_2018_sci_migrantstatus.dta", replace
 
-import excel "${path}/CO_2018_sci_individualEd.xlsx", sheet("Sheet1_1") cellrange(A3:U8965) firstrow case(lower) clear
+import excel "${path}/Original Data/2018/CO_2018_sci_individualEd.xlsx", sheet("Sheet1_1") cellrange(A3:U8965) firstrow case(lower) clear
 
 gen Subject = "sci"
 rename partiallymetexpectations Lev1_count
@@ -689,7 +689,18 @@ drop Unsuppressed*
 
 replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent)* real(StudentSubGroup_TotalTested))) if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(ProficientOrAbove_percent)) & missing(real(ProficientOrAbove_count))
 
+//Removing "Empty" Observations for Subgroups
+drop if StudentSubGroup_TotalTested == "0" & StudentSubGroup != "All Students"
 
+** Standardize Names
+replace DistName = strproper(DistName)
+replace DistName = "Moffat County Re: No 1" if NCESDistrictID == "0805730"
+replace DistName = "St Vrain Valley Re1J" if NCESDistrictID == "0805370"
+replace DistName = "Weld Re-8 Schools" if NCESDistrictID == "0804020"
+replace DistName = "Meeker Re-1" if NCESDistrictID == "0805610"
+replace DistName = "McClave Re-2" if NCESDistrictID == "0805580"
+replace DistName = "Weld Re-4" if NCESDistrictID == "0807350"
+replace DistName = "Elizabeth School District" if NCESDistrictID == "0803720"
 
 //Final Cleaning
 foreach var of varlist DistName SchName {
