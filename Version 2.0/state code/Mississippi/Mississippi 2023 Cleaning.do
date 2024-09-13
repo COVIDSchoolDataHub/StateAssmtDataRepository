@@ -42,7 +42,7 @@ append using "${Request}/2023/sci.dta"
 
 drop if StudentSubGroup_TotalTested == "0"
 replace ProficientOrAbove_count = "0" if ProficientOrAbove_count == ""
-drop if StudentGroup == "All Students"
+*drop if StudentGroup == "All Students" //Commenting this out so that StudentGroup_TotalTested has a value for All Students regardless of where the data came from.
 
 foreach v of numlist 1/5 {
 	gen Lev`v'_count = "--"
@@ -137,6 +137,7 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+gen Priority = 2
 
 save "${output}/MS_AssmtData_2023.dta", replace
 
@@ -505,7 +506,12 @@ replace State = "Mississippi"
 replace StateAbbrev = "MS"
 replace StateFips = 28
 
+//Appending and Dealing with Duplicate "All Students" Values
+gen Priority = 1
 append using "${output}/MS_AssmtData_2023.dta"
+sort Priority DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+duplicates drop DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup, force
+drop Priority
 
 replace SchName = "Jdc Middle School" if NCESSchoolID == "280225001587"
 
@@ -522,6 +528,11 @@ sort group_id StudentGroup StudentSubGroup
 by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
 by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
 drop group_id StateAssignedDistID1 StateAssignedSchID1
+
+** Getting rid of ranges where high and low ranges are the same
+foreach var of varlist *_count *_percent {
+replace `var' = substr(`var',1, strpos(`var', "-")-1) if real(substr(`var',1, strpos(`var', "-")-1)) == real(substr(`var', strpos(`var', "-")+1,10)) & strpos(`var', "-") !=0 & regexm(`var', "[0-9]") !=0
+}
 
 //Derivations
 
@@ -550,6 +561,11 @@ replace Lev5_percent = string(1-real(Lev1_percent)-real(Lev4_percent)-real(Lev3_
 
 //Clean up AvgScaleScore
 replace AvgScaleScore = string(real(AvgScaleScore), "%9.3f") if !missing(real(AvgScaleScore))
+
+//ProficientOrAbove_count cannot be > StudentSubGroup_TotalTested. Setting obs = "--" because data is signifcantly misaligned ( up to 10 more students marked proficient than the number tested)
+replace ProficientOrAbove_percent = "--" if real(ProficientOrAbove_count) > real(StudentSubGroup_TotalTested) & !missing(real(ProficientOrAbove_count)) & !missing(real(StudentSubGroup_TotalTested))
+replace ProficientOrAbove_count = "--" if real(ProficientOrAbove_count) > real(StudentSubGroup_TotalTested) & !missing(real(ProficientOrAbove_count)) & !missing(real(StudentSubGroup_TotalTested))
+
 
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 

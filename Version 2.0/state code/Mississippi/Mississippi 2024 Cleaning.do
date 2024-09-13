@@ -80,12 +80,15 @@ replace Entity = strtrim(Entity)
 replace Entity = stritrim(Entity)
 drop if missing(Entity)
 
-//Renaming
+//Renaming & Dropping
 rename AverageScaleScore AvgScaleScore
 forvalues n = 1/5 {
 	rename Level`n'PCT Lev`n'_percent
 }
 rename TestTakers StudentSubGroup_TotalTested
+rename datalev DataLevel
+
+keep Entity DataLevel NCESDistrictID NCESSchoolID AvgScaleScore Lev1_percent Lev2_percent Lev3_percent Lev4_percent Lev5_percent StudentSubGroup_TotalTested Subject GradeLevel
 
 //Fixing Level counts & Percents
 foreach var of varlist *percent AvgScaleScore {
@@ -103,7 +106,6 @@ gen ProficientOrAbove_percent = string(real(Lev4_percent) + real(Lev5_percent), 
 replace ProficientOrAbove_percent = "--" if missing(ProficientOrAbove_percent)
 gen ProficientOrAbove_count = string(real(Lev4_count) + real(Lev5_count)) if !missing(real(Lev4_count)) & !missing(real(Lev5_count))
 replace ProficientOrAbove_count = "--" if missing(ProficientOrAbove_count)
-
 
 
 //Subject
@@ -174,52 +176,44 @@ gen ReadyForMerge = "True" if !missing(NCESDistrictID) | !missing(NCESSchoolID)
 replace ReadyForMerge = "False" if missing(ReadyForMerge)
 order ReadyForMerge
 export excel "$MS/2024_District_School_IDS.xlsx", replace firstrow(variables)
-*/
+
 
 //Merging in with IDs
 merge m:1 Entity using "${MS}/2024_District_School_IDS", nogen
 replace Keep = "False" if Entity == "Dubard School For Language Disorders" //Not in any NCES files
 drop if Keep == "False"
 drop Keep
+*/
+
 
 //NCES Merging
 merge m:1 NCESDistrictID using "$NCES/NCES_2022_District", nogen keep(match master)
 merge m:1 NCESSchoolID using "$NCES/NCES_2022_School", nogen keep(match master)
 
+drop if missing(NCESDistrictID) & DataLevel != "State"
+drop if missing(NCESSchoolID) & DataLevel == "School"
+
 //DataLevel
-label def DataLevel 1 "State" 2 "District" 3 "School" 4 "Currently Missing"
-label values DataLevel DataLevel
-replace DataLevel = 3 if !missing(NCESSchoolID)
-replace DataLevel = 4 if missing(DataLevel)
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+drop DataLevel
+rename DataLevel_n DataLevel
 sort DataLevel
 
 replace DistName = Entity if DataLevel == 2
 replace SchName = Entity if DataLevel == 3
 replace SchName = "All Schools" if DataLevel == 2
 
-** DistNames for School level data
-tempfile all
-save "`all'", replace
-keep if DataLevel == 3
-drop DistName
+** DistNames for all data
 
 merge m:1 NCESDistrictID using "${MS}/standarddistnames"
 drop if _merge == 2
 drop _merge
 drop olddistname
-rename newdistname DistName
-
-tempfile schools
-save "`schools'", replace
-
-use "`all'", clear
-keep if DataLevel !=3
-append using "`schools'"
+replace DistName = newdistname if !missing(newdistname)
+drop newdistname
 
 //Variable Management
-replace DistName = Entity if DataLevel == 4
-replace SchName = Entity if DataLevel == 4
-drop Entity
 order State StateAbbrev StateFips DataLevel DistName SchName NCESDistrictID NCESSchoolID Subject GradeLevel StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 sort DataLevel DistName SchName Subject GradeLevel
 
@@ -262,8 +256,8 @@ gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_sci = "N"
 gen Flag_CutScoreChange_soc = "Not applicable"
 
-//Misc
-drop if SchName == "Shaw High School" & missing(DistName) //Not in MS
+drop if regexm(StudentSubGroup_TotalTested,"[0-9]") ==0 & regexm(StudentSubGroup_TotalTested, "[*-]") == 0
+
 
 ** Manually Fixing new 2024 schools
 replace SchType = 1 if NCESSchoolID == "280087001607"
@@ -293,6 +287,25 @@ replace SchType = 1 if NCESSchoolID == "280018501409"
 replace SchLevel = 1 if NCESSchoolID == "280018501409"
 replace SchVirtual = 0 if NCESSchoolID == "280018501409"
 replace StateAssignedSchID = "0618014" if NCESSchoolID == "280018501409"
+
+replace SchType = 1 if NCESSchoolID == "280222001609"
+replace SchLevel = 2 if NCESSchoolID == "280222001609"
+replace SchVirtual = 0 if NCESSchoolID == "280222001609"
+replace StateAssignedSchID = "3200002" if NCESSchoolID == "280222001609"
+
+replace SchType = 1 if NCESSchoolID == "280018501419"
+replace SchLevel = 3 if NCESSchoolID == "280018501419"
+replace SchVirtual = 0 if NCESSchoolID == "280018501419"
+replace StateAssignedSchID = "0618018" if NCESSchoolID == "280018501419"
+
+replace SchVirtual = 0 if NCESSchoolID == "280291000559"
+replace SchLevel = 1 if NCESSchoolID == "280291000559"
+
+** Getting rid of ranges where high and low ranges are the same
+foreach var of varlist *_count *_percent {
+replace `var' = substr(`var',1, strpos(`var', "-")-1) if real(substr(`var',1, strpos(`var', "-")-1)) == real(substr(`var', strpos(`var', "-")+1,10)) & strpos(`var', "-") !=0 & regexm(`var', "[0-9]") !=0
+}
+
 
 //Derivations
 
@@ -326,6 +339,7 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
 
 save "$output/MS_AssmtData_2024.dta", replace
 export delimited "$output/csv/MS_AssmtData_2024.csv", replace

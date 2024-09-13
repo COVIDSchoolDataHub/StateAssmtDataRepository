@@ -63,3 +63,5 @@ for 2022 specifically, replace global EDFacts with: "/Users/kaitlynlucas/Desktop
 07/25/2024: Updated output files to include updated ParticipationRate code and changed science AssmtType after 2018 (and flag change).
 
 8/30/24: Added 2024 data, updated 2014 files to accurately pull in edfacts proficiency data, updated all conventions to V2.0
+
+9/12/24: Resolved sci 2019 discrepancies by using raw data exclusively.

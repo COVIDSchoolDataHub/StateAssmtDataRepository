@@ -1,27 +1,33 @@
 clear
 set more off
 
-global MS "/Users/kaitlynlucas/Desktop/Mississippi State Task/Original Data Files"
-global NCESSchool "/Users/kaitlynlucas/Desktop/Mississippi State Task/NCES/School"
-global NCESDistrict "/Users/kaitlynlucas/Desktop/Mississippi State Task/NCES/District"
-global NCES "/Users/kaitlynlucas/Desktop/Mississippi State Task/NCES/Cleaned"
-global EDFacts "/Users/kaitlynlucas/Desktop/EDFacts Drive Data"
+global MS "/Volumes/T7/State Test Project/Mississippi"
+global NCESSchool "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global NCESDistrict "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global NCES "/Volumes/T7/State Test Project/Mississippi/NCES"
+global EDFacts "/Volumes/T7/State Test Project/EDFACTS"
 
 ** Preparing district/school name standardization file
 
-import excel "${MS}/ms_full-dist-sch-stable-list_through2023.xlsx", firstrow clear
+import excel "${MS}/ms_full-dist-sch-stable-list_through2024.xlsx", firstrow clear
 tostring NCESDistrictID, replace
 recast long NCESSchoolID
 format NCESSchoolID %18.0g
 tostring NCESSchoolID, replace usedisplayformat
+foreach var of varlist NCES* {
+			replace `var' = "" if `var' == "."
+			}
 drop DataLevel
 gen DataLevel = 3
 duplicates drop NCESDistrictID NCESSchoolID, force
 keep NCESDistrictID newdistname olddistname NCESSchoolID newschname oldschname DataLevel
 save "${MS}/standardschnames.dta", replace
 
-import excel "${MS}/ms_full-dist-sch-stable-list_through2023.xlsx", firstrow clear
+import excel "${MS}/ms_full-dist-sch-stable-list_through2024.xlsx", firstrow clear
 tostring NCESDistrictID, replace
+foreach var of varlist NCESDistrictID {
+			replace `var' = "" if `var' == "."
+			}
 drop DataLevel
 gen DataLevel = 2
 duplicates drop NCESDistrictID, force
@@ -52,7 +58,7 @@ foreach year of local edyears1 {
                 }
                 if ("`type'" == "count") {
                     rename *numvalid Count*
-                    drop *pctprof
+                    rename *pctprof Proficient*
                 }
                 if ("`type'" == "part") {
                     rename *pctpart Participation*
@@ -60,11 +66,11 @@ foreach year of local edyears1 {
                 }
                 drop *hs *00 
                 if ("`lvl'" == "school") & ("`type'" == "count") {
-                    reshape long Count, i(ncessch) j(StudentSubGroup) string
+                    reshape long Count Proficient, i(ncessch) j(StudentSubGroup) string
                     gen DataLevel = 3
                 }
                 if ("`lvl'" == "district") & ("`type'" == "count") {
-                    reshape long Count, i(leaid) j(StudentSubGroup) string
+                    reshape long Count Proficient, i(leaid) j(StudentSubGroup) string
                     gen DataLevel = 2
                 }
                 if ("`lvl'" == "school") & ("`type'" == "part") {
@@ -92,8 +98,37 @@ foreach year of local edyears1 {
             }
             rename leaid NCESDistrictID
 			tostring NCESDistrictID, replace
+			
+			if "`lvl'" == "school" {
+			format NCESSchoolID %18.0g
+			tostring NCESSchoolID, usedisplayformat replace
+			}
+			foreach var of varlist NCES* {
+			replace `var' = "" if `var' == "."
+			}
             if ("`type'" == "count") {
                 drop if Count == .
+				drop if Proficient == ""
+                replace Proficient = "--" if Proficient == "n/a"
+                replace Proficient = "*" if Proficient == "PS"
+                split Proficient, parse("-")
+                destring Proficient1, replace force
+                replace Proficient1 = Proficient1/100
+                tostring Proficient1, replace format("%9.2g") force
+                destring Proficient2, replace force
+                replace Proficient2 = Proficient2/100         
+                tostring Proficient2, replace format("%9.2g") force
+                replace Proficient = Proficient1 + "-" + Proficient2 if Proficient1 != "." & Proficient2 != "."
+                replace Proficient = Proficient1 if Proficient1 != "." & Proficient2 == "."
+                gen Proficient3 = subinstr(Proficient, "GE", "", .) if strpos(Proficient, "GE") > 0
+                replace Proficient3 = subinstr(Proficient, "LT", "", .) if strpos(Proficient, "LT") > 0
+                replace Proficient3 = subinstr(Proficient, "LE", "", .) if strpos(Proficient, "LE") > 0
+                destring Proficient3, replace force
+                replace Proficient3 = Proficient3/100
+                tostring Proficient3, replace format("%9.2g") force
+                replace Proficient = Proficient3 + "-1" if strpos(Proficient, "GE") > 0
+                replace Proficient = "0-" + Proficient3 if strpos(Proficient, "LT") > 0 | strpos(Proficient, "LE") > 0
+                drop Proficient1 Proficient2 Proficient3
             }
             if ("`type'" == "part") {
                 drop if Participation == ""
@@ -141,20 +176,13 @@ foreach year of local edyears1 {
             replace StudentGroup = "EL Status" if StudentSubGroup == "English Learner"
             replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD"
             replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless"
-            replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant Status"
+            replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant"
 			
 			
-			//Using ELA for eng and read
-			tempfile temp1
-			save "`temp1'", replace
-			keep if Subject == "ela"
-			expand 3, gen(exp)
-			drop if exp == 0
-			gen row = _n
-			replace Subject = "eng" if mod(row,2) == 0
-			replace Subject = "read" if mod(row,2) !=0
-			drop exp row
-			append using "`temp1'"
+			
+			rename leanm DistName
+			if "`lvl'" == "school" rename schnam SchName
+			
 			save "${EDFacts}/20`year'/edfacts`type'20`year'`lvl'mississippi.dta", replace
 			clear
         }
@@ -199,9 +227,14 @@ foreach year of local edyears2 {
 			append using "${EDFacts}/`year'/edfacts`type'`year'ela`lvl'mississippi.dta"
 if ("`lvl'" == "school"){
 				rename ncessch NCESSchoolID
+				format NCESSchoolID %18.0g
+				tostring NCESSchoolID, replace usedisplayformat
 			}
 			rename leaid NCESDistrictID
 			tostring NCESDistrictID, replace
+			foreach var of varlist NCES* {
+			replace `var' = "" if `var' == "."
+			}
 			if ("`type'" == "count") {
 				drop if Count == .
 				drop if PctProf == ""
@@ -282,22 +315,81 @@ if ("`lvl'" == "school"){
 			replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless"
 			replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Military"
 			replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Foster Care"
-			//Using ELA for eng and read
-			tempfile temp1
-			save "`temp1'", replace
-			keep if Subject == "ela"
-			expand 3, gen(exp)
-			drop if exp == 0
-			gen row = _n
-			replace Subject = "eng" if mod(row,2) == 0
-			replace Subject = "read" if mod(row,2) !=0
-			drop exp row
-			append using "`temp1'"
 			save "${EDFacts}/`year'/edfacts`type'`year'`lvl'mississippi.dta", replace
 		}
 	}
 }
-*/
+
+//Create MS_EFParticipation_2022 if needed!
+foreach s in ela math sci {
+	import delimited "${MS}/MS_EFParticipation_2022_`s'.csv", case(preserve) clear
+	save "${MS}/MS_EFParticipation_2022_`s'.dta", replace
+}
+
+use "${MS}/MS_EFParticipation_2022_ela.dta"
+append using "${MS}/MS_EFParticipation_2022_math.dta" "${MS}/MS_EFParticipation_2022_sci.dta"
+
+
+//Rename and Drop Vars
+drop SchoolYear State
+rename NCESLEAID NCESDistrictID
+tostring NCESDistrictID, replace
+drop LEA School
+rename NCESSCHID NCESSchoolID
+format NCESSchoolID %18.0g
+tostring NCESSchool, replace usedisplayformat
+foreach var of varlist NCES* {
+	replace `var' = "" if `var' == "."
+}
+rename Value Participation
+drop DataGroup DataDescription Denominator Numerator Population
+rename Subgroup StudentSubGroup
+replace StudentSubGroup = Characteristics if missing(StudentSubGroup) & !missing(Characteristics)
+rename AgeGrade GradeLevel
+rename AcademicSubject Subject
+drop ProgramType Outcome Characteristics
+
+//Clean ParticipationRate
+foreach var of varlist Participation {
+replace `var' = "*" if `var' == "S"	
+gen range`var' = substr(`var',1,1) if regexm(`var',"[<>]") !=0
+replace `var' = subinstr(`var', "=","",.)
+destring `var', gen(n`var') i(*%<>-)
+replace `var' = range`var' + string(n`var'/100, "%9.3g") if `var' != "*" & `var' != "--"
+replace `var' = subinstr(`var',">","",.) + "-1" if strpos(`var', ">") !=0
+replace `var' = subinstr(`var', "<","0-",.) if strpos(`var', "<") !=0
+drop n`var'
+drop range`var'
+}
+
+//StudentSubGroup
+replace StudentSubGroup = "All Students" if strpos(StudentSubGroup, "All Students") !=0
+replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "American Indian/Alaska Native/Native American"
+replace StudentSubGroup = "Black or African American" if StudentSubGroup == "Black (not Hispanic) African American"
+replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic/Latino"
+replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "Native Hawaiian or Other Pacific Islander"
+replace StudentSubGroup = "Two or More" if StudentSubGroup == "Multicultural/Multiethnic/Multiracial/other"
+replace StudentSubGroup = "White" if StudentSubGroup == "White or Caucasian (not Hispanic)"
+replace StudentSubGroup = "SWD" if StudentSubGroup == "Children with disabilities"
+replace StudentSubGroup = "Migrant" if StudentSubGroup == "Migratory students"
+replace StudentSubGroup = "Military" if StudentSubGroup == "Military connected"
+replace StudentSubGroup = "Foster Care" if StudentSubGroup == "Foster care students"
+replace StudentSubGroup = "Asian" if StudentSubGroup == "Asian/Pacific Islander"
+
+
+//Subject
+replace Subject = "ela" if Subject == "Reading/Language Arts"
+replace Subject = "math" if Subject == "Mathematics"
+replace Subject = "sci" if Subject == "Science"
+
+//GradeLevel
+replace GradeLevel = subinstr(GradeLevel, "Grade ", "G0",.)
+
+duplicates drop NCESDistrictID NCESSchoolID GradeLevel Subject StudentSubGroup, force
+
+//Saving EDFacts Output
+save "${MS}/MS_EFParticipation_2022", replace
+
 
 ** Preparing NCES files
 
