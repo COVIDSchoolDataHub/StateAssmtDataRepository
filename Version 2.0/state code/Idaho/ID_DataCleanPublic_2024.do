@@ -116,13 +116,13 @@ foreach n in 1 2 3 4 {
 	replace missing = "Y" if Lev`n'_percent == "N/A"
 	destring Lev`n'_percent, gen(nLev`n'_percent) i(*NSIZE/A<>)
 	replace nLev`n'_percent = nLev`n'_percent/100
-	replace Lev`n'_percent = Range`n' + string(nLev`n'_percent, "%9.4f")
+	replace Lev`n'_percent = Range`n' + string(nLev`n'_percent, "%9.3f")
 	replace Lev`n'_percent = substr(Lev`n'_percent, 3, 8) + Range`n' if Range`n' == "-1"
 	replace Lev`n'_percent = "*" if Suppressed`n' == "*"
 	replace Lev`n'_percent = "--" if missing == "Y"
 
 }
-gen ProficientOrAbove_percent = string(nLev3_percent + nLev4_percent, "%9.4f")
+gen ProficientOrAbove_percent = string(nLev3_percent + nLev4_percent, "%9.3f")
 replace ProficientOrAbove_percent = "*" if Suppressed3 == "*" | Suppressed4 == "*"
 replace ProficientOrAbove_percent = "*" if Range3 != Range4 & !missing(Range3) & !missing(Range4)
 replace ProficientOrAbove_percent = Lev3_percent + "-" + ProficientOrAbove_percent if Range4 == "0-" & missing(Range3)
@@ -142,7 +142,7 @@ replace ParticipationRate = "*" if ParticipationRate == "NSIZE" | strpos(Partici
 gen PartRange = "Y" if strpos(ParticipationRate,">") !=0
 destring ParticipationRate, gen(Part) i(*->)
 replace Part = Part/100
-replace ParticipationRate = string(Part, "%9.4f") if !missing(Part)
+replace ParticipationRate = string(Part, "%9.3f") if !missing(Part)
 replace ParticipationRate = ParticipationRate + "-1" if PartRange == "Y"
 drop PartRange
 
@@ -375,10 +375,10 @@ replace `percent' = string(real(`count')/real(StudentSubGroup_TotalTested), "%9.
 }
 
 // removing spaces in names
-replace DistName =stritrim(DistName) // returns var with all consecutive, internal blanks collapsed to one blank.
-replace DistName =strtrim(DistName) // returns var with leading and trailing blanks removed.
-replace SchName=stritrim(SchName) // returns var with all consecutive, internal blanks collapsed to one blank.
-replace SchName=strtrim(SchName) // returns var with leading and trailing blanks removed
+replace DistName =stritrim(DistName)
+replace DistName =strtrim(DistName)
+replace SchName=stritrim(SchName)
+replace SchName=strtrim(SchName)
 
 //Cleaning up NCES Data
 replace SchType =stritrim(SchType)
@@ -402,7 +402,7 @@ replace SchVirtual = "No" if NCESSchoolID == "160351501182"
 
 //Removing leading zeroes in District IDs
 replace StateAssignedDistID = subinstr(StateAssignedDistID, "0", "", 1) if strpos(StateAssignedDistID, "0") == 1
-replace StateAssignedSchID = subinstr(StateAssignedSchID, "0", "", 1) if strpos(StateAssignedSchID, "0") == 1
+*replace StateAssignedSchID = subinstr(StateAssignedSchID, "0", "", 1) if strpos(StateAssignedSchID, "0") == 1
 
 // Reordering variables and sorting data
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode

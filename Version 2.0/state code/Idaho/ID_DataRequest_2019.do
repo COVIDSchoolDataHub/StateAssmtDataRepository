@@ -117,13 +117,13 @@ foreach n in 1 2 3 4 {
 	replace missing = "Y" if Lev`n'_percent == "N/A"
 	destring Lev`n'_percent, gen(nLev`n'_percent) i(*NSIZE/A<>)
 	replace nLev`n'_percent = nLev`n'_percent/100
-	replace Lev`n'_percent = Range`n' + string(nLev`n'_percent, "%9.4f")
+	replace Lev`n'_percent = Range`n' + string(nLev`n'_percent, "%9.3f")
 	replace Lev`n'_percent = substr(Lev`n'_percent, 3, 8) + Range`n' if Range`n' == "-1"
 	replace Lev`n'_percent = "*" if Suppressed`n' == "*"
 	replace Lev`n'_percent = "--" if missing == "Y"
 
 }
-gen ProficientOrAbove_percent = string(nLev3_percent + nLev4_percent, "%9.4f")
+gen ProficientOrAbove_percent = string(nLev3_percent + nLev4_percent, "%9.3f")
 replace ProficientOrAbove_percent = "*" if Suppressed3 == "*" | Suppressed4 == "*"
 replace ProficientOrAbove_percent = "*" if Range3 != Range4 & !missing(Range3) & !missing(Range4)
 replace ProficientOrAbove_percent = Lev3_percent + "-" + ProficientOrAbove_percent if Range4 == "0-" & missing(Range3)
@@ -143,7 +143,7 @@ replace ParticipationRate = "*" if ParticipationRate == "NSIZE" | strpos(Partici
 gen PartRange = "Y" if strpos(ParticipationRate,">") !=0
 destring ParticipationRate, gen(Part) i(*->)
 replace Part = Part/100
-replace ParticipationRate = string(Part, "%9.4f") if !missing(Part)
+replace ParticipationRate = string(Part, "%9.3f") if !missing(Part)
 replace ParticipationRate = ParticipationRate + "-1" if PartRange == "Y"
 drop PartRange
 
@@ -270,9 +270,6 @@ decode SchType, gen (SchType_s)
 drop SchType
 rename SchType_s SchType
 
-//Response to post launch review
-replace DistName = subinstr(DistName,", INC."," INC.",.)
-
 //Deriving Percents if the count is not a range
 foreach percent of varlist Lev*_percent ProficientOrAbove_percent {
 if "`var'" == "Lev5_percent" continue
@@ -280,9 +277,30 @@ local count = subinstr("`percent'", "percent", "count",.)
 replace `percent' = string(real(`count')/real(StudentSubGroup_TotalTested), "%9.3g") if regexm(`percent', "[*-]") !=0 & regexm(StudentSubGroup_TotalTested, "[*-]") == 0 & regexm(`count', "[-*]") == 0 
 }
 
+* Derive additional information
+destring Lev2_percent, gen(Lev2_p) force
+destring Lev2_count, gen(Lev2_c) force
+destring Lev3_percent, gen(Lev3_p) force
+destring Lev3_count, gen(Lev3_c) force
+destring ProficientOrAbove_percent, gen(prof_p) force
+destring ProficientOrAbove_count, gen(prof_c) force
+destring StudentSubGroup_TotalTested, gen(studcount) force
+
+replace Lev1_percent = string(1 - prof_p - Lev2_p) if inlist(Lev1_percent, "*", "--") & !inlist(Lev2_percent, "*", "--") & !inlist(ProficientOrAbove_percent, "*", "--")
+replace Lev1_count = string(round(studcount - prof_c - Lev2_c)) if inlist(Lev1_count, "*", "--") & !inlist(Lev2_count, "*", "--") & !missing(StudentSubGroup_TotalTested) & !inlist(ProficientOrAbove_count, "*", "--")
+replace Lev4_percent = string(prof_p - Lev3_p) if inlist(Lev4_percent, "*", "--") & !inlist(Lev3_percent, "*", "--") & !inlist(ProficientOrAbove_percent, "*", "--")
+replace Lev4_count = string(round(prof_c - Lev3_c)) if inlist(Lev4_count, "*", "--") & !inlist(Lev3_count, "*", "--") & !inlist(ProficientOrAbove_count, "*", "--")
+
+drop Lev2_p Lev2_c Lev3_p Lev3_c prof_p prof_c studcount
+
 //Standardizing District & School Names
+replace DistName =stritrim(DistName)
+replace DistName =strtrim(DistName)
+replace SchName=stritrim(SchName)
+replace SchName=strtrim(SchName)
 replace DistName = subinstr(DistName, " INC.", ", INC.", 1) if strpos(DistName, ", INC.") <= 0 & strpos(DistName, "INC.") > 0
 replace SchName = subinstr(SchName, " INC.", ", INC.", 1) if strpos(SchName, ", INC.") <= 0 & strpos(SchName, "INC.") > 0
+replace DistName = "AVERY SCHOOL DISTRICT" if NCESDistrictID == "1600150"
 
 // Reordering variables and sorting data
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
@@ -293,15 +311,5 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${output_files}/ID_AssmtData_2019.dta", replace
 export delimited using "$output_files/ID_AssmtData_2019.csv", replace
-
-//removing blank spaces
-
-import delimited using "${output_files}/ID_AssmtData_2019.csv", case(preserve) clear
-replace DistName =stritrim(DistName) // returns var with all consecutive, internal blanks collapsed to one blank.
-replace DistName =strtrim(DistName) // returns var with leading and trailing blanks removed.
-replace SchName=stritrim(SchName) // returns var with all consecutive, internal blanks collapsed to one blank.
-replace SchName=strtrim(SchName) // returns var with leading and trailing blanks removed
-
-export delimited using "${output_files}/ID_AssmtData_2019.csv", replace
 
 
