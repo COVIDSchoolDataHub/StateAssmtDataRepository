@@ -1,3 +1,11 @@
+clear
+set more off
+cd "/Volumes/T7/State Test Project/West Virginia"
+global data "/Volumes/T7/State Test Project/West Virginia/Original Data Files"
+global NCES "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global NCES_clean "/Volumes/T7/State Test Project/West Virginia/NCES_Clean"
+global counts "/Volumes/T7/State Test Project/West Virginia/Counts"
+
 //2014-15
 import excel "$data/WV_OriginalData_1521_all.xlsx", sheet("SY15 School & District") clear
 
@@ -260,6 +268,9 @@ replace ProficientOrAbove_count = "--" if Prof_pct == "--"
 replace ProficientOrAbove_count = "--" if StudentSubGroup_TotalTested == "--" & ProficientOrAbove_count != "*"
 
 drop Lev1_pct Lev2_pct Lev3_pct Lev4_pct Prof_pct num dummy state
+
+//Remove Observations with All Information Missing (Because the Grade/School Combos Don't Exist)
+drop if Lev1_percent == "--" & Lev2_percent == "--" & Lev3_percent == "--" & Lev4_percent == "--" & ProficientOrAbove_percent == "--"
 
 //DataLevel
 

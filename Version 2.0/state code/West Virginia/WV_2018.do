@@ -255,6 +255,9 @@ replace ProficientOrAbove_count = "--" if StudentSubGroup_TotalTested == "--" & 
 
 drop Lev1_pct Lev2_pct Lev3_pct Lev4_pct Prof_pct num dummy state
 
+//Remove Observations with All Information Missing (Because the Grade/School Combos Don't Exist)
+drop if Lev1_percent == "--" & Lev2_percent == "--" & Lev3_percent == "--" & Lev4_percent == "--" & ProficientOrAbove_percent == "--"
+
 //Variable Types
 label def DataLevel 1 "State" 2 "District" 3 "School"
 encode DataLevel, gen(DataLevel_n) label(DataLevel)
