@@ -196,7 +196,7 @@ forvalues n = 1/5{
 	replace Lev`n'_count = strtrim(Lev`n'_count)
 	destring Lev`n'_percent, replace force
 	replace Lev`n'_percent = Lev`n'_percent/100
-	tostring Lev`n'_percent, replace format("%9.2g") force
+	tostring Lev`n'_percent, replace format("%9.3g") force
 	replace Lev`n'_percent = "*" if Lev`n'_percent == "."
 	replace Lev`n'_count = "*" if Lev`n'_count == "- -"
 }
@@ -205,7 +205,7 @@ replace ProficientOrAbove_count = subinstr(ProficientOrAbove_count, ",", "", 1)
 replace ProficientOrAbove_count = strtrim(ProficientOrAbove_count)
 destring ProficientOrAbove_percent, replace force
 replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
-tostring ProficientOrAbove_percent, replace format("%9.2g") force
+tostring ProficientOrAbove_percent, replace format("%9.3g") force
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
 replace ProficientOrAbove_count="*" if ProficientOrAbove_count=="- -"
 

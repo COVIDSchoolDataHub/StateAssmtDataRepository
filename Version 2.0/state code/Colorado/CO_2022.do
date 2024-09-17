@@ -336,8 +336,6 @@ tab GradeLevel
 replace GradeLevel = "G38" if GradeLevel == "All Grades"
 replace GradeLevel = "G" + GradeLevel if GradeLevel != "G38"
 
-drop if GradeLevel=="G38"
-
 drop if district_merge==2
 drop if _merge==2
 drop _merge
@@ -355,7 +353,7 @@ forvalues n = 1/5{
 	replace Lev`n'_count = strtrim(Lev`n'_count)
 	destring Lev`n'_percent, replace force
 	replace Lev`n'_percent = Lev`n'_percent/100
-	tostring Lev`n'_percent, replace format("%9.2g") force
+	tostring Lev`n'_percent, replace format("%9.3g") force
 	replace Lev`n'_percent = "*" if Lev`n'_percent == "."
 	replace Lev`n'_count = "*" if Lev`n'_count == "- -"
 }
@@ -364,16 +362,21 @@ replace ProficientOrAbove_count = subinstr(ProficientOrAbove_count, ",", "", 1)
 replace ProficientOrAbove_count = strtrim(ProficientOrAbove_count)
 destring ProficientOrAbove_percent, replace force
 replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
-tostring ProficientOrAbove_percent, replace format("%9.2g") force
+tostring ProficientOrAbove_percent, replace format("%9.3g") force
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
 replace ProficientOrAbove_count="*" if ProficientOrAbove_count=="- -"
 replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == ""
 
 destring Lev4_count, gen(Lev4) force
 destring Lev5_count, gen(Lev5) force
+destring StudentSubGroup_TotalTested, gen(studcount) force
+destring ProficientOrAbove_percent, gen(prof_p) force
 gen Prof = Lev4 + Lev5
 replace ProficientOrAbove_count = string(Prof) if inlist(ProficientOrAbove_count, "*", "") & Prof !=.
 drop Lev4 Lev5 Prof
+gen Prof = round(studcount * prof_p)
+replace ProficientOrAbove_count = string(Prof) if inlist(ProficientOrAbove_count, "*", "--") & !inlist(ProficientOrAbove_percent, "*", "--") & !inlist(StudentSubGroup_TotalTested, "*", "--") & Prof != .
+drop studcount prof_p Prof
 
 //StudentGroup_TotalTested
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
@@ -421,6 +424,11 @@ sort DataLevel_n
 drop DataLevel 
 rename DataLevel_n DataLevel
 
+foreach var of varlist StudentGroup_TotalTested StudentSubGroup_TotalTested *_count *_percent {
+	replace `var' = subinstr(`var', ",","",.)
+	replace `var' = subinstr(`var', " ", "",.)
+}
+
 replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent)* real(StudentSubGroup_TotalTested))) if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(ProficientOrAbove_percent)) & missing(real(ProficientOrAbove_count))
 
 ** Standardize Names
@@ -436,10 +444,7 @@ foreach var of varlist DistName SchName {
 }
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-foreach var of varlist StudentGroup_TotalTested StudentSubGroup_TotalTested *_count *_percent {
-	replace `var' = subinstr(`var', ",","",.)
-	replace `var' = subinstr(`var', " ", "",.)
-}
+
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${output}/CO_AssmtData_2022.dta", replace

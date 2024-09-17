@@ -15,7 +15,7 @@ global output "/Users/miramehta/Documents/CO State Testing Data/Output"
 
 	//Imports and saves math/ela
 
-
+/*
 import excel "${path}/Original Data/2016/CO_OriginalData_2016_ela&mat.xlsx", sheet("ELA") cellrange(A5:X6776) firstrow case(lower) clear
 
 rename numberdidnotyetmeetexpectat Lev1_count
@@ -417,14 +417,14 @@ rename metorexceededexpectations ProficientOrAbove_count
 
 append using "${output}/CO_OriginalData_2016_all.dta"
 
-
+save "${output}/CO_OriginalData_2016_all.dta", replace
+*/
 ///////// Section 4: Merging NCES Variables
 
 
-save "${output}/CO_OriginalData_2016_all.dta", replace
-
 	// Merges district variables from NCES
-
+use "${output}/CO_OriginalData_2016_all.dta", clear
+	
 replace DataLevel = strtrim(DataLevel)
 replace DataLevel = strproper(DataLevel)
 replace DistName = strtrim(DistName)
@@ -572,20 +572,50 @@ gen EL_Group = "English Learner" if StudentSubGroup == "LEP - Limited English Pr
 replace EL_Group = "English Proficient" if StudentSubGroup == "PHLOTE/FELL/NA" | StudentSubGroup == "FEP - Fluent English Proficient"
 
 ** Absolute Variables (Just need to add together)
+sort DataLevel DistName SchName Subject GradeLevel EL_Group StudentSubGroup
+replace StateAssignedDistID = "--" if StateAssignedDistID == ""
+replace StateAssignedSchID = "--" if StateAssignedSchID == ""
+egen uniquegrp = group(DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel EL_Group)
 foreach var of varlist StudentSubGroup_TotalTested *_count {
 	destring `var', gen(n`var') force
 	egen `var'_Agg = total(n`var'), by(DistName SchName Subject GradeLevel EL_Group)
+	gen `var'_Miss = 1 if n`var' == .
+	sort DataLevel DistName SchName Subject GradeLevel EL_Group StudentSubGroup
+	replace `var'_Miss = 1 if `var'_Miss[_n+1] == 1 & uniquegrp == uniquegrp[_n+1]
+	replace `var'_Miss = 1 if `var'_Miss[_n-1] == 1 & uniquegrp == uniquegrp[_n-1]
+	if `var' != StudentSubGroup_TotalTested{
+		replace `var'_Agg = . if `var'_Miss == 1
+	}
+	drop `var'_Miss
 }
+
+** Adjusting StudentSubGroup_TotalTested
+gen range = 1 if strpos(StudentSubGroup_TotalTested, "<16") !=0
+sort DataLevel DistName SchName Subject GradeLevel EL_Group StudentSubGroup
+gen StudentSubGroup_TotalTested_High = StudentSubGroup_TotalTested_Agg + 15 if range == . & range[_n+1] == 1 & uniquegrp == uniquegrp[_n+1]
+replace StudentSubGroup_TotalTested_High = StudentSubGroup_TotalTested_High[_n-1] if range == 1 & range[_n-1] == . & uniquegrp == uniquegrp[_n-1]
+replace StudentSubGroup_TotalTested_High = StudentSubGroup_TotalTested_Agg + 15 if range == . & range[_n-1] == 1 & uniquegrp == uniquegrp[_n-1]
+replace StudentSubGroup_TotalTested_High = StudentSubGroup_TotalTested_High[_n+1] if range == 1 & range[_n+1] == . & uniquegrp == uniquegrp[_n+1]
+replace range = 2 if range == 1 & range[_n+1] == 1 & uniquegrp == uniquegrp[_n+1]
+replace range = 2 if range == 1 & range[_n-1] !=. & uniquegrp == uniquegrp[_n-1]
 
 ** Proportional Variables (Need to account for how many were tested in each group)
 gen Prop = nStudentSubGroup_TotalTested/StudentSubGroup_TotalTested_Agg
+replace Prop = . if StudentSubGroup_TotalTested_High != .
+replace Prop = . if range == 2
 
 foreach var of varlist ParticipationRate AvgScaleScore *_percent {
 	gen n`var' = Prop * real(`var')
 	egen `var'_Agg = total(n`var'), by(DistName SchName Subject GradeLevel EL_Group)
+	gen `var'_Miss = 1 if n`var' == .
+	sort DataLevel DistName SchName Subject GradeLevel EL_Group StudentSubGroup
+	replace `var'_Miss = 1 if `var'_Miss[_n+1] == 1 & uniquegrp == uniquegrp[_n+1]
+	replace `var'_Miss = 1 if `var'_Miss[_n-1] == 1 & uniquegrp == uniquegrp[_n-1]
+	replace `var'_Agg = . if `var'_Miss == 1
+	drop `var'_Miss
 }
 
-** Cleaning up
+** Replace Values
 drop n*
 foreach var of varlist *_count *_percent ParticipationRate AvgScaleScore {
 	drop `var'
@@ -593,9 +623,24 @@ foreach var of varlist *_count *_percent ParticipationRate AvgScaleScore {
 	tostring `var', replace format("%9.3g") force
 	replace `var' = "*" if `var' == "0" | `var' == "."
 }
-drop StudentSubGroup StudentSubGroup_TotalTested Prop
+
+replace StudentSubGroup_TotalTested = string(StudentSubGroup_TotalTested_Agg) if StudentSubGroup_TotalTested_High == . & range == .
+replace StudentSubGroup_TotalTested = string(StudentSubGroup_TotalTested_Agg) + "-" + string(StudentSubGroup_TotalTested_High) if StudentSubGroup_TotalTested_High != .
+replace StudentSubGroup_TotalTested = "0-30" if range == 2
+drop StudentSubGroup_TotalTested_Agg StudentSubGroup_TotalTested_High range
+
+** Check for Proper Aggregation
+sort DataLevel DistName SchName Subject GradeLevel EL_Group StudentSubGroup
+egen uniquegrp1 = group(DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel EL_Group StudentSubGroup_TotalTested ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate AvgScaleScore)
+tab DataLevel if uniquegrp != uniquegrp1
+drop uniquegrp uniquegrp1
+
+** Cleaning Up
+replace StateAssignedSchID = "" if StateAssignedSchID == "--"
+replace StateAssignedDistID = "" if StateAssignedDistID == "--"
+
+drop StudentSubGroup Prop
 rename EL_Group StudentSubGroup
-rename StudentSubGroup_TotalTested_Agg StudentSubGroup_TotalTested
 sort DataLevel DistName SchName Subject GradeLevel StudentSubGroup
 duplicates drop DistName SchName Subject GradeLevel StudentSubGroup, force
 tostring StudentSubGroup_TotalTested, replace
@@ -654,6 +699,13 @@ drop Unsuppressed*
 //Removing "Empty" Observations for Subgroups
 drop if StudentSubGroup_TotalTested == "0" & StudentSubGroup != "All Students"
 
+//Deriving Additional Information
+forvalues n = 1/5{
+	replace Lev`n'_count = string(round(real(Lev`n'_percent)* real(StudentSubGroup_TotalTested))) if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Lev`n'_percent)) & missing(real(Lev`n'_count))
+}
+
+replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent)* real(StudentSubGroup_TotalTested))) if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(ProficientOrAbove_percent)) & missing(real(ProficientOrAbove_count))
+
 //DataLevel
 label def DataLevel 1 "State" 2 "District" 3 "School"
 encode DataLevel, gen(DataLevel_n) label(DataLevel)
@@ -662,8 +714,6 @@ drop DataLevel
 rename DataLevel_n DataLevel
 
 replace SchName = stritrim(SchName)
-
-replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent)* real(StudentSubGroup_TotalTested))) if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(ProficientOrAbove_percent)) & missing(real(ProficientOrAbove_count))
 
 ** Standardize Names
 replace DistName = strproper(DistName)
@@ -682,10 +732,7 @@ foreach var of varlist DistName SchName {
 }
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-foreach var of varlist StudentGroup_TotalTested StudentSubGroup_TotalTested *_count *_percent {
-	replace `var' = subinstr(`var', ",","",.)
-	replace `var' = subinstr(`var', " ", "",.)
-}
+
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${output}/CO_AssmtData_2016.dta", replace
