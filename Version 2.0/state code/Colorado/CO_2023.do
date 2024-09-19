@@ -188,7 +188,7 @@ replace StudentSubGroup_TotalTested = "0-15" if strpos(StudentSubGroup_TotalTest
 replace StudentSubGroup_TotalTested = "--" if missing(StudentSubGroup_TotalTested)
 
 ** Student and Performance Counts & Percents
-replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "- -"
+replace StudentSubGroup_TotalTested = "0-15" if StudentSubGroup_TotalTested == "- -"
 replace StudentSubGroup_TotalTested = subinstr(StudentSubGroup_TotalTested, ",", "", 1)
 
 forvalues n = 1/5{

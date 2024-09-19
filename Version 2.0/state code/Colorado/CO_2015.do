@@ -209,6 +209,7 @@ replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup ==
 
 //StudentSubGroup_TotalTested
 replace StudentSubGroup_TotalTested = "0-15" if strpos(StudentSubGroup_TotalTested, "<16") !=0 | strpos(StudentSubGroup_TotalTested, "< 16") !=0
+replace StudentSubGroup_TotalTested = "0-15" if StudentSubGroup_TotalTested == "- -"
 replace StudentSubGroup_TotalTested = "--" if missing(StudentSubGroup_TotalTested)
 
 //Counts and Percents ranges
