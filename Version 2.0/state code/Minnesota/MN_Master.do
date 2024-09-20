@@ -17,7 +17,7 @@ forval year = 1998/2023 {
 	do MN_`year'.do	
 }
 do MN_StableNames.do
-
+/*
 	//Update April 1st 2024: Response to post-launch review//
 	
 clear
@@ -49,7 +49,7 @@ if `year' >= 1998 & `year' <= 2007 {
 	replace Flag_CutScoreChange_sci = "Not Applicable"
 }
 replace Flag_CutScoreChange_soc = "Not Applicable"
-
+*/
 
 	
 	
