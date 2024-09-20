@@ -3,7 +3,7 @@ set more off
 
 //Importing
 
-import excel "mn_full-dist-sch-stable-list_through2023", firstrow case(preserve) allstring
+import excel "mn_full-dist-sch-stable-list_through2024", firstrow case(preserve) allstring
 
 //Fixing DataLevel
 label def DataLevel 1 "State" 2 "District" 3 "School"
