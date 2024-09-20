@@ -1,14 +1,13 @@
 clear all
 set more off
 
-cd "/Users/maggie/Desktop/North Dakota"
 
-global data "/Users/maggie/Desktop/North Dakota/Original Data Files"
-global NCESSchool "/Users/maggie/Desktop/North Dakota/NCES/School"
-global NCESDistrict "/Users/maggie/Desktop/North Dakota/NCES/District"
-global NCES "/Users/maggie/Desktop/North Dakota/NCES/Cleaned"
-global EDFacts "/Users/maggie/Desktop/EDFacts/Datasets"
-global output "/Users/maggie/Desktop/North Dakota/Output"
+global data "/Users/miramehta/Documents/ND State Testing Data/Original Data Files"
+global NCESSchool "/Users/miramehta/Documents/NCES District and School Demographics/NCES School Files, Fall 1997-Fall 2022"
+global NCESDistrict "/Users/miramehta/Documents/NCES District and School Demographics/NCES District Files, Fall 1997-Fall 2022"
+global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+global EDFacts "/Users/miramehta/Documents/EdFacts"
+global output "/Users/miramehta/Documents/ND State Testing Data/Output"
 
 //Import Data & Merge in Participation Data
 import excel "$data/ND_ParticipationData_2022.xlsx", clear firstrow
@@ -139,7 +138,7 @@ sort DataLevel_n
 drop DataLevel 
 rename DataLevel_n DataLevel
 
-merge m:1 DataLevel NCESDistrictID NCESSchoolID StudentGroup StudentSubGroup GradeLevel Subject using "${EDFacts}/2022/edfacts2022northdakota.dta"
+merge m:1 DataLevel NCESDistrictID NCESSchoolID StudentGroup StudentSubGroup GradeLevel Subject using "$data/edfacts2022northdakota.dta"
 drop if _merge == 2
 drop state schoolyear-_merge
 

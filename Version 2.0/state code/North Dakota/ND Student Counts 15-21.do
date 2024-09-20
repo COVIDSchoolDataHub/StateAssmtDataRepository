@@ -1,12 +1,13 @@
 clear
 set more off
 
-cd "/Users/maggie/Desktop/North Dakota"
+cd "/Users/miramehta/Documents"
 
-global NCESSchool "/Users/maggie/Desktop/North Dakota/NCES/School"
-global NCESDistrict "/Users/maggie/Desktop/North Dakota/NCES/District"
-global NCES "/Users/maggie/Desktop/North Dakota/NCES/Cleaned"
-global EDFacts "/Users/maggie/Desktop/EDFacts/Datasets"
+global data "/Users/miramehta/Documents/ND State Testing Data/Original Data Files"
+global NCESSchool "/Users/miramehta/Documents/NCES District and School Demographics/NCES School Files, Fall 1997-Fall 2022"
+global NCESDistrict "/Users/miramehta/Documents/NCES District and School Demographics/NCES District Files, Fall 1997-Fall 2022"
+global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+global EDFacts "/Users/miramehta/Documents/EdFacts"
 
 ** Preparing EDFacts files
 
@@ -280,7 +281,7 @@ foreach year of local edyears2 {
 		}
 	}
 }
-
+/*
 ** Preparing NCES files
 
 global years 2014 2015 2016 2017 2018 2020 2021 2022

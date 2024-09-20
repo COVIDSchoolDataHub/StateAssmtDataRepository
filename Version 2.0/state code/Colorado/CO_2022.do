@@ -263,9 +263,8 @@ rename numbermetexpectations Lev4_count
 rename percentmetexpectations Lev4_percent
 rename numberexceededexpectations Lev5_count
 rename percentexceededexpectations Lev5_percent
-rename numbermetorexceededexpectati ProficientOrAbove_count
-rename percentmetorexceededexpectat ProficientOrAbove_percent
-
+rename numbermetorexceededexpectati Prof_c
+rename percentmetorexceededexpectat Prof_p
 
 //	Create new variables
 
@@ -347,6 +346,17 @@ replace ParticipationRate=ParticipationRate/100
 tostring ParticipationRate, replace force
 replace ParticipationRate="*" if ParticipationRate=="."
 
+//StudentGroup_TotalTested
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+
+//Deriving StudentSubGroup_TotalTested where suppressed
+gen UnsuppressedSSG = real(StudentSubGroup_TotalTested)
+egen UnsuppressedSG = total(UnsuppressedSSG), by(StudentGroup GradeLevel Subject DistName SchName)
+replace StudentSubGroup_TotalTested = string(real(StudentGroup_TotalTested)-UnsuppressedSG) if missing(real(StudentSubGroup_TotalTested)) & !missing(real(StudentGroup_TotalTested)) & real(StudentGroup_TotalTested) - UnsuppressedSG >=0 & UnsuppressedSG > 0 & StudentGroup != "RaceEth" & StudentSubGroup != "EL Exited"
+drop Unsuppressed*
+
 //// ADJUST PERCENTS AND COUNTS
 forvalues n = 1/5{
 	replace Lev`n'_count = subinstr(Lev`n'_count, ",", "", 1)
@@ -358,6 +368,32 @@ forvalues n = 1/5{
 	replace Lev`n'_count = "*" if Lev`n'_count == "- -"
 }
 
+destring Lev4_count, gen(Lev4_c) force
+destring Lev4_percent, gen(Lev4_p) force
+destring Lev5_count, gen(Lev5_c) force
+destring Lev5_percent, gen(Lev5_p) force
+replace Prof_c = subinstr(Prof_c, ",", "", .)
+destring Prof_c, gen(Prof_count) force
+destring Prof_p, gen(Prof_percent) force
+replace Prof_percent = Prof_percent/100
+
+gen ProficientOrAbove_count = Lev4_c + Lev5_c
+gen ProficientOrAbove_percent = Lev4_p + Lev5_p
+
+replace ProficientOrAbove_percent = Prof_percent if ProficientOrAbove_percent == . & Prof_percent != .
+replace ProficientOrAbove_count = Prof_count if ProficientOrAbove_count == . & Prof_count != .
+
+replace ProficientOrAbove_count = round(ProficientOrAbove_percent * real(StudentSubGroup_TotalTested)) if !missing(real(StudentSubGroup_TotalTested)) & !missing(ProficientOrAbove_percent) & missing(ProficientOrAbove_count)
+
+tostring ProficientOrAbove_count, replace
+tostring ProficientOrAbove_percent, replace format("%9.3g") force
+replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == "." & Prof_c == ""
+replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "." & Prof_c == "- -"
+replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "." & Prof_p == "- -"
+
+drop Lev4_c Lev4_p Lev5_c Lev5_p Prof_c Prof_p Prof_count Prof_percent
+
+/*
 replace ProficientOrAbove_count = subinstr(ProficientOrAbove_count, ",", "", 1)
 replace ProficientOrAbove_count = strtrim(ProficientOrAbove_count)
 destring ProficientOrAbove_percent, replace force
@@ -377,17 +413,7 @@ drop Lev4 Lev5 Prof
 gen Prof = round(studcount * prof_p)
 replace ProficientOrAbove_count = string(Prof) if inlist(ProficientOrAbove_count, "*", "--") & !inlist(ProficientOrAbove_percent, "*", "--") & !inlist(StudentSubGroup_TotalTested, "*", "--") & Prof != .
 drop studcount prof_p Prof
-
-//StudentGroup_TotalTested
-sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
-replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
-
-//Deriving StudentSubGroup_TotalTested where suppressed
-gen UnsuppressedSSG = real(StudentSubGroup_TotalTested)
-egen UnsuppressedSG = total(UnsuppressedSSG), by(StudentGroup GradeLevel Subject DistName SchName)
-replace StudentSubGroup_TotalTested = string(real(StudentGroup_TotalTested)-UnsuppressedSG) if missing(real(StudentSubGroup_TotalTested)) & !missing(real(StudentGroup_TotalTested)) & real(StudentGroup_TotalTested) - UnsuppressedSG >=0 & UnsuppressedSG > 0 & StudentGroup != "RaceEth" & StudentSubGroup != "EL Exited"
-drop Unsuppressed*
+*/
 
 //Removing "Empty" Observations for Subgroups
 drop if StudentSubGroup_TotalTested == "0" & StudentSubGroup != "All Students"
@@ -428,8 +454,6 @@ foreach var of varlist StudentGroup_TotalTested StudentSubGroup_TotalTested *_co
 	replace `var' = subinstr(`var', ",","",.)
 	replace `var' = subinstr(`var', " ", "",.)
 }
-
-replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent)* real(StudentSubGroup_TotalTested))) if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(ProficientOrAbove_percent)) & missing(real(ProficientOrAbove_count))
 
 ** Standardize Names
 replace DistName = strproper(DistName)

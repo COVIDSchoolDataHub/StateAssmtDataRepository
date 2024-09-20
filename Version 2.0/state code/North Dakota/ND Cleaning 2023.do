@@ -1,14 +1,14 @@
 clear all
 set more off
 
-cd "/Users/maggie/Desktop/North Dakota"
+cd "/Users/miramehta/Documents"
 
-global data "/Users/maggie/Desktop/North Dakota/Original Data Files"
-global NCESSchool "/Users/maggie/Desktop/North Dakota/NCES/School"
-global NCESDistrict "/Users/maggie/Desktop/North Dakota/NCES/District"
-global NCES "/Users/maggie/Desktop/North Dakota/NCES/Cleaned"
-global EDFacts "/Users/maggie/Desktop/EDFacts/Datasets"
-global output "/Users/maggie/Desktop/North Dakota/Output"
+global data "/Users/miramehta/Documents/ND State Testing Data/Original Data Files"
+global NCESSchool "/Users/miramehta/Documents/NCES District and School Demographics/NCES School Files, Fall 1997-Fall 2022"
+global NCESDistrict "/Users/miramehta/Documents/NCES District and School Demographics/NCES District Files, Fall 1997-Fall 2022"
+global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+global EDFacts "/Users/miramehta/Documents/EdFacts"
+global output "/Users/miramehta/Documents/ND State Testing Data/Output"
 
 //Import Data & Merge in Participation Data
 import excel "$data/ND_ParticipationData_2023.xlsx", clear firstrow
@@ -125,7 +125,7 @@ sort DataLevel_n
 drop DataLevel 
 rename DataLevel_n DataLevel
 
-merge m:1 DataLevel NCESDistrictID NCESSchoolID StudentGroup StudentSubGroup GradeLevel Subject using "${EDFacts}/2022/edfacts2022northdakota.dta"
+merge m:1 DataLevel NCESDistrictID NCESSchoolID StudentGroup StudentSubGroup GradeLevel Subject using "${data}/edfacts2022northdakota.dta"
 drop if _merge == 2
 drop state schoolyear-_merge
 
@@ -167,13 +167,14 @@ forvalues n = 1/4 {
 	replace Lev`n'_countHigh = . if StudentSubGroup_TotalTested == .
 }
 
-replace StudentSubGroup_TotalTested = 0 if StudentSubGroup_TotalTested == .
-bys SchName DistName StudentGroup Subject GradeLevel: egen test = min(StudentSubGroup_TotalTested)
-bys SchName DistName StudentGroup Subject GradeLevel: egen StudentGroup_TotalTested = total(StudentSubGroup_TotalTested)
-tostring StudentGroup_TotalTested, replace
-replace StudentGroup_TotalTested = "--" if test == 0
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+order Subject GradeLevel StudentGroup_TotalTested StudentGroup StudentSubGroup_TotalTested StudentSubGroup
+replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested) & StudentSubGroup != "All Students"
 tostring StudentSubGroup_TotalTested, replace force
-replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "0"
+replace StudentSubGroup_TotalTested = "--" if inlist(StudentSubGroup_TotalTested, "0", ".")
+tostring StudentGroup_TotalTested, replace force
+replace StudentGroup_TotalTested = "--" if inlist(StudentGroup_TotalTested, "0", ".")
 
 tostring PercentTestedRangeLow, replace force
 tostring PercentTestedRangeHigh, replace force
