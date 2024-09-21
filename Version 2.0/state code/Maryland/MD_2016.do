@@ -1,8 +1,9 @@
+
 clear
 set more off
-global Original "/Volumes/T7/State Test Project/Maryland/Original"
-global Output "/Volumes/T7/State Test Project/Maryland/Output"
-global NCES_MD "/Volumes/T7/State Test Project/Maryland/NCES"
+global Original "/Users/benjaminm/Documents/State_Repository_Research/Maryland/Original"
+global Output "/Users/benjaminm/Documents/State_Repository_Research/Maryland/Output"
+global NCES_MD "/Users/benjaminm/Documents/State_Repository_Research/Maryland/NCES_MD"
 
 //Importing & Combining Files
 tempfile temp1
@@ -177,6 +178,3 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${Output}/MD_AssmtData_2016", replace
 export delimited "${Output}/MD_AssmtData_2016", replace
-
-
-
