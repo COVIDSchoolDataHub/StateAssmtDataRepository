@@ -1,13 +1,15 @@
+
 clear
 set more off
-global Original "/Volumes/T7/State Test Project/Maryland/Original"
-global Output "/Volumes/T7/State Test Project/Maryland/Output"
-global NCES_MD "/Volumes/T7/State Test Project/Maryland/NCES"
+
+global Original "/Users/benjaminm/Documents/State_Repository_Research/Maryland/Original"
+global Output "/Users/benjaminm/Documents/State_Repository_Research/Maryland/Output"
+global NCES_MD "/Users/benjaminm/Documents/State_Repository_Research/Maryland/NCES_MD"
 
 //Importing & Combining Files
 tempfile temp1
 save "`temp1'", emptyok
-import delimited "${Original}/MD_OriginalData_2018_ela_mat.csv", case(preserve) clear
+import delimited "$Original/MD_OriginalData_2018_ela_mat.csv", case(preserve) clear
 gen GradeLevel = "G0" + substr(Assessment, -1,1)
 drop if real(substr(GradeLevel, -1,1)) > 8 | real(substr(GradeLevel, -1,1)) < 3 | missing(real(substr(GradeLevel, -1,1)))
 gen Subject = substr(Assessment, 1, strpos(Assessment, "Grade")-2)
