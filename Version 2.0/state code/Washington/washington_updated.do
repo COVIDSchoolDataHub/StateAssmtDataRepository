@@ -9,8 +9,8 @@ global output "/Volumes/T7/State Test Project/Washington/Output"
 global NCESOLD "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
 global NCES "/Volumes/T7/State Test Project/Washington/NCES"
 
-* 2015 2016 2017 2018 2019 2021 2022 2023
-foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 {
+* 2015 2016 2017 2018 2019 2021 2022 2023 2024
+foreach year in 2024 {
 	
 use "${output}/WA_AssmtData_`year'_all", clear
 	
@@ -188,6 +188,34 @@ if `year' == 2023 {
 	keep if AssmtName == "SBAC" | AssmtName == "WCAS"
 }
 
+if `year' == 2024 {
+	rename SchoolYear SchYear
+	rename OrganizationLevel DataLevel
+	rename County CountyName
+	rename DistrictCode State_leaid
+	rename DistrictName DistName
+	rename DistrictOrganizationId StateAssignedDistID
+	rename SchoolCode seasch
+	rename SchoolName SchName
+	rename SchoolOrganizationid StateAssignedSchID
+	rename StudentGroup StudentSubGroup
+	rename StudentGroupType StudentGroup
+	rename TestAdministration AssmtName
+	rename TestSubject Subject
+	rename CountofStudentsExpectedtoTestinc ExpectedCount
+	rename PercentMetTestedOnly ProficientOrAbove_percent
+// 	rename PercentLevel1 Lev1_percent
+// 	rename PercentLevel2 Lev2_percent
+// 	rename PercentLevel3 Lev3_percent
+// 	rename PercentLevel4 Lev4_percent
+	rename PercentParticipation ParticipationRate
+	rename DAT Suppression
+	drop CountofStudentsExpectedtoTest CountConsistentGradeLevelKnowled CountFoundationalGradeLevelKnowl CurrentSchoolType DataAsOf ESDOrganizationID ESDName PercentConsistentGradeLevelKnowl PercentFoundationalGradeLevelKno TestAdministrationgroup
+	gen PercentMetStandard = ""
+	keep if AssmtName == "SBAC" | AssmtName == "WCAS"
+	gen AssmtType = ""
+}
+
 ** Dropping entries
 	
 drop if DataLevel == "ESD"
@@ -245,7 +273,7 @@ if `year' == 2021 {
 	replace GradeLevel = "G0" + GradeLevel 
 }
 
-if `year' == 2018 | `year' == 2019 | `year' == 2022 | `year' == 2023 {
+if `year' == 2018 | `year' == 2019 | `year' == 2022 | `year' == 2023 | `year' == 2024 {
 	replace GradeLevel = "G" + GradeLevel 
 }
 
@@ -291,7 +319,7 @@ replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Lo
 replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "Native Hawaiian/ Other Pacific Islander"
 replace StudentSubGroup = "English Proficient" if StudentSubGroup == "Non-English Language Learners"
 replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "Non-Low Income"
-replace StudentSubGroup = "Two or More" if StudentSubGroup == "Two or More Races" | StudentSubGroup == "TwoorMoreRaces"
+replace StudentSubGroup = "Two or More" if StudentSubGroup == "Two or More Races" | StudentSubGroup == "TwoorMoreRaces" | StudentSubGroup == "Two Or More Races"
 replace StudentSubGroup = "SWD" if StudentSubGroup == "Students with Disabilities"
 replace StudentSubGroup = "Non-SWD" if StudentSubGroup == "Students without Disabilities"
 replace StudentSubGroup = "Military" if StudentSubGroup == "Military Parent"
@@ -319,7 +347,7 @@ tostring PercentNoScore, replace force
 
 ** make participationrate (ONLY FOR PRE-2023)
 
-if `year' != 2023 {
+if `year' < 2023 {
 	replace PercentNoScore = "*" if PercentNoScore == "NULL"
 	destring PercentNoScore, replace ignore(*)
 	gen ParticipationRate = 1 - PercentNoScore
@@ -361,6 +389,13 @@ foreach count of varlist Lev*_count {
 
 //Dropping Extra Variables
 drop PercentLevel* PercentMetStandard
+
+//Generating ProficientOrAbove_count for 2024
+if `year' == 2024 {
+	gen ProficientOrAbove_count = string(real(Lev3_count) + real(Lev4_count)) if !missing(real(Lev3_count)) & !missing(real(Lev4_count))
+	replace ProficientOrAbove_count = "*" if missing(ProficientOrAbove_count)
+}
+
 
 //Converting ProficientOrAbove_count to string
 tostring ProficientOrAbove_count, replace
@@ -408,6 +443,29 @@ if `year' == 2017 | `year' == 2018 | `year' == 2019 | `year' == 2022 | `year' ==
 
 	merge m:1 seasch using "${NCES}/NCES_`prevyear'_School.dta", keepusing(SchLevel SchVirtual NCESSchoolID SchType)
 	replace SchVirtual = "Missing/not reported" if NCESSchoolID == "530285003625" & `year' == 2017
+}
+
+if `year' == 2024 {
+	gen leadingzero = 1 if real(State_leaid) < 10000 & !missing(real(State_leaid))
+	tostring State_leaid, replace
+	replace State_leaid = "0" + State_leaid if leadingzero == 1
+	drop leadingzero
+	replace State_leaid = "WA-" + State_leaid if DataLevel != 1
+
+	merge m:1 State_leaid using "${NCES}/NCES_2022_District.dta"
+
+	drop if _merge == 2
+	drop _merge
+
+	tostring seasch, replace
+	replace seasch = State_leaid + "-" + seasch if DataLevel == 3
+	replace seasch = subinstr(seasch,"WA-","",.) if DataLevel == 3
+	
+
+	merge m:1 seasch using "${NCES}/NCES_2022_School.dta", keepusing(SchLevel SchVirtual NCESSchoolID SchType)
+	replace SchVirtual = "Missing/not reported" if NCESSchoolID == "530285003625" & `year' == 2017
+	
+	merge m:1 SchName using "WA_Unmerged_2024", update nogen
 }
 
 if `year' == 2021 {
@@ -462,8 +520,7 @@ if `year' == 2018 {
 	replace Flag_CutScoreChange_sci = "Y"
 }
 
-drop SchYear 
-gen SchYear = "`prevyear'"+ "-" + substr("`year'",-2,2)
+replace SchYear = "`prevyear'"+ "-" + substr("`year'",-2,2)
 
 
 ** Unmerged data
@@ -599,7 +656,7 @@ by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] i
 drop group_id StateAssignedDistID1 StateAssignedSchID1
 
 //Deriving ProficientOrAbove_count if possible
-replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent)*real(StudentSubGroup_TotalTested))) if !missing(real(ProficientOrAbove_percent)) & !missing(real(StudentSubGroup_TotalTested)) & missing(real(ProficientOrAbove_percent))
+replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent)*real(StudentSubGroup_TotalTested))) if !missing(real(ProficientOrAbove_percent)) & !missing(real(StudentSubGroup_TotalTested)) & missing(real(ProficientOrAbove_count))
 
 //Response to Review
 
@@ -608,6 +665,12 @@ if `year' >= 2018 drop if SchLevel == "Prekindergarten"
 //Replacing ProficientOrAbove_count with ProficientOrAbove_percent*StudentSubGroup_TotalTested
 replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent) * real(StudentSubGroup_TotalTested)))
 replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
+
+//ParticipationRate
+replace ParticipationRate = "--" if missing(ParticipationRate)
+
+//AssmtType
+replace AssmtType = "Regular"
 
 //Final Cleaning
 
