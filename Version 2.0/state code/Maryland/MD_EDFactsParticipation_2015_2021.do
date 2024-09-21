@@ -1,9 +1,9 @@
 clear
 set more off
 
-global EDFacts "/Users/kaitlynlucas/Desktop/EDFacts Drive Data"
-global State_Output "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/Maryland Assessment" // Version 1.1 Output directory here
-global New_Output "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/Maryland V2.0" // Version 2.0 Output directory here
+global EDFacts "/Users/benjaminm/Documents/State_Repository_Research/EdFacts"
+global Output "/Users/benjaminm/Documents/State_Repository_Research/Maryland/Output" // Version 1.1 Output directory here
+global New_Output "/Users/benjaminm/Documents/State_Repository_Research/Maryland/New_Output" // Version 2.0 Output directory here
 
 ** Preparing EDFacts files
 local edyears1 15 16 17
@@ -12,12 +12,14 @@ local subject math ela
 local datatype part
 local datalevel school district
 
+
 foreach year of local edyears1 {
     foreach sub of local subject {
         foreach type of local datatype {
             foreach lvl of local datalevel {
                 local prevyear = `year' - 1
                 use "${EDFacts}/20`year'/edfacts`type'20`year'`sub'`lvl'.dta", clear
+				rename _all, lower
                 keep if stnam == "MARYLAND"
                 rename *_`prevyear'`year' *
                 if ("`sub'" == "math") {
@@ -133,11 +135,13 @@ foreach year of local edyears1 {
     }
 }
 
+
 foreach year of local edyears2 {
 	foreach sub of local subject {
 		foreach type of local datatype {
 			foreach lvl of local datalevel {
 				use "${EDFacts}/`year'/edfacts`type'`year'`sub'`lvl'.dta", clear
+				rename _all, lower
 				keep if stnam == "MARYLAND"
 				drop date_cur
 				if ("`type'" == "count") {
@@ -267,25 +271,28 @@ foreach year of local edyears2 {
 	}
 }
 
+
+
+
 //Conversion to DTA
 forvalues year = 2015/2017 {
 if `year' == 2020 continue
-import delimited "${State_Output}/MD_AssmtData_`year'", case(preserve) clear
-save "${State_Output}/MD_AssmtData_`year'", replace
+import delimited "${Output}/MD_AssmtData_`year'", case(preserve) clear
+save "${Output}/MD_AssmtData_`year'", replace
 }
 
 
 //Conversion to DTA
 forvalues year = 2019/2023 {
 if `year' == 2020 continue
-import delimited "${State_Output}/MD_AssmtData_`year'", case(preserve) clear
-save "${State_Output}/MD_AssmtData_`year'", replace
+import delimited "${Output}/MD_AssmtData_`year'", case(preserve) clear
+save "${Output}/MD_AssmtData_`year'", replace
 }
 
 //Merging Example
 forvalues year = 2015/2017 {
 if `year' == 2020 continue
-import delimited "${State_Output}/MD_AssmtData_`year'.csv", case(preserve) clear
+import delimited "${Output}/MD_AssmtData_`year'.csv", case(preserve) clear
 
 	
 //DataLevel
@@ -346,10 +353,27 @@ export delimited "${New_Output}/MD_AssmtData_`year'", replace
 }
 
 
+
+
+clear
+set more off
+
+global EDFacts "/Users/benjaminm/Documents/State_Repository_Research/EdFacts"
+global Output "/Users/benjaminm/Documents/State_Repository_Research/Maryland/Output" // Version 1.1 Output directory here
+global New_Output "/Users/benjaminm/Documents/State_Repository_Research/Maryland/New_Output" // Version 2.0 Output directory here
+
+** Preparing EDFacts files
+local edyears1 15 16 17
+local edyears2 2019 2021
+local subject math ela
+local datatype part
+local datalevel school district
+
+
 //Merging Example
 forvalues year = 2019/2021 {
 if `year' == 2020 continue
-import delimited "${State_Output}/MD_AssmtData_`year'.csv", case(preserve) clear
+import delimited "${Output}/MD_AssmtData_`year'.csv", case(preserve) clear
 
 	
 //DataLevel
