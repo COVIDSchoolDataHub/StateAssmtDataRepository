@@ -1,8 +1,9 @@
+
 clear
 set more off
-global Original "/Volumes/T7/State Test Project/Maryland/Original"
-global Output "/Volumes/T7/State Test Project/Maryland/Output"
-global NCES_MD "/Volumes/T7/State Test Project/Maryland/NCES"
+global Original "/Users/benjaminm/Documents/State_Repository_Research/Maryland/Original"
+global Output "/Users/benjaminm/Documents/State_Repository_Research/Maryland/Output"
+global NCES_MD "/Users/benjaminm/Documents/State_Repository_Research/Maryland/NCES_MD"
 
 //Importing & Combining Files
 tempfile temp1
@@ -169,6 +170,16 @@ replace CountyName = subinstr(CountyName, "'S", "'s",.)
 //Post Launch Review
 replace SchName=stritrim(SchName)
 
+
+replace Lev4_count = "--" if Lev4_count == ""
+replace Lev5_count = "--" if Lev5_count == ""
+replace Lev4_percent = "--" if Lev4_percent == ""
+replace Lev5_percent = "--" if Lev5_percent == ""
+
+
+replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == ""
+
+
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
  
@@ -178,6 +189,4 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${Output}/MD_AssmtData_2015", replace
 export delimited "${Output}/MD_AssmtData_2015", replace
-
-
 
