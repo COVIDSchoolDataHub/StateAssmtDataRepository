@@ -1,8 +1,11 @@
 clear
 set more off
 
-global NCES_Original "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
-global NCES_MD "/Volumes/T7/State Test Project/Maryland/NCES"
+
+
+global NCES_District "/Users/benjaminm/Documents/State_Repository_Research/NCES/District"
+global NCES_School "/Users/benjaminm/Documents/State_Repository_Research/NCES/School"
+global NCES_MD "/Users/benjaminm/Documents/State_Repository_Research/Maryland/NCES_MD"
 
 
 ** Preparing NCES files
@@ -11,7 +14,7 @@ global years 2014 2015 2016 2017 2018 2020 2021 2022
 
 foreach a in $years {
 	
-	use "${NCES_Original}/NCES_`a'_District.dta", clear 
+	use "${NCES_District}/NCES_`a'_District.dta", clear 
 	keep if state_location == "MD"
 	
 	rename state_name State
@@ -28,7 +31,7 @@ foreach a in $years {
 	
 	save "${NCES_MD}/NCES_`a'_District.dta", replace
 	
-	use "${NCES_Original}/NCES_`a'_School.dta", clear
+	use "${NCES_School}/NCES_`a'_School.dta", clear
 	keep if state_location == "MD"
 	
 	rename state_name State
