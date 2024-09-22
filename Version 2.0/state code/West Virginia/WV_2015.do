@@ -291,6 +291,11 @@ gen All_Students = StudentSubGroup_TotalTested if StudentSubGroup == "All Studen
 replace All_Students = All_Students[_n-1] if missing(All_Students)
 replace StudentGroup_TotalTested = All_Students if regexm(StudentGroup_TotalTested, "[0-9]") == 0 
 
+//Removing extra spaces
+foreach var of varlist DistName SchName {
+	replace `var' = stritrim(`var') // collapses all consecutive, internal blanks to one blank.
+	replace `var' = strtrim(`var') // removes leading and trailing blanks
+}
 
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
