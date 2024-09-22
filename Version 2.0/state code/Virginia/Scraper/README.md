@@ -3,16 +3,19 @@ In order to scrape Virginia you must follow these steps:
 1. Create a localhost chrome browser using these terminal commands
    
     On Mac:
-
+   ```
     USER_DATA_DIR="$HOME/Chrome_Test_Profile"
     cd /Applications/Google\ Chrome.app/Contents/MacOS/
     ./Google\ Chrome --remote-debugging-port=9014 --user-data-dir="$USER_DATA_DIR"
+   ```
 
 
     On Windows:
-
+   
+```
     cd C:\Program Files\Google\Chrome\Application
     chrome.exe -remote-debugging-port=9014 --user-data-dir="C:\test\Chrome_Test_Profile"
+```
 
 Change the file names to wherever you want to store Chrome locally.
 
