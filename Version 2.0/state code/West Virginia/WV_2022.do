@@ -272,7 +272,7 @@ gen All_Students = StudentSubGroup_TotalTested if StudentSubGroup == "All Studen
 replace All_Students = All_Students[_n-1] if missing(All_Students)
 replace StudentGroup_TotalTested = All_Students if regexm(StudentGroup_TotalTested, "[0-9]") == 0
 
-replace DistName = "McDowell" if NCESDistrictID == "5400810"
+replace DistName = "McDowell" if DistName == "Mcdowell"
 
 //Getting rid of empty observations
 drop if StudentSubGroup_TotalTested == "--" & Lev1_percent == "--" & Lev2_percent == "--" & Lev3_percent == "--" & Lev4_percent == "--" & ProficientOrAbove_percent == "--"
