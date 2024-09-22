@@ -1,7 +1,7 @@
 In order to scrape Virginia you must follow these steps:
 
 1. Create a localhost chrome browser using these terminal commands
-2. 
+   
     On Mac:
 
     USER_DATA_DIR="$HOME/Chrome_Test_Profile"
