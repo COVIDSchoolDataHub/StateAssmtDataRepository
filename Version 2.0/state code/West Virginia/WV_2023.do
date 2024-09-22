@@ -360,7 +360,7 @@ foreach var of varlist *_percent {
 	replace `var' = string(real(`var'), "%9.3g") if regexm(`var', "[0-9]") !=0
 }
 
-replace DistName = "McDowell" if NCESDistrictID == "5400810"
+replace DistName = "McDowell" if DistName == "Mcdowell"
 
 //Removing extra spaces
 foreach var of varlist DistName SchName {
