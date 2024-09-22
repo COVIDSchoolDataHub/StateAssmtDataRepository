@@ -21,11 +21,11 @@ Change the file path of google chrome to the correct path.
 3. Both programs require to be run twice - once for "All Grades" and another time to get each individual grade's data
 
 When running All Grades part comment out all instances of the following code (there are 3)
-$ for grade_number in range(3, 9):
-$     selector(grade, grade_number, False)
+    $ for grade_number in range(3, 9):
+    $     selector(grade, grade_number, False)
 
-And uncomment one line close to the end of the file which is
-$ selector(grade, 0)
+And uncomment one line close to the end of the file which is:
+    $ selector(grade, 0)
 
 4. Change the file_path_name variable to an existing excel file path
 
