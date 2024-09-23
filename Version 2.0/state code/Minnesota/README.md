@@ -16,7 +16,7 @@ Download the MN_EFParticipation_2022_subject files and place them into the MN_20
 
 Run MN_EDFactsParticipationRate_2022.do
 
-Directory:
+*Directory*
 
 cd "/Users/kaitlynlucas/Desktop/do files"
 
@@ -29,7 +29,7 @@ global output_files "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN Output"
 global temp_files "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN_Temp"
 
 
-Participation Rate 2014-2021
+*Participation Rate 2014-2021*
 
 global Original "/Users/kaitlynlucas/Desktop/EDFacts Drive Data" //Folder with Output .dta
 
@@ -40,7 +40,7 @@ global State_Output "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN Output"
 global Output_20 "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN Output" //Folder for Output 2.0
 
 
-Participation Rate 2022
+*Participation Rate 2022*
 
 global Original "/Users/kaitlynlucas/Desktop/EDFacts Drive Data" //Folder with Output .dta
 
