@@ -125,7 +125,7 @@ sort DataLevel_n
 drop DataLevel 
 rename DataLevel_n DataLevel
 
-merge m:1 DataLevel NCESDistrictID NCESSchoolID StudentGroup StudentSubGroup GradeLevel Subject using "${data}/edfacts2022northdakota.dta"
+merge m:1 DataLevel NCESDistrictID NCESSchoolID StudentGroup StudentSubGroup GradeLevel Subject using "$data/edfacts2022northdakota.dta"
 drop if _merge == 2
 drop state schoolyear-_merge
 

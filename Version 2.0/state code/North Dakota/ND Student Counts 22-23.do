@@ -9,16 +9,6 @@ global NCESDistrict "/Users/miramehta/Documents/NCES District and School Demogra
 global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
 global EDFacts "/Users/miramehta/Documents/EdFacts"
 
-clear
-set more off
-
-cd "/Users/miramehta/Documents/"
-
-global data "/Users/miramehta/Documents/ND State Testing Data/Original Data Files"
-global NCESSchool "/Users/miramehta/Documents/North Dakota/NCES District and School Demographics/NCES School Files, Fall 1997-Fall 2022"
-global NCESDistrict "/Users/miramehta/Documents/NCES District and School Demographics/NCES District Files, Fall 1997-Fall 2022"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
-global EDFacts "/Users/miramehta/Documents/EdFacts"
 
 import delimited "$data/ND_EDFacts_2022.csv", clear
 
@@ -177,6 +167,7 @@ foreach v of local lev{
 
 	replace datadescription = "Participation" if strpos(datadescription, "Participation") > 0
 	replace datadescription = "Performance" if strpos(datadescription, "Performance") > 0
+	keep if inlist(datadescription, "Participation", "Performance")
 	rename denominator Count
 	drop if numerator == 0
 	drop numerator outcome datagroup programtype

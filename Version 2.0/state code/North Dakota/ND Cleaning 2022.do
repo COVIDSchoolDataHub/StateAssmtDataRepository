@@ -180,13 +180,14 @@ forvalues n = 1/4 {
 	replace Lev`n'_countHigh = . if StudentSubGroup_TotalTested == .
 }
 
-replace StudentSubGroup_TotalTested = 0 if StudentSubGroup_TotalTested == .
-bys SchName DistName StudentGroup Subject GradeLevel: egen test = min(StudentSubGroup_TotalTested)
-bys SchName DistName StudentGroup Subject GradeLevel: egen StudentGroup_TotalTested = total(StudentSubGroup_TotalTested)
-tostring StudentGroup_TotalTested, replace
-replace StudentGroup_TotalTested = "--" if test == 0
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+order Subject GradeLevel StudentGroup_TotalTested StudentGroup StudentSubGroup_TotalTested StudentSubGroup
+replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested) & StudentSubGroup != "All Students"
 tostring StudentSubGroup_TotalTested, replace force
-replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "0"
+replace StudentSubGroup_TotalTested = "--" if inlist(StudentSubGroup_TotalTested, "0", ".")
+tostring StudentGroup_TotalTested, replace force
+replace StudentGroup_TotalTested = "--" if inlist(StudentGroup_TotalTested, "0", ".")
 
 tostring PercentTestedRangeLow, replace force
 tostring PercentTestedRangeHigh, replace force

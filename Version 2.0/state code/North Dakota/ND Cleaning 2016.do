@@ -175,11 +175,14 @@ replace num = All - Disability if StudentSubGroup == "Non-SWD" & Disability != 0
 replace num = All - EL if StudentSubGroup == "English Proficient" & EL != 0
 replace StudentSubGroup_TotalTested = string(num) if inlist(StudentSubGroup, "Not Economically Disadvantaged", "Non-SWD", "English Proficient") & num != .
 
-replace num = -1000000 if num == .
-bys SchName DistName StudentGroup Subject GradeLevel: egen StudentGroup_TotalTested = total(num)
-replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
-tostring StudentGroup_TotalTested, replace
-replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested == "."
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+order Subject GradeLevel StudentGroup_TotalTested StudentGroup StudentSubGroup_TotalTested StudentSubGroup
+replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested) & StudentSubGroup != "All Students"
+tostring StudentSubGroup_TotalTested, replace force
+replace StudentSubGroup_TotalTested = "--" if inlist(StudentSubGroup_TotalTested, "0", ".")
+tostring StudentGroup_TotalTested, replace force
+replace StudentGroup_TotalTested = "--" if inlist(StudentGroup_TotalTested, "0", ".")
 
 //Proficiency Levels
 gen ProfLow = ProficientRangeLow + AdvancedRangeLow
