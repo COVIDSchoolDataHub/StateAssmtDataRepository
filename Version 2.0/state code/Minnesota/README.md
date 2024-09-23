@@ -6,7 +6,7 @@ Run NCES do file
 
 Download all of the do files for each year and place them into the do files folder, and download all of the original data files and put them in the Original Files Folder
 
-Run MN_Master.do
+Run MN_Master.do with the directory to the do files folder
 
 Run MN_StableNames.do
 
