@@ -2,8 +2,8 @@ clear
 set more off
 
 //Importing
-
-import excel "mn_full-dist-sch-stable-list_through2024", firstrow case(preserve) allstring
+global folder "/Users/kaitlynlucas/Desktop/Minnesota State Task"
+import excel "${folder}/mn_full-dist-sch-stable-list_through2024", firstrow case(preserve) allstring
 
 //Fixing DataLevel
 label def DataLevel 1 "State" 2 "District" 3 "School"
@@ -26,7 +26,7 @@ clear
 
 
 //Looping Through Years
-forvalues year = 1998/2023 {
+forvalues year = 1998/2024 {
 	if `year' == 2020 continue
 use "${temp_files}/MN_StableNames"
 local prevyear = `=`year'-1'

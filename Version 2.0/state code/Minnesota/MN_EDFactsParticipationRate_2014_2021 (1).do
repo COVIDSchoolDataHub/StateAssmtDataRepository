@@ -1,9 +1,10 @@
 clear
 set more off
 
-global EDFacts "/Users/kaitlynlucas/Desktop/EDFacts Drive Data"
-global State_Output "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/Minnesota Assessment" // Version 1.1 Output directory here
-global New_Output "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/Minnesota V2.0" // Version 2.0 Output directory here
+global Original "/Users/kaitlynlucas/Desktop/EDFacts Drive Data" //Folder with Output .dta
+global EDFacts "/Users/kaitlynlucas/Desktop/EDFacts Drive Data" //Folder with downloaded state-specific 2022 participation data from EDFacts
+global State_Output "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN Output" //Folder with state-specific data
+global Output_20 "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN Output" //Folder for Output 2.0
 
 ** Preparing EDFacts files
 local edyears1 14 15 16 17 18
