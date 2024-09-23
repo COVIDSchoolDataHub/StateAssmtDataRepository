@@ -26,7 +26,79 @@ clear
 
 
 //Looping Through Years
-forvalues year = 1998/2024 {
+forvalues year = 1998/2013 {
+	if `year' == 2020 continue
+use "${temp_files}/MN_StableNames"
+local prevyear = `=`year'-1'
+keep if SchYear == "`prevyear'-" + substr("`year'",-2,2)
+merge 1:m DataLevel NCESDistrictID NCESSchoolID using "${output_files}/MN_AssmtData_`year'", update
+replace DistName = newdistname if DataLevel !=1
+replace SchName = newschname if DataLevel == 3
+replace DistName = "All Districts" if DataLevel == 1
+replace SchName = "All Schools" if DataLevel ==1
+
+
+
+//Final Cleaning and Saving
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup	
+save "${output_files}/MN_AssmtData_`year'", replace
+export delimited "${output_files}/MN_AssmtData_`year'", replace
+clear
+}
+
+forvalues year = 2014/2021 {
+	if `year' == 2020 continue
+use "${temp_files}/MN_StableNames"
+local prevyear = `=`year'-1'
+keep if SchYear == "`prevyear'-" + substr("`year'",-2,2)
+destring NCESDistrictID, replace
+destring NCESSchoolID, replace
+destring CountyCode, replace
+merge 1:m DataLevel NCESDistrictID NCESSchoolID using "${output_files}/MN_AssmtData_`year'", update
+replace DistName = newdistname if DataLevel !=1
+replace SchName = newschname if DataLevel == 3
+replace DistName = "All Districts" if DataLevel == 1
+replace SchName = "All Schools" if DataLevel ==1
+
+
+
+//Final Cleaning and Saving
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup	
+save "${output_files}/MN_AssmtData_`year'", replace
+export delimited "${output_files}/MN_AssmtData_`year'", replace
+clear
+}
+
+forvalues year = 2022/2022 {
+	if `year' == 2020 continue
+use "${temp_files}/MN_StableNames"
+local prevyear = `=`year'-1'
+keep if SchYear == "`prevyear'-" + substr("`year'",-2,2)
+destring NCESDistrictID, replace
+destring CountyCode, replace
+merge 1:m DataLevel NCESDistrictID NCESSchoolID using "${output_files}/MN_AssmtData_`year'", update
+replace DistName = newdistname if DataLevel !=1
+replace SchName = newschname if DataLevel == 3
+replace DistName = "All Districts" if DataLevel == 1
+replace SchName = "All Schools" if DataLevel ==1
+
+
+
+//Final Cleaning and Saving
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup	
+save "${output_files}/MN_AssmtData_`year'", replace
+export delimited "${output_files}/MN_AssmtData_`year'", replace
+clear
+}
+
+
+forvalues year = 2023/2024 {
 	if `year' == 2020 continue
 use "${temp_files}/MN_StableNames"
 local prevyear = `=`year'-1'
