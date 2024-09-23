@@ -323,6 +323,7 @@ replace StateAssignedDistID = "" if DataLevel == 1
 replace StateAssignedSchID = "" if DataLevel != 3
 replace seasch = "" if DataLevel != 3
 replace State_leaid = "" if DataLevel == 1
+replace StateAbbrev = "MN" if StateAbbrev == ""
 
 /*
 // Fixing Missing DistType

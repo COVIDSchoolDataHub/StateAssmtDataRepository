@@ -97,7 +97,7 @@ gen Flag_CutScoreChange_math = "N"
 *gen Flag_CutScoreChange_oth = "N"
 gen Flag_CutScoreChange_sci = "N"
 gen Flag_CutScoreChange_soc = ""
-replace Flag_CutScoreChange_sci = "Not Applicable"
+replace Flag_CutScoreChange_sci = "Not applicable"
 gen AssmtType = "Regular"
 gen StudentGroup = "All Students"
 gen StudentSubGroup = "All Students"
@@ -170,6 +170,7 @@ rename county_name CountyName
 
 // Dropping cross-border district
 drop if StateAbbrev == "IA"
+replace StateAbbrev = "MN" if StateAbbrev == ""
 
 // Fixing missing state data
 replace StateAbbrev = "MN" if DataLevel == 1
@@ -181,6 +182,9 @@ replace StateAssignedDistID = "" if DataLevel == 1
 replace StateAssignedSchID = "" if DataLevel != 3
 replace seasch = "" if DataLevel != 3
 replace State_leaid = "" if DataLevel == 1
+
+//fixing District Name
+replace DistName = "SIOUX VALLEY" if DistName == ""
 
 // Fixing Clearbrook-Gonvick missing school name
 replace NCESSchoolID = "270010302564" if NCESSchoolID == "270010300645"
