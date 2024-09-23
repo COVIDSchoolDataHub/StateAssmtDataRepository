@@ -37,7 +37,7 @@ global EDFacts "/Users/kaitlynlucas/Desktop/EDFacts Drive Data" //Folder with do
 
 global State_Output "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN Output" //Folder with state-specific data
 
-global Output_20 "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN Output" //Folder for Output 2.0
+global New_Output "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN Output" //Folder for Output 2.0
 
 
 *Participation Rate 2022:*
