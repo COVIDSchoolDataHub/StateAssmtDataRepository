@@ -305,6 +305,12 @@ foreach var of varlist *_percent {
 	replace `var' = string(real(`var'), "%9.3g") if regexm(`var', "[0-9]") !=0
 }
 
+//Removing extra spaces
+foreach var of varlist DistName SchName {
+	replace `var' = stritrim(`var') // collapses all consecutive, internal blanks to one blank.
+	replace `var' = strtrim(`var') // removes leading and trailing blanks
+}
+
 //Getting rid of empty observations
 drop if StudentSubGroup_TotalTested == "--" & Lev1_percent == "--" & Lev2_percent == "--" & Lev3_percent == "--" & Lev4_percent == "--" & ProficientOrAbove_percent == "--"
 replace ParticipationRate = "--" if ParticipationRate == "."
