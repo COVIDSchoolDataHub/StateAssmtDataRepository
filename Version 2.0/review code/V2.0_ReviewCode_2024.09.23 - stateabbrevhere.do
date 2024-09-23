@@ -71,7 +71,7 @@ foreach var of local variables {
     
 	capture confirm variable `var', exact
 		if !_rc {
-			di as txt "`var' exists"
+			continue
                }
 		else {
 			di as error "`var' does not exist or capitalization does not match. `var' must be added to dataset or capitalization fixed"
