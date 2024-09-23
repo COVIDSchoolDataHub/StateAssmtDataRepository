@@ -1,18 +1,16 @@
 clear
 set more off
 
-//Set Minnesota File Directory Here
-cd "/Volumes/T7/State Test Project/Minnesota post launch"
+cd "/Users/kaitlynlucas/Desktop/do files"
 
 //Set Filepaths inside Directory Here
-global original_files "/Volumes/T7/State Test Project/Minnesota post launch/Original Data"
-global NCES_files "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
-global output_files "/Volumes/T7/State Test Project/Minnesota post launch/Output"
-global temp_files "/Volumes/T7/State Test Project/Minnesota post launch/Temp"
-
+global original_files "/Users/kaitlynlucas/Desktop/Minnesota State Task"
+global NCES_files "/Users/kaitlynlucas/Desktop/Minnesota State Task/NCES_MN"
+global output_files "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN Output"
+global temp_files "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN_Temp"
 
 //Do all files
-forval year = 1998/2023 {
+forval year = 1998/2024 {
 	if `year' == 2020 continue
 	do MN_`year'.do	
 }
@@ -56,4 +54,4 @@ replace Flag_CutScoreChange_soc = "Not Applicable"
 save "${output_files}/MN_AssmtData_`year'", replace
 export delimited "${output_files}/MN_AssmtData_`year'", replace
 clear	
-}
+
