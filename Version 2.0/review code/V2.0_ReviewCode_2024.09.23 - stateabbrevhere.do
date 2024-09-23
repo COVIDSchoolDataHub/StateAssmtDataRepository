@@ -583,7 +583,7 @@ foreach var of local nomissing_sch {
 	}
 	
 	else {
-		di as error "Correct. SchName has blanks."
+		di as error "Correct."
 		}
 }
 ***********************************************************
