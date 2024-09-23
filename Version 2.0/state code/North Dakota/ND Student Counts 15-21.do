@@ -10,7 +10,7 @@ global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cl
 global EDFacts "/Users/miramehta/Documents/EdFacts"
 
 ** Preparing EDFacts files
-
+/*
 local edyears1 15 16 17 18
 local subject math ela
 local datatype count part
@@ -281,7 +281,7 @@ foreach year of local edyears2 {
 		}
 	}
 }
-/*
+*/
 ** Preparing NCES files
 
 global years 2014 2015 2016 2017 2018 2020 2021 2022
@@ -289,7 +289,12 @@ global years 2014 2015 2016 2017 2018 2020 2021 2022
 foreach a in $years {
 	
 	use "${NCESDistrict}/NCES_`a'_District.dta", clear 
-	keep if state_location == "ND"
+	if(`a' != 2022){
+		keep if state_location == "ND"
+	}
+	if(`a' != 2022){
+		keep if state_location == "ND" | ncesdistrictid == "3820340"
+	}
 	
 	rename state_name State
 	rename state_location StateAbbrev
@@ -302,6 +307,7 @@ foreach a in $years {
 	rename lea_name DistName
 	
 	if(`a' == 2022){
+		drop if DistType == "State-operated agency" & district_agency_type_num == 1
 		labmask district_agency_type_num, values(DistType)
 		drop DistType
 		rename district_agency_type_num DistType
@@ -312,7 +318,13 @@ foreach a in $years {
 	save "${NCES}/NCES_`a'_District_ND.dta", replace
 	
 	use "${NCESSchool}/NCES_`a'_School.dta", clear
-	keep if state_location == "ND"
+	if(`a'!=2022){
+		keep if state_location == "ND"
+	}
+	
+	if(`a'==2022){
+		keep if state_location == "ND" | ncesschoolid == "382034000714"
+	}
 	
 	rename state_name State
 	rename state_location StateAbbrev

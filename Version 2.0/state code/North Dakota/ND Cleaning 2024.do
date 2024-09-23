@@ -111,6 +111,12 @@ replace StateAbbrev = "ND"
 replace StateFips = 38
 replace DistName = proper(DistName) if DataLevel == "School"
 
+//Unmerged
+replace NCESSchoolID = "380040500918" if StateAssignedSchID == "5300757451"
+replace SchType = 1 if NCESSchoolID == "380040500918"
+replace SchLevel = 1 if NCESSchoolID == "380040500918"
+replace SchVirtual = 0 if NCESSchoolID == "380040500918"
+
 //Renaming district/schools
 replace DistName = "Hope-Page 85" if DistName == "Hope Page 85"
 replace DistName = "May-Port CG 14" if DistName == "May-Port Cg 14"
