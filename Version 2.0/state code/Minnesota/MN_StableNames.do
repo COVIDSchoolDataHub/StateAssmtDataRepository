@@ -1,6 +1,6 @@
 clear
 set more off
-
+global output_files "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN Output"
 //Importing
 global folder "/Users/kaitlynlucas/Desktop/Minnesota State Task"
 import excel "${folder}/mn_full-dist-sch-stable-list_through2024", firstrow case(preserve) allstring

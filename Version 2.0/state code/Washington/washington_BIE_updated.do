@@ -1,5 +1,6 @@
 clear
 set more off
+set trace off
 
 cd "/Volumes/T7/State Test Project/Washington"
 
@@ -8,37 +9,19 @@ global output "/Volumes/T7/State Test Project/Washington/Output"
 global NCESOLD "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
 global NCES "/Volumes/T7/State Test Project/Washington/NCES"
 
-foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 {
+* 2015 2016 2017 2018 2019 2021 2022 2023 2024
+foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 2024 {
 	
-use "${output}/WA_AssmtData_`year'_all.dta", clear
+use "${output}/WA_AssmtData_`year'_all", clear
 	
 local prevyear =`=`year'-1'
-
-** Dropping extra variables
-
-if `year' == 2015 {
-	drop ESDName ESDOrganizationID CurrentSchoolType CountofStudentsExpectedtoTest PercentMetTestedOnly DataAsOf
-}
-
-if `year' == 2016 | `year' == 2017 | `year' == 2018 | `year' == 2019 {
-	drop ESDName ESDOrganizationID CurrentSchoolType PercentMetTestedOnly DataAsOf
-}
-
-if `year' == 2021  {
-	drop ESDName ESDOrganizationID CurrentSchoolType DenominatorSuppressed PercentMetTestedOnly DataAsOf
-}
-
-if `year' == 2022 {
-	drop ESDName ESDOrganizationId CurrentSchoolType CountofStudentsExpectedtoTest PercentMetTestedOnly DataAsOf
-}
-
-if `year' == 2023 {
-	drop ESDName ESDOrganizationId CurrentSchoolType PercentMetTestedOnly DataAsOf
-}
 
 ** Rename existing variables
 
 if `year' == 2015 {
+	
+	tostring PercentMetTestedOnly, replace force
+	tostring PercentNoScore, replace force
 	rename SchoolYear SchYear
 	rename OrganizationLevel DataLevel
 	rename County CountyName
@@ -53,18 +36,20 @@ if `year' == 2015 {
 	rename TestAdministrationgroup AssmtType
 	rename TestAdministration AssmtName
 	rename TestSubject Subject
-	rename Countofstudentsexpectedtotestinc StudentSubGroup_TotalTested
+	rename Countofstudentsexpectedtotestinc ExpectedCount
 	rename CountMetStandard ProficientOrAbove_count
-	rename PercentMetStandard ProficientOrAbove_percent
-	rename PercentLevel1 Lev1_percent
-	rename PercentLevel2 Lev2_percent
-	rename PercentLevel3 Lev3_percent
-	rename PercentLevel4 Lev4_percent
+	rename PercentMetTestedOnly ProficientOrAbove_percent
+// 	rename PercentLevel1 Lev1_percent
+// 	rename PercentLevel2 Lev2_percent
+// 	rename PercentLevel3 Lev3_percent
+// 	rename PercentLevel4 Lev4_percent
 	
 	keep if AssmtType == "General"
 }
 
 if `year' == 2016 | `year' == 2017 {
+	tostring PercentMetTestedOnly, replace force
+	tostring PercentNoScore, replace force
 	rename SchoolYear SchYear
 	rename OrganizationLevel DataLevel
 	rename County CountyName
@@ -79,14 +64,14 @@ if `year' == 2016 | `year' == 2017 {
 	rename TestAdministrationgroup AssmtType
 	rename TestAdministration AssmtName
 	rename TestSubject Subject
-	rename Countofstudentsexpectedtotestinc StudentSubGroup_TotalTested
+	rename Countofstudentsexpectedtotestinc ExpectedCount
 	rename CountMetStandard ProficientOrAbove_count
-	rename PercentMetStandard ProficientOrAbove_percent
-	rename PercentLevel1 Lev1_percent
-	rename PercentLevel2 Lev2_percent
-	rename PercentLevel3 Lev3_percent
-	rename PercentLevel4 Lev4_percent
-	rename CountofStudentsExpectedtoTest testreplacement
+	rename PercentMetTestedOnly ProficientOrAbove_percent
+// 	rename PercentLevel1 Lev1_percent
+// 	rename PercentLevel2 Lev2_percent
+// 	rename PercentLevel3 Lev3_percent
+// 	rename PercentLevel4 Lev4_percent
+	drop CountofStudentsExpectedtoTest
 	
 	keep if AssmtType == "General"
 }
@@ -106,14 +91,14 @@ if `year' == 2018 | `year' == 2019 {
 	rename TestAdministrationgroup AssmtType
 	rename TestAdministration AssmtName
 	rename TestSubject Subject
-	rename Countofstudentsexpectedtotestinc StudentSubGroup_TotalTested
+	rename Countofstudentsexpectedtotestinc ExpectedCount
 	rename CountMetStandard ProficientOrAbove_count
-	rename PercentMetStandard ProficientOrAbove_percent
-	rename PercentLevel1 Lev1_percent
-	rename PercentLevel2 Lev2_percent
-	rename PercentLevel3 Lev3_percent
-	rename PercentLevel4 Lev4_percent
-	rename CountofStudentsExpectedtoTest testreplacement
+	rename PercentMetTestedOnly ProficientOrAbove_percent
+// 	rename PercentLevel1 Lev1_percent
+// 	rename PercentLevel2 Lev2_percent
+// 	rename PercentLevel3 Lev3_percent
+// 	rename PercentLevel4 Lev4_percent
+	drop CountofStudentsExpectedtoTest
 	
 	keep if AssmtType == "SBAC" | AssmtType == "WCAS"
 }
@@ -132,13 +117,13 @@ if `year' == 2021 {
 	rename StudentGroupType StudentGroup
 	rename TestAdministration AssmtName
 	rename TestSubject Subject
-	rename DenominatorIncludingPPSuppressed StudentSubGroup_TotalTested
+	rename DenominatorIncludingPPSuppressed ExpectedCount
 	rename NumeratorSuppressed ProficientOrAbove_count
-	rename PercentMetStandard ProficientOrAbove_percent
-	rename PercentLevel1 Lev1_percent
-	rename PercentLevel2 Lev2_percent
-	rename PercentLevel3 Lev3_percent
-	rename PercentLevel4 Lev4_percent
+	rename PercentMetTestedOnly ProficientOrAbove_percent
+// 	rename PercentLevel1 Lev1_percent
+// 	rename PercentLevel2 Lev2_percent
+// 	rename PercentLevel3 Lev3_percent
+// 	rename PercentLevel4 Lev4_percent
 	
 	gen AssmtType=""
 	
@@ -159,13 +144,13 @@ if `year' == 2022 {
 	rename StudentGroupType StudentGroup
 	rename TestAdministration AssmtName
 	rename TestSubject Subject
-	rename Countofstudentsexpectedtotestinc StudentSubGroup_TotalTested
+	rename Countofstudentsexpectedtotestinc ExpectedCount
 	rename CountMetStandard ProficientOrAbove_count
-	rename PercentMetStandard ProficientOrAbove_percent
-	rename PercentLevel1 Lev1_percent
-	rename PercentLevel2 Lev2_percent
-	rename PercentLevel3 Lev3_percent
-	rename PercentLevel4 Lev4_percent
+	rename PercentMetTestedOnly ProficientOrAbove_percent
+// 	rename PercentLevel1 Lev1_percent
+// 	rename PercentLevel2 Lev2_percent
+// 	rename PercentLevel3 Lev3_percent
+// 	rename PercentLevel4 Lev4_percent
 	
 	gen AssmtType=""
 	
@@ -186,21 +171,49 @@ if `year' == 2023 {
 	rename StudentGroupType StudentGroup
 	rename TestAdministration AssmtName
 	rename TestSubject Subject
-	rename CountofStudentsExpectedtoTestinc StudentSubGroup_TotalTested
+	rename CountofStudentsExpectedtoTestinc ExpectedCount
 	rename CountMetStandard ProficientOrAbove_count
-	rename PercentMetStandard ProficientOrAbove_percent
-	rename PercentLevel1 Lev1_percent
-	rename PercentLevel2 Lev2_percent
-	rename PercentLevel3 Lev3_percent
-	rename PercentLevel4 Lev4_percent
+	rename PercentMetTestedOnly ProficientOrAbove_percent
+// 	rename PercentLevel1 Lev1_percent
+// 	rename PercentLevel2 Lev2_percent
+// 	rename PercentLevel3 Lev3_percent
+// 	rename PercentLevel4 Lev4_percent
 	rename PercentParticipation ParticipationRate
-	rename CountofStudentsExpectedtoTest testreplacement
+	drop CountofStudentsExpectedtoTest
 	
 	gen AssmtType=""
 	
 	rename DAT Suppression
 	
 	keep if AssmtName == "SBAC" | AssmtName == "WCAS"
+}
+
+if `year' == 2024 {
+	rename SchoolYear SchYear
+	rename OrganizationLevel DataLevel
+	rename County CountyName
+	rename DistrictCode State_leaid
+	rename DistrictName DistName
+	rename DistrictOrganizationId StateAssignedDistID
+	rename SchoolCode seasch
+	rename SchoolName SchName
+	rename SchoolOrganizationid StateAssignedSchID
+	rename StudentGroup StudentSubGroup
+	rename StudentGroupType StudentGroup
+	rename TestAdministration AssmtName
+	rename TestSubject Subject
+	rename CountofStudentsExpectedtoTestinc ExpectedCount
+	rename PercentMetTestedOnly ProficientOrAbove_percent
+// 	rename PercentLevel1 Lev1_percent
+// 	rename PercentLevel2 Lev2_percent
+// 	rename PercentLevel3 Lev3_percent
+// 	rename PercentLevel4 Lev4_percent
+	rename PercentParticipation ParticipationRate
+	rename DAT Suppression
+	drop CountofStudentsExpectedtoTest CountConsistentGradeLevelKnowled CountFoundationalGradeLevelKnowl CurrentSchoolType DataAsOf ESDOrganizationID ESDName PercentConsistentGradeLevelKnowl PercentFoundationalGradeLevelKno TestAdministrationgroup
+	gen PercentMetStandard = ""
+	keep if AssmtName == "SBAC" | AssmtName == "WCAS"
+	gen AssmtType = ""
 }
 
 ** Dropping entries
@@ -229,7 +242,7 @@ if `year' == 2019 {
 }
 
 if `year' >= 2021 {
-	keep if SchName == "Chief Leschi Schools" | SchName == "Paschal Sherman" | SchName == "Wa He Lut Indian School" | SchName == "Lummi Nation School" | SchName == "Quileute Tribal School" | SchName == "Muckleshoot Tribal School"
+	keep if strpos(SchName, "Chief Leschi Schools") !=0 | strpos(SchName, "Paschal Sherman") !=0 | strpos(SchName, "Wa He Lut Indian School") !=0 | strpos(SchName, "Lummi Nation School") !=0 | strpos(SchName, "Quileute Tribal School") !=0 | strpos(SchName, "Muckleshoot Tribal School") !=0
 }
 
 drop if Suppression == "No Students" // StudentSubGroup_TotalTested == 0
@@ -260,7 +273,7 @@ if `year' == 2021 {
 	replace GradeLevel = "G0" + GradeLevel 
 }
 
-if `year' == 2018 | `year' == 2019 | `year' == 2022 | `year' == 2023 {
+if `year' == 2018 | `year' == 2019 | `year' == 2022 | `year' == 2023 | `year' == 2024 {
 	replace GradeLevel = "G" + GradeLevel 
 }
 
@@ -306,7 +319,7 @@ replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Lo
 replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "Native Hawaiian/ Other Pacific Islander"
 replace StudentSubGroup = "English Proficient" if StudentSubGroup == "Non-English Language Learners"
 replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "Non-Low Income"
-replace StudentSubGroup = "Two or More" if StudentSubGroup == "Two or More Races" | StudentSubGroup == "TwoorMoreRaces"
+replace StudentSubGroup = "Two or More" if StudentSubGroup == "Two or More Races" | StudentSubGroup == "TwoorMoreRaces" | StudentSubGroup == "Two Or More Races"
 replace StudentSubGroup = "SWD" if StudentSubGroup == "Students with Disabilities"
 replace StudentSubGroup = "Non-SWD" if StudentSubGroup == "Students without Disabilities"
 replace StudentSubGroup = "Military" if StudentSubGroup == "Military Parent"
@@ -316,15 +329,9 @@ replace StudentSubGroup = "Non-Migrant" if StudentSubGroup == "Non Migrant"
 
 ** Reformatting the percentage signs
 
-replace ProficientOrAbove_percent = "999999" if ProficientOrAbove_percent == "Suppressed: N<10"
-
-replace ProficientOrAbove_percent = "0" if ProficientOrAbove_percent == "No Students"
-
-gen prof_above = ProficientOrAbove_percent
-
-replace ProficientOrAbove_percent = "888888" if strpos(ProficientOrAbove_percent, "<") | strpos(ProficientOrAbove_percent, ">")
-
-foreach v of varlist ProficientOrAbove_percent Lev1_percent Lev2_percent Lev3_percent Lev4_percent PercentNoScore {
+if `year' <= 2017 {
+	
+	foreach v of varlist PercentLevel* PercentNoScore {
 	replace `v' = subinstr(`v', "%", "",.) 
 	replace `v' = "*" if `v' == "NULL"
 	destring `v', replace ignore("*")
@@ -333,155 +340,68 @@ foreach v of varlist ProficientOrAbove_percent Lev1_percent Lev2_percent Lev3_pe
 	replace `v' = "*" if `v' == "."
 }
 
-replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "9999.99"
+tostring PercentNoScore, replace force
 
-replace prof_above = subinstr(prof_above, "%", "",.) 
-replace prof_above = subinstr(prof_above, ">", "> ",.) 
-replace prof_above = subinstr(prof_above, "<", "< ",.) 
-
-split prof_above, parse(" ")
-destring prof_above2, replace
-replace prof_above2 = prof_above2/100
-tostring prof_above2, format(%3.2f) replace force
-
-replace prof_above2 = "0-" + prof_above2 if prof_above1 == "<"
-replace prof_above2 = prof_above2 + "-1" if prof_above1 == ">"
-
-replace ProficientOrAbove_percent = prof_above2 if ProficientOrAbove_percent == "8888.88"
+}
 
 
 ** make participationrate (ONLY FOR PRE-2023)
 
-if `year' != 2023 {
+if `year' < 2023 {
 	replace PercentNoScore = "*" if PercentNoScore == "NULL"
 	destring PercentNoScore, replace ignore(*)
 	gen ParticipationRate = 1 - PercentNoScore
-	tostring ParticipationRate, replace force
+	tostring ParticipationRate, replace force format("%9.3g")
+	replace ParticipationRate = "*" if ParticipationRate == "."
+}
+replace ParticipationRate = "*" if ParticipationRate == "NULL"
+replace ParticipationRate = string(real(ParticipationRate), "%9.3g") if !missing(real(ParticipationRate))
+
+replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
+replace ProficientOrAbove_percent = string(real(ProficientOrAbove_percent), "%9.3g") if !missing(real(ProficientOrAbove_percent))
+
+
+//Deriving Level Counts & Percents based on ParticipationRate
+//Note: Currently Level percents are based on the ExpectedCount (basically enrollment), rather than the number of students tested. Process for deriving level counts & percents is as follows:
+
+// 1. Derive Level Counts as PercentLevel * Expected Count
+// 2. Derive StudentSubGroup_TotalTested as ParticipationRate * ExpectedCount
+// 3. Derive Lev*_percent as Lev*_count/StudentSubGroup_TotalTested
+
+destring ExpectedCount, replace force
+
+//1. Deriving Level Counts
+forvalues n = 1/4 {
+	gen Lev`n'_count = string(round(real(PercentLevel`n')*ExpectedCount)) if !missing(real(PercentLevel`n')) & !missing(ExpectedCount)
+	replace Lev`n'_count = "*" if missing(Lev`n'_count)
 }
 
-local level 1 2 3 4
+//2. Derive StudentSubGroup_TotalTested
+gen StudentSubGroup_TotalTested = string(round(real(ParticipationRate) * ExpectedCount)) if !missing(real(ParticipationRate)) & !missing(ExpectedCount)
+replace StudentSubGroup_TotalTested = "*" if missing(StudentSubGroup_TotalTested)
 
-foreach a of local level {
-	gen Lev`a'_count = "*"
+//3. Deriving Level Percents
+foreach count of varlist Lev*_count {
+	local percent = subinstr("`count'", "count", "percent",.)
+	gen `percent' = string(real(`count')/real(StudentSubGroup_TotalTested), "%9.3g") if !missing(real(`count')) & !missing(real(StudentSubGroup_TotalTested))
+	replace `percent' = "*" if missing(`percent')
 }
 
-gen Lev5_count = ""
-gen Lev5_percent = ""
+//Dropping Extra Variables
+drop PercentLevel* PercentMetStandard
 
-gen AvgScaleScore = "--"
-
-gen ProficiencyCriteria = "Levels 3-4"
-
-replace ParticipationRate = "*" if Suppression != "None" & ParticipationRate == "NULL"
-
-** Converting Data to String
-
-foreach a of local level {
-	replace Lev`a'_percent = "*" if Suppression != "None" & Lev`a'_percent == "NULL"
-}
-
-if `year' <= 2017 {
-	tostring ProficientOrAbove_count, replace force
+//Generating ProficientOrAbove_count for 2024
+if `year' == 2024 {
+	gen ProficientOrAbove_count = string(real(Lev3_count) + real(Lev4_count)) if !missing(real(Lev3_count)) & !missing(real(Lev4_count))
+	replace ProficientOrAbove_count = "*" if missing(ProficientOrAbove_count)
 }
 
 
-** Generate StudentGroup counts (using "All Students")
-
-bysort DataLevel DistName SchName GradeLevel Subject (StudentSubGroup): gen StudentGroup_TotalTested = StudentSubGroup_TotalTested[1]
-
-** Generate missing StudentSubGroup counts (using "All Students")
-
-if `year' >= 2018 {
-	replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "NULL"
-	replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "NULL"
-	destring StudentGroup_TotalTested, replace ignore("*")
-	destring StudentSubGroup_TotalTested, replace ignore("*")
-}
-
-gen total_count = StudentGroup_TotalTested
-gen Count_n = StudentSubGroup_TotalTested
-
-bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject (StudentSubGroup): egen Econ = sum(Count_n) if StudentGroup == "Economic Status"
-bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject (StudentSubGroup): egen Disability = sum(Count_n) if StudentGroup == "Disability Status"
-bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject (StudentSubGroup): egen Migrant = sum(Count_n) if StudentGroup == "Migrant Status"
-bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject (StudentSubGroup): egen Homeless = sum(Count_n) if StudentGroup == "Homeless Enrolled Status"
-bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject (StudentSubGroup): egen Eng = sum(Count_n) if StudentGroup == "EL Status"
-bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject (StudentSubGroup): egen Military = sum(Count_n) if StudentGroup == "Military Connected Status"
-
-gen not_count=.
-
-bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject StudentGroup: gen howmany=_N
-
-replace not_count = total_count - Econ if StudentSubGroup == "Economically Disadvantaged" & howmany == 2 & Econ != 0
-replace not_count = total_count - Disability if StudentSubGroup == "SWD"  & howmany == 2 & Disability != 0
-replace not_count = total_count - Migrant if StudentSubGroup == "Migrant"  & howmany == 2 & Migrant != 0
-replace not_count = total_count - Homeless if StudentSubGroup == "Homeless"  & howmany == 2 & Homeless != 0
-replace not_count = total_count - Eng if StudentSubGroup == "English Proficient" & howmany == 2 & Eng != 0
-replace not_count = total_count - Military if StudentSubGroup == "Military"  & howmany == 2 & Military != 0
-
-replace StudentSubGroup_TotalTested=not_count if StudentSubGroup_TotalTested==. & StudentSubGroup == "Economically Disadvantaged"
-replace StudentSubGroup_TotalTested=not_count if StudentSubGroup_TotalTested==. & StudentSubGroup == "SWD"
-replace StudentSubGroup_TotalTested=not_count if StudentSubGroup_TotalTested==. & StudentSubGroup == "Migrant"
-replace StudentSubGroup_TotalTested=not_count if StudentSubGroup_TotalTested==. & StudentSubGroup == "Homeless"
-replace StudentSubGroup_TotalTested=not_count if StudentSubGroup_TotalTested==. & StudentSubGroup == "English Proficient"
-replace StudentSubGroup_TotalTested=not_count if StudentSubGroup_TotalTested==. & StudentSubGroup == "Military"
+//Converting ProficientOrAbove_count to string
+tostring ProficientOrAbove_count, replace
+replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
 
 
-** Generate missing ProficientOrAbove_percent using values above
-
-replace ProficientOrAbove_count = "." if ProficientOrAbove_count == "NULL"
-
-gen n_profpercent = ProficientOrAbove_percent
-replace n_profpercent = "99999" if strpos(n_profpercent, "-")
-destring n_profpercent, replace ignore("*")
-
-gen n_profcount = n_profpercent * StudentSubGroup_TotalTested
-tostring n_profcount, replace format(%100.0f) force
-replace ProficientOrAbove_count = n_profcount if StudentSubGroup_TotalTested != . & ProficientOrAbove_count == "."
-
-** rescaling Levn_percents
-
-global a 1 2 3 4
-
-
-foreach a in $a {
-		destring Lev`a'_percent, gen(n`a'_percent) ignore("*" "--")
-}
-
-gen sum_percents = n1_percent + n2_percent + n3_percent + n4_percent
-
-** generating level counts
-
-drop total_count
-gen total_count = StudentSubGroup_TotalTested
-
-
-foreach a in $a {
-	replace n`a'_percent = n`a'_percent / sum_percents
-		gen n`a'_count = total_count*n`a'_percent
-		replace n`a'_count = trunc(n`a'_count)
-		tostring n`a'_percent, replace force
-	replace Lev`a'_percent = n`a'_percent
-		tostring n`a'_count, replace
-		replace Lev`a'_count = n`a'_count
-	
-		replace Lev`a'_count = "*" if Lev`a'_percent == "*"
-		
-	replace Lev`a'_percent = "*" if Lev`a'_percent == "."
-	
-	replace Lev`a'_count = "*" if Lev`a'_count == "."
-	}
-
-** dealing with missing/suppressed variables
-
-tostring StudentGroup_TotalTested, replace force
-tostring StudentSubGroup_TotalTested, replace force
-
-replace StudentGroup_TotalTested="*" if StudentGroup_TotalTested=="."
-replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested=="."
-
-replace ParticipationRate = "*" if ParticipationRate == "."
-replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "." 
 
 ** Merging with NCES
 
@@ -611,12 +531,12 @@ if `year' >= 2022  {
 drop DistName CountyName
 tostring State_leaid, replace
 
-replace State_leaid = "BI-D10P15" if SchName == "Chief Leschi Schools"
-replace State_leaid = "BI-D03P02" if SchName == "Paschal Sherman"
-replace State_leaid = "BI-D10P13" if SchName == "Wa He Lut Indian School"
-replace State_leaid = "BI-D10P14" if SchName == "Lummi Nation School"
-replace State_leaid = "BI-D10P02" if SchName == "Quileute Tribal School"
-replace State_leaid = "BI-D10P16" if SchName == "Muckleshoot Tribal School"
+replace State_leaid = "BI-D10P15" if strpos(SchName, "Chief Leschi Schools") !=0 
+replace State_leaid = "BI-D03P02" if strpos(SchName, "Paschal Sherman") !=0
+replace State_leaid = "BI-D10P13" if strpos(SchName, "Wa He Lut Indian School") !=0
+replace State_leaid = "BI-D10P14" if strpos(SchName, "Lummi Nation School") !=0
+replace State_leaid = "BI-D10P02" if strpos(SchName, "Quileute Tribal School") !=0
+replace State_leaid = "BI-D10P16" if strpos(SchName, "Muckleshoot Tribal School") !=0
 
 merge m:1 State_leaid using "${NCES}/NCES_2021_District.dta"
 
@@ -624,12 +544,12 @@ drop if _merge == 2
 drop _merge
 
 tostring seasch, replace
-replace seasch = "D10P15-D10P15" if SchName == "Chief Leschi Schools"
-replace seasch = "D03P02-D03P02" if SchName == "Paschal Sherman"
-replace seasch = "D10P13-D10P13" if SchName == "Wa He Lut Indian School"
-replace seasch = "D10P14-D10P14" if SchName == "Lummi Nation School"
-replace seasch = "D10P02-D10P02" if SchName == "Quileute Tribal School"
-replace seasch = "D10P16-D10P16" if SchName == "Muckleshoot Tribal School"
+replace seasch = "D10P15-D10P15" if strpos(SchName, "Chief Leschi Schools") !=0 
+replace seasch = "D03P02-D03P02" if strpos(SchName, "Paschal Sherman") !=0
+replace seasch = "D10P13-D10P13" if strpos(SchName, "Wa He Lut Indian School") !=0
+replace seasch = "D10P14-D10P14" if strpos(SchName, "Lummi Nation School") !=0
+replace seasch = "D10P02-D10P02" if strpos(SchName, "Quileute Tribal School") !=0
+replace seasch = "D10P16-D10P16" if strpos(SchName, "Muckleshoot Tribal School") !=0
 
 merge m:1 seasch using "${NCES}/NCES_2021_School.dta"
 
@@ -637,11 +557,9 @@ drop if _merge == 2
 drop _merge
 }
 
-** Misc variables
-
-replace StateAbbrev = "WA" if DataLevel == 1
+replace StateAbbrev = "WA" 
 replace State = "Washington"
-replace StateFips = 53 if DataLevel == 1
+replace StateFips = 53 
 replace State_leaid = "" if DataLevel == 1
 replace seasch = "" if DataLevel != 3
 
@@ -655,21 +573,179 @@ gen Flag_CutScoreChange_soc = "Not applicable"
 
 replace Flag_CutScoreChange_sci = "N" if `year' >= 2018
 
-drop SchYear 
-gen SchYear = "`prevyear'"+ "-" + substr("`year'",-2,2)
-
-if `year' == 2023 {
-	destring CountyCode, replace force
-}
-
 if `year' == 2015 {
-	replace CountyName = strproper(CountyName)
+	replace Flag_AssmtNameChange = "Y"
+	replace Flag_CutScoreChange_ELA = "Y"
+	replace Flag_CutScoreChange_math = "Y"
 }
+
+if `year' == 2018 {
+	replace Flag_AssmtNameChange = "N" if Subject == "math"
+	replace Flag_AssmtNameChange = "N" if Subject == "ela"
+	replace Flag_AssmtNameChange = "Y" if Subject == "sci"
+	replace Flag_CutScoreChange_ELA = "N"
+	replace Flag_CutScoreChange_math = "N"
+	replace Flag_CutScoreChange_sci = "Y"
+}
+
+replace SchYear = "`prevyear'"+ "-" + substr("`year'",-2,2)
+
+
+** Unmerged data
+replace DistType = "Charter agency" if DistName == "Why Not You Academy"
+replace NCESDistrictID = "5300349" if DistName == "Why Not You Academy"
+replace DistLocale = "Suburb, large" if DistName == "Why Not You Academy"
+replace DistCharter = "Yes" if DistName == "Why Not You Academy"
+replace CountyCode = "53033" if DistName == "Why Not You Academy"
+
+replace DistType = "Charter agency" if DistName == "Pinnacles Prep Charter School"
+replace NCESDistrictID = "5300352" if DistName == "Pinnacles Prep Charter School"
+replace DistLocale = "City, small" if DistName == "Pinnacles Prep Charter School"
+replace DistCharter = "Yes" if DistName == "Pinnacles Prep Charter School"
+replace CountyCode = "53007" if DistName == "Pinnacles Prep Charter School"
+
+replace DistType = "Charter agency" if DistName == "Pullman Community Montessori"
+replace NCESDistrictID = "5300355" if DistName == "Pullman Community Montessori"
+replace DistLocale = "Town, distant" if DistName == "Pullman Community Montessori"
+replace DistCharter = "Yes" if DistName == "Pullman Community Montessori"
+replace CountyCode = "53075" if DistName == "Pullman Community Montessori"
+
+replace SchType = "Regular school" if SchName == "Cascade Public Schools"
+replace NCESSchoolID = "530034903783" if SchName == "Cascade Public Schools"
+replace SchLevel = "High" if SchName == "Cascade Public Schools"
+replace SchVirtual = "No" if SchName == "Cascade Public Schools"
+
+replace SchType = "Regular school" if SchName == "Pinnacles Prep Charter School"
+replace NCESSchoolID = "530035203807" if SchName == "Pinnacles Prep Charter School"
+replace SchLevel = "Middle" if SchName == "Pinnacles Prep Charter School"
+replace SchVirtual = "No" if SchName == "Pinnacles Prep Charter School"
+
+replace SchType = "Regular school" if SchName == "Pullman Community Montessori"
+replace NCESSchoolID = "530035503780" if SchName == "Pullman Community Montessori"
+replace SchLevel = "Other" if SchName == "Pullman Community Montessori"
+replace SchVirtual = "No" if SchName == "Pullman Community Montessori"
+
+replace SchType = "Regular school" if SchName == "Bellevue Digital Discovery"
+replace NCESSchoolID = "530039003883" if SchName == "Bellevue Digital Discovery"
+
+replace SchType = "Regular school" if SchName == "Desert Sky Elementary"
+replace NCESSchoolID = "530732003901" if SchName == "Desert Sky Elementary"
+
+replace SchType = "Regular school" if SchName == "Eagle Virtual Sky Academy"
+replace NCESSchoolID = "530249003884" if SchName == "Eagle Virtual Sky Academy"
+
+replace SchType = "Regular school" if SchName == "Ida Nason Aronica Elementary"
+replace NCESSchoolID = "530246003887" if SchName == "Ida Nason Aronica Elementary"
+
+replace SchType = "Other/alternative school" if SchName == "Kent Virtual Academy"
+replace NCESSchoolID = "530396003898" if SchName == "Kent Virtual Academy"
+
+replace SchType = "Regular school" if SchName == "Kiona-Benton City Elementary"
+replace NCESSchoolID = "530402003888" if SchName == "Kiona-Benton City Elementary"
+
+replace SchType = "Regular school" if SchName == "Tacoma Online Elementary School"
+replace NCESSchoolID = "530870003889" if SchName == "Tacoma Online Elementary School"
+
+replace SchType = "Regular school" if SchName == "Tacoma Online Middle School"
+replace NCESSchoolID = "530870003890" if SchName == "Tacoma Online Middle School"
+
+replace SchType = "Special education school" if SchName == "Vancouver Intensive Communications Center"
+replace NCESSchoolID = "530927003885" if SchName == "Vancouver Intensive Communications Center"
+
+replace SchType = "Other/alternative school" if SchName == "Vancouver Success Academy"
+replace NCESSchoolID = "530927003882" if SchName == "Vancouver Success Academy"
+
+replace SchType = "Regular school" if SchName == "Wapato Online Academy 6-8"
+replace NCESSchoolID = "530948003893" if SchName == "Wapato Online Academy 6-8"
+
+replace SchType = "Regular school" if SchName == "Willow Crest Elementary"
+replace NCESSchoolID = "530030003886" if SchName == "Willow Crest Elementary"
+
+if `year' == 2015 | `year' == 2016 | `year' == 2017 {
+		replace DistName = "Nespelem School District" if NCESDistrictID=="5305550"
+		replace DistName = "Seattle School District No. 1" if NCESDistrictID=="5307710"
+		replace DistName = "WA State Center for Childhood Deafness and Hearing Loss" if NCESDistrictID=="5300015"
+	}
+	
+	replace DistName = "Cashmere School District" if NCESDistrictID=="5300960"
 	
 	replace AssmtType = "Regular"
 	
 	drop if StudentGroup == "" & missing(DataLevel)
+	
+if `year' == 2022 | `year' == 2023 {
+replace StateAssignedDistID = "" if StateAssignedDistID == "NULL" & DataLevel == 1
+replace StateAssignedSchID = "" if StateAssignedSchID == "NULL" & DataLevel != 3
+}
 
+** County name edits
+
+
+replace CountyName = "Clark" if CountyCode == "53011"
+replace CountyName = "Douglas" if CountyCode == "53017"
+replace CountyName = "Franklin" if CountyCode == "53021"
+replace CountyName = "Island" if CountyCode == "53029"
+replace CountyName = "Kitsap" if CountyCode == "53035"
+replace CountyName = "Snohomish" if CountyCode == "53061"
+
+if `year' == 2018 {
+	replace SchVirtual = "No" if NCESSchoolID == "530285003625"
+}
+
+
+** Final drops
+
+if `year' == 2021 {
+	drop if GradeLevel == "G011"
+}
+
+//Missing & Indicator Variables
+gen Lev5_count = ""
+gen Lev5_percent = ""
+gen AvgScaleScore = "--"
+gen ProficiencyCriteria = "Levels 3-4"
+
+//Fixing Some Variables
+replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "NULL"
+replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "NULL"
+
+//StudentGroup_TotalTested
+tostring StateAssigned*, replace
+replace StateAssignedDistID = "" if DataLevel == 1
+replace StateAssignedSchID = "" if DataLevel !=3
+gen StateAssignedDistID1 = StateAssignedDistID
+replace StateAssignedDistID1 = "000000" if DataLevel == 1
+gen StateAssignedSchID1 = StateAssignedSchID
+replace StateAssignedSchID1 = "000000" if DataLevel !=3
+egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
+sort group_id StudentGroup StudentSubGroup
+by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+drop group_id StateAssignedDistID1 StateAssignedSchID1
+
+//Deriving ProficientOrAbove_count if possible
+replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent)*real(StudentSubGroup_TotalTested))) if !missing(real(ProficientOrAbove_percent)) & !missing(real(StudentSubGroup_TotalTested)) & missing(real(ProficientOrAbove_count))
+
+//Response to Review
+
+if `year' >= 2018 drop if SchLevel == "Prekindergarten"
+
+//Replacing ProficientOrAbove_count with ProficientOrAbove_percent*StudentSubGroup_TotalTested
+replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent) * real(StudentSubGroup_TotalTested)))
+replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
+
+//ParticipationRate
+replace ParticipationRate = "--" if missing(ParticipationRate)
+
+//AssmtType
+replace AssmtType = "Regular"
+
+//Final Cleaning
+
+foreach var of varlist DistName SchName {
+	replace `var' = stritrim(`var')
+	replace `var' = strtrim(`var')
+}
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 	
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
@@ -680,3 +756,4 @@ save "${output}/WA_BIE_AssmtData_`year'.dta", replace
 
 export delimited using "${output}/csv/WA_BIE_AssmtData_`year'.csv", replace
 }
+

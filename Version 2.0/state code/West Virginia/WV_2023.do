@@ -361,6 +361,7 @@ foreach var of varlist *_percent {
 }
 
 replace DistName = "McDowell" if DistName == "Mcdowell"
+replace DistName = "Virtual Preparatory Academy of West Virginia" if DistName == "Virt Prep Academy"
 
 //Removing extra spaces
 foreach var of varlist DistName SchName {

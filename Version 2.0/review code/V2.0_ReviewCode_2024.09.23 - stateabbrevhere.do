@@ -17,10 +17,10 @@
 {
 clear all
 cap log close
-global Filepath "C:\Users\Clare\Desktop\Zelma V2.0\Maryland - Version 2.0" //  Set path to csv files
-global Review "${Filepath}\review" //  Set path to review folder for exporting files 
+global Filepath "\Desktop\Zelma V2.0\Maryland - Version 2.0" //  Set path to csv files
+global Review "${Filepath}\review" 
 global StateAbbrev "MD" //Set StateAbbrev
-global date "09.23.24" //Set date
+global date "09.23.24" //Set today's date
 global years  2024 2023 2022 2021 2019 2018 2017 2016 2015  //List Applicable years
 log using "$Filepath/${StateAbbrev}_Review.smcl", replace
 
@@ -71,7 +71,7 @@ foreach var of local variables {
     
 	capture confirm variable `var', exact
 		if !_rc {
-			di as txt "`var' exists"
+			continue
                }
 		else {
 			di as error "`var' does not exist or capitalization does not match. `var' must be added to dataset or capitalization fixed"
@@ -583,7 +583,7 @@ foreach var of local nomissing_sch {
 	}
 	
 	else {
-		di as error "Correct. SchName has blanks."
+		di as error "Correct."
 		}
 }
 ***********************************************************
