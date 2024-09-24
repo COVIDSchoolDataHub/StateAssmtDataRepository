@@ -93,6 +93,7 @@ gen Lev5_percent = ""
 gen AvgScaleScore = "--"
 gen ProficiencyCriteria = "Levels 3-4"
 gen Flag_AssmtNameChange = "N"
+replace Flag_AssmtNameChange = "Y" if Subject != "sci"
 gen Flag_CutScoreChange_ELA = "Y"
 gen Flag_CutScoreChange_math = "Y"
 gen Flag_CutScoreChange_sci = "N"
@@ -127,7 +128,7 @@ replace SchType = 1 if SchName == "East Fairview Elementary School"
 replace SchLevel = 1 if SchName == "East Fairview Elementary School"
 replace SchVirtual = 0 if SchName == "East Fairview Elementary School"
 replace DistName = "Yellowstone 14" if SchName == "East Fairview Elementary School"
-replace DistLocale = "Rural, remote" if SchName == "East Fairview Elementary School"
+replace DistLocale = "Rural, remote" if DistName == "Yellowstone 14"
 
 //Renaming district/schools
 replace DistName = "Hope-Page 85" if DistName == "Hope Page 85"
@@ -209,6 +210,7 @@ forvalues n = 1/4 {
 
 gen Prof_countLow = Lev3_countLow + Lev4_countLow
 gen Prof_countHigh = Lev3_countHigh + Lev4_countHigh
+replace Prof_countHigh = real(StudentSubGroup_TotalTested) if Prof_countHigh > real(StudentSubGroup_TotalTested) & StudentSubGroup_TotalTested != "--"
 
 forvalues n = 1/4 {
 	tostring Lev`n'_countLow, replace
@@ -218,6 +220,7 @@ forvalues n = 1/4 {
 	gen Lev`n'_count = Lev`n'_countLow + "-" + Lev`n'_countHigh
 	replace Lev`n'_count = Lev`n'_countLow if Lev`n'_countLow == Lev`n'_countHigh
 	replace Lev`n'_count = "--" if num < 0 
+	replace Lev`n'_count = "--" if Lev`n'_count == "."
 	gen Lev`n'_percent = Lev`n'_pctLow + "-" + Lev`n'_pctHigh
 	replace Lev`n'_percent = Lev`n'_pctLow if Lev`n'_pctLow == Lev`n'_pctHigh
 	drop Lev`n'_countLow Lev`n'_countHigh Lev`n'_pctLow Lev`n'_pctHigh
@@ -232,6 +235,7 @@ tostring Prof_countHigh, replace
 gen ProficientOrAbove_count = Prof_countLow + "-" + Prof_countHigh
 replace ProficientOrAbove_count = Prof_countLow if Prof_countLow == Prof_countHigh
 replace ProficientOrAbove_count = "--" if num < 0
+replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == "."
 
 drop ProfLow ProfHigh Prof_countLow Prof_countHigh num
 
@@ -285,6 +289,11 @@ label var ProficientOrAbove_percent "Percent of students achieving proficiency o
 label var ParticipationRate "Participation rate"
 
 replace CountyName = strproper(CountyName)
+replace CountyName = "LaMoure County" if CountyName == "Lamoure County"
+replace CountyName = "McHenry County" if CountyName == "Mchenry County"
+replace CountyName = "McIntosh County" if CountyName == "Mcintosh County"
+replace CountyName = "McLean County" if CountyName == "Mclean County"
+replace CountyName = "McKenzie County" if CountyName == "Mckenzie County"
 
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 

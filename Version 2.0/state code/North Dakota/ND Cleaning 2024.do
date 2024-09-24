@@ -116,11 +116,22 @@ replace NCESSchoolID = "380040500918" if StateAssignedSchID == "5300757451"
 replace SchType = 1 if NCESSchoolID == "380040500918"
 replace SchLevel = 1 if NCESSchoolID == "380040500918"
 replace SchVirtual = 0 if NCESSchoolID == "380040500918"
+replace DistName = "Williston Basin 7" if NCESSchoolID == "380040500918"
+
+replace SchLevel = 2 if NCESSchoolID == "380609000955"
+replace SchVirtual = 0 if NCESSchoolID == "380609000955"
+replace SchLevel = 1 if NCESSchoolID == "381182000953"
+replace SchVirtual = 0 if NCESSchoolID == "381182000953" 
+replace SchLevel = 1 if NCESSchoolID == "388078300957"
+replace SchVirtual = 0 if NCESSchoolID == "388078300957"
+replace SchLevel = 2 if NCESSchoolID == "380040500956"
+replace SchVirtual = 0 if NCESSchoolID == "380040500956"
 
 //Renaming district/schools
 replace DistName = "Hope-Page 85" if DistName == "Hope Page 85"
 replace DistName = "May-Port CG 14" if DistName == "May-Port Cg 14"
 replace DistName = "McClusky 19" if DistName == "Mcclusky 19"
+replace DistName = "McClusky-Goodrich 29" if DistName == "Mcclusky-Goodrich 29"
 replace DistName = "McKenzie Co 1" if DistName == "Mckenzie Co 1"
 replace DistName = "TGU 60" if DistName == "Tgu 60"
 
@@ -193,6 +204,7 @@ drop PercentTestedRangeLow PercentTestedRangeHigh mergep
 
 gen Prof_countLow = Lev3_countLow + Lev4_countLow
 gen Prof_countHigh = Lev3_countHigh + Lev4_countHigh
+replace Prof_countHigh = real(StudentSubGroup_TotalTested) if Prof_countHigh > real(StudentSubGroup_TotalTested) & StudentSubGroup_TotalTested != "--"
 
 forvalues n = 1/4 {
 	tostring Lev`n'_countLow, replace
@@ -267,8 +279,6 @@ label var ProficiencyCriteria "Levels included in determining proficiency status
 label var ProficientOrAbove_count "Count of students achieving proficiency or above on the state assessment"
 label var ProficientOrAbove_percent "Percent of students achieving proficiency or above on the state assessment"
 label var ParticipationRate "Participation rate"
-
-replace CountyName = strproper(CountyName)
 
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 

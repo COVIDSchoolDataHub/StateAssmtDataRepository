@@ -187,6 +187,7 @@ drop PercentTestedRangeLow PercentTestedRangeHigh mergep
 
 gen Prof_countLow = Lev3_countLow + Lev4_countLow
 gen Prof_countHigh = Lev3_countHigh + Lev4_countHigh
+replace Prof_countHigh = real(StudentSubGroup_TotalTested) if Prof_countHigh > real(StudentSubGroup_TotalTested) & StudentSubGroup_TotalTested != "--"
 
 forvalues n = 1/4 {
 	tostring Lev`n'_countLow, replace
@@ -261,8 +262,6 @@ label var ProficiencyCriteria "Levels included in determining proficiency status
 label var ProficientOrAbove_count "Count of students achieving proficiency or above on the state assessment"
 label var ProficientOrAbove_percent "Percent of students achieving proficiency or above on the state assessment"
 label var ParticipationRate "Participation rate"
-
-replace CountyName = strproper(CountyName)
 
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
