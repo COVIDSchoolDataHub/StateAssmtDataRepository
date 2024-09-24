@@ -8,8 +8,6 @@ Download all of the do files for each year (1998-2024) and place them into the "
 
 Run MN_Master.do with the directory to the "do files" folder
 
-Run MN_StableNames.do
-
 Run MN_EDFactsParticipationRate_2014_2021.do
 
 Download the MN_EFParticipation_2022_subject files and place them into the MN_2022
