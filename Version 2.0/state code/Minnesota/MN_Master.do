@@ -15,6 +15,25 @@ forval year = 1998/2024 {
 	do MN_`year'.do	
 }
 do MN_StableNames.do
+
+use "${output_files}/MN_AssmtData_2023"
+drop if DistName == "Minnesota Department of Corrections" & DataLevel == 2
+save "${output_files}/MN_AssmtData_2023", replace
+export delimited "${output_files}/MN_AssmtData_2023", replace
+
+use "${output_files}/MN_AssmtData_2024"
+replace SchLevel = "Middle" if SchName == "Blooming Prairie Intermediate School"
+replace SchVirtual = "No" if SchName == "Blooming Prairie Intermediate School"
+replace SchLevel = "Middle" if SchName == "Community School Of Excellence - Ms"
+replace SchVirtual = "No" if SchName == "Community School Of Excellence - Ms"
+replace SchLevel = "Primary" if SchName == "New Heights Elementary School"
+replace SchVirtual = "No" if SchName == "New Heights Elementary School"
+replace SchLevel = "Middle" if SchName == "Washington Technology Middle School"
+replace SchVirtual = "No" if SchName == "Washington Technology Middle School"
+replace SchLevel = "Primary" if SchName == "Surad Academy"
+replace SchVirtual = "No" if SchName == "Surad Academy"
+save "${output_files}/MN_AssmtData_2024", replace
+export delimited "${output_files}/MN_AssmtData_2024", replace
 /*
 	//Update April 1st 2024: Response to post-launch review//
 	
@@ -47,11 +66,11 @@ if `year' >= 1998 & `year' <= 2007 {
 	replace Flag_CutScoreChange_sci = "Not Applicable"
 }
 replace Flag_CutScoreChange_soc = "Not Applicable"
-*/
+
 
 	
 	
 save "${output_files}/MN_AssmtData_`year'", replace
 export delimited "${output_files}/MN_AssmtData_`year'", replace
 clear	
-
+*/
