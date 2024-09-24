@@ -20,7 +20,7 @@ cd "/Users/kaitlynlucas/Desktop/do files"
 
 global original_files "/Users/kaitlynlucas/Desktop/Minnesota State Task"
 
-global NCES_files "/Users/kaitlynlucas/Desktop/Minnesota State Task/NCES_MN"
+global NCES_files "/Users/kaitlynlucas/Desktop/Minnesota State Task/NCES New"
 
 global output_files "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN Output"
 
