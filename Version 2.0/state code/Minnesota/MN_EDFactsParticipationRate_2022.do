@@ -102,8 +102,10 @@ replace ParticipationRate = "--" if missing(ParticipationRate)
 drop _merge Participation
 
 tostring NCESSchoolID, replace format(%20.0f)
+replace NCESSchoolID = "" if DataLevel != 3
 
 replace ParticipationRate = string(real(ParticipationRate)/100, "%9.3g") if !missing(real(ParticipationRate)) & real(ParticipationRate) > 1.01
+
 
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
