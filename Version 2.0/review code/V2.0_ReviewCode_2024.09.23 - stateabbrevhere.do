@@ -822,11 +822,10 @@ foreach var of local distsch_nomiss {
 		di as error "`var' has non-missing values in state level data for the following files."
 		tab StateAssignedDistID FILE if !missing(`var') & DataLevel == "State"
 		}	
-	}
-	
 	else {
 		di as error "Correct."
 		}
+	}
 }
 ***********************************************************
 *StateAssignedDistID
@@ -843,11 +842,10 @@ foreach var of local distsch_nomiss {
 		di as error "`var' has missing values. There should be NO MISSING VALUES for `var' in District and School level data in the following files."
 		tab FILE DataLevel if DataLevel !="State" & StateAssignedDistID=="" 
 		}	
-	}
-
 	else {
 		di as error "Correct."
 		}
+	}
 }
 ***********************************************************
 
@@ -873,7 +871,6 @@ foreach var of local distid_flag1 {
 		}
 	}
 }
-
 
 ***********************************************************
 *StateAssignedDistID
