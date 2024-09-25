@@ -203,6 +203,7 @@ drop if _merge == 2
 rename NUMVALID StudentSubGroup_TotalTested
 replace StudentSubGroup_TotalTested = "--" if _merge == 1
 
+//Deriving State Level Counts
 gen num = StudentSubGroup_TotalTested
 destring num, replace force
 gen dummy = num
@@ -213,12 +214,10 @@ replace dummy = state if DataLevel == "State" & state != 0
 tostring dummy, replace
 replace StudentSubGroup_TotalTested = dummy if DataLevel == "State" & num != .
 
-replace num = -1000000 if num == .
-bys SchName DistName StudentGroup Subject GradeLevel: egen StudentGroup_TotalTested = total(num)
-replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
-tostring StudentGroup_TotalTested, replace
-replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested == "."
-drop _merge STNAM FIPST DATE_CUR PCTPROF
+//StudentGroup_TotalTested
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
 
 //Proficiency Levels
 forvalues n = 1/4 {
@@ -269,12 +268,6 @@ foreach var of varlist DistName SchName {
 	replace `var' = strtrim(`var') // removes leading and trailing blanks
 }
 
-//StudentGroup_TotalTested Convention
-sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-gen All_Students = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
-replace All_Students = All_Students[_n-1] if missing(All_Students)
-replace StudentGroup_TotalTested = All_Students if regexm(StudentGroup_TotalTested, "[0-9]") == 0 
-
 replace DistName = "McDowell" if NCESDistrictID == "5400810"
 
 //Final Cleaning
@@ -282,6 +275,7 @@ order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistric
 
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "$data/WV_AssmtData_2016", replace
 export delimited "$data/WV_AssmtData_2016", replace
