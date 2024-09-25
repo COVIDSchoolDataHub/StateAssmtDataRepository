@@ -156,6 +156,28 @@ replace ProficiencyCriteria = "Levels 2-3" if Subject == "sci"
 replace SchName=stritrim(SchName)
 replace CountyName= "Baltimore City" if CountyCode == "24510"
 
+replace DistName = "SEED School Of Maryland" if NCESDistrictID == "2400027"
+
+
+replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "" 
+
+
+//Derive Exact count/percent where we have range and corresponding exact count/percent and StudentSubGroup_TotalTested
+foreach percent of varlist Lev*_percent ProficientOrAbove_percent {
+	local count = subinstr("`percent'", "percent", "count",.)
+	replace `percent' = string(real(`count')/real(StudentSubGroup_TotalTested), "%9.3g") if !missing(real(`count')) & !missing(real(StudentSubGroup_TotalTested)) & missing(real(`percent'))
+	replace `count' = string(round(real(`percent')* real(StudentSubGroup_TotalTested))) if !missing(real(`percent')) & !missing(real(StudentSubGroup_TotalTested)) & missing(real(`count'))
+}
+
+
+destring Lev4_percent, gen(Lev4_percent1) force 
+destring Lev5_percent, gen(Lev5_percent2) force
+
+// deriving proficient_or above count
+gen ProficientOrAbove_percent2 = string(Lev4_percent1 + Lev5_percent2) if !missing(Lev4_percent) & !missing(Lev5_percent) & Subject != "sci"
+replace ProficientOrAbove_percent = ProficientOrAbove_percent2 if ProficientOrAbove_percent2 != "" & ProficientOrAbove_percent2 != "." & Subject != "sci"
+
+
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
  
@@ -165,3 +187,6 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${Output}/MD_AssmtData_2017", replace
 export delimited "${Output}/MD_AssmtData_2017", replace
+
+
+
