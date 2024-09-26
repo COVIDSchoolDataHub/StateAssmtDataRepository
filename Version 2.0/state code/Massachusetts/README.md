@@ -11,7 +11,7 @@ This ReadMe describes Massachusetts' cleaning process, from 2017-2024. Note that
 These folders correspond to the directories in the do-files.
 
 #### Download the following files from the drive and place them in the following folders:
-- MA_OriginalData_2017_2023.csv in Original Data
+- MA_OriginalData_2017_2024.csv in Original Data
 - ma_district_science.xlsx in Original Data
 - ma_school_science.xlsx in Original Data
 - MA_Unmerged_2024.xlsx in main MA folder
