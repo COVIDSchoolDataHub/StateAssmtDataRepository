@@ -14,8 +14,8 @@ global NCES "/Volumes/T7/State Test Project/Massachusetts/NCES"
 /*
 
 
-forvalues year = 2017/2023 {
-	import delimited "$Original/MA_OriginalData_2017_2023", case(preserve) clear
+forvalues year = 2017/2024 {
+	import delimited "$Original/MA_OriginalData_2017_2024", case(preserve) clear
 	if `year' == 2020 continue
 	keep if SY == `year'
 	save "$Original/MA_OriginalData_`year'", replace
@@ -34,6 +34,9 @@ import excel mass_school_participation_new, clear
 keep if real(B) < 2021 & real(B) > 2016
 save "$Original/mass_school_participation_new", replace
 
+import excel MA_Unmerged_2024.xlsx, firstrow case(preserve) allstring clear
+save MA_Unmerged_2024, replace
+
 */
 
 //Hide Above after first run
@@ -47,7 +50,7 @@ save "$Original/mass_school_participation_new", replace
 
 
 
-forvalues year = 2017/2023 {
+forvalues year = 2017/2024 {
 	if `year' == 2020 continue
 	local prevyear = `year' -1 
 	use "$Original/MA_OriginalData_`year'", clear
@@ -109,7 +112,7 @@ replace Subject = lower(Subject)
 
 //StudentSubGroup
 * All Students
-replace StudentSubGroup = "Black or African American" if StudentSubGroup == "African American"
+replace StudentSubGroup = "Black or African American" if StudentSubGroup == "African American" | StudentSubGroup == "African American/Black"
 * Asian
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "EL"
 replace StudentSubGroup = "EL and Monit or Recently Ex" if StudentSubGroup == "EL and Former EL"
@@ -117,20 +120,20 @@ replace StudentSubGroup = "EL and Monit or Recently Ex" if StudentSubGroup == "E
 * Female
 replace StudentSubGroup = "EL Monit or Recently Ex" if StudentSubGroup == "Former EL"
 * Foster Care
-drop if StudentSubGroup == "High Needs"
-replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
+drop if StudentSubGroup == "High Needs" | StudentSubGroup == "High needs"
+replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic" | StudentSubGroup == "Hispanic/Latino"
 * Homeless
-replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Low Income"
+replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Low Income" | StudentSubGroup == "Low income"
 * Migrant
 * Military
-replace StudentSubGroup = "Two or More" if StudentSubGroup == "Multi-Race, Non-Hispanic"
+replace StudentSubGroup = "Two or More" if StudentSubGroup == "Multi-Race, Non-Hispanic" | StudentSubGroup == "Multi-race, Non-Hispanic/Latino"
 replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "Native American"
 replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "Native Hawaiian, Pacific Islander"
-replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "Non-Low Income"
+replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "Non-Low Income" | StudentSubGroup == "Non-Economically Disadvantaged"
 replace StudentSubGroup = "Non-SWD" if StudentSubGroup == "Non-Disabled"
-drop if StudentSubGroup == "Non-Title 1"
-replace StudentSubGroup = "SWD" if StudentSubGroup == "Students with Disabilities"
-drop if StudentSubGroup == "Title 1"
+drop if StudentSubGroup == "Non-Title 1" | StudentSubGroup == "Non-Title1"
+replace StudentSubGroup = "SWD" if StudentSubGroup == "Students with Disabilities" | StudentSubGroup == "Students with disabilities"
+drop if StudentSubGroup == "Title 1" | StudentSubGroup == "Title1"
 * White
 
 //StudentGroup
@@ -159,16 +162,25 @@ replace StateAssignedSchID = substr(StateAssignedSchID, -4,4)
 gen State_leaid = "MA-" + StateAssignedDistID if DataLevel !=1
 gen seasch = StateAssignedDistID + "-" + StateAssignedDistID + StateAssignedSchID if DataLevel == 3
 
-merge m:1 State_leaid using "$NCES/NCES_`prevyear'_District", gen(DistMerge)
-merge m:1 seasch using "$NCES/NCES_`prevyear'_School", gen(SchMerge)
+if `year' < 2024 merge m:1 State_leaid using "$NCES/NCES_`prevyear'_District", gen(DistMerge)
+if `year' < 2024 merge m:1 seasch using "$NCES/NCES_`prevyear'_School", gen(SchMerge)
+if `year' == 2024 {
+merge m:1 State_leaid using "$NCES/NCES_2022_District", gen(DistMerge)
+merge m:1 seasch using "$NCES/NCES_2022_School", gen(SchMerge)
+merge m:1 SchName using MA_Unmerged_2024, update nogen
+}
+
 drop if DistMerge == 2
 drop if SchMerge == 2
 
 replace State = "Massachusetts"
 replace StateFips = 25
 replace StateAbbrev = "MA"
-if `year' == 2023 replace SchVirtual = "Missing/not reported"  if missing(SchVirtual) & DataLevel == 3 & !missing(NCESSchoolID)
+if `year' == 2023 | `year' == 2024 {
+replace SchVirtual = "No" if NCESSchoolID == "251158002946" | NCESSchoolID == "251332202949" | NCESSchoolID == "251332302950"
+replace SchLevel = "Primary" if NCESSchoolID == "251158002946" | NCESSchoolID == "251332202949" | NCESSchoolID == "251332302950"
 
+}
 replace StateAssignedSchID = StateAssignedDistID + StateAssignedSchID if DataLevel == 3
 
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID Subject GradeLevel StudentGroup StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent AvgScaleScore ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
@@ -218,12 +230,22 @@ gen AssmtType = "Regular"
 
 gen ProficiencyCriteria = "Levels 3-4"
 
+//ID Update for StateAssignedSchID == "03360020"
+replace NCESSchoolID = "251284001840" if StateAssignedSchID == "03360020"
+
+
 //Empty Vars
 gen Lev5_count = ""
 gen Lev5_percent = ""
 
 //Converting Percents/Counts to String
+
 tostring *_count *_percent StudentGroup_TotalTested StudentSubGroup_TotalTested AvgScaleScore, replace force usedisplayformat
+
+//Converting ParticipationRate and Percents to decimal (added 9/25/24)
+foreach var of varlist *_percent ParticipationRate {
+	replace `var' = string(real(`var')/100, "%9.3g") if !missing(real(`var'))
+}
 
 //Final Cleaning
 
@@ -467,12 +489,14 @@ save "$Output/MA_AssmtData_`year'_sci", replace
 
 
 //Combining ela/math and sci for 2017 and 2018
-forvalues year = 2017/2023 {
+forvalues year = 2017/2024 {
 	if `year' == 2020 continue
 	use "$Output/MA_AssmtData_`year'_E2C", clear
 	if `year' == 2017 | `year' == 2018 {
 		append using "$Output/MA_AssmtData_`year'_sci"
 	}
+
+replace AvgScaleScore = "--" if AvgScaleScore == "."	
 	
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
