@@ -85,7 +85,7 @@ rename CR ProficientOrAbove_pct_G08_sci
 drop CS CT CU CV CW CX CY CZ DA DB
 
 drop if StateAssignedDistID == ""
-drop if StateAssignedDistID == "District"
+drop if StateAssignedDistID == "Dist"
 drop if StateAssignedDistID == "** Indicates that the rate has been suppressed due to a very small student count at the subgroup level. "
 drop if StateAssignedDistID == "Data suppression is applied to comply with WVDE standards for disclosure avoidance to protect student confidentiality."
 drop if StateAssignedDistID == "Please Note"
@@ -132,7 +132,7 @@ replace StateAssignedSchID = "" if DataLevel != "School"
 
 //Generate New Variables
 gen State = "West Virginia"
-gen SchYear = "2020-21"
+gen SchYear = "2021-22"
 gen AssmtName = "West Virginia General Summative Assessment"
 gen AssmtType = "Regular"
 gen Lev5_count = ""
@@ -151,14 +151,14 @@ replace StudentGroup = "All Students" if StudentGroup == "Total Population"
 replace StudentSubGroup = "All Students" if StudentSubGroup == "Total"
 
 replace StudentGroup = "RaceEth" if StudentGroup == "Race/Ethnicity"
-replace StudentSubGroup = "Two or More" if StudentSubGroup == "Multi-racial"
+replace StudentSubGroup = "Two or More" if StudentSubGroup == "Multi-Racial"
 replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "Native American"
 replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "Pacific Islander"
 
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "English Language Learner"
 replace StudentGroup = "EL Status" if StudentSubGroup == "English Learner"
 
-replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Economically Disadvantaged (Direct Cert.)"
+replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Economically Disadvantaged"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged"
 drop if StudentSubGroup == "Low SES"
 
@@ -172,30 +172,41 @@ replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Foster Care"
 replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Military-Connected"
 replace StudentSubGroup = "Military" if StudentSubGroup == "Military-Connected"
 
-save "$data/WV_AssmtData_2021", replace
+save "$data/WV_AssmtData_2022", replace
 
 //Clean NCES Data
-use "$data/NCES_2020_School.dta", clear
+use "$data/NCES_2021_School.dta", clear
 drop if state_location != "WV"
 gen StateAssignedSchID = substr(seasch, 11, 13)
 gen StateAssignedDistID = substr(state_leaid, 4, 6)
 replace StateAssignedDistID = substr(StateAssignedDistID, 1,2)
 replace StateAssignedDistID = "0" + StateAssignedDistID
-save "$data/NCES_2021_School_WV", replace
 
-use "$data/NCES_2020_District.dta", clear
+foreach var of varlist SchType SchLevel SchVirtual {
+	decode `var', gen(temp)
+	drop `var'
+	rename temp `var'
+}
+keep state_location state_fips ncesdistrictid district_agency_type county_name county_code state_leaid SchType ncesschoolid StateAssignedDistID StateAssignedSchID DistCharter SchVirtual SchLevel DistLocale
+
+save "$data/NCES_2022_School_WV", replace
+
+use "$data/NCES_2021_District.dta", clear
 drop if state_location != "WV"
 gen StateAssignedDistID = substr(state_leaid, 4, 6)
 replace StateAssignedDistID = substr(StateAssignedDistID, 1,2)
 replace StateAssignedDistID = "0" + StateAssignedDistID
-save "$data/NCES_2021_District_WV", replace
+drop if lea_name == "Eastern Panhandle Preparatory Academy"
+drop if lea_name == "Virtual Preparatory Academy of West Virginia"
+drop if lea_name == "West Virginia Virtual Academy"
+save "$data/NCES_2022_District_WV", replace
 
+use "$data/WV_AssmtData_2022", clear
 //Merge Data
-use "$data/WV_AssmtData_2021", clear
-merge m:1 StateAssignedDistID using "$data/NCES_2021_District_WV.dta"
+merge m:1 StateAssignedDistID using "$data/NCES_2022_District_WV.dta"
 drop if _merge == 2
 
-merge m:1 StateAssignedSchID StateAssignedDistID using "$data/NCES_2021_School_WV.dta", gen (merge2)
+merge m:1 StateAssignedSchID StateAssignedDistID using "$data/NCES_2022_School_WV.dta", gen(merge2) 
 drop if merge2 == 2
 
 //Clean Merged Data
@@ -208,34 +219,31 @@ rename county_code CountyCode
 rename ncesschoolid NCESSchoolID
 *rename school_type SchType
 rename state_leaid State_leaid
+
 drop _merge merge2
-/*
-drop state_name year _merge merge2 district_agency_type_num urban_centric_locale bureau_indian_education supervisory_union_number agency_level boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment spec_ed_students english_language_learners migrant_students teachers_total_fte staff_total_fte other_staff_fte district_agency_type district_agency_type_num school_id school_name school_status DistEnrollment SchEnrollment dist_urban_centric_locale dist_bureau_indian_education dist_supervisory_union_number dist_agency_level dist_boundary_change_indicator dist_lowest_grade_offered dist_highest_grade_offered dist_number_of_schools dist_spec_ed_students dist_english_language_learners dist_migrant_students dist_teachers_total_fte dist_staff_total_fte dist_other_staff_fte sch_lowest_grade_offered sch_highest_grade_offered sch_bureau_indian_education sch_charter sch_urban_centric_locale sch_lunch_program sch_free_lunch sch_reduced_price_lunch sch_free_or_reduced_price_lunch lea_name agency_charter_indicator dist_agency_charter_indicator
-*/
 
-//Student Counts
-merge 1:1 NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject using "$data/WV_edfactscount2021.dta"
-drop if _merge == 2
-rename NUMVALID StudentSubGroup_TotalTested
-replace StudentSubGroup_TotalTested = "--" if missing(StudentSubGroup_TotalTested)
+replace StateAbbrev = "WV"
+replace StateFips = 54
 
-//Deriving State Level Counts
-gen num = StudentSubGroup_TotalTested
-destring num, replace force
-gen dummy = num
-replace dummy = 0 if DataLevel != "District"
-bys StudentSubGroup Subject GradeLevel: egen state = total(dummy)
-replace num = state if DataLevel == "State" & state != 0
-replace dummy = state if DataLevel == "State" & state != 0
-tostring dummy, replace
-replace StudentSubGroup_TotalTested = dummy if DataLevel == "State" & num != .
+//Variable Types
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+sort DataLevel_n 
+drop DataLevel 
+rename DataLevel_n DataLevel
 
-//StudentGroup_TotalTested
-sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
-replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+destring NCESDistrictID, replace
+
+//Student Counts and ParticipationRate
+merge 1:1 NCESDistrictID NCESSchoolID GradeLevel Subject StudentSubGroup using "$data/WV_2022_counts", keep(match master)
+tostring StudentSubGroup_TotalTested StudentGroup_TotalTested, replace 
+replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
+replace StudentGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
+replace ParticipationRate = ParticipationRate1
+replace ParticipationRate = "--" if missing(ParticipationRate)
 
 //Proficiency Levels
+destring StudentSubGroup_TotalTested, gen(num) force
 forvalues n = 1/4 {
 	replace Lev`n'_percent = "--" if Lev`n'_percent == ""
 	gen Lev`n'_pct = Lev`n'_percent
@@ -266,23 +274,19 @@ replace ProficientOrAbove_count = "*" if Prof_pct == "**"
 replace ProficientOrAbove_count = "--" if Prof_pct == "--"
 replace ProficientOrAbove_count = "--" if StudentSubGroup_TotalTested == "--" & ProficientOrAbove_count != "*"
 
-drop Lev1_pct Lev2_pct Lev3_pct Lev4_pct Prof_pct num dummy state
+drop Lev1_pct Lev2_pct Lev3_pct Lev4_pct Prof_pct num _merge
 
-//Remove Observations with All Information Missing (Because the Grade/School Combos Don't Exist)
-drop if Lev1_percent == "--" & Lev2_percent == "--" & Lev3_percent == "--" & Lev4_percent == "--" & ProficientOrAbove_percent == "--"
+//StudentGroup_TotalTested Convention
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+gen All_Students = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+replace All_Students = All_Students[_n-1] if missing(All_Students)
+replace StudentGroup_TotalTested = All_Students 
 
-//Variable Types
-label def DataLevel 1 "State" 2 "District" 3 "School"
-encode DataLevel, gen(DataLevel_n) label(DataLevel)
-sort DataLevel_n 
-drop DataLevel 
-rename DataLevel_n DataLevel
+replace DistName = "McDowell" if DistName == "Mcdowell"
 
-//Post Launch
-replace StateFips = 54
-replace StateAbbrev = "WV"
-
-replace DistName = "McDowell" if NCESDistrictID == "5400810"
+//Getting rid of empty observations
+drop if StudentSubGroup_TotalTested == "--" & Lev1_percent == "--" & Lev2_percent == "--" & Lev3_percent == "--" & Lev4_percent == "--" & ProficientOrAbove_percent == "--"
+replace ParticipationRate = "--" if ParticipationRate == "."
 
 //Removing extra spaces
 foreach var of varlist DistName SchName {
@@ -297,6 +301,7 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "$data/WV_AssmtData_2021", replace
-export delimited "$data/WV_AssmtData_2021", replace
+save "$data/WV_AssmtData_2022", replace
+export delimited "$data/WV_AssmtData_2022", replace
+
 clear
