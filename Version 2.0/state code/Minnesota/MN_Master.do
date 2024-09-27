@@ -34,6 +34,21 @@ replace SchLevel = "Primary" if SchName == "Surad Academy"
 replace SchVirtual = "No" if SchName == "Surad Academy"
 save "${output_files}/MN_AssmtData_2024", replace
 export delimited "${output_files}/MN_AssmtData_2024", replace
+
+forval year = 1998/2018 {
+	use "${output_files}/MN_AssmtData_`year'"
+	replace StateFips = 27 if StateFips ==. 
+	replace StateAbbrev = "MN" if StateAbbrev == ""
+	replace StateAssignedDistID = "6013-61" if DistName == "Hiawatha Valley Education District"
+	replace StateAssignedDistID = "1100-60" if DistName == "Minnesota Department of Corrections"
+	replace StateAssignedDistID = "6979-61" if DistName == "Mid-State Education District"
+	save "${output_files}/MN_AssmtData_`year'", replace
+	export delimited "${output_files}/MN_AssmtData_`year'", replace
+}
+
+
+
+
 /*
 	//Update April 1st 2024: Response to post-launch review//
 	
