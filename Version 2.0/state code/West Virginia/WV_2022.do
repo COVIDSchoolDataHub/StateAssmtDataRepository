@@ -1,5 +1,5 @@
-//2021-2022
-import excel "$data/WV_OriginalData_2022_all.xlsx", clear
+//2020-21
+import excel "$data/WV_OriginalData_1521_all.xlsx", sheet("SY21 School & District") clear
 
 //Variable Names
 rename A StateAssignedDistID
@@ -175,15 +175,23 @@ replace StudentSubGroup = "Military" if StudentSubGroup == "Military-Connected"
 save "$data/WV_AssmtData_2022", replace
 
 //Clean NCES Data
-use "$NCES/NCES_2021_School.dta", clear
+use "$data/NCES_2021_School.dta", clear
 drop if state_location != "WV"
 gen StateAssignedSchID = substr(seasch, 11, 13)
 gen StateAssignedDistID = substr(state_leaid, 4, 6)
 replace StateAssignedDistID = substr(StateAssignedDistID, 1,2)
 replace StateAssignedDistID = "0" + StateAssignedDistID
-save "$NCES_clean/NCES_2022_School_WV", replace
 
-use "$NCES/NCES_2021_District.dta", clear
+foreach var of varlist SchType SchLevel SchVirtual {
+	decode `var', gen(temp)
+	drop `var'
+	rename temp `var'
+}
+keep state_location state_fips ncesdistrictid district_agency_type county_name county_code state_leaid SchType ncesschoolid StateAssignedDistID StateAssignedSchID DistCharter SchVirtual SchLevel DistLocale
+
+save "$data/NCES_2022_School_WV", replace
+
+use "$data/NCES_2021_District.dta", clear
 drop if state_location != "WV"
 gen StateAssignedDistID = substr(state_leaid, 4, 6)
 replace StateAssignedDistID = substr(StateAssignedDistID, 1,2)
@@ -191,14 +199,14 @@ replace StateAssignedDistID = "0" + StateAssignedDistID
 drop if lea_name == "Eastern Panhandle Preparatory Academy"
 drop if lea_name == "Virtual Preparatory Academy of West Virginia"
 drop if lea_name == "West Virginia Virtual Academy"
-save "$NCES_clean/NCES_2022_District_WV", replace
+save "$data/NCES_2022_District_WV", replace
 
-//Merge Data
 use "$data/WV_AssmtData_2022", clear
-merge m:1 StateAssignedDistID using "$NCES_clean/NCES_2022_District_WV.dta"
+//Merge Data
+merge m:1 StateAssignedDistID using "$data/NCES_2022_District_WV.dta"
 drop if _merge == 2
 
-merge m:1 StateAssignedSchID StateAssignedDistID using "$NCES_clean/NCES_2022_School_WV.dta", gen (merge2)
+merge m:1 StateAssignedSchID StateAssignedDistID using "$data/NCES_2022_School_WV.dta", gen(merge2) 
 drop if merge2 == 2
 
 //Clean Merged Data
@@ -224,8 +232,10 @@ sort DataLevel_n
 drop DataLevel 
 rename DataLevel_n DataLevel
 
+destring NCESDistrictID, replace
+
 //Student Counts and ParticipationRate
-merge 1:1 NCESDistrictID NCESSchoolID GradeLevel Subject StudentSubGroup using "$counts/WV_2022_counts", keep(match master)
+merge 1:1 NCESDistrictID NCESSchoolID GradeLevel Subject StudentSubGroup using "$data/WV_2022_counts", keep(match master)
 tostring StudentSubGroup_TotalTested StudentGroup_TotalTested, replace 
 replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
 replace StudentGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
@@ -270,7 +280,7 @@ drop Lev1_pct Lev2_pct Lev3_pct Lev4_pct Prof_pct num _merge
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 gen All_Students = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
 replace All_Students = All_Students[_n-1] if missing(All_Students)
-replace StudentGroup_TotalTested = All_Students if regexm(StudentGroup_TotalTested, "[0-9]") == 0
+replace StudentGroup_TotalTested = All_Students 
 
 replace DistName = "McDowell" if DistName == "Mcdowell"
 
@@ -293,3 +303,5 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "$data/WV_AssmtData_2022", replace
 export delimited "$data/WV_AssmtData_2022", replace
+
+clear
