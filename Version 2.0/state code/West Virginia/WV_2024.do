@@ -1,5 +1,5 @@
 //2023-2024
-import excel WV_OriginalData_2024_all.xlsx, sheet("SY24 Schl & Dist Comp. Results") clear 
+import excel "$data/WV_OriginalData_2024_all.xlsx, sheet("SY24 Schl & Dist Comp. Results") clear 
 
 //Variable Names
 rename A StateAssignedDistID
@@ -175,7 +175,7 @@ replace StudentSubGroup = "Military" if StudentSubGroup == "Military-Connected"
 save "$data/WV_AssmtData_2024", replace
 
 //Clean NCES Data
-use "$NCES/NCES_2022_School.dta", clear
+use "$data/NCES_2022_School.dta", clear
 drop if state_location != "WV"
 gen StateAssignedSchID = substr(seasch, 11, 13)
 gen StateAssignedDistID = substr(state_leaid, 4, 6)
@@ -189,9 +189,9 @@ foreach var of varlist school_type SchLevel SchVirtual district_agency_type {
 }
 keep state_location state_fips ncesdistrictid district_agency_type county_name county_code state_leaid school_type ncesschoolid StateAssignedDistID StateAssignedSchID DistCharter SchVirtual SchLevel DistLocale
 
-save "$NCES_clean/NCES_2024_School_WV", replace
+save "$data/NCES_2024_School_WV", replace
 
-use "$NCES/NCES_2022_District.dta", clear
+use "$data/NCES_2022_District.dta", clear
 drop if state_location != "WV"
 gen StateAssignedDistID = substr(state_leaid, 4, 6)
 replace StateAssignedDistID = substr(StateAssignedDistID, 1,2)
@@ -200,14 +200,13 @@ replace StateAssignedDistID = substr(state_leaid, strpos(state_leaid, "-") +1,3)
 drop if lea_name == "WIN Academy at BVCTC"
 replace StateAssignedDistID = "101" if lea_name == "West Virginia Academy"
 keep state_location state_fips ncesdistrictid district_agency_type county_name county_code state_leaid StateAssignedDistID DistCharter DistLocale
-save "$NCES_clean/NCES_2024_District_WV", replace
+save "$data/NCES_2024_District_WV.dta", replace
 
-
-use "$data/WV_AssmtData_2023"
-merge m:1 StateAssignedDistID using "$NCES_clean/NCES_2024_District_WV.dta"
+use "$data/WV_AssmtData_2024", clear
+merge m:1 StateAssignedDistID using "$data/NCES_2024_District_WV.dta"
 drop if _merge ==2
 
-merge m:1 StateAssignedSchID StateAssignedDistID using "$NCES_clean/NCES_2024_School_WV.dta", gen (merge2)
+merge m:1 StateAssignedSchID StateAssignedDistID using "$data/NCES_2024_School_WV.dta", gen (merge2)
 drop if merge2 == 2
 
 drop _merge merge2
@@ -234,7 +233,7 @@ drop DataLevel
 rename DataLevel_n DataLevel
 
 //Student Counts and ParticipationRate
-merge 1:1 NCESDistrictID NCESSchoolID GradeLevel Subject DataLevel StudentSubGroup using "$counts/WV_2024_counts",
+merge 1:1 NCESDistrictID NCESSchoolID GradeLevel Subject DataLevel StudentSubGroup using "$data/WV_2024_counts"
 
 drop if _merge == 2 
 
@@ -250,9 +249,11 @@ replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
 replace StudentGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
 replace ParticipationRate = "--" if missing(ParticipationRate)
 replace ParticipationRate = ParticipationRate1
+replace ParticipationRate = "--" if ParticipationRate == ""
+replace ParticipationRate = "--" if ParticipationRate == "."
 
 //Missing & Suppressed Data
-replace Lev1_percent = "--" if Lev1_percent == ""
+replace Lev1_percent = "--" if Lev1_percent == "" 
 replace Lev2_percent = "--" if Lev2_percent == ""
 replace Lev3_percent = "--" if Lev3_percent == ""
 replace Lev4_percent = "--" if Lev4_percent == ""
@@ -277,6 +278,7 @@ forvalues n = 1/4 {
 	replace Lev`n'_count = "*" if Lev`n'_percent == "*"
 	replace Lev`n'_count = "--" if Lev`n'_percent == "--"
 	replace Lev`n'_count = "--" if StudentSubGroup_TotalTested == "--" & Lev`n'_count != "*"
+	replace Lev`n'_percent = "--" if Lev`n'_percent == "."
 }
 
 gen Prof_pct = ProficientOrAbove_percent
@@ -298,7 +300,7 @@ drop Lev1_pct Lev2_pct Lev3_pct Lev4_pct Prof_pct num _merge
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 gen All_Students = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
 replace All_Students = All_Students[_n-1] if missing(All_Students)
-replace StudentGroup_TotalTested = All_Students if regexm(StudentGroup_TotalTested, "[0-9]") == 0
+replace StudentGroup_TotalTested = All_Students 
 
 //Percent Lengths
 foreach var of varlist *_percent {
@@ -313,7 +315,7 @@ foreach var of varlist DistName SchName {
 
 //Getting rid of empty observations
 drop if StudentSubGroup_TotalTested == "--" & Lev1_percent == "--" & Lev2_percent == "--" & Lev3_percent == "--" & Lev4_percent == "--" & ProficientOrAbove_percent == "--"
-replace ParticipationRate = "--" if ParticipationRate == "."
+
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
@@ -322,5 +324,5 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save  "$data/WV_AssmtData_2024", replace
-export delimited "$data/WV_AssmtData_2024", replace
+export delimited "/Users/mikaeloberlin/Desktop/West Virginia/WV_AssmtData_2024", replace
 clear
