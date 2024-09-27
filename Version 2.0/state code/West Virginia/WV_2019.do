@@ -1,6 +1,7 @@
 //2018-19
 import excel "$data/WV_OriginalData_1521_all.xlsx", sheet("SY19 School & District") clear
 
+
 //Variable Names
 rename A StateAssignedDistID
 rename B DistName
@@ -174,27 +175,27 @@ replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Milita
 save "$data/WV_AssmtData_2019", replace
 
 //Clean NCES Data
-use "$NCES/NCES_2018_School.dta", clear
+use "$data/NCES_2018_School.dta", clear
 drop if state_location != "WV"
 gen StateAssignedSchID = substr(seasch, 11, 13)
 gen StateAssignedDistID = substr(state_leaid, 4, 6)
 replace StateAssignedDistID = substr(StateAssignedDistID, 1,2)
 replace StateAssignedDistID = "0" + StateAssignedDistID
-save "$NCES_clean/NCES_2019_School_WV", replace
+save "$data/NCES_2019_School_WV", replace
 
-use "$NCES/NCES_2018_District.dta", clear
+use "$data/NCES_2018_District.dta", clear
 drop if state_location != "WV"
 gen StateAssignedDistID = substr(state_leaid, 4, 6)
 replace StateAssignedDistID = substr(StateAssignedDistID, 1,2)
 replace StateAssignedDistID = "0" + StateAssignedDistID
-save "$NCES_clean/NCES_2019_District_WV", replace
+save "$data/NCES_2019_District_WV", replace
 
 //Merge Data
 use "$data/WV_AssmtData_2019", clear
-merge m:1 StateAssignedDistID using "$NCES_clean/NCES_2019_District_WV.dta"
+merge m:1 StateAssignedDistID using "$data/NCES_2019_District_WV.dta"
 drop if _merge == 2
 
-merge m:1 StateAssignedSchID StateAssignedDistID using "$NCES_clean/NCES_2019_School_WV.dta", gen (merge2)
+merge m:1 StateAssignedSchID StateAssignedDistID using "$data/NCES_2019_School_WV.dta", gen (merge2)
 drop if merge2 == 2
 
 //Clean Merged Data
@@ -216,11 +217,21 @@ drop state_name year _merge merge2 district_agency_type_num urban_centric_locale
 replace StateAbbrev = "WV"
 replace StateFips = 54
 
+destring NCESDistrictID NCESSchoolID, replace 
+
 //Student Counts
-merge 1:1 NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject using "$counts/WV_edfactscount2019.dta"
+merge 1:1 NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject using "$data/WV_edfactscount2019.dta"
 drop if _merge == 2
-rename NUMVALID StudentSubGroup_TotalTested
-replace StudentSubGroup_TotalTested = "--" if missing(StudentSubGroup_TotalTested)
+
+
+//StudentGroup_TotalTested
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+tostring StudentSubGroup_TotalTested StudentGroup_TotalTested, replace
+replace StudentSubGroup_TotalTested = "--" if missing(real(StudentSubGroup_TotalTested))
+replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
+replace StudentGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
+replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested == "."
 
 //Applying math school level counts to ELA (unique to 2019 b/c of suppressed edfacts data)
 sort DataLevel NCESDistrictID NCESSchoolID GradeLevel StudentGroup StudentSubGroup Subject
@@ -238,11 +249,6 @@ replace num = state if DataLevel == "State" & state != 0
 replace dummy = state if DataLevel == "State" & state != 0
 tostring dummy, replace
 replace StudentSubGroup_TotalTested = dummy if DataLevel == "State" & num != .
-
-//StudentGroup_TotalTested
-sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
-replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
 
 //Proficiency Levels
 forvalues n = 1/4 {
@@ -281,6 +287,13 @@ drop Lev1_pct Lev2_pct Lev3_pct Lev4_pct Prof_pct num dummy state
 //Getting rid of empty observations
 drop if StudentSubGroup_TotalTested == "--" & Lev1_percent == "--" & Lev2_percent == "--" & Lev3_percent == "--" & Lev4_percent == "--" & ProficientOrAbove_percent == "--"
 
+
+//StudentGroup_TotalTested Convention
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+gen All_Students = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+replace All_Students = All_Students[_n-1] if missing(All_Students)
+replace StudentGroup_TotalTested = All_Students 
+
 //Variable Types
 label def DataLevel 1 "State" 2 "District" 3 "School"
 encode DataLevel, gen(DataLevel_n) label(DataLevel)
@@ -288,7 +301,7 @@ sort DataLevel_n
 drop DataLevel 
 rename DataLevel_n DataLevel
 
-replace DistName = "McDowell" if NCESDistrictID == "5400810"
+replace DistName = "McDowell" if NCESDistrictID == 5400810
 
 //Removing extra spaces
 foreach var of varlist DistName SchName {
