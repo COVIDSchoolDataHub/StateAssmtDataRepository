@@ -156,25 +156,25 @@ replace StudentSubGroup = "SWD" if StudentSubGroup == "Special Education (Studen
 save "$data/WV_AssmtData_2016", replace
 
 //Clean NCES Data
-use "$NCES/NCES_2015_School.dta", clear
+use "$data/NCES_2015_School.dta", clear
 drop if state_location != "WV"
 gen StateAssignedSchID = substr(seasch, 3, 5)
 gen StateAssignedDistID = substr(state_leaid, 1, 2)
 replace StateAssignedDistID = "0" + StateAssignedDistID
-save "$NCES_clean/NCES_2016_School_WV", replace
+save "$data/NCES_2016_School_WV", replace
 
-use "$NCES/NCES_2015_District.dta", clear
+use "$data/NCES_2015_District.dta", clear
 drop if state_location != "WV"
 gen StateAssignedDistID = substr(state_leaid, 1,2)
 replace StateAssignedDistID = "0" + StateAssignedDistID
-save "$NCES_clean/NCES_2016_District_WV", replace
+save "$data/NCES_2016_District_WV", replace
 
 //Merge Data
 use "$data/WV_AssmtData_2016", clear
-merge m:1 StateAssignedDistID using "$NCES_clean/NCES_2016_District_WV.dta"
+merge m:1 StateAssignedDistID using "$data/NCES_2016_District_WV.dta"
 drop if _merge == 2
 
-merge m:1 StateAssignedSchID StateAssignedDistID using "$NCES_clean/NCES_2016_School_WV.dta", gen (merge2)
+merge m:1 StateAssignedSchID StateAssignedDistID using "$data/NCES_2016_School_WV.dta", gen (merge2)
 drop if merge2 == 2
 
 //Clean Merged Data
@@ -198,7 +198,7 @@ replace StateAbbrev = "WV"
 replace StateFips = 54
 
 //Student Counts
-merge 1:1 NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject using "$counts/WV_edfactscount2016.dta"
+merge 1:1 NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject using "$data/WV_edfactscount2016.dta"
 drop if _merge == 2
 rename NUMVALID StudentSubGroup_TotalTested
 replace StudentSubGroup_TotalTested = "--" if _merge == 1
@@ -278,5 +278,4 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "$data/WV_AssmtData_2016", replace
-export delimited "$data/WV_AssmtData_2016", replace
-clear
+export delimited "$data//WV_AssmtData_2016", replace
