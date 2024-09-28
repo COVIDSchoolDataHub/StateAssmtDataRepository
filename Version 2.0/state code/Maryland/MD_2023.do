@@ -1,4 +1,5 @@
 
+
 clear
 set more off
 global Original "/Users/benjaminm/Documents/State_Repository_Research/Maryland/Original"
@@ -189,6 +190,41 @@ replace `count' = string(round(real(substr(`percent', 1, strpos(`percent', "-")-
 //Post Launch Review
 replace CountyName= "Baltimore City" if CountyCode == "24510"
 
+
+replace DistName = "SEED School Of Maryland" if NCESDistrictID == "2400027"
+
+// Replace Lev4_count with the difference between ProficientOrAbove_Count and Lev3_count
+destring ProficientOrAbove_count, gen(ProficientOrAbove_count1) force 
+destring Lev3_count, gen(Lev3_count1) force 
+
+gen Lev4_count1 = string(ProficientOrAbove_count1 - Lev3_count1) if !missing(Lev3_count) &  strpos(Lev4_count, "-") > 0 & !missing(ProficientOrAbove_count)
+replace Lev4_count = Lev4_count1 if Lev4_count1 != "" & Lev4_count1 != "."
+
+
+destring Lev4_count, gen(Lev4_count2) force 
+
+gen Lev3_count2 = string(ProficientOrAbove_count1 - Lev4_count2) if !missing(Lev4_count) &  strpos(Lev3_count, "-") > 0 & !missing(ProficientOrAbove_count)
+replace Lev3_count = Lev3_count2 if Lev3_count2 != "" & Lev3_count2 != "."
+
+//Derive Exact count/percent where we have range and corresponding exact count/percent and StudentSubGroup_TotalTested
+foreach percent of varlist Lev*_percent ProficientOrAbove_percent {
+	local count = subinstr("`percent'", "percent", "count",.)
+	replace `percent' = string(real(`count')/real(StudentSubGroup_TotalTested), "%9.3g") if !missing(real(`count')) & !missing(real(StudentSubGroup_TotalTested)) & missing(real(`percent'))
+	replace `count' = string(round(real(`percent')* real(StudentSubGroup_TotalTested))) if !missing(real(`percent')) & !missing(real(StudentSubGroup_TotalTested)) & missing(real(`count'))
+}
+
+// deriving proficient_or above count
+gen ProficientOrAbove_count2 = string(Lev3_count1 + Lev4_count2) if !missing(Lev3_count) & !missing(Lev4_count) 
+replace ProficientOrAbove_count = ProficientOrAbove_count2 if ProficientOrAbove_count2 != "" & ProficientOrAbove_count2 != "." 
+
+
+destring Lev3_percent, gen(Lev3_percent1) force 
+destring Lev4_percent, gen(Lev4_percent2) force
+
+// deriving proficient_or above count
+gen ProficientOrAbove_percent2 = string(Lev3_percent1 + Lev4_percent2) if !missing(Lev3_percent) & !missing(Lev4_percent)
+replace ProficientOrAbove_percent = ProficientOrAbove_percent2 if ProficientOrAbove_percent2 != "" & ProficientOrAbove_percent2 != "." 
+
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
  
@@ -198,4 +234,9 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${Output}/MD_AssmtData_2023", replace
 export delimited "${Output}/MD_AssmtData_2023.csv", replace
+
+
+
+
+
 

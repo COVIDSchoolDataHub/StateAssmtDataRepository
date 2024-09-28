@@ -1,14 +1,5 @@
-clear
-set more off
-cd "/Volumes/T7/State Test Project/West Virginia"
-global data "/Volumes/T7/State Test Project/West Virginia/Original Data Files"
-global NCES "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
-global NCES_clean "/Volumes/T7/State Test Project/West Virginia/NCES_Clean"
-global counts "/Volumes/T7/State Test Project/West Virginia/Counts"
-
 //2014-15
 import excel "$data/WV_OriginalData_1521_all.xlsx", sheet("SY15 School & District") clear
-
 
 //Variable Names
 rename A StateAssignedDistID
@@ -137,9 +128,9 @@ gen Lev5_percent = ""
 gen ProficiencyCriteria = "Levels 3-4"
 gen ParticipationRate = "--"
 gen AvgScaleScore = "--"
-gen Flag_AssmtNameChange = "N"
-gen Flag_CutScoreChange_ELA = "N"
-gen Flag_CutScoreChange_math = "N"
+gen Flag_AssmtNameChange = "Y"
+gen Flag_CutScoreChange_ELA = "Y"
+gen Flag_CutScoreChange_math = "Y"
 gen Flag_CutScoreChange_soc = "Not applicable"
 gen Flag_CutScoreChange_sci = "Not applicable"
 
@@ -165,26 +156,26 @@ replace StudentSubGroup = "SWD" if StudentSubGroup == "Special Education (Studen
 save "$data/WV_AssmtData_2015", replace
 
 //Clean NCES Data
-use "$NCES/NCES_2014_School.dta", clear
+use "$data/NCES_2014_School.dta", clear
 drop if state_location != "WV"
 gen StateAssignedSchID = substr(seasch, 3, 5)
 gen StateAssignedDistID = substr(state_leaid, 1, 2)
 replace StateAssignedDistID = "0" + StateAssignedDistID
 drop if state_leaid == ""
-save "$NCES_clean/NCES_2015_School_WV", replace
+save "$data/NCES_2015_School_WV", replace
 
-use "$NCES/NCES_2014_District.dta", clear
+use "$data/NCES_2014_District.dta", clear
 drop if state_location != "WV"
 gen StateAssignedDistID = substr(state_leaid, 1,2)
 replace StateAssignedDistID = "0" + StateAssignedDistID
-save "$NCES_clean/NCES_2015_District_WV", replace
+save "$data/NCES_2015_District_WV", replace
 
 //Merge Data
 use "$data/WV_AssmtData_2015", clear
-merge m:1 StateAssignedDistID using "$NCES_clean/NCES_2015_District_WV.dta"
+merge m:1 StateAssignedDistID using "$data/NCES_2015_District_WV.dta"
 drop if _merge == 2
 
-merge m:1 StateAssignedSchID StateAssignedDistID using "$NCES_clean/NCES_2015_School_WV.dta", gen (merge2)
+merge m:1 StateAssignedSchID StateAssignedDistID using "$data/NCES_2015_School_WV.dta", gen (merge2)
 drop if merge2 == 2
 
 //Clean Merged Data
@@ -214,7 +205,7 @@ replace SchType = 1 if SchName == "South Preston School"
 replace seasch = "70106" if SchName == "South Preston School"
 
 //Student Counts
-merge 1:1 NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject using "$counts/WV_edfactscount2016.dta"
+merge 1:1 NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject using "$data/WV_edfactscount2016.dta"
 drop if _merge == 2
 rename NUMVALID StudentSubGroup_TotalTested
 replace StudentSubGroup_TotalTested = "--" if _merge == 1
@@ -300,3 +291,4 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 save "$data/WV_AssmtData_2015", replace
 export delimited "$data/WV_AssmtData_2015", replace
 
+clear

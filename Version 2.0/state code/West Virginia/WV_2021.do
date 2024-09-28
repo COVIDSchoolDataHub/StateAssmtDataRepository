@@ -175,27 +175,27 @@ replace StudentSubGroup = "Military" if StudentSubGroup == "Military-Connected"
 save "$data/WV_AssmtData_2021", replace
 
 //Clean NCES Data
-use "$NCES/NCES_2020_School.dta", clear
+use "$data/NCES_2020_School.dta", clear
 drop if state_location != "WV"
 gen StateAssignedSchID = substr(seasch, 11, 13)
 gen StateAssignedDistID = substr(state_leaid, 4, 6)
 replace StateAssignedDistID = substr(StateAssignedDistID, 1,2)
 replace StateAssignedDistID = "0" + StateAssignedDistID
-save "$NCES_clean/NCES_2021_School_WV", replace
+save "$data/NCES_2021_School_WV", replace
 
-use "$NCES/NCES_2020_District.dta", clear
+use "$data/NCES_2020_District.dta", clear
 drop if state_location != "WV"
 gen StateAssignedDistID = substr(state_leaid, 4, 6)
 replace StateAssignedDistID = substr(StateAssignedDistID, 1,2)
 replace StateAssignedDistID = "0" + StateAssignedDistID
-save "$NCES_clean/NCES_2021_District_WV", replace
+save "$data/NCES_2021_District_WV", replace
 
 //Merge Data
 use "$data/WV_AssmtData_2021", clear
-merge m:1 StateAssignedDistID using "$NCES_clean/NCES_2021_District_WV.dta"
+merge m:1 StateAssignedDistID using "$data/NCES_2021_District_WV.dta"
 drop if _merge == 2
 
-merge m:1 StateAssignedSchID StateAssignedDistID using "$NCES_clean/NCES_2021_School_WV.dta", gen (merge2)
+merge m:1 StateAssignedSchID StateAssignedDistID using "$data/NCES_2021_School_WV.dta", gen (merge2)
 drop if merge2 == 2
 
 //Clean Merged Data
@@ -214,7 +214,7 @@ drop state_name year _merge merge2 district_agency_type_num urban_centric_locale
 */
 
 //Student Counts
-merge 1:1 NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject using "$counts/WV_edfactscount2021.dta"
+merge 1:1 NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject using "$data/WV_edfactscount2021.dta"
 drop if _merge == 2
 rename NUMVALID StudentSubGroup_TotalTested
 replace StudentSubGroup_TotalTested = "--" if missing(StudentSubGroup_TotalTested)

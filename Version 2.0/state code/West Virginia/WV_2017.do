@@ -156,27 +156,27 @@ replace StudentSubGroup = "SWD" if StudentSubGroup == "Special Education (Studen
 save "$data/WV_AssmtData_2017", replace
 
 //Clean NCES Data
-use "$NCES/NCES_2016_School.dta", clear
+use "$data/NCES_2016_School.dta", clear
 drop if state_location != "WV"
 gen StateAssignedSchID = substr(seasch, 11, 13)
 gen StateAssignedDistID = substr(state_leaid, 4, 6)
 replace StateAssignedDistID = substr(StateAssignedDistID, 1,2)
 replace StateAssignedDistID = "0" + StateAssignedDistID
-save "$NCES_clean/NCES_2017_School_WV", replace
+save "$data/NCES_2017_School_WV", replace
 
-use "$NCES/NCES_2016_District.dta", clear
+use "$data/NCES_2016_District.dta", clear
 drop if state_location != "WV"
 gen StateAssignedDistID = substr(state_leaid, 4, 6)
 replace StateAssignedDistID = substr(StateAssignedDistID, 1,2)
 replace StateAssignedDistID = "0" + StateAssignedDistID
-save "$NCES_clean/NCES_2017_District_WV", replace
+save "$data/NCES_2017_District_WV", replace
 
 //Merge Data
 use "$data/WV_AssmtData_2017", clear
-merge m:1 StateAssignedDistID using "$NCES_clean/NCES_2017_District_WV.dta"
+merge m:1 StateAssignedDistID using "$data/NCES_2017_District_WV.dta"
 drop if _merge == 2
 
-merge m:1 StateAssignedSchID StateAssignedDistID using "$NCES_clean/NCES_2017_School_WV.dta", gen (merge2)
+merge m:1 StateAssignedSchID StateAssignedDistID using "$data/NCES_2017_School_WV", gen (merge2)
 drop if merge2 == 2
 
 //Clean Merged Data
@@ -195,7 +195,7 @@ drop state_name year _merge merge2 district_agency_type_num urban_centric_locale
 */
 
 //Student Counts
-merge 1:1 NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject using "$counts/WV_edfactscount2017.dta"
+merge 1:1 NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject using "$data/WV_edfactscount2017.dta"
 drop if _merge == 2
 rename NUMVALID StudentSubGroup_TotalTested
 replace StudentSubGroup_TotalTested = "--" if _merge == 1
@@ -266,7 +266,7 @@ replace DistName = "McDowell" if NCESDistrictID == "5400810"
 replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
 
 //Removing extra spaces
-foreach var of varlist DistName SchName {
+foreach var of varlist DistName SchName Lev1_count Lev2_count Lev3_count Lev4_count Lev5_count ProficientOrAbove_count ProficientOrAbove_percent {
 	replace `var' = stritrim(`var') // collapses all consecutive, internal blanks to one blank.
 	replace `var' = strtrim(`var') // removes leading and trailing blanks
 }
@@ -280,4 +280,3 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "$data/WV_AssmtData_2017", replace
 export delimited "$data/WV_AssmtData_2017", replace
-clear

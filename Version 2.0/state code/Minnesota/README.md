@@ -1,8 +1,6 @@
-Create seven folders: NCES Old, NCES New, Original Files, Temp, Output, MN_2022, do files
+Create six folders: NCES_MN, Original Files, Temp, Output, MN_2022, do files
 
-Access old NCES files from the Drive and put them into NCES Old.
-
-Run NCES do file
+Access old NCES files from the Drive and put them into NCES_MN
 
 Download all of the do files for each year (1998-2024) and place them into the "do files" folder. Download all of the original data files and put them in the Original Files Folder. Also make sure to download the file called "mn_full-dist-sch-stable-list_through2024" and put it in the Original Files Folder.
 
