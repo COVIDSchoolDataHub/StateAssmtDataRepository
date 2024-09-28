@@ -1,10 +1,10 @@
 clear
 set more off
 
-global Output "/Volumes/T7/State Test Project/District of Columbia/Output"
-global NCES "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
-global Original "/Volumes/T7/State Test Project/District of Columbia/Original Data"
-cd "/Volumes/T7/State Test Project/District of Columbia"
+global Output "/Users/miramehta/Documents/DC State Testing Data/Output"
+global NCES "/Users/miramehta/Documents/NCES District and School Demographics"
+global Original "/Users/miramehta/Documents/DC State Testing Data/Original Data"
+cd "/Users/miramehta/Documents"
 
 forvalues year = 2015/2019 {
 local prevyear =`=`year'-1'
@@ -223,8 +223,9 @@ replace ParticipationRate = "*" if ParticipationRate == "n<40" | ParticipationRa
 gen range = substr(ParticipationRate,1,1) if regexm(ParticipationRate, "[<>]") !=0
 replace range = substr(ParticipationRate,1,2) if regexm(ParticipationRate,"=") !=0
 destring ParticipationRate, gen(nParticipationRate) i(*-<>=%)
-replace ParticipationRate = range + string(nParticipationRate/100, "%9.4g") if regexm(ParticipationRate, "[-*]") ==0
-
+replace ParticipationRate = "0-" + string(nParticipationRate/100, "%9.4g") if regexm(ParticipationRate, "[-*]") ==0 & strpos(range, "<") > 0
+replace ParticipationRate = string(nParticipationRate/100, "%9.4g") + "-1" if regexm(ParticipationRate, "[-*]") ==0 & strpos(range, ">") > 0
+replace ParticipationRate = string(nParticipationRate/100, "%9.4g") if regexm(ParticipationRate, "[-*]") ==0 & range == ""
 
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode

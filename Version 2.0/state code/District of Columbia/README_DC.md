@@ -1,12 +1,14 @@
 
 # DC Data Cleaning
 
-This is a ReadMe for DC's data cleaning process, from 2015 to 2023.
+This is a ReadMe for DC's data cleaning process, from 2015 to 2024.
+
+Note that there are not files for 2020 and 2021, as DC did not administer tests at that time due to COVID-19.
 
 
 ## Setup
 Create a folder for DC. Inside that folder, create three more folders: 
-Original, NCES, Output
+Original, NCES, Output.
 
 Download do-files and place them in the DC folder.
 
