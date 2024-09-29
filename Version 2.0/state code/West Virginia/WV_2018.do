@@ -236,6 +236,7 @@ forvalues n = 1/4 {
 	replace Lev`n'_count = "*" if Lev`n'_pct == "**"
 	replace Lev`n'_count = "--" if Lev`n'_pct == "--"
 	replace Lev`n'_count = "--" if StudentSubGroup_TotalTested == "--" & Lev`n'_count != "*"
+	replace Lev`n'_count = "0" if Lev`n'_count == "." & Lev`n'_pct == "0"
 }
 
 replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == ""
