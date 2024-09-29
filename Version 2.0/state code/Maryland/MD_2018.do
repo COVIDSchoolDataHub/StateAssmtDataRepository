@@ -80,6 +80,7 @@ replace `var' = subinstr(`var', "<","0-",.) if strpos(`var', "<") !=0
 drop n`var' range`var'
 replace `var' = "*" if `var' == "."
 }
+
 //Lev1_percent not included for sci
 replace Lev1_percent = "--" if Subject == "sci"
 
@@ -94,6 +95,8 @@ forvalues n = 1/5 {
 	gen Lev`n'_count = "--"
 }
 
+
+
 foreach count of varlist Lev*_count {
 	local percent = subinstr("`count'","count", "percent",.)
 	replace `count' = string(round(real(`percent') * real(StudentSubGroup_TotalTested))) if !missing(real(`percent')) & !missing(real(StudentSubGroup_TotalTested))
@@ -103,6 +106,41 @@ foreach count of varlist Lev*_count {
 foreach count of varlist ProficientOrAbove_count {
 replace `count' = string(round(real(substr(`percent', 1, strpos(`percent', "-")-1))*real(StudentSubGroup_TotalTested))) + "-" + string(round(real(substr(`percent',strpos(`percent', "-")+1,5))*real(StudentSubGroup_TotalTested))) if missing(real(`count')) & strpos(`percent', "-") !=0 & regexm(`percent', "[0-9]") !=0 & regexm(StudentSubGroup_TotalTested, "[0-9]") !=0
 }
+
+
+** Dealing with Ranges
+foreach var of varlist Lev*_percent {
+	gen low`var' = substr(`var', 1, strpos(`var', "-")-1)
+	gen high`var' = substr(`var',strpos(`var', "-")+1,5)
+	replace low`var' = high`var' if missing(low`var') & !missing(high`var')
+	replace high`var' = low`var' if missing(high`var') & !missing(low`var')
+}
+
+//Deriving Counts with Ranges
+foreach count of varlist *_count {
+local percent = subinstr("`count'", "count","percent",.)	
+replace `count' = string(round(real(substr(`percent', 1, strpos(`percent', "-")-1))*real(StudentSubGroup_TotalTested))) + "-" + string(round(real(substr(`percent',strpos(`percent', "-")+1,5))*real(StudentSubGroup_TotalTested))) if missing(real(`count')) & strpos(`percent', "-") !=0 & regexm(`percent', "[0-9]") !=0 & regexm(StudentSubGroup_TotalTested, "[0-9]") !=0
+}
+
+replace ProficientOrAbove_percent = string(real(lowLev4_percent) + real(lowLev5_percent)) + "-" + string(real(highLev4_percent) + real(highLev5_percent)) if strpos(Lev4_percent, "-") !=0 & regexm(Lev4_percent, "[0-9]") !=0 & Subject != "sci" | (strpos(Lev5_percent, "-") !=0 & regexm(Lev5_percent, "[0-9]") !=0) & Subject != "sci"
+replace ProficientOrAbove_percent = string(real(lowLev4_percent) + real(lowLev5_percent)) + "-" + string(real(highLev4_percent) + real(highLev5_percent)) if strpos(Lev4_percent, "-") !=0 & regexm(Lev4_percent, "[0-9]") !=0 & Subject == "sci" | (strpos(Lev5_percent, "-") !=0 & regexm(Lev5_percent, "[0-9]") !=0) & Subject == "sci"
+drop low* high*
+
+
+** Dealing with Ranges
+foreach var of varlist Lev*_count {
+	gen low`var' = substr(`var', 1, strpos(`var', "-")-1)
+	gen high`var' = substr(`var',strpos(`var', "-")+1,5)
+	replace low`var' = high`var' if missing(low`var') & !missing(high`var')
+	replace high`var' = low`var' if missing(high`var') & !missing(low`var')
+}
+
+
+replace ProficientOrAbove_count = string(real(lowLev4_count) + real(lowLev5_count)) + "-" + string(real(highLev4_count) + real(highLev5_count)) if strpos(Lev4_count, "-") !=0 & regexm(Lev4_count, "[0-9]") !=0 & Subject != "sci" | (strpos(Lev5_count, "-") !=0 & regexm(Lev5_count, "[0-9]") !=0) & Subject != "sci"
+
+replace ProficientOrAbove_count = string(real(lowLev4_count) + real(lowLev5_count)) + "-" + string(real(highLev4_count) + real(highLev5_count)) if strpos(Lev4_count, "-") !=0 & regexm(Lev4_count, "[0-9]") !=0 & Subject == "sci" | (strpos(Lev5_count, "-") !=0 & regexm(Lev5_count, "[0-9]") !=0) & Subject == "sci"
+drop low* high*
+
 
 
 //State level data
@@ -172,6 +210,24 @@ destring Lev5_percent, gen(Lev5_percent2) force
 // deriving proficient_or above count
 gen ProficientOrAbove_percent2 = string(Lev4_percent1 + Lev5_percent2) if !missing(Lev4_percent) & !missing(Lev5_percent)
 replace ProficientOrAbove_percent = ProficientOrAbove_percent2 if ProficientOrAbove_percent2 != "" & ProficientOrAbove_percent2 != "." 
+
+local a  1 2 3 4
+
+foreach b in `a' {
+	local d = `b' + 1
+	display `d'
+replace Lev`b'_count = Lev`d'_count if Subject == "sci"
+replace Lev`b'_percent = Lev`d'_percent if Subject == "sci"
+
+}
+
+replace Lev5_count = "" if Subject == "sci"
+replace Lev5_percent = "" if Subject == "sci"
+
+replace ProficiencyCriteria = "Levels 3-4" if Subject == "sci"
+
+
+
 
 
 //Final Cleaning
