@@ -195,6 +195,42 @@ replace `count' = string(round(real(`percent') * real(StudentSubGroup_TotalTeste
 replace `count' = string(round(real(substr(`percent', 1, strpos(`percent', "-")-1))*real(StudentSubGroup_TotalTested))) + "-" + string(round(real(substr(`percent',strpos(`percent', "-")+1,5))*real(StudentSubGroup_TotalTested))) if missing(real(`count')) & strpos(`percent', "-") !=0 & regexm(`percent', "[0-9]") !=0 & regexm(StudentSubGroup_TotalTested, "[0-9]") !=0
 }
 
+
+//ProficientOrAbove_count and ProficientOrAbove_percent
+replace ProficientOrAbove_percent = string(real(Lev3_percent)+real(Lev4_percent)) if !missing(real(Lev3_percent)) & !missing(real(Lev4_percent)) 
+replace ProficientOrAbove_count = string(real(Lev3_count)+real(Lev4_count)) if !missing(real(Lev3_count)) & !missing(real(Lev4_count)) 
+
+** Dealing with Ranges
+foreach var of varlist Lev*_percent {
+	gen low`var' = substr(`var', 1, strpos(`var', "-")-1)
+	gen high`var' = substr(`var',strpos(`var', "-")+1,5)
+	replace low`var' = high`var' if missing(low`var') & !missing(high`var')
+	replace high`var' = low`var' if missing(high`var') & !missing(low`var')
+}
+
+//Deriving Counts with Ranges
+foreach count of varlist *_count {
+local percent = subinstr("`count'", "count","percent",.)	
+replace `count' = string(round(real(substr(`percent', 1, strpos(`percent', "-")-1))*real(StudentSubGroup_TotalTested))) + "-" + string(round(real(substr(`percent',strpos(`percent', "-")+1,5))*real(StudentSubGroup_TotalTested))) if missing(real(`count')) & strpos(`percent', "-") !=0 & regexm(`percent', "[0-9]") !=0 & regexm(StudentSubGroup_TotalTested, "[0-9]") !=0
+}
+
+replace ProficientOrAbove_percent = string(real(lowLev3_percent) + real(lowLev4_percent)) + "-" + string(real(highLev3_percent) + real(highLev4_percent)) if strpos(Lev3_percent, "-") !=0 & regexm(Lev3_percent, "[0-9]") !=0 | (strpos(Lev4_percent, "-") !=0 & regexm(Lev4_percent, "[0-9]") !=0)
+drop low* high*
+
+** Dealing with Ranges
+foreach var of varlist Lev*_count {
+	gen low`var' = substr(`var', 1, strpos(`var', "-")-1)
+	gen high`var' = substr(`var',strpos(`var', "-")+1,5)
+	replace low`var' = high`var' if missing(low`var') & !missing(high`var')
+	replace high`var' = low`var' if missing(high`var') & !missing(low`var')
+}
+
+replace ProficientOrAbove_count = string(real(lowLev3_count) + real(lowLev4_count)) + "-" + string(real(highLev3_count) + real(highLev4_count)) if strpos(Lev3_count, "-") !=0 & regexm(Lev3_count, "[0-9]") !=0 | (strpos(Lev4_count, "-") !=0 & regexm(Lev4_count, "[0-9]") !=0)
+drop low* high*
+
+replace ProficientOrAbove_count = "--" if Lev3_count == "--" & Lev4_count == "--" 
+
+
 //Post Launch Review
 replace CountyName= "Baltimore City" if CountyCode == "24510"
 
@@ -255,6 +291,18 @@ destring Lev4_percent, gen(Lev4_percent2) force
 gen ProficientOrAbove_percent2 = string(Lev3_percent1 + Lev4_percent2) if !missing(Lev3_percent) & !missing(Lev4_percent)
 replace ProficientOrAbove_percent = ProficientOrAbove_percent2 if ProficientOrAbove_percent2 != "" & ProficientOrAbove_percent2 != "." 
 
+local a 5
+
+foreach b in `a' {
+
+replace Lev`b'_count = ""
+replace Lev`b'_percent = ""
+
+}
+
+
+
+
 
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
@@ -265,6 +313,11 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${Output}/MD_AssmtData_2024", replace
 export delimited "${Output}/MD_AssmtData_2024.csv", replace
+
+
+use "${Output}/MD_AssmtData_2024", clear
+
+
 
 
 
