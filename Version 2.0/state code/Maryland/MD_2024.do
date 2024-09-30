@@ -240,7 +240,7 @@ replace SchLevel = "Primary" if SchName == "Cabin Branch Elementary"
 replace SchVirtual = "No" if SchName == "Cabin Branch Elementary" 
 
 
-replace SchLevel = "Other" if SchName == "Colin L Powell Academy" 
+replace SchLevel = "Primary" if SchName == "Colin L Powell Academy" 
 replace SchVirtual = "No" if SchName == "Colin L Powell Academy" 
 
 replace SchLevel = "Middle" if SchName == "Non-Traditional Program Middle" 
@@ -250,7 +250,7 @@ replace SchLevel = "Middle" if SchName == "Phoenix International School of the A
 replace SchVirtual = "No" if SchName == "Phoenix International School of the Arts" 
 
 
-replace SchLevel = "Other" if SchName == "Sonia Sotomayor Middle at Adelphi" 
+replace SchLevel = "Middle" if SchName == "Sonia Sotomayor Middle at Adelphi" 
 replace SchVirtual = "No" if SchName == "Sonia Sotomayor Middle at Adelphi" 
 
 
@@ -313,11 +313,4 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${Output}/MD_AssmtData_2024", replace
 export delimited "${Output}/MD_AssmtData_2024.csv", replace
-
-
-use "${Output}/MD_AssmtData_2024", clear
-
-
-
-
 
