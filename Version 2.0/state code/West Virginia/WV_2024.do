@@ -262,7 +262,6 @@ replace StateFips = 54 if missing(StateFips)
 replace SchName = stritrim(SchName) // returns SchName with all consecutive, internal blanks collapsed to one blank.2
 
 replace SchName = "Mason Dixon Elementary" if NCESSchoolID == "540093000750"
-replace DistName = "Virtual Preparatory Academy of West Virginia" if NCESDistrictID == "5400063"
 
 tostring StudentSubGroup_TotalTested StudentGroup_TotalTested, replace 
 replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
