@@ -36,7 +36,11 @@ replace DistName = newdistname if DataLevel !=1
 replace SchName = newschname if DataLevel == 3
 replace DistName = "All Districts" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel ==1
-
+drop if DistName == "Hiawatha Valley Education District" & DataLevel== 2
+//Minnesota Department of Corrections
+drop if DistName == "Minnesota Department of Corrections" & DataLevel== 2
+//Hiawatha Valley Education District
+drop if DistName == "Mid-State Education District" & DataLevel== 2
 
 
 //Final Cleaning and Saving

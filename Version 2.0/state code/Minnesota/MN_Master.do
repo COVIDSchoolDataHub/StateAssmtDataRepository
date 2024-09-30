@@ -39,14 +39,9 @@ forval year = 1998/2018 {
 	use "${output_files}/MN_AssmtData_`year'"
 	replace StateFips = 27 if StateFips ==. 
 	replace StateAbbrev = "MN" if StateAbbrev == ""
-	replace StateAssignedDistID = "6013-61" if DistName == "Hiawatha Valley Education District"
-	replace StateAssignedDistID = "1100-60" if DistName == "Minnesota Department of Corrections"
-	replace StateAssignedDistID = "6979-61" if DistName == "Mid-State Education District"
 	save "${output_files}/MN_AssmtData_`year'", replace
 	export delimited "${output_files}/MN_AssmtData_`year'", replace
 }
-
-
 
 
 /*
