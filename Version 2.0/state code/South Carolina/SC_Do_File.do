@@ -1,6 +1,6 @@
 clear
-global path "/Volumes/T7/State Test Project/South Carolina"
-global nces "/Volumes/T7/State Test Project/NCES"
+global path "C:\Users\nseel\OneDrive\Desktop\Zelma\South Carolina"
+global nces "C:\Users\nseel\OneDrive\Desktop\Zelma\South Carolina\NCES"
 set trace on
 
 ** Clean NCES data for SC (as of 9/5/24, the 2022 file is the most recent NCES file we have)
@@ -181,8 +181,8 @@ forvalues year = 2016/2017 {
 	save "${path}/Intermediate/SC_OriginalData_`year'_soc_sci.dta", replace
 }
 
-global lateryears 2018 2019 2021 2022 2023
-foreach v in $lateryears { 
+global lateryears1 2018 2019 2021 2022 2023 
+foreach v in $lateryears1 { 
 	import excel "${path}/Original Data Files/SC_OriginalData_`v'.xlsx", sheet("State") firstrow allstring clear
 	gen DataLevel = "State"
 	save "${path}/Intermediate/SC_OriginalData_`v'_state.dta", replace
@@ -208,6 +208,35 @@ foreach v in $lateryears {
 	rename MathMEAN AvgScaleScoremath
 	save "${path}/Intermediate/SC_OriginalData_`v'_all.dta", replace
 }
+
+global lateryears2 2024
+foreach v in $lateryears2 { 
+	import excel "${path}/Original Data Files/SC_OriginalData_`v'_ela_mat_sci.xlsx", sheet("State") firstrow allstring clear
+	gen DataLevel = "State"
+	save "${path}/Intermediate/SC_OriginalData_`v'_state.dta", replace
+	import excel "${path}/Original Data Files/SC_OriginalData_`v'_ela_mat_sci.xlsx", sheet("District") firstrow allstring clear
+	gen DataLevel = "District"
+	save "${path}/Intermediate/SC_OriginalData_`v'_dist.dta", replace
+	import excel "${path}/Original Data Files/SC_OriginalData_`v'_ela_mat_sci.xlsx", sheet("School") firstrow allstring clear
+	gen DataLevel = "School"
+	append using "${path}/Intermediate/SC_OriginalData_`v'_dist.dta" "${path}/Intermediate/SC_OriginalData_`v'_state.dta"
+	rename ELApct1 Lev1_percentela
+	rename ELApct2 Lev2_percentela
+	rename ELApct3 Lev3_percentela
+	rename ELApct4 Lev4_percentela
+	rename ELApct34 ProficientOrAbove_percentela
+	rename Mathpct1 Lev1_percentmath
+	rename Mathpct2 Lev2_percentmath
+	rename Mathpct3 Lev3_percentmath
+	rename Mathpct4 Lev4_percentmath
+	rename Mathpct34 ProficientOrAbove_percentmath 
+	rename ELAN StudentSubGroup_TotalTestedela
+	rename MathN StudentSubGroup_TotalTestedmath
+	rename ELAMEAN AvgScaleScoreela
+	rename MathMEAN AvgScaleScoremath
+	save "${path}/Intermediate/SC_OriginalData_`v'_all.dta", replace
+}
+
 
 global latersciyears 2018 2019 2021 2022
 foreach v in $latersciyears {
@@ -271,7 +300,7 @@ foreach y in $years {
 
 ** Data cleaning process
 
-global years 2016 2017 2018 2019 2021 2022 2023
+global years 2016 2017 2018 2019 2021 2022 2023 2024
 foreach y in $years { 
 	use "${path}/Intermediate/SC_OriginalData_`y'_all.dta", clear
 	
@@ -363,6 +392,7 @@ foreach y in $years {
 	
 	gen Flag_CutScoreChange_soc = "N"
 	gen Flag_CutScoreChange_sci = "N"
+	replace Flag_CutScoreChange_sci = "Not applicable" if `y' == 2024
 	replace Flag_CutScoreChange_soc = "Not applicable" if `y' >= 2018
 	
 	** Generate Other Variables
@@ -427,6 +457,20 @@ foreach y in $oldyears {
 	merge m:1 State_leaid using "${path}/Intermediate/`z'_`x'_NCES_Cleaned_District.dta"
 	rename _merge district_merge
 	merge m:1 State_leaid seasch using "${path}/Intermediate/`z'_`x'_NCES_Cleaned_School.dta"
+	rename _merge school_merge
+	tab DistName if district_merge == 1 & DataLevel != "State"
+	tab SchName if school_merge == 1 & DataLevel == "School" & district_merge == 3
+	drop if district_merge != 3 & DataLevel != "State" | school_merge !=3 & DataLevel == "School"
+	save "${path}/Intermediate/SC_`y'_merged.dta", replace
+}
+
+global current 2024
+foreach y in $current { 
+	clear
+	use "${path}/Intermediate/SC_`y'_unmerged.dta"
+	merge m:1 State_leaid using "${path}/Intermediate/2022_23_NCES_Cleaned_District.dta"
+	rename _merge district_merge
+	merge m:1 State_leaid seasch using "${path}/Intermediate/2022_23_NCES_Cleaned_School.dta"
 	rename _merge school_merge
 	tab DistName if district_merge == 1 & DataLevel != "State"
 	tab SchName if school_merge == 1 & DataLevel == "School" & district_merge == 3
@@ -553,7 +597,7 @@ foreach y in $years {
 
 **  updates 
 
-global years 2016 2017 2018 2019 2021 2022 2023
+global years 2016 2017 2018 2019 2021 2022 2023 2024
 foreach y in $years {
 	
 	use "${path}/Intermediate/SC_AssmtData_`y'.dta", clear
@@ -742,6 +786,44 @@ replace DistName="York 04" if NCESDistrictID==4503900
 replace DistName="SC School for Deaf and Blind" if NCESDistrictID==4500004
 
 tostring NCESDistrictID, replace
+
+**Add new schools for 2024
+foreach var of varlist DistName SchName {
+    replace `var' = stritrim(`var') // collapses all consecutive, internal blanks to one blank.
+    replace `var' = strtrim(`var') // removes leading and trailing blanks
+}
+// Updating 2024 data for new schools
+*Highland Springs Middle, Aiken 01
+replace SchLevel = "Middle" if NCESSchoolID == "450072001775" & SchYear=="2023-24"
+replace SchVirtual = "No" if NCESSchoolID == "450072001775" & SchYear=="2023-24"
+*Carolyn Lewis School, Berkeley 01
+replace SchLevel = "Primary" if NCESSchoolID == "450117001776" & SchYear=="2023-24"
+replace SchVirtual = "No" if NCESSchoolID == "450117001776" & SchYear=="2023-24"
+*American Leadership Academy South Caroli, Charter Institute at Erskine
+replace SchLevel = "Primary" if NCESSchoolID == "450390901782" & SchYear=="2023-24"
+replace SchVirtual = "No" if NCESSchoolID == "450390901782" & SchYear=="2023-24"
+*Greenwood Charter Academy, Charter Institute at Erskine
+replace SchLevel = "Primary" if NCESSchoolID == "450390901783" & SchYear=="2023-24"
+replace SchVirtual = "No" if NCESSchoolID == "450390901783" & SchYear=="2023-24"
+*Libertas Academy - Boiling Springs, Charter Institute at Erskine
+replace SchLevel = "Primary" if NCESSchoolID == "450390901785" & SchYear=="2023-24"
+replace SchVirtual = "No" if NCESSchoolID == "450390901785" & SchYear=="2023-24"
+*East Link Academy, Limestone Charter Association
+replace SchLevel = "Primary" if NCESSchoolID == "450391901789" & SchYear=="2023-24"
+replace SchVirtual = "No" if NCESSchoolID == "450391901789" & SchYear=="2023-24"
+*Global Academy of SC, Limestone Charter Association
+replace SchLevel = "Primary" if NCESSchoolID == "450391901786" & SchYear=="2023-24"
+replace SchVirtual = "No" if NCESSchoolID == "450391901786" & SchYear=="2023-24"
+*Goucher Charter Academy, Limestone Charter Association
+replace SchLevel = "Primary" if NCESSchoolID == "450391901787" & SchYear=="2023-24"
+replace SchVirtual = "No" if NCESSchoolID == "450391901787" & SchYear=="2023-24"
+**# Bookmark #1
+*Carolus Online Academy, SC Public Charter School District
+replace SchLevel = "Primary" if NCESSchoolID == "450390101780" & SchYear=="2023-24"
+replace SchVirtual = "No" if NCESSchoolID == "450390101780" & SchYear=="2023-24"
+
+//Fix labeling of assessment
+replace AssmtName = "SC PASS" if AssmtName == "SC Pass"
 
 ** Fix Variable Order 
 
