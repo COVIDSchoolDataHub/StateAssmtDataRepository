@@ -15,11 +15,12 @@ These folders correspond to the directories in the do-files.
 - ma_district_science.xlsx in Original Data
 - ma_school_science.xlsx in Original Data
 - MA_Unmerged_2024.xlsx in main MA folder
+- ma_full-dist-sch-stable-list_through2024 from the MA DistNames folder, save to main MA folder
 
 #### For 2017-2024, run the following files in the order listed below:
 
 1. MA_NCES_New
-2. MA_Cleaning_2017_2024
+2. MA_Cleaning_2017_2024 (make sure to unhide importing code at the top)
 
 ## Notes & Updates
 - When 2024 data is released, the code only needs to be modified slightly so that the loops include 2024, since the data will be in the same format as the data we currently have.
