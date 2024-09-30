@@ -39,7 +39,7 @@ drop if ISDName != "Statewide" & DistName == "All Districts"
 
 ** Dropping extra variables
 
-drop TestPopulation ISDCode ISDName CountyCode CountyName EntityType SchoolLevel Locale MISTEM_NAME MISTEM_CODE TotalSurpassed TotalAttained TotalEmergingTowards TotalDidNotMeet PercentSurpassed PercentAttained PercentEmergingTowards PercentDidNotMeet StdDevSS MeanPtsEarned MinScaleScore MaxScaleScore ScaleScore25 ScaleScore50 ScaleScore75
+drop TestPopulation ISDCode ISDName CountyCode CountyName EntityType SchoolLevel Locale MISTEM_NAME MISTEM_CODE TotalSurpassed TotalAttained TotalEmergingTowards PercentSurpassed PercentAttained PercentEmergingTowards PercentDidNotMeet StdDevSS MeanPtsEarned MinScaleScore MaxScaleScore ScaleScore25 ScaleScore50 ScaleScore75
 
 ** Changing DataLevel
 
@@ -301,6 +301,19 @@ foreach percent of varlist Lev*_percent ProficientOrAbove_percent {
 
 //Derivations
 
+**Deriving Counts (and corresponding percents) if we have ProficientOrAbove_count & other count OR TotalDidNotMeet & other count
+
+replace Lev4_count = string(real(ProficientOrAbove_count)-real(Lev3_count)) if !missing(real(ProficientOrAbove_count)) & !missing(real(Lev3_count)) & missing(real(Lev4_count))
+replace Lev3_count = string(real(ProficientOrAbove_count)-real(Lev4_count)) if !missing(real(ProficientOrAbove_count)) & !missing(real(Lev4_count)) & missing(real(Lev3_count))
+replace Lev2_count = string(real(TotalDidNotMeet)-real(Lev1_count)) if !missing(real(TotalDidNotMeet)) & !missing(real(Lev1_count)) & missing(real(Lev2_count))
+replace Lev1_count = string(real(TotalDidNotMeet)-real(Lev2_count)) if !missing(real(TotalDidNotMeet)) & !missing(real(Lev2_count)) & missing(real(Lev1_count))
+
+foreach count of varlist Lev*_count {
+	local percent = subinstr("`count'", "count", "percent",.)
+	replace `percent' = string(real(`count')/real(StudentSubGroup_TotalTested), "%9.3g") if !missing(real(`count')) & !missing(real(StudentSubGroup_TotalTested)) & missing(real(`percent'))
+}
+drop TotalDidNotMeet
+
 **Deriving Count if we have all other counts
 
 replace Lev1_count = string(real(StudentSubGroup_TotalTested)-real(Lev4_count)-real(Lev3_count)-real(Lev2_count)) if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Lev4_count)) & !missing(real(Lev3_count)) & !missing(real(Lev2_count)) & missing(real(Lev1_count)) & (real(StudentSubGroup_TotalTested)-real(Lev4_count)-real(Lev3_count)-real(Lev2_count)) > 0
@@ -320,6 +333,42 @@ replace Lev2_percent = string(1-real(Lev4_percent)-real(Lev3_percent)-real(Lev1_
 replace Lev3_percent = string(1-real(Lev4_percent)-real(Lev1_percent)-real(Lev2_percent), "%9.3g") if !missing(1) & !missing(real(Lev4_percent)) & !missing(real(Lev1_percent)) & !missing(real(Lev2_percent)) & missing(real(Lev3_percent))  & (1-real(Lev4_percent)-real(Lev1_percent)-real(Lev2_percent) > 0.005)
 
 replace Lev4_percent = string(1-real(Lev1_percent)-real(Lev3_percent)-real(Lev2_percent), "%9.3g") if !missing(1) & !missing(real(Lev1_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev2_percent)) & missing(real(Lev4_percent))  & (1-real(Lev1_percent)-real(Lev3_percent)-real(Lev2_percent) > 0.005)
+
+** Setting ProficientOrAbove_count ranges to reflect ProficientOrAbove_percent ranges
+replace ProficientOrAbove_count = string(round(real(substr(ProficientOrAbove_percent,1, strpos(ProficientOrAbove_percent, "-")-1)) * real(StudentSubGroup_TotalTested))) + "-" + string(round(real(substr(ProficientOrAbove_percent,strpos(ProficientOrAbove_percent, "-")+1,10)) * real(StudentSubGroup_TotalTested))) if missing(real(ProficientOrAbove_count)) & regexm(ProficientOrAbove_percent, "[0-9]") !=0 & missing(real(ProficientOrAbove_percent)) & !missing(real(StudentSubGroup_TotalTested))
+
+//Edits to IDs in response to V2.0 R2
+replace NCESDistrictID = "2680850" if SchName == "LAKESHORE LEARNING CENTER"
+replace StateAssignedDistID = "61000" if SchName == "LAKESHORE LEARNING CENTER"
+replace NCESSchoolID = "268085007799" if SchName == "LAKESHORE LEARNING CENTER"
+
+replace NCESSchoolID = "261560001772" if SchName == "Consolidated Community School Services" & StateAssignedSchID == "9417"
+replace NCESDistrictID = "2615600" if SchName == "Consolidated Community School Services" & StateAssignedSchID == "9417"
+replace DistType = "Regular local school district" if SchName == "Consolidated Community School Services" & StateAssignedSchID == "9417"
+replace CountyName = "Mackinac County" if SchName == "Consolidated Community School Services" & StateAssignedSchID == "9417"
+replace DistCharter = "No" if SchName == "Consolidated Community School Services" & StateAssignedSchID == "9417"
+replace DistLocale = "Rural, remote" if SchName == "Consolidated Community School Services" & StateAssignedSchID == "9417"
+replace CountyCode = "26097" if SchName == "Consolidated Community School Services" & StateAssignedSchID == "9417"
+
+replace NCESDistrictID = "2680620" if DistName == "Kent ISD - District created from ISD" & SchName == "Kent Education Center--Oakleigh"
+replace NCESSchoolID = "268062005335" if DistName == "Kent ISD - District created from ISD" & SchName == "Kent Education Center--Oakleigh"
+replace DistType = "Specialized public school district" if DistName == "Kent ISD - District created from ISD" & SchName == "Kent Education Center--Oakleigh"
+replace DistCharter = "No" if DistName == "Kent ISD - District created from ISD" & SchName == "Kent Education Center--Oakleigh"
+replace CountyName = "Kent County" if DistName == "Kent ISD - District created from ISD" & SchName == "Kent Education Center--Oakleigh"
+replace CountyCode = "26081" if DistName == "Kent ISD - District created from ISD" & SchName == "Kent Education Center--Oakleigh"
+
+
+replace DistName = "Hamilton Academy" if NCESDistrictID == "2600987" & DataLevel == 3
+
+merge m:1 DistName SchName SchYear using "MI_NCESUpdates_2018_2024", nogen keep(match master)
+replace NCESDistrictID = NCESDistrictIDNEW if !missing(NCESDistrictIDNEW)
+replace NCESSchoolID = NCESSchoolIDNEW if !missing(NCESSchoolIDNEW)
+replace SchLevel = SchLevelNEW if !missing(SchLevelNEW)
+replace SchVirtual = SchVirtualNEW if !missing(SchLevelNEW)
+drop *NEW
+
+//StateAssignedSchID format updates: response to R2 V2.0
+replace StateAssignedSchID = string(real(StateAssignedSchID), "%4.0f") if DataLevel == 3
 
 //Final Cleaning
 
