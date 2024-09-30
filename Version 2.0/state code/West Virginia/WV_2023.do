@@ -227,9 +227,7 @@ drop  _merge merge2
 replace StateAbbrev = "WV"
 replace StateFips = 54
 
-//Charter Schools are Districts in NCES, Districts and Schools in Raw data. Schools have duplicate values as districts. Dropping here.
-drop if DataLevel == "School" & (SchName == "Eastern Panhandle Preparatory Academy" | SchName == "Virtual Preparatory Academy of West Virginia" | SchName == "West Virginia Academy" | SchName == "West Virginia Virtual Academy")
-
+//Unmerged Schools
 replace NCESSchoolID = "540006201604" if SchName == "Eastern Panhandle Preparatory Academy"
 replace SchType = "Other" if SchName == "Eastern Panhandle Preparatory Academy"
 replace SchLevel = "Regular School" if SchName == "Eastern Panhandle Preparatory Academy"
