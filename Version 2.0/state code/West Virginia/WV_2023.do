@@ -306,7 +306,7 @@ replace ParticipationRate = ParticipationRate1
 replace ParticipationRate = "--" if missing(ParticipationRate)
 
 replace SchName = "Mason Dixon Elementary" if NCESSchoolID == "540093000750"
-replace DistName = "Virtual Preparatory Academy of West Virginia" if NCESDistrictID == "5400063"
+replace DistName = "Virtual Preparatory Academy of West Virginia" if NCESDistrictID==5400063
 
 //Missing & Suppressed Data
 replace Lev1_percent = "--" if Lev1_percent == ""
