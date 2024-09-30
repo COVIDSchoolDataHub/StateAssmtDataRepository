@@ -1,7 +1,7 @@
 
 # Michigan Data Cleaning
 
-This is a ReadMe for Michigan's data cleaning process, from 2015 to 2023.
+This is a ReadMe for Michigan's data cleaning process, from 2015 to 2024.
 
 
 
