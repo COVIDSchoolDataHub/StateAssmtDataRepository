@@ -227,66 +227,28 @@ drop  _merge merge2
 replace StateAbbrev = "WV"
 replace StateFips = 54
 
-//Charter Schools are Districts in NCES, Districts and Schools in Raw data. Schools have duplicate values as districts. Dropping here.
-drop if DataLevel == "School" & (SchName == "Eastern Panhandle Preparatory Academy" | SchName == "Virtual Preparatory Academy of West Virginia" | SchName == "West Virginia Academy" | SchName == "West Virginia Virtual Academy")
-
-/*
 //Unmerged Schools
 replace NCESSchoolID = "540006201604" if SchName == "Eastern Panhandle Preparatory Academy"
-replace seasch = "1020000-102102" if SchName == "Eastern Panhandle Preparatory Academy"
-replace SchVirtual = -1 if SchName == "Eastern Panhandle Preparatory Academy"
-replace SchType = 1 if SchName == "Eastern Panhandle Preparatory Academy"
-replace SchLevel = -1 if SchName == "Eastern Panhandle Preparatory Academy"
-replace NCESDistrictID = "5400062" if DistName == "EP Prep Academy"
-replace CountyName = "Jefferson County" if DistName == "EP Prep Academy"
-replace CountyCode = "54037" if DistName == "EP Prep Academy"
-replace DistCharter = "Yes" if DistName == "EP Prep Academy"
-replace DistType = "Charter agency" if DistName == "EP Prep Academy"
-replace State_leaid = "WV-1020000" if DistName == "EP Prep Academy"
+replace SchType = "Other" if SchName == "Eastern Panhandle Preparatory Academy"
+replace SchLevel = "Regular School" if SchName == "Eastern Panhandle Preparatory Academy"
 
 replace NCESSchoolID = "540006301605" if SchName == "Virtual Preparatory Academy of West Virginia"
-replace seasch = "1040000-104104" if SchName == "Virtual Preparatory Academy of West Virginia"
-replace SchVirtual = 1 if SchName == "Virtual Preparatory Academy of West Virginia"
-replace SchType = 1 if SchName == "Virtual Preparatory Academy of West Virginia"
-replace SchLevel = -1 if SchName == "Virtual Preparatory Academy of West Virginia"
-replace NCESDistrictID = "5400063" if DistName == "Virt Prep Academy"
-replace DistCharter = "Yes" if DistName == "Virt Prep Academy"
-replace DistType = "Charter agency" if DistName == "Virt Prep Academy"
-replace CountyName = "Jefferson County" if DistName == "Virt Prep Academy"
-replace CountyCode = "54037" if DistName == "Virt Prep Academy"
-replace State_leaid = "WV-1040000" if DistName == "Virt Prep Academy"
+replace SchVirtual = "Supplemental Virtual" if SchName == "Virtual Preparatory Academy of West Virginia"
+replace SchType = "Regular School" if SchName == "Virtual Preparatory Academy of West Virginia"
+replace SchLevel = "Other" if SchName == "Virtual Preparatory Academy of West Virginia"
+replace DistName = "Virtual Preparatory Academy of West Virginia" if NCESDistrictID == "5400063"
 
 replace NCESSchoolID = "540006401606" if SchName == "West Virginia Virtual Academy"
-replace seasch = "1050000-105105" if SchName == "West Virginia Virtual Academy"
-replace SchVirtual = -1 if SchName == "West Virginia Virtual Academy"
-replace SchType = 1 if SchName == "West Virginia Virtual Academy"
-replace SchLevel = -1 if SchName == "West Virginia Virtual Academy"
-replace NCESDistrictID = "5400064" if DistName == "WV Virt Academy"
-replace DistCharter = "Yes" if DistName == "WV Virt Academy"
-replace DistType = "Charter agency" if DistName == "WV Virt Academy"
-replace CountyName = "Kanawha County" if DistName == "WV Virt Academy"
-replace CountyCode = "54039" if DistName == "WV Virt Academy"
-replace State_leaid = "WV-1050000" if DistName == "WV Virt Academy"
+replace SchVirtual = "Supplemental Virtual" if SchName == "West Virginia Virtual Academy"
+replace SchType = "Regular School" if SchName == "West Virginia Virtual Academy"
+replace SchLevel = "Other" if SchName == "West Virginia Virtual Academy"
 
 replace NCESSchoolID = "540165201611" if SchName == "West Virginia Academy"
-replace seasch = "1010000-101101" if SchName == "West Virginia Academy"
-replace SchVirtual = -1 if SchName == "West Virginia Academy"
-replace SchType = 1 if SchName == "West Virginia Academy"
-replace SchLevel = -1 if SchName == "West Virginia Academy"
-replace NCESDistrictID = "5401652" if DistName == "WV Academy"
-replace CountyName = "Monongalia County" if DistName == "WV Academy"
-replace CountyCode = "54061" if DistName == "WV Academy"
-replace DistCharter = "Yes" if DistName == "WV Academy"
-replace DistType = "Charter agency" if DistName == "WV Academy"
-replace State_leaid = "WV-1010000" if DistName == "WV Academy"
+replace SchType = "Regular School" if SchName == "West Virginia Academy"
+replace SchLevel = "Other" if SchName == "West Virginia Academy"
 
-
-replace NCESSchoolID = "540051001608" if SchName == "Victory Elementary School"
-replace seasch = "3300000-33236" if SchName == "Victory Elementary School"
-replace SchLevel = 1 if SchName == "Victory Elementary School"
-replace SchType = 1 if SchName == "Victory Elementary School"
-replace SchVirtual = -1 if SchName == "Victory Elementary School"
-*/
+replace SchType = "Regular School" if SchName == "Victory Elementary School"
+replace SchVirtual = "Supplemental Virtual" if SchName == "Victory Elementary School"
 
 //Variable Types
 label def DataLevel 1 "State" 2 "District" 3 "School"

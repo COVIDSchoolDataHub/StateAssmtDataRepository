@@ -131,15 +131,30 @@ foreach var of varlist Lev*_percent {
 	replace low`var' = high`var' if missing(low`var') & !missing(high`var')
 	replace high`var' = low`var' if missing(high`var') & !missing(low`var')
 }
-replace ProficientOrAbove_percent = string(real(lowLev4_percent) + real(lowLev5_percent)) + "-" + string(real(highLev4_percent) + real(highLev5_percent)) if strpos(Lev4_percent, "-") !=0 & regexm(Lev4_percent, "[0-9]") !=0 | (strpos(Lev5_percent, "-") !=0 & regexm(Lev5_percent, "[0-9]") !=0) & Subject != "sci"
-replace ProficientOrAbove_percent = string(real(lowLev2_percent) + real(lowLev3_percent)) + "-" + string(real(highLev2_percent) + real(highLev3_percent)) if strpos(Lev2_percent, "-") !=0 & regexm(Lev2_percent, "[0-9]") !=0 | (strpos(Lev3_percent, "-") !=0 & regexm(Lev3_percent, "[0-9]") !=0) & Subject == "sci"
-drop low* high*
 
 //Deriving Counts with Ranges
 foreach count of varlist *_count {
 local percent = subinstr("`count'", "count","percent",.)	
 replace `count' = string(round(real(substr(`percent', 1, strpos(`percent', "-")-1))*real(StudentSubGroup_TotalTested))) + "-" + string(round(real(substr(`percent',strpos(`percent', "-")+1,5))*real(StudentSubGroup_TotalTested))) if missing(real(`count')) & strpos(`percent', "-") !=0 & regexm(`percent', "[0-9]") !=0 & regexm(StudentSubGroup_TotalTested, "[0-9]") !=0
 }
+
+replace ProficientOrAbove_percent = string(real(lowLev4_percent) + real(lowLev5_percent)) + "-" + string(real(highLev4_percent) + real(highLev5_percent)) if strpos(Lev4_percent, "-") !=0 & regexm(Lev4_percent, "[0-9]") !=0 & Subject != "sci" | (strpos(Lev5_percent, "-") !=0 & regexm(Lev5_percent, "[0-9]") !=0) & Subject != "sci"
+replace ProficientOrAbove_percent = string(real(lowLev2_percent) + real(lowLev3_percent)) + "-" + string(real(highLev2_percent) + real(highLev3_percent)) if strpos(Lev2_percent, "-") !=0 & regexm(Lev2_percent, "[0-9]") !=0 & Subject == "sci" | (strpos(Lev3_percent, "-") !=0 & regexm(Lev3_percent, "[0-9]") !=0) & Subject == "sci"
+drop low* high*
+
+** Dealing with Ranges
+foreach var of varlist Lev*_count {
+	gen low`var' = substr(`var', 1, strpos(`var', "-")-1)
+	gen high`var' = substr(`var',strpos(`var', "-")+1,5)
+	replace low`var' = high`var' if missing(low`var') & !missing(high`var')
+	replace high`var' = low`var' if missing(high`var') & !missing(low`var')
+}
+
+
+replace ProficientOrAbove_count = string(real(lowLev4_count) + real(lowLev5_count)) + "-" + string(real(highLev4_count) + real(highLev5_count)) if strpos(Lev4_count, "-") !=0 & regexm(Lev4_count, "[0-9]") !=0 & Subject != "sci" | (strpos(Lev5_count, "-") !=0 & regexm(Lev5_count, "[0-9]") !=0) & Subject != "sci"
+replace ProficientOrAbove_count = string(real(lowLev2_count) + real(lowLev3_count)) + "-" + string(real(highLev2_count) + real(highLev3_count)) if strpos(Lev2_count, "-") !=0 & regexm(Lev2_count, "[0-9]") !=0 & Subject == "sci" | (strpos(Lev3_count, "-") !=0 & regexm(Lev3_count, "[0-9]") !=0) & Subject == "sci"
+drop low* high*
+
 
 //Indicator and Missing Variables
 gen StudentSubGroup = "All Students"
@@ -182,6 +197,9 @@ foreach percent of varlist Lev*_percent ProficientOrAbove_percent {
 }
 
 
+replace ProficientOrAbove_percent = "--" if ProficientOrAbove_count == "*" & ProficientOrAbove_percent == ""
+
+
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
  
@@ -193,4 +211,4 @@ save "${Output}/MD_AssmtData_2016", replace
 export delimited "${Output}/MD_AssmtData_2016", replace
 
 
-
+list Subject SchName if ProficientOrAbove_percent== ""

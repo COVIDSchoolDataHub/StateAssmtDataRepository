@@ -127,9 +127,12 @@ foreach var of varlist Lev*_percent {
 	replace low`var' = high`var' if missing(low`var') & !missing(high`var')
 	replace high`var' = low`var' if missing(high`var') & !missing(low`var')
 }
-replace ProficientOrAbove_percent = string(real(lowLev4_percent) + real(lowLev5_percent)) + "-" + string(real(highLev4_percent) + real(highLev5_percent)) if strpos(Lev4_percent, "-") !=0 & regexm(Lev4_percent, "[0-9]") !=0 | (strpos(Lev5_percent, "-") !=0 & regexm(Lev5_percent, "[0-9]") !=0) & Subject != "sci"
-replace ProficientOrAbove_percent = string(real(lowLev2_percent) + real(lowLev3_percent)) + "-" + string(real(highLev2_percent) + real(highLev3_percent)) if strpos(Lev2_percent, "-") !=0 & regexm(Lev2_percent, "[0-9]") !=0 | (strpos(Lev3_percent, "-") !=0 & regexm(Lev3_percent, "[0-9]") !=0) & Subject == "sci"
+
+
+replace ProficientOrAbove_percent = string(real(lowLev4_percent) + real(lowLev5_percent)) + "-" + string(real(highLev4_percent) + real(highLev5_percent)) if strpos(Lev4_percent, "-") !=0 & regexm(Lev4_percent, "[0-9]") !=0 & Subject != "sci" | (strpos(Lev5_percent, "-") !=0 & regexm(Lev5_percent, "[0-9]") !=0) & Subject != "sci"
+replace ProficientOrAbove_percent = string(real(lowLev2_percent) + real(lowLev3_percent)) + "-" + string(real(highLev2_percent) + real(highLev3_percent)) if strpos(Lev2_percent, "-") !=0 & regexm(Lev2_percent, "[0-9]") !=0 & Subject == "sci" | (strpos(Lev3_percent, "-") !=0 & regexm(Lev3_percent, "[0-9]") !=0) & Subject == "sci"
 drop low* high*
+
 
 
 //Deriving Counts with Ranges

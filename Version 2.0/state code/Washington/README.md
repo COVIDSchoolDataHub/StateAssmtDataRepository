@@ -5,7 +5,8 @@ WA only uses the following do-files:
 - Washington NCES Cleaning.do
 - washington_updated.do
 
-- washington_BIE_updated.do is **NOT** currently being used; BIE schools not currently in repository. If we want to update BIE schools, we need to change the rescaling code to match the code in washington_updated.do. In the main washington_updated.do file, this is represented by the following code:
+- washington_BIE_updated.do is **NOT** currently being used; BIE schools not currently in repository.
+- In the main washington_updated.do file, we have rescaled level percents to align with our standards in the following way:
 
 ```
 //Deriving Level Counts & Percents based on ParticipationRate
@@ -38,5 +39,5 @@ foreach count of varlist Lev*_count {
 
 8/1/24: Applied new StudentGroup_TotalTested convention to all files. Investigated "NULL" values in raw data, confirmed they were correctly coded as suppressed.
 
-9/21/24: Incorporated 2024 data, implemented changes from V2.0 Review
+9/21/24: Incorporated 2024 data, implemented changes from V2.0 Review. Updated BIE code.
 

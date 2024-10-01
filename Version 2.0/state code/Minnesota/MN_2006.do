@@ -232,10 +232,24 @@ replace seasch = "" if DataLevel != 3
 replace State_leaid = "" if DataLevel == 1
 replace StateAbbrev = "MN" if StateAbbrev == ""
 
+
+replace StateFips = 27 if StateFips ==. 
+
+
+// The following districts have no district-level raw data (the districts are not included in the raw data) and so we're dropping from the output.
+//Mid-State Education District
+cap drop if StateAssignedDistID=="6979-61" & DataLevel=="District" & (SchYear=="2005-06" | SchYear=="2006-07"| SchYear=="2007-08"| SchYear=="2008-09"| SchYear=="2009-10")
+//Minnesota Department of Corrections
+cap drop if StateAssignedDistID=="1100-60" & DataLevel=="District" & (SchYear=="2005-06" | SchYear=="2008-09" | SchYear=="2017-18")
+//Hiawatha Valley Education District
+cap drop if StateAssignedDistID=="6013-61" & DataLevel=="District" & (SchYear=="2007-08" | SchYear=="2010-11")
+
+
 // Reordering variables and sorting data
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 drop State_leaid seasch
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
 
 
 // Saving and exporting transformed data

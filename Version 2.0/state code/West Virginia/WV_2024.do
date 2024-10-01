@@ -222,8 +222,27 @@ rename state_fips_id StateFips
 rename state_leaid State_leaid
 rename state_location StateAbbrev
 
-//Charter Schools are Districts in NCES, Districts and Schools in Raw data. Schools have duplicate values as districts. Dropping here.
-drop if DataLevel == "School" & (SchName == "Eastern Panhandle Preparatory Academy" | SchName == "Virtual Preparatory Academy of West Virginia" | SchName == "West Virginia Academy" | SchName == "West Virginia Virtual Academy")
+replace NCESSchoolID = "540006201604" if SchName == "Eastern Panhandle Preparatory Academy"
+replace SchType = "Other" if SchName == "Eastern Panhandle Preparatory Academy"
+replace SchLevel = "Regular School" if SchName == "Eastern Panhandle Preparatory Academy"
+
+replace NCESSchoolID = "540006301605" if SchName == "Virtual Preparatory Academy of West Virginia"
+replace SchVirtual = "Supplemental Virtual" if SchName == "Virtual Preparatory Academy of West Virginia"
+replace SchType = "Regular School" if SchName == "Virtual Preparatory Academy of West Virginia"
+replace SchLevel = "Other" if SchName == "Virtual Preparatory Academy of West Virginia"
+replace DistName = "Virtual Preparatory Academy of West Virginia" if NCESDistrictID == "5400063"
+
+replace NCESSchoolID = "540006401606" if SchName == "West Virginia Virtual Academy"
+replace SchVirtual = "Supplemental Virtual" if SchName == "West Virginia Virtual Academy"
+replace SchType = "Regular School" if SchName == "West Virginia Virtual Academy"
+replace SchLevel = "Other" if SchName == "West Virginia Virtual Academy"
+
+replace NCESSchoolID = "540165201611" if SchName == "West Virginia Academy"
+replace SchType = "Regular School" if SchName == "West Virginia Academy"
+replace SchLevel = "Other" if SchName == "West Virginia Academy"
+
+replace SchType = "Regular School" if SchName == "Victory Elementary School"
+replace SchVirtual = "Supplemental Virtual" if SchName == "Victory Elementary School"
 
 //Variable Types
 label def DataLevel 1 "State" 2 "District" 3 "School"

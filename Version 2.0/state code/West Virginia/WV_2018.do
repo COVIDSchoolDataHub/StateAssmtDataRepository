@@ -221,6 +221,7 @@ replace StudentSubGroup_TotalTested = dummy if DataLevel == "State" & num != .
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
 replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
 
 //Proficiency Levels
 forvalues n = 1/4 {
@@ -236,6 +237,7 @@ forvalues n = 1/4 {
 	replace Lev`n'_count = "*" if Lev`n'_pct == "**"
 	replace Lev`n'_count = "--" if Lev`n'_pct == "--"
 	replace Lev`n'_count = "--" if StudentSubGroup_TotalTested == "--" & Lev`n'_count != "*"
+	replace Lev`n'_count = "0" if Lev`n'_count == "." & Lev`n'_pct == "0"
 }
 
 replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == ""
@@ -251,6 +253,11 @@ tostring ProficientOrAbove_count, replace
 replace ProficientOrAbove_count = "*" if Prof_pct == "**"
 replace ProficientOrAbove_count = "--" if Prof_pct == "--"
 replace ProficientOrAbove_count = "--" if StudentSubGroup_TotalTested == "--" & ProficientOrAbove_count != "*"
+
+//Proficiency Levels
+forvalues n = 1/4 {
+replace StudentSubGroup_TotalTested = "0" if StudentSubGroup_TotalTested == "--" & Lev`n'_count == "0"
+}
 
 drop Lev1_pct Lev2_pct Lev3_pct Lev4_pct Prof_pct num dummy state
 
