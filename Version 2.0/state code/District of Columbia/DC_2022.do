@@ -130,12 +130,9 @@ replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Dis
 replace StudentGroup = "Gender" if StudentSubGroup == "Male" | StudentSubGroup == "Female" | StudentSubGroup == "Gender X"
 replace StudentGroup = "EL Status" if StudentSubGroup == "English Proficient" | StudentSubGroup == "English Learner" | StudentSubGroup == "EL and Monit or Recently Ex" 
 replace StudentGroup = "RaceEth" if StudentSubGroup == "Hispanic or Latino"
-
-// updated
 replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD"
 replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless" | StudentSubGroup == "Non-Homeless"
 replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Military" | StudentSubGroup == "Non-Military"
-// updated
 
 //Suppressed/ missing values
 foreach var of varlist _all {
@@ -166,6 +163,7 @@ foreach n in 1 2 3 4 5 {
 
 replace StudentSubGroup_TotalTested = string(nLev1_count + nLev2_count + nLev3_count + nLev4_count + nLev5_count) if !missing(nLev1_count) & !missing(nLev2_count) & !missing(nLev3_count) & !missing(nLev4_count) & !missing(nLev5_count) & StudentSubGroup_TotalTested != "*"
 
+replace SchName = stritrim(SchName)
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
 replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
@@ -215,7 +213,6 @@ append using "`tempsch'" "`tempdist'"
 rename state_location StateAbbrev
 rename state_fips StateFips
 rename district_agency_type DistType
-// rename school_type SchType
 rename ncesdistrictid NCESDistrictID
 rename state_leaid State_leaid
 rename ncesschoolid NCESSchoolID
@@ -232,7 +229,7 @@ gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_sci = "N" 
-gen Flag_CutScoreChange_soc = "Not Applicable"
+gen Flag_CutScoreChange_soc = "Not applicable"
 
 gen ProficiencyCriteria = "Levels 4-5"
 gen AssmtType = "Regular"
@@ -285,13 +282,41 @@ foreach count of varlist Lev*_count {
 local percent = subinstr("`count'", "count", "percent",.)
 replace `count' = string(round(real(`percent') * real(StudentSubGroup_TotalTested))) if regexm(`count', "[*-]") !=0 & regexm(`percent', "[*-]") == 0 & regexm(StudentSubGroup_TotalTested, "[*-]") == 0 
 }
+replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent) * real(StudentSubGroup_TotalTested))) if !missing(real(ProficientOrAbove_percent)) & !missing(real(StudentSubGroup_TotalTested)) & missing(real(ProficientOrAbove_count))
 
 //Deriving ProficientOrAbove_count and ProficientOrAbove_percent where possible if Levels 1-3 are available (for ela and math)/Levels 1-2 are available (for sci)
 replace ProficientOrAbove_count = string(real(StudentSubGroup_TotalTested) - real(Lev1_count) - real(Lev2_count) - real(Lev3_count)) if Subject != "sci" & regexm(ProficientOrAbove_count, "[*-]") !=0 & regexm(Lev1_count, "[*-]") == 0 & regexm(Lev2_count, "[*-]") == 0 & regexm(Lev3_count, "[*-]") == 0
 replace ProficientOrAbove_count = string(real(StudentSubGroup_TotalTested) - real(Lev1_count) - real(Lev2_count)) if Subject == "sci" & regexm(ProficientOrAbove_count, "[*-]") !=0 & regexm(Lev1_count, "[*-]") == 0 & regexm(Lev2_count, "[*-]") == 0
 replace ProficientOrAbove_percent = string(1 - real(Lev1_percent) - real(Lev2_percent) - real(Lev3_percent), "%9.3g") if Subject != "sci" & regexm(ProficientOrAbove_percent, "[*-]") !=0 & regexm(Lev1_percent, "[*-]") == 0 & regexm(Lev2_percent, "[*-]") == 0 & regexm(Lev3_percent, "[*-]") == 0
-replace ProficientOrAbove_percent = string(1 - real(Lev1_percent) - real(Lev2_percent), "%9.3g") if Subject != "sci" & regexm(ProficientOrAbove_percent, "[*-]") !=0 & regexm(Lev1_percent, "[*-]") == 0 & regexm(Lev2_percent, "[*-]") == 0
+replace ProficientOrAbove_percent = string((1 - real(Lev1_percent) - real(Lev2_percent)), "%9.4g") if Subject != "sci" & regexm(ProficientOrAbove_percent, "[*-]") !=0 & regexm(Lev1_percent, "[*-]") == 0 & regexm(Lev2_percent, "[*-]") == 0
+replace ProficientOrAbove_percent = string((1 - real(Lev1_percent) - real(Lev2_percent)), "%9.4g") if Subject == "sci" & missing(real(ProficientOrAbove_percent)) & !missing(real(Lev1_percent)) & !missing(real(Lev2_percent))
+replace ProficientOrAbove_percent = "0" if real(ProficientOrAbove_percent) < 0
+replace ProficientOrAbove_percent = "0" if inlist(ProficientOrAbove_percent, "1.11e-16", "1.39e-17", "2.78e-17", "4.16e-17", "5.55e-17")
 
+replace Lev3_percent = string((1 - real(ProficientOrAbove_percent) - real(Lev1_percent) - real(Lev2_percent)), "%9.4g") if Lev3_percent == "*" & !missing(real(ProficientOrAbove_percent)) & !missing(real(Lev1_percent)) & !missing(real(Lev2_percent)) & Subject != "sci"
+replace Lev3_percent = "0" if real(Lev3_percent) < 0
+
+replace Lev3_percent = string((real(ProficientOrAbove_percent) - real(Lev4_percent)), "%9.4g") if missing(real(Lev3_percent)) & !missing(real(Lev4_percent)) & !missing(real(ProficientOrAbove_percent)) & Subject == "sci"
+replace Lev4_percent = string((real(ProficientOrAbove_percent) - real(Lev3_percent)), "%9.4g") if Lev4_percent == "*" & Lev3_percent != "*" & ProficientOrAbove_percent != "*" & Subject == "sci"
+replace Lev4_percent = string((real(ProficientOrAbove_percent) - real(Lev5_percent)), "%9.4g") if Lev4_percent == "*" & Lev5_percent != "*" & ProficientOrAbove_percent != "*" & Subject != "sci"
+replace Lev5_percent = string((real(ProficientOrAbove_percent) - real(Lev4_percent)), "%9.4g") if Lev5_percent == "*" & Lev4_percent != "*" & ProficientOrAbove_percent != "*" & Subject != "sci"
+
+replace Lev1_percent = string((1 - real(ProficientOrAbove_percent) - real(Lev2_percent)), "%9.4g") if missing(real(Lev1_percent)) & !missing(real(ProficientOrAbove_percent)) & !missing(Lev2_percent) & Subject == "sci"
+
+//Deriving Lev*_count
+foreach count of varlist Lev*_count {
+local percent = subinstr("`count'", "count", "percent",.)
+replace `count' = string(round(real(`percent') * real(StudentSubGroup_TotalTested))) if regexm(`count', "[*-]") !=0 & regexm(`percent', "[*-]") == 0 & regexm(StudentSubGroup_TotalTested, "[*-]") == 0 
+}
+replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent) * real(StudentSubGroup_TotalTested))) if !missing(real(ProficientOrAbove_percent)) & !missing(real(StudentSubGroup_TotalTested)) & missing(real(ProficientOrAbove_count))
+
+replace Lev3_count = string(round((1 - real(ProficientOrAbove_count) - real(Lev1_count) - real(Lev2_count)))) if missing(real(Lev3_count)) & !missing(real(ProficientOrAbove_count)) & !missing(real(Lev1_count)) & !missing(real(Lev2_count)) & Subject != "sci"
+replace Lev3_count = "0" if real(Lev3_count) < 0
+replace Lev3_percent = "0" if Lev3_count == "0"
+
+//Dropping observations without "All Students" counterpart or any actual information
+drop if NCESDistrictID == "1100099" & DataLevel == 2 & Subject == "sci" & GradeLevel == "G08" & inlist(StudentSubGroup, "SWD", "Homeless")
+drop if NCESDistrictID == "1100099" & NCESSchoolID == "110009900502" & Subject == "sci" & GradeLevel == "G08" & inlist(StudentSubGroup, "SWD", "Homeless")
 
 drop State_leaid seasch
 

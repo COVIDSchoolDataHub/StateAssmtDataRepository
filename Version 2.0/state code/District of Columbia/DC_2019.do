@@ -84,22 +84,16 @@ replace StateAssignedSchID = "" if DataLevel ==1 | DataLevel ==2
 
 //StudentSubGroup
 replace StudentSubGroup = subinstr(StudentSubGroup, "/", " or ",.)
-// replace StudentSubGroup = "English Learner" if strpos(StudentSubGroup, "Learner") !=0
 replace StudentSubGroup = "All Students" if StudentSubGroup == "All"
 replace StudentSubGroup = "Two or More" if StudentSubGroup == "Two or More Races"
 replace StudentSubGroup = "White" if StudentSubGroup == "White or Caucasian"
 replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "Pacific Islander or Native Hawaiian"
 replace StudentSubGroup = subinstr(StudentSubGroup, "Alaskan", "Alaska",.)
-replace StudentSubGroup = "EL and Monit or Recently Ex" if StudentSubGroup == "Active or Monitored English Learner" // updated
-
-// updated
+replace StudentSubGroup = "EL and Monit or Recently Ex" if StudentSubGroup == "Active or Monitored English Learner"
 replace StudentSubGroup = "SWD" if StudentSubGroup == "Students with Disabilities"
 
 
-keep if StudentSubGroup == "All Students" | StudentSubGroup == "American Indian or Alaska Native" | StudentSubGroup == "Asian" | StudentSubGroup == "Black or African American" | StudentSubGroup == "Native Hawaiian or Pacific Islander" | StudentSubGroup == "White" | StudentSubGroup == "Hispanic or Latino" | StudentSubGroup == "English Learner" | StudentSubGroup == "English Proficient" | StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged" | StudentSubGroup == "Male" | StudentSubGroup == "Female" | StudentSubGroup == "Two or More" | StudentSubGroup == "Gender X" | StudentSubGroup == "English Learner" | StudentSubGroup == "EL and Monit or Recently Ex" | StudentSubGroup == "SWD" | StudentSubGroup == "Non-SWD" | StudentSubGroup == "Homeless" |  StudentSubGroup == "Non-Homeless"| StudentSubGroup == "Military" | StudentSubGroup == "Non-Military"  // updated
-
-
-
+keep if StudentSubGroup == "All Students" | StudentSubGroup == "American Indian or Alaska Native" | StudentSubGroup == "Asian" | StudentSubGroup == "Black or African American" | StudentSubGroup == "Native Hawaiian or Pacific Islander" | StudentSubGroup == "White" | StudentSubGroup == "Hispanic or Latino" | StudentSubGroup == "English Learner" | StudentSubGroup == "English Proficient" | StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged" | StudentSubGroup == "Male" | StudentSubGroup == "Female" | StudentSubGroup == "Two or More" | StudentSubGroup == "Gender X" | StudentSubGroup == "English Learner" | StudentSubGroup == "EL and Monit or Recently Ex" | StudentSubGroup == "SWD" | StudentSubGroup == "Non-SWD" | StudentSubGroup == "Homeless" |  StudentSubGroup == "Non-Homeless"| StudentSubGroup == "Military" | StudentSubGroup == "Non-Military"
 
 //StudentGroup
 gen StudentGroup = ""
@@ -107,12 +101,10 @@ replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
 replace StudentGroup = "RaceEth" if StudentSubGroup == "American Indian or Alaska Native" | StudentSubGroup == "Asian" | StudentSubGroup == "Black or African American" | StudentSubGroup == "White" | StudentSubGroup == "Two or More" | StudentSubGroup == "Native Hawaiian or Pacific Islander"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged"
 replace StudentGroup = "Gender" if StudentSubGroup == "Male" | StudentSubGroup == "Female"
-replace StudentGroup = "EL Status" if StudentSubGroup == "English Proficient" | StudentSubGroup == "English Learner" | StudentSubGroup == "EL and Monit or Recently Ex"  // updated
+replace StudentGroup = "EL Status" if StudentSubGroup == "English Proficient" | StudentSubGroup == "English Learner" | StudentSubGroup == "EL and Monit or Recently Ex"
 replace StudentGroup = "RaceEth" if StudentSubGroup == "Hispanic or Latino"
-
-
-// updated 
 replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD"
+replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless"
 
 //GradeLevel
 replace GradeLevel = subinstr(GradeLevel, "Grade ","",.)
@@ -192,20 +184,11 @@ replace StateAbbrev = "DC"
 //Generating additional variables
 gen State = "District of Columbia"
 gen AvgScaleScore = "--"
-// gen Flag_AssmtNameChange = "N"
-// gen Flag_CutScoreChange_ELA = "N"
-// gen Flag_CutScoreChange_math = "N"
-// gen Flag_CutScoreChange_oth = "Y"
-// gen Flag_CutScoreChange_read = ""
-
-// updated 
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_sci = "N" // changed to N because no evidence to suggest a change in cutscore, we just have the data
-gen Flag_CutScoreChange_soc = "Not Applicable"
-// updated 
-
+gen Flag_CutScoreChange_sci = "N"
+gen Flag_CutScoreChange_soc = "Not applicable"
 
 
 gen ProficiencyCriteria = "Levels 4-5"
@@ -228,6 +211,7 @@ foreach n in 1 2 3 4 5 {
 
 replace StudentSubGroup_TotalTested = string(nLev1_count + nLev2_count + nLev3_count + nLev4_count + nLev5_count) if !missing(nLev1_count) & !missing(nLev2_count) & !missing(nLev3_count) & !missing(nLev4_count) & !missing(nLev5_count) & StudentSubGroup_TotalTested != "*"
 
+replace SchName = stritrim(SchName)
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
 replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
@@ -270,8 +254,6 @@ replace DistName="Statesmen College Preparatory Academy for Boys PCS" if NCESDis
 replace DistName="The Children's Guild DC PCS" if NCESDistrictID== "1100101"
 replace DistName="City Arts & Prep PCS" if NCESDistrictID== "1100053" // this was also Doar, but same dist/sch 
 
-replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless"
-
 //Deriving Lev*_count
 foreach count of varlist Lev*_count {
 local percent = subinstr("`count'", "count", "percent",.)
@@ -292,4 +274,4 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 duplicates drop
 save "${Output}/DC_AssmtData_2019", replace
 export delimited "${Output}/DC_AssmtData_2019", replace
-*clear
+clear

@@ -32,3 +32,5 @@ Where `cd` corresponds to the parent "DC" folder, and the other directories are 
 
 Where applicable, un-hide the importing code at the beginning on the first run of the do-file. This is hidden to speed up the cleaning process on future runs. 
 
+Last Updated
+09/30/24: Cleaned 2024 ela and math data, derived additional information for level counts and percents as well as ProficientOrAbove_count and ProficientOrAbove_percent, and updated files to match Version 2.0 StudentGroup_TotalTested convention.

@@ -54,9 +54,8 @@ gen StudentGroup = "All Students"
 
 //GradeLevel
 gen ind = regexm(GradeLevel,"[3-8]") & strpos(GradeLevel, "Test") !=0
-keep if ind == 1 | GradeLevel == "All ELA" | GradeLevel == "All Math"
+keep if ind == 1
 replace GradeLevel = "G0" + substr(GradeLevel, 1,1)
-replace GradeLevel = "G38" if strpos(GradeLevel, "A") !=0
 
 //Supressed Data
 foreach var of varlist _all {
@@ -105,8 +104,8 @@ gen AvgScaleScore = "--"
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_sci = "Not Applicable"
-gen Flag_CutScoreChange_soc = "Not Applicable"
+gen Flag_CutScoreChange_sci = "Not applicable"
+gen Flag_CutScoreChange_soc = "Not applicable"
 
 gen ProficiencyCriteria = "Levels 4-5"
 gen AssmtType = "Regular"
@@ -137,6 +136,7 @@ foreach n in 1 2 3 4 5 {
 
 replace StudentSubGroup_TotalTested = string(nLev1_count + nLev2_count + nLev3_count + nLev4_count + nLev5_count) if !missing(nLev1_count) & !missing(nLev2_count) & !missing(nLev3_count) & !missing(nLev4_count) & !missing(nLev5_count) & StudentSubGroup_TotalTested != "*"
 
+replace SchName = stritrim(SchName)
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
 replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
@@ -191,5 +191,5 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${Output}/DC_AssmtData_2016", replace
 export delimited "${Output}/DC_AssmtData_2016", replace
-*clear
+clear
 

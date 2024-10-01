@@ -122,6 +122,7 @@ drop TotalCountParticipation
 foreach n in 1 2 3 4 5 {
 	replace StudentSubGroup_TotalTested = TotalCount`n' if TotalCount`n' != "DS" & TotalCount`n' != "n<10" & !missing(TotalCount`n')
 }
+
 forvalues n = 1/5 {
 	drop TotalCount`n'
 }
@@ -215,6 +216,7 @@ foreach n in 1 2 3 4 5 {
 
 replace StudentSubGroup_TotalTested = string(nLev1_count + nLev2_count + nLev3_count + nLev4_count + nLev5_count) if !missing(nLev1_count) & !missing(nLev2_count) & !missing(nLev3_count) & !missing(nLev4_count) & !missing(nLev5_count) & StudentSubGroup_TotalTested != "*"
 
+replace SchName = stritrim(SchName)
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
 replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
@@ -291,7 +293,7 @@ replace ProficiencyCriteria = "Levels 3-4" if Subject == "sci"
 gen AssmtType = "Regular"
 gen SchYear = "2023-24"
 
-//Deriving Additional Information -- Designed for ELA & Math -- DOUBLE CHECK & UPDATE WHEN SCIENCE IS ADDED
+//Deriving Additional Information -- Designed for ELA & Math -- COPY CODE FROM 2023 DERIVATIONS WHEN SCI IS ADDED
 replace ProficientOrAbove_count = string(real(Lev4_count) + real(Lev5_count)) if ProficientOrAbove_count == "*" & Lev4_count != "*" & Lev5_count != "*" & Subject != "sci"
 gen Prof_p_derived = (nLev4_percent + nLev5_percent)/100 if ProficientOrAbove_percent == "*" & Lev4_percent != "*" & Lev5_percent != "*" & Subject != "sci"
 replace ProficientOrAbove_percent = string(Prof_p_derived, "%9.4g") if ProficientOrAbove_percent == "*" & Lev4_percent != "*" & Lev5_percent != "*" & Subject != "sci" & range4 == "" & range5 == ""
@@ -309,6 +311,7 @@ replace Lev5_percent = string((real(ProficientOrAbove_percent) - (nLev4_percent/
 split ProficientOrAbove_percent, parse("-")
 replace Lev4_percent = string((real(ProficientOrAbove_percent1) - (nLev5_percent/100)), "%9.4g") + "-" + string((real(ProficientOrAbove_percent2) - (nLev5_percent/100)), "%9.4g") if Lev4_percent == "*" & ProficientOrAbove_percent != "*" & Lev5_percent != "*" & range5 == "<" & ProficientOrAbove_percent2 != ""
 drop ProficientOrAbove_percent1 ProficientOrAbove_percent2
+replace nProf_percent = real(substr(ProficientOrAbove_percent, 3, 5)) if strpos(ProficientOrAbove_percent, "0-") > 0
 
 replace rangeProf = "<" if strpos(ProficientOrAbove_percent, "0-") > 0 & rangeProf == ""
 
@@ -362,14 +365,19 @@ sort flag
 replace Lev5_percent = string((real(ProficientOrAbove_percent1) - (nLev4_percent/100)), "%9.4g") + "-" + ProficientOrAbove_percent2 if Lev5_percent == "*" & ProficientOrAbove_percent != "*" & Lev4_percent != "*" & range4 == "<" & ProficientOrAbove_percent2 != "" & real(ProficientOrAbove_percent1) > 0
 
 forvalues n = 1/5{
+	replace Lev`n'_percent = "*" if Lev`n'_percent == "0-1"
 	split Lev`n'_percent, parse("-")
+	replace Lev`n'_percent = Lev`n'_percent1 if Lev`n'_percent1 == Lev`n'_percent2 & Lev`n'_percent2 != ""
+	replace Lev`n'_percent2 = "" if Lev`n'_percent1 == Lev`n'_percent2 & Lev`n'_percent2 != ""
 	replace Lev`n'_count = string(round(real(Lev`n'_percent1) * real(StudentSubGroup_TotalTested))) if Lev`n'_count == "*" & Lev`n'_percent != "*" & StudentSubGroup_TotalTested != "*" & Lev`n'_percent2 == ""
 	replace Lev`n'_count = string(round(real(Lev`n'_percent1) * real(StudentSubGroup_TotalTested))) + "-" + string(round(real(Lev`n'_percent2) * real(StudentSubGroup_TotalTested))) if Lev`n'_count == "*" & Lev`n'_percent != "*" & StudentSubGroup_TotalTested != "*" & Lev`n'_percent2 != ""
+	split Lev`n'_count, parse("-")
+	replace Lev`n'_count = Lev`n'_count1 if Lev`n'_count1 == Lev`n'_count2 & Lev`n'_count2 != ""
 	drop Lev`n'_percent1 Lev`n'_percent2
 }
 
 replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent1) * real(StudentSubGroup_TotalTested))) if ProficientOrAbove_count == "*" & ProficientOrAbove_percent != "*" & StudentSubGroup_TotalTested != "*" & ProficientOrAbove_percent2 == ""
-replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent1) * real(StudentSubGroup_TotalTested))) + "-" + string(round(real(ProficientOrAbove_percent2) * real(StudentSubGroup_TotalTested))) if ProficientOrAbove_count == "*" & ProficientOrAbove_percent != "*" & StudentSubGroup_TotalTested != "*" & ProficientOrAbove_percent2 != ""
+replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent1) * real(StudentSubGroup_TotalTested))) + "-" + string(round(real(ProficientOrAbove_percent2) * real(StudentSubGroup_TotalTested))) if inlist(ProficientOrAbove_count, ".", "*") & ProficientOrAbove_percent != "*" & StudentSubGroup_TotalTested != "*" & ProficientOrAbove_percent2 != ""
 replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
 drop ProficientOrAbove_percent1 ProficientOrAbove_percent2
 
@@ -381,9 +389,9 @@ replace ParticipationRate = "0-" + string(nParticipationRate/100, "%9.4g") if Pa
 replace ParticipationRate = string(nParticipationRate/100, "%9.4g") + "-1" if ParticipationRate != "*" & rangepart == ">"
 replace ParticipationRate = string(nParticipationRate/100, "%9.4g") if ParticipationRate != "*" & rangepart == ""
 
-//Response to Post Launch Review
+//Standardize District Names
 replace DistName="Department of Youth Rehabilitation Services (DYRS)" if NCESDistrictID== "1100087"
-replace DistName="DC International School" if NCESDistrictID== "1100097" 
+replace DistName="DC International School" if NCESDistrictID== "1100097"
 
 //Standardize Level 5 Values for Science
 foreach var of varlist Lev5* {

@@ -43,8 +43,6 @@ rename SchoolCode StateAssignedSchID
 rename LEAName DistName
 rename SchoolName SchName
 
-
-// updated 
 drop if DataLevel == "Public Charter Schools"
 replace DataLevel = "District" if DataLevel == "DCPS" 
 
@@ -105,12 +103,12 @@ replace Subject = "ela" if strpos(Subject, "ELA") !=0
 //Levels
 foreach n in 1 2 3 4 5 {
 	destring Lev`n'_percent, gen(nLev`n'_percent) i(*)
-	replace Lev`n'_percent = string(nLev`n'_percent/100, "%9.4g") if Lev`n'_percent != "*" & DataLevel ==1
+	replace Lev`n'_percent = string(nLev`n'_percent/100, "%9.4g") if Lev`n'_percent != "*" & DataLevel !=3
 	replace Lev`n'_percent = string(nLev`n'_percent, "%9.4g") if Lev`n'_percent != "*" & DataLevel ==3
 }
 //Proficiency
 destring ProficientOrAbove_percent, gen(nProficientOrAbove_percent) i(*)
-replace ProficientOrAbove_percent = string(nProficientOrAbove_percent/100, "%9.4g") if ProficientOrAbove_percent != "*" & DataLevel ==1
+replace ProficientOrAbove_percent = string(nProficientOrAbove_percent/100, "%9.4g") if ProficientOrAbove_percent != "*" & DataLevel !=3
 replace ProficientOrAbove_percent = string(nProficientOrAbove_percent, "%9.4g") if ProficientOrAbove_percent != "*" & DataLevel ==3
 
 //Merging with NCES
@@ -174,8 +172,8 @@ gen AvgScaleScore = "--"
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_sci = "Not Applicable"
-gen Flag_CutScoreChange_soc = "Not Applicable"
+gen Flag_CutScoreChange_sci = "Not applicable"
+gen Flag_CutScoreChange_soc = "Not applicable"
 
 gen ProficiencyCriteria = "Levels 4-5"
 gen AssmtType = "Regular"
@@ -198,6 +196,7 @@ foreach n in 1 2 3 4 5 {
 
 replace StudentSubGroup_TotalTested = string(nLev1_count + nLev2_count + nLev3_count + nLev4_count + nLev5_count) if !missing(nLev1_count) & !missing(nLev2_count) & !missing(nLev3_count) & !missing(nLev4_count) & !missing(nLev5_count) & StudentSubGroup_TotalTested != "*"
 
+replace SchName = stritrim(SchName)
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
 replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
@@ -237,11 +236,6 @@ replace DistName="City Arts & Prep PCS" if NCESDistrictID== "1100053" // this wa
 
 replace CountyName= "District of Columbia" if CountyName=="DISTRICT OF COLUMBIA"
 replace CountyName= "Prince George's County" if CountyName=="PRINCE GEORGE'S COUNTY"
-
-//Fixing non-decimal percents
-foreach var of varlist Lev*_percent ProficientOrAbove_percent {
-	replace `var' = string((real(`var')/100), "%9.3g") if real(`var') > 1 & regexm(`var', "[*-]") == 0
-}
 
 //Deriving Lev*_count
 foreach count of varlist Lev*_count {

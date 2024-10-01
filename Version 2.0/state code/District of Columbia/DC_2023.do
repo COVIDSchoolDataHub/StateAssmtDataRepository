@@ -145,23 +145,17 @@ replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup ==
 replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "Native Hawaiian or Other Pacific Islander"
 replace StudentSubGroup = "Two or More" if StudentSubGroup == "Two or more races"
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic or Latino of any race"
-replace StudentSubGroup = "Gender X" if StudentSubGroup == "Non-binary" // updated
-replace StudentSubGroup = "English Learner" if StudentSubGroup == "EL Active" // updated
-replace StudentSubGroup = "EL and Monit or Recently Ex" if StudentSubGroup == "EL Active or Monitored 1-2 yr"  // updated
-
-// updated
+replace StudentSubGroup = "Gender X" if StudentSubGroup == "Non-binary"
+replace StudentSubGroup = "English Learner" if StudentSubGroup == "EL Active"
+replace StudentSubGroup = "EL and Monit or Recently Ex" if StudentSubGroup == "EL Active or Monitored 1-2 yr"
 replace StudentSubGroup = "SWD" if StudentSubGroup == "SWD"
 replace StudentSubGroup = "Non-SWD" if StudentSubGroup == "Not SWD"
 replace StudentSubGroup = "Homeless" if StudentSubGroup == "Homeless"
 replace StudentSubGroup = "Non-Homeless" if StudentSubGroup == "Not Homeless"	
 replace StudentSubGroup = "Military" if StudentSubGroup == "Military Connected"
 replace StudentSubGroup = "Non-Military" if StudentSubGroup == "Not Military Connected"
-// updated
 
-
-
-
-keep if StudentSubGroup == "All Students" | StudentSubGroup == "American Indian or Alaska Native" | StudentSubGroup == "Asian" | StudentSubGroup == "Black or African American" | StudentSubGroup == "Native Hawaiian or Pacific Islander" | StudentSubGroup == "White" | StudentSubGroup == "Hispanic or Latino" | StudentSubGroup == "English Learner" | StudentSubGroup == "English Proficient" | StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged" | StudentSubGroup == "Male" | StudentSubGroup == "Female" | StudentSubGroup == "Two or More" | StudentSubGroup == "Gender X" | StudentSubGroup == "English Learner" | StudentSubGroup == "EL and Monit or Recently Ex" | StudentSubGroup == "SWD" | StudentSubGroup == "Non-SWD" | StudentSubGroup == "Homeless" |  StudentSubGroup == "Non-Homeless"| StudentSubGroup == "Military" | StudentSubGroup == "Non-Military"  // updated
+keep if StudentSubGroup == "All Students" | StudentSubGroup == "American Indian or Alaska Native" | StudentSubGroup == "Asian" | StudentSubGroup == "Black or African American" | StudentSubGroup == "Native Hawaiian or Pacific Islander" | StudentSubGroup == "White" | StudentSubGroup == "Hispanic or Latino" | StudentSubGroup == "English Learner" | StudentSubGroup == "English Proficient" | StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged" | StudentSubGroup == "Male" | StudentSubGroup == "Female" | StudentSubGroup == "Two or More" | StudentSubGroup == "Gender X" | StudentSubGroup == "English Learner" | StudentSubGroup == "EL and Monit or Recently Ex" | StudentSubGroup == "SWD" | StudentSubGroup == "Non-SWD" | StudentSubGroup == "Homeless" |  StudentSubGroup == "Non-Homeless"| StudentSubGroup == "Military" | StudentSubGroup == "Non-Military"
 
 //StudentGroup
 drop StudentGroup
@@ -169,15 +163,12 @@ gen StudentGroup = ""
 replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
 replace StudentGroup = "RaceEth" if StudentSubGroup == "American Indian or Alaska Native" | StudentSubGroup == "Asian" | StudentSubGroup == "Black or African American" | StudentSubGroup == "White" | StudentSubGroup == "Two or More" | StudentSubGroup == "Native Hawaiian or Pacific Islander"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged"
-replace StudentGroup = "Gender" if StudentSubGroup == "Male" | StudentSubGroup == "Female" | StudentSubGroup == "Gender X" // updated
+replace StudentGroup = "Gender" if StudentSubGroup == "Male" | StudentSubGroup == "Female" | StudentSubGroup == "Gender X" 
 replace StudentGroup = "EL Status" if StudentSubGroup == "English Proficient" | StudentSubGroup == "English Learner" | StudentSubGroup == "EL and Monit or Recently Ex" // updated 
 replace StudentGroup = "RaceEth" if StudentSubGroup == "Hispanic or Latino"
-
-// updated
 replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD" | StudentSubGroup == "Non-SWD"
 replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless" | StudentSubGroup == "Non-Homeless"
 replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Military" | StudentSubGroup == "Non-Military"
-// updated
 
 
 //Suppressed/ missing values
@@ -212,6 +203,7 @@ foreach n in 1 2 3 4 5 {
 
 replace StudentSubGroup_TotalTested = string(nLev1_count + nLev2_count + nLev3_count + nLev4_count + nLev5_count) if !missing(nLev1_count) & !missing(nLev2_count) & !missing(nLev3_count) & !missing(nLev4_count) & !missing(nLev5_count) & StudentSubGroup_TotalTested != "*"
 
+replace SchName = stritrim(SchName)
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
 replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
@@ -279,8 +271,8 @@ gen AvgScaleScore = "--"
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_sci = "N" 
-gen Flag_CutScoreChange_soc = "Not Applicable"
+gen Flag_CutScoreChange_sci = "N"
+gen Flag_CutScoreChange_soc = "Not applicable"
 
 gen ProficiencyCriteria = "Levels 4-5"
 replace ProficiencyCriteria = "Levels 3-4" if Subject == "sci"
@@ -289,19 +281,25 @@ gen SchYear = "2022-23"
 
 //ProficientOrAbove_count and Percent
 gen ProficientOrAbove_percent = string((nLev4_percent + nLev5_percent)/100, "%9.4g") if Subject != "sci"
-replace ProficientOrAbove_percent = "*" if (Lev4_percent == "*" | Lev5_percent == "*") & Subject != "sci"
+replace ProficientOrAbove_percent = "*" if Lev4_percent == "*" & Subject != "sci"
+replace ProficientOrAbove_percent = "*" if Lev5_percent == "*" & Subject != "sci"
 gen ProficientOrAbove_count = string(nLev4_count + nLev5_count, "%9.4g") if Subject != "sci"
-replace ProficientOrAbove_count = "*" if (Lev4_count == "*" | Lev5_count == "*") & Subject != "sci"
+replace ProficientOrAbove_count = "*" if Lev4_count == "*" & Subject != "sci"
+replace ProficientOrAbove_count = "*" if Lev5_count == "*" & Subject != "sci"
 
 replace ProficientOrAbove_percent = string((nLev3_percent + nLev4_percent)/100, "%9.4g") if Subject == "sci"
-replace ProficientOrAbove_percent = "*" if (Lev3_percent == "*" | Lev4_percent == "*") & Subject == "sci"
+replace ProficientOrAbove_percent = "*" if Lev3_percent == "*" & Subject == "sci"
+replace ProficientOrAbove_percent = "*" if Lev4_percent == "*" & Subject == "sci"
+
 replace ProficientOrAbove_count = string(nLev3_count + nLev4_count, "%9.4g") if Subject == "sci"
-replace ProficientOrAbove_count = "*" if (Lev3_count == "*" | Lev4_count == "*") & Subject == "sci"
+replace ProficientOrAbove_count = "*" if Lev3_count == "*" & Subject == "sci"
+replace ProficientOrAbove_count = "*" if Lev4_count == "*" & Subject == "sci"
+
 
 replace ProficientOrAbove_percent = "0-" + ProficientOrAbove_percent if (range5 == "" | range4==range5) & ProficientOrAbove_percent != "*" & range4 == "<"
 replace ProficientOrAbove_percent = ProficientOrAbove_percent + "-1" if (range5 == "" | range4==range5) & ProficientOrAbove_percent != "*" & range4 == ">"
 replace ProficientOrAbove_percent = ProficientOrAbove_percent if ProficientOrAbove_percent != "*" & range4 == "" & range5 == ""
-replace ProficientOrAbove_percent = "0-" + ProficientOrAbove_percent if (range4 == "" | range4==range5) & ProficientOrAbove_percent != "*" & range5 == "<"
+replace ProficientOrAbove_percent = "0-" + ProficientOrAbove_percent if (range4 == "" | range4==range5) & ProficientOrAbove_percent != "*" & range5 == "<" & strpos(ProficientOrAbove_percent, "0-") == 0
 replace ProficientOrAbove_percent = ProficientOrAbove_percent + "-1" if (range4 == "" | range4==range5) & ProficientOrAbove_percent != "*" & range5 == ">"
 
 //Deriving Additional Information
@@ -318,26 +316,94 @@ replace ProficientOrAbove_percent = string((1 - ((nLev1_percent + nLev2_percent 
 
 replace ProficientOrAbove_percent = string((1 - ((nLev1_percent + nLev2_percent)/100)), "%9.4g") if ProficientOrAbove_percent == "*" & Lev1_percent != "*" & Lev2_percent != "*" & strpos(Lev1_percent, "-") == 0 & strpos(Lev2_percent, "-") == 0 & Subject == "sci"
 replace ProficientOrAbove_percent = string((1 - ((nLev1_percent + nLev2_percent)/100)), "%9.4g") + "-" + string((1 - (nLev1_percent/100)), "%9.4g") if ProficientOrAbove_percent == "*" & Lev1_percent != "*" & Lev2_percent != "*" & strpos(Lev1_percent, "-") == 0 & range2 == "<" & Subject == "sci"
-replace ProficientOrAbove_percent = string((1 - ((nLev1_percent + nLev2_percent + nLev3_percent)/100)), "%9.4g") + "-" + string((1 - (nLev2_percent/100)), "%9.4g") if ProficientOrAbove_percent == "*" & Lev1_percent != "*" & Lev2_percent != "*" & range1 == "<" & strpos(Lev2_percent, "-") == 0 & Subject == "sci"
+replace ProficientOrAbove_percent = string((1 - ((nLev1_percent + nLev2_percent)/100)), "%9.4g") + "-" + string((1 - (nLev2_percent/100)), "%9.4g") if ProficientOrAbove_percent == "*" & Lev1_percent != "*" & Lev2_percent != "*" & range1 == "<" & strpos(Lev2_percent, "-") == 0 & Subject == "sci"
 replace ProficientOrAbove_percent = string((1 - ((nLev1_percent + nLev2_percent)/100)), "%9.4g") + "-1" if ProficientOrAbove_percent == "*" & Lev1_percent != "*" & Lev2_percent != "*" & range1 == "<" & range2 == "<" & Subject == "sci"
 
+replace ProficientOrAbove_percent = "0" + substr(ProficientOrAbove_percent, 7, 9) if strpos(ProficientOrAbove_percent, "-") == 1 & strlen(ProficientOrAbove_percent) == 12
+drop ProficientOrAbove_percent1 ProficientOrAbove_percent2
+split ProficientOrAbove_percent, parse("-")
+
+replace Lev1_percent = string((1 - (real(ProficientOrAbove_percent) + ((nLev2_percent + nLev3_percent)/100))), "%9.4g") if Lev1_percent == "*" & ProficientOrAbove_percent != "*" & Lev2_percent != "*" & Lev3_percent != "*" & strpos(Lev2_percent, "-") == 0 & strpos(Lev3_percent, "-") == 0 & strpos(ProficientOrAbove_percent, "-") == 0 & Subject != "sci"
+replace Lev1_percent = string((1 - (real(ProficientOrAbove_percent2) + (nLev2_percent + nLev3_percent)/100)), "%9.4g") + "-1" if Lev1_percent == "*" & ProficientOrAbove_percent != "*" & Lev2_percent != "*" & Lev3_percent != "*" & range2 == "<" & range3 == "<" & strpos(ProficientOrAbove_percent, "0-") > 0 & Subject != "sci"
+replace Lev1_percent = string((1 - (real(ProficientOrAbove_percent) + ((nLev2_percent + nLev3_percent)/100))), "%9.4g") + "-" + string((1 - real(ProficientOrAbove_percent)), "%9.4g") if Lev1_percent == "*" & ProficientOrAbove_percent != "*" & Lev2_percent != "*" & Lev3_percent != "*" & range2 == "<" & range3 == "<" & strpos(ProficientOrAbove_percent, "-") == 0 & Subject != "sci"
+replace Lev1_percent = string((1 - (real(ProficientOrAbove_percent) + ((nLev2_percent + nLev3_percent)/100))), "%9.4g") + "-" + string((1 - (real(ProficientOrAbove_percent) + (nLev2_percent/100))), "%9.4g") if Lev1_percent == "*" & ProficientOrAbove_percent != "*" & Lev2_percent != "*" & Lev3_percent != "*"& strpos(Lev2_percent, "-") == 0 & range3 == "<" & strpos(ProficientOrAbove_percent, "-") == 0 & Subject != "sci"
+replace Lev1_percent = string((1 - (real(ProficientOrAbove_percent) + ((nLev2_percent + nLev3_percent)/100))), "%9.4g") + "-" + string((1 - (real(ProficientOrAbove_percent) + (nLev3_percent/100))), "%9.4g") if Lev1_percent == "*" & ProficientOrAbove_percent != "*" & Lev2_percent != "*" & Lev3_percent != "*" & range2 == "<" & strpos(Lev3_percent, "-") == 0 & strpos(ProficientOrAbove_percent, "-") == 0 & Subject != "sci"
+replace Lev1_percent = string((1 - (real(ProficientOrAbove_percent2) + (nLev2_percent + nLev3_percent)/100)), "%9.4g") + "-" + string((1 - ((nLev2_percent + nLev3_percent)/100)), "%9.4g") if Lev1_percent == "*" & ProficientOrAbove_percent != "*" & Lev2_percent != "*" & Lev3_percent != "*" & strpos(Lev2_percent, "-") == 0 & strpos(Lev3_percent, "-") == 0 & strpos(ProficientOrAbove_percent, "0-") > 0 & Subject != "sci"
+replace Lev1_percent = string((1 - (real(ProficientOrAbove_percent2) + (nLev2_percent + nLev3_percent)/100)), "%9.4g") + "-" + string((1 - (nLev3_percent/100)), "%9.4g") if Lev1_percent == "*" & ProficientOrAbove_percent != "*" & Lev2_percent != "*" & Lev3_percent != "*" & range2 == "<" & strpos(Lev3_percent, "0-") == 0 & strpos(ProficientOrAbove_percent, "0-") > 0 & Subject != "sci"
+
+replace Lev1_percent = string((1 - (real(ProficientOrAbove_percent2) + (nLev2_percent + nLev3_percent)/100)), "%9.4g") + "-" + string((1 - (nLev2_percent/100)), "%9.4g") if Lev1_percent == "*" & ProficientOrAbove_percent != "*" & Lev2_percent != "*" & Lev3_percent != "*" & strpos(Lev2_percent, "-") == 0 & range3 == "<" & strpos(ProficientOrAbove_percent, "0-") > 0 & Subject != "sci"
+
+replace Lev1_percent = string((1 - real(ProficientOrAbove_percent) - real(Lev2_percent))) if inlist(Lev1_percent, "*", "--") & !missing(real(ProficientOrAbove_percent)) & !missing(real(Lev2_percent)) & Subject == "sci"
+replace Lev1_percent = string((1 - (real(ProficientOrAbove_percent) + (nLev2_percent/100))), "%9.4g") + "-" + string((1 - real(ProficientOrAbove_percent)), "%9.4g") if Lev1_percent == "*" & ProficientOrAbove_percent != "*" & Lev2_percent != "*" & range2 == "<" & strpos(ProficientOrAbove_percent, "-") == 0 & Subject == "sci"
+replace Lev1_percent = string((1 - (real(ProficientOrAbove_percent2) + (nLev2_percent/100))), "%9.4g") + "-" + string((1 - (nLev2_percent/100)), "%9.4g") if Lev1_percent == "*" & ProficientOrAbove_percent != "*" & Lev2_percent != "*" & strpos(Lev2_percent, "-") == 0 & strpos(ProficientOrAbove_percent, "0-") > 0 & Subject == "sci"
+replace Lev1_percent = string((1 - (real(ProficientOrAbove_percent2) + (nLev2_percent/100))), "%9.4g") + "-1" if Lev1_percent == "*" & ProficientOrAbove_percent != "*" & Lev2_percent != "*" & range2 == "<" & strpos(ProficientOrAbove_percent, "0-") > 0 & Subject == "sci"
+
+replace range1 = "<" if strpos(Lev1_percent, "0-") > 0 & range1 == ""
+replace Lev1_percent = "0" + substr(Lev1_percent, 7, 9) if strpos(Lev1_percent, "-") == 1 & strlen(Lev1_percent) == 12
+replace Lev1_percent = "0" + substr(Lev1_percent, 6, 8) if strpos(Lev1_percent, "-") == 1 & strlen(Lev1_percent) == 10
+replace Lev1_percent = "0" + substr(Lev1_percent, 5, 7) if strpos(Lev1_percent, "-") == 1 & strlen(Lev1_percent) == 8
+
+replace Lev2_percent = string((1 - (real(ProficientOrAbove_percent) + ((nLev1_percent + nLev3_percent)/100))), "%9.4g") if Lev2_percent == "*" & ProficientOrAbove_percent != "*" & Lev1_percent != "*" & Lev3_percent != "*" & strpos(Lev1_percent, "-") == 0 & strpos(Lev3_percent, "-") == 0 & strpos(ProficientOrAbove_percent, "-") == 0 & Subject != "sci"
+replace Lev2_percent = "0" if (1 - (real(ProficientOrAbove_percent) + ((nLev1_percent + nLev3_percent)/100))) < 0 & Subject != "sci"
+replace Lev2_percent = string((1 - (real(ProficientOrAbove_percent) + ((nLev1_percent + nLev3_percent)/100))), "%9.4g") + "-" + string((1 - real(ProficientOrAbove_percent)), "%9.4g") if Lev2_percent == "*" & ProficientOrAbove_percent != "*" & Lev1_percent != "*" & Lev3_percent != "*" & range1 == "<" & range3 == "<" & strpos(ProficientOrAbove_percent, "-") == 0 & Subject != "sci"
+replace Lev2_percent = string((1 - (real(ProficientOrAbove_percent) + ((nLev1_percent + nLev3_percent)/100))), "%9.4g") + "-" + string((1 - (real(ProficientOrAbove_percent) + (nLev1_percent/100))), "%9.4g") if Lev2_percent == "*" & ProficientOrAbove_percent != "*" & Lev1_percent != "*" & Lev3_percent != "*" & strpos(Lev1_percent, "-") == 0 & range3 == "<" & strpos(ProficientOrAbove_percent, "-") == 0 & Subject != "sci"
+replace Lev2_percent = string((1 - (real(ProficientOrAbove_percent) + ((nLev1_percent + nLev3_percent)/100))), "%9.4g") + "-" + string((1 - (real(ProficientOrAbove_percent) + (nLev3_percent/100))), "%9.4g") if Lev2_percent == "*" &ProficientOrAbove_percent != "*" & Lev1_percent != "*" & Lev3_percent != "*" & range1 == "<" & strpos(Lev3_percent, "-") == 0 & strpos(ProficientOrAbove_percent, "-") == 0 & Subject != "sci"
+replace Lev2_percent = string((1 - (real(ProficientOrAbove_percent2) + (nLev1_percent + nLev3_percent)/100)), "%9.4g") + "-" + string((1 - ((nLev1_percent + nLev3_percent)/100)), "%9.4g") if Lev2_percent == "*" & ProficientOrAbove_percent != "*" & Lev1_percent != "*" & Lev3_percent != "*" & strpos(Lev1_percent, "-") == 0 & strpos(Lev3_percent, "-") == 0 & strpos(ProficientOrAbove_percent, "0-") > 0 & Subject != "sci"
+replace Lev2_percent = string((1 - (real(ProficientOrAbove_percent2) + (nLev1_percent + nLev3_percent)/100)), "%9.4g") + "-" + string((1 - (nLev1_percent/100)), "%9.4g") if Lev2_percent == "*" & ProficientOrAbove_percent != "*" & Lev1_percent != "*" & Lev3_percent != "*" & strpos(Lev1_percent, "-") == 0 & range3 == "<" & strpos(ProficientOrAbove_percent, "0-") > 0 & Subject != "sci"
+replace Lev2_percent = string((1 - (real(ProficientOrAbove_percent2) + (nLev1_percent + nLev3_percent)/100)), "%9.4g") + "-" + string((1 - (nLev3_percent/100)), "%9.4g") if Lev2_percent == "*" & ProficientOrAbove_percent != "*" & Lev1_percent != "*" & Lev3_percent != "*" & range1 == "<" & strpos(Lev3_percent, "-") == 0 & strpos(ProficientOrAbove_percent, "0-") > 0 & Subject != "sci"
+
+replace Lev2_percent = string((1 - real(ProficientOrAbove_percent) - real(Lev1_percent))) if inlist(Lev2_percent, "*", "--") & !missing(real(ProficientOrAbove_percent)) & !missing(real(Lev1_percent)) & Subject == "sci"
+replace Lev2_percent = string((1 - (real(ProficientOrAbove_percent) + (nLev1_percent/100))), "%9.4g") + "-" + string((1 - real(ProficientOrAbove_percent)), "%9.4g") if Lev2_percent == "*" & ProficientOrAbove_percent != "*" & Lev1_percent != "*" & range1 == "<" & strpos(ProficientOrAbove_percent, "-") == 0 & Subject == "sci"
+replace Lev2_percent = string((1 - (real(ProficientOrAbove_percent2) + (nLev1_percent/100))), "%9.4g") + "-" + string((1 - (nLev1_percent/100)), "%9.4g") if Lev2_percent == "*" & ProficientOrAbove_percent != "*" & Lev1_percent != "*" & strpos(Lev1_percent, "-") == 0 & strpos(ProficientOrAbove_percent, "0-") > 0 & Subject == "sci"
+replace Lev2_percent = string((1 - (real(ProficientOrAbove_percent2) + (nLev1_percent/100))), "%9.4g") + "-1" if Lev2_percent == "*" & ProficientOrAbove_percent != "*" & Lev1_percent != "*" & range1 == "<" & strpos(ProficientOrAbove_percent, "0-") > 0 & Subject == "sci"
+
+replace Lev2_percent = "0" + substr(Lev2_percent, 7, 9) if strpos(Lev2_percent, "-") == 1 & strlen(Lev2_percent) == 12
+replace Lev2_percent = "0" + substr(Lev2_percent, 6, 8) if strpos(Lev2_percent, "-") == 1 & strlen(Lev2_percent) == 10
+replace Lev2_percent = "0" + substr(Lev2_percent, 5, 7) if strpos(Lev2_percent, "-") == 1 & strlen(Lev2_percent) == 8
+replace Lev2_percent = "0" + substr(Lev2_percent, 4, 5) if strpos(Lev2_percent, "-") == 1 & strlen(Lev2_percent) == 6
+replace range2 = "<" if strpos(Lev2_percent, "0-") > 0 & range2 == ""
+
+replace Lev3_percent = string((1 - (real(ProficientOrAbove_percent) + ((nLev1_percent + nLev2_percent)/100))), "%9.4g") if Lev3_percent == "*" & ProficientOrAbove_percent != "*" & Lev1_percent != "*" & Lev2_percent != "*" & strpos(Lev1_percent, "-") == 0 & strpos(Lev2_percent, "-") == 0 & strpos(ProficientOrAbove_percent, "-") == 0 & Subject != "sci"
+replace Lev3_percent = string((1 - (real(ProficientOrAbove_percent) + ((nLev1_percent + nLev2_percent)/100))), "%9.4g") + "-" + string((1 - real(ProficientOrAbove_percent)), "%9.4g") if Lev3_percent == "*" & ProficientOrAbove_percent != "*" & Lev1_percent != "*" & Lev2_percent != "*" & range1 == "<" & range2 == "<" & strpos(ProficientOrAbove_percent, "-") == 0 & Subject != "sci"
+replace Lev3_percent = string((1 - (real(ProficientOrAbove_percent) + ((nLev1_percent + nLev2_percent)/100))), "%9.4g") + "-" + string((1 - (real(ProficientOrAbove_percent) + (nLev1_percent/100))), "%9.4g") if Lev3_percent == "*" & ProficientOrAbove_percent != "*" & Lev1_percent != "*" & Lev2_percent != "*" & strpos(Lev1_percent, "-") == 0 & range2 == "<" & strpos(ProficientOrAbove_percent, "-") == 0 & Subject != "sci"
+replace Lev3_percent = string((1 - (real(ProficientOrAbove_percent) + ((nLev1_percent + nLev2_percent)/100))), "%9.4g") + "-" + string((1 - (real(ProficientOrAbove_percent) + (nLev2_percent/100))), "%9.4g") if Lev3_percent == "*" & ProficientOrAbove_percent != "*" & Lev1_percent != "*" & Lev2_percent != "*" & range1 == "<" & strpos(Lev2_percent, "-") == 0 & strpos(ProficientOrAbove_percent, "-") == 0 & Subject != "sci"
+replace Lev3_percent = string((1 - (real(ProficientOrAbove_percent2) + (nLev1_percent + nLev2_percent)/100)), "%9.4g") + "-" + string((1 - ((nLev1_percent + nLev2_percent)/100)), "%9.4g") if Lev3_percent == "*" & ProficientOrAbove_percent != "*" & Lev1_percent != "*" & Lev2_percent != "*" & strpos(Lev1_percent, "-") == 0 & strpos(Lev2_percent, "-") == 0 & strpos(ProficientOrAbove_percent, "0-") > 0 & Subject != "sci"
+replace Lev3_percent = string((1 - (real(ProficientOrAbove_percent2) + (nLev1_percent + nLev2_percent)/100)), "%9.4g") + "-" + string((1 - (nLev1_percent/100)), "%9.4g") if Lev3_percent == "*" & ProficientOrAbove_percent != "*" & Lev1_percent != "*" & Lev2_percent != "*" & strpos(Lev1_percent, "-") == 0 & range2 == "<" & strpos(ProficientOrAbove_percent, "0-") > 0 & Subject != "sci"
+replace Lev3_percent = string((1 - (real(ProficientOrAbove_percent2) + (nLev1_percent + nLev2_percent)/100)), "%9.4g") + "-" + string((1 - (nLev2_percent/100)), "%9.4g") if Lev3_percent == "*" & ProficientOrAbove_percent != "*" & Lev1_percent != "*" & Lev2_percent != "*" & range1 == "<" & strpos(Lev2_percent, "-") == 0 & strpos(ProficientOrAbove_percent, "0-") > 0 & Subject != "sci"
+replace Lev3_percent = "0" + substr(Lev3_percent, 7, 9) if strpos(Lev3_percent, "-") == 1 & strlen(Lev3_percent) == 12
+replace Lev3_percent = "0" + substr(Lev3_percent, 6, 8) if strpos(Lev3_percent, "-") == 1 & strlen(Lev3_percent) == 10
+replace Lev3_percent = "0" + substr(Lev3_percent, 5, 7) if strpos(Lev3_percent, "-") == 1 & strlen(Lev3_percent) == 8
+replace Lev3_percent = "0" + substr(Lev3_percent, 4, 5) if strpos(Lev3_percent, "-") == 1 & strlen(Lev3_percent) == 6
+replace range3 = "<" if strpos(Lev3_percent, "0-") > 0 & range3 == ""
+
 replace Lev3_percent = string((real(ProficientOrAbove_percent) - (nLev4_percent/100)), "%9.4g") + "-" + ProficientOrAbove_percent if Lev3_percent == "*" & ProficientOrAbove_percent != "*" & Lev4_percent != "*" & range4 == "<" & ProficientOrAbove_percent2 == "" & Subject == "sci"
-replace Lev3_percent = string((real(ProficientOrAbove_percent1) - (nLev4_percent/100)), "%9.4g") + "-" + ProficientOrAbove_percent2 if Lev3_percent == "*" & ProficientOrAbove_percent != "*" & Lev4_percent != "*" & range3 == "<" & ProficientOrAbove_percent2 != "" & real(ProficientOrAbove_percent1) > 0 & Subject == "sci"
+replace Lev3_percent = string((real(ProficientOrAbove_percent1) - (nLev4_percent/100)), "%9.4g") + "-" + ProficientOrAbove_percent2 if Lev3_percent == "*" & ProficientOrAbove_percent != "*" & Lev4_percent != "*" & range4 == "<" & ProficientOrAbove_percent2 != "" & real(ProficientOrAbove_percent1) > 0 & Subject == "sci"
+replace Lev3_percent = "0" + substr(Lev3_percent, 7, 9) if strpos(Lev3_percent, "-") == 1 & strlen(Lev3_percent) == 12
 replace Lev3_percent = "0" + substr(Lev3_percent, 6, 8) if strpos(Lev3_percent, "-") == 1 & strlen(Lev3_percent) == 10
 replace Lev3_percent = "0" + substr(Lev5_percent, 5, 7) if strpos(Lev3_percent, "-") == 1 & strlen(Lev3_percent) == 8
+replace Lev3_percent = "0" + substr(Lev3_percent, 4, 5) if strpos(Lev3_percent, "-") == 1 & strlen(Lev3_percent) == 6
+replace Lev3_percent = "0" if inlist(Lev3_percent, "1.11e-16", "-2.22e-16")
+replace nLev3_percent = 0 if Lev3_percent == "0"
+
+replace Lev4_percent = string((real(ProficientOrAbove_percent) - (nLev3_percent/100)), "%9.4g") if Lev4_percent == "*" & Lev3_percent != "*" & ProficientOrAbove_percent2 == "" & Subject == "sci" & range3 == ""
 
 replace Lev4_percent = string((real(ProficientOrAbove_percent) - (nLev5_percent/100)), "%9.4g") + "-" + ProficientOrAbove_percent if Lev4_percent == "*" & ProficientOrAbove_percent != "*" & Lev5_percent != "*" & range5 == "<" & ProficientOrAbove_percent2 == "" & Subject != "sci"
 replace Lev4_percent = string((real(ProficientOrAbove_percent1) - (nLev5_percent/100)), "%9.4g") + "-" + ProficientOrAbove_percent2 if Lev4_percent == "*" & ProficientOrAbove_percent != "*" & Lev5_percent != "*" & range5 == "<" & ProficientOrAbove_percent2 != "" & real(ProficientOrAbove_percent1) > 0 & Subject != "sci"
+replace Lev4_percent = string((real(ProficientOrAbove_percent2) - (nLev5_percent/100)), "%9.4g") + "-" + ProficientOrAbove_percent2 if Lev4_percent == "*" & ProficientOrAbove_percent != "*" & Lev5_percent != "*" & range5 == "<" & ProficientOrAbove_percent2 != "" & real(ProficientOrAbove_percent1) == 0 & Subject != "sci"
 replace Lev4_percent = string((real(ProficientOrAbove_percent) - (nLev3_percent/100)), "%9.4g") + "-" + ProficientOrAbove_percent if Lev4_percent == "*" & ProficientOrAbove_percent != "*" & Lev3_percent != "*" & range3 == "<" & ProficientOrAbove_percent2 == "" & Subject == "sci"
 replace Lev4_percent = string((real(ProficientOrAbove_percent1) - (nLev3_percent/100)), "%9.4g") + "-" + ProficientOrAbove_percent2 if Lev4_percent == "*" & ProficientOrAbove_percent != "*" & Lev3_percent != "*" & range3 == "<" & ProficientOrAbove_percent2 != "" & real(ProficientOrAbove_percent1) > 0 & Subject == "sci"
 
 replace Lev4_percent = string((real(ProficientOrAbove_percent1) - (nLev5_percent/100)), "%9.4g") + "-" + ProficientOrAbove_percent2 if Lev4_percent == "*" & ProficientOrAbove_percent != "*" & Lev5_percent != "*" & range5 == "<" & ProficientOrAbove_percent2 != "" & real(ProficientOrAbove_percent1) > 0 & Subject != "sci"
+replace Lev4_percent = "0" + substr(Lev4_percent, 7, 9) if strpos(Lev4_percent, "-") == 1 & strlen(Lev4_percent) == 12
 replace Lev4_percent = "0" + substr(Lev4_percent, 6, 8) if strpos(Lev4_percent, "-") == 1 & strlen(Lev4_percent) == 10
 replace Lev4_percent = "0" + substr(Lev4_percent, 5, 7) if strpos(Lev4_percent, "-") == 1 & strlen(Lev4_percent) == 8
+replace Lev4_percent = "0" + substr(Lev4_percent, 4, 5) if strpos(Lev4_percent, "-") == 1 & strlen(Lev4_percent) == 6
 replace Lev5_percent = string((real(ProficientOrAbove_percent) - (nLev4_percent/100)), "%9.4g") + "-" + ProficientOrAbove_percent if Lev5_percent == "*" & ProficientOrAbove_percent != "*" & Lev4_percent != "*" & range4 == "<" & ProficientOrAbove_percent2 == "" & Subject != "sci"
 replace Lev5_percent = string((real(ProficientOrAbove_percent1) - (nLev4_percent/100)), "%9.4g") + "-" + ProficientOrAbove_percent2 if Lev5_percent == "*" & ProficientOrAbove_percent != "*" & Lev4_percent != "*" & range4 == "<" & ProficientOrAbove_percent2 != "" & real(ProficientOrAbove_percent1) > 0 & Subject != "sci"
+replace Lev5_percent = "0" + substr(Lev5_percent, 7, 9) if strpos(Lev5_percent, "-") == 1 & strlen(Lev5_percent) == 12
 replace Lev5_percent = "0" + substr(Lev5_percent, 6, 8) if strpos(Lev5_percent, "-") == 1 & strlen(Lev5_percent) == 10
 replace Lev5_percent = "0" + substr(Lev5_percent, 5, 7) if strpos(Lev5_percent, "-") == 1 & strlen(Lev5_percent) == 8
+replace Lev5_percent = "0" + substr(Lev5_percent, 4, 5) if strpos(Lev5_percent, "-") == 1 & strlen(Lev5_percent) == 6
 
 //ParticipationRate
 gen rangepart = substr(ParticipationRate,1,1) if regexm(ParticipationRate, "[<>]") !=0
@@ -353,9 +419,14 @@ replace DistName="DC International School" if NCESDistrictID== "1100097"
 
 //Deriving Counts Based on Percents
 forvalues n = 1/5{
+	replace Lev`n'_percent = "*" if Lev`n'_percent == "0-1"
 	split Lev`n'_percent, parse("-")
+	replace Lev`n'_percent = Lev`n'_percent1 if Lev`n'_percent1 == Lev`n'_percent2 & Lev`n'_percent2 != ""
+	replace Lev`n'_percent2 = "" if Lev`n'_percent1 == Lev`n'_percent2 & Lev`n'_percent2 != ""
 	replace Lev`n'_count = string(round(real(Lev`n'_percent1) * real(StudentSubGroup_TotalTested))) if Lev`n'_count == "*" & Lev`n'_percent != "*" & StudentSubGroup_TotalTested != "*" & Lev`n'_percent2 == ""
 	replace Lev`n'_count = string(round(real(Lev`n'_percent1) * real(StudentSubGroup_TotalTested))) + "-" + string(round(real(Lev`n'_percent2) * real(StudentSubGroup_TotalTested))) if Lev`n'_count == "*" & Lev`n'_percent != "*" & StudentSubGroup_TotalTested != "*" & Lev`n'_percent2 != ""
+	split Lev`n'_count, parse("-")
+	replace Lev`n'_count = Lev`n'_count1 if Lev`n'_count1 == Lev`n'_count2 & Lev`n'_count2 != ""
 	drop Lev`n'_percent1 Lev`n'_percent2
 }
 
