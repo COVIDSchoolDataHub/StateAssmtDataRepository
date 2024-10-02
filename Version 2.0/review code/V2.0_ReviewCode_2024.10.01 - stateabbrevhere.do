@@ -7,7 +7,7 @@
 
 **  SETUP
 
-**	1. In your project folder, create a state folder with the format: Florida - Version 2.0
+**	1. In your project folder, create a state folder with the format: Minnesota - Version 2.0
 **	2. Save all of the state's assessment data .csvs. Do not save any other .csvs in this folder.
 **	3. Create a folder called "review" in the state folder in case you need to export any subsets of the data.
 **	4. This do file should be saved in the state folder with the .csvs.
@@ -16,9 +16,9 @@
 {
 clear all
 cap log close
-global Filepath "\Desktop\Zelma V2.0\Maryland - Version 2.0" //  Set path to csv files
+global Filepath "\Desktop\Zelma V2.0\Minnesota - Version 2.0" //  Set path to csv files
 global Review "${Filepath}\review" 
-global StateAbbrev "MD" //Set StateAbbrev
+global StateAbbrev "MN" //Set StateAbbrev
 global date "10.01.24" //Set today's date
 global years  2024 2023 2022 2021 2019 2018 2017 2016 2015 2014 2013 2012 2011 2010 //List Applicable years
 log using "$Filepath/${StateAbbrev}_Review.smcl", replace
