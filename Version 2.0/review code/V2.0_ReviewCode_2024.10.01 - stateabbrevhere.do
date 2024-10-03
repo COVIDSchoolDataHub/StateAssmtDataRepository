@@ -2565,26 +2565,7 @@ drop derive_ssgtt levcount_rng_flag
 
 ** • If we have StudentGroup_TotalTested and the subgroup counterpart's value, have missing subgroup counts been derived and applied to the extent possible here? (e.g. If we have total tested and non-migrant tested counts, we can derive the migrant tested counts)
 
-{
-gen UnsuppressedSSG = real(StudentSubGroup_TotalTested)
-egen UnsuppressedSG = total(UnsuppressedSSG), by(StudentGroup DistName SchName GradeLevel Subject)
-gen missing_SSG = 1 if missing(real(StudentSubGroup_TotalTested))
-egen missing_multiple = total(missing_SSG), by(StudentGroup DistName SchName GradeLevel Subject)
-
-gen flag = .
-replace flag = 1 if missing(real(StudentSubGroup_TotalTested)) & missing_multiple <2 & (StudentSubGroup != "EL Exited" & StudentSubGroup != "EL Monit or Recently Ex" & StudentSubGroup != "EL and Monit or Recently Ex" & StudentSubGroup != "LTEL" & StudentSubGroup != "Ever EL" & StudentSubGroup != "Former EL")
-replace flag = . if StudentSubGroup=="All Students" & (StudentSubGroup_TotalTested=="*" | StudentSubGroup_TotalTested == "--")
-
-count if inlist(flag, 1)
-		if r(N)>0 {
-			di as error "Additional SSG_TT counterpart values can be derived. Use code on Github under 'Example Code'."
-			tab FILE DataLevel if inlist(flag, 1)
-			}
-			
-	else {
-		di as error "Correct."
-		}	
-}	
+// update as of 10/3/24: This review check tbd. 
 
 
 ***********************************************************
