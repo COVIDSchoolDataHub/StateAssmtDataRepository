@@ -1,0 +1,285 @@
+
+//Name: North Carolina 2024 State Assessment
+//purpose: Cleaning NC State Assessment Data
+//author: Mikael Oberlin
+//date created: 10/01/24
+
+
+clear all 
+set more off
+
+global Abbrev "NC"
+global NCES "/Users/mikaeloberlin/Desktop/North Carolina/data"
+global NCES "/Users/mikaeloberlin/Desktop/North Carolina/NCES"
+
+** Preparing NCES files
+
+global years 2015 2016 2017 2018 2019 2021 2022 2023 2024
+
+cd "/Users/mikaeloberlin/Desktop/North Carolina/"
+capture log close
+log using 2024_NC, replace
+
+//2023-2024
+
+cd "/Users/mikaeloberlin/Desktop/North Carolina/"
+
+import delimited Disag_2023-24_Data.txt, clear
+export delimited NC_AssmtData_2024.csv, replace
+
+save NC_OriginalData_2024.dta, replace
+
+use "NC_OriginalData_2024", clear 
+
+
+rename school_code StateAssignedSchID 
+rename name SchName
+rename subject Subject
+rename grade GradeLevel
+rename type AssmtType
+rename subgroup StudentSubGroup
+rename num_tested StudentSubGroup_TotalTested	
+rename pct_notprof Lev1_percent
+rename pct_l3 Lev2_percent
+rename pct_l4 Lev3_percent
+rename pct_l5 Lev4_percent
+rename pct_glp ProficientOrAbove_percent
+rename avg_score AvgScaleScore
+drop pct_ccr grade_span
+
+// keeping necessary grades 
+gen GradeLevel2 = ""
+replace GradeLevel2 = "G03" if GradeLevel == "03"
+replace GradeLevel2 = "G04" if GradeLevel == "04"
+replace GradeLevel2 = "G05" if GradeLevel == "05"
+replace GradeLevel2 = "G06" if GradeLevel == "06"
+replace GradeLevel2 = "G07" if GradeLevel == "07"
+replace GradeLevel2 = "G08" if GradeLevel == "08"
+replace GradeLevel2 = "G38" if GradeLevel == "GS"
+
+drop if GradeLevel2 == ""
+drop GradeLevel
+rename GradeLevel2 GradeLevel
+
+// keeping necessary test types
+keep if AssmtType == "RG"
+replace AssmtType = "Regular" if AssmtType == "RG"
+
+// keeping necessary subjects 
+gen Subject2 = ""
+replace Subject2 = "math" if Subject == "MA"
+replace Subject2 = "ela" if Subject == "RD"
+replace Subject2 = "sci" if Subject == "SC"
+drop if Subject2 == ""
+drop Subject
+rename Subject2 Subject
+
+// keeping necessary subroups 
+
+gen StudentSubGroup2 = ""
+replace StudentSubGroup2 = "All Students" if StudentSubGroup == "ALL"
+replace StudentSubGroup2 = "American Indian or Alaska Native" if StudentSubGroup == "AMIN"
+replace StudentSubGroup2 = "Asian" if StudentSubGroup == "ASIA"
+replace StudentSubGroup2 = "Black or African American" if StudentSubGroup == "BLCK"
+replace StudentSubGroup2 = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "PACI"
+replace StudentSubGroup2 = "Two or More" if StudentSubGroup == "MULT"
+replace StudentSubGroup2 = "Hispanic or Latino" if StudentSubGroup == "HISP"
+replace StudentSubGroup2 = "White" if StudentSubGroup == "WHTE"
+
+display "El Late"
+replace StudentSubGroup2 = "English Learner" if StudentSubGroup == "ELS"
+replace StudentSubGroup2 = "English Proficient" if StudentSubGroup == "NOT_ELS"
+
+replace StudentSubGroup2 = "Economically Disadvantaged" if StudentSubGroup == "EDS"
+replace StudentSubGroup2 = "Not Economically Disadvantaged" if StudentSubGroup== "NOT_EDS"
+
+replace StudentSubGroup2 = "Male" if StudentSubGroup == "MALE"
+replace StudentSubGroup2 = "Female" if StudentSubGroup == "FEM"
+
+display "Homeless"
+replace StudentSubGroup2 = "Homeless" if StudentSubGroup == "HMS"
+replace StudentSubGroup2 = "Non-Homeless" if StudentSubGroup == "NOT_HMS"
+display "Military"
+replace StudentSubGroup2 = "Military" if StudentSubGroup == "MIL"
+replace StudentSubGroup2 = "Non-Military" if StudentSubGroup == "NOT_MIL"
+display "Migrant"
+replace StudentSubGroup2 = "Migrant" if StudentSubGroup == "MIG"
+replace StudentSubGroup2 = "Non-Migrant" if StudentSubGroup == "NOT_MIG"
+display "SWD"
+replace StudentSubGroup2 = "SWD" if StudentSubGroup == "SWD"
+replace StudentSubGroup2 = "Non-SWD" if StudentSubGroup == "NOT_SWD"
+display "Foster Care"
+replace StudentSubGroup2 = "Foster Care" if StudentSubGroup == "FCS"
+replace StudentSubGroup2 = "Non-Foster Care" if StudentSubGroup == "NOT_FCS"
+
+
+drop if StudentSubGroup2 == ""
+drop StudentSubGroup
+rename StudentSubGroup2 StudentSubGroup
+
+
+// creating student groups 
+
+gen StudentGroup = ""
+replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
+replace StudentGroup = "RaceEth" if StudentSubGroup == "American Indian or Alaska Native"
+replace StudentGroup = "RaceEth" if StudentSubGroup == "Asian"
+replace StudentGroup = "RaceEth" if StudentSubGroup == "Black or African American"
+replace StudentGroup = "RaceEth" if StudentSubGroup == "Native Hawaiian or Pacific Islander"
+replace StudentGroup = "RaceEth" if StudentSubGroup == "Two or More"
+replace StudentGroup = "RaceEth" if StudentSubGroup == "Hispanic or Latino"
+replace StudentGroup = "RaceEth" if StudentSubGroup == "White"
+
+replace StudentGroup = "EL Status" if StudentSubGroup == "English Learner"
+replace StudentGroup = "EL Status" if StudentSubGroup == "English Proficient"
+
+replace StudentGroup = "Gender" if StudentSubGroup == "Male"
+replace StudentGroup = "Gender" if StudentSubGroup == "Female"
+
+
+replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged"
+replace StudentGroup = "Economic Status" if StudentSubGroup == "Not Economically Disadvantaged"
+
+replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD" | StudentSubGroup == "Non-SWD"
+replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless" | StudentSubGroup == "Non-Homeless" 
+replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Military" | StudentSubGroup == "Non-Military" 
+replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant" | StudentSubGroup == "Non-Migrant"
+replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Foster Care" | StudentSubGroup == "Non-Foster Care"
+
+
+// proficiency level 
+gen ProficiencyCriteria = "Levels 2-4" 
+
+// split CODE into district piece, and school piece 
+gen StateAssignedDistID = ""
+replace StateAssignedDistID = StateAssignedSchID if regexm(StateAssignedSchID, "[0-9]{3}LEA")
+
+// remove LEA piece from stateassigneddistrictID 
+replace StateAssignedDistID = subinstr(StateAssignedDistID, "LEA", "", .)
+
+// drop entries which are "regions" by datalevel 
+drop if regexm(StateAssignedSchID, "^NC-SB")
+
+// create datalevel funciton based on codes 
+gen DataLevel = "School"
+replace DataLevel = "District" if StateAssignedDistID != ""
+replace DataLevel = "State" if StateAssignedSchID == "NC-SEA"
+
+replace StateAssignedSchID = "" if DataLevel == "District" | DataLevel == "State"
+
+replace StateAssignedDistID = substr(StateAssignedSchID, 1, 3) if DataLevel == "School"
+
+// create separate district and school names, based on length of code (or daalevel function)
+gen DistName = SchName if DataLevel == "District"
+
+// hardcoding DataLevel 
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+sort DataLevel_n 
+drop DataLevel 
+rename DataLevel_n DataLevel 
+
+rename StateAssignedDistID State_leaid
+
+merge m:1 State_leaid using "NC_district_IDs_2024"
+replace DistName = "All Districts" if DataLevel == 1
+drop if _merge == 2
+drop _merge
+
+// "All Districts" and "All School" creation
+replace DistName = "All Districts" if DataLevel == 1
+replace SchName = "All Schools" if DataLevel == 1
+replace SchName = "All Schools" if DataLevel == 2
+
+gen StateAssignedSchID_full = StateAssignedSchID // keeping to replace back later 
+//making state assigned school ID just 3 for match 
+replace StateAssignedSchID = substr(StateAssignedSchID, 4, .)
+rename StateAssignedDistID State_leaid
+
+merge m:1 State_leaid using "/Users/mikaeloberlin/Desktop/North Carolina/NCES_2024_District.dta"
+rename _merge DistMerge
+drop if DistMerge == 2
+
+drop DistMerge
+
+rename StateAssignedSchID seasch
+merge m:1 State_leaid seasch using "/Users/mikaeloberlin/Desktop/North Carolina/NCES_2024_School.dta"
+rename _merge SchoolMerge
+drop if SchoolMerge == 2
+drop SchoolMerge 
+
+rename State_leaid StateAssignedDistID
+rename seasch StateAssignedSchID
+
+drop State
+drop StateAbbrev
+drop StateFips
+gen State = "North Carolina"
+gen StateAbbrev = "NC"
+gen StateFips = 37 
+
+gen Flag_AssmtNameChange = "N"
+gen Flag_CutScoreChange_ELA = "N"
+gen Flag_CutScoreChange_math = "N"
+gen Flag_CutScoreChange_sci = "N" 
+gen Flag_CutScoreChange_soc = "Not applicable"
+
+gen SchYear = "2023-24"
+
+gen AssmtName = "End-of-Grade Tests - Edition 5" 
+
+gen StudentGroup_TotalTested = StudentSubGroup_TotalTested
+destring StudentGroup_TotalTested, replace force ignore(",")
+bys StudentGroup Subject GradeLevel DistName SchName: egen StudentGroup_TotalTested1 = total(StudentGroup_TotalTested)
+replace StudentGroup_TotalTested1 =. if StudentGroup_TotalTested1 < 0
+tostring StudentGroup_TotalTested1, replace
+replace StudentGroup_TotalTested1 = "*" if StudentGroup_TotalTested1 == "."
+drop StudentGroup_TotalTested
+rename StudentGroup_TotalTested1 StudentGroup_TotalTested
+
+gen ParticipationRate = "--" 
+
+destring Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent AvgScaleScore ParticipationRate, replace force ignore(", < >")  
+
+
+// converting to decimal form from percentage form 
+replace Lev1_percent = Lev1_percent/100
+replace Lev2_percent = Lev2_percent/100 
+replace Lev3_percent = Lev3_percent/100 
+replace Lev4_percent = Lev4_percent/100 
+replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
+
+tostring Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent ParticipationRate AvgScaleScore StudentSubGroup_TotalTested, replace force
+
+//Proficiency Levels
+destring StudentSubGroup_TotalTested, gen(num) force
+forvalues n = 1/4 {
+	gen Lev`n'_pct = Lev`n'_percent
+	destring Lev`n'_pct, replace force
+	gen Lev`n'_count = Lev`n'_pct * num
+	replace Lev`n'_count = round(Lev`n'_count)
+	replace Lev`n'_percent = "--" if Lev`n'_percent == ""
+	replace Lev`n'_percent = "*" if Lev`n'_percent == "***"
+	tostring Lev`n'_count, replace
+	replace Lev`n'_count = "*" if Lev`n'_percent == "*"
+	replace Lev`n'_count = "--" if Lev`n'_percent == "--"
+	replace Lev`n'_count = "--" if StudentSubGroup_TotalTested == "--" & Lev`n'_count != "*"
+	replace Lev`n'_percent = "--" if Lev`n'_percent == "."
+}
+
+replace AvgScaleScore = "--" if AvgScaleScore == "."
+replace ParticipationRate = "--" if ParticipationRate == "."
+
+gen Prof_pct = ProficientOrAbove_percent
+destring Prof_pct, replace force
+gen ProficientOrAbove_count = Prof_pct * num
+replace ProficientOrAbove_count = round(ProficientOrAbove_count)
+tostring ProficientOrAbove_count, replace
+
+
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+save NC_AssmtData_2024, replace
+export delimited NC_AssmtData_2024.csv, replace
