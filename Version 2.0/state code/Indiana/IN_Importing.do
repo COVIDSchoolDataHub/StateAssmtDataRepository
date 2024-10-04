@@ -2,10 +2,10 @@ clear
 set more off
 set trace off
 
-global Original "/Volumes/T7/State Test Project/Indiana/Original Data Files - Version 1.1"
+global Original "/Users/miramehta/Documents/IN State Testing Data/Original Data Files"
 global temp "/Volumes/T7/State Test Project/Indiana/Original Data Files - Version 1.1/temp"
 global Output "/Volumes/T7/State Test Project/Indiana/Output"
-global NCES_New "/Volumes/T7/State Test Project/Indiana/NCES"
+global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
 
 //Importing and Combining
 local SubGroups1 "OVERALL ETHNICITY GENDER FRL SPED ELL FOSTER HOMELESS ACTIVE_DUTY"

@@ -252,7 +252,6 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 save "${Output}/DC_AssmtData_2015", replace
 export delimited "${Output}/DC_AssmtData_2015", replace
-clear
 
 
 

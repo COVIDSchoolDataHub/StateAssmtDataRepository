@@ -1,11 +1,11 @@
 clear
 set more off
 
-cd "/Users/maggie/Desktop/Indiana"
+cd "/Users/miramehta/Documents"
 
-global raw "/Users/maggie/Desktop/Indiana/Original Data Files"
-global output "/Users/maggie/Desktop/Indiana/Output"
-global NCES "/Users/maggie/Desktop/Indiana/NCES/Cleaned"
+global raw "/Users/miramehta/Documents/IN State Testing Data/Original Data Files"
+global output "/Users/miramehta/Documents/IN State Testing Data/Output"
+global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
 
 //////	ORGANIZING AND APPENDING DATA
 

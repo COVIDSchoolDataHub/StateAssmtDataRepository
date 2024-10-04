@@ -14,14 +14,32 @@ import delimited using "${Original}/DC_OriginalData_2022_Sch", case(preserve) st
 append using "`temp1'"
 save "`temp1'", replace
 clear
+import excel using "${Original}/DC_OriginalData_2022_Sch", sheet(prof) case(preserve) firstrow allstring
+gen MetricValue = "ProficientOrAbove"
+append using "`temp1'"
+save "`temp1'", replace
+clear
 import excel using "${Original}/DC_OriginalData_2022_Dist", sheet(Data) firstrow allstring
 replace AggregationLevel = "District"
+append using "`temp1'"
+save "`temp1'", replace
+clear
+import excel using "${Original}/DC_OriginalData_2022_Dist", sheet(prof) firstrow allstring
+replace AggregationLevel = "District"
+gen MetricValue = "ProficientOrAbove"
 append using "`temp1'"
 save "`temp1'", replace
 clear
 import excel using "${Original}/DC_OriginalData_2022_State", sheet(Data) case(preserve) firstrow
 replace LEACode = ""
 replace SchoolCode = ""
+append using "`temp1'"
+save "`temp1'", replace
+clear
+import excel using "${Original}/DC_OriginalData_2022_State", sheet(prof) case(preserve) firstrow
+replace LEACode = ""
+replace SchoolCode = ""
+gen MetricValue = "ProficientOrAbove"
 append using "`temp1'"
 save "`temp1'", replace
 clear
@@ -33,14 +51,32 @@ import excel using "${Original}/DC_OriginalData_2022_sci_Sch", sheet(perf_level)
 append using "`temp2'"
 save "`temp2'", replace
 clear
+import excel using "${Original}/DC_OriginalData_2022_sci_Sch", sheet(prof) firstrow case(preserve) allstring
+gen MetricValue = "ProficientOrAbove"
+append using "`temp2'"
+save "`temp2'", replace
+clear
 import excel using "${Original}/DC_OriginalData_2022_sci_Dist", sheet(perf_level) firstrow case(preserve) allstring
 replace AggregationLevel = "District"
+append using "`temp2'"
+save "`temp2'", replace
+clear
+import excel using "${Original}/DC_OriginalData_2022_sci_Dist", sheet(prof) firstrow case(preserve) allstring
+replace AggregationLevel = "District"
+gen MetricValue = "ProficientOrAbove"
 append using "`temp2'"
 save "`temp2'", replace
 clear
 import excel using "${Original}/DC_OriginalData_2022_sci_State", sheet(perf_level) firstrow case(preserve)
 replace LEACode = ""
 replace SchoolCode = ""
+append using "`temp2'"
+save "`temp2'", replace
+clear
+import excel using "${Original}/DC_OriginalData_2022_sci_State", sheet(prof) firstrow case(preserve)
+replace LEACode = ""
+replace SchoolCode = ""
+gen MetricValue = "ProficientOrAbove"
 append using "`temp2'"
 append using "`temp1'"
 
@@ -64,6 +100,7 @@ rename SchoolCode StateAssignedSchID
 rename AssessmentName AssmtName
 rename SubgroupValue StudentSubGroup
 rename TestedGradeSubject GradeLevel
+drop if GradeLevel == "All" & GradeofEnrollment != "Grades 3-8"
 drop GradeofEnrollment
 keep if AssmtName == "PARCC" | AssmtName == "DC Science"
 rename LEAName DistName
@@ -73,7 +110,8 @@ rename TotalCount StudentSubGroup_TotalTested
 //GradeLevel
 replace GradeLevel = subinstr(GradeLevel, "Grade ","",.)
 replace GradeLevel = "G0" + GradeLevel
-keep if inlist(GradeLevel,"G03","G04","G05","G06","G07","G08")
+replace GradeLevel = "G38" if GradeLevel == "G0All"
+keep if inlist(GradeLevel,"G03","G04","G05","G06","G07","G08", "G38")
 
 //Reshaping from long to wide
 replace MetricValue = subinstr(MetricValue, "Performance Level ","",.)
@@ -89,6 +127,8 @@ foreach n in 1 2 3 4 5 {
 	rename Count`n' Lev`n'_count
 }
 drop ind
+rename PercentProficientOrAbove ProficientOrAbove_percent
+rename CountProficientOrAbove ProficientOrAbove_count
 
 //DataLevel
 label def DataLevel 1 "State" 2 "District" 3 "School"
@@ -144,12 +184,16 @@ foreach n in 1 2 3 4 5 {
 }
 replace Lev5_count = "" if Subject == "Science"
 replace Lev5_percent = "" if Subject == "Science"
+replace ProficientOrAbove_count = "*" if missing(ProficientOrAbove_count)
+replace ProficientOrAbove_percent = "*" if missing(ProficientOrAbove_percent)
 
 //Fixing Proficiency Levels
 foreach n in 1 2 3 4 5 {
 	destring Lev`n'_percent, gen(nLev`n'_percent) i(*-)
 	replace Lev`n'_percent = string(nLev`n'_percent/100, "%9.4g") if regexm(Lev`n'_percent, "[0-9]") == 1
 }
+destring ProficientOrAbove_percent, gen(nProf_percent) i(*-)
+replace ProficientOrAbove_percent = string(nProf_percent/100, "%9.4g") if regexm(ProficientOrAbove_percent, "[0-9]") == 1
 
 //Subject
 replace Subject = "math" if strpos(Subject, "Math") !=0
@@ -235,17 +279,6 @@ gen ProficiencyCriteria = "Levels 4-5"
 gen AssmtType = "Regular"
 gen SchYear = "2021-22"
 
-//ProficientOrAbove_count and Percent
-gen ProficientOrAbove_percent = string((nLev4_percent + nLev5_percent)/100, "%9.4g") if Subject != "sci"
-replace ProficientOrAbove_percent = "*" if (Lev4_percent == "*" | Lev5_percent == "*") & Subject != "sci"
-gen ProficientOrAbove_count = string(nLev4_count + nLev5_count, "%9.4g") if Subject != "sci"
-replace ProficientOrAbove_count = "*" if (Lev4_count == "*" | Lev5_count == "*") & Subject != "sci"
-
-replace ProficientOrAbove_percent = string((nLev3_percent + nLev4_percent)/100, "%9.4g") if Subject == "sci"
-replace ProficientOrAbove_percent = "*" if (Lev3_percent == "*" | Lev4_percent == "*") & Subject == "sci"
-replace ProficientOrAbove_count = string(nLev3_count + nLev4_count, "%9.4g") if Subject == "sci"
-replace ProficientOrAbove_count = "*" if (Lev3_count == "*" | Lev4_count == "*") & Subject == "sci"
-
 //Leaving ParticipationRate blank for now
 gen ParticipationRate = ""
 
@@ -284,10 +317,16 @@ replace `count' = string(round(real(`percent') * real(StudentSubGroup_TotalTeste
 }
 replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent) * real(StudentSubGroup_TotalTested))) if !missing(real(ProficientOrAbove_percent)) & !missing(real(StudentSubGroup_TotalTested)) & missing(real(ProficientOrAbove_count))
 
-//Deriving ProficientOrAbove_count and ProficientOrAbove_percent where possible if Levels 1-3 are available (for ela and math)/Levels 1-2 are available (for sci)
+//Deriving Additional Information
+replace ProficientOrAbove_percent = string((nLev4_percent + nLev5_percent)/100, "%9.4g") if Subject != "sci" & missing(real(ProficientOrAbove_percent)) & !missing(nLev4_percent) & !missing(nLev5_percent)
+replace ProficientOrAbove_count = string(nLev4_count + nLev5_count, "%9.4g") if Subject != "sci" & missing(real(ProficientOrAbove_count)) & !missing(nLev4_count) & !missing(nLev5_count)
+
+replace ProficientOrAbove_percent = string((nLev3_percent + nLev4_percent)/100, "%9.4g") if Subject == "sci" & missing(real(ProficientOrAbove_percent)) & !missing(nLev3_percent) & !missing(nLev4_percent)
+replace ProficientOrAbove_count = string(nLev3_count + nLev4_count, "%9.4g") if Subject == "sci" & missing(real(ProficientOrAbove_count)) & !missing(nLev3_count) & !missing(nLev4_count)
+
 replace ProficientOrAbove_count = string(real(StudentSubGroup_TotalTested) - real(Lev1_count) - real(Lev2_count) - real(Lev3_count)) if Subject != "sci" & regexm(ProficientOrAbove_count, "[*-]") !=0 & regexm(Lev1_count, "[*-]") == 0 & regexm(Lev2_count, "[*-]") == 0 & regexm(Lev3_count, "[*-]") == 0
 replace ProficientOrAbove_count = string(real(StudentSubGroup_TotalTested) - real(Lev1_count) - real(Lev2_count)) if Subject == "sci" & regexm(ProficientOrAbove_count, "[*-]") !=0 & regexm(Lev1_count, "[*-]") == 0 & regexm(Lev2_count, "[*-]") == 0
-replace ProficientOrAbove_percent = string(1 - real(Lev1_percent) - real(Lev2_percent) - real(Lev3_percent), "%9.3g") if Subject != "sci" & regexm(ProficientOrAbove_percent, "[*-]") !=0 & regexm(Lev1_percent, "[*-]") == 0 & regexm(Lev2_percent, "[*-]") == 0 & regexm(Lev3_percent, "[*-]") == 0
+replace ProficientOrAbove_percent = string(1 - real(Lev1_percent) - real(Lev2_percent) - real(Lev3_percent), "%9.4g") if Subject != "sci" & missing(real(ProficientOrAbove_percent)) & !missing(real(Lev1_percent)) & !missing(real(Lev2_percent)) & !missing(real(Lev3_percent))
 replace ProficientOrAbove_percent = string((1 - real(Lev1_percent) - real(Lev2_percent)), "%9.4g") if Subject != "sci" & regexm(ProficientOrAbove_percent, "[*-]") !=0 & regexm(Lev1_percent, "[*-]") == 0 & regexm(Lev2_percent, "[*-]") == 0
 replace ProficientOrAbove_percent = string((1 - real(Lev1_percent) - real(Lev2_percent)), "%9.4g") if Subject == "sci" & missing(real(ProficientOrAbove_percent)) & !missing(real(Lev1_percent)) & !missing(real(Lev2_percent))
 replace ProficientOrAbove_percent = "0" if real(ProficientOrAbove_percent) < 0
@@ -301,22 +340,42 @@ replace Lev4_percent = string((real(ProficientOrAbove_percent) - real(Lev3_perce
 replace Lev4_percent = string((real(ProficientOrAbove_percent) - real(Lev5_percent)), "%9.4g") if Lev4_percent == "*" & Lev5_percent != "*" & ProficientOrAbove_percent != "*" & Subject != "sci"
 replace Lev5_percent = string((real(ProficientOrAbove_percent) - real(Lev4_percent)), "%9.4g") if Lev5_percent == "*" & Lev4_percent != "*" & ProficientOrAbove_percent != "*" & Subject != "sci"
 
+replace Lev1_percent = string((1 - real(ProficientOrAbove_percent) - real(Lev2_percent) - real(Lev3_percent)), "%9.4g") if missing(real(Lev1_percent)) & !missing(real(ProficientOrAbove_percent)) & !missing(Lev2_percent) & !missing(Lev3_percent) & Subject != "sci"
 replace Lev1_percent = string((1 - real(ProficientOrAbove_percent) - real(Lev2_percent)), "%9.4g") if missing(real(Lev1_percent)) & !missing(real(ProficientOrAbove_percent)) & !missing(Lev2_percent) & Subject == "sci"
+replace Lev2_percent = string((1 - real(ProficientOrAbove_percent) - real(Lev1_percent) - real(Lev3_percent)), "%9.4g") if missing(real(Lev2_percent)) & !missing(real(ProficientOrAbove_percent)) & !missing(Lev1_percent) & !missing(Lev3_percent) & Subject != "sci"
+replace Lev2_percent = string((1 - real(ProficientOrAbove_percent) - real(Lev1_percent)), "%9.4g") if missing(real(Lev2_percent)) & !missing(real(ProficientOrAbove_percent)) & !missing(Lev1_percent) & Subject == "sci"
+
+forvalues n = 1/5{
+	replace Lev`n'_percent = "0" if real(Lev`n'_percent) < 0
+	replace Lev`n'_percent = "0" if inlist(Lev`n'_percent, "1.11e-16", "2.78e-17", "-2.78e-17", "5.55e-17", "-5.55e-17")
+	replace Lev`n'_percent = "*" if Lev`n'_percent == "."
+}
+replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
 
 //Deriving Lev*_count
 foreach count of varlist Lev*_count {
 local percent = subinstr("`count'", "count", "percent",.)
 replace `count' = string(round(real(`percent') * real(StudentSubGroup_TotalTested))) if regexm(`count', "[*-]") !=0 & regexm(`percent', "[*-]") == 0 & regexm(StudentSubGroup_TotalTested, "[*-]") == 0 
+replace `count' = "*" if `count' == "."
 }
 replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent) * real(StudentSubGroup_TotalTested))) if !missing(real(ProficientOrAbove_percent)) & !missing(real(StudentSubGroup_TotalTested)) & missing(real(ProficientOrAbove_count))
+
+replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
 
 replace Lev3_count = string(round((1 - real(ProficientOrAbove_count) - real(Lev1_count) - real(Lev2_count)))) if missing(real(Lev3_count)) & !missing(real(ProficientOrAbove_count)) & !missing(real(Lev1_count)) & !missing(real(Lev2_count)) & Subject != "sci"
 replace Lev3_count = "0" if real(Lev3_count) < 0
 replace Lev3_percent = "0" if Lev3_count == "0"
 
+forvalues n = 1/5{
+	replace Lev`n'_percent = "0" if Lev`n'_count == "0"
+}
+
 //Dropping observations without "All Students" counterpart or any actual information
 drop if NCESDistrictID == "1100099" & DataLevel == 2 & Subject == "sci" & GradeLevel == "G08" & inlist(StudentSubGroup, "SWD", "Homeless")
+drop if NCESDistrictID == "1100099" & DataLevel == 2 & Subject == "math" & GradeLevel == "G38" & inlist(StudentGroup, "RaceEth", "Homeless Enrolled Status")
+
 drop if NCESDistrictID == "1100099" & NCESSchoolID == "110009900502" & Subject == "sci" & GradeLevel == "G08" & inlist(StudentSubGroup, "SWD", "Homeless")
+drop if NCESDistrictID == "1100099" & NCESSchoolID == "110009900502" & Subject == "math" & GradeLevel == "G38" & inlist(StudentGroup, "RaceEth", "Homeless Enrolled Status")
 
 drop State_leaid seasch
 
@@ -328,5 +387,4 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${Output}/DC_AssmtData_2022", replace
 export delimited "${Output}/DC_AssmtData_2022", replace
-clear
 

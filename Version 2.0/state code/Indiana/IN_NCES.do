@@ -1,8 +1,8 @@
 clear
 set more off
 
-global NCES_Original "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
-global NCES_New "/Volumes/T7/State Test Project/Indiana/NCES"
+global NCES_Original "/Users/miramehta/Documents/NCES District and School Demographics/"
+global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
 
 
 ** Preparing NCES files
@@ -16,7 +16,7 @@ save "`tempncesd'", replace emptyok
 
 foreach a in $years {
 	
-	use "${NCES_Original}/NCES_`a'_District.dta", clear 
+	use "${NCES_Original}/NCES District Files, Fall 1997-Fall 2022/NCES_`a'_District.dta", clear 
 	keep if state_location == "IN"
 	
 	rename state_name State
@@ -32,11 +32,11 @@ foreach a in $years {
 	keep State StateAbbrev StateFips NCESDistrictID State_leaid DistType CountyName CountyCode DistLocale DistCharter DistName
 	
 	
-	save "${NCES_New}/NCES_`a'_District.dta", replace
+	save "${NCES}/NCES_`a'_District.dta", replace
 	append using "`tempncesd'"
 	save "`tempncesd'", replace
 	
-	use "${NCES_Original}/NCES_`a'_School.dta", clear
+	use "${NCES_Original}/NCES School Files, Fall 1997-Fall 2022/NCES_`a'_School.dta", clear
 	keep if state_location == "IN"
 	
 	rename state_name State
@@ -73,15 +73,15 @@ foreach a in $years {
 	drop if seasch == ""
 
 	
-	save "${NCES_New}/NCES_`a'_School.dta", replace
+	save "${NCES}/NCES_`a'_School.dta", replace
 	append using "`tempncess'"
 	save "`tempncess'", replace
 }
 
 use "`tempncesd'", clear
 duplicates drop NCESDistrictID, force
-save "${NCES_New}/NCES_All_District", replace
+save "${NCES}/NCES_All_District", replace
 use "`tempncess'", clear
 duplicates drop NCESSchool, force
-save "${NCES_New}/NCES_All_School", replace
+save "${NCES}/NCES_All_School", replace
 

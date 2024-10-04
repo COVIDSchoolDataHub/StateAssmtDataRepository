@@ -110,9 +110,9 @@ replace ProficientOrAbove_percent = string(real(ProficientOrAbove_percent), "%9.
 gen seasch = StateAssignedSchID
 gen State_leaid = StateAssignedDistID
 
-merge m:1 State_leaid using "${NCES_New}/NCES_`prevyear'_District", gen(_merge1)
+merge m:1 State_leaid using "${NCES}/NCES_`prevyear'_District", gen(_merge1)
 drop if _merge1 != 3 & DataLevel !=1 //These are private schools not in NCES and should be dropped for our purposes
-merge m:1 seasch using "${NCES_New}/NCES_`prevyear'_School", gen(_merge2)
+merge m:1 seasch using "${NCES}/NCES_`prevyear'_School", gen(_merge2)
 drop if _merge2 == 2
 drop _merge*
 

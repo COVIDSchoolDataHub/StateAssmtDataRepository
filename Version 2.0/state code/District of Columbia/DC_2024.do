@@ -281,8 +281,8 @@ replace StateAbbrev = "DC"
 gen State = "District of Columbia"
 gen AvgScaleScore = "--"
 
-// updated 
 gen Flag_AssmtNameChange = "Y"
+replace Flag_AssmtNameChange = "N" if Subject == "sci"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_sci = "Not applicable" //update when 2024 science data are released
@@ -373,13 +373,20 @@ forvalues n = 1/5{
 	replace Lev`n'_count = string(round(real(Lev`n'_percent1) * real(StudentSubGroup_TotalTested))) + "-" + string(round(real(Lev`n'_percent2) * real(StudentSubGroup_TotalTested))) if Lev`n'_count == "*" & Lev`n'_percent != "*" & StudentSubGroup_TotalTested != "*" & Lev`n'_percent2 != ""
 	split Lev`n'_count, parse("-")
 	replace Lev`n'_count = Lev`n'_count1 if Lev`n'_count1 == Lev`n'_count2 & Lev`n'_count2 != ""
-	drop Lev`n'_percent1 Lev`n'_percent2
+	gen flag`n' = 1 if Lev`n'_count1 == "0" & Lev`n'_percent1 != "0"
+	replace Lev`n'_percent = "0-" + Lev`n'_percent2 if flag`n' == 1 & Lev`n'_percent2 != ""
+	replace Lev`n'_percent = "0" if flag`n' == 1 & Lev`n'_percent2 == ""
+	drop flag`n' Lev`n'_percent1 Lev`n'_percent2 Lev`n'_count1 Lev`n'_count2
 }
 
 replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent1) * real(StudentSubGroup_TotalTested))) if ProficientOrAbove_count == "*" & ProficientOrAbove_percent != "*" & StudentSubGroup_TotalTested != "*" & ProficientOrAbove_percent2 == ""
 replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent1) * real(StudentSubGroup_TotalTested))) + "-" + string(round(real(ProficientOrAbove_percent2) * real(StudentSubGroup_TotalTested))) if inlist(ProficientOrAbove_count, ".", "*") & ProficientOrAbove_percent != "*" & StudentSubGroup_TotalTested != "*" & ProficientOrAbove_percent2 != ""
 replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
-drop ProficientOrAbove_percent1 ProficientOrAbove_percent2
+split ProficientOrAbove_count, parse("-")
+gen flagProf = 1 if ProficientOrAbove_count1 == "0" & ProficientOrAbove_percent1 != "0"
+replace ProficientOrAbove_percent = "0-" + ProficientOrAbove_percent2 if flagProf == 1 & ProficientOrAbove_percent2 != ""
+replace ProficientOrAbove_percent = "0" if flagProf == 1 & ProficientOrAbove_percent2 == ""
+drop flagProf ProficientOrAbove_percent1 ProficientOrAbove_percent2 ProficientOrAbove_count1 ProficientOrAbove_count2
 
 //ParticipationRate
 gen rangepart = substr(ParticipationRate,1,1) if regexm(ParticipationRate, "[<>]") !=0
@@ -407,7 +414,6 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${Output}/DC_AssmtData_2024", replace
 export delimited "${Output}/DC_AssmtData_2024", replace
-clear
 
 
 

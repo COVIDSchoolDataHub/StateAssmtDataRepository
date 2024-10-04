@@ -185,9 +185,10 @@ replace StateAbbrev = "DC"
 gen State = "District of Columbia"
 gen AvgScaleScore = "--"
 gen Flag_AssmtNameChange = "N"
+replace Flag_AssmtNameChange = "Y" if Subject == "sci"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_sci = "N"
+gen Flag_CutScoreChange_sci = "Y"
 gen Flag_CutScoreChange_soc = "Not applicable"
 
 
