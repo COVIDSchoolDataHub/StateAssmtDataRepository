@@ -255,7 +255,7 @@ drop DataLevel
 rename DataLevel_n DataLevel
 
 //Student Counts and ParticipationRate
-merge 1:1 NCESDistrictID NCESSchoolID GradeLevel Subject DataLevel StudentSubGroup using "$data/WV_2024_counts"
+merge 1:1 NCESDistrictID NCESSchoolID GradeLevel Subject DataLevel StudentSubGroup using "$data/WV_2022_counts"
 
 drop if _merge == 2 
 
