@@ -14,10 +14,12 @@ ssc install labutil
 
 ## Setup
 
-There are four folders you need to create: 
-Original Data Files, NCES, Output, and Temp. 
+There are five folders you need to create: 
+Original Data Files, NCES, Output, EDFacts, and Temp. 
 
 Download the original files from the drive in all inidividual year folders and the "Additional Subgroup" folder. Place them in the "Original Data Files" folder. 
+
+Put the 4 2021 EDFacts files in the EDFacts folder
 
 There are 3 .do files. 
 
@@ -28,3 +30,4 @@ CT_Cleaning.do;
 CT_Cleaning_2021.do; 
 
 CT_2021_EDFACTS.do.
+
