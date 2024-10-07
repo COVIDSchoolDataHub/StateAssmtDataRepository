@@ -235,7 +235,7 @@ rename DataLevel_n DataLevel
 destring NCESDistrictID, replace
 
 //Student Counts and ParticipationRate
-merge 1:1 NCESDistrictID NCESSchoolID GradeLevel Subject StudentSubGroup using "$data/WV_2022_counts", keep(match master)
+merge 1:1 NCESDistrictID NCESSchoolID GradeLevel Subject StudentSubGroup using "$data/counts/WV_2022_counts", keep(match master)
 tostring StudentSubGroup_TotalTested StudentGroup_TotalTested, replace 
 replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
 replace StudentGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
