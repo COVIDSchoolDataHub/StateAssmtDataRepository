@@ -224,8 +224,9 @@ rename state_location StateAbbrev
 
 //Unmerged Schools
 replace NCESSchoolID = "540006201604" if SchName == "Eastern Panhandle Preparatory Academy"
-replace SchType = "Other" if SchName == "Eastern Panhandle Preparatory Academy"
-replace SchLevel = "Regular school" if SchName == "Eastern Panhandle Preparatory Academy"
+replace SchVirtual = "No" if SchName == "Eastern Panhandle Preparatory Academy"
+replace SchType =  "Regular school" if SchName == "Eastern Panhandle Preparatory Academy"
+replace SchLevel = "Other" if SchName == "Eastern Panhandle Preparatory Academy"
 
 replace NCESSchoolID = "540006301605" if SchName == "Virtual Preparatory Academy of West Virginia"
 replace SchVirtual = "Supplemental virtual" if SchName == "Virtual Preparatory Academy of West Virginia"
@@ -239,6 +240,7 @@ replace SchType = "Regular school" if SchName == "West Virginia Virtual Academy"
 replace SchLevel = "Other" if SchName == "West Virginia Virtual Academy"
 
 replace NCESSchoolID = "540165201611" if SchName == "West Virginia Academy"
+replace SchVirtual = "No" if SchName == "West Virginia Academy"
 replace SchType = "Regular school" if SchName == "West Virginia Academy"
 replace SchLevel = "Other" if SchName == "West Virginia Academy"
 
@@ -253,7 +255,7 @@ drop DataLevel
 rename DataLevel_n DataLevel
 
 //Student Counts and ParticipationRate
-merge 1:1 NCESDistrictID NCESSchoolID GradeLevel Subject DataLevel StudentSubGroup using "$data/WV_2024_counts"
+merge 1:1 NCESDistrictID NCESSchoolID GradeLevel Subject DataLevel StudentSubGroup using "$data/WV_2022_counts"
 
 drop if _merge == 2 
 

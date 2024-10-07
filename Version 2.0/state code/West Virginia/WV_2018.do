@@ -228,6 +228,7 @@ forvalues n = 1/4 {
 	replace Lev`n'_percent = "--" if Lev`n'_percent == ""
 	gen Lev`n'_pct = Lev`n'_percent
 	destring Lev`n'_percent, replace force
+	replace Lev`n'_percent = Lev`n'_percent/100
 	gen Lev`n'_count = Lev`n'_percent * num
 	replace Lev`n'_count = round(Lev`n'_count)
 	tostring Lev`n'_percent, replace format("%6.0g") force

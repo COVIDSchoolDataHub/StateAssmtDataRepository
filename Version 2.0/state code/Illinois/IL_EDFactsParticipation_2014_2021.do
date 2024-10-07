@@ -18,7 +18,7 @@ foreach year of local edyears1 {
             foreach lvl of local datalevel {
                 local prevyear = `year' - 1
                 use "${EDFacts}/20`year'/edfacts`type'20`year'`sub'`lvl'.dta", clear
-                keep if stnam == "FLORIDA"
+                keep if stnam == "FLORIDA" // note from clare 10.4.24: this says Florida but is in the Illinois file
                 rename *_`prevyear'`year' *
                 if ("`sub'" == "math") {
                     rename *_mth* **
