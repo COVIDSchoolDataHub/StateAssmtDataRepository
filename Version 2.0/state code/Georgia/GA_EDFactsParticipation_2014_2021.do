@@ -1,9 +1,8 @@
 clear
 set more off
 
-global EDFacts "/Users/kaitlynlucas/Desktop/EDFacts Drive Data"
-global State_Output "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/Georgia Assessment" // Version 1.1 Output directory here
-global New_Output "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/Georgia V2.0" // Version 2.0 Output directory here
+global EDFacts "/Users/miramehta/Documents/EdFacts"
+global GAdata "/Users/miramehta/Documents/GA State Testing Data"
 
 ** Preparing EDFacts files
 local edyears1 14 15 16 17 18
@@ -11,7 +10,7 @@ local edyears2 2019 2021
 local subject math ela
 local datatype part
 local datalevel school district
-
+/*
 foreach year of local edyears1 {
     foreach sub of local subject {
         foreach type of local datatype {
@@ -244,18 +243,18 @@ foreach year of local edyears2 {
 		}
 	}
 }
-
+*/
 //Conversion to DTA
 forvalues year = 2014/2023 {
 if `year' == 2020 continue
-import delimited "${State_Output}/GA_AssmtData_`year'", case(preserve) clear
-save "${State_Output}/GA_AssmtData_`year'", replace
+import delimited "${GAdata}/GA_AssmtData_`year'", case(preserve) clear
+save "${GAdata}/GA_AssmtData_`year'", replace
 }
 
 //Merging Example
 forvalues year = 2014/2021 {
 if `year' == 2020 continue
-import delimited "${State_Output}/GA_AssmtData_`year'.csv", case(preserve) clear
+import delimited "${GAdata}/GA_AssmtData_`year'.csv", case(preserve) clear
 
 	
 //DataLevel
@@ -313,6 +312,6 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${New_Output}/GA_AssmtData_`year'", replace
-export delimited "${New_Output}/GA_AssmtData_`year'", replace
+save "${GAdata}/GA_AssmtData_`year'", replace
+export delimited "${GAdata}/GA_AssmtData_`year'", replace
 }

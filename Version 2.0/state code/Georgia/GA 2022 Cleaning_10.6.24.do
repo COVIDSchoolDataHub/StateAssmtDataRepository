@@ -81,26 +81,17 @@ replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Milita
 replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless"
 replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Foster Care"
 
+//StudentGroup_TotalTested
 gen StudentSubGroup_TotalTested = num_tested_cnt
-destring num_tested_cnt, replace force
-replace num_tested_cnt = -1000000 if num_tested_cnt == .
-bys SchName DistName Subject GradeLevel StudentGroup: egen StudentGroup_TotalTested = total(num_tested_cnt)
-replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
-tostring StudentGroup_TotalTested, replace
-replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
 replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "TFS"
-
+replace StudentSubGroup_TotalTested = "--" if inlist(StudentSubGroup_TotalTested, "", ".")
+replace DistName = stritrim(DistName)
+replace SchName = stritrim(SchName)
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-gen Suppressed = 0
-replace Suppressed = 1 if StudentSubGroup_TotalTested == "*"
-egen StudentGroup_Suppressed = max(Suppressed), by(StudentGroup GradeLevel Subject DataLevel StateAssignedSchID StateAssignedDistID DistName SchName)
-drop Suppressed
 gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
 replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
-replace StudentGroup_TotalTested = AllStudents_Tested if StudentGroup_Suppressed == 1
-replace StudentGroup_TotalTested = AllStudents_Tested if inlist(StudentGroup, "Homeless Enrolled Status", "Military Connected Status", "Foster Care Status")
-drop AllStudents_Tested StudentGroup_Suppressed
-replace StudentGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "*"
+gen StudentGroup_TotalTested = AllStudents_Tested
+drop AllStudents_Tested
 
 //Missing & Suppressed Data
 replace Lev1_count = "--" if Lev1_count == ""
@@ -119,8 +110,7 @@ destring Proficient_Count, replace force
 destring Distinguished_Count, replace force
 
 gen ProficiencyCriteria = "Levels 3-4"
-gen ProficientOrAbove_count =.
-replace ProficientOrAbove_count = Proficient_Count + Distinguished_Count if Proficient_Count !=. & Distinguished_Count !=.
+gen ProficientOrAbove_count = Proficient_Count + Distinguished_Count if Proficient_Count !=. & Distinguished_Count !=.
 drop Proficient_Count Distinguished_Count
 
 destring Lev1_percent, replace force
@@ -128,13 +118,13 @@ destring Lev2_percent, replace force
 destring Lev3_percent, replace force
 destring Lev4_percent, replace force
 
-gen ProficientOrAbove_percent = Lev3_percent + Lev4_percent
+destring num_tested_cnt, replace force
+gen ProficientOrAbove_percent = ProficientOrAbove_count/num_tested_cnt
 
 replace Lev1_percent = Lev1_percent/100
 replace Lev2_percent = Lev2_percent/100
 replace Lev3_percent = Lev3_percent/100
 replace Lev4_percent = Lev4_percent/100
-replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
 
 //Deriving Additional Proficiency Information
 forvalues n = 1/4{
@@ -145,10 +135,6 @@ forvalues n = 1/4{
 	replace Lev`n'_count = Lev`n' if inlist(Lev`n'_count, "*", "--") & Lev`n' != "."
 	drop Lev`n'
 }
-
-replace ProficientOrAbove_count = ProficientOrAbove_percent * num_tested_cnt if ProficientOrAbove_count == . & ProficientOrAbove_percent != .
-replace ProficientOrAbove_count = . if ProficientOrAbove_count < 0
-replace ProficientOrAbove_count = round(ProficientOrAbove_count)
 
 //Missing Data (Part II)
 tostring ProficientOrAbove_count, replace
@@ -166,6 +152,7 @@ replace Lev2_percent = "--" if Lev2_percent == "."
 replace Lev3_percent = "--" if Lev3_percent == "."
 replace Lev4_percent = "--" if Lev4_percent == "."
 replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == "."
+replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "--" & ProficientOrAbove_count == "*"
 
 //Grade Levels
 tostring GradeLevel, replace
@@ -445,4 +432,3 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "$GAdata/GA_AssmtData_2022", replace
 export delimited "$GAdata/GA_AssmtData_2022", replace
-clear

@@ -1,19 +1,17 @@
 clear
 set more off
 
-global Original "/Users/kaitlynlucas/Desktop/EDFacts Drive Data" //Folder with Output .dta
-global EDFacts "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/GA_2022" //Folder with downloaded state-specific 2022 participation data from EDFacts
-global State_Output "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/Georgia Assessment" //Folder with state-specific data
-global Output_20 "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/Georgia V2.0" //Folder for Output 2.0
+global EDFacts "/Users/miramehta/Documents/EdFacts"
+global GAdata "/Users/miramehta/Documents/GA State Testing Data"
 
 
 foreach s in ela math sci {
-	import delimited "${EDFacts}/GA_EFParticipation_2022_`s'.csv", case(preserve) clear
-	save "${EDFacts}/GA_EFParticipation_2022_`s'.dta", replace
+	import delimited "${EDFacts}/2022/GA_EFParticipation_2022_`s'.csv", case(preserve) clear
+	save "${EDFacts}/2022/GA_EFParticipation_2022_`s'.dta", replace
 }
 
-use "${EDFacts}/GA_EFParticipation_2022_ela.dta"
-append using "${EDFacts}/GA_EFParticipation_2022_math.dta" "${EDFacts}/GA_EFParticipation_2022_sci.dta"
+use "${EDFacts}/2022/GA_EFParticipation_2022_ela.dta"
+append using "${EDFacts}/2022/GA_EFParticipation_2022_math.dta" "${EDFacts}/2022/GA_EFParticipation_2022_sci.dta"
 
 
 //Rename and Drop Vars
@@ -41,6 +39,9 @@ replace `var' = subinstr(`var', "<","0-",.) if strpos(`var', "<") !=0
 drop n`var'
 drop range`var'
 }
+
+destring Participation, gen(part) i(*%<>-)
+replace Participation = string(part/100, "%9.3g") if Participation != "*" & Participation != "--"
 
 //StudentSubGroup
 replace StudentSubGroup = "All Students" if strpos(StudentSubGroup, "All Students") !=0
@@ -79,12 +80,12 @@ replace GradeLevel = subinstr(GradeLevel, "Grade ", "G0",.)
 save "${EDFacts}/GA_EFParticipation_2022", replace
 
 //Merging with 2022
-use "${State_Output}/GA_AssmtData_2022", clear
+use "${GAdata}/GA_AssmtData_2022", clear
 
 forvalues year = 2015/2022 {
 if `year' == 2020 continue
-import delimited "${State_Output}/GA_AssmtData_`year'", case(preserve) clear
-save "${State_Output}/GA_AssmtData_`year'", replace
+import delimited "${GAdata}/GA_AssmtData_`year'", case(preserve) clear
+save "${GAdata}/GA_AssmtData_`year'", replace
 }
 
 //DataLevel
@@ -108,5 +109,5 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${Output_20}/GA_AssmtData_2022", replace
-export delimited "${Output_20}/GA_AssmtData_2022", replace
+save "${GAdata}/GA_AssmtData_2022", replace
+export delimited "${GAdata}/GA_AssmtData_2022", replace

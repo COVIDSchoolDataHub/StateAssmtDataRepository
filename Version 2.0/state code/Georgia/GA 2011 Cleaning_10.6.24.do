@@ -4,8 +4,14 @@ cd "/Users/miramehta/Documents/"
 global GAdata "/Users/miramehta/Documents/GA State Testing Data"
 global NCES "/Users/miramehta/Documents/NCES District and School Demographics"
 
-//2014-2015
-import delimited "$GAdata/GA_OriginalData_2015_all.csv", clear
+//2010-2011
+import delimited "$GAdata/GA_OriginalData_2011_G38_all.csv", clear
+gen acdmc_lvl = "G38"
+save "$GAdata/GA_OriginalData_2011_G38_all.dta", replace
+
+import delimited "$GAdata/GA_OriginalData_2011_all.csv", clear
+tostring acdmc_lvl, replace
+append using "$GAdata/GA_OriginalData_2011_G38_all.dta"
 
 //Rename Variables
 rename long_school_year SchYear
@@ -16,24 +22,24 @@ rename instn_number StateAssignedSchID
 rename test_cmpnt_typ_nm Subject
 rename acdmc_lvl GradeLevel
 rename subgroup_name StudentSubGroup
-rename begin_cnt Lev1_count
-rename begin_pct Lev1_percent
-rename developing_cnt Lev2_count
-rename developing_pct Lev2_percent
-rename proficient_cnt Lev3_count
-rename proficient_pct Lev3_percent
-rename distinguished_cnt Lev4_count
-rename distinguished_pct Lev4_percent
+rename does_not_meet_cnt Lev1_count
+rename does_not_meet_percent Lev1_percent
+rename meets_cnt Lev2_count
+rename meets_percent Lev2_percent
+rename exceeds_cnt Lev3_count
+rename exceeds_percent Lev3_percent
 
 //Generate Other Variables
-gen AssmtName = "Georgia Milestones"
-gen Flag_AssmtNameChange = "Y"
-gen Flag_CutScoreChange_ELA = "Y"
-gen Flag_CutScoreChange_math = "Y"
-gen Flag_CutScoreChange_sci = "Y"
-gen Flag_CutScoreChange_soc = "Y"
+gen AssmtName = "Criterion-Referenced Competency Tests"
+gen Flag_AssmtNameChange = "N"
+gen Flag_CutScoreChange_ELA = "N"
+gen Flag_CutScoreChange_math = "N"
+gen Flag_CutScoreChange_sci = "N"
+gen Flag_CutScoreChange_soc = "N"
 gen AssmtType = "Regular"
 gen AvgScaleScore = "--"
+gen Lev4_count = ""
+gen Lev4_percent = ""
 gen Lev5_count = ""
 gen Lev5_percent = ""
 gen ParticipationRate = "--"
@@ -43,7 +49,7 @@ gen DataLevel = "School"
 replace DataLevel = "District" if StateAssignedSchID == "ALL"
 replace DataLevel = "State" if StateAssignedDistID == "ALL"
 
-replace SchName =  "All Schools" if DataLevel != "School"
+replace SchName = "All Schools" if DataLevel != "School"
 replace DistName = "All Districts" if DataLevel == "State"
 
 replace StateAssignedSchID = "" if DataLevel != "School"
@@ -77,104 +83,59 @@ replace StudentGroup = "Economic Status" if StudentSubGroup == "Not Economically
 replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD" | StudentSubGroup == "Non-SWD"
 replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant" | StudentSubGroup == "Non-Migrant"
 
-gen StudentSubGroup_TotalTested = num_tested_cnt
-destring num_tested_cnt, replace force
-replace num_tested_cnt = -1000000 if num_tested_cnt == .
-bys SchName DistName GradeLevel Subject StudentGroup: egen StudentGroup_TotalTested = total(num_tested_cnt)
-replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
-tostring StudentGroup_TotalTested, replace
-replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
-replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "TFS"
-
-sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-gen Suppressed = 0
-replace Suppressed = 1 if StudentSubGroup_TotalTested == "*"
-egen StudentGroup_Suppressed = max(Suppressed), by(StudentGroup GradeLevel Subject DataLevel StateAssignedSchID StateAssignedDistID DistName SchName)
-drop Suppressed
+//StudentGroup_TotalTested
+gen StudentSubGroup_TotalTested = string(num_tested_cnt)
+replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "1"
+replace DistName = stritrim(DistName)
+replace SchName = stritrim(SchName)
+sort DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel StudentGroup StudentSubGroup
 gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
 replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
-replace StudentGroup_TotalTested = AllStudents_Tested if StudentGroup_Suppressed == 1
-drop AllStudents_Tested StudentGroup_Suppressed
-replace StudentGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "*"
+gen StudentGroup_TotalTested = AllStudents_Tested
+drop AllStudents_Tested
 
-//Missing & Suppressed Data
-replace Lev1_count = "--" if Lev1_count == ""
-replace Lev1_count = "*" if Lev1_count == "TFS"
-replace Lev2_count = "--" if Lev2_count == ""
-replace Lev2_count = "*" if Lev2_count == "TFS"
-replace Lev3_count = "--" if Lev3_count == ""
-replace Lev3_count = "*" if Lev3_count == "TFS"
-replace Lev4_count = "--" if Lev4_count == ""
-replace Lev4_count = "*" if Lev4_count == "TFS"
-
-//Passing Rates
-gen Proficient_Count = Lev3_count
-gen Distinguished_Count = Lev4_count
-destring Proficient_Count, replace force
-destring Distinguished_Count, replace force
-
-gen ProficiencyCriteria = "Levels 3-4"
-gen ProficientOrAbove_count =.
-replace ProficientOrAbove_count = Proficient_Count + Distinguished_Count if Proficient_Count !=. & Distinguished_Count !=.
-drop Proficient_Count Distinguished_Count
-gen ProficientOrAbove_percent = Lev3_percent + Lev4_percent
+//Passing Rates & Percentages
+gen ProficiencyCriteria = "Levels 2-3"
+gen ProficientOrAbove_count = Lev2_count + Lev3_count
+gen ProficientOrAbove_percent = ProficientOrAbove_count/num_tested_cnt
 
 replace Lev1_percent = Lev1_percent/100
 replace Lev2_percent = Lev2_percent/100
 replace Lev3_percent = Lev3_percent/100
-replace Lev4_percent = Lev4_percent/100
-replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
 
-//Deriving Additional Proficiency Information
-forvalues n = 1/4{
-	gen Lev`n' = Lev`n'_percent * num_tested_cnt
-	replace Lev`n' = . if Lev`n' < 0
-	replace Lev`n' = round(Lev`n')
-	tostring Lev`n', replace
-	replace Lev`n'_count = Lev`n' if inlist(Lev`n'_count, "*", "--") & Lev`n' != "."
-	drop Lev`n'
-}
-
-replace ProficientOrAbove_count = ProficientOrAbove_percent * num_tested_cnt if ProficientOrAbove_count == . & ProficientOrAbove_percent != .
-replace ProficientOrAbove_count = . if ProficientOrAbove_count < 0
-replace ProficientOrAbove_count = round(ProficientOrAbove_count)
-
-//Missing Data (Part II)
+//Missing Data
+tostring Lev1_count, replace
+tostring Lev2_count, replace
+tostring Lev3_count, replace
 tostring ProficientOrAbove_count, replace
-replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == "." & Lev3_count == "--"
-replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == "." & Lev4_count == "--"
-replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "." & Lev3_count == "*"
-replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "." & Lev4_count == "*"
+replace Lev1_count = "--" if Lev1_count == "."
+replace Lev2_count = "--" if Lev2_count == "."
+replace Lev3_count = "--" if Lev3_count == "."
+replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == "."
 tostring Lev1_percent, replace format("%10.0g") force
 tostring Lev2_percent, replace format("%10.0g") force
 tostring Lev3_percent, replace format("%10.0g") force
-tostring Lev4_percent, replace format("%10.0g") force
 tostring ProficientOrAbove_percent, replace format("%10.0g") force
 replace Lev1_percent = "--" if Lev1_percent == "."
 replace Lev2_percent = "--" if Lev2_percent == "."
 replace Lev3_percent = "--" if Lev3_percent == "."
-replace Lev4_percent = "--" if Lev4_percent == "."
 replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == "."
+replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "--" & ProficientOrAbove_count == "*"
 
 //Grade Levels
-tostring GradeLevel, replace
-replace GradeLevel = "G0" + GradeLevel
+replace GradeLevel = "G0" + GradeLevel if GradeLevel != "G38"
 
 //Subject Areas
 replace Subject = "ela" if Subject == "English Language Arts"
 replace Subject = "math" if Subject == "Mathematics"
+replace Subject = "read" if Subject == "Reading"
 replace Subject = "sci" if Subject == "Science"
 replace Subject = "soc" if Subject == "Social Studies"
-drop if Subject == "sci" & GradeLevel == "G03"
-drop if Subject == "sci" & GradeLevel == "G04"
-drop if Subject == "sci" & GradeLevel == "G06"
-drop if Subject == "sci" & GradeLevel == "G07"
-drop if Subject == "soc" & GradeLevel != "G08"
 
-save "$GAdata/GA_AssmtData_2015.dta", replace
+save "$GAdata/GA_AssmtData_2011.dta", replace
 
 //Clean NCES Data
-import excel "$NCES/NCES School Files, Fall 1997-Fall 2022/NCES_2014_School.xlsx", firstrow clear
+import excel "$NCES/NCES School Files, Fall 1997-Fall 2022/NCES_2010_School.xlsx", firstrow clear
 drop if state_location != "GA"
 rename lea_name DistName
 rename state_leaid StateAssignedDistID
@@ -183,24 +144,24 @@ destring StateAssignedDistID, replace force
 drop if StateAssignedDistID==.
 destring StateAssignedSchID, replace force
 drop if StateAssignedSchID==.
-save "$NCES/Cleaned NCES Data/NCES_2015_School_GA.dta", replace
+save "$NCES/Cleaned NCES Data/NCES_2011_School_GA.dta", replace
 
-import excel "$NCES/NCES District Files, Fall 1997-Fall 2022/NCES_2014_District.xlsx", firstrow clear
+import excel "$NCES/NCES District Files, Fall 1997-Fall 2022/NCES_2010_District.xlsx", firstrow clear
 drop if state_location != "GA"
 rename lea_name DistName
 rename state_leaid StateAssignedDistID
 destring StateAssignedDistID, replace force
 drop if StateAssignedDistID==.
-save "$NCES/Cleaned NCES Data/NCES_2015_District_GA", replace
+save "$NCES/Cleaned NCES Data/NCES_2011_District_GA.dta", replace
 
 //Merge Data
-use "$GAdata/GA_AssmtData_2015.dta", clear
+use "$GAdata/GA_AssmtData_2011.dta", clear
 destring StateAssignedSchID, replace force
 destring StateAssignedDistID, replace force
-merge m:1 StateAssignedDistID using "$NCES/Cleaned NCES Data/NCES_2015_District_GA.dta"
+merge m:1 StateAssignedDistID using "$NCES/Cleaned NCES Data/NCES_2011_District_GA.dta"
 drop if _merge == 2
 
-merge m:1 StateAssignedSchID StateAssignedDistID using "$NCES/Cleaned NCES Data/NCES_2015_School_GA.dta", gen(merge2)
+merge m:1 StateAssignedSchID StateAssignedDistID using "$NCES/Cleaned NCES Data/NCES_2011_School_GA.dta", gen(merge2)
 drop if merge2 == 2
 
 //Clean Merged Data
@@ -224,6 +185,38 @@ replace CountyName = strproper(CountyName)
 replace CountyName = "DeKalb County" if CountyName == "Dekalb County"
 replace CountyName = "McDuffie County" if CountyName == "Mcduffie County"
 replace CountyName = "McIntosh County" if CountyName == "Mcintosh County"
+
+//Unmerged Schools
+replace NCESSchoolID = "130022503061" if SchName == "Atlanta Area School for the Deaf"
+replace NCESDistrictID = "1300225" if DistName == "State Schools- Atlanta Area School for the Deaf"
+replace SchLevel = "Other" if SchName == "Atlanta Area School for the Deaf"
+replace SchType = "Special education school" if SchName == "Atlanta Area School for the Deaf"
+replace SchVirtual = "Missing/not reported" if SchName == "Atlanta Area School for the Deaf"
+replace DistCharter = "No" if DistName == "State Schools- Atlanta Area School for the Deaf"
+replace CountyCode = "13089" if DistName == "State Schools- Atlanta Area School for the Deaf"
+replace CountyName = "DeKalb County" if DistName == "State Schools- Atlanta Area School for the Deaf"
+replace DistType = "State-operated agency" if DistName == "State Schools- Atlanta Area School for the Deaf"
+replace DistLocale = "Suburb, large" if DistName == "State Schools- Atlanta Area School for the Deaf"
+replace NCESSchoolID = "130022403062" if SchName == "Georgia Academy for the Blind"
+replace NCESDistrictID = "1300224" if DistName == "State Schools- Georgia Academy for the Blind"
+replace SchLevel = "Other" if SchName == "Georgia Academy for the Blind"
+replace SchType = "Special education school" if SchName == "Georgia Academy for the Blind"
+replace SchVirtual = "Missing/not reported" if SchName == "Georgia Academy for the Blind"
+replace DistCharter = "No" if DistName == "State Schools- Georgia Academy for the Blind"
+replace CountyCode = "13021" if DistName == "State Schools- Georgia Academy for the Blind"
+replace CountyName = "Bibb County" if DistName == "State Schools- Georgia Academy for the Blind"
+replace DistType = "State-operated agency" if DistName == "State Schools- Georgia Academy for the Blind"
+replace DistLocale = "Suburb, large" if DistName == "State Schools- Georgia Academy for the Blind"
+replace NCESSchoolID = "130022303063" if SchName == "Georgia School for the Deaf"
+replace NCESDistrictID = "1300223" if DistName == "State Schools- Georgia School for the Deaf"
+replace SchLevel = "Other" if SchName == "Georgia School for the Deaf"
+replace SchType = "Special education school" if SchName == "Georgia School for the Deaf"
+replace SchVirtual = "Missing/not reported" if SchName == "Georgia School for the Deaf"
+replace DistCharter = "No" if DistName == "State Schools- Georgia School for the Deaf"
+replace CountyCode = "13115" if DistName == "State Schools- Georgia School for the Deaf"
+replace CountyName = "Floyd County" if DistName == "State Schools- Georgia School for the Deaf"
+replace DistType = "State-operated agency" if DistName == "State Schools- Georgia School for the Deaf"
+replace DistLocale = "Suburb, large" if DistName == "State Schools- Georgia School for the Deaf"
 
 //Label & Organize Variables
 label var State "State name"
@@ -283,6 +276,5 @@ order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistric
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "$GAdata/GA_AssmtData_2015", replace
-export delimited "$GAdata/GA_AssmtData_2015", replace
-clear
+save "$GAdata/GA_AssmtData_2011.dta", replace
+export delimited "$GAdata/GA_AssmtData_2011.csv", replace

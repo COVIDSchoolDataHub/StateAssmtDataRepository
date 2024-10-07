@@ -16,7 +16,6 @@ rename instn_number StateAssignedSchID
 rename test_cmpnt_typ_nm Subject
 rename acdmc_lvl GradeLevel
 rename subgroup_name StudentSubGroup
-rename num_tested_cnt StudentSubGroup_TotalTested
 rename begin_cnt Lev1_count
 rename begin_pct Lev1_percent
 rename developing_cnt Lev2_count
@@ -78,35 +77,27 @@ replace StudentGroup = "Economic Status" if StudentSubGroup == "Not Economically
 replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD" | StudentSubGroup == "Non-SWD"
 replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant" | StudentSubGroup == "Non-Migrant"
 
-replace StudentSubGroup_TotalTested = . if StudentSubGroup_TotalTested == 1
-bys DataLevel DistName SchName Subject GradeLevel StudentGroup: egen StudentGroup_TotalTested = total(StudentSubGroup_TotalTested)
-tostring StudentSubGroup_TotalTested, replace
-replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "."
-tostring StudentGroup_TotalTested, replace
-replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
-
+//StudentGroup_TotalTested
+gen StudentSubGroup_TotalTested = string(num_tested_cnt)
+replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "1"
+replace DistName = stritrim(DistName)
+replace SchName = stritrim(SchName)
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-gen Suppressed = 0
-replace Suppressed = 1 if StudentSubGroup_TotalTested == "*"
-egen StudentGroup_Suppressed = max(Suppressed), by(StudentGroup GradeLevel Subject DataLevel StateAssignedSchID StateAssignedDistID DistName SchName)
-drop Suppressed
 gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
 replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
-replace StudentGroup_TotalTested = AllStudents_Tested if StudentGroup_Suppressed == 1
-drop AllStudents_Tested StudentGroup_Suppressed
-replace StudentGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "*"
+gen StudentGroup_TotalTested = AllStudents_Tested
+drop AllStudents_Tested
 
 //Passing Rates & Percentages
 gen ProficiencyCriteria = "Levels 3-4"
 gen ProficientOrAbove_count =.
 replace ProficientOrAbove_count = Lev3_count + Lev4_count
-gen ProficientOrAbove_percent = Lev3_percent + Lev4_percent
+gen ProficientOrAbove_percent = ProficientOrAbove_count/num_tested_cnt
 
 replace Lev1_percent = Lev1_percent/100
 replace Lev2_percent = Lev2_percent/100
 replace Lev3_percent = Lev3_percent/100
 replace Lev4_percent = Lev4_percent/100
-replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
 
 //Missing Data
 tostring Lev1_count, replace
@@ -129,6 +120,7 @@ replace Lev2_percent = "--" if Lev2_percent == "."
 replace Lev3_percent = "--" if Lev3_percent == "."
 replace Lev4_percent = "--" if Lev4_percent == "."
 replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == "."
+replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "--" & ProficientOrAbove_count == "*"
 
 //Grade Levels
 tostring GradeLevel, replace
@@ -371,4 +363,3 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "$GAdata/GA_AssmtData_2018", replace
 export delimited "$GAdata/GA_AssmtData_2018", replace
-clear
