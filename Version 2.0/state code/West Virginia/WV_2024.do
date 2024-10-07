@@ -269,8 +269,8 @@ replace SchName = "Mason Dixon Elementary" if NCESSchoolID == "540093000750"
 tostring StudentSubGroup_TotalTested StudentGroup_TotalTested, replace 
 replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
 replace StudentGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
-replace ParticipationRate = "--" if missing(ParticipationRate)
 replace ParticipationRate = ParticipationRate1
+replace ParticipationRate = "--" 
 replace ParticipationRate = "--" if ParticipationRate == ""
 replace ParticipationRate = "--" if ParticipationRate == "."
 
