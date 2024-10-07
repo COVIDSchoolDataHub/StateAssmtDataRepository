@@ -26,7 +26,7 @@ rename distinguished_cnt Lev4_count
 rename distinguished_pct Lev4_percent
 
 //Generate Other Variables
-gen AssmtName = "Georgia Milestones"
+gen AssmtName = "Georgia Milestones EOG"
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
@@ -88,39 +88,42 @@ replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tes
 gen StudentGroup_TotalTested = AllStudents_Tested
 drop AllStudents_Tested
 
-//Passing Rates & Percentages
+//Reformatting & Deriving Additional Information
+forvalues n = 1/4{
+	replace Lev`n'_percent = Lev`n'_percent/100
+	gen Lev`n' = Lev`n'_p * num_tested_cnt
+	replace Lev`n' = . if Lev`n' < 0
+	replace Lev`n' = round(Lev`n')
+	replace Lev`n'_count = Lev`n' if Lev`n'_count == . & Lev`n' != .
+	tostring Lev`n'_percent, replace format("%9.3g") force
+	replace Lev`n'_percent = "--" if Lev`n'_percent == "."
+	tostring Lev`n'_count, replace
+	replace Lev`n'_count = "--" if Lev`n'_count == "."
+	drop Lev`n'
+}
+
+//ProficientOrAbove
+gen Proficient_Count = Lev3_count
+gen Distinguished_Count = Lev4_count
+destring Proficient_Count, replace force
+destring Distinguished_Count, replace force
+
 gen ProficiencyCriteria = "Levels 3-4"
-gen ProficientOrAbove_count =.
-replace ProficientOrAbove_count = Lev3_count + Lev4_count
+gen ProficientOrAbove_count = Proficient_Count + Distinguished_Count if Proficient_Count !=. & Distinguished_Count !=.
+drop Proficient_Count Distinguished_Count
+
 gen ProficientOrAbove_percent = ProficientOrAbove_count/num_tested_cnt
 
-replace Lev1_percent = Lev1_percent/100
-replace Lev2_percent = Lev2_percent/100
-replace Lev3_percent = Lev3_percent/100
-replace Lev4_percent = Lev4_percent/100
-
 //Missing Data
-tostring Lev1_count, replace
-tostring Lev2_count, replace
-tostring Lev3_count, replace
-tostring Lev4_count, replace
 tostring ProficientOrAbove_count, replace
-replace Lev1_count = "--" if Lev1_count == "."
-replace Lev2_count = "--" if Lev2_count == "."
-replace Lev3_count = "--" if Lev3_count == "."
-replace Lev4_count = "--" if Lev4_count == "."
-replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == "."
-tostring Lev1_percent, replace format("%10.0g") force
-tostring Lev2_percent, replace format("%10.0g") force
-tostring Lev3_percent, replace format("%10.0g") force
-tostring Lev4_percent, replace format("%10.0g") force
-tostring ProficientOrAbove_percent, replace format("%10.0g") force
+replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == "." & Lev3_count == "--"
+replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == "." & Lev4_count == "--"
+tostring ProficientOrAbove_percent, replace format("%9.3g") force
 replace Lev1_percent = "--" if Lev1_percent == "."
 replace Lev2_percent = "--" if Lev2_percent == "."
 replace Lev3_percent = "--" if Lev3_percent == "."
 replace Lev4_percent = "--" if Lev4_percent == "."
 replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == "."
-replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "--" & ProficientOrAbove_count == "*"
 
 //Grade Levels
 tostring GradeLevel, replace

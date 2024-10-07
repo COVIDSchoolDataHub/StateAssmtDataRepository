@@ -28,20 +28,17 @@ rename AcademicSubject Subject
 drop ProgramType Outcome Characteristics
 
 //Clean ParticipationRate
-foreach var of varlist Participation {
-replace `var' = "*" if `var' == "S"	
-gen range`var' = substr(`var',1,1) if regexm(`var',"[<>]") !=0
-replace `var' = subinstr(`var', "=","",.)
-destring `var', gen(n`var') i(*%<>-)
-replace `var' = range`var' + string(n`var'/100, "%9.3g") if `var' != "*" & `var' != "--"
-replace `var' = subinstr(`var',">","",.) + "-1" if strpos(`var', ">") !=0
-replace `var' = subinstr(`var', "<","0-",.) if strpos(`var', "<") !=0
-drop n`var'
-drop range`var'
-}
-
-destring Participation, gen(part) i(*%<>-)
-replace Participation = string(part/100, "%9.3g") if Participation != "*" & Participation != "--"
+replace Participation = "*" if Participation == "S"	
+gen rangeParticipation = substr(Participation,1,1) if regexm(Participation,"[<>]") !=0
+replace Participation = subinstr(Participation, "=","",.)
+split Participation, parse("-")
+destring Participation1, replace i(*%<>-)
+destring Participation2, replace i(*%<>-)
+replace Participation = rangeParticipation + string(Participation1/100, "%9.3g") if !inlist(Participation, "*",  "--") & Participation2 == .
+replace Participation = string(Participation1/100, "%9.3g") + "-" + string(Participation2/100, "%9.3g") if !inlist(Participation, "*",  "--") & Participation2 != .
+replace Participation = subinstr(Participation,">","",.) + "-1" if strpos(Participation, ">") !=0
+replace Participation = subinstr(Participation, "<","0-",.) if strpos(Participation, "<") !=0
+drop rangeParticipation Participation1 Participation2
 
 //StudentSubGroup
 replace StudentSubGroup = "All Students" if strpos(StudentSubGroup, "All Students") !=0

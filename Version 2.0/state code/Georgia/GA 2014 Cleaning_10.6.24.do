@@ -94,33 +94,41 @@ replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tes
 gen StudentGroup_TotalTested = AllStudents_Tested
 drop AllStudents_Tested
 
-//Passing Rates & Percentages
+//Reformatting & Deriving Additional Information
+forvalues n = 1/3{
+	replace Lev`n'_percent = Lev`n'_percent/100
+	gen Lev`n' = Lev`n'_p * num_tested_cnt
+	replace Lev`n' = . if Lev`n' < 0
+	replace Lev`n' = round(Lev`n')
+	replace Lev`n'_count = Lev`n' if Lev`n'_count == . & Lev`n' != .
+	tostring Lev`n'_percent, replace format("%9.3g") force
+	replace Lev`n'_percent = "--" if Lev`n'_percent == "."
+	tostring Lev`n'_count, replace
+	replace Lev`n'_count = "--" if Lev`n'_count == "."
+	drop Lev`n'
+}
+
+//ProficientOrAbove
+gen Meets_Count = Lev2_count
+gen Exceeds_Count = Lev3_count
+destring Meets_Count, replace force
+destring Exceeds_Count, replace force
+
 gen ProficiencyCriteria = "Levels 2-3"
-gen ProficientOrAbove_count = Lev2_count + Lev3_count
+gen ProficientOrAbove_count = Meets_Count + Exceeds_Count if Meets_Count !=. & Exceeds_Count !=.
+drop Meets_Count Exceeds_Count
+
 gen ProficientOrAbove_percent = ProficientOrAbove_count/num_tested_cnt
 
-replace Lev1_percent = Lev1_percent/100
-replace Lev2_percent = Lev2_percent/100
-replace Lev3_percent = Lev3_percent/100
-
 //Missing Data
-tostring Lev1_count, replace
-tostring Lev2_count, replace
-tostring Lev3_count, replace
 tostring ProficientOrAbove_count, replace
-replace Lev1_count = "--" if Lev1_count == "."
-replace Lev2_count = "--" if Lev2_count == "."
-replace Lev3_count = "--" if Lev3_count == "."
-replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == "."
-tostring Lev1_percent, replace format("%10.0g") force
-tostring Lev2_percent, replace format("%10.0g") force
-tostring Lev3_percent, replace format("%10.0g") force
-tostring ProficientOrAbove_percent, replace format("%10.0g") force
+replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == "." & Lev2_count == "--"
+replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == "." & Lev3_count == "--"
+tostring ProficientOrAbove_percent, replace format("%9.3g") force
 replace Lev1_percent = "--" if Lev1_percent == "."
 replace Lev2_percent = "--" if Lev2_percent == "."
 replace Lev3_percent = "--" if Lev3_percent == "."
 replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == "."
-replace ProficientOrAbove_percent = "*" if ProficientOrAbove_count == "*" & ProficientOrAbove_percent == "--"
 
 //Grade Levels
 replace GradeLevel = "G0" + GradeLevel if GradeLevel != "G38"

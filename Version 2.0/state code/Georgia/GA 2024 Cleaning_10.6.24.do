@@ -41,8 +41,34 @@ forvalues n = 3/8{
 		rename AB Lev4_percent2
 		rename AD ProficientOrAbove_percent2
 	}
+	if `n' == 5 | `n' == 8{
+		rename Science StudentSubGroup_TotalTested3
+		rename AK AvgScaleScore3
+		rename AM Lev1_percent3
+		rename AN Lev2_percent3
+		rename AO Lev3_percent3
+		rename AP Lev4_percent3
+		rename AR ProficientOrAbove_percent3
+	}
+	if `n' == 8{
+		rename SocialStudies StudentSubGroup_TotalTested4
+		rename BC AvgScaleScore4
+		rename BE Lev1_percent4
+		rename BF Lev2_percent4
+		rename BG Lev3_percent4
+		rename BH Lev4_percent4
+		rename BJ ProficientOrAbove_percent4
+	}
 	
-	keep StateAssignedDistID StateAssignedSchID DistName SchName StudentSubGroup_TotalTested1 AvgScaleScore1  Lev1_percent1 Lev2_percent1 Lev3_percent1 Lev4_percent1 ProficientOrAbove_percent1 StudentSubGroup_TotalTested2 AvgScaleScore2 Lev1_percent2 Lev2_percent2 Lev3_percent2 Lev4_percent2 ProficientOrAbove_percent2
+	if `n' != 5 & `n' != 8{
+		keep StateAssignedDistID StateAssignedSchID DistName SchName StudentSubGroup_TotalTested1 AvgScaleScore1  Lev1_percent1 Lev2_percent1 Lev3_percent1 Lev4_percent1 ProficientOrAbove_percent1 StudentSubGroup_TotalTested2 AvgScaleScore2 Lev1_percent2 Lev2_percent2 Lev3_percent2 Lev4_percent2 ProficientOrAbove_percent2
+	}
+	if `n' == 5{
+		keep StateAssignedDistID StateAssignedSchID DistName SchName StudentSubGroup_TotalTested1 AvgScaleScore1  Lev1_percent1 Lev2_percent1 Lev3_percent1 Lev4_percent1 ProficientOrAbove_percent1 StudentSubGroup_TotalTested2 AvgScaleScore2 Lev1_percent2 Lev2_percent2 Lev3_percent2 Lev4_percent2 ProficientOrAbove_percent2 StudentSubGroup_TotalTested3 AvgScaleScore3 Lev1_percent3 Lev2_percent3 Lev3_percent3 Lev4_percent3 ProficientOrAbove_percent3
+	}
+	if `n' == 8{
+	keep StateAssignedDistID StateAssignedSchID DistName SchName StudentSubGroup_TotalTested1 AvgScaleScore1  Lev1_percent1 Lev2_percent1 Lev3_percent1 Lev4_percent1 ProficientOrAbove_percent1 StudentSubGroup_TotalTested2 AvgScaleScore2 Lev1_percent2 Lev2_percent2 Lev3_percent2 Lev4_percent2 ProficientOrAbove_percent2 StudentSubGroup_TotalTested3 AvgScaleScore3 Lev1_percent3 Lev2_percent3 Lev3_percent3 Lev4_percent3 ProficientOrAbove_percent3 StudentSubGroup_TotalTested4 AvgScaleScore4 Lev1_percent4 Lev2_percent4 Lev3_percent4 Lev4_percent4 ProficientOrAbove_percent4
+	}
 	
 	drop if StateAssignedDistID == "" & StateAssignedSchID == ""
 	drop if StateAssignedDistID == "^To achieve a reading status designation of Grade Level or Above, a student must demonstrate reading skill at the beginning of the grade-level stretch band. "
@@ -54,6 +80,8 @@ forvalues n = 3/8{
 	tostring Subject, replace
 	replace Subject = "ela" if Subject == "1"
 	replace Subject = "math" if Subject == "2"
+	replace Subject = "sci" if Subject == "3"
+	replace Subject = "soc" if Subject == "4"
 	gen GradeLevel = "G0`n'"
 	gen DataLevel = "School"
 	gen StudentGroup = "All Students"
@@ -101,8 +129,34 @@ forvalues n = 3/8{
 		rename Z Lev4_percent2
 		rename AB ProficientOrAbove_percent2
 	}
+		if `n' == 5 | `n' == 8{
+		rename Science StudentSubGroup_TotalTested3
+		rename AI AvgScaleScore3
+		rename AK Lev1_percent3
+		rename AL Lev2_percent3
+		rename AM Lev3_percent3
+		rename AN Lev4_percent3
+		rename AP ProficientOrAbove_percent3
+	}
+	if `n' == 8{
+		rename SocialStudies StudentSubGroup_TotalTested4
+		rename BA AvgScaleScore4
+		rename BC Lev1_percent4
+		rename BD Lev2_percent4
+		rename BE Lev3_percent4
+		rename BF Lev4_percent4
+		rename BH ProficientOrAbove_percent4
+	}
 	
-	keep StateAssignedDistID DistName StudentSubGroup_TotalTested1 AvgScaleScore1  Lev1_percent1 Lev2_percent1 Lev3_percent1 Lev4_percent1 ProficientOrAbove_percent1 StudentSubGroup_TotalTested2 AvgScaleScore2 Lev1_percent2 Lev2_percent2 Lev3_percent2 Lev4_percent2 ProficientOrAbove_percent2
+	if `n' != 5 & `n' != 8{
+		keep StateAssignedDistID DistName StudentSubGroup_TotalTested1 AvgScaleScore1  Lev1_percent1 Lev2_percent1 Lev3_percent1 Lev4_percent1 ProficientOrAbove_percent1 StudentSubGroup_TotalTested2 AvgScaleScore2 Lev1_percent2 Lev2_percent2 Lev3_percent2 Lev4_percent2 ProficientOrAbove_percent2
+	}
+	if `n' == 5{
+		keep StateAssignedDistID DistName StudentSubGroup_TotalTested1 AvgScaleScore1  Lev1_percent1 Lev2_percent1 Lev3_percent1 Lev4_percent1 ProficientOrAbove_percent1 StudentSubGroup_TotalTested2 AvgScaleScore2 Lev1_percent2 Lev2_percent2 Lev3_percent2 Lev4_percent2 ProficientOrAbove_percent2 StudentSubGroup_TotalTested3 AvgScaleScore3 Lev1_percent3 Lev2_percent3 Lev3_percent3 Lev4_percent3 ProficientOrAbove_percent3
+	}
+	if `n' == 8{
+	keep StateAssignedDistID DistName StudentSubGroup_TotalTested1 AvgScaleScore1  Lev1_percent1 Lev2_percent1 Lev3_percent1 Lev4_percent1 ProficientOrAbove_percent1 StudentSubGroup_TotalTested2 AvgScaleScore2 Lev1_percent2 Lev2_percent2 Lev3_percent2 Lev4_percent2 ProficientOrAbove_percent2 StudentSubGroup_TotalTested3 AvgScaleScore3 Lev1_percent3 Lev2_percent3 Lev3_percent3 Lev4_percent3 ProficientOrAbove_percent3 StudentSubGroup_TotalTested4 AvgScaleScore4 Lev1_percent4 Lev2_percent4 Lev3_percent4 Lev4_percent4 ProficientOrAbove_percent4
+	}
 	
 	drop if StateAssignedDistID == "" | StateAssignedDistID == "^To achieve a reading status designation of Grade Level or Above, a student must demonstrate reading skill at the beginning of the grade-level stretch band. "
 	
@@ -113,6 +167,8 @@ forvalues n = 3/8{
 	tostring Subject, replace
 	replace Subject = "ela" if Subject == "1"
 	replace Subject = "math" if Subject == "2"
+	replace Subject = "sci" if Subject == "3"
+	replace Subject = "soc" if Subject == "4"
 	gen GradeLevel = "G0`n'"
 	gen DataLevel = "District"
 	gen StudentGroup = "All Students"
@@ -158,8 +214,34 @@ forvalues n = 3/8{
 		rename Y Lev4_percent2
 		rename AA ProficientOrAbove_percent2
 	}
+			if `n' == 5 | `n' == 8{
+		rename Science StudentSubGroup_TotalTested3
+		rename AH AvgScaleScore3
+		rename AJ Lev1_percent3
+		rename AK Lev2_percent3
+		rename AL Lev3_percent3
+		rename AM Lev4_percent3
+		rename AO ProficientOrAbove_percent3
+	}
+	if `n' == 8{
+		rename SocialStudies StudentSubGroup_TotalTested4
+		rename AZ AvgScaleScore4
+		rename BB Lev1_percent4
+		rename BC Lev2_percent4
+		rename BD Lev3_percent4
+		rename BE Lev4_percent4
+		rename BG ProficientOrAbove_percent4
+	}
 	
-	keep GradeLevel StudentSubGroup_TotalTested1 AvgScaleScore1  Lev1_percent1 Lev2_percent1 Lev3_percent1 Lev4_percent1 ProficientOrAbove_percent1 StudentSubGroup_TotalTested2 AvgScaleScore2 Lev1_percent2 Lev2_percent2 Lev3_percent2 Lev4_percent2 ProficientOrAbove_percent2
+	if `n' != 5 & `n' != 8{
+		keep  GradeLevel StudentSubGroup_TotalTested1 AvgScaleScore1  Lev1_percent1 Lev2_percent1 Lev3_percent1 Lev4_percent1 ProficientOrAbove_percent1 StudentSubGroup_TotalTested2 AvgScaleScore2 Lev1_percent2 Lev2_percent2 Lev3_percent2 Lev4_percent2 ProficientOrAbove_percent2
+	}
+	if `n' == 5{
+		keep GradeLevel StudentSubGroup_TotalTested1 AvgScaleScore1  Lev1_percent1 Lev2_percent1 Lev3_percent1 Lev4_percent1 ProficientOrAbove_percent1 StudentSubGroup_TotalTested2 AvgScaleScore2 Lev1_percent2 Lev2_percent2 Lev3_percent2 Lev4_percent2 ProficientOrAbove_percent2 StudentSubGroup_TotalTested3 AvgScaleScore3 Lev1_percent3 Lev2_percent3 Lev3_percent3 Lev4_percent3 ProficientOrAbove_percent3
+	}
+	if `n' == 8{
+	keep GradeLevel StudentSubGroup_TotalTested1 AvgScaleScore1  Lev1_percent1 Lev2_percent1 Lev3_percent1 Lev4_percent1 ProficientOrAbove_percent1 StudentSubGroup_TotalTested2 AvgScaleScore2 Lev1_percent2 Lev2_percent2 Lev3_percent2 Lev4_percent2 ProficientOrAbove_percent2 StudentSubGroup_TotalTested3 AvgScaleScore3 Lev1_percent3 Lev2_percent3 Lev3_percent3 Lev4_percent3 ProficientOrAbove_percent3 StudentSubGroup_TotalTested4 AvgScaleScore4 Lev1_percent4 Lev2_percent4 Lev3_percent4 Lev4_percent4 ProficientOrAbove_percent4
+	}
 	
 	drop if GradeLevel == "" | GradeLevel == "^To achieve a reading status designation of Grade Level or Above, a student must demonstrate reading skill at the beginning of the grade-level stretch band. "
 	
@@ -170,6 +252,8 @@ forvalues n = 3/8{
 	tostring Subject, replace
 	replace Subject = "ela" if Subject == "1"
 	replace Subject = "math" if Subject == "2"
+	replace Subject = "sci" if Subject == "3"
+	replace Subject = "soc" if Subject == "4"
 	tostring GradeLevel, replace
 	replace GradeLevel = "G" + GradeLevel
 	gen DataLevel = "State"
@@ -188,12 +272,12 @@ use "$GAdata/GA_OriginalData_2024.dta", clear
 
 //Generate Other Variables
 gen SchYear = "2023-24"
-gen AssmtName = "Georgia Milestones"
+gen AssmtName = "Georgia Milestones EOG"
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_soc = "Not applicable" //update when more data are obtained
-gen Flag_CutScoreChange_sci = "Not applicable" //update when more data are obtained
+gen Flag_CutScoreChange_soc = "N"
+gen Flag_CutScoreChange_sci = "N"
 gen AssmtType = "Regular"
 gen Lev5_count = ""
 gen Lev5_percent = ""
@@ -304,9 +388,19 @@ tostring StateAssignedDistID, replace
 replace StateAssignedSchID = "" if DataLevel != "School"
 replace StateAssignedDistID = "" if DataLevel == "State"
 
+//Remove Observations without Data
+drop if NCESSchoolID == "130002604354"
+
 //Standardize District & School Names
 replace SchName = strproper(SchName)
 replace DistName = strproper(DistName)
+
+replace DistName = "DeKalb County" if DistName == "Dekalb County"
+replace DistName = "McDuffie County" if DistName ==  "Mcduffie County"
+replace DistName = "McIntosh County" if DistName == "Mcintosh County"
+replace DistName = "Department of Juvenile Justice" if DistName == "Department Of Juvenile Justice"
+replace DistName = "City Schools of Decatur" if DistName == "City Schools Of Decatur"
+
 replace SchName = "Utopian Academy for the Arts Charter School" if SchName == "Utopian Academy For The Arts Charte"
 replace DistName = "Utopian Academy for the Arts Charter School" if SchName == "Utopian Academy For The Arts Charte"
 replace SchName = "Ivy Preparatory Academy, Inc" if SchName == "Ivy Preparatory Academy Inc"
