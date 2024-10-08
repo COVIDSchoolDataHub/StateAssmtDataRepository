@@ -134,9 +134,21 @@ label def DataLevel 1 "State" 2 "District" 3 "School"
 	replace dataordercorrect="false" if n_yr ~= n_testingdataorder
 
 	tab dataordercorrect // all should be true for this to be complete
-	if dataordercorrect=="false" di as error "Variables are not sorted in the correct order."
-	if dataordercorrect=="true" di as error "Correct."
-	drop dataordercorrect DataLevel_n 
+	
+	{
+	count if inlist(dataordercorrect, "false")
+	if r(N)>0 {
+ 	di as error "Variables are not sorted in the correct order."
+ 	tab DataLevel FILE if inlist(dataordercorrect, "false")
+	}
+ 
+ else {
+		di as error "Correct."
+		}
+
+		drop dataordercorrect DataLevel_n 
+	}
+
 }
 
 
