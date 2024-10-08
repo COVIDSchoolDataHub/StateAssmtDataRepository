@@ -27,6 +27,7 @@ global temp_files "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN_Temp"
 
 
 *Participation Rate 2014-2021:*
+
 global Original "/Users/kaitlynlucas/Desktop/EDFacts Drive Data" //Folder with Output .dta
 
 global EDFacts "/Users/kaitlynlucas/Desktop/EDFacts Drive Data" //Folder with downloaded state-specific 2022 participation data from EDFacts
@@ -35,7 +36,9 @@ global State_Output "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN Output"
 
 global New_Output "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN Output" //Folder for Output 2.0
 
+
 *Participation Rate 2022:*
+
 
 global Original "/Users/kaitlynlucas/Desktop/EDFacts Drive Data" //Folder with Output .dta
 
