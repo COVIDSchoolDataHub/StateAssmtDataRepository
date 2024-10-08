@@ -1,5 +1,5 @@
 *****************************************************************************
-**	Updated Oct 1, 2024
+**	Updated Oct 8, 2024
 
 
 ** 	ZELMA STATE ASSESSMENT DATA REPOSITORY 
@@ -19,7 +19,7 @@ cap log close
 global Filepath "\Desktop\Zelma V2.0\Minnesota - Version 2.0" //  Set path to csv files
 global Review "${Filepath}\review" 
 global StateAbbrev "MN" //Set StateAbbrev
-global date "10.01.24" //Set today's date
+global date "10.08.24" //Set today's date
 global years  2024 2023 2022 2021 2019 2018 2017 2016 2015 2014 2013 2012 2011 2010 //List Applicable years
 log using "$Filepath/${StateAbbrev}_Review.smcl", replace
 
@@ -967,8 +967,7 @@ tab DistName StateAssignedDistID if (select == 1 | select == 2 | select == 3 | s
 {
 tab DistName StateAssignedDistID if (select == 1 | select == 2 | select == 3 | select == 4 | select == 5) & FILE == "2019"
 
-drop random 
-*keep select  
+drop random  select  
 }
 ***********************************************************
 *NCESSchoolID 
@@ -1240,7 +1239,10 @@ tab SchName StateAssignedSchID if (sch_select == 1 | sch_select == 2 | sch_selec
 *StateAssignedSchID
 
 ** • Are IDs consistent across years (e.g., we don't want hyphens in the IDs for half the years and no hyphens for the other half)
+{
 tab StateAssignedSchID FILE if sch_select == 4 | sch_select == 5 | sch_select == 10 | sch_select == 12 | sch_select == 15
+cap drop sch_select d_MultipleStateIDsPer_NCESid d_MultipleNCESIDsPer_StateID s_MultipleStateSchIDsPer_NCESid s_MultipleNCESIDsPer_StateSchID
+}
 
 ***********************************************************
 ***********************************************************
@@ -1966,7 +1968,7 @@ foreach var of local AllStudChk {
 		di as error "Correct."
 		}	
 		
-drop uniquegrp	
+drop uniquegrp	AllStudChk
 		
 	}
 }
@@ -2180,6 +2182,7 @@ count if StudentGroup=="RaceEth" & !inlist(raceeth_chk, 1)
 		else {
 		di as error "Correct."
 		}
+drop raceeth_chk
  }
  
  
