@@ -15,23 +15,36 @@ Create six folders:
 ## Directory Paths Setup
 
 cd "/Users/kaitlynlucas/Desktop/do files"
+
 global original_files "/Users/kaitlynlucas/Desktop/Minnesota State Task"
+
 global NCES_files "/Users/kaitlynlucas/Desktop/Minnesota State Task/NCES New"
+
 global output_files "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN Output"
+
 global temp_files "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN_Temp"
+
 
 
 *Participation Rate 2014-2021:*
 global Original "/Users/kaitlynlucas/Desktop/EDFacts Drive Data" //Folder with Output .dta
+
 global EDFacts "/Users/kaitlynlucas/Desktop/EDFacts Drive Data" //Folder with downloaded state-specific 2022 participation data from EDFacts
+
 global State_Output "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN Output" //Folder with state-specific data
+
 global New_Output "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN Output" //Folder for Output 2.0
 
 *Participation Rate 2022:*
+
 global Original "/Users/kaitlynlucas/Desktop/EDFacts Drive Data" //Folder with Output .dta
+
 global EDFacts "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN_2022" //Folder with downloaded state-specific 2022 participation data from EDFacts
+
 global State_Output "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN Output" //Folder with state-specific data
+
 global Output_20 "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN Output" //Folder for Output 2.0
+
 
 ## Do File Order
 Run the do files in the following order:  
