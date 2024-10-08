@@ -8,7 +8,7 @@ Create six folders:
   5. Temp [initially empty]
   6. Output [initially empty]
   7. MN_2022
-     - Download the MN_EFParticipation_2022_subject files and place them into the MN_2022 folder [@kaitlyn, can you add a note about where this is on the drive, or perhaps a link?]
+     - Download the files in the MN_2022_EDFactsParticipation folder on the Google drive (https://drive.google.com/drive/u/0/folders/1h2DrMQB0t91SSPdujEDHJvCN-lRXXo5y)
   9. do files
      - Download each of the do files for each year (1998-2024) and place them into the "do files" folder.
 
