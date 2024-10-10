@@ -25,3 +25,4 @@ These folders correspond to the directories in the do-files.
 ## Notes & Updates
 - When 2024 data is released, the code only needs to be modified slightly so that the loops include 2024, since the data will be in the same format as the data we currently have.
 - 9/26/24: 2024 added
+- 10/9/2024: Stabilized DistNames & SchNames
