@@ -207,7 +207,8 @@ foreach var of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent {
 }
 
 gen ProficientOrAbove_percent = Lev3_percent+Lev4_percent
-
+replace ProficientOrAbove_percent = round(ProficientOrAbove_percent, 0.001)
+replace ProficientOrAbove_count = round(ProficientOrAbove_count)
 foreach var of varlist Lev1_count Lev2_count Lev3_count Lev4_count Lev1_percent Lev2_percent Lev3_percent Lev4_percent AvgScaleScore ProficientOrAbove_count ProficientOrAbove_percent {
 	tostring `var', replace force format("%9.3g")
 	replace `var' = "*" if filtered == "Y"
@@ -223,9 +224,11 @@ gen AssmtName = "Minnesota Comprehensive Assessment III"
 gen Flag_AssmtNameChange = "Y"
 gen Flag_CutScoreChange_ELA = "Y"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_soc = ""
+gen Flag_CutScoreChange_soc = "Not applicable"
 gen Flag_CutScoreChange_sci = "N"
 replace Flag_AssmtNameChange = "Y" if Subject == "ela"
+replace Flag_AssmtNameChange = "N" if Subject == "math"
+replace Flag_AssmtNameChange = "N" if Subject == "sci"
 gen AssmtType = "Regular"
 gen ProficiencyCriteria = "Levels 3-4"
 gen ParticipationRate = "--"
@@ -244,9 +247,6 @@ rename DataLevel_n DataLevel
 // (School ID in format to match with NCES is combination of different IDs)
 gen seasch = DistrictTypeCode + StateAssignedDistID + StateAssignedSchID
 gen state_leaid = DistrictTypeCode + StateAssignedDistID 
-
-// Generating Student Group Counts
-bysort seasch StudentGroup Grade Subject: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
 
 // Saving transformed data
 save "${output_files}/MN_AssmtData_2013.dta", replace
@@ -304,6 +304,18 @@ replace StateAssignedDistID = "" if DataLevel == 1
 replace StateAssignedSchID = "" if DataLevel != 3
 replace seasch = "" if DataLevel != 3
 replace State_leaid = "" if DataLevel == 1
+
+// Generating Student Group Counts - ADDED 10/3/24
+{
+replace StateAssignedDistID = "000000" if DataLevel== 1 // State
+replace StateAssignedSchID = "000000" if DataLevel== 1 // State
+replace StateAssignedSchID = "000000" if DataLevel== 2 // District
+egen uniquegrp = group(SchYear DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel)
+sort uniquegrp StudentGroup StudentSubGroup 
+by uniquegrp: gen AllStudents = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by uniquegrp: replace AllStudents = AllStudents[_n-1] if missing(AllStudents)
+rename AllStudents StudentGroup_TotalTested
+}
 
 // Reordering variables and sorting data
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
