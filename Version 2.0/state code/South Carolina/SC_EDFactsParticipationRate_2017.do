@@ -1,9 +1,11 @@
 clear
 set more off
 
-global EDFacts "/Volumes/T7/State Test Project/EDFACTS"
-global State_Output "/Volumes/T7/State Test Project/South Carolina/Output" // Version 1.1 Output directory here
-global New_Output "/Volumes/T7/State Test Project/South Carolina/Output - Version 2.0" // Version 2.0 Output directory here
+
+global EDFacts "/Users/benjaminm/Documents/State_Repository_Research/EdFacts" //Folder with downloaded state-specific 2022 participation data from EDFacts
+global State_Output "/Users/benjaminm/Documents/State_Repository_Research/South_Carolina/State_Output" // Folder with state-specific data
+global New_Output "/Users/benjaminm/Documents/State_Repository_Research/South_Carolina/New_Output"
+
 
 ** Preparing EDFacts files
 local edyears1 17
@@ -17,6 +19,7 @@ foreach year of local edyears1 {
             foreach lvl of local datalevel {
                 local prevyear = `year' - 1
                 use "${EDFacts}/20`year'/edfacts`type'20`year'`sub'`lvl'.dta", clear
+					rename *, lower
                 keep if stnam == "SOUTH CAROLINA"
                 rename *_`prevyear'`year' *
                 if ("`sub'" == "math") {
@@ -59,7 +62,7 @@ foreach year of local edyears1 {
 
 foreach year of local edyears1 {
     foreach type of local datatype {
-        foreach lvl of local datalevel {
+        foreach lvl of local datalevelx {
             use "${EDFacts}/20`year'/edfacts`type'20`year'math`lvl'southcarolina.dta", clear
             append using "${EDFacts}/20`year'/edfacts`type'20`year'ela`lvl'southcarolina.dta"
             if ("`lvl'" == "school"){
@@ -183,6 +186,11 @@ append using "`tempdist'" "`tempsch'"
 
 //New Participation Data
 replace ParticipationRate = Participation if !missing(Participation)
+
+
+	
+	// Update to a few instances of "." in data
+replace ParticipationRate = "--" if ParticipationRate == "." 
 
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
