@@ -1,3 +1,8 @@
+
+// generate proficient or above count in the years that need it (look at MD for examples)
+// generate counts (based on specific level counts, look at MD for examples)
+
+
 clear
 global path "/Users/benjaminm/Documents/State_Repository_Research/South_Carolina"
 global nces "/Users/benjaminm/Documents/State_Repository_Research/NCES"
@@ -398,7 +403,7 @@ foreach y in $years {
 	gen Flag_CutScoreChange_soc = "N"
 	gen Flag_CutScoreChange_sci = "N"
 	replace Flag_CutScoreChange_sci = "Not applicable" if `y' == 2024
-	replace Flag_CutScoreChange_soc = "Not applicable" if `y' >= 2018
+	replace Flag_CutScoreChange_soc = "Not applicable" if `y' >= 2021
 	
 	** Generate Other Variables
 	
@@ -532,6 +537,9 @@ foreach y in $years {
 	gen State = "South Carolina"
 	gen StateAbbrev = "SC"
 	gen int StateFips = 45
+	
+	
+	
 	
 
 	** Fix Variable Order 
@@ -709,6 +717,24 @@ replace Lev3_count = "0" if real(ProficientOrAbove_count) == real(Lev2_count) & 
 replace Lev2_percent = "0" if real(ProficientOrAbove_count) == real(Lev3_count) & subject_flag == 0 & ProficientOrAbove_count != "*"
 replace Lev3_percent = "0" if real(ProficientOrAbove_count) == real(Lev2_count) & subject_flag == 0 & ProficientOrAbove_count != "*"
 
+// if all levels except the highest are equal to total student sub group total tested, highest level is 0 
+
+replace Lev4_percent = "0" if real(StudentSubGroup_TotalTested) == real(Lev1_count) + real(Lev2_count) +  real(Lev3_count) & subject_flag == 1 
+replace ProficientOrAbove_percent = Lev3_percent if real(StudentSubGroup_TotalTested) == real(Lev1_count) + real(Lev2_count) +  real(Lev3_count) & subject_flag == 1 
+
+
+replace Lev4_count = "0" if real(StudentSubGroup_TotalTested) == real(Lev1_count) + real(Lev2_count) +  real(Lev3_count) & subject_flag == 1 
+replace ProficientOrAbove_count = Lev3_count if real(StudentSubGroup_TotalTested) == real(Lev1_count) + real(Lev2_count) +  real(Lev3_count) & subject_flag == 1 
+
+
+replace Lev3_percent = "0" if real(StudentSubGroup_TotalTested) == real(Lev1_count) + real(Lev2_count) & subject_flag == 0
+replace ProficientOrAbove_percent = Lev2_percent if real(StudentSubGroup_TotalTested) == real(Lev1_count) + real(Lev2_count) & subject_flag == 0
+
+replace Lev3_count = "0" if real(StudentSubGroup_TotalTested) == real(Lev1_count) + real(Lev2_count) & subject_flag == 0
+replace ProficientOrAbove_count = Lev2_count if real(StudentSubGroup_TotalTested) == real(Lev1_count) + real(Lev2_count) & subject_flag == 0
+
+
+
 	
 	** fix assmtname
 	replace AssmtName = "SC Pass" if `y' == 2023 & Subject == "sci"
@@ -717,7 +743,7 @@ replace Lev3_percent = "0" if real(ProficientOrAbove_count) == real(Lev2_count) 
 	replace Flag_CutScoreChange_ELA="N" if `y' == 2017
 	replace Flag_CutScoreChange_math="N" if `y' == 2017
 	replace Flag_CutScoreChange_sci="Y" if `y' == 2017
-	replace Flag_CutScoreChange_soc="Not applicable" if `y' == 2017 | `y' == 2016
+
 	
 	** standardize district names
 	
@@ -859,6 +885,19 @@ replace ProficientOrAbove_percent = round(ProficientOrAbove_percent, 0.001)
 tostring ProficientOrAbove_percent, replace force 
 replace ProficientOrAbove_percent = ProficientOrAbove_count if ProficientOrAbove_count == "*" | ProficientOrAbove_count == "--" 
 
+
+// moving to numeric to avoid leading zeros 
+
+	if `y' == 2024 {
+	destring StateAssignedDistID, replace
+
+	
+	}
+	
+	replace ProficientOrAbove_percent = "0" if ProficientOrAbove_count == "0"
+	
+
+
 ** Fix Variable Order 
 
 	keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
@@ -874,4 +913,5 @@ replace ProficientOrAbove_percent = ProficientOrAbove_count if ProficientOrAbove
 	export delimited using "${path}/State_Output/SC_AssmtData_`y'.csv", replace
 	
 }
+	
 	
