@@ -37,6 +37,19 @@ save "$Original/mass_school_participation_new", replace
 import excel MA_Unmerged_2024.xlsx, firstrow case(preserve) allstring clear
 save MA_Unmerged_2024, replace
 
+import excel ma_full-dist-sch-stable-list_through2024, firstrow case(preserve) allstring clear
+drop DataLevel
+gen DataLevel = 3
+save MA_SchNames, replace
+duplicates drop SchYear NCESDistrictID, force
+replace DataLevel = 2
+drop *schname NCESSchoolID
+save MA_DistNames, replace
+append using MA_SchNames
+duplicates drop SchYear NCESDistrictID NCESSchoolID, force
+save MA_StableNames, replace
+
+
 */
 
 //Hide Above after first run
@@ -495,9 +508,22 @@ forvalues year = 2017/2024 {
 	if `year' == 2017 | `year' == 2018 {
 		append using "$Output/MA_AssmtData_`year'_sci"
 	}
-
-replace AvgScaleScore = "--" if AvgScaleScore == "."	
 	
+//StateDistID update R1
+replace StateAssignedDistID = StateAssignedDistID + "0000" if DataLevel !=1
+
+replace AvgScaleScore = "--" if AvgScaleScore == "."
+
+//Incorporating Stable Dist/SchNames
+merge m:1 SchYear NCESDistrictID NCESSchoolID using "MA_StableNames", keep(match master) nogen
+replace DistName = newdistname if !missing(newdistname)
+replace SchName = newschname if !missing(newschname)
+	
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "$Output/MA_AssmtData_`year'", replace
@@ -579,8 +605,7 @@ replace Subject = "math" if strpos(Subject, "Math") !=0
 replace Subject = "sci" if strpos(Subject, "Sci") !=0
 
 //StateAssignedDistID & StateAssignedSchID
-replace StateAssignedDistID = subinstr(StateAssignedDistID, "0000","",.)
-replace StateAssignedDistID = substr(StateAssignedSchID,1,4) if DataLevel == 3
+replace StateAssignedDistID = substr(StateAssignedSchID,1,4) + "0000" if DataLevel == 3
 
 //ParticipationRate
 replace ParticipationRate = string(real(ParticipationRate)/100, "%9.3g")
@@ -610,18 +635,5 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 
 save "$Output/MA_AssmtData_`year'", replace
-export delimited "$Output/MA_AssmtData_`year'", replace	
+export delimited "$Output/MA_AssmtData_`year'", replace
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

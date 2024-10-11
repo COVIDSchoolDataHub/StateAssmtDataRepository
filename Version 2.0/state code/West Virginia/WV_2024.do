@@ -225,7 +225,7 @@ rename state_location StateAbbrev
 //Unmerged Schools
 replace NCESSchoolID = "540006201604" if SchName == "Eastern Panhandle Preparatory Academy"
 replace SchVirtual = "No" if SchName == "Eastern Panhandle Preparatory Academy"
-replace SchType =  "Regular school" if SchName == "Eastern Panhandle Preparatory Academy"
+replace SchType = "Regular school" if SchName == "Eastern Panhandle Preparatory Academy"
 replace SchLevel = "Other" if SchName == "Eastern Panhandle Preparatory Academy"
 
 replace NCESSchoolID = "540006301605" if SchName == "Virtual Preparatory Academy of West Virginia"
@@ -243,6 +243,9 @@ replace NCESSchoolID = "540165201611" if SchName == "West Virginia Academy"
 replace SchVirtual = "No" if SchName == "West Virginia Academy"
 replace SchType = "Regular school" if SchName == "West Virginia Academy"
 replace SchLevel = "Other" if SchName == "West Virginia Academy"
+
+replace SchType = "Regular school" if SchName == "Victory Elementary School"
+replace SchVirtual = "Supplemental virtual" if SchName == "Victory Elementary School"
 
 replace SchType = "Regular school" if SchName == "Victory Elementary School"
 replace SchVirtual = "Supplemental virtual" if SchName == "Victory Elementary School"
@@ -269,8 +272,8 @@ replace SchName = "Mason Dixon Elementary" if NCESSchoolID == "540093000750"
 tostring StudentSubGroup_TotalTested StudentGroup_TotalTested, replace 
 replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
 replace StudentGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
-replace ParticipationRate = "--" if missing(ParticipationRate)
 replace ParticipationRate = ParticipationRate1
+replace ParticipationRate = "--" 
 replace ParticipationRate = "--" if ParticipationRate == ""
 replace ParticipationRate = "--" if ParticipationRate == "."
 

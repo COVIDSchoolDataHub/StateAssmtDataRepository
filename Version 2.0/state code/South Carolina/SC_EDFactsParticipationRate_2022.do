@@ -1,10 +1,9 @@
 clear
 set more off
 
-global EDFacts "/Volumes/T7/State Test Project/South Carolina/Original Data Files" //Folder with downloaded state-specific 2022 participation data from EDFacts
-global State_Output "/Volumes/T7/State Test Project/South Carolina/Output" //Folder with state-specific data
-global Output_20 "/Volumes/T7/State Test Project/South Carolina/Output - Version 2.0" //Folder for Output 2.0
-
+global EDFacts "/Users/benjaminm/Documents/State_Repository_Research/EdFacts" //Folder with downloaded state-specific 2022 participation data from EDFacts
+global State_Output "/Users/benjaminm/Documents/State_Repository_Research/South_Carolina/State_Output" // Folder with state-specific data
+global New_Output "/Users/benjaminm/Documents/State_Repository_Research/South_Carolina/New_Output"
 
 foreach s in ela math sci {
 	import delimited "${EDFacts}/SC_EFParticipation_2022_`s'.csv", case(preserve) clear
@@ -40,6 +39,17 @@ replace `var' = subinstr(`var', "<","0-",.) if strpos(`var', "<") !=0
 drop n`var'
 drop range`var'
 }
+
+replace Participation = "0.808" if Participation == "80.8" 
+replace Participation = "0.909" if Participation == "90.9" 
+replace Participation = "0.859" if Participation == "85.9" 
+replace Participation = "0.809" if Participation == "80.9" 
+replace Participation = "0.758" if Participation == "75.8" 
+replace Participation = "0.708" if Participation == "70.8" 
+replace Participation = "0.608" if Participation == "60.8" 
+replace Participation = "0.607" if Participation == "60.7" 
+replace Participation = "0.406" if Participation == "40.6" 
+
 
 //StudentSubGroup
 replace StudentSubGroup = "All Students" if strpos(StudentSubGroup, "All Students") !=0
@@ -101,5 +111,9 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${Output_20}/SC_AssmtData_2022", replace
-export delimited "${Output_20}/SC_AssmtData_2022", replace
+save "${New_Output}/SC_AssmtData_2022", replace
+export delimited "${New_Output}/SC_AssmtData_2022", replace
+
+
+
+

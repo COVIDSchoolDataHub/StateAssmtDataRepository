@@ -241,6 +241,7 @@ replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
 replace StudentGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
 replace ParticipationRate = ParticipationRate1
 replace ParticipationRate = "--" if missing(ParticipationRate)
+replace ParticipationRate = "--" if ParticipationRate == "."
 
 //Proficiency Levels
 destring StudentSubGroup_TotalTested, gen(num) force
@@ -286,7 +287,6 @@ replace DistName = "McDowell" if DistName == "Mcdowell"
 
 //Getting rid of empty observations
 drop if StudentSubGroup_TotalTested == "--" & Lev1_percent == "--" & Lev2_percent == "--" & Lev3_percent == "--" & Lev4_percent == "--" & ProficientOrAbove_percent == "--"
-replace ParticipationRate = "--" if ParticipationRate == "."
 
 //Removing extra spaces
 foreach var of varlist DistName SchName {

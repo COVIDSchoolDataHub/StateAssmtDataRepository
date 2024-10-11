@@ -1,9 +1,11 @@
 clear
 set more off
 
-global EDFacts "/Volumes/T7/State Test Project/EDFACTS"
-global State_Output "/Volumes/T7/State Test Project/South Carolina/Output" // Version 1.1 Output directory here
-global New_Output "/Volumes/T7/State Test Project/South Carolina/Output - Version 2.0" // Version 2.0 Output directory here
+
+global EDFacts "/Users/benjaminm/Documents/State_Repository_Research/EdFacts" //Folder with downloaded state-specific 2022 participation data from EDFacts
+global State_Output "/Users/benjaminm/Documents/State_Repository_Research/South_Carolina/State_Output" // Folder with state-specific data
+global New_Output "/Users/benjaminm/Documents/State_Repository_Research/South_Carolina/New_Output"
+
 
 ** Preparing EDFacts files
 local edyears1 16 17 18
@@ -18,6 +20,7 @@ foreach year of local edyears1 {
             foreach lvl of local datalevel {
                 local prevyear = `year' - 1
                 use "${EDFacts}/20`year'/edfacts`type'20`year'`sub'`lvl'.dta", clear
+				rename *, lower
                 keep if stnam == "SOUTH CAROLINA"
                 rename *_`prevyear'`year' *
                 if ("`sub'" == "math") {
@@ -127,6 +130,7 @@ foreach year of local edyears2 {
 		foreach type of local datatype {
 			foreach lvl of local datalevel {
 				use "${EDFacts}/`year'/edfacts`type'`year'`sub'`lvl'.dta", clear
+			    rename *, lower
 				keep if stnam == "SOUTH CAROLINA"
 				drop date_cur
 				if ("`type'" == "count") {

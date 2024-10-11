@@ -10,7 +10,7 @@ global NCESOLD "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
 global NCES "/Volumes/T7/State Test Project/Washington/NCES"
 
 * 2015 2016 2017 2018 2019 2021 2022 2023 2024
-foreach year in 2024 {
+foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 2024 {
 	
 use "${output}/WA_AssmtData_`year'_all", clear
 	
@@ -178,7 +178,7 @@ if `year' == 2023 {
 // 	rename PercentLevel2 Lev2_percent
 // 	rename PercentLevel3 Lev3_percent
 // 	rename PercentLevel4 Lev4_percent
-	rename PercentParticipation ParticipationRate
+	//rename PercentParticipation ParticipationRate
 	drop CountofStudentsExpectedtoTest
 	
 	gen AssmtType=""
@@ -208,9 +208,9 @@ if `year' == 2024 {
 // 	rename PercentLevel2 Lev2_percent
 // 	rename PercentLevel3 Lev3_percent
 // 	rename PercentLevel4 Lev4_percent
-	rename PercentParticipation ParticipationRate
+	//rename PercentParticipation ParticipationRate
 	rename DAT Suppression
-	drop CountofStudentsExpectedtoTest CountConsistentGradeLevelKnowled CountFoundationalGradeLevelKnowl CurrentSchoolType DataAsOf ESDOrganizationID ESDName PercentConsistentGradeLevelKnowl PercentFoundationalGradeLevelKno TestAdministrationgroup
+	drop CountofStudentsExpectedtoTest CountConsistentGradeLevelKnowled CountFoundationalGradeLevelKnowl CurrentSchoolType DataAsOf ESDOrganizationID ESDName PercentConsistentGradeLevelKnowl PercentFoundationalGradeLevelKno TestAdministrationgroup PercentParticipation
 	gen PercentMetStandard = ""
 	keep if AssmtName == "SBAC" | AssmtName == "WCAS"
 	gen AssmtType = ""
@@ -242,7 +242,7 @@ if `year' == 2019 {
 }
 
 if `year' >= 2021 {
-	drop if SchName == "Chief Leschi Schools" | SchName == "Paschal Sherman" | SchName == "Wa He Lut Indian School" | SchName == "Lummi Nation School" | SchName == "Quileute Tribal School" | SchName == "Muckleshoot Tribal School" | SchName == "Paschal Sherman(Closed)"
+	drop if strpos(SchName, "Chief Leschi Schools") !=0 | strpos(SchName, "Paschal Sherman") !=0 | strpos(SchName, "Wa He Lut Indian School") !=0 | strpos(SchName, "Lummi Nation School") !=0 | strpos(SchName, "Quileute Tribal School") !=0 | strpos(SchName, "Muckleshoot Tribal School") !=0
 }
 
 drop if Suppression == "No Students" // StudentSubGroup_TotalTested == 0
@@ -345,20 +345,15 @@ tostring PercentNoScore, replace force
 }
 
 
-** make participationrate (ONLY FOR PRE-2023)
+** Make ParticipationRate (ALL YEARS, including 2023 & 2024)
 
-if `year' < 2023 {
-	replace PercentNoScore = "*" if PercentNoScore == "NULL"
-	destring PercentNoScore, replace ignore(*)
-	gen ParticipationRate = 1 - PercentNoScore
-	tostring ParticipationRate, replace force format("%9.3g")
-	replace ParticipationRate = "*" if ParticipationRate == "."
-}
-replace ParticipationRate = "*" if ParticipationRate == "NULL"
-replace ParticipationRate = string(real(ParticipationRate), "%9.3g") if !missing(real(ParticipationRate))
+gen ParticipationRate = string(1 - real(PercentNoScore), "%9.3g") if !missing(real(PercentNoScore))
+replace ParticipationRate = "*" if missing(ParticipationRate)
 
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
 replace ProficientOrAbove_percent = string(real(ProficientOrAbove_percent), "%9.3g") if !missing(real(ProficientOrAbove_percent))
+
+
 
 
 //Deriving Level Counts & Percents based on ParticipationRate
@@ -389,6 +384,27 @@ foreach count of varlist Lev*_count {
 
 //Dropping Extra Variables
 drop PercentLevel* PercentMetStandard
+
+
+// **ALTERNATE Generation Method (should be equivilent?)
+//
+// //1. Derive Level percents as PercentLevel`n'/ParticipationRate
+// //2. Derive StudentSubGroup_TotalTested as ParticipationRate * ExpectedCount
+// //3. Derive Level counts as Level percent * StudentSubGroup_TotalTested
+//
+// //1. Deriving percents
+// forvalues n = 1/4 {
+// gen Lev`n'_percent = string(real(PercentLevel`n')/real(ParticipationRate), "%9.3g") if !missing(real(PercentLevel`n')) & !missing(real(ParticipationRate))
+// }
+//
+// //2. Derive StudentSubGroup_TotalTested
+// gen StudentSubGroup_TotalTested = string(round(real(ParticipationRate) * ExpectedCount)) if !missing(real(ParticipationRate)) & !missing(ExpectedCount)
+// replace StudentSubGroup_TotalTested = "*" if missing(StudentSubGroup_TotalTested)
+//
+// //3. Derive Level counts
+// forvalues n = 1/4 {
+// 	gen Lev`n'_count = string(round(real(Lev`n'_percent)*real(StudentSubGroup_TotalTested))) if !missing(real(Lev`n'_percent)) & !missing(real(StudentSubGroup_TotalTested))
+// }
 
 //Generating ProficientOrAbove_count for 2024
 if `year' == 2024 {
@@ -656,18 +672,22 @@ by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] i
 drop group_id StateAssignedDistID1 StateAssignedSchID1
 
 //Deriving ProficientOrAbove_count if possible
+replace ProficientOrAbove_count = string(real(Lev3_count)+real(Lev4_count)) if !missing(real(Lev3_count)) & !missing(real(Lev4_count)) & missing(real(ProficientOrAbove_count))
 replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent)*real(StudentSubGroup_TotalTested))) if !missing(real(ProficientOrAbove_percent)) & !missing(real(StudentSubGroup_TotalTested)) & missing(real(ProficientOrAbove_count))
 
-//Response to Review
+
+//Response to Review (9/20/24)
 
 if `year' >= 2018 drop if SchLevel == "Prekindergarten"
 
-//Replacing ProficientOrAbove_count with ProficientOrAbove_percent*StudentSubGroup_TotalTested
-replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent) * real(StudentSubGroup_TotalTested)))
-replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
+//Deriving SSG_TT if we have all level counts
+replace StudentSubGroup_TotalTested = string(real(Lev1_count) + real(Lev2_count) + real(Lev3_count) + real(Lev4_count)) if !missing(real(Lev1_count)) & !missing(real(Lev2_count)) & !missing(real(Lev3_count)) & !missing(real(Lev4_count)) & missing(real(StudentSubGroup_TotalTested))
 
 //ParticipationRate
 replace ParticipationRate = "--" if missing(ParticipationRate)
+
+//ProficientOrAbove_percent
+replace ProficientOrAbove_percent = "*" if missing(ProficientOrAbove_percent)
 
 //AssmtType
 replace AssmtType = "Regular"

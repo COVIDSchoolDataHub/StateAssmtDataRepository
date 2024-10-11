@@ -206,16 +206,23 @@ drop if _merge == 2
 rename NUMVALID StudentSubGroup_TotalTested
 replace StudentSubGroup_TotalTested = "--" if _merge == 1
 
+//Variable Types
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+sort DataLevel_n 
+drop DataLevel 
+rename DataLevel_n DataLevel
+
 //Deriving State Level Counts
 gen num = StudentSubGroup_TotalTested
 destring num, replace force
 gen dummy = num
-replace dummy = 0 if DataLevel != "District"
+replace dummy = 0 if DataLevel != 2
 bys StudentSubGroup Subject GradeLevel: egen state = total(dummy)
-replace num = state if DataLevel == "State" & state != 0
-replace dummy = state if DataLevel == "State" & state != 0
+replace num = state if DataLevel == 1 & state != 0
+replace dummy = state if DataLevel == 1 & state != 0
 tostring dummy, replace
-replace StudentSubGroup_TotalTested = dummy if DataLevel == "State" & num != .
+replace StudentSubGroup_TotalTested = dummy if DataLevel == 1 & num != .
 
 //StudentGroup_TotalTested
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
@@ -241,6 +248,7 @@ forvalues n = 1/4 {
 	replace Lev`n'_count = "0" if Lev`n'_count == "." & Lev`n'_pct == "0"
 }
 
+
 replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == ""
 gen Prof_pct = ProficientOrAbove_percent
 destring ProficientOrAbove_percent, replace force
@@ -253,6 +261,7 @@ replace ProficientOrAbove_percent = "--" if Prof_pct == "--"
 tostring ProficientOrAbove_count, replace
 replace ProficientOrAbove_count = "*" if Prof_pct == "**"
 replace ProficientOrAbove_count = "--" if Prof_pct == "--"
+replace ProficientOrAbove_count = "--" if Prof_pct == "."
 replace ProficientOrAbove_count = "--" if StudentSubGroup_TotalTested == "--" & ProficientOrAbove_count != "*"
 
 //Proficiency Levels
@@ -265,15 +274,8 @@ drop Lev1_pct Lev2_pct Lev3_pct Lev4_pct Prof_pct num dummy state
 //Remove Observations with All Information Missing (Because the Grade/School Combos Don't Exist)
 drop if Lev1_percent == "--" & Lev2_percent == "--" & Lev3_percent == "--" & Lev4_percent == "--" & ProficientOrAbove_percent == "--"
 
-//Variable Types
-label def DataLevel 1 "State" 2 "District" 3 "School"
-encode DataLevel, gen(DataLevel_n) label(DataLevel)
-sort DataLevel_n 
-drop DataLevel 
-rename DataLevel_n DataLevel
 
 replace DistName = "McDowell" if NCESDistrictID == "5400810"
-replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
 
 //Removing extra spaces
 foreach var of varlist DistName SchName Lev1_count Lev2_count Lev3_count Lev4_count Lev5_count ProficientOrAbove_count ProficientOrAbove_percent {
