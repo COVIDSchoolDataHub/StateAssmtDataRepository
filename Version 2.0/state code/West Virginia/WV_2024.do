@@ -1,5 +1,5 @@
 //2023-2024
-import excel "$data/WV_OriginalData_2024_all.xlsx, sheet("SY24 Schl & Dist Comp. Results") clear 
+import excel "$data/WV_OriginalData_2024_ela,math,sci.xlsx, sheet("SY24 Schl & Dist Comp. Results") clear 
 
 //Variable Names
 rename A StateAssignedDistID
