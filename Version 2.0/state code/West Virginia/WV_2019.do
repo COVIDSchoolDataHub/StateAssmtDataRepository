@@ -206,7 +206,7 @@ rename district_agency_type DistType
 rename county_name CountyName
 rename county_code CountyCode
 rename ncesschoolid NCESSchoolID
-*rename school_type SchType
+replace StateAssignedDistID = string(real(StateAssignedDistID), "%03.0f")
 rename state_leaid State_leaid
 
 drop  _merge merge2
