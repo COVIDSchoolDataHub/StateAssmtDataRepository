@@ -207,6 +207,7 @@ rename county_name CountyName
 rename county_code CountyCode
 rename ncesschoolid NCESSchoolID
 replace StateAssignedDistID = string(real(StateAssignedDistID), "%03.0f")
+replace StateAssignedDistID = "" if StateAssignedDistID == "."
 rename state_leaid State_leaid
 
 drop  _merge merge2
