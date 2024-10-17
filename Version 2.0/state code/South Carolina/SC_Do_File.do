@@ -749,6 +749,15 @@ replace Lev3_count = "0" if real(ProficientOrAbove_count) == real(Lev2_count) & 
 replace Lev2_percent = "0" if real(ProficientOrAbove_count) == real(Lev3_count) & subject_flag == 0 & ProficientOrAbove_count != "*"
 replace Lev3_percent = "0" if real(ProficientOrAbove_count) == real(Lev2_count) & subject_flag == 0 & ProficientOrAbove_count != "*"
 
+
+
+
+replace Lev2_count = "0" if total_count == n1_count + n3_count & subject_flag == 0
+replace Lev2_percent = "0" if total_count == n1_count + n3_count & subject_flag == 0
+replace ProficientOrAbove_count = Lev3_count if total_count == n1_count + n3_count & subject_flag == 0
+replace ProficientOrAbove_percent = Lev3_percent if total_count == n1_count + n3_count & subject_flag == 0
+
+
 // if all levels except the highest are equal to total student sub group total tested, highest level is 0 
 
 replace Lev4_percent = "0" if real(StudentSubGroup_TotalTested) == real(Lev1_count) + real(Lev2_count) +  real(Lev3_count) & subject_flag == 1 
@@ -928,6 +937,8 @@ replace ProficientOrAbove_percent = ProficientOrAbove_count if ProficientOrAbove
 	
 	replace ProficientOrAbove_percent = "0" if ProficientOrAbove_count == "0"
 	
+	replace Lev4_count = "" if ProficiencyCriteria == "Levels 2-3"
+    replace Lev4_percent = "" if ProficiencyCriteria == "Levels 2-3"
 
 
 ** Fix Variable Order 
@@ -945,6 +956,3 @@ replace ProficientOrAbove_percent = ProficientOrAbove_count if ProficientOrAbove
 	export delimited using "${path}/State_Output/SC_AssmtData_`y'.csv", replace
 	
 }
-	
-	
-	
