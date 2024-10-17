@@ -2,14 +2,14 @@ clear all
 set maxvar 10000
 // Define file paths
 
-global original_files "/Volumes/T7/State Test Project/Texas/Original"
-global NCES_files "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
-global output_files "/Volumes/T7/State Test Project/Texas/Output"
-global temp_files "/Volumes/T7/State Test Project/Texas/Temp"
+global original_files "/Users/miramehta/Documents/TX State Testing Data/Original"
+global NCES_files "/Users/miramehta/Documents/NCES District and School Demographics"
+global output_files "/Users/miramehta/Documents/TX State Testing Data/Output"
+global temp_files "/Users/miramehta/Documents/TX State Testing Data/Temp"
 
 // 2022-2023
-/*
 
+/*
 // State Level
 
 forvalues i = 3/8 {
@@ -219,12 +219,13 @@ generate Lev2_count = Lev2plus_count - Lev3plus_count
 generate Lev3_count = Lev3plus_count - Lev4_count
 generate Lev2_percent = Lev2plus_percent - Lev3plus_percent
 generate Lev3_percent = Lev3plus_percent - Lev4_percent
-generate ProficientOrAbove_count = Lev2plus_count
-generate ProficientOrAbove_percent = Lev2plus_percent
-drop Lev2plus_count
-drop Lev2plus_percent
+generate ProficientOrAbove_count = Lev3plus_count
+generate ProficientOrAbove_percent = Lev3plus_percent
 drop Lev3plus_count
 drop Lev3plus_percent
+
+rename Lev2plus_count ApproachingOrAbove_count
+rename Lev2plus_percent ApproachingOrAbove_percent
 
 rename rs_ AvgScaleScore
 rename docs_n_ Submitted_count
@@ -256,12 +257,12 @@ drop DataLevel
 rename DataLevel_n DataLevel
 
 // Fixing Percents
-foreach var of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent ParticipationRate {
+foreach var of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent ParticipationRate ApproachingOrAbove_percent{
 	replace `var' = `var'/100
 }
 
 // Dealing with Suppressed/Missing
-foreach var of varlist Lev1_count Lev2_count Lev3_count Lev4_count Lev1_percent Lev2_percent Lev3_percent Lev4_percent AvgScaleScore ProficientOrAbove_count ProficientOrAbove_percent {
+foreach var of varlist Lev1_count Lev2_count Lev3_count Lev4_count Lev1_percent Lev2_percent Lev3_percent Lev4_percent AvgScaleScore ProficientOrAbove_count ProficientOrAbove_percent ApproachingOrAbove_count ApproachingOrAbove_percent{
 	tostring `var', replace force format ("%9.3g")
 	replace `var' = "--" if StudentSubGroup_TotalTested == 0
 	replace `var' = "*" if `var' == "."
@@ -276,14 +277,14 @@ replace StateAssignedSchID = "126911042" if StateAssignedSchID == "126911103"
 // Generating missing variables
 gen Lev5_count = ""
 gen Lev5_percent = ""
-gen AssmtName = "STAAR"
+gen AssmtName = "STAAR - English"
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "Y"
 gen Flag_CutScoreChange_math = "Y"
 gen Flag_CutScoreChange_soc = "Y"
 gen Flag_CutScoreChange_sci = "Y"
 gen AssmtType = "Regular"
-gen ProficiencyCriteria = "Levels 2-4"
+gen ProficiencyCriteria = "Levels 3-4"
 gen state_leaid = "TX-"+StateAssignedDistID
 replace state_leaid = "" if DataLevel == 1
 gen seasch = StateAssignedDistID+"-"+StateAssignedSchID
@@ -296,7 +297,7 @@ save "$output_files/TX_AssmtData_2023.dta", replace
 
 // Merging with NCES District Data
 
-use "$NCES_files/NCES_2022_District.dta", clear
+use "$NCES_files/NCES District Files, Fall 1997-Fall 2022/NCES_2022_District.dta", clear
 
 keep state_location state_fips district_agency_type ncesdistrictid state_leaid DistCharter county_name county_code DistLocale
 
@@ -307,41 +308,7 @@ merge 1:m state_leaid using "${output_files}/TX_AssmtData_2023.dta", keep(match 
 save "$output_files/TX_AssmtData_2023.dta", replace
 
 // Merging with NCES School Data
-/*
-import delimited "$original_files/TX_Unmerged2023.csv", stringcols(1 5 8 9) clear
-drop seaschmatch
-drop districtmatch
-drop distname
-drop schname
-drop v9
-drop v7
-rename countyname county_name
-rename countycode county_code
-
-gen school_type = 1
-replace school_type = 2 if schtype == "Special education school"
-replace school_type = 3 if schtype == "Vocational school"
-replace school_type = 4 if schtype == "Other/alternative school"
-gen SchLevel = -1
-gen SchVirtual = -1
-
-drop schtype
-drop schlevel
-drop schvirtual
-gen state_location = "TX"
-gen state_fips = 48
-*/
-
-use "$NCES_files/NCES_2022_School.dta"
-
-/*
-label def school_typedf 1 "Regular school" 2 "Special education school" 3 "Vocational school" 4 "Other/alternative school", modify
-label values school_type school_typedf
-label def school_leveldf -1 "Missing/not reported", modify
-label values SchLevel school_leveldf
-label def virtualdf -1 "Missing/not reported", modify
-label values SchVirtual virtualdf
-*/
+use "$NCES_files/NCES School Files, Fall 1997-Fall 2022/NCES_2022_School.dta"
 
 foreach v of varlist SchLevel SchVirtual school_type district_agency_type {
 		decode `v', generate(`v'1)
@@ -376,33 +343,26 @@ replace StateFips = 48 if DataLevel == 1
 // Relabelling missing SchVirtual
 replace SchVirtual = "Missing/not reported" if SchVirtual == "" & DataLevel == 3 & NCESSchoolID != "Missing"
 
-//Other Post Launch
-drop seasch State_leaid
-drop if SchName == "TEXAS TECH H S"
-replace SchName = "TEXAS TECH UNIV" if NCESSchoolID== "480148014286"
-replace StateAssignedSchID = "152504001" if NCESSchoolID == "480148014286" //Applying 2023 StateAssignedSchID to All Years
-
 //StudentGroup_TotalTested
-tostring StateAssigned*, replace
-replace StateAssignedDistID = "" if DataLevel == 1
-replace StateAssignedSchID = "" if DataLevel !=3
-gen StateAssignedDistID1 = StateAssignedDistID
-replace StateAssignedDistID1 = "000000" if DataLevel == 1
-gen StateAssignedSchID1 = StateAssignedSchID
-replace StateAssignedSchID1 = "000000" if DataLevel !=3
-egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
-sort group_id StudentGroup StudentSubGroup
-by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
-by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
-drop group_id StateAssignedDistID1 StateAssignedSchID1
+sort DataLevel AssmtName StateAssignedDistID StateAssignedSchID Subject GradeLevel StudentGroup StudentSubGroup
+gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+order Subject GradeLevel StudentGroup_TotalTested StudentGroup StudentSubGroup_TotalTested StudentSubGroup
+replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested) & StudentSubGroup != "All Students"
+drop if StudentSubGroup_TotalTested == 0 & StudentSubGroup != "All Students"
 
 // Reordering variables and sorting data
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+order State StateAbbrev StateFips SchYear DataLevel StateAssignedDistID StateAssignedSchID NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode ApproachingOrAbove_count ApproachingOrAbove_percent
+
+drop seasch State_leaid
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 // Saving and exporting transformed data
+save "${output_files}/TX_AssmtData_2023 - HMH.dta", replace
+export delimited "${output_files}/TX_AssmtData_2023 - HMH.csv", replace
+
+drop ApproachingOrAbove_count ApproachingOrAbove_percent
 
 save "${output_files}/TX_AssmtData_2023.dta", replace
-export delimited using "$output_files/TX_AssmtData_2023.csv", replace
+export delimited using "${output_files}/TX_AssmtData_2023.csv", replace
 
