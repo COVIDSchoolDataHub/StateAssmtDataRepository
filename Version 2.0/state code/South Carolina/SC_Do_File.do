@@ -1,8 +1,4 @@
 
-// generate proficient or above count in the years that need it (look at MD for examples)
-// generate counts (based on specific level counts, look at MD for examples)
-
-
 clear
 global path "/Users/benjaminm/Documents/State_Repository_Research/South_Carolina"
 global nces "/Users/benjaminm/Documents/State_Repository_Research/NCES"
@@ -668,6 +664,42 @@ replace nprof_count = n2_count + n3_count if Lev2_count != "*" & Lev3_count != "
 replace nprof_count = real(StudentSubGroup_TotalTested) - (n1_count) if Lev2_count == "*" & Lev3_count == "*" & subject_flag == 0
 
 
+// deriving Lev3 percent and count, and prof above in those instances
+
+destring  StudentSubGroup_TotalTested, replace 
+replace n3_count = StudentSubGroup_TotalTested - n1_count - n2_count - n4_count if Lev1_count != "*" & Lev2_count != "*" & Lev4_count != "*" & Lev3_count == "*"
+replace n3_percent = 1 - n1_percent - n2_percent - n4_percent if Lev1_count != "*" & Lev2_count != "*" & Lev4_count != "*" & Lev3_count == "*"
+replace n3_percent = 0 if n3_percent <= 0
+replace n3_percent = 0 if n3_percent == 0.001
+
+replace nprof_count = n4_count if Lev1_count != "*" & Lev2_count != "*" & Lev4_count != "*" & Lev3_count == "*"
+replace n_profabove = n4_percent if Lev1_count != "*" & Lev2_count != "*" & Lev4_count != "*" & Lev3_count == "*"
+
+replace n4_count = StudentSubGroup_TotalTested - n1_count - n2_count - n3_count if Lev1_count != "*" & Lev2_count != "*" & Lev3_count != "*" & Lev4_count == "*"
+replace n4_percent = 1 - n1_percent - n2_percent - n3_percent if Lev1_count != "*" & Lev2_count != "*" & Lev3_count != "*" & Lev4_count == "*"
+replace n4_percent = 0 if n4_percent <= 0
+replace n4_percent = 0 if n4_percent == 0.001
+
+replace nprof_count = n3_count if Lev1_count != "*" & Lev2_count != "*" & Lev3_count != "*" & Lev4_count == "*"
+replace n_profabove = n3_percent if Lev1_count != "*" & Lev2_count != "*" & Lev3_count != "*" & Lev4_count == "*"
+
+
+
+
+tostring n3_count, replace 
+tostring n4_count, replace
+replace Lev3_count = n3_count if Lev1_count != "*" & Lev2_count != "*" & Lev4_count != "*" & Lev3_count == "*"
+replace Lev4_count = n4_count if Lev1_count != "*" & Lev2_count != "*" & Lev3_count != "*" & Lev4_count == "*"
+
+tostring n3_percent, gen(n3_percent1) force
+tostring n4_percent, gen(n4_percent1) force
+destring n3_count n4_count, replace force 
+replace Lev3_percent = n3_percent1 if Lev1_count != "*" & Lev2_count != "*" & Lev4_count != "*" & n3_count == StudentSubGroup_TotalTested - n1_count - n2_count - n4_count 
+replace Lev4_percent = n4_percent1 if Lev1_count != "*" & Lev2_count != "*" & Lev3_count != "*" & n4_count == StudentSubGroup_TotalTested - n1_count - n2_count - n3_count 
+tostring StudentSubGroup_TotalTested, replace force
+
+
+
 // replace nprof_count = total_count if n1_percent == 1 | n2_percent == 2 // added 7/26/24
 
 replace nprof_count = round(nprof_count, 1)
@@ -888,7 +920,7 @@ replace ProficientOrAbove_percent = ProficientOrAbove_count if ProficientOrAbove
 
 // moving to numeric to avoid leading zeros 
 
-	if `y' == 2024 {
+	if `y' >= 2023 {
 	destring StateAssignedDistID, replace
 
 	
@@ -913,5 +945,6 @@ replace ProficientOrAbove_percent = ProficientOrAbove_count if ProficientOrAbove
 	export delimited using "${path}/State_Output/SC_AssmtData_`y'.csv", replace
 	
 }
+	
 	
 	
