@@ -2,18 +2,27 @@ clear
 //set more on
 set trace off
 cap log close
-cd "/Volumes/T7/State Test Project/Connecticut"
-global Original "/Volumes/T7/State Test Project/Connecticut/Original Data Files"
-global Output "/Volumes/T7/State Test Project/Connecticut/Output"
-global NCES_School "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
-global NCES_District "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+//cd "/Volumes/T7/State Test Project/Connecticut"
+global Original "C:\Users\nseel\OneDrive\Desktop\Zelma\Connecticut\Original Data Files"
+global Output "C:\Users\nseel\OneDrive\Desktop\Zelma\Connecticut\Output"
+global NCES_School "C:\Users\nseel\OneDrive\Desktop\Zelma\Connecticut\NCES"
+global NCES_District "C:\Users\nseel\OneDrive\Desktop\Zelma\Connecticut\NCES"
+global Temp "C:\Users\nseel\OneDrive\Desktop\Zelma\Connecticut\Temp"
 log using variablescheck.log, replace
+
+
+/////////////////////////////////////////
+*** Cleaning original CT data and saving to temp file ***
+/////////////////////////////////////////
+
+
 //Standardizing Varnames (and variables if necessary) before appending
-forvalues year = 2015/2023 {
+forvalues year = 2015/2024 {
 	local prevyear =`=`year'-1'
 	if `year' == 2020 | `year' == 2021 continue
-	tempfile temp_`year'
-	save "`temp_`year''", emptyok
+	//tempfile temp_`year'
+	//save "`temp_`year''", emptyok
+	//save "{Temp}/CT_`year'", replace
 	foreach dl in State Dist Sch {
 		foreach sg in All EL FC FRM2 Gen Home MC RE SWD {
 			if ("`sg'" == "FC" | "`sg'" == "Home" | "`sg'" == "MC") & (`year' == 2015 | `year' == 2016 | `year' == 2017) continue
@@ -25,9 +34,9 @@ forvalues year = 2015/2023 {
 				di "`sg'"
 				di "`subject'"
 				import delimited "${Original}/`dl'_`sg'_CT_OriginalData_`year'_`subject'.csv", clear
-				if "`dl'" == "State" gen DataLevel = "State" 
-				if "`dl'" == "Dist" gen DataLevel = "District" 
-				if "`dl'" == "Sch" gen DataLevel = "School" 
+				if "`dl'" == "State" gen DataLevel_string = "State" 
+				if "`dl'" == "Dist" gen DataLevel_string = "District" 
+				if "`dl'" == "Sch" gen DataLevel_string = "School" 
 				
 				if "`subject'" == "sci" & "`dl'" != "Sch" {
 					forvalues n = 22(-1)3 {
@@ -708,12 +717,12 @@ forvalues year = 2015/2023 {
 				drop in 1/4
 				save "${Original}/`dl'_`sg'_CT_OriginalData_`year'_`subject'.dta", replace
 				append using "`temp_`year''"
-				save "`temp_`year''", replace
-				*save "/Volumes/T7/State Test Project/Connecticut/Testing/`year'", replace
+				save "{Temp}/CT_`year'", replace
 				clear
 			}
 		}
 	}
+}
 use "`temp_`year''"
 
 
@@ -752,11 +761,12 @@ keep if StudentGroup == "All Students" | StudentGroup == "RaceEth" | StudentGrou
 //StudentGroup_TotalTested
 destring StudentSubGroup_TotalTested, gen(nStudentSubGroup_TotalTested) i(*N/A)
 sort StudentGroup
-egen StudentGroup_TotalTested = total(nStudentSubGroup_TotalTested), by(StudentGroup GradeLevel Subject DataLevel StateAssignedSchID StateAssignedDistID)
+egen StudentGroup_TotalTested = total(nStudentSubGroup_TotalTested), by(StudentGroup GradeLevel Subject DataLevel_string StateAssignedSchID StateAssignedDistID)
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "0"
 
 //DataLevel
+gen DataLevel = DataLevel_string
 label def DataLevel 1 "State" 2 "District" 3 "School"
 encode DataLevel, gen(DataLevel_n) label(DataLevel)
 sort DataLevel_n 
@@ -797,6 +807,14 @@ replace ProficientOrAbove_percent = string(1-(nLev1_percent/100) -(nLev2_percent
 //Year
 gen SchYear = "`prevyear'" + "-" + substr("`year'",-2,2)
 
+save "${Temp}/CT_tempdata_`year'.dta", replace
+}
+
+
+/////////////////////////////////////////
+*** Merging in NCES Data ***
+/////////////////////////////////////////
+
 //Merging with NCES Data//
 gen StateAssignedDistID1 = substr(StateAssignedDistID,1,3)
 gen StateAssignedDistID2 = StateAssignedDistID
@@ -810,11 +828,11 @@ keep if DataLevel ==2
 tempfile tempdist
 save "`tempdist'", replace
 clear
-if `year' < 2023 {
+if `year' < 2024 {
 use "${NCES_District}/NCES_`prevyear'_District"
 }
-else if `year'==2023{
-use "${NCES_District}/NCES_2021_District"
+else if `year'==2024{
+use "${NCES_District}/NCES_2022_District"
 }
 keep if state_name == "Connecticut" | state_location == "CT"
 if `year' <2019 {
@@ -827,18 +845,20 @@ if `year' >= 2019 {
 }
 drop if _merge ==1
 save "`tempdist'", replace
+save "${NCES_District}/NCES_`year'_District.dta", replace
 clear
+}
 
 //School
 use "`temp1'"
 keep if DataLevel==3
 tempfile tempschool
 save "`tempschool'", replace
-if `year' <2023 {
+if `year' <2024 {
 use "${NCES_School}/NCES_`prevyear'_School"
 }
-else if `year' == 2023 {
-use "${NCES_School}/NCES_2021_School"
+else if `year' == 2024 {
+use "${NCES_School}/NCES_2022_School"
 }
 keep if state_name == "Connecticut" | state_location == "CT"
 gen StateAssignedDistID1 = subinstr(state_leaid,"CT-","",.)
@@ -855,12 +875,21 @@ if `year' >= 2019 {
 	drop if _merge ==1
 }
 save "`tempschool'", replace
+save "${NCES_School}/NCES_`year'_School.dta", replace
 clear
 
+
 //Appending
+gen DataLevelstring = ""
+replace DataLevelstring = "State" if DataLevel== 1
+replace DataLevelstring = "District" if DataLevel == 2
+replace DataLevelstring = "School" if DataLevel == 3
 use "`temp1'"
 keep if DataLevel==1
 append using "`tempdist'" "`tempschool'"
+
+
+
 
 //Fixing NCES Variables
 rename district_agency_type DistTypeLabels
@@ -1033,4 +1062,3 @@ clear
 log close
 
 do CT_Cleaning_2021
-
