@@ -214,7 +214,8 @@ foreach var of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent {
 }
 
 gen ProficientOrAbove_percent = Lev3_percent+Lev4_percent
-
+replace ProficientOrAbove_percent = round(ProficientOrAbove_percent, 0.001)
+replace ProficientOrAbove_count = round(ProficientOrAbove_count)
 foreach var of varlist Lev1_count Lev2_count Lev3_count Lev4_count Lev1_percent Lev2_percent Lev3_percent Lev4_percent AvgScaleScore ProficientOrAbove_count ProficientOrAbove_percent {
 	tostring `var', replace force format("%9.3g")
 	replace `var' = "*" if filtered == "Y"
@@ -249,9 +250,6 @@ rename DataLevel_n DataLevel
 // (School ID in format to match with NCES is combination of different IDs)
 gen seasch = DistrictTypeCode + StateAssignedDistID + StateAssignedSchID
 gen state_leaid = DistrictTypeCode + StateAssignedDistID 
-
-// Generating Student Group Counts
-bysort seasch StudentGroup Grade Subject: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
 
 // Dropping extra observations
 local dropping "230004 240001 240002 240008 240010 847059 847659 847660 847661 847662 847663 847665 847667 847668 847669 847670 847671"
@@ -312,6 +310,18 @@ replace StateAssignedDistID = "" if DataLevel == 1
 replace StateAssignedSchID = "" if DataLevel != 3
 replace seasch = "" if DataLevel != 3
 replace State_leaid = "" if DataLevel == 1
+
+// Generating Student Group Counts - ADDED 10/3/24
+{
+replace StateAssignedDistID = "000000" if DataLevel== 1 // State
+replace StateAssignedSchID = "000000" if DataLevel== 1 // State
+replace StateAssignedSchID = "000000" if DataLevel== 2 // District
+egen uniquegrp = group(SchYear DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel)
+sort uniquegrp StudentGroup StudentSubGroup 
+by uniquegrp: gen AllStudents = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by uniquegrp: replace AllStudents = AllStudents[_n-1] if missing(AllStudents)
+rename AllStudents StudentGroup_TotalTested
+}
 
 // Reordering variables and sorting data
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode

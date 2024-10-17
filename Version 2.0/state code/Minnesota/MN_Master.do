@@ -32,16 +32,33 @@ replace SchLevel = "Middle" if SchName == "Washington Technology Middle School"
 replace SchVirtual = "No" if SchName == "Washington Technology Middle School"
 replace SchLevel = "Primary" if SchName == "Surad Academy"
 replace SchVirtual = "No" if SchName == "Surad Academy"
+replace SchVirtual = "No" if SchName == "Aspire Academy Middle School"
 save "${output_files}/MN_AssmtData_2024", replace
 export delimited "${output_files}/MN_AssmtData_2024", replace
 
-forval year = 1998/2018 {
+forval year = 1998/2024 {
+	if `year' == 2020 continue
 	use "${output_files}/MN_AssmtData_`year'"
 	replace StateFips = 27 if StateFips ==. 
 	replace StateAbbrev = "MN" if StateAbbrev == ""
+	replace ProficientOrAbove_percent = "1" if ProficientOrAbove_percent == "1.001000047"
+	replace StateAssignedDistID="" if DataLevel==1
+	replace StateAssignedSchID="" if DataLevel==1 | DataLevel==2
 	save "${output_files}/MN_AssmtData_`year'", replace
 	export delimited "${output_files}/MN_AssmtData_`year'", replace
 }
+
+forval year = 2019/2024 {
+	if `year' == 2020 continue
+	use "${output_files}/MN_AssmtData_`year'"
+	replace Lev5_percent = "" if Lev5_percent != ""
+	replace Lev5_count = "" if Lev5_count != ""
+	replace Lev5_count = ""
+	replace Lev5_percent = ""
+	save "${output_files}/MN_AssmtData_`year'", replace
+	export delimited "${output_files}/MN_AssmtData_`year'", replace
+}
+
 
 
 /*

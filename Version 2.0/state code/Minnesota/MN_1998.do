@@ -98,7 +98,7 @@ gen Flag_CutScoreChange_math = "Y"
 *gen Flag_CutScoreChange_read = ""
 *gen Flag_CutScoreChange_oth = "Y"
 gen Flag_CutScoreChange_sci = "Y"
-gen Flag_CutScoreChange_soc = ""
+gen Flag_CutScoreChange_soc = "Not applicable"
 replace Flag_CutScoreChange_sci = "Not applicable"
 gen AssmtType = "Regular"
 gen StudentGroup = "All Students"
@@ -191,6 +191,19 @@ replace seasch = "" if DataLevel != 3
 replace State_leaid = "" if DataLevel == 1
 
 replace DistName = strproper(DistName)
+
+// Generating Student Group Counts - ADDED 10/3/24
+{
+replace StateAssignedDistID = "000000" if DataLevel== 1 // State
+replace StateAssignedSchID = "000000" if DataLevel== 1 // State
+replace StateAssignedSchID = "000000" if DataLevel== 2 // District
+egen uniquegrp = group(SchYear DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel)
+sort uniquegrp StudentGroup StudentSubGroup 
+by uniquegrp: gen AllStudents = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by uniquegrp: replace AllStudents = AllStudents[_n-1] if missing(AllStudents)
+drop StudentGroup_TotalTested
+rename AllStudents StudentGroup_TotalTested
+}
 
 // Reordering variables and sorting data
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode

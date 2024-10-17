@@ -7,52 +7,7 @@ cd "/Volumes/T7/State Test Project/Massachusetts"
 global Original "/Volumes/T7/State Test Project/Massachusetts/Original"
 global Output "/Volumes/T7/State Test Project/Massachusetts/Output"
 global NCES "/Volumes/T7/State Test Project/Massachusetts/NCES"
-
-
-//Hide below after first run
-
-/*
-
-
-forvalues year = 2017/2024 {
-	import delimited "$Original/MA_OriginalData_2017_2024", case(preserve) clear
-	if `year' == 2020 continue
-	keep if SY == `year'
-	save "$Original/MA_OriginalData_`year'", replace
-	
-}
-
-import excel "$Original/mass_district_science", clear
-save "$Original/mass_district_science", replace
-import excel "$Original/mass_school_science", clear
-save "$Original/mass_school_science", replace
-
-import excel mass_district_participation_new_2, clear
-keep if real(B) < 2021 & real(B) > 2016
-save "$Original/mass_district_participation_new_2", replace
-import excel mass_school_participation_new, clear
-keep if real(B) < 2021 & real(B) > 2016
-save "$Original/mass_school_participation_new", replace
-
-import excel MA_Unmerged_2024.xlsx, firstrow case(preserve) allstring clear
-save MA_Unmerged_2024, replace
-
-import excel ma_full-dist-sch-stable-list_through2024, firstrow case(preserve) allstring clear
-drop DataLevel
-gen DataLevel = 3
-save MA_SchNames, replace
-duplicates drop SchYear NCESDistrictID, force
-replace DataLevel = 2
-drop *schname NCESSchoolID
-save MA_DistNames, replace
-append using MA_SchNames
-duplicates drop SchYear NCESDistrictID NCESSchoolID, force
-save MA_StableNames, replace
-
-
-*/
-
-//Hide Above after first run
+global Temp "/Volumes/T7/State Test Project/Massachusetts/Temp"
 
 
 
@@ -273,14 +228,14 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "$Output/MA_AssmtData_`year'_E2C", replace
+save "$Temp/MA_AssmtData_`year'_E2C", replace
 
 }
 
 *************
 //** SCI **//
 *************
-use "$Original/mass_district_science", clear
+use "$Original/MA_OriginalData_Dist_all_2015_2018_Legacy_MCAS", clear
 
 
 //Renaming & Appending
@@ -313,7 +268,7 @@ drop CPI SGP SGP_
 tempfile sci_dist
 save "`sci_dist'", replace
 
-use "$Original/mass_school_science", clear
+use "$Original/MA_OriginalData_Sch_all_2015_2018_Legacy_MCAS", clear
 
 rename A DataLevel
 rename B SchYear 	
@@ -496,7 +451,7 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "$Output/MA_AssmtData_`year'_sci", replace
+save "$Temp/MA_AssmtData_`year'_sci", replace
 
 }
 
@@ -504,9 +459,9 @@ save "$Output/MA_AssmtData_`year'_sci", replace
 //Combining ela/math and sci for 2017 and 2018
 forvalues year = 2017/2024 {
 	if `year' == 2020 continue
-	use "$Output/MA_AssmtData_`year'_E2C", clear
+	use "$Temp/MA_AssmtData_`year'_E2C", clear
 	if `year' == 2017 | `year' == 2018 {
-		append using "$Output/MA_AssmtData_`year'_sci"
+		append using "$Temp/MA_AssmtData_`year'_sci"
 	}
 	
 //StateDistID update R1
@@ -527,113 +482,4 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "$Output/MA_AssmtData_`year'", replace
-export delimited "$Output/MA_AssmtData_`year'", replace	
-}
-
-*****************************
-// ** ParticipationRate ** //
-*****************************
-
-use "$Original/mass_district_participation_new_2", clear
-rename A DataLevel
-rename B SchYear
-rename C GradeLevel
-rename D StudentSubGroup
-rename E Subject
-rename F DistName
-rename G StateAssignedDistID
-drop H
-rename I ParticipationRate
-
-
-tempfile dist_part
-save "`dist_part'", replace
-
-use "$Original/mass_school_participation_new", clear
-rename A DataLevel
-rename B SchYear
-rename C GradeLevel
-rename D StudentSubGroup
-rename E Subject
-rename F SchName
-rename G StateAssignedSchID
-drop H
-rename I ParticipationRate
-
-append using "`dist_part'"
-
-//DataLevel
-replace DataLevel = "State" if strpos(DistName, "State Total") !=0
-label def DataLevel 1 "State" 2 "District" 3 "School"
-encode DataLevel, gen(nDataLevel) label(DataLevel)
-drop DataLevel
-rename nDataLevel DataLevel
-sort DataLevel
-
-replace DistName = "All Districts" if DataLevel == 1
-replace SchName = "All Schools" if DataLevel !=3
-replace StateAssignedDistID = "" if DataLevel == 1
-
-//SchYear
-replace SchYear = string(real(SchYear)-1) + "-" + substr(SchYear,-2,2)
-
-//GradeLevel
-replace GradeLevel = "G" + GradeLevel
-
-//StudentSubGroup
-replace StudentSubGroup = "Black or African American" if StudentSubGroup == "Afr. Amer./Black"
-* All Students
-* Asian
-replace StudentSubGroup = "English Learner" if StudentSubGroup == "EL"
-replace StudentSubGroup = "EL and Monit or Recently Ex" if StudentSubGroup == "EL and Former EL"
-replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Econ. Disadvantaged"
-* Ever EL
-* Female
-replace StudentSubGroup = "EL Monit or Recently Ex" if StudentSubGroup == "Former EL"
-drop if StudentSubGroup == "High needs"
-replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic/Latino"
-* Male
-replace StudentSubGroup = "Two or More" if StudentSubGroup == "Multi-race, Non-Hisp."
-replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "Non-Econ. Disadvantaged"
-replace StudentSubGroup = "SWD" if StudentSubGroup == "Students w/ disabilities"
-replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "Amer. Ind. or Alaska Nat."
-drop if StudentSubGroup == "XXXXXXXX"
-
-//Subject
-replace Subject = "ela" if Subject == "English"
-replace Subject = "math" if strpos(Subject, "Math") !=0
-replace Subject = "sci" if strpos(Subject, "Sci") !=0
-
-//StateAssignedDistID & StateAssignedSchID
-replace StateAssignedDistID = substr(StateAssignedSchID,1,4) + "0000" if DataLevel == 3
-
-//ParticipationRate
-replace ParticipationRate = string(real(ParticipationRate)/100, "%9.3g")
-rename ParticipationRate ParticipationRate_1
-
-//Final Cleaning
-rename *Name *Name_1
-order SchYear DataLevel StateAssignedDistID StateAssignedSchID StudentSubGroup GradeLevel Subject ParticipationRate SchName_1 DistName_1
-sort SchYear DataLevel
-
-save "$Output/MA_Participation_2017_2019", replace
-
-forvalues year = 2017/2019 {
-
-use "$Output/MA_AssmtData_`year'", clear
-merge 1:1 SchYear StateAssignedDistID StateAssignedSchID StudentSubGroup GradeLevel Subject using "$Output/MA_Participation_2017_2019", gen(Merge)
-drop if Merge == 2
-
-replace ParticipationRate = ParticipationRate_1 if missing(real(ParticipationRate)) & !missing(real(ParticipationRate_1))
-drop *_1
-
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
-sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-
-
-save "$Output/MA_AssmtData_`year'", replace
-export delimited "$Output/MA_AssmtData_`year'", replace
 }

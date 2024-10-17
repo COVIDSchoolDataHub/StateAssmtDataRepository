@@ -1,7 +1,7 @@
 ## Setup
 Create six folders: 
   1. NCES_MN
-     - Access NCES files from the Drive and put them into NCES_MN [@kaitlyn, should all the district and school files be added together, or should the district and school folders be setup here as separate subfolders?]
+     - Access NCES files from the Drive and put them into NCES_MN. Add both district and school files into the same folder.
   3. Original Files
      - Download all of the original data files and put them in the Original Files Folder.
      - Download the file called "mn_full-dist-sch-stable-list_through2024" and put it in the Original Files Folder.

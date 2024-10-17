@@ -202,7 +202,8 @@ foreach var of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent {
 }
 
 gen ProficientOrAbove_percent = Lev3_percent+Lev4_percent
-
+replace ProficientOrAbove_percent = round(ProficientOrAbove_percent, 0.001)
+replace ProficientOrAbove_count = round(ProficientOrAbove_count)
 foreach var of varlist Lev1_count Lev2_count Lev3_count Lev4_count Lev1_percent Lev2_percent Lev3_percent Lev4_percent AvgScaleScore ProficientOrAbove_count ProficientOrAbove_percent {
 	tostring `var', replace force format("%9.3g")
 	replace `var' = "*" if filtered == "Y"
@@ -220,9 +221,11 @@ gen Lev5_percent = ""
 gen Flag_AssmtNameChange = "Y"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "Y"
-gen Flag_CutScoreChange_soc = ""
+gen Flag_CutScoreChange_soc = "Not applicable"
 gen Flag_CutScoreChange_sci = "N"
 replace Flag_AssmtNameChange = "Y" if Subject == "math"
+replace Flag_AssmtNameChange = "N" if Subject == "ela"
+replace Flag_AssmtNameChange = "N" if Subject == "sci"
 gen AssmtType = "Regular"
 gen ProficiencyCriteria = "Levels 3-4"
 gen ParticipationRate = "--"
@@ -245,9 +248,6 @@ replace StateAssignedSchID = "010" if StateAssignedSchID == "020" & SchName == "
 // (School ID in format to match with NCES is combination of different IDs)
 gen seasch = DistrictTypeCode + StateAssignedDistID + StateAssignedSchID
 gen state_leaid = DistrictTypeCode + StateAssignedDistID 
-
-// Generating Student Group Counts
-bysort seasch StudentGroup Grade Subject: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
 
 // Saving transformed data
 save "${output_files}/MN_AssmtData_2011.dta", replace
@@ -310,11 +310,23 @@ replace StateFips = 27 if StateFips ==.
 
 // The following districts have no district-level raw data (the districts are not included in the raw data) and so we're dropping from the output.
 //Mid-State Education District
-cap drop if StateAssignedDistID=="6979-61" & DataLevel=="District" & (SchYear=="2005-06" | SchYear=="2006-07"| SchYear=="2007-08"| SchYear=="2008-09"| SchYear=="2009-10")
+cap drop if StateAssignedDistID=="6979-61" & DataLevel==2
 //Minnesota Department of Corrections
-cap drop if StateAssignedDistID=="1100-60" & DataLevel=="District" & (SchYear=="2005-06" | SchYear=="2008-09" | SchYear=="2017-18")
+cap drop if StateAssignedDistID=="1100-60" & DataLevel==2
 //Hiawatha Valley Education District
-cap drop if StateAssignedDistID=="6013-61" & DataLevel=="District" & (SchYear=="2007-08" | SchYear=="2010-11")
+cap drop if StateAssignedDistID=="6013-61" & DataLevel==2
+
+// Generating Student Group Counts - ADDED 10/3/24
+{
+replace StateAssignedDistID = "000000" if DataLevel== 1 // State
+replace StateAssignedSchID = "000000" if DataLevel== 1 // State
+replace StateAssignedSchID = "000000" if DataLevel== 2 // District
+egen uniquegrp = group(SchYear DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel)
+sort uniquegrp StudentGroup StudentSubGroup 
+by uniquegrp: gen AllStudents = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by uniquegrp: replace AllStudents = AllStudents[_n-1] if missing(AllStudents)
+rename AllStudents StudentGroup_TotalTested
+}
 
 // Reordering variables and sorting data
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode

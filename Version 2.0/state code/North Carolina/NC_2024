@@ -1,36 +1,4 @@
-
-//Name: North Carolina 2024 State Assessment
-//purpose: Cleaning NC State Assessment Data
-//author: Mikael Oberlin
-//date created: 10/01/24
-
-
-clear all 
-set more off
-
-global Abbrev "NC"
-global NCES "/Users/mikaeloberlin/Desktop/North Carolina/data"
-global NCES "/Users/mikaeloberlin/Desktop/North Carolina/NCES"
-
-** Preparing NCES files
-
-global years 2015 2016 2017 2018 2019 2021 2022 2023 2024
-
-cd "/Users/mikaeloberlin/Desktop/North Carolina/"
-capture log close
-log using 2024_NC, replace
-
-//2023-2024
-
-cd "/Users/mikaeloberlin/Desktop/North Carolina/"
-
-import delimited Disag_2023-24_Data.txt, clear
-export delimited NC_AssmtData_2024.csv, replace
-
-save NC_OriginalData_2024.dta, replace
-
 use "NC_OriginalData_2024", clear 
-
 
 rename school_code StateAssignedSchID 
 rename name SchName
@@ -46,6 +14,21 @@ rename pct_l5 Lev4_percent
 rename pct_glp ProficientOrAbove_percent
 rename avg_score AvgScaleScore
 drop pct_ccr grade_span
+
+gen State = "North Carolina"
+gen StateAbbrev = "NC"
+gen StateFips = 37 
+gen Lev5_count = ""
+gen Lev5_percent = ""
+gen Flag_AssmtNameChange = "N"
+gen Flag_CutScoreChange_ELA = "N"
+gen Flag_CutScoreChange_math = "N"
+gen Flag_CutScoreChange_sci = "N" 
+gen Flag_CutScoreChange_soc = "Not applicable"
+
+gen SchYear = "2023-24"
+
+gen AssmtName = "End-of-Grade Tests - Edition 5" 
 
 // keeping necessary grades 
 gen GradeLevel2 = ""
@@ -169,8 +152,32 @@ replace StateAssignedSchID = "" if DataLevel == "District" | DataLevel == "State
 
 replace StateAssignedDistID = substr(StateAssignedSchID, 1, 3) if DataLevel == "School"
 
-// create separate district and school names, based on length of code (or daalevel function)
-gen DistName = SchName if DataLevel == "District"
+rename StateAssignedDistID State_leaid
+
+gen StateAssignedSchID_full = StateAssignedSchID // keeping to replace back later 
+
+//making state assigned school ID just 3 for match 
+replace StateAssignedSchID = substr(StateAssignedSchID, 4, .)
+
+merge m:1 State_leaid using "$North Carolina/NCES_2024_District.dta"
+rename _merge DistMerge
+drop if DistMerge == 2
+
+drop DistMerge
+
+rename StateAssignedSchID seasch
+merge m:1 State_leaid seasch using "$North Carolina/NCES_2024_School.dta"
+rename _merge SchoolMerge
+drop if SchoolMerge == 2
+drop SchoolMerge 
+rename StateAssignedSchID seasch
+merge m:1 State_leaid using  "$North Carolina/NC_district_IDs_2024.dta" 
+
+rename seasch StateAssignedSchID 
+rename State_leaid StateAssignedDistID 
+
+// create separate district and school names, based on length of code (or datalevel function)
+replace DistName = SchName if DataLevel == "District"
 
 // hardcoding DataLevel 
 label def DataLevel 1 "State" 2 "District" 3 "School"
@@ -179,68 +186,74 @@ sort DataLevel_n
 drop DataLevel 
 rename DataLevel_n DataLevel 
 
-rename StateAssignedDistID State_leaid
-
-merge m:1 State_leaid using "NC_district_IDs_2024"
-replace DistName = "All Districts" if DataLevel == 1
-drop if _merge == 2
-drop _merge
-
 // "All Districts" and "All School" creation
 replace DistName = "All Districts" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel == 2
 
-gen StateAssignedSchID_full = StateAssignedSchID // keeping to replace back later 
-//making state assigned school ID just 3 for match 
-replace StateAssignedSchID = substr(StateAssignedSchID, 4, .)
-rename StateAssignedDistID State_leaid
+//Unmerged Schools
+replace NCESSchoolID = "370201003674" if SchName == "LaFayette Elementary"
+replace SchVirtual = 0 if SchName == "LaFayette Elementary"
+replace SchType = 1 if SchName == "LaFayette Elementary"
+replace SchLevel = 1 if SchName == "LaFayette Elementary"
+replace DistName = "Harnett County Schools" if SchName == "LaFayette Elementary"
 
-merge m:1 State_leaid using "/Users/mikaeloberlin/Desktop/North Carolina/NCES_2024_District.dta"
-rename _merge DistMerge
-drop if DistMerge == 2
+replace NCESSchoolID = "370399003447" if SchName == "Moss Street Elementary"
+replace SchVirtual = 0 if SchName == "Moss Street Elementary"
+replace SchType = 1 if SchName == "Moss Street Elementary"
+replace SchLevel = 1 if SchName == "Moss Street Elementary"
+replace DistName = "Rockingham County Schools" if SchName == "Moss Street Elementary"
 
-drop DistMerge
+replace NCESSchoolID = "370001203668" if SchName == "Pitt County Virtual"
+replace SchVirtual = 1 if SchName == "Pitt County Virtual"
+replace SchType = 1 if SchName == "Pitt County Virtual"
+replace SchLevel = 4 if SchName == "Pitt County Virtual"
+replace DistName = "Pitt County Schools" if SchName == "Pitt County Virtual"
 
-rename StateAssignedSchID seasch
-merge m:1 State_leaid seasch using "/Users/mikaeloberlin/Desktop/North Carolina/NCES_2024_School.dta"
-rename _merge SchoolMerge
-drop if SchoolMerge == 2
-drop SchoolMerge 
+replace NCESSchoolID = "370297003663" if SchName == "Turning Point Middle"
+replace SchVirtual = 0 if SchName == "Turning Point Middle"
+replace SchType = 4 if SchName == "Turning Point Middle"
+replace SchLevel = 2 if SchName == "Turning Point Middle"
+replace DistName = "Charlotte-mecklenburg Schools" if SchName == "Turning Point Middle"
 
-rename State_leaid StateAssignedDistID
-rename seasch StateAssignedSchID
+replace SchVirtual = 0 if SchName == "Wayne STEM Academy"
+replace SchLevel = 1 if SchName == "Wayne STEM Academy"
 
-drop State
-drop StateAbbrev
-drop StateFips
-gen State = "North Carolina"
-gen StateAbbrev = "NC"
-gen StateFips = 37 
+replace SchVirtual = 0 if SchName == "Tabor City School"
+replace SchLevel = 1 if SchName == "Tabor City School"
 
-gen Flag_AssmtNameChange = "N"
-gen Flag_CutScoreChange_ELA = "N"
-gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_sci = "N" 
-gen Flag_CutScoreChange_soc = "Not applicable"
+replace SchVirtual = 0 if SchName == "Selma Burke Middle"
+replace SchLevel = 2 if SchName == "Selma Burke Middle"
 
-gen SchYear = "2023-24"
+replace SchVirtual = 0 if NCESSchoolID == "370297003649"
+replace SchLevel = 1 if NCESSchoolID == "370297003649"
 
-gen AssmtName = "End-of-Grade Tests - Edition 5" 
+replace SchVirtual = 0 if NCESSchoolID == "370297003650"
+replace SchLevel = 1 if NCESSchoolID == "370297003650"
+
+replace SchVirtual = 0 if NCESSchoolID == "370058003643"
+replace SchLevel = 4 if NCESSchoolID == "370058003643"
+
+replace SchVirtual = 0 if NCESSchoolID == "370047903617"
+replace SchLevel = 4 if NCESSchoolID == "370047903617"
+
+replace SchVirtual = 0 if NCESSchoolID == "370507103642"
+replace SchLevel = 1 if NCESSchoolID == "370507103642"
+
+replace SchVirtual = 0 if NCESSchoolID == "370507703655"
+replace SchLevel = 1 if NCESSchoolID == "370507703655"
 
 gen StudentGroup_TotalTested = StudentSubGroup_TotalTested
 destring StudentGroup_TotalTested, replace force ignore(",")
 bys StudentGroup Subject GradeLevel DistName SchName: egen StudentGroup_TotalTested1 = total(StudentGroup_TotalTested)
-replace StudentGroup_TotalTested1 =. if StudentGroup_TotalTested1 < 0
+replace StudentGroup_TotalTested1 = . if StudentGroup_TotalTested1 < 0
 tostring StudentGroup_TotalTested1, replace
 replace StudentGroup_TotalTested1 = "*" if StudentGroup_TotalTested1 == "."
 drop StudentGroup_TotalTested
 rename StudentGroup_TotalTested1 StudentGroup_TotalTested
-
 gen ParticipationRate = "--" 
 
 destring Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent AvgScaleScore ParticipationRate, replace force ignore(", < >")  
-
 
 // converting to decimal form from percentage form 
 replace Lev1_percent = Lev1_percent/100
@@ -258,6 +271,7 @@ forvalues n = 1/4 {
 	destring Lev`n'_pct, replace force
 	gen Lev`n'_count = Lev`n'_pct * num
 	replace Lev`n'_count = round(Lev`n'_count)
+	tostring Lev`n'_percent, replace format("%6.0g") force
 	replace Lev`n'_percent = "--" if Lev`n'_percent == ""
 	replace Lev`n'_percent = "*" if Lev`n'_percent == "***"
 	tostring Lev`n'_count, replace
@@ -267,24 +281,38 @@ forvalues n = 1/4 {
 	replace Lev`n'_percent = "--" if Lev`n'_percent == "."
 }
 
-replace AvgScaleScore = "--" if AvgScaleScore == "."
-replace ParticipationRate = "--" if ParticipationRate == "."
+//Removing extra spaces
+foreach var of varlist DistName SchName {
+	replace `var' = stritrim(`var') // collapses all consecutive, internal blanks to one blank.
+	replace `var' = strtrim(`var') // removes leading and trailing blanks
+}
 
 gen Prof_pct = ProficientOrAbove_percent
 destring Prof_pct, replace force
 gen ProficientOrAbove_count = Prof_pct * num
 replace ProficientOrAbove_count = round(ProficientOrAbove_count)
 tostring ProficientOrAbove_count, replace
+replace ProficientOrAbove_count = "*" if ProficientOrAbove_percent == "***"
+replace ProficientOrAbove_count = "--" if ProficientOrAbove_percent == "--"
+replace ProficientOrAbove_count = "--" if StudentSubGroup_TotalTested == "--" & ProficientOrAbove_count != "*"
+replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "." & ProficientOrAbove_percent == "*"
+replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == "."
+replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == "."
+replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
+
+//Getting rid of empty observations
+drop if StudentSubGroup_TotalTested == "--" & Lev1_percent == "--" & Lev2_percent == "--" & Lev3_percent == "--" & Lev4_percent == "--" & ProficientOrAbove_percent == "--"
+replace AvgScaleScore = "--" if AvgScaleScore == "."
+replace ParticipationRate = "--" if ParticipationRate == "."
 
 //StudentGroup_TotalTested Convention
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 gen All_Students = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
 replace All_Students = All_Students[_n-1] if missing(All_Students)
-replace StudentGroup_TotalTested = All_Students 
+replace StudentGroup_TotalTested = All_Students
 
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 save NC_AssmtData_2024, replace
 export delimited NC_AssmtData_2024.csv, replace

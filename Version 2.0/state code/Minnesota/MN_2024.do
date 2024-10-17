@@ -4,7 +4,7 @@ clear
 
 global original_files "/Users/kaitlynlucas/Desktop/Minnesota State Task"
 global NCES_files "/Users/kaitlynlucas/Desktop/Minnesota State Task/NCES_MN"
-global output_files "/Users/kaitlynlucas/Desktop/MN Review"
+global output_files "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN Output"
 global temp_files "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN_Temp"
 
 /*
@@ -374,8 +374,10 @@ replace StudentSubGroup = "Non-Homeless" if StudentSubGroup == "Students not exp
 replace StudentSubGroup = "Military" if StudentSubGroup == "Students with an active duty parent"
 replace StudentSubGroup = "Non-Military" if StudentSubGroup == "Students with no active duty parent"
 
-gen ProficientOrAbove_count = Lev3_count+Lev4_count
-
+*gen ProficientOrAbove_count = Lev3_count+Lev4_count
+gen ProficientOrAbove_count = ProficientOrAbove_percent*StudentSubGroup_TotalTested
+replace ProficientOrAbove_percent = round(ProficientOrAbove_percent, 0.001)
+replace ProficientOrAbove_count = round(ProficientOrAbove_count)
 foreach var of varlist Lev1_count Lev2_count Lev3_count Lev4_count Lev1_percent Lev2_percent Lev3_percent Lev4_percent AvgScaleScore ProficientOrAbove_count ProficientOrAbove_percent {
 	tostring `var', replace force format("%9.3g")
 	replace `var' = "*" if Filtered == "Y"
@@ -392,7 +394,7 @@ gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_sci = "N"
 gen Flag_CutScoreChange_soc = "Not applicable"
-gen AssmtType = "Regular and Alt"
+gen AssmtType = "Regular and alt"
 gen ProficiencyCriteria = "Levels 3-4"
 gen ParticipationRate = "--"
 
@@ -401,66 +403,6 @@ gen ParticipationRate = "--"
 gen seasch = DistrictTypeCode + StateAssignedDistID + "-" + DistrictTypeCode + StateAssignedDistID + StateAssignedSchID
 gen state_leaid = "MN-" + DistrictTypeCode + StateAssignedDistID 
 
-// Generating Student Group Counts
-bysort seasch StudentGroup Grade Subject: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
-cap drop StudentGroup_TotalTested
-gen StateAssignedDistID1 = StateAssignedDistID
-replace StateAssignedDistID1 = "000000" if DataLevel == 1 //Remove quotations if DistIDs are numeric
-gen StateAssignedSchID1 = StateAssignedSchID
-replace StateAssignedSchID1 = "000000" if DataLevel !=3 //Remove quotations if SchIDs are numeric
-egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
-sort group_id StudentGroup StudentSubGroup
-by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
-by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
-drop group_id StateAssignedDistID1 StateAssignedSchID1
-
-/*
-// Fixing Unmerged Schools
-
-
-keep if inlist(SchName, "New Century School Secondary Program", "NLA-Carlton", "Laker Online", "Aspen House Education Program","Wheaton Area Schools ESY" ) | seasch == "010621-010621047" | SchName == "STEP Academy Kg-5th - Burnsville" | SchName == "Futures Sun" | SchName == "Universal Academy Middle/High"
-save "${temp_files}/MN_AssmtData_2023_unmerged", replace
-clear
-use "$NCES_files/NCES_2022_School.dta"
-keep if StateAbbrev == "MN"
-rename st_schid seasch
-replace seasch = subinstr(seasch, "MN-","",.)
-merge 1:m seasch using "${temp_files}/MN_AssmtData_2023_unmerged", replace update
-drop if _merge <=3
-
-//Fixing NCES 2023 Variables
-
-rename StateName State
-rename SchoolType SchType
-gen DistType = "Missing/not reported"
-gen DistLocale = "Missing/not reported"
-gen CountyName = "Missing/not reported"
-gen CountyCode = "Missing/not reported"
-label def SchVirtual -1 "Missing/not reported"
-encode SchVirtual, gen(nSchVirtual)
-replace nSchVirtual = -1
-drop SchVirtual
-rename nSchVirtual SchVirtual
-destring StateFips, replace
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-save "${temp_files}/MN_AssmtData_2023_unmerged", replace
-clear
-
-
-//Preparing for Merge
-use "${temp_files}/MN_AssmtData_2023"
-
-drop if SchName == "New Century School Secondary Program"
-drop if SchName == "NLA-Carlton"
-drop if SchName == "Laker Online"
-drop if SchName == "Aspen House Education Program"
-drop if SchName == "Wheaton Area Schools ESY"
-drop if seasch == "010621-010621047"
-drop if SchName == "STEP Academy Kg-5th - Burnsville" | SchName == "Futures Sun" | SchName == "Universal Academy Middle/High"
-
-// Saving transformed data
-save "${output_files}/MN_AssmtData_2023.dta", replace
-*/
 
 // Merging with NCES School Data
 save "${temp_files}/MN_AssmtData_2024", replace
@@ -525,17 +467,6 @@ gen dname_spaces1 = DistName
 replace dname_spaces1 =strtrim(dname_spaces1) // returns var with leading and trailing blanks removed.
 replace DistName = "Skyline Math and Science Academy" if DistName != dname_spaces1
 
-/*
-// Fixing more unmerged schools
-*replace NCESSchoolID = "Missing/not reported" if SchName == "STEP Academy Kg-5th - Burnsville" | SchName == "Futures Sun" | SchName == "Universal Academy Middle/High"
-decode SchType, gen(sSchType)
-drop SchType
-rename sSchType SchType
-decode SchLevel, gen(sSchLevel)
-drop SchLevel
-rename sSchLevel SchLevel
-append using "${temp_files}/MN_AssmtData_2023_unmerged"
-*/
 
 //fixing unmerged schools
 replace NCESSchoolID = "270046512838" if SchName == "Aspire Academy Middle School"
@@ -621,10 +552,23 @@ foreach var of varlist Lev5_* {
 replace `var' = "--"
 }
 
+// Generating Student Group Counts - ADDED 10/3/24
+{
+replace StateAssignedDistID = "000000" if DataLevel== 1 // State
+replace StateAssignedSchID = "000000" if DataLevel== 1 // State
+replace StateAssignedSchID = "000000" if DataLevel== 2 // District
+egen uniquegrp = group(SchYear DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel)
+sort uniquegrp StudentGroup StudentSubGroup 
+by uniquegrp: gen AllStudents = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by uniquegrp: replace AllStudents = AllStudents[_n-1] if missing(AllStudents)
+rename AllStudents StudentGroup_TotalTested
+}
+
+
 
 // Reordering variables and sorting data
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-drop State_leaid seasch DistrictTypeCode dname_spaces1
+drop State_leaid seasch DistrictTypeCode dname_spaces1 uniquegrp
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 // Saving and exporting transformed data

@@ -1,28 +1,30 @@
 # Massachusetts ReadMe
-This ReadMe describes Massachusetts' cleaning process, from 2017-2024. Note that 2010-2024 is available on Zelma, and the do-files to clean it are located here, however this document focuses exclusively on 2017-2024.
+This ReadMe describes Massachusetts' cleaning process, from 2010-2024.
 
 ## Recreating Cleaning Process
 
-#### You should create three folders:
+#### You should create four folders:
 - Original Data
 - Output
 - NCES
+- Temp
 
 These folders correspond to the directories in the do-files.
 
-#### Download the following files from the drive and place them in the following folders:
-- MA_OriginalData_2017_2024.csv in Original Data
-- ma_district_science.xlsx in Original Data
-- ma_school_science.xlsx in Original Data
-- MA_Unmerged_2024.xlsx in main MA folder
-- ma_full-dist-sch-stable-list_through2024 from the MA DistNames folder, save to main MA folder
+#### Setup
+- Download all files in the Original Data - Version 2.0 folder on the drive
+- Make sure you have NCES data
+- Download the spreadsheet ma_full-dist-sch-stable-list_through2024 from the MA DistNames folder and place it in the main Massachusetts folder
+- Download the spreadsheet MA_Unmerged_2024 from the main folder and place it in the main Massachusetts folder
 
-#### For 2017-2024, run the following files in the order listed below:
-
-1. MA_NCES_New
-2. MA_Cleaning_2017_2024 (make sure to unhide importing code at the top)
+#### Recreate Cleaning Process (do-file order)
+1. MA Data Conversion
+2. MA_NCES_New
+3. MA_2010_2014, MA_2015_2016, MA_2017_2024 (order doesn't matter)
+4. MA_ParticipationRate
 
 ## Notes & Updates
 - When 2024 data is released, the code only needs to be modified slightly so that the loops include 2024, since the data will be in the same format as the data we currently have.
 - 9/26/24: 2024 added
 - 10/9/2024: Stabilized DistNames & SchNames
+- 10/13/2024: Completely recleaned 2010-2016 for V2.0. Modified entire cleaning structure (including 2017-2024) for simplicity.

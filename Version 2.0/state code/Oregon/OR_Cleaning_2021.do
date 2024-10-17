@@ -1,11 +1,14 @@
+
+
 clear
 set more off
 set trace off
-cd "/Users/miramehta/Documents/"
-local Original "/Users/miramehta/Documents/OR State Testing Data/Original Data"
-local Output "/Users/miramehta/Documents/OR State Testing Data/Output"
-local NCESSchool "/Users/miramehta/Documents/NCES District and School Demographics/NCES School Files, Fall 1997-Fall 2022"
-local NCESDistrict "/Users/miramehta/Documents/NCES District and School Demographics/NCES District Files, Fall 1997-Fall 2022"
+
+cd "/Users/benjaminm/Documents/State_Repository_Research"
+local Original "/Users/benjaminm/Documents/State_Repository_Research/Oregon/Original"
+local Output "/Users/benjaminm/Documents/State_Repository_Research/Oregon/Output"
+local NCESDistrict "/Users/benjaminm/Documents/State_Repository_Research/NCES/District"
+local NCESSchool "/Users/benjaminm/Documents/State_Repository_Research/NCES/School"
 
 ** NOTE: RUN OR_CLEANING FIRST **
 
