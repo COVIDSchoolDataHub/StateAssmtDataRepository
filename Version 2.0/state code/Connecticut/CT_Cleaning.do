@@ -2,27 +2,23 @@ clear
 //set more on
 set trace off
 cap log close
-//cd "/Volumes/T7/State Test Project/Connecticut"
-global Original "C:\Users\nseel\OneDrive\Desktop\Zelma\Connecticut\Original Data Files"
-global Output "C:\Users\nseel\OneDrive\Desktop\Zelma\Connecticut\Output"
-global NCES_School "C:\Users\nseel\OneDrive\Desktop\Zelma\Connecticut\NCES"
-global NCES_District "C:\Users\nseel\OneDrive\Desktop\Zelma\Connecticut\NCES"
-global Temp "C:\Users\nseel\OneDrive\Desktop\Zelma\Connecticut\Temp"
+
+cd "/Users/benjaminm/Documents/State_Repository_Research/Connecticut"
+
+global Original "/Users/benjaminm/Documents/State_Repository_Research/Connecticut/Original Data Files"
+global Output "/Users/benjaminm/Documents/State_Repository_Research/Connecticut/Output"
+global NCES_School "/Users/benjaminm/Documents/State_Repository_Research/NCES/School"
+global NCES_District "/Users/benjaminm/Documents/State_Repository_Research/NCES/District"
+
+
+
 log using variablescheck.log, replace
-
-
-/////////////////////////////////////////
-*** Cleaning original CT data and saving to temp file ***
-/////////////////////////////////////////
-
-
 //Standardizing Varnames (and variables if necessary) before appending
 forvalues year = 2015/2024 {
 	local prevyear =`=`year'-1'
 	if `year' == 2020 | `year' == 2021 continue
-	//tempfile temp_`year'
-	//save "`temp_`year''", emptyok
-	//save "{Temp}/CT_`year'", replace
+	tempfile temp_`year'
+	save "`temp_`year''", emptyok
 	foreach dl in State Dist Sch {
 		foreach sg in All EL FC FRM2 Gen Home MC RE SWD {
 			if ("`sg'" == "FC" | "`sg'" == "Home" | "`sg'" == "MC") & (`year' == 2015 | `year' == 2016 | `year' == 2017) continue
@@ -34,9 +30,37 @@ forvalues year = 2015/2024 {
 				di "`sg'"
 				di "`subject'"
 				import delimited "${Original}/`dl'_`sg'_CT_OriginalData_`year'_`subject'.csv", clear
-				if "`dl'" == "State" gen DataLevel_string = "State" 
-				if "`dl'" == "Dist" gen DataLevel_string = "District" 
-				if "`dl'" == "Sch" gen DataLevel_string = "School" 
+				
+if "`dl'" == "State" & "`year'" == "2024" {
+replace v1 = v1[_n-1] if missing(v1)
+replace v2 = v2[_n-1] if missing(v2)
+replace v3 = v3[_n-1] if missing(v3)
+}
+
+if "`dl'" == "Dist" & "`year'" == "2024" {
+replace v1 = v1[_n-1] if missing(v1)
+replace v2 = v2[_n-1] if missing(v2)
+replace v3 = v3[_n-1] if missing(v3)
+replace v4 = v4[_n-1] if missing(v4)
+} 
+
+if "`dl'" == "Sch" & "`year'" == "2024" {
+replace v1 = v1[_n-1] if missing(v1)
+replace v2 = v2[_n-1] if missing(v2)
+replace v3 = v3[_n-1] if missing(v3)
+replace v4 = v4[_n-1] if missing(v4)
+replace v5 = v5[_n-1] if missing(v5)
+replace v6 = v6[_n-1] if missing(v6)
+}
+
+
+
+
+				//import delimited "${Original}/Sch_All_CT_OriginalData_2017_ela_mat.csv", clear
+
+				if "`dl'" == "State" gen DataLevel = "State" 
+				if "`dl'" == "Dist" gen DataLevel = "District" 
+				if "`dl'" == "Sch" gen DataLevel = "School" 
 				
 				if "`subject'" == "sci" & "`dl'" != "Sch" {
 					forvalues n = 22(-1)3 {
@@ -717,14 +741,16 @@ forvalues year = 2015/2024 {
 				drop in 1/4
 				save "${Original}/`dl'_`sg'_CT_OriginalData_`year'_`subject'.dta", replace
 				append using "`temp_`year''"
-				save "{Temp}/CT_`year'", replace
+				save "`temp_`year''", replace
+				// save "/Users/benjaminm/Documents/State_Repository_Research/Connecticut/Testing/`year'", replace
 				clear
 			}
 		}
 	}
-}
-use "`temp_`year''"
+	
+ use "`temp_`year''"
 
+// use "/Users/benjaminm/Documents/State_Repository_Research/Connecticut/Testing/`year'", clear
 
 //StateAssignedDistID and StateAssignedSchID
 replace StateAssignedDistID = subinstr(StateAssignedDistID, "=","",.)
@@ -761,12 +787,11 @@ keep if StudentGroup == "All Students" | StudentGroup == "RaceEth" | StudentGrou
 //StudentGroup_TotalTested
 destring StudentSubGroup_TotalTested, gen(nStudentSubGroup_TotalTested) i(*N/A)
 sort StudentGroup
-egen StudentGroup_TotalTested = total(nStudentSubGroup_TotalTested), by(StudentGroup GradeLevel Subject DataLevel_string StateAssignedSchID StateAssignedDistID)
+egen StudentGroup_TotalTested = total(nStudentSubGroup_TotalTested), by(StudentGroup GradeLevel Subject DataLevel StateAssignedSchID StateAssignedDistID)
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "0"
 
 //DataLevel
-gen DataLevel = DataLevel_string
 label def DataLevel 1 "State" 2 "District" 3 "School"
 encode DataLevel, gen(DataLevel_n) label(DataLevel)
 sort DataLevel_n 
@@ -807,14 +832,6 @@ replace ProficientOrAbove_percent = string(1-(nLev1_percent/100) -(nLev2_percent
 //Year
 gen SchYear = "`prevyear'" + "-" + substr("`year'",-2,2)
 
-save "${Temp}/CT_tempdata_`year'.dta", replace
-}
-
-
-/////////////////////////////////////////
-*** Merging in NCES Data ***
-/////////////////////////////////////////
-
 //Merging with NCES Data//
 gen StateAssignedDistID1 = substr(StateAssignedDistID,1,3)
 gen StateAssignedDistID2 = StateAssignedDistID
@@ -827,11 +844,14 @@ save "`temp1'", replace
 keep if DataLevel ==2
 tempfile tempdist
 save "`tempdist'", replace
-clear
-if `year' < 2024 {
+//clear
+
+
+
+if `year' < 2023 {
 use "${NCES_District}/NCES_`prevyear'_District"
 }
-else if `year'==2024{
+else if `year'>=2023{
 use "${NCES_District}/NCES_2022_District"
 }
 keep if state_name == "Connecticut" | state_location == "CT"
@@ -839,25 +859,24 @@ if `year' <2019 {
 gen StateAssignedDistID1 = subinstr(state_leaid,"CT-","",.)
 merge 1:m StateAssignedDistID1 using "`tempdist'"
 }
+
 if `year' >= 2019 {
 	gen StateAssignedDistID2 = subinstr(state_leaid,"CT-","",.)
 	merge 1:m StateAssignedDistID2 using "`tempdist'"
 }
 drop if _merge ==1
 save "`tempdist'", replace
-save "${NCES_District}/NCES_`year'_District.dta", replace
 clear
-}
 
 //School
 use "`temp1'"
 keep if DataLevel==3
 tempfile tempschool
 save "`tempschool'", replace
-if `year' <2024 {
+if `year' <2023 {
 use "${NCES_School}/NCES_`prevyear'_School"
 }
-else if `year' == 2024 {
+else if `year' >= 2023 {
 use "${NCES_School}/NCES_2022_School"
 }
 keep if state_name == "Connecticut" | state_location == "CT"
@@ -866,27 +885,46 @@ if `year' <2019 {
 gen StateAssignedSchID1 = StateAssignedDistID1 + "-" + seasch if strpos(seasch,"-") ==0
 replace StateAssignedSchID1 = seasch if strpos(seasch,"-") !=0
 drop if StateAssignedSchID1=="-"
+
+
 merge 1:m StateAssignedSchID1 using "`tempschool'"
 drop if _merge ==1
 }
+
+
+
+
 if `year' >= 2019 {
 	gen StateAssignedSchID2 = seasch 
 	merge 1:m StateAssignedSchID2 using "`tempschool'"
 	drop if _merge ==1
 }
+
+if "`year'" == "2024" | "`year'" == "2023" {
+decode district_agency_type, gen(district_agency_type1)
+drop district_agency_type
+rename district_agency_type1 district_agency_type
+}
+
 save "`tempschool'", replace
-save "${NCES_School}/NCES_`year'_School.dta", replace
 clear
 
 
+
 //Appending
-gen DataLevelstring = ""
-replace DataLevelstring = "State" if DataLevel== 1
-replace DataLevelstring = "District" if DataLevel == 2
-replace DataLevelstring = "School" if DataLevel == 3
 use "`temp1'"
+
 keep if DataLevel==1
-append using "`tempdist'" "`tempschool'"
+append using "`tempdist'" 
+if "`year'" == "2024" | "`year'" == "2023" {
+destring year, replace 
+drop boundary_change_indicator
+drop number_of_schools
+drop fips
+}
+append using "`tempschool'"
+
+
 
 
 
@@ -903,6 +941,9 @@ rename county_name CountyName
 rename county_code CountyCode
 replace StateFips = 9
 replace StateAbbrev = "CT"
+if "`year'" == "2024" | "`year'" == "2023" {
+rename school_type SchType 
+}
 
 // Make county proper case in 2015
 replace CountyName = proper(CountyName) if SchYear == "2014-15"
@@ -1046,7 +1087,24 @@ drop if StateAssignedSchID == "2449414" | StateAssignedSchID == "2440214"
 
 // Apply DistType labels
 
+replace DistTypeLabels = "Missing/not reported" if DistTypeLabels == ""
+replace DistType = -1 if  DistTypeLabels == "Missing/not reported"
+replace DistType = 1 if DistTypeLabels == "Regular local school district"
 labmask DistType, values(DistTypeLabels)
+
+// Missing School 
+replace NCESSchoolID = "090234011301" if SchName == "Mansfield Elementary School"
+replace NCESDistrictID = "0902340" if SchName == "Mansfield Elementary School"
+replace DistCharter = "No" if SchName == "Mansfield Elementary School"
+replace SchType = 1 if SchName == "Mansfield Elementary School"
+replace DistType = 1 if SchName == "Mansfield Elementary School"
+replace StateAssignedDistID = "0780011" if SchName == "Mansfield Elementary School"
+replace StateAssignedSchID = "0780111" if SchName == "Mansfield Elementary School"
+replace SchLevel = 1 if SchName == "Mansfield Elementary School"
+replace SchVirtual = 0 if SchName == "Mansfield Elementary School"
+replace CountyName = "Capitol Planning Region" if SchName == "Mansfield Elementary School"
+replace CountyCode = "9110" if SchName == "Mansfield Elementary School"
+
 
 //Final Cleaning
 recast str80 SchName
@@ -1059,6 +1117,6 @@ export delimited "${Output}/CT_AssmtData_`year'", replace
 clear
 
 }
-log close
 
-do CT_Cleaning_2021
+
+log close
