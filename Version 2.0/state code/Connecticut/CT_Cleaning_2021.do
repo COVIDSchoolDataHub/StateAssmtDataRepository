@@ -4,17 +4,19 @@ clear
 set more off
 set trace off
 cap log close
-cd "/Volumes/T7/State Test Project/Connecticut"
-global Original "/Volumes/T7/State Test Project/Connecticut/Original Data Files"
-global Output "/Volumes/T7/State Test Project/Connecticut/Output"
-global NCES_School "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
-global NCES_District "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+
+cd "/Users/benjaminm/Documents/State_Repository_Research/Connecticut"
+
+global Original "/Users/benjaminm/Documents/State_Repository_Research/Connecticut/Original Data Files"
+global Output "/Users/benjaminm/Documents/State_Repository_Research/Connecticut/Output"
+global NCES_School "/Users/benjaminm/Documents/State_Repository_Research/NCES/School"
+global NCES_District "/Users/benjaminm/Documents/State_Repository_Research/NCES/District"
 
 
 **** Need to install labutil for labelling to work properly. Type search labutil into Stata terminal and install first result. 
 
 //Unhide Below code on first run
-/*
+
 
 tempfile temp1
 save "`temp1'", emptyok
@@ -29,7 +31,7 @@ append using "`temp1'"
 save "${Original}/CT_OriginalData_2021_all", replace
 
 
-*/
+
 
 //Unhide above code on first run
 clear
@@ -282,5 +284,3 @@ save "${Output}/CT_AssmtData_2021", replace
 export delimited "${Output}/CT_AssmtData_2021", replace
 
 do CT_2021_EDFACTS
-
-

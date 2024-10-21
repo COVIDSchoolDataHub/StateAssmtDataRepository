@@ -1,4 +1,3 @@
-
 clear
 global path "/Users/benjaminm/Documents/State_Repository_Research/South_Carolina"
 global nces "/Users/benjaminm/Documents/State_Repository_Research/NCES"
@@ -956,3 +955,4 @@ replace ProficientOrAbove_percent = ProficientOrAbove_count if ProficientOrAbove
 	export delimited using "${path}/State_Output/SC_AssmtData_`y'.csv", replace
 	
 }
+

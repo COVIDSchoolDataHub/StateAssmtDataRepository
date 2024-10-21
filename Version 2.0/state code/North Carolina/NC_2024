@@ -243,62 +243,97 @@ replace SchLevel = 1 if NCESSchoolID == "370507103642"
 replace SchVirtual = 0 if NCESSchoolID == "370507703655"
 replace SchLevel = 1 if NCESSchoolID == "370507703655"
 
+gen ParticipationRate = "--" 
+gen ProficientOrAbove_count = "-"
+gen Lev1_count = "-" 
+gen Lev2_count = "-" 
+gen Lev3_count = "-" 
+gen Lev4_count = "-" 
+
+
 gen StudentGroup_TotalTested = StudentSubGroup_TotalTested
 destring StudentGroup_TotalTested, replace force ignore(",")
 bys StudentGroup Subject GradeLevel DistName SchName: egen StudentGroup_TotalTested1 = total(StudentGroup_TotalTested)
 replace StudentGroup_TotalTested1 = . if StudentGroup_TotalTested1 < 0
-tostring StudentGroup_TotalTested1, replace
+tostring StudentGroup_TotalTested1 StudentSubGroup_TotalTested, replace
 replace StudentGroup_TotalTested1 = "*" if StudentGroup_TotalTested1 == "."
 drop StudentGroup_TotalTested
 rename StudentGroup_TotalTested1 StudentGroup_TotalTested
-gen ParticipationRate = "--" 
 
-destring Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent AvgScaleScore ParticipationRate, replace force ignore(", < >")  
-
-// converting to decimal form from percentage form 
-replace Lev1_percent = Lev1_percent/100
-replace Lev2_percent = Lev2_percent/100 
-replace Lev3_percent = Lev3_percent/100 
-replace Lev4_percent = Lev4_percent/100 
-replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
-
-tostring Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent ParticipationRate AvgScaleScore StudentSubGroup_TotalTested, replace force
-
-//Proficiency Levels
-destring StudentSubGroup_TotalTested, gen(num) force
-forvalues n = 1/4 {
-	gen Lev`n'_pct = Lev`n'_percent
-	destring Lev`n'_pct, replace force
-	gen Lev`n'_count = Lev`n'_pct * num
-	replace Lev`n'_count = round(Lev`n'_count)
-	tostring Lev`n'_percent, replace format("%6.0g") force
-	replace Lev`n'_percent = "--" if Lev`n'_percent == ""
-	replace Lev`n'_percent = "*" if Lev`n'_percent == "***"
-	tostring Lev`n'_count, replace
-	replace Lev`n'_count = "*" if Lev`n'_percent == "*"
-	replace Lev`n'_count = "--" if Lev`n'_percent == "--"
-	replace Lev`n'_count = "--" if StudentSubGroup_TotalTested == "--" & Lev`n'_count != "*"
-	replace Lev`n'_percent = "--" if Lev`n'_percent == "."
+foreach var of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent {
+    // Replace ">" with a range (remove ">" and add "-1")
+    replace `var' = subinstr(`var', ">", "", .) + "-1" if strpos(`var', ">") != 0
+    
+    // Replace "<" with a range (replace "<" with "0-")
+    replace `var' = subinstr(`var', "<", "0-", .) if strpos(`var', "<") != 0
 }
+
+// split ranged percents
+local a  "1 2 3 4" 
+foreach b in `a' {
+split Lev`b'_percent, parse("-")
+}
+
+// split ranged ProficientOrAbove_percent
+split ProficientOrAbove_percent, parse("-")
+
+// destring variables (convert to numeric)
+destring Lev1_percent1 Lev2_percent1 Lev3_percent1 Lev4_percent1 ProficientOrAbove_percent1, replace ignore("*") // small change as compared to 2016-2021
+
+// calculate lower bound of count range 
+gen Lev1_count1 = Lev1_percent1* StudentSubGroup_TotalTested
+gen Lev2_count1 = Lev2_percent1* StudentSubGroup_TotalTested
+gen Lev3_count1 = Lev3_percent1* StudentSubGroup_TotalTested
+gen Lev4_count1 = Lev4_percent1* StudentSubGroup_TotalTested
+gen ProficientOrAbove_count1 = ProficientOrAbove_percent1* StudentSubGroup_TotalTested
+
+destring  Lev1_percent2 Lev2_percent2 Lev3_percent2 Lev4_percent2 ProficientOrAbove_percent2, replace
+
+// calculate upper bound of count range 
+gen Lev1_count2 = Lev1_percent2* StudentSubGroup_TotalTested
+gen Lev2_count2 = Lev2_percent2* StudentSubGroup_TotalTested
+gen Lev3_count2 = Lev3_percent2* StudentSubGroup_TotalTested
+gen Lev4_count2 = Lev4_percent2* StudentSubGroup_TotalTested
+gen ProficientOrAbove_count2 = ProficientOrAbove_percent2* StudentSubGroup_TotalTested
+
+// round upper bound, concatenate lower and upper bounds together
+local a  "1 2 3 4" 
+foreach b in `a' {
+replace Lev`b'_count1 = round(Lev`b'_count1, 1)
+replace Lev`b'_count2 = round(Lev`b'_count2, 1)
+tostring Lev`b'_count1 Lev`b'_count2, replace force 
+egen Lev`b'_countX = concat(Lev`b'_count1 Lev`b'_count2) if Lev`b'_count2 != ".", punct("-") 
+replace Lev`b'_countX = Lev`b'_count1 if Lev`b'_count2 == "."
+drop Lev`b'_count1 Lev`b'_count2 Lev`b'_percent1 Lev`b'_percent2
+replace Lev`b'_count = Lev`b'_countX
+drop Lev`b'_count
+rename Lev`b'_countX Lev`b'_count
+}
+
+// if the range is a range of two of the same values, convert to exact value 
+local a  "1 2 3 4" 
+foreach b in `a' {
+split Lev`b'_count, parse("-")
+replace Lev`b'_count = Lev`b'_count1 if Lev`b'_count1 = Lev`b'_count2
+drop Lev`b'_count1 Lev`b'_count2
+}
+
+//Code to Convert to Decimals with Ranges
+foreach var of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent {
+	split `var', parse("-")
+	destring `var'1, replace i(-)
+	destring `var'2, replace i(-)
+	replace `var'1 = `var'1/100
+	replace `var'2 = `var'2/100
+	replace `var' = string(`var'1, "%6.0g") if !inlist(`var', "*", "--") & `var'2 == .
+	replace `var' = string(`var'1, "%6.0g") + "-" + string(`var'2, "%6.0g") if !inlist(`var', "*", "--") & `var'2 != .
+}	
 
 //Removing extra spaces
 foreach var of varlist DistName SchName {
 	replace `var' = stritrim(`var') // collapses all consecutive, internal blanks to one blank.
 	replace `var' = strtrim(`var') // removes leading and trailing blanks
 }
-
-gen Prof_pct = ProficientOrAbove_percent
-destring Prof_pct, replace force
-gen ProficientOrAbove_count = Prof_pct * num
-replace ProficientOrAbove_count = round(ProficientOrAbove_count)
-tostring ProficientOrAbove_count, replace
-replace ProficientOrAbove_count = "*" if ProficientOrAbove_percent == "***"
-replace ProficientOrAbove_count = "--" if ProficientOrAbove_percent == "--"
-replace ProficientOrAbove_count = "--" if StudentSubGroup_TotalTested == "--" & ProficientOrAbove_count != "*"
-replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "." & ProficientOrAbove_percent == "*"
-replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == "."
-replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == "."
-replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
 
 //Getting rid of empty observations
 drop if StudentSubGroup_TotalTested == "--" & Lev1_percent == "--" & Lev2_percent == "--" & Lev3_percent == "--" & Lev4_percent == "--" & ProficientOrAbove_percent == "--"
@@ -313,6 +348,5 @@ replace StudentGroup_TotalTested = All_Students
 
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-save NC_AssmtData_2024, replace
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCodesave NC_AssmtData_2024, replace
 export delimited NC_AssmtData_2024.csv, replace

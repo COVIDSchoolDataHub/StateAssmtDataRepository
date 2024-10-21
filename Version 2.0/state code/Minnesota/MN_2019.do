@@ -20,7 +20,7 @@ drop CountyName
 drop ECSUNumber
 drop EconomicDevelopmentRegion
 drop SchoolClassification
-drop FilterAll
+*drop FilterAll
 drop CountValidScoresMCAwithAcco
 drop CountValidScoresMTAS
 drop FilterMTAS
@@ -34,7 +34,7 @@ drop CountyName
 drop ECSUNumber
 drop EconomicDevelopmentRegion
 drop SchoolClassification
-drop FilterAll
+*drop FilterAll
 drop CountValidScoresMCAwithAcco
 drop CountValidScoresMTAS
 drop FilterMTAS
@@ -48,7 +48,7 @@ drop CountyName
 drop ECSUNumber
 drop EconomicDevelopmentRegion
 drop SchoolClassification
-drop FilterAll
+*drop FilterAll
 drop CountValidScoresMCAwithAcco
 drop CountValidScoresMTAS
 drop FilterMTAS
@@ -70,7 +70,7 @@ drop CountyName
 drop ECSUNumber
 drop EconomicDevelopmentRegion
 drop SchoolClassification
-drop FilterAll
+*drop FilterAll
 drop CountValidScoresMCAwithAcco
 drop CountValidScoresMTAS
 drop FilterMTAS
@@ -85,7 +85,7 @@ drop CountyName
 drop ECSUNumber
 drop EconomicDevelopmentRegion
 drop SchoolClassification
-drop FilterAll
+*drop FilterAll
 drop CountValidScoresMCAwithAcco
 drop CountValidScoresMTAS
 drop FilterMTAS
@@ -100,7 +100,7 @@ drop CountyName
 drop ECSUNumber
 drop EconomicDevelopmentRegion
 drop SchoolClassification
-drop FilterAll
+*drop FilterAll
 drop CountValidScoresMCAwithAcco
 drop CountValidScoresMTAS
 drop FilterMTAS
@@ -120,7 +120,7 @@ drop CountyName
 drop ECSUNumber
 drop EconomicDevelopmentRegion
 drop SchoolClassification
-drop FilterAll
+*drop FilterAll
 drop CountValidScoresMCAwithAcco
 drop CountValidScoresMTAS
 drop FilterMTAS
@@ -134,7 +134,7 @@ drop CountyName
 drop ECSUNumber
 drop EconomicDevelopmentRegion
 drop SchoolClassification
-drop FilterAll
+*drop FilterAll
 drop CountValidScoresMCAwithAcco
 drop CountValidScoresMTAS
 drop FilterMTAS
@@ -148,7 +148,7 @@ drop CountyName
 drop ECSUNumber
 drop EconomicDevelopmentRegion
 drop SchoolClassification
-drop FilterAll
+*drop FilterAll
 drop CountValidScoresMCAwithAcco
 drop CountValidScoresMTAS
 drop FilterMTAS
@@ -233,9 +233,10 @@ rename TestName AssmtName
 rename Grade GradeLevel
 rename StudentGroup StudentSubGroup
 rename GroupCategory StudentGroup
-drop TotalTested
-rename CountValidScoresMCA StudentSubGroup_TotalTested
-rename FilterMCA Filtered
+//// From 2019 onward, MN aggregates MCA and MTA results for level outcomes, so we are using TotalTested as the denominator
+rename TotalTested StudentSubGroup_TotalTested
+drop CountValidScoresMCA
+rename FilterAll Filtered
 rename CountLevelD Lev1_count
 rename CountLevelP Lev2_count
 rename CountLevelM Lev3_count
@@ -312,7 +313,8 @@ replace StudentSubGroup = "Military" if StudentSubGroup == "Students with an act
 replace StudentSubGroup = "Non-Military" if StudentSubGroup == "Students with no active duty parent"
 
 *gen ProficientOrAbove_count = Lev3_count+Lev4_count
-gen ProficientOrAbove_count = ProficientOrAbove_percent*StudentSubGroup_TotalTested
+gen ProficientOrAbove_count = Lev3_count+Lev4_count
+replace ProficientOrAbove_percent = ProficientOrAbove_count/StudentSubGroup_TotalTested
 replace ProficientOrAbove_percent = round(ProficientOrAbove_percent, 0.001)
 replace ProficientOrAbove_count = round(ProficientOrAbove_count)
 foreach var of varlist Lev1_count Lev2_count Lev3_count Lev4_count Lev1_percent Lev2_percent Lev3_percent Lev4_percent AvgScaleScore ProficientOrAbove_count ProficientOrAbove_percent {
