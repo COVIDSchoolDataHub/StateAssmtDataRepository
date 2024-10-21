@@ -260,38 +260,46 @@ replace Lev`n'_count = "0" if StudentSubGroup_TotalTested == "0"
 }
 
 //Levels for weird suppression that can be calculated
-forvalues n = 1/4{
-	replace Lev`n'_count = string(round(real(StudentSubGroup_TotalTested) * real(Lev`n'_percent))) if missing(real(Lev`n'_count)) & !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Lev`n'_percent))
-}
-replace ProficientOrAbove_count = string(round(real(StudentSubGroup_TotalTested) * real(ProficientOrAbove_percent))) if missing(real(ProficientOrAbove_count)) & !missing(real(StudentSubGroup_TotalTested)) & !missing(real(ProficientOrAbove_percent))
-
 destring ProficientOrAbove_count, gen(nProficientOrAbove_count) i(*-)
 replace Lev4_count = string(nProficientOrAbove_count - nLev3_count) if missing(nLev4_count) & !missing(nProficientOrAbove_count) & !missing(nLev3_count)
 replace Lev3_count = string(nProficientOrAbove_count - nLev4_count) if missing(nLev3_count) & !missing(nProficientOrAbove_count) & !missing(nLev4_count)
+
+replace Lev1_count = string((real(StudentSubGroup_TotalTested) - real(ProficientOrAbove_count) - nLev2_count)) if missing(nLev1_count) & !missing(nLev2_count) & !missing(real(ProficientOrAbove_count)) & !missing(real(StudentSubGroup_TotalTested))
+replace Lev1_count = "*" if real(Lev1_count) < 0
+replace Lev2_count = string((real(StudentSubGroup_TotalTested) - real(ProficientOrAbove_count) - nLev1_count)) if missing(nLev2_count) & !missing(nLev1_count) & !missing(real(ProficientOrAbove_count)) & !missing(real(StudentSubGroup_TotalTested))
+replace Lev2_count = "*" if real(Lev2_count) < 0
+replace Lev3_count = string(real(ProficientOrAbove_count) - real(Lev4_count)) if missing(nLev3_count) & !missing(nLev4_count) & !missing(real(ProficientOrAbove_count))
+replace Lev4_count = string(real(ProficientOrAbove_count) - real(Lev3_count)) if missing(nLev4_count) & !missing(nLev3_count) & !missing(real(ProficientOrAbove_count))
+
+forvalues n = 1/4{
+	replace Lev`n'_count = string(round(real(StudentSubGroup_TotalTested) * real(Lev`n'_percent))) if missing(real(Lev`n'_count)) & !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Lev`n'_percent))
+	replace Lev`n'_percent = string(real(Lev`n'_count)/real(StudentSubGroup_TotalTested), "%9.4f") if missing(real(Lev`n'_percent)) & !missing(real(Lev`n'_count)) & !missing(real(StudentSubGroup_TotalTested))
+}
+
 replace ProficientOrAbove_count = string(tested - nLev1_count - nLev2_count) if missing(nProficientOrAbove_count)
 drop tested
 replace ProficientOrAbove_count = string(real(Lev3_count) + real(Lev4_count)) if missing(real(ProficientOrAbove_count)) & !missing(real(Lev3_count)) & !missing(real(Lev4_count))
 
-replace ProficientOrAbove_percent = string(1 - real(Lev1_percent) - real(Lev2_percent), "%9.4f") if missing(real(ProficientOrAbove_percent)) & !missing(Lev1_percent) & !missing(Lev2_percent)
+replace ProficientOrAbove_count = string(real(Lev3_count) + real(Lev4_count)) if missing(real(ProficientOrAbove_count)) & !missing(real(Lev3_count)) & !missing(real(Lev4_count))
+
+replace ProficientOrAbove_percent = string(real(Lev3_percent) + real(Lev4_percent), "%9.4f") if missing(real(ProficientOrAbove_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev4_percent))
+replace ProficientOrAbove_percent = string(1 - real(Lev1_percent) - real(Lev2_percent), "%9.4f") if missing(real(ProficientOrAbove_percent)) & !missing(real(Lev1_percent)) & !missing(real(Lev2_percent))
+replace ProficientOrAbove_percent = "1" if ProficientOrAbove_percent == "1.0001"
+
 replace Lev1_percent = string((1 - real(ProficientOrAbove_percent) - (nLev2_percent/100)), "%9.4f") if missing(nLev1_percent) & !missing(nLev2_percent) & !missing(real(ProficientOrAbove_percent))
 replace Lev2_percent = string((1 - real(ProficientOrAbove_percent) - (nLev1_percent/100)), "%9.4f") if missing(nLev2_percent) & !missing(nLev1_percent) & !missing(real(ProficientOrAbove_percent))
-replace Lev1_count = string((real(StudentSubGroup_TotalTested) - real(ProficientOrAbove_count) - nLev2_count)) if missing(nLev1_count) & !missing(nLev2_count) & !missing(real(ProficientOrAbove_count)) & !missing(real(StudentSubGroup_TotalTested))
 replace Lev1_percent = string((1 - real(ProficientOrAbove_percent) - (nLev2_percent/100)), "%9.4f") if missing(nLev1_percent) & !missing(nLev2_percent) & !missing(real(ProficientOrAbove_percent))
 replace Lev1_percent = "*" if real(Lev1_percent) < 0
 replace Lev2_percent = string(((1 - real(ProficientOrAbove_percent) - (nLev1_percent)/100)), "%9.4f") if missing(nLev2_percent) & !missing(nLev1_percent) & !missing(real(ProficientOrAbove_percent))
 replace Lev2_percent = "*" if real(Lev2_percent) < 0
-replace Lev2_count = string((real(StudentSubGroup_TotalTested) - real(ProficientOrAbove_count) - nLev1_count)) if missing(nLev2_count) & !missing(nLev1_count) & !missing(real(ProficientOrAbove_count)) & !missing(real(StudentSubGroup_TotalTested))
 replace Lev3_percent = string((real(ProficientOrAbove_percent) - real(Lev4_percent)), "%9.4f") if missing(nLev3_percent) & !missing(nLev4_percent) & !missing(real(ProficientOrAbove_percent))
 replace Lev4_percent = string((real(ProficientOrAbove_percent) - real(Lev3_percent)), "%9.4f") if missing(nLev4_percent) & !missing(nLev3_percent) & !missing(real(ProficientOrAbove_percent))
+
 
 forvalues n = 1/4{
 	replace Lev`n'_count = string(round(real(StudentSubGroup_TotalTested) * real(Lev`n'_percent))) if missing(real(Lev`n'_count)) & !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Lev`n'_percent))
 }
 replace ProficientOrAbove_count = string(round(real(StudentSubGroup_TotalTested) * real(ProficientOrAbove_percent))) if missing(real(ProficientOrAbove_count)) & !missing(real(StudentSubGroup_TotalTested)) & !missing(real(ProficientOrAbove_percent))
-
-replace ProficientOrAbove_count = string(real(Lev3_count) + real(Lev4_count)) if missing(real(ProficientOrAbove_count)) & !missing(real(Lev3_count)) & !missing(real(Lev4_count))
-
-replace ProficientOrAbove_percent = "1" if ProficientOrAbove_percent == "1.0001"
 
 //Response to Reviews
 drop if StudentSubGroup_TotalTested == "0"

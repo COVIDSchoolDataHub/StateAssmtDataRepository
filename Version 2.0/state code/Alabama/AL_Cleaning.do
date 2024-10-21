@@ -187,16 +187,6 @@ foreach percent of varlist Lev*_percent ProficientOrAbove_percent {
 	replace StudentSubGroup_TotalTested = string(round(real(`count')/((real(`percent'))/100))) if regexm(`percent', "[0-9]") !=0 & regexm(`count', "[0-9]") !=0 & regexm(StudentSubGroup_TotalTested, "[0-9]") == 0
 }
 	
-//StudentGroup_TotalTested and StudentSubGroup_TotalTested
-replace DistName = stritrim(DistName)
-replace SchName = stritrim(SchName)
-sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
-replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
-gen StudentGroup_TotalTested = AllStudents_Tested
-drop AllStudents_Tested
-
-
 //ParticipationRate
 
 if `year' <2019 {
@@ -236,7 +226,6 @@ replace StateAssignedDistID = "0" + StateAssignedDistID if strlen(StateAssignedD
 
 //Merging with NCES Data//
 replace StateAssignedSchID = StateAssignedDistID + "-" + StateAssignedSchID if DataLevel ==3
-
 
 tempfile temp1
 save "`temp1'", replace
@@ -306,20 +295,26 @@ replace Lev`n'_count = "0" if StudentSubGroup_TotalTested == "0"
 }
 
 //Levels for weird suppression that can be calculated
-forvalues n = 1/4{
-	replace Lev`n'_count = string(round(real(StudentSubGroup_TotalTested) * real(Lev`n'_percent))) if missing(real(Lev`n'_count)) & !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Lev`n'_percent))
-}
-replace ProficientOrAbove_count = string(round(real(StudentSubGroup_TotalTested) * real(ProficientOrAbove_percent))) if missing(real(ProficientOrAbove_count)) & !missing(real(StudentSubGroup_TotalTested)) & !missing(real(ProficientOrAbove_percent))
-
 destring ProficientOrAbove_count, gen(nProficientOrAbove_count) i(*-)
+replace ProficientOrAbove_count = string(real(StudentSubGroup_TotalTested) - nLev1_count - nLev2_count) if missing(nProficientOrAbove_count) & !missing(nLev1_count) & !missing(nLev2_count)
 replace Lev4_count = string(nProficientOrAbove_count - nLev3_count) if missing(nLev4_count) & !missing(nProficientOrAbove_count) & !missing(nLev3_count)
 replace Lev3_count = string(nProficientOrAbove_count - nLev4_count) if missing(nLev3_count) & !missing(nProficientOrAbove_count) & !missing(nLev4_count)
-replace ProficientOrAbove_count = string(real(StudentSubGroup_TotalTested) - nLev1_count - nLev2_count) if missing(nProficientOrAbove_count) & !missing(nLev1_count) & !missing(nLev2_count)
+
+replace Lev1_count = string((real(StudentSubGroup_TotalTested) - nProficientOrAbove_count - nLev2_count)) if missing(nLev1_count) & !missing(nLev2_count) & !missing(nProficientOrAbove_count) & !missing(real(StudentSubGroup_TotalTested))
+replace Lev1_count = "*" if real(Lev1_count) < 0
+replace Lev2_count = string((real(StudentSubGroup_TotalTested) - nProficientOrAbove_count - nLev1_count)) if missing(nLev2_count) & !missing(nLev1_count) & !missing(nProficientOrAbove_count) & !missing(real(StudentSubGroup_TotalTested))
+
+
+forvalues n = 1/4{
+	replace Lev`n'_count = string(round(real(StudentSubGroup_TotalTested) * real(Lev`n'_percent))) if missing(real(Lev`n'_count)) & !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Lev`n'_percent))
+	replace Lev`n'_percent = string(real(Lev`n'_count)/real(StudentSubGroup_TotalTested), "%9.4f") if missing(real(Lev`n'_percent)) & !missing(real(Lev`n'_count)) & !missing(real(StudentSubGroup_TotalTested))
+}
+
+replace ProficientOrAbove_count = string(real(Lev3_count) + real(Lev4_count)) if missing(real(ProficientOrAbove_count)) & !missing(real(Lev3_count)) & !missing(real(Lev4_count))
 
 replace ProficientOrAbove_percent = string((100 - nLev1_percent - nLev2_percent)/100, "%9.4f") if missing(real(ProficientOrAbove_percent)) & !missing(nLev1_percent) & !missing(nLev2_percent)
 replace Lev4_percent = string((nProficientOrAbove_percent - nLev3_percent)/100, "%9.4f") if missing(nLev4_percent) & !missing(nProficientOrAbove_percent) & !missing(nLev3_percent)
 replace Lev3_percent = string((nProficientOrAbove_percent - nLev4_percent)/100, "%9.4f") if missing(nLev3_percent) & !missing(nProficientOrAbove_percent) & !missing(nLev4_percent)
-replace ProficientOrAbove_percent = string((100 - nLev1_percent - nLev2_percent)/100, "%9.4f") if missing(nProficientOrAbove_percent)
 replace ProficientOrAbove_percent = string((nLev3_percent + nLev4_percent)/100, "%9.4f") if missing(real(ProficientOrAbove_percent)) & !missing(nLev3_percent) & !missing(nLev4_percent)
 replace ProficientOrAbove_percent = "0.000" if (nLev3_percent + nLev4_percent)==0 & !missing(nLev3_percent) & !missing(nLev4_percent)
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
@@ -328,16 +323,22 @@ replace Lev1_percent = string((1 - real(ProficientOrAbove_percent) - (nLev2_perc
 replace Lev1_percent = "*" if real(Lev1_percent) < 0
 replace Lev2_percent = string((1 - real(ProficientOrAbove_percent) - (nLev1_percent/100)), "%9.4f") if missing(real(Lev2_percent)) & !missing(nLev1_percent) & !missing(real(ProficientOrAbove_percent))
 replace Lev2_percent = "*" if real(Lev2_percent) < 0
-replace Lev1_count = string((real(StudentSubGroup_TotalTested) - nProficientOrAbove_count - nLev2_count)) if missing(nLev1_count) & !missing(nLev2_count) & !missing(nProficientOrAbove_count) & !missing(real(StudentSubGroup_TotalTested))
-replace Lev1_count = "*" if real(Lev1_count) < 0
-replace Lev2_count = string((real(StudentSubGroup_TotalTested) - nProficientOrAbove_count - nLev1_count)) if missing(nLev2_count) & !missing(nLev1_count) & !missing(nProficientOrAbove_count) & !missing(real(StudentSubGroup_TotalTested))
 replace Lev3_percent = string((real(ProficientOrAbove_percent) - (nLev4_percent/100)), "%9.4f") if missing(nLev3_percent) & !missing(nLev4_percent) & !missing(real(ProficientOrAbove_percent))
 replace Lev4_percent = string((real(ProficientOrAbove_percent) - (nLev3_percent/100)), "%9.4f") if missing(nLev4_percent) & !missing(nLev3_percent) & !missing(real(ProficientOrAbove_percent))
-replace Lev3_count = string(round(real(Lev3_percent) * real(StudentSubGroup_TotalTested))) if missing(real(Lev3_count)) & !missing(real(Lev3_percent)) & !missing(real(StudentSubGroup_TotalTested))
-replace Lev4_count = string(round(real(Lev4_percent) * real(StudentSubGroup_TotalTested))) if missing(real(Lev4_count)) & !missing(real(Lev4_percent)) & !missing(real(StudentSubGroup_TotalTested))
 
 replace ProficientOrAbove_count = string(real(Lev3_count) + real(Lev4_count)) if missing(real(ProficientOrAbove_count)) & !missing(real(Lev3_count)) & !missing(real(Lev4_count))
 replace ProficientOrAbove_count = string(real(StudentSubGroup_TotalTested) - real(Lev1_count) - real(Lev2_count)) if missing(real(ProficientOrAbove_count)) & !missing(real(Lev1_count)) & !missing(real(Lev2_count))
+
+forvalues n = 1/4{
+	replace Lev`n'_count = string(round(real(StudentSubGroup_TotalTested) * real(Lev`n'_percent))) if missing(real(Lev`n'_count)) & !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Lev`n'_percent))
+}
+replace ProficientOrAbove_count = string(round(real(StudentSubGroup_TotalTested) * real(ProficientOrAbove_percent))) if missing(real(ProficientOrAbove_count)) & !missing(real(StudentSubGroup_TotalTested)) & !missing(real(ProficientOrAbove_percent))
+replace ProficientOrAbove_count = "0" if ProficientOrAbove_percent == "0.000"
+
+replace ProficientOrAbove_percent = string(real(Lev3_percent) + real(Lev4_percent), "%9.4f") if !missing(real(Lev3_percent)) & !missing(real(Lev4_percent)) & (real(ProficientOrAbove_percent) - real(Lev3_percent) - real(Lev4_percent)) > 0.1
+
+gen sumcounts = real(Lev1_count) + real(Lev2_count) + real(Lev3_count) + real(Lev4_count) if !inlist(Lev1_count, "*", "--") & !inlist(Lev2_count, "*", "--") & !inlist(Lev3_count, "*", "--") & !inlist(Lev4_count, "*", "--")
+replace StudentSubGroup_TotalTested = string(sumcounts) if real(StudentSubGroup_TotalTested) != sumcounts & sumcounts != .
 
 //AssmtName
 if `year' >= 2014 & `year' <=2017 {
@@ -371,8 +372,17 @@ drop if `year' == 2016 & SchName == "Envision Virtual Academy"
 //Post Launch Review
 if `year' == 2016 replace CountyName = "Mobile County" if CountyCode == "1097"
 
-//Deriving StudentSubGroup_TotalTested where possible and inputting new StudentGroup values
+//Deriving StudentSubGroup_TotalTested where possible
 replace StudentSubGroup_TotalTested = string(real(Lev1_count) + real(Lev2_count) + real(Lev3_count) + real(Lev4_count)) if regexm(StudentSubGroup_TotalTested, "[0-9]") == 0 & regexm(Lev1_count, "[0-9]") !=0 & regexm(Lev2_count, "[0-9]") !=0 & regexm(Lev3_count, "[0-9]") !=0 & regexm(Lev4_count, "[0-9]") !=0
+
+//StudentGroup_TotalTested and StudentSubGroup_TotalTested
+replace DistName = stritrim(DistName)
+replace SchName = stritrim(SchName)
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
+gen StudentGroup_TotalTested = AllStudents_Tested
+drop AllStudents_Tested
 
 //Fixing ProficientOrAbove_count & percent
 replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
@@ -386,6 +396,7 @@ forvalues n = 1/4{
 	replace Lev`n'_count = "*" if real(Lev`n'_count) < 0
 }
 replace ProficientOrAbove_percent = "*" if flag == 1
+replace ProficientOrAbove_count = "*" if flag == 1
 drop flag
 
 //Final Cleaning
