@@ -1,17 +1,17 @@
 clear
 set more off
 
-global raw "/Users/maggie/Desktop/Virginia/Original Data"
-global NCES "/Users/maggie/Desktop/Virginia/NCES/Cleaned"
-global output "/Users/maggie/Desktop/Virginia/Output"
+global raw "/Users/miramehta/Documents/Virginia/Original Data"
+global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+global output "/Users/miramehta/Documents/Virginia/Output"
 
-cd "/Users/maggie/Desktop/Virginia"
+cd "/Users/miramehta/Documents"
 
 ////	AGGREGATE DATA
 
 //Transform to long
 
-import excel "/${raw}/VA_OriginalData_1998-2002_all.xls", sheet("1998-2002 % Passing By School") cellrange(A2:EP2119) firstrow case(lower) clear
+import excel "${raw}/VA_OriginalData_1998-2002_all.xls", sheet("1998-2002 % Passing By School") cellrange(A2:EP2119) firstrow case(lower) clear
 
 rename english2002 ProficientOrAbove_percentela3
 rename mathematics2002 ProficientOrAbove_percentmath3
@@ -61,14 +61,14 @@ drop highgr lowgr
 gen StudentGroup = "All Students"
 gen StudentSubGroup = "All Students"
 
-save "/${output}/VA_2002_base.dta", replace
+save "${output}/VA_2002_base.dta", replace
 
 
 //// PREPARE DISAGGREGATE TOTALS FOR APPENDING
 
 // Gender
 
-import excel "/${raw}/disaggregate/VA_1998-2002_gender.xls", sheet("shading (2)") cellrange(B3:L41) firstrow clear
+import excel "${raw}/Disaggregate/VA_1998-2002_gender.xls", sheet("shading (2)") cellrange(B3:L41) firstrow clear
 
 drop if SOLTest == "" | SOLTest == "Grade 3" | SOLTest == "Grade 5" | SOLTest == "Grade 8" 
 
@@ -93,12 +93,12 @@ destring ProficientOrAbove_percent, replace
 replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
 tostring ProficientOrAbove_percent, replace force
 
-save "/${output}/VA_2002_gender.dta", replace
+save "${output}/VA_2002_gender.dta", replace
 
 
 // EL Status
 
-import excel "/${raw}/disaggregate/VA_2000-2002_elstatus.xls", sheet("Sheet1") cellrange(B2:H24) firstrow clear
+import excel "${raw}/Disaggregate/VA_2000-2002_elstatus.xls", sheet("Sheet1") cellrange(B2:H24) firstrow clear
 
 drop if SOLTEST == "" | SOLTEST == "GRADE 3" | SOLTEST == "GRADE 5" | SOLTEST == "GRADE 8" 
 
@@ -122,12 +122,12 @@ destring ProficientOrAbove_percent, replace
 replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
 tostring ProficientOrAbove_percent, replace force
 
-save "/${output}/VA_2002_elstatus.dta", replace
+save "${output}/VA_2002_elstatus.dta", replace
 
 
 // Disability Status
 
-import excel "/${raw}/disaggregate/VA_2000-2002_disability.xls", sheet("shading") cellrange(B2:H24) firstrow clear
+import excel "${raw}/Disaggregate/VA_1998-2002_disability.xls", sheet("shading") cellrange(B2:H24) firstrow clear
 
 drop if SOLTEST == "" | SOLTEST == "GRADE 3" | SOLTEST == "GRADE 5" | SOLTEST == "GRADE 8" 
 
@@ -151,12 +151,12 @@ destring ProficientOrAbove_percent, replace
 replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
 tostring ProficientOrAbove_percent, replace force
 
-save "/${output}/VA_2002_disabilitystatus.dta", replace
+save "${output}/VA_2002_disabilitystatus.dta", replace
 
 
 // Race & Ethnicity, grade 3
 
-import excel "/${raw}/disaggregate/VA_1998-2002_raceeth.xls", sheet("Sheet1 (2)") cellrange(A9:AE14) clear
+import excel "${raw}/Disaggregate/VA_1998-2002_raceeth.xls", sheet("Sheet1 (2)") cellrange(A9:AE14) clear
 
 keep A F K P U
 rename A StudentSubGroup
@@ -174,12 +174,12 @@ tostring ProficientOrAbove_percent, replace force
 
 gen StudentGroup = "RaceEth"
 
-save "/${output}/VA_2002_race3.dta", replace
+save "${output}/VA_2002_race3.dta", replace
 
 
 // Race & Ethnicity, grade 5 & 8
 
-import excel "/${raw}/disaggregate/VA_1998-2002_raceeth.xls", sheet("Sheet1 (2)") cellrange(A18:AE40) clear
+import excel "${raw}/Disaggregate/VA_1998-2002_raceeth.xls", sheet("Sheet1 (2)") cellrange(A18:AE40) clear
 
 keep A F K P U Z AE
 rename A StudentSubGroup
@@ -206,18 +206,18 @@ tostring ProficientOrAbove_percent, replace force
 
 gen StudentGroup = "RaceEth"
 
-save "/${output}/VA_2002_race58.dta", replace
+save "${output}/VA_2002_race58.dta", replace
 
 
 ////	APPEND AGGREGATE AND DISAGGREGATE DATA
 
-use "/${output}/VA_2002_base.dta", clear
+use "${output}/VA_2002_base.dta", clear
 
-append using "/${output}/VA_2002_gender.dta"
-append using "/${output}/VA_2002_elstatus.dta"
-append using "/${output}/VA_2002_disabilitystatus.dta"
-append using "/${output}/VA_2002_race3.dta"
-append using "/${output}/VA_2002_race58.dta"
+append using "${output}/VA_2002_gender.dta"
+append using "${output}/VA_2002_elstatus.dta"
+append using "${output}/VA_2002_disabilitystatus.dta"
+append using "${output}/VA_2002_race3.dta"
+append using "${output}/VA_2002_race58.dta"
 
 
 ////	PREPARE FOR NCES MERGE
@@ -242,11 +242,11 @@ replace StateAssignedDistID = "" if schoolname == "STATE SUMMARY" | StudentGroup
 replace seasch = "" if schoolname == "DIVISION SUMMARY" | schoolname == "STATE SUMMARY" | StudentGroup != "All Students"
 replace StateAssignedSchID = "" if schoolname == "DIVISION SUMMARY" | schoolname == "STATE SUMMARY" | StudentGroup != "All Students"
 
-merge m:1 State_leaid using "/${NCES}/NCES_2001_District.dta"
+merge m:1 State_leaid using "${NCES}/NCES_2001_District.dta"
 drop if _merge == 2
 drop _merge
 
-merge m:1 seasch using "/${NCES}/NCES_2001_School.dta"
+merge m:1 seasch using "${NCES}/NCES_2001_School.dta"
 drop if _merge == 2
 drop _merge
 
@@ -330,7 +330,7 @@ replace SchName = "All Schools" if DataLevel != 3
 replace CountyName = proper(CountyName)
 replace DistName = proper(DistName)
 
-merge m:1 SchYear CountyCode using "/${raw}/va_county-list_through2023.dta"
+merge m:1 SchYear CountyCode using "${raw}/va_county-list_through2023.dta"
 replace CountyName = newcountyname
 drop if _merge == 2
 drop _merge

@@ -1,11 +1,11 @@
 clear
 set more off
 
-global raw "/Users/maggie/Desktop/Virginia/Original Data"
-global NCES "/Users/maggie/Desktop/Virginia/NCES/Cleaned"
-global output "/Users/maggie/Desktop/Virginia/Output"
+global raw "/Users/miramehta/Documents/Virginia/Original Data"
+global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+global output "/Users/miramehta/Documents/Virginia/Output"
 
-cd "/Users/maggie/Desktop/Virginia"
+cd "/Users/miramehta/Documents"
 
 ////	AGGREGATE DATA
 

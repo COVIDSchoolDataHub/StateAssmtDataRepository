@@ -335,7 +335,7 @@ forvalues n = 1/4{
 replace ProficientOrAbove_count = string(round(real(StudentSubGroup_TotalTested) * real(ProficientOrAbove_percent))) if missing(real(ProficientOrAbove_count)) & !missing(real(StudentSubGroup_TotalTested)) & !missing(real(ProficientOrAbove_percent))
 replace ProficientOrAbove_count = "0" if ProficientOrAbove_percent == "0.000"
 
-replace ProficientOrAbove_percent = string(real(Lev3_percent) + real(Lev4_percent), "%9.4f") if !missing(real(Lev3_percent)) & !missing(real(Lev4_percent)) & (real(ProficientOrAbove_percent) - real(Lev3_percent) - real(Lev4_percent)) > 0.1
+replace ProficientOrAbove_percent = string(real(Lev3_percent) + real(Lev4_percent), "%9.4f") if (real(ProficientOrAbove_percent) - real(Lev3_percent) - real(Lev4_percent)) > 0.1 & !inlist(Lev3_percent, "*", "--") & !inlist(Lev4_percent, "*", "--")
 
 gen sumcounts = real(Lev1_count) + real(Lev2_count) + real(Lev3_count) + real(Lev4_count) if !inlist(Lev1_count, "*", "--") & !inlist(Lev2_count, "*", "--") & !inlist(Lev3_count, "*", "--") & !inlist(Lev4_count, "*", "--")
 replace StudentSubGroup_TotalTested = string(sumcounts) if real(StudentSubGroup_TotalTested) != sumcounts & sumcounts != .

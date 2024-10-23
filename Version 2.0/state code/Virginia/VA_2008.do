@@ -1,11 +1,11 @@
 clear
 set more off
 
-global raw "/Users/maggie/Desktop/Virginia/Original Data"
-global NCES "/Users/maggie/Desktop/Virginia/NCES/Cleaned"
-global output "/Users/maggie/Desktop/Virginia/Output"
+global raw "/Users/miramehta/Documents/Virginia/Original Data"
+global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+global output "/Users/miramehta/Documents/Virginia/Output"
 
-cd "/Users/maggie/Desktop/Virginia"
+cd "/Users/miramehta/Documents"
 
 
 ////	Import aggregate data from 2006-2022
@@ -191,10 +191,6 @@ destring StudentSubGroup_TotalTested2, replace force
 replace StudentSubGroup_TotalTested2 = 0 if StudentSubGroup_TotalTested2 == .
 bysort State_leaid seasch StudentGroup GradeLevel Subject: egen test = min(StudentSubGroup_TotalTested2)
 bysort State_leaid seasch GradeLevel Subject: egen max = max(StudentSubGroup_TotalTested2)
-bysort State_leaid seasch StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested2) if test != 0
-replace StudentGroup_TotalTested = max if !inlist(max, ., 0) & StudentGroup_TotalTested == .
-tostring StudentGroup_TotalTested, replace force
-replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
 
 bysort State_leaid seasch GradeLevel Subject: egen Econ = sum(StudentSubGroup_TotalTested2) if StudentGroup == "Economic Status"
 bysort State_leaid seasch GradeLevel Subject: egen EL = sum(StudentSubGroup_TotalTested2) if StudentGroup == "EL Status"
@@ -209,6 +205,11 @@ replace StudentSubGroup_TotalTested2 = max - Gender if StudentSubGroup == "Femal
 replace StudentSubGroup_TotalTested2 = max - Migrant if StudentSubGroup == "Non-Migrant" & max != 0 & StudentSubGroup_TotalTested == "*" & Migrant != 0
 replace StudentSubGroup_TotalTested2 = max - Migrant if StudentSubGroup == "Migrant" & max != 0 & StudentSubGroup_TotalTested == "*" & Migrant != 0
 replace StudentSubGroup_TotalTested = string(StudentSubGroup_TotalTested2) if StudentSubGroup_TotalTested2 != 0
+
+sort DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel StudentGroup StudentSubGroup
+gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+order Subject GradeLevel StudentGroup_TotalTested StudentGroup StudentSubGroup_TotalTested StudentSubGroup
+replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested) & StudentSubGroup != "All Students"
 
 rename failcount Lev1_count
 rename failrate Lev1_percent

@@ -1,9 +1,12 @@
 clear
 set more off
 
-global EDFacts "C:/Users/hxu15/Downloads/EDFacts"
-global State_Output "C:/Users/hxu15/Downloads/Virginia - Version 2.0"
-global New_Output "C:/Users/hxu15/Downloads/Virginia - Version 2.0"
+global raw "/Users/miramehta/Documents/Virginia/Original Data"
+global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+global output "/Users/miramehta/Documents/Virginia/Output"
+global EDFacts "/Users/miramehta/Documents/EDFacts"
+
+cd "/Users/miramehta/Documents"
 
 ** Preparing EDFacts files
 local edyears1 15 
@@ -71,8 +74,10 @@ foreach year of local edyears1 {
             append using "${EDFacts}/20`year'/edfacts`type'20`year'ela`lvl'virginia.dta"
 			if ("`lvl'" == "school") {
                 rename ncessch NCESSchoolID
+				tostring NCESSchoolID, replace format("%12.0f")
 			}
 				rename leaid NCESDistrictID
+				tostring NCESDistrictID, replace
             if ("`type'" == "part") {
                 drop if Participation == ""
                 replace Participation = "--" if Participation == "n/a"
@@ -219,19 +224,8 @@ foreach year of local edyears1 {
 */
 
 
-//Merging Example
-import delimited "${State_Output}/VA_AssmtData_2015.csv", case(preserve) clear
-
-	
-//DataLevel
-label def DataLevel 1 "State" 2 "District" 3 "School"
-encode DataLevel, gen(DataLevel_n) label(DataLevel)
-sort DataLevel_n 
-drop DataLevel 
-rename DataLevel_n DataLevel
-
-
 //Merging
+use "${output}/VA_AssmtData_2015.dta", clear
 
 tempfile tempall
 save "`tempall'", replace
@@ -278,6 +272,6 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${New_Output}/VA_AssmtData_2015", replace
-export delimited "${New_Output}/VA_AssmtData_2015", replace
+save "${output}/VA_AssmtData_2015", replace
+export delimited "${output}/csv/VA_AssmtData_2015", replace
 
