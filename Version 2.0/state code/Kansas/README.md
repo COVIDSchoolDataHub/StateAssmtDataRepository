@@ -9,16 +9,19 @@ This is a ReadMe for Kansas's data cleaning process, from 2015 to 2023.
 There are three main folders (with subfolders) you need to create: 
 
 1. KS State Testing Data
+   
        a. Original Data Files [Download the original excel files and place them into this folder.]
        b. Output [will start empty]
  
    
 3. NCES District and School Demographics
+   
        a. NCES District Files, Fall 1997-Fall 2022 [Download files from Google drive district folder]
        b. NCES School Files, Fall 1997-Fall 2022 [Download files from Google drive school folder]
        c. Cleaned NCES Data [will start empty]
    
-4. EdFacts
+5. EdFacts
+   
        a. There should be a folder for each applicable year in the EdFacts folder (2015 to 2022)
     
 ## File Path
