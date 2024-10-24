@@ -10,6 +10,7 @@ global NCES_clean "/Users/miramehta/Documents/NCES District and School Demograph
 
 use "$raw/OH_OriginalData_2024.dta", clear
 
+//Renaming & Reformatting Variables
 rename school_year SchYear
 tostring SchYear, replace
 replace SchYear = "2023-24" if SchYear == "2024"
@@ -57,6 +58,7 @@ rename org_name SchName
 replace DistName = "All Districts" if DataLevel == "State"
 replace SchName = "All Schools" if DataLevel != "School"
 
+//Formatting & Deriving Proficiency Information
 rename tested StudentSubGroup_TotalTested
 rename prfrate ProficientOrAbove_percent
 rename limtd_ct Lev1_count
@@ -69,22 +71,38 @@ forvalues n = 1/5{
 	replace Lev`n'_count = "*" if Lev`n'_count == "Z"
 	destring Lev`n'_count, gen(Lev`n') force
 	gen Lev`n'_percent = Lev`n'/StudentSubGroup_TotalTested
+}
+
+replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
+
+gen ProficientOrAbove_count = Lev3 + Lev4 + Lev5
+replace ProficientOrAbove_count = . if Lev3_count == "*"
+replace ProficientOrAbove_count = . if Lev4_count == "*"
+replace ProficientOrAbove_count = . if Lev5_count == "*"
+replace ProficientOrAbove_count = round(ProficientOrAbove_percent * StudentSubGroup_TotalTested) if ProficientOrAbove_count == . & ProficientOrAbove_percent != . & StudentSubGroup_TotalTested != .
+replace Lev1 = StudentSubGroup_TotalTested - ProficientOrAbove_count - Lev2 if Lev1 == . & ProficientOrAbove_count != . & Lev2 != . & StudentSubGroup_TotalTested != .
+replace Lev2 = StudentSubGroup_TotalTested - ProficientOrAbove_count - Lev1 if Lev2 == . & ProficientOrAbove_count != . & Lev1 != . & StudentSubGroup_TotalTested != .
+replace Lev3 = ProficientOrAbove_count - Lev4 - Lev5 if Lev3 == . & !inlist(ProficientOrAbove_count, ., 0) & Lev4 != . & Lev5 != .
+replace Lev4 = ProficientOrAbove_count - Lev3 - Lev5 if Lev4 == . & !inlist(ProficientOrAbove_count, ., 0) & Lev3 != . & Lev5 != .
+replace Lev5 = ProficientOrAbove_count - Lev3 - Lev4 if Lev5 == . & !inlist(ProficientOrAbove_count, ., 0) & Lev3 != . & Lev4 != .
+
+forvalues n = 1/5{
+	replace Lev`n'_count = string(Lev`n') if Lev`n'_count == "*" & Lev`n' != .
+	replace Lev`n'_percent = Lev`n'/StudentSubGroup_TotalTested if Lev`n'_percent == . & Lev`n' != . & StudentSubGroup_TotalTested != .
 	tostring Lev`n'_percent, replace format("%9.4f") force
 	replace Lev`n'_percent = "*" if Lev`n'_count == "*"
 }
 
-gen ProficientOrAbove_count = Lev3 + Lev4 + Lev5
 tostring ProficientOrAbove_count, replace
-replace ProficientOrAbove_count = "*" if Lev3_count == "*"
-replace ProficientOrAbove_count = "*" if Lev4_count == "*"
-replace ProficientOrAbove_count = "*" if Lev5_count == "*"
+replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
 replace ProficientOrAbove_count = string(StudentSubGroup_TotalTested - Lev1 - Lev2) if ProficientOrAbove_count == "*" & Lev1_count != "*" & Lev2_count != "*"
-replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
 tostring ProficientOrAbove_percent, replace format("%9.4f") force
+replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
 
 gen ParticipationRate = StudentSubGroup_TotalTested/req_testers
 tostring ParticipationRate, replace format("%9.4f") force
 replace ParticipationRate = "*" if ParticipationRate == "."
+replace ParticipationRate = "0" if StudentSubGroup_TotalTested == 0 & req_testers == 0
 drop if StudentSubGroup_TotalTested == 0 & StudentSubGroup != "All Students"
 
 //StudentGroup_TotalTested
@@ -92,7 +110,7 @@ replace DistName = stritrim(DistName)
 replace DistName = strtrim(DistName)
 replace SchName = stritrim(SchName)
 replace SchName = strtrim(SchName)
-sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+sort DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel StudentGroup StudentSubGroup
 gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
 replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
 gen StudentGroup_TotalTested = AllStudents_Tested
@@ -171,8 +189,13 @@ rename ncesschoolid NCESSchoolID
 replace StateAbbrev = "OH"
 replace StateFips = 39
 
+//StateAssigned ID Formatting
 tostring StateAssignedDistID, replace
 tostring StateAssignedSchID, replace
+forvalues n = 2/5{
+	replace StateAssignedDistID = "0" + StateAssignedDistID if strlen(StateAssignedDistID) == `n'
+	replace StateAssignedSchID = "0" + StateAssignedSchID if strlen(StateAssignedSchID) == `n'
+}
 replace StateAssignedDistID = "" if DataLevel == "State"
 replace StateAssignedSchID = "" if DataLevel != "School"
 
@@ -183,6 +206,14 @@ replace NCESSchoolID = "391004610861" if SchName == "Community STE(A)M Academy -
 replace SchType = 1 if NCESSchoolID == "391004610861"
 replace SchLevel = 4 if NCESSchoolID == "391004610861"
 replace SchVirtual = 0 if NCESSchoolID == "391004610861"
+replace NCESDistrictID = "3910046" if SchName == "Community STE(A)M Academy - Xenia"
+replace DistName = "Community STE(A)M Academy - Xenia" if NCESDistrictID == "3910046"
+replace DistType = "Regular local school district" if NCESDistrictID == "3910046"
+replace DistCharter = "No" if NCESDistrictID == "3910046"
+replace DistLocale = "Suburb, large" if NCESDistrictID == "3910046"
+replace CountyName = "Greene County" if NCESDistrictID == "3910046"
+replace CountyCode = "39057" if NCESDistrictID == "3910046"
+replace StateAssignedDistID = "019602" if NCESDistrictID == "3910046"
 
 replace NCESSchoolID = "390439610876" if SchName == "Fairborn Online Learning"
 replace SchType = 1 if NCESSchoolID == "390439610876"
@@ -193,6 +224,16 @@ replace NCESSchoolID = "391002910877" if SchName == "Grizzly Academy"
 replace SchType = 1 if NCESSchoolID == "391002910877"
 replace SchLevel = 1 if NCESSchoolID == "391002910877"
 replace SchVirtual = 0 if NCESSchoolID == "391002910877"
+
+replace NCESSchoolID = "390450410865" if SchName == "Minerva Park Middle School"
+replace SchType = 1 if NCESSchoolID == "390450410865"
+replace SchLevel = 2 if NCESSchoolID == "390450410865"
+replace SchVirtual = 0 if NCESSchoolID == "390450410865"
+
+replace NCESSchoolID = "390467610863" if SchName == "Olentangy Berlin Middle School"
+replace SchType = 1 if NCESSchoolID == "390467610863"
+replace SchLevel = 2 if NCESSchoolID == "390467610863"
+replace SchVirtual = 0 if NCESSchoolID == "390467610863"
 
 replace NCESSchoolID = "390470010886" if SchName == "Waggoner Road Elementary"
 replace SchType = 1 if NCESSchoolID == "390470010886"
