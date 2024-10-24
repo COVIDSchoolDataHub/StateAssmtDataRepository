@@ -44,18 +44,21 @@ forval year = 1998/2024 {
 	replace ProficientOrAbove_percent = "1" if ProficientOrAbove_percent == "1.001000047"
 	replace StateAssignedDistID="" if DataLevel==1
 	replace StateAssignedSchID="" if DataLevel==1 | DataLevel==2
+	replace AvgScaleScore = "*" if AvgScaleScore == "."
 	save "${output_files}/MN_AssmtData_`year'", replace
 	export delimited "${output_files}/MN_AssmtData_`year'", replace
 }
 
-forval year = 2019/2024 {
+forval year = 1998/2024 {
 	if `year' == 2020 continue
 	use "${output_files}/MN_AssmtData_`year'"
 	replace Lev5_percent = "" if Lev5_percent != ""
 	replace Lev5_count = "" if Lev5_count != ""
 	replace Lev5_count = ""
 	replace Lev5_percent = ""
-	replace AvgScaleScore = "*" if AvgScaleScore == "."
 	save "${output_files}/MN_AssmtData_`year'", replace
 	export delimited "${output_files}/MN_AssmtData_`year'", replace
 }
+
+
+

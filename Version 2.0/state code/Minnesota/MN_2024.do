@@ -378,10 +378,13 @@ replace StudentSubGroup = "Non-Military" if StudentSubGroup == "Students with no
 *gen ProficientOrAbove_count = Lev3_count+Lev4_count
 gen ProficientOrAbove_count = Lev3_count+Lev4_count
 replace ProficientOrAbove_percent = ProficientOrAbove_count/StudentSubGroup_TotalTested
-replace ProficientOrAbove_percent = round(ProficientOrAbove_percent, 0.001)
+replace ProficientOrAbove_percent = round(ProficientOrAbove_percent, 0.0001)
 replace ProficientOrAbove_count = round(ProficientOrAbove_count)
 foreach var of varlist Lev1_count Lev2_count Lev3_count Lev4_count Lev1_percent Lev2_percent Lev3_percent Lev4_percent AvgScaleScore ProficientOrAbove_count ProficientOrAbove_percent {
-	tostring `var', replace force format("%9.3g")
+	replace `var' = round(`var', 0.0001)
+}
+foreach var of varlist Lev1_count Lev2_count Lev3_count Lev4_count Lev1_percent Lev2_percent Lev3_percent Lev4_percent AvgScaleScore ProficientOrAbove_count ProficientOrAbove_percent {
+	tostring `var', replace force format("%9.4g")
 	replace `var' = "*" if Filtered == "Y"
 }
 
