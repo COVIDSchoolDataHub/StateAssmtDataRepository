@@ -29,11 +29,17 @@ There are three main folders (with subfolders) you need to create:
 The file path setup should be as follows: 
 
 global NCESSchool: Folder containing NCES school files
+
 global NCESDistrict: Folder containing NCES district files
+
 global NCES: Folder containing cleaned NCES data
+
 global EDFacts: Folder containing EDFacts data (wtih separate subfolders by year)
+
 global raw: Folder containing original KS testing data
+
 global output: Folder where cleaned .dta and .csv files will be saved
+
 
 ```bash
 global NCESSchool "/Users/miramehta/Documents/NCES District and School Demographics/NCES School Files, Fall 1997-Fall 2022"
