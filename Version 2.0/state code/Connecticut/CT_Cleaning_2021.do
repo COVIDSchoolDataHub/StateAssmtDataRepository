@@ -13,25 +13,26 @@ global NCES_School "/Users/benjaminm/Documents/State_Repository_Research/NCES/Sc
 global NCES_District "/Users/benjaminm/Documents/State_Repository_Research/NCES/District"
 
 
+
 **** Need to install labutil for labelling to work properly. Type search labutil into Stata terminal and install first result. 
 
 //Unhide Below code on first run
 
 
-tempfile temp1
-save "`temp1'", emptyok
-clear
-import excel "${Original}/CT_OriginalData_2021_math_ela.xlsx", firstrow case(preserve) sheet(ALL)
-append using "`temp1'"
-save "`temp1'", replace
-clear
-import excel "${Original}/CT_OriginalData_2021_sci.xlsx", firstrow case(preserve) sheet(ALL)
-gen SUBJECT = "sci"
-append using "`temp1'"
-save "${Original}/CT_OriginalData_2021_all", replace
-
-
-
+// tempfile temp1
+// save "`temp1'", emptyok
+// clear
+// import excel "${Original}/CT_OriginalData_2021_math_ela.xlsx", firstrow case(preserve) sheet(ALL)
+// append using "`temp1'"
+// save "`temp1'", replace
+// clear
+// import excel "${Original}/CT_OriginalData_2021_sci.xlsx", firstrow case(preserve) sheet(ALL)
+// gen SUBJECT = "sci"
+// append using "`temp1'"
+// save "${Original}/CT_OriginalData_2021_all", replace
+//
+//
+//
 
 //Unhide above code on first run
 clear
@@ -117,7 +118,7 @@ destring ParticipationRate, gen(nParticipationRate) i(*)
 replace ParticipationRate = string(nParticipationRate, "%9.4g") if ParticipationRate != "*"
 foreach n in 1 2 3 4 {
 	destring Lev`n'_percent, gen(nLev`n'_percent) i(*)
-	replace Lev`n'_percent = string(nLev`n'_percent, "%9.4g") if Lev`n'_percent != "*"
+	replace Lev`n'_percent = string(round(nLev`n'_percent, 0.001), "%9.4g") if Lev`n'_percent != "*"
 }
 destring ProficientOrAbove_percent, gen(nProficientOrAbove_percent) i(*)
 replace ProficientOrAbove_percent = string(nProficientOrAbove_percent, "%9.4g") if ProficientOrAbove_percent != "*"
@@ -127,8 +128,8 @@ foreach var of varlist _all {
 }
 
 //Calculating suppressed values when possible
-replace Lev4_percent = string((nProficientOrAbove_percent - nLev3_percent), "%9.4f") if missing(nLev4_percent) & !missing(nProficientOrAbove_percent) & !missing(nLev3_percent)
-replace Lev3_percent = string((nProficientOrAbove_percent - nLev4_percent), "%9.4f") if missing(nLev3_percent) & !missing(nProficientOrAbove_percent) & !missing(nLev4_percent)
+replace Lev4_percent = string(round((nProficientOrAbove_percent - nLev3_percent), 0.001), "%9.4g") if missing(nLev4_percent) & !missing(nProficientOrAbove_percent) & !missing(nLev3_percent)
+replace Lev3_percent = string(round((nProficientOrAbove_percent - nLev4_percent), 0.001), "%9.4g") if missing(nLev3_percent) & !missing(nProficientOrAbove_percent) & !missing(nLev4_percent)
 
 //Merging with NCES Data//
 gen StateAssignedDistID2 = StateAssignedDistID
@@ -274,6 +275,17 @@ drop if StateAssignedSchID == "2449414" | StateAssignedSchID == "2440214"
 // Apply DistType labels
 labmask DistType, values(DistTypeLabels)
 
+decode DistType, gen(DistType1)
+replace DistType1 = "" if DistType1 == "Missing/not reported"
+drop DistType
+rename DistType1 DistType
+
+
+foreach var of varlist DistName SchName {
+replace `var' = strtrim(`var')
+replace `var' = stritrim(`var')
+}
+
 //Final Cleaning
 recast str80 SchName
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
@@ -282,5 +294,6 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${Output}/CT_AssmtData_2021", replace
 export delimited "${Output}/CT_AssmtData_2021", replace
+
 
 do CT_2021_EDFACTS
