@@ -1,5 +1,5 @@
 *****************************************************************************
-**	Updated Oct 25, 2024
+**	Updated Oct 26, 2024
 
 
 ** 	ZELMA STATE ASSESSMENT DATA REPOSITORY 
@@ -19,7 +19,7 @@ cap log close
 global Filepath "/Desktop/Zelma V2.0/Virginia - Version 2.0" //  Set path to csv files
 global Review "${Filepath}/review" 
 global StateAbbrev "VA" //Set StateAbbrev
-global date "10.25.24" //Set today's date
+global date "10.26.24" //Set today's date
 global years  2024 2023 2022 2021 2019 2018 2017 2016 2015 2014 2013 2012 2011 2010 2009 2008 //List Applicable years
 log using "$Filepath/${StateAbbrev}_Review.smcl", replace
 
@@ -72,7 +72,7 @@ count if !inlist(dup, 0)
 ** Are all files free of duplicate observations for each unique group that have not already been flagged? 
 
 {
-duplicates tag FILE DataLevel AssmtName AssmtType NCESDistrictID NCESSchoolID Subject GradeLevel StudentSubGroup, gen (dup2)
+duplicates tag FILE DataLevel AssmtName AssmtType NCESDistrictID NCESSchoolID Subject GradeLevel StudentGroup StudentSubGroup, gen (dup2)
 replace dup2 = 0 if dup !=0
 
 count if !inlist(dup2, 0)
