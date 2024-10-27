@@ -105,7 +105,9 @@ foreach dl in district school {
  **MERGING**
 use "${Output}/CT_AssmtData_2021"
 destring NCESDistrictID, replace
-destring NCESSchoolID, replace force
+destring NCESSchoolID, replace
+format NCESSchoolID %012.0f
+
 drop StudentSubGroup_TotalTested StudentGroup_TotalTested
 merge 1:1 NCESDistrictID NCESSchoolID Subject GradeLevel StudentSubGroup using "${Temp}/_2021_count", update
 drop if _merge == 2
@@ -131,7 +133,7 @@ append using "`tempstate'"
 sort DataLevel
 
 tostring NCESDistrictID, replace force
-tostring NCESSchoolID, replace force
+tostring NCESSchoolID, replace format(%012.0f) force
 replace NCESSchoolID = "" if DataLevel == 1
 replace NCESDistrictID = "" if DataLevel == 1
 
@@ -259,3 +261,6 @@ export delimited "${Output}/CT_AssmtData_2021", replace
 
 
 use "${Output}/CT_AssmtData_2021", clear
+
+
+
