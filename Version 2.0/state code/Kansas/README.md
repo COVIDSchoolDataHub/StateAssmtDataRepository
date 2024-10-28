@@ -23,6 +23,8 @@ There are three main folders (with subfolders) you need to create:
 5. EdFacts
    
        a. There should be a folder for each applicable year in the EdFacts folder (2015 to 2022)
+         -[2022]([url](https://drive.google.com/drive/u/0/folders/14KwXUX3OFAXRwckDPCCxx--vR0Biijrp)) is in the Original Data Files folder for Kansasas and [other years]([url](https://drive.google.com/drive/u/0/folders/1oZMYBDpy9SgKOx9X0IiB6QgaCNGFbu1r)) are in Long Data Versions in the EdFacts folder
+         -
     
 ## File Path
 
