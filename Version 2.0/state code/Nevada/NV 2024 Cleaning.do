@@ -7,20 +7,26 @@ global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cl
 
 cd "/Users/miramehta/Documents"
 
-use "${raw}/ELA & Math/Grade 3 2019.dta", clear
-gen GradeLevel = "G03"
-
-foreach a of numlist 4/8 {
-	append using "${raw}/ELA & Math/Grade `a' 2019.dta"
-	replace GradeLevel = "G0`a'" if GradeLevel == ""
+local levels "state districts schools"
+foreach lev of local levels{
+	use "${raw}/ELA & Math/2024/`lev'/NV_OriginalData_2024_ela_math_G38.dta", clear
+	append using "${raw}/Sci/2024/`lev'/NV_OriginalData_2024_sci_G38.dta"
+	gen GradeLevel = "G38"
+	forvalues n = 3/8{
+		append using "${raw}/ELA & Math/2024/`lev'/NV_OriginalData_2024_ela_math_G0`n'.dta"
+		if `n' == 5 | `n' == 8{
+			append using "${raw}/Sci/2024/`lev'/NV_OriginalData_2024_sci_G0`n'.dta"
+		}
+		replace GradeLevel = "G0`n'" if GradeLevel == ""
+	}
+	gen DataLevel = "`lev'"
+	save "${raw}/NV_OriginalData_2024_`lev'", replace
 }
 
-append using "${raw}/Sci/Grade 5 2019.dta"
-replace GradeLevel = "G05" if GradeLevel == ""
-append using "${raw}/Sci/Grade 8 2019.dta"
-replace GradeLevel = "G08" if GradeLevel == ""
+use "${raw}/NV_OriginalData_2024_state", clear
+append using "${raw}/NV_OriginalData_2024_districts" "${raw}/NV_OriginalData_2024_schools"
 
-drop Eligible* *NotTested
+drop *NotTested
 
 rename ELA* *ela
 rename Mathematics* *math
@@ -34,10 +40,13 @@ foreach a of varlist NumberTestedsci Testedsci Proficientsci EmergentDevelopings
 }
 
 drop if NumberTestedmath == "" & NumberTestedela == ""
+drop if NumberTestedsci == "" & Group[_n-1] == Group[_n] & OrganizationCode[_n-1] == OrganizationCode[_n] & GradeLevel[_n-1] == GradeLevel[_n]
+drop if NumberTestedsci == "" & Group[_n+1] == Group[_n] & OrganizationCode[_n+1] == OrganizationCode[_n] & GradeLevel[_n+1] == GradeLevel[_n]
+
+duplicates drop
 
 reshape long NumberTested Tested Proficient EmergentDeveloping ApproachesStandard MeetsStandard ExceedsStandard, i(Group OrganizationCode GradeLevel) j(Subject) string
-
-drop if NumberTested == ""
+drop if Subject == "sci" & !inlist(GradeLevel, "G05", "G08", "G38")
 
 rename Year SchYear
 rename NumberTested StudentSubGroup_TotalTested
@@ -50,21 +59,17 @@ rename ExceedsStandard Lev4_percent
 
 ** Replacing variables
 
-replace SchYear = "2018-19"
+replace SchYear = "2023-24"
 
 ** Generating new variables
-
-tostring OrganizationCode, gen(StateAssignedSchID)
-replace StateAssignedSchID = "0" + StateAssignedSchID if (OrganizationCode < 10000 & OrganizationCode > 100) | OrganizationCode < 10
-replace StateAssignedSchID = StateAssignedSchID + "000" if OrganizationCode < 100
-
+gen StateAssignedSchID = OrganizationCode
 sort StateAssignedSchID
 gen StateAssignedDistID = StateAssignedSchID
 replace StateAssignedDistID = substr(StateAssignedSchID, 1, 2)
 
-gen DataLevel = "School"
-replace DataLevel = "District" if OrganizationCode < 99
-replace DataLevel = "State" if OrganizationCode == 0
+replace DataLevel = "School" if DataLevel == "schools"
+replace DataLevel = "District" if DataLevel == "districts"
+replace DataLevel = "State" if DataLevel == "state"
 
 replace StateAssignedSchID = "" if DataLevel != "School"
 replace StateAssignedDistID = "" if DataLevel == "State"
@@ -95,13 +100,13 @@ replace StudentSubGroup = "Non-Foster Care" if Group == "Not Foster"
 replace StudentSubGroup = "Military" if Group == "Military Connected"
 replace StudentSubGroup = "Non-Military" if Group == "Not Military Connected"
 replace StudentSubGroup = "LTEL" if Group == "LongTermEL"
-drop if Group == "Unknown LongTermEL"
+drop if Group == "Not LongTermEL"
 
 gen StudentGroup = "All Students"
 replace StudentGroup = "Gender" if inlist(StudentSubGroup, "Female", "Male")
 replace StudentGroup = "RaceEth" if inlist(StudentSubGroup, "American Indian or Alaska Native", "Black or African American", "Hispanic or Latino", "White", "Two or More", "Asian", "Native Hawaiian or Pacific Islander")
 replace StudentGroup = "Disability Status" if inlist(StudentSubGroup, "SWD", "Non-SWD")
-replace StudentGroup = "EL Status" if inlist(StudentSubGroup, "English Learner", "English Proficient", "LTEL")
+replace StudentGroup = "EL Status" if inlist(StudentSubGroup, "English Learner", "English Proficient")
 replace StudentGroup = "Economic Status" if inlist(StudentSubGroup, "Economically Disadvantaged", "Not Economically Disadvantaged")
 replace StudentGroup = "Migrant Status" if inlist(StudentSubGroup, "Migrant", "Non-Migrant")
 replace StudentGroup = "Homeless Enrolled Status" if inlist(StudentSubGroup, "Homeless", "Non-Homeless")
@@ -145,6 +150,8 @@ replace StudentSubGroup_TotalTested2 = max - Disability if StudentSubGroup == "N
 replace StudentSubGroup_TotalTested2 = max - Disability if StudentSubGroup == "SWD" & max != 0 & StudentSubGroup_TotalTested == "*" & Disability != 0
 replace StudentSubGroup_TotalTested = string(StudentSubGroup_TotalTested2) if StudentSubGroup_TotalTested2 != 0
 replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "-"
+
+replace StudentGroup = "EL Status" if StudentSubGroup == "LTEL"
 
 sort DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel StudentGroup StudentSubGroup
 gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
@@ -220,33 +227,55 @@ rename DataLevel_n DataLevel
 gen State_leaid = "NV-" + StateAssignedDistID
 replace State_leaid = "" if DataLevel == 1
 
-replace State_leaid = "NV-21" if StateAssignedSchID == "102100"
-replace StateAssignedDistID = "21" if StateAssignedSchID == "102100"
+replace State_leaid = "NV-18" if inlist(StateAssignedSchID, "101101", "102100", "105101", "106101", "107101", "108101") | inlist(StateAssignedSchID, "110100", "112100", "111100", "113100", "114100", "116100")
+replace StateAssignedDistID = "18" if inlist(StateAssignedSchID, "101101", "102100", "105101", "106101", "107101", "108101") | inlist(StateAssignedSchID, "110100", "112100", "111100", "113100", "114100", "116100")
 
-merge m:1 State_leaid using "${NCES}/NCES_2018_District.dta"
+replace State_leaid = "NV-19" if StateAssignedSchID == "84406"
+replace StateAssignedDistID = "19" if StateAssignedSchID == "84406"
+
+merge m:1 State_leaid using "${NCES}/NCES_2022_District.dta"
 
 replace State_leaid = "NV-18" if _merge == 1 & DataLevel != 1
 replace StateAssignedDistID = "18" if _merge == 1 & DataLevel != 1
 
-replace State_leaid = "NV-21" if _merge == 1 & inlist(StateAssignedSchID, "46100", "46200")
-replace StateAssignedDistID = "21" if _merge == 1 & inlist(StateAssignedSchID, "46100", "46200")
-
 drop if _merge == 2
 drop _merge
 
-merge m:1 State_leaid using "${NCES}/NCES_2018_District.dta", update
+merge m:1 State_leaid using "${NCES}/NCES_2022_District.dta", update
 
 drop if _merge == 2
 drop _merge
 
 gen seasch = StateAssignedDistID + "-" + StateAssignedSchID
 replace seasch = "" if DataLevel != 3
+replace seasch = "18-115100" if seasch == "11-115100"
 
-merge m:1 seasch using "${NCES}/NCES_2018_School.dta"
-
+merge m:1 seasch using "${NCES}/NCES_2022_School.dta"
 drop if _merge == 2
 drop _merge
 
+//New Schools 2024
+replace NCESSchoolID = "320000100990" if StateAssignedSchID == "58430"
+replace SchName = "Pinecrest Academy of Nevada Springs" if NCESSchoolID == "320000100990"
+replace SchType = 1 if NCESSchoolID == "320000100990"
+replace SchLevel = 1 if NCESSchoolID == "320000100990"
+replace SchVirtual = 0 if NCESSchoolID == "320000100990"
+replace NCESSchoolID = "320000100991" if StateAssignedSchID == "88101"
+replace SchName = "Eagle Charter Schools of Nevada" if NCESSchoolID == "320000100991"
+replace SchType = 1 if NCESSchoolID == "320000100991"
+replace SchLevel = 1 if NCESSchoolID == "320000100991"
+replace SchVirtual = 0 if NCESSchoolID == "320000100991"
+
+replace SchLevel = 1 if NCESSchoolID == "320006000572"
+replace SchVirtual = 0 if NCESSchoolID == "320006000572"
+replace SchLevel = 4 if NCESSchoolID == "320006000923"
+replace SchVirtual = 0 if NCESSchoolID == "320006000923"
+replace SchLevel = 1 if NCESSchoolID == "320048000978"
+replace SchVirtual = 0 if NCESSchoolID == "320048000978"
+replace SchLevel = 1 if NCESSchoolID == "320048000979"
+replace SchVirtual = 0 if NCESSchoolID == "320048000979"
+
+//Cleaning up from NCES
 replace StateAbbrev = "NV" if DataLevel == 1
 replace State = "Nevada" if DataLevel == 1
 replace StateFips = 32 if DataLevel == 1
@@ -256,7 +285,6 @@ replace DistName = "All Districts" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel != 3
 
 ** Generating new variables
-
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
@@ -269,6 +297,6 @@ order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistric
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${output}/NV_AssmtData_2019.dta", replace
+save "${output}/NV_AssmtData_2024.dta", replace
 
-export delimited using "${output}/csv/NV_AssmtData_2019.csv", replace
+export delimited using "${output}/csv/NV_AssmtData_2024.csv", replace

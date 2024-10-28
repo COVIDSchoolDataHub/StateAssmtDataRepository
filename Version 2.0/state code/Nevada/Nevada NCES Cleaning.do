@@ -1,11 +1,11 @@
 clear
 set more off
 
-cd "/Users/maggie/Desktop/Nevada"
+cd "/Users/miramehta/Documents"
 
-global NCESSchool "/Users/maggie/Desktop/Nevada/NCES/School"
-global NCESDistrict "/Users/maggie/Desktop/Nevada/NCES/District"
-global NCES "/Users/maggie/Desktop/Nevada/NCES/Cleaned"
+global NCESSchool "/Users/miramehta/Documents/NCES District and School Demographics/NCES School Files, Fall 1997-Fall 2022"
+global NCESDistrict "/Users/miramehta/Documents/NCES District and School Demographics/NCES District Files, Fall 1997-Fall 2022"
+global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
 
 global years 2015 2016 2017 2018 2020 2021 2022
 

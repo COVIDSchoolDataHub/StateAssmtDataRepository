@@ -1,11 +1,11 @@
 clear
 set more off
 
-global raw "/Users/maggie/Desktop/Nevada/Original Data Files"
-global output "/Users/maggie/Desktop/Nevada/Output"
-global NCES "/Users/maggie/Desktop/Nevada/NCES/Cleaned"
+global raw "/Users/miramehta/Documents/Nevada/Original Data Files"
+global output "/Users/miramehta/Documents/Nevada/Output"
+global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
 
-cd "/Users/maggie/Desktop/Nevada"
+cd "/Users/miramehta/Documents"
 
 use "${raw}/ELA & Math/Grade 3 2022.dta", clear
 gen GradeLevel = "G03"
@@ -118,10 +118,6 @@ destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
 replace StudentSubGroup_TotalTested2 = 0 if StudentSubGroup_TotalTested2 == .
 bysort StateAssignedDistID StateAssignedSchID StudentGroup GradeLevel Subject: egen test = min(StudentSubGroup_TotalTested2)
 bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen max = max(StudentSubGroup_TotalTested2)
-gen StudentGroup_TotalTested = max if !inlist(max, ., 0)
-tostring StudentGroup_TotalTested, replace force
-replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
-replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "-"
 
 bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen Econ = sum(StudentSubGroup_TotalTested2) if StudentGroup == "Economic Status"
 bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen EL = sum(StudentSubGroup_TotalTested2) if StudentGroup == "EL Status"
@@ -148,8 +144,14 @@ replace StudentSubGroup_TotalTested2 = max - Foster if StudentSubGroup == "Foste
 replace StudentSubGroup_TotalTested2 = max - Disability if StudentSubGroup == "Non-SWD" & max != 0 & StudentSubGroup_TotalTested == "*" & Disability != 0
 replace StudentSubGroup_TotalTested2 = max - Disability if StudentSubGroup == "SWD" & max != 0 & StudentSubGroup_TotalTested == "*" & Disability != 0
 replace StudentSubGroup_TotalTested = string(StudentSubGroup_TotalTested2) if StudentSubGroup_TotalTested2 != 0
+replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "-"
 
 replace StudentGroup = "EL Status" if StudentSubGroup == "LTEL"
+
+sort DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel StudentGroup StudentSubGroup
+gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+order Subject GradeLevel StudentGroup_TotalTested StudentGroup StudentSubGroup_TotalTested StudentSubGroup
+replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested) & StudentSubGroup != "All Students"
 
 local level Lev1 Lev2 Lev3 Lev4 ProficientOrAbove 
 foreach a of local level {
