@@ -1,14 +1,17 @@
 clear
 //set more off
 set trace off
-global Output "/Volumes/T7/State Test Project/Connecticut/Output"
-global EDFacts "/Volumes/T7/State Test Project/EDFACTS"
-global Temp "/Volumes/T7/State Test Project/Connecticut/Temp"
+
+
+global EDFacts "/Users/benjaminm/Documents/State_Repository_Research/EdFacts" //Folder with downloaded state-specific 2022 participation data from EDFacts
+global Temp "/Users/benjaminm/Documents/State_Repository_Research/Connecticut/Temp" // Folder with state-specific data
+global Output "/Users/benjaminm/Documents/State_Repository_Research/Connecticut/Output"
+
 
 foreach subject in ela math {
 foreach dl in district school {
 clear
-use "${EDFacts}/edfactspart2021`subject'`dl'.dta"
+use "${EDFacts}/2021/edfactspart2021`subject'`dl'.dta"
 keep if STNAM == "CONNECTICUT"
 
 //Renaming
@@ -97,8 +100,14 @@ foreach dl in district school {
 	}
 }
 
+	
+	
  **MERGING**
 use "${Output}/CT_AssmtData_2021"
+destring NCESDistrictID, replace
+destring NCESSchoolID, replace
+format NCESSchoolID %012.0f
+
 drop StudentSubGroup_TotalTested StudentGroup_TotalTested
 merge 1:1 NCESDistrictID NCESSchoolID Subject GradeLevel StudentSubGroup using "${Temp}/_2021_count", update
 drop if _merge == 2
@@ -122,6 +131,9 @@ use "`temp1'"
 keep if DataLevel !=1
 append using "`tempstate'"
 sort DataLevel
+
+tostring NCESDistrictID, replace force
+tostring NCESSchoolID, replace format(%012.0f) force
 replace NCESSchoolID = "" if DataLevel == 1
 replace NCESDistrictID = "" if DataLevel == 1
 
@@ -163,9 +175,92 @@ foreach n in 1 2 3 4 {
 
 //Final Cleaning
 recast str80 SchName
+
+
+//StudentGroup_TotalTested
+replace StudentSubGroup_TotalTested = string(real(Lev1_count) + real(Lev2_count) + real(Lev3_count) + real(Lev4_count)) if StudentSubGroup_TotalTested == "*" & !missing(real(Lev1_count)) & !missing(real(Lev2_count)) & !missing(real(Lev3_count)) & !missing(real(Lev4_count))
+
+
+
+gen StateAssignedDistID1 = StateAssignedDistID
+replace StudentGroup_TotalTested = ""
+replace StateAssignedDistID1 = "000000" if DataLevel == 1 //Remove quotations if DistIDs are numeric
+gen StateAssignedSchID1 = StateAssignedSchID
+replace StateAssignedSchID1 = "000000" if DataLevel != 3 //Remove quotations if SchIDs are numeric
+egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
+sort group_id StudentGroup StudentSubGroup
+by group_id: replace StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+drop group_id StateAssignedDistID1 StateAssignedSchID1
+
+destring StudentSubGroup_TotalTested, gen(total_count) ignore("*" "--")
+
+global a 1 2 3 4
+	foreach a in $a {
+		destring Lev`a'_count, gen(n`a'_count) ignore("*" "--")
+		destring Lev`a'_percent, gen(n`a'_percent) ignore("*" "--")
+	}
+	
+destring ProficientOrAbove_count, gen(nprof_count) ignore("*" "--")
+destring ProficientOrAbove_percent, gen(nprof_percent) ignore("*" "--")
+
+replace n4_count = total_count - n1_count - n2_count - n3_count if Lev1_count != "*" & Lev2_count != "*" & Lev3_count != "*" & Lev4_count == "*" & StudentSubGroup_TotalTested != "*"
+replace n4_percent = 1 - n1_percent - n2_percent - n3_percent if Lev1_count != "*" & Lev2_count != "*" & Lev3_count != "*" & Lev4_count == "*" & StudentSubGroup_TotalTested != "*"
+replace n4_percent = 0 if n4_percent <= 0
+replace n4_percent = 0 if n4_percent == 0.001
+
+
+replace n3_count = total_count - n1_count - n2_count - n4_count if Lev1_count != "*" & Lev2_count != "*" & Lev4_count != "*" & Lev3_count == "*" & StudentSubGroup_TotalTested != "*"
+replace n3_percent = 1 - n1_percent - n2_percent - n4_percent if Lev1_count != "*" & Lev2_count != "*" & Lev4_count != "*" & Lev3_count == "*" & StudentSubGroup_TotalTested != "*"
+replace n3_percent = 0 if n3_percent <= 0
+replace n3_percent = 0 if n3_percent == 0.001
+
+replace n2_count = total_count - n1_count - n3_count - n4_count if Lev1_count != "*" & Lev3_count != "*" & Lev4_count != "*" & Lev2_count == "*" & StudentSubGroup_TotalTested != "*"
+replace n2_percent = 1 - n1_percent - n3_percent - n4_percent if Lev1_count != "*" & Lev3_count != "*" & Lev4_count != "*" & Lev2_count == "*" & StudentSubGroup_TotalTested != "*"
+replace n2_percent = 0 if n2_percent <= 0
+replace n2_percent = 0 if n2_percent == 0.001
+
+replace n1_count = total_count - n2_count - n3_count - n4_count if Lev2_count != "*" & Lev3_count != "*" & Lev4_count != "*" & Lev1_count == "*" & StudentSubGroup_TotalTested != "*"
+replace n1_percent = 1 - n2_percent - n3_percent - n4_percent if Lev2_count != "*" & Lev3_count != "*" & Lev4_count != "*" & Lev1_count == "*" & StudentSubGroup_TotalTested != "*"
+replace n1_percent = 0 if n1_percent <= 0
+replace n1_percent = 0 if n1_percent == 0.001
+
+
+replace nprof_count = n3_count + n4_count if Lev1_count != "*" & Lev2_count != "*" & Lev3_count != "*" & Lev4_count == "*" & StudentSubGroup_TotalTested != "*"
+replace nprof_count = n3_count + n4_count if Lev1_count != "*" & Lev2_count != "*" & Lev3_count == "*" & Lev4_count != "*" & StudentSubGroup_TotalTested != "*"
+replace nprof_percent = n3_percent + n4_percent if Lev1_percent != "*" & Lev2_percent != "*" & Lev3_percent != "*" & Lev4_percent == "*" & StudentSubGroup_TotalTested != "*"
+replace nprof_percent = n3_percent + n4_percent if Lev1_percent != "*" & Lev2_percent != "*" & Lev3_percent == "*" & Lev4_percent != "*" & StudentSubGroup_TotalTested != "*"
+
+replace Lev4_count = string(n4_count) if Lev1_count != "*" & Lev2_count != "*" & Lev3_count != "*" & Lev4_count == "*" & StudentSubGroup_TotalTested != "*"
+replace Lev4_percent = string(n4_percent) if Lev1_percent != "*" & Lev2_percent != "*" & Lev3_percent != "*" & Lev4_percent == "*" & StudentSubGroup_TotalTested != "*"
+
+
+replace Lev3_count = string(n3_count) if Lev1_count != "*" & Lev2_count != "*" & Lev4_count != "*" & Lev3_count == "*" & StudentSubGroup_TotalTested != "*"
+replace Lev3_percent = string(n3_percent) if Lev1_percent != "*" & Lev2_percent != "*" & Lev4_percent != "*" & Lev3_percent == "*" & StudentSubGroup_TotalTested != "*"
+
+replace Lev2_count = string(n2_count) if Lev1_count != "*" & Lev4_count != "*" & Lev3_count != "*" & Lev2_count == "*" & StudentSubGroup_TotalTested != "*"
+replace Lev2_percent = string(n2_percent) if Lev1_percent != "*" & Lev4_percent != "*" & Lev3_percent != "*" & Lev2_percent == "*" & StudentSubGroup_TotalTested != "*"
+
+replace Lev1_count = string(n1_count) if Lev4_count != "*" & Lev2_count != "*" & Lev3_count != "*" & Lev1_count == "*" & StudentSubGroup_TotalTested != "*"
+replace Lev1_percent = string(n1_percent) if Lev4_percent != "*" & Lev2_percent != "*" & Lev3_percent != "*" & Lev1_percent == "*" & StudentSubGroup_TotalTested != "*"
+
+replace ProficientOrAbove_count = string(nprof_count) if ProficientOrAbove_count == "*" & nprof_count != .
+replace ProficientOrAbove_percent = string(nprof_percent) if ProficientOrAbove_percent == "*" & nprof_percent != .
+
+// fixing flags 
+
+replace Flag_CutScoreChange_ELA = "N" 
+replace Flag_CutScoreChange_math = "N" 
+replace Flag_CutScoreChange_sci = "N"
+
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 save "${Output}/CT_AssmtData_2021", replace
 export delimited "${Output}/CT_AssmtData_2021", replace
+
+
+use "${Output}/CT_AssmtData_2021", clear
+
+
 

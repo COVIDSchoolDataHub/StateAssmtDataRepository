@@ -785,11 +785,22 @@ keep if StudentGroup == "All Students" | StudentGroup == "RaceEth" | StudentGrou
 
 
 //StudentGroup_TotalTested
-destring StudentSubGroup_TotalTested, gen(nStudentSubGroup_TotalTested) i(*N/A)
-sort StudentGroup
-egen StudentGroup_TotalTested = total(nStudentSubGroup_TotalTested), by(StudentGroup GradeLevel Subject DataLevel StateAssignedSchID StateAssignedDistID)
-tostring StudentGroup_TotalTested, replace
-replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "0"
+replace StudentSubGroup_TotalTested = string(real(Lev1_count) + real(Lev2_count) + real(Lev3_count) + real(Lev4_count)) if StudentSubGroup_TotalTested == "*" & !missing(real(Lev1_count)) & !missing(real(Lev2_count)) & !missing(real(Lev3_count)) & !missing(real(Lev4_count))
+
+
+
+gen StateAssignedDistID1 = StateAssignedDistID
+replace StateAssignedDistID1 = "000000" if DataLevel == "State" //Remove quotations if DistIDs are numeric
+gen StateAssignedSchID1 = StateAssignedSchID
+replace StateAssignedSchID1 = "000000" if DataLevel != "School" //Remove quotations if SchIDs are numeric
+egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
+sort group_id StudentGroup StudentSubGroup
+by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+drop group_id StateAssignedDistID1 StateAssignedSchID1
+
+
+
 
 //DataLevel
 label def DataLevel 1 "State" 2 "District" 3 "School"
@@ -824,7 +835,7 @@ foreach n in 1 2 3 4 {
 
 //Sometimes, ProficientOrAbove_count and ProficientOrAbove_percent can be calculated even if they're listed as suppressed for some reason. Correcting below. 
 replace ProficientOrAbove_count = string(nLev3_count + nLev4_count, "%9.3g") if ProficientOrAbove_count == "*" & Lev3_count != "*" & Lev4_count != "*" & Lev3_count != "--" & Lev4_count != "--"
-//destring StudentSubGroup_TotalTested, gen(nStudentSubGroup_TotalTested) i(*-)
+destring StudentSubGroup_TotalTested, gen(nStudentSubGroup_TotalTested) i(*-)
 replace ProficientOrAbove_count = string(nStudentSubGroup_TotalTested - nLev3_count - nLev4_count, "%9.3g") if ProficientOrAbove_count == "*" & Lev3_count != "*" & Lev4_count != "*" & Lev3_count != "--" & Lev4_count != "--" & StudentSubGroup_TotalTested != "*" & StudentSubGroup_TotalTested != "--"
 replace ProficientOrAbove_percent = string((nLev3_percent/100) + (nLev4_percent/100), "%9.3g") if ProficientOrAbove_percent == "*" & Lev3_percent != "*" & Lev4_percent != "*" & Lev3_percent != "--" & Lev4_percent != "--"
 replace ProficientOrAbove_percent = string(1-(nLev1_percent/100) -(nLev2_percent/100), "%9.3g") if ProficientOrAbove_percent == "*" & Lev1_percent != "*" & Lev2_percent != "*" & Lev1_percent != "--" & Lev2_percent != "--"
@@ -1108,6 +1119,98 @@ replace CountyCode = "9110" if SchName == "Mansfield Elementary School"
 
 //Final Cleaning
 recast str80 SchName
+
+
+**** r1 updates 
+
+// fixing distype 
+decode DistType, gen(DistType1)
+replace DistType1 = "" if DistType1 == "Missing/not reported"
+drop DistType
+rename DistType1 DistType
+
+
+// fixing dist and sch names 
+foreach var of varlist DistName SchName {
+replace `var' = strtrim(`var')
+replace `var' = stritrim(`var')
+}
+
+// fixing county names 
+replace CountyName = "South Central Connecticut Planning Region" if NCESDistrictID == "0900070" & (SchYear=="2022-23" | SchYear=="2023-24")
+replace CountyCode= "9170" if NCESDistrictID == "0900070" & (SchYear=="2022-23" | SchYear=="2023-24")
+
+// fixing flags
+replace Flag_CutScoreChange_ELA = "N" if `year' == 2021 | `year' == 2022
+replace Flag_CutScoreChange_math = "N" if `year' == 2021 | `year' == 2022
+replace Flag_CutScoreChange_sci = "N" if `year' == 2021 | `year' == 2022
+
+
+// missing NCES data 
+replace DistLocale = "City, midsize" if SchName == "Geraldine Claytor Magnet Academy" & `year' == 2017
+replace DistLocale = "Rural, fringe" if SchName == "Mansfield Elementary School" & `year' == 2024
+
+replace SchLevel = 1 if SchName == "Candlewood Lake Elementary School"  & `year' == 2024
+replace SchVirtual = 3 if SchName == "Candlewood Lake Elementary School" &  `year' == 2024 // updated to "Supplemental Virtual" for homogeneity with other entries
+
+replace SchVirtual = 3 if SchName == "Woodland School" & `year' == 2023 // updated to "Supplemental Virtual" for homogeneity with other entries
+
+
+// deriving Lev4_count 
+
+
+destring StudentSubGroup_TotalTested, gen(total_count) ignore("*" "--")
+
+global a 1 2 3 4
+	foreach a in $a {
+		destring Lev`a'_count, gen(n`a'_count) ignore("*" "--")
+		destring Lev`a'_percent, gen(n`a'_percent) ignore("*" "--")
+	}
+	
+destring ProficientOrAbove_count, gen(nprof_count) ignore("*" "--")
+destring ProficientOrAbove_percent, gen(nprof_percent) ignore("*" "--")
+
+replace n4_count = total_count - n1_count - n2_count - n3_count if Lev1_count != "*" & Lev2_count != "*" & Lev3_count != "*" & Lev4_count == "*" & StudentSubGroup_TotalTested != "*"
+replace n4_percent = 1 - n1_percent - n2_percent - n3_percent if Lev1_count != "*" & Lev2_count != "*" & Lev3_count != "*" & Lev4_count == "*" & StudentSubGroup_TotalTested != "*"
+replace n4_percent = 0 if n4_percent <= 0
+replace n4_percent = 0 if n4_percent == 0.001
+
+
+replace n3_count = total_count - n1_count - n2_count - n4_count if Lev1_count != "*" & Lev2_count != "*" & Lev4_count != "*" & Lev3_count == "*" & StudentSubGroup_TotalTested != "*"
+replace n3_percent = 1 - n1_percent - n2_percent - n4_percent if Lev1_count != "*" & Lev2_count != "*" & Lev4_count != "*" & Lev3_count == "*" & StudentSubGroup_TotalTested != "*"
+replace n3_percent = 0 if n3_percent <= 0
+replace n3_percent = 0 if n3_percent == 0.001
+
+replace n2_count = total_count - n1_count - n3_count - n4_count if Lev1_count != "*" & Lev3_count != "*" & Lev4_count != "*" & Lev2_count == "*" & StudentSubGroup_TotalTested != "*"
+replace n2_percent = 1 - n1_percent - n3_percent - n4_percent if Lev1_count != "*" & Lev3_count != "*" & Lev4_count != "*" & Lev2_count == "*" & StudentSubGroup_TotalTested != "*"
+replace n2_percent = 0 if n2_percent <= 0
+replace n2_percent = 0 if n2_percent == 0.001
+
+replace n1_count = total_count - n2_count - n3_count - n4_count if Lev2_count != "*" & Lev3_count != "*" & Lev4_count != "*" & Lev1_count == "*" & StudentSubGroup_TotalTested != "*"
+replace n1_percent = 1 - n2_percent - n3_percent - n4_percent if Lev2_count != "*" & Lev3_count != "*" & Lev4_count != "*" & Lev1_count == "*" & StudentSubGroup_TotalTested != "*"
+replace n1_percent = 0 if n1_percent <= 0
+replace n1_percent = 0 if n1_percent == 0.001
+
+
+replace nprof_count = n3_count + n4_count if Lev1_count != "*" & Lev2_count != "*" & Lev3_count != "*" & Lev4_count == "*" & StudentSubGroup_TotalTested != "*"
+replace nprof_percent = n3_percent + n4_percent if Lev1_percent != "*" & Lev2_percent != "*" & Lev3_percent != "*" & Lev4_percent == "*" & StudentSubGroup_TotalTested != "*"
+
+replace Lev4_count = string(n4_count) if Lev1_count != "*" & Lev2_count != "*" & Lev3_count != "*" & Lev4_count == "*" & StudentSubGroup_TotalTested != "*"
+replace Lev4_percent = string(n4_percent) if Lev1_percent != "*" & Lev2_percent != "*" & Lev3_percent != "*" & Lev4_percent == "*" & StudentSubGroup_TotalTested != "*"
+
+
+replace Lev3_count = string(n3_count) if Lev1_count != "*" & Lev2_count != "*" & Lev4_count != "*" & Lev3_count == "*" & StudentSubGroup_TotalTested != "*"
+replace Lev3_percent = string(n3_percent) if Lev1_percent != "*" & Lev2_percent != "*" & Lev4_percent != "*" & Lev3_percent == "*" & StudentSubGroup_TotalTested != "*"
+
+replace Lev2_count = string(n2_count) if Lev1_count != "*" & Lev4_count != "*" & Lev3_count != "*" & Lev2_count == "*" & StudentSubGroup_TotalTested != "*"
+replace Lev2_percent = string(n2_percent) if Lev1_percent != "*" & Lev4_percent != "*" & Lev3_percent != "*" & Lev2_percent == "*" & StudentSubGroup_TotalTested != "*"
+
+replace Lev1_count = string(n1_count) if Lev4_count != "*" & Lev2_count != "*" & Lev3_count != "*" & Lev1_count == "*" & StudentSubGroup_TotalTested != "*"
+replace Lev1_percent = string(n1_percent) if Lev4_percent != "*" & Lev2_percent != "*" & Lev3_percent != "*" & Lev1_percent == "*" & StudentSubGroup_TotalTested != "*"
+
+replace ProficientOrAbove_count = string(nprof_count) if ProficientOrAbove_count == "*" & nprof_count != .
+replace ProficientOrAbove_percent = string(nprof_percent) if ProficientOrAbove_percent == "*" & nprof_percent != .
+
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
@@ -1117,6 +1220,3 @@ export delimited "${Output}/CT_AssmtData_`year'", replace
 clear
 
 }
-
-
-log close

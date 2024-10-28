@@ -1,4 +1,4 @@
-use "NC_OriginalData_2024", clear 
+import delimited NC_OriginalData_2024.csv, clear 
 
 rename school_code StateAssignedSchID 
 rename name SchName
@@ -95,63 +95,39 @@ display "Foster Care"
 replace StudentSubGroup2 = "Foster Care" if StudentSubGroup == "FCS"
 replace StudentSubGroup2 = "Non-Foster Care" if StudentSubGroup == "NOT_FCS"
 
-
 drop if StudentSubGroup2 == ""
 drop StudentSubGroup
 rename StudentSubGroup2 StudentSubGroup
 
-
 // creating student groups 
-
 gen StudentGroup = ""
 replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
-replace StudentGroup = "RaceEth" if StudentSubGroup == "American Indian or Alaska Native"
-replace StudentGroup = "RaceEth" if StudentSubGroup == "Asian"
-replace StudentGroup = "RaceEth" if StudentSubGroup == "Black or African American"
-replace StudentGroup = "RaceEth" if StudentSubGroup == "Native Hawaiian or Pacific Islander"
-replace StudentGroup = "RaceEth" if StudentSubGroup == "Two or More"
-replace StudentGroup = "RaceEth" if StudentSubGroup == "Hispanic or Latino"
-replace StudentGroup = "RaceEth" if StudentSubGroup == "White"
-
-replace StudentGroup = "EL Status" if StudentSubGroup == "English Learner"
-replace StudentGroup = "EL Status" if StudentSubGroup == "English Proficient"
-
-replace StudentGroup = "Gender" if StudentSubGroup == "Male"
-replace StudentGroup = "Gender" if StudentSubGroup == "Female"
-
-
-replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged"
-replace StudentGroup = "Economic Status" if StudentSubGroup == "Not Economically Disadvantaged"
-
+replace StudentGroup = "RaceEth" if inlist(StudentSubGroup, "American Indian or Alaska Native", "Asian", "Black or African American", "Native Hawaiian or Pacific Islander", "Two or More", "Hispanic or Latino", "White")
+replace StudentGroup = "EL Status" if inlist(StudentSubGroup, "English Learner", "English Proficient")
+replace StudentGroup = "Gender" if inlist(StudentSubGroup, "Male", "Female")
+replace StudentGroup = "Economic Status" if inlist(StudentSubGroup, "Economically Disadvantaged", "Not Economically Disadvantaged")
 replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD" | StudentSubGroup == "Non-SWD"
 replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless" | StudentSubGroup == "Non-Homeless" 
 replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Military" | StudentSubGroup == "Non-Military" 
 replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant" | StudentSubGroup == "Non-Migrant"
 replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Foster Care" | StudentSubGroup == "Non-Foster Care"
 
-
 // proficiency level 
 gen ProficiencyCriteria = "Levels 2-4" 
-
 // split CODE into district piece, and school piece 
 gen StateAssignedDistID = ""
 replace StateAssignedDistID = StateAssignedSchID if regexm(StateAssignedSchID, "[0-9]{3}LEA")
-
 // remove LEA piece from stateassigneddistrictID 
 replace StateAssignedDistID = subinstr(StateAssignedDistID, "LEA", "", .)
-
 // drop entries which are "regions" by datalevel 
 drop if regexm(StateAssignedSchID, "^NC-SB")
-
 // create datalevel funciton based on codes 
 gen DataLevel = "School"
 replace DataLevel = "District" if StateAssignedDistID != ""
 replace DataLevel = "State" if StateAssignedSchID == "NC-SEA"
 
 replace StateAssignedSchID = "" if DataLevel == "District" | DataLevel == "State"
-
 replace StateAssignedDistID = substr(StateAssignedSchID, 1, 3) if DataLevel == "School"
-
 rename StateAssignedDistID State_leaid
 
 gen StateAssignedSchID_full = StateAssignedSchID // keeping to replace back later 
@@ -170,9 +146,8 @@ merge m:1 State_leaid seasch using "$North Carolina/NCES_2024_School.dta"
 rename _merge SchoolMerge
 drop if SchoolMerge == 2
 drop SchoolMerge 
-rename StateAssignedSchID seasch
-merge m:1 State_leaid using  "$North Carolina/NC_district_IDs_2024.dta" 
 
+merge m:1 State_leaid using "$North Carolina/NC_district_IDs_2024.dta" 
 rename seasch StateAssignedSchID 
 rename State_leaid StateAssignedDistID 
 
