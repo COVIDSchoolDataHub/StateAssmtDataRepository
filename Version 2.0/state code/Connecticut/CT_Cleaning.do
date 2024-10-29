@@ -11,8 +11,6 @@ global NCES_School "/Users/benjaminm/Documents/State_Repository_Research/NCES/Sc
 global NCES_District "/Users/benjaminm/Documents/State_Repository_Research/NCES/District"
 
 
-// use "${Output}/CT_AssmtData_2024", replace
-
 
 
 log using variablescheck.log, replace
