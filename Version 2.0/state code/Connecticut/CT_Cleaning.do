@@ -11,6 +11,9 @@ global NCES_School "/Users/benjaminm/Documents/State_Repository_Research/NCES/Sc
 global NCES_District "/Users/benjaminm/Documents/State_Repository_Research/NCES/District"
 
 
+// use "${Output}/CT_AssmtData_2024", replace
+
+
 
 log using variablescheck.log, replace
 //Standardizing Varnames (and variables if necessary) before appending
@@ -1211,6 +1214,9 @@ replace Lev1_percent = string(n1_percent) if Lev4_percent != "*" & Lev2_percent 
 replace ProficientOrAbove_count = string(nprof_count) if ProficientOrAbove_count == "*" & nprof_count != .
 replace ProficientOrAbove_percent = string(nprof_percent) if ProficientOrAbove_percent == "*" & nprof_percent != .
 
+// deriving ProficientOrAbove_count using ProficientOrAbove_percent and StudentSubGroup_TotalTested, r2
+replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent) * real(StudentSubGroup_TotalTested),1)) if ProficientOrAbove_count == "*" & !missing(real(ProficientOrAbove_percent)) & !missing(real(StudentSubGroup_TotalTested))
+
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
@@ -1220,3 +1226,4 @@ export delimited "${Output}/CT_AssmtData_`year'", replace
 clear
 
 }
+
