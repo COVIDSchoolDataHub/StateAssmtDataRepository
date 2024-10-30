@@ -16,14 +16,16 @@ local scigrades 5 8
 
 foreach a of local years {
 	foreach b of local grades {
-		import delimited "${raw}/ELA & Math/Grade `b' `a'.csv", varnames(3) case(preserve) clear
+		import delimited "${raw}/ELA & Math/NV_OriginalData_`a'_ela_math_G0`b'.csv", varnames(3) case(preserve) clear
+		gen Sub1 = "elamat"
 		save "${raw}/ELA & Math/Grade `b' `a'.dta", replace
 	}
 }
 
 foreach a of local sciyears {
 	foreach b of local scigrades {
-		import delimited "${raw}/Sci/Grade `b' `a'.csv", varnames(3) case(preserve) clear
+		import delimited "${raw}/Sci/NV_OriginalData_`a'_sci_G0`b'.csv", varnames(3) case(preserve) clear
+		gen Sub1 = "sci"
 		save "${raw}/Sci/Grade `b' `a'.dta", replace
 	}
 }
@@ -32,27 +34,27 @@ local levels "state districts schools"
 foreach lev of local levels{
 	if "`lev'" != "school"{
 	import delimited "${raw}/ELA & Math/2024/`lev'/NV_OriginalData_2024_ela_math_G38.csv", varnames(3) stringcols(_all) case(preserve) clear
+	gen Sub1 = "elamat"
 	save "${raw}/ELA & Math/2024/`lev'/NV_OriginalData_2024_ela_math_G38.dta", replace
 	import delimited "${raw}/Sci/2024/`lev'/NV_OriginalData_2024_sci_G38.csv", varnames(3) stringcols(_all) case(preserve) clear
-	save "${raw}/Sci/2024/`lev'/NV_OriginalData_2024_sci_G38.dta", replace
-	}
-	if "`lev'" == "school"{
-	import delimited "${raw}/ELA & Math/2024/`lev'/NV_OriginalData_2024_ela_math_G38.csv", stringcols(_all) case(preserve) clear
-	save "${raw}/ELA & Math/2024/`lev'/NV_OriginalData_2024_ela_math_G38.dta", replace
-	import delimited "${raw}/Sci/2024/`lev'/NV_OriginalData_2024_sci_G38.csv", stringcols(_all) case(preserve) clear
+	gen Sub1 = "sci"
 	save "${raw}/Sci/2024/`lev'/NV_OriginalData_2024_sci_G38.dta", replace
 	}
 	foreach a of local grades{
 		import delimited "${raw}/ELA & Math/2024/`lev'/NV_OriginalData_2024_ela_math_G0`a'.csv", varnames(3) stringcols(_all) case(preserve) clear
+		gen Sub1 = "elamat"
 		save "${raw}/ELA & Math/2024/`lev'/NV_OriginalData_2024_ela_math_G0`a'.dta", replace
 	}
 	foreach b of local scigrades{
 		import delimited "${raw}/Sci/2024/`lev'/NV_OriginalData_2024_sci_G0`b'.csv", varnames(3) stringcols(_all) case(preserve) clear
+		gen Sub1 = "sci"
 		save "${raw}/Sci/2024/`lev'/NV_OriginalData_2024_sci_G0`b'.dta", replace
 	}
 }
 
 import delimited "${raw}/ELA & Math/2024/schools/NV_OriginalData_2024_ela_math_G38.csv", stringcols(_all) case(preserve) clear
+gen Sub1 = "elamat"
 save "${raw}/ELA & Math/2024/schools/NV_OriginalData_2024_ela_math_G38.dta", replace
 import delimited "${raw}/Sci/2024/schools/NV_OriginalData_2024_sci_G38.csv", stringcols(_all) case(preserve) clear
+gen Sub1 = "sci"
 save "${raw}/Sci/2024/schools/NV_OriginalData_2024_sci_G38.dta", replace

@@ -28,16 +28,10 @@ rename Science* *sci
 
 drop if Group == "Unknown"
 
-sort Group OrganizationCode GradeLevel
-foreach a of varlist NumberTestedsci Testedsci Proficientsci EmergentDevelopingsci ApproachesStandardsci MeetsStandardsci ExceedsStandardsci {
-	replace `a' = `a'[_n+1] if Group[_n+1] == Group[_n] & OrganizationCode[_n+1] == OrganizationCode[_n] & GradeLevel[_n+1] == GradeLevel[_n]
-}
+reshape long NumberTested Tested Proficient EmergentDeveloping ApproachesStandard MeetsStandard ExceedsStandard, i(Group OrganizationCode GradeLevel Sub1) j(Subject) string
 
-drop if NumberTestedmath == "" & NumberTestedela == ""
-
-reshape long NumberTested Tested Proficient EmergentDeveloping ApproachesStandard MeetsStandard ExceedsStandard, i(Group OrganizationCode GradeLevel) j(Subject) string
-
-drop if NumberTested == ""
+drop if Sub1 == "elamat" & Subject == "sci"
+drop if Sub1 == "sci" & Subject != "sci"
 
 rename Year SchYear
 rename NumberTested StudentSubGroup_TotalTested
@@ -116,34 +110,6 @@ gen AssmtType = "Regular"
 
 destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
 replace StudentSubGroup_TotalTested2 = 0 if StudentSubGroup_TotalTested2 == .
-bysort StateAssignedDistID StateAssignedSchID StudentGroup GradeLevel Subject: egen test = min(StudentSubGroup_TotalTested2)
-bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen max = max(StudentSubGroup_TotalTested2)
-
-bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen Econ = sum(StudentSubGroup_TotalTested2) if StudentGroup == "Economic Status"
-bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen EL = sum(StudentSubGroup_TotalTested2) if StudentGroup == "EL Status"
-bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen Gender = sum(StudentSubGroup_TotalTested2) if StudentGroup == "Gender"
-bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen Migrant = sum(StudentSubGroup_TotalTested2) if StudentGroup == "Migrant Status"
-bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen Homeless = sum(StudentSubGroup_TotalTested2) if StudentGroup == "Homeless Enrolled Status"
-bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen Military = sum(StudentSubGroup_TotalTested2) if StudentGroup == "Military Connected Status"
-bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen Foster = sum(StudentSubGroup_TotalTested2) if StudentGroup == "Foster Care Status"
-bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen Disability = sum(StudentSubGroup_TotalTested2) if StudentGroup == "Disability Status"
-replace StudentSubGroup_TotalTested2 = max - Econ if StudentSubGroup == "Not Economically Disadvantaged" & max != 0 & StudentSubGroup_TotalTested == "*" & Econ != 0
-replace StudentSubGroup_TotalTested2 = max - Econ if StudentSubGroup == "Economically Disadvantaged" & max != 0 & StudentSubGroup_TotalTested == "*" & Econ != 0
-replace StudentSubGroup_TotalTested2 = max - EL if StudentSubGroup == "English Proficient" & max != 0 & StudentSubGroup_TotalTested == "*" & EL != 0
-replace StudentSubGroup_TotalTested2 = max - EL if StudentSubGroup == "English Learner" & max != 0 & StudentSubGroup_TotalTested == "*" & EL != 0
-replace StudentSubGroup_TotalTested2 = max - Gender if StudentSubGroup == "Male" & max != 0 & StudentSubGroup_TotalTested == "*" & Gender != 0
-replace StudentSubGroup_TotalTested2 = max - Gender if StudentSubGroup == "Female" & max != 0 & StudentSubGroup_TotalTested == "*" & Gender != 0
-replace StudentSubGroup_TotalTested2 = max - Migrant if StudentSubGroup == "Non-Migrant" & max != 0 & StudentSubGroup_TotalTested == "*" & Migrant != 0
-replace StudentSubGroup_TotalTested2 = max - Migrant if StudentSubGroup == "Migrant" & max != 0 & StudentSubGroup_TotalTested == "*" & Migrant != 0
-replace StudentSubGroup_TotalTested2 = max - Homeless if StudentSubGroup == "Non-Homeless" & max != 0 & StudentSubGroup_TotalTested == "*" & Homeless != 0
-replace StudentSubGroup_TotalTested2 = max - Homeless if StudentSubGroup == "Homeless" & max != 0 & StudentSubGroup_TotalTested == "*" & Homeless != 0
-replace StudentSubGroup_TotalTested2 = max - Military if StudentSubGroup == "Non-Military" & max != 0 & StudentSubGroup_TotalTested == "*" & Military != 0
-replace StudentSubGroup_TotalTested2 = max - Military if StudentSubGroup == "Military" & max != 0 & StudentSubGroup_TotalTested == "*" & Military != 0
-replace StudentSubGroup_TotalTested2 = max - Foster if StudentSubGroup == "Non-Foster Care" & max != 0 & StudentSubGroup_TotalTested == "*" & Foster != 0
-replace StudentSubGroup_TotalTested2 = max - Foster if StudentSubGroup == "Foster Care" & max != 0 & StudentSubGroup_TotalTested == "*" & Foster != 0
-replace StudentSubGroup_TotalTested2 = max - Disability if StudentSubGroup == "Non-SWD" & max != 0 & StudentSubGroup_TotalTested == "*" & Disability != 0
-replace StudentSubGroup_TotalTested2 = max - Disability if StudentSubGroup == "SWD" & max != 0 & StudentSubGroup_TotalTested == "*" & Disability != 0
-replace StudentSubGroup_TotalTested = string(StudentSubGroup_TotalTested2) if StudentSubGroup_TotalTested2 != 0
 replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "-"
 
 sort DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel StudentGroup StudentSubGroup
@@ -151,6 +117,29 @@ gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup ==
 order Subject GradeLevel StudentGroup_TotalTested StudentGroup StudentSubGroup_TotalTested StudentSubGroup
 replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested) & StudentSubGroup != "All Students"
 
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen RaceEth = sum(StudentSubGroup_TotalTested2) if StudentGroup == "RaceEth"
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen Econ = sum(StudentSubGroup_TotalTested2) if StudentGroup == "Economic Status"
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen EL = sum(StudentSubGroup_TotalTested2) if StudentGroup == "EL Status"
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen Gender = sum(StudentSubGroup_TotalTested2) if StudentGroup == "Gender"
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen Migrant = sum(StudentSubGroup_TotalTested2) if StudentGroup == "Migrant Status"
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen Disability = sum(StudentSubGroup_TotalTested2) if StudentGroup == "Disability Status"
+
+gen max = real(StudentGroup_TotalTested)
+replace max = 0 if max == .
+
+gen x = 1 if missing(real(StudentSubGroup_TotalTested))
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject StudentGroup: egen flag = sum(x)
+
+replace StudentSubGroup_TotalTested2 = max - RaceEth if StudentGroup == "RaceEth" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & flag <= 1
+replace StudentSubGroup_TotalTested2 = real(StudentGroup_TotalTested) - Econ if StudentGroup == "Economic Status" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & Econ != 0 & flag <= 1
+replace StudentSubGroup_TotalTested2 = max - EL if StudentSubGroup == "English Proficient" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & EL != 0
+replace StudentSubGroup_TotalTested2 = max - EL if StudentSubGroup == "English Learner" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & EL != 0
+replace StudentSubGroup_TotalTested2 = max - Gender if StudentGroup == "Gender" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & Gender != 0 & flag <= 1
+replace StudentSubGroup_TotalTested2 = max - Migrant if StudentGroup == "Migrant Status" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & Migrant != 0 & flag <= 1
+replace StudentSubGroup_TotalTested2 = max - Disability if StudentGroup == "Disability Status" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & Disability != 0 & flag <= 1
+
+replace StudentSubGroup_TotalTested = string(StudentSubGroup_TotalTested2) if missing(real(StudentSubGroup_TotalTested)) & StudentSubGroup_TotalTested2 != . & StudentSubGroup != "All Students"
+drop if inlist(StudentSubGroup_TotalTested, "", "0") & StudentSubGroup != "All Students"
 local level Lev1 Lev2 Lev3 Lev4 ProficientOrAbove 
 foreach a of local level {
 	gen `a'_percent2 = subinstr(`a'_percent, "<", "", .)
@@ -158,7 +147,7 @@ foreach a of local level {
 	destring `a'_percent2, replace force
 	replace `a'_percent2 = `a'_percent2/100
 	gen `a'_count = round(StudentSubGroup_TotalTested2 * `a'_percent2)
-	tostring `a'_percent2, replace force
+	tostring `a'_percent2, replace format("%9.3f") force
 	replace `a'_percent2 = "0-" + `a'_percent2 if strpos(`a'_percent, "<") > 0
 	replace `a'_percent2 = `a'_percent2 + "-1" if strpos(`a'_percent, ">") > 0
 	replace `a'_percent2 = "*" if `a'_percent2 == "."
@@ -167,27 +156,84 @@ foreach a of local level {
 	replace `a'_count = `a'_count + "-" + StudentSubGroup_TotalTested if strpos(`a'_percent, ">") > 0 & StudentGroup_TotalTested != "*" & `a'_count != StudentSubGroup_TotalTested
 	replace `a'_count = "*" if `a'_count == "."
 	drop `a'_percent
+	rename `a'_percent2 `a'_percent
+	split `a'_percent, parse("-")
+	destring `a'_percent1, replace force
+	cap destring `a'_percent2, replace force
 }
 
-foreach a of local level {
-	destring `a'_percent2, gen(`a'_percent3) force
-}
+replace ProficientOrAbove_percent1 = 1 - Lev1_percent1 - Lev2_percent1 if inlist(ProficientOrAbove_percent, "*", "--") & Lev1_percent1 != . & Lev2_percent1 != . & Lev1_percent2 == .
+replace ProficientOrAbove_percent1 = 1 - Lev1_percent2 - Lev2_percent1 if inlist(ProficientOrAbove_percent, "*", "--") & Lev1_percent2 != . & Lev2_percent1 != .
+replace ProficientOrAbove_percent1 = 0 if ProficientOrAbove_percent1 < 0
 
-replace Lev3_percent3 = ProficientOrAbove_percent3 - Lev4_percent3 if ProficientOrAbove_percent3 != . & Lev4_percent3 != . & Lev3_percent3 == .
-replace Lev3_count = string(round(StudentSubGroup_TotalTested2 * Lev3_percent3)) if ProficientOrAbove_percent3 != . & Lev4_percent3 != .
-replace Lev4_percent3 = ProficientOrAbove_percent3 - Lev3_percent3 if ProficientOrAbove_percent3 != . & Lev3_percent3 != . & Lev4_percent3 == .
-replace Lev4_count = string(round(StudentSubGroup_TotalTested2 * Lev4_percent3)) if ProficientOrAbove_percent3 != . & Lev3_percent3 != .
-replace Lev1_percent3 = round(1 - Lev2_percent3 - ProficientOrAbove_percent3, 0.01) if Lev2_percent3 != . & ProficientOrAbove_percent3 != . & Lev1_percent3 == .
-replace Lev1_count = string(round(StudentSubGroup_TotalTested2 * Lev1_percent3)) if Lev2_percent3 != . & ProficientOrAbove_percent3 != .
-replace Lev2_percent3 = round(1 - Lev1_percent3 - ProficientOrAbove_percent3, 0.01) if Lev1_percent3 != . & ProficientOrAbove_percent3 != . & Lev2_percent3 == .
-replace Lev2_count = string(round(StudentSubGroup_TotalTested2 * Lev2_percent3)) if Lev1_percent3 != . & ProficientOrAbove_percent3 != .
-replace ProficientOrAbove_percent3 = round(1 - Lev1_percent3 - Lev2_percent3, 0.01) if Lev1_percent3 != . & Lev2_percent3 != . & ProficientOrAbove_percent3 == .
-replace ProficientOrAbove_count = string(round(StudentSubGroup_TotalTested2 * ProficientOrAbove_percent3)) if Lev1_percent3 != . & Lev2_percent3 != .
+replace ProficientOrAbove_percent2 = 1 - Lev1_percent1 - Lev2_percent1 if inlist(ProficientOrAbove_percent, "*", "--") & Lev1_percent1 != . & Lev2_percent1 != .
+replace ProficientOrAbove_percent2 = 0 if ProficientOrAbove_percent2 < 0
 
-foreach a of local level {
-	replace `a'_percent2 = string(`a'_percent3) if `a'_percent3 != .
-	drop `a'_percent3
-}
+replace ProficientOrAbove_percent = string(ProficientOrAbove_percent1, "%9.3f") if inlist(ProficientOrAbove_percent, "*", "--") & ProficientOrAbove_percent1 != . & ProficientOrAbove_percent2 == .
+replace ProficientOrAbove_percent = string(ProficientOrAbove_percent1, "%9.3f") if inlist(ProficientOrAbove_percent, "*", "--") & ProficientOrAbove_percent1 != . & ProficientOrAbove_percent1 == ProficientOrAbove_percent2
+replace ProficientOrAbove_percent = string(ProficientOrAbove_percent1, "%9.3f") + "-" + string(ProficientOrAbove_percent2, "%9.3f") if inlist(ProficientOrAbove_percent, "*", "--") & ProficientOrAbove_percent1 != . & ProficientOrAbove_percent2 != . & ProficientOrAbove_percent1 != ProficientOrAbove_percent2
+
+replace ProficientOrAbove_count = string(round(StudentSubGroup_TotalTested2 * ProficientOrAbove_percent1)) if inlist(ProficientOrAbove_count, "*", "--") & StudentSubGroup_TotalTested2 != . & ProficientOrAbove_percent1 != . & ProficientOrAbove_percent2 == .
+replace ProficientOrAbove_count = string(round(StudentSubGroup_TotalTested2 * ProficientOrAbove_percent1)) if inlist(ProficientOrAbove_count, "*", "--") & StudentSubGroup_TotalTested2 != . & ProficientOrAbove_percent1 != . & ProficientOrAbove_percent2 != . & round(StudentSubGroup_TotalTested2 * ProficientOrAbove_percent1) == round(StudentSubGroup_TotalTested2 * ProficientOrAbove_percent2)
+replace ProficientOrAbove_count = string(round(StudentSubGroup_TotalTested2 * ProficientOrAbove_percent1)) + "-" + string(round(StudentSubGroup_TotalTested2 * ProficientOrAbove_percent2)) if inlist(ProficientOrAbove_count, "*", "--") & StudentSubGroup_TotalTested2 != . & ProficientOrAbove_percent1 != . & ProficientOrAbove_percent2 != . & round(StudentSubGroup_TotalTested2 * ProficientOrAbove_percent1) != round(StudentSubGroup_TotalTested2 * ProficientOrAbove_percent2)
+
+replace Lev3_percent1 = ProficientOrAbove_percent1 - Lev4_percent1 if Lev3_percent1 == . & ProficientOrAbove_percent1 != . & Lev4_percent1 != . & Lev4_percent2 == .
+replace Lev3_percent1 = ProficientOrAbove_percent1 - Lev4_percent2 if Lev3_percent1 == . & ProficientOrAbove_percent1 != . & Lev4_percent2 != . & ProficientOrAbove_percent2 == .
+replace Lev3_percent1 = ProficientOrAbove_percent2 - Lev4_percent2 if Lev3_percent1 == . & ProficientOrAbove_percent2 != . & Lev4_percent2 != .
+replace Lev3_percent1 = 0 if Lev3_percent1 < 0 & Lev3_percent1 != .
+
+replace Lev3_percent2 = ProficientOrAbove_percent2 - Lev4_percent1 if Lev3_percent2 == . & ProficientOrAbove_percent2 != . & Lev4_percent1 != .
+replace Lev3_percent2 = ProficientOrAbove_percent1 - Lev4_percent1 if Lev3_percent2 == . & ProficientOrAbove_percent1 != . & Lev4_percent1 != . & ProficientOrAbove_percent2 == . & Lev4_percent2 != .
+replace Lev3_percent2 = 0 if Lev3_percent2 < 0 & Lev3_percent2 != .
+
+replace Lev3_percent = string(Lev3_percent1, "%9.3f") if inlist(Lev3_percent, "*", "--") & Lev3_percent1 != . & Lev3_percent2 == .
+replace Lev3_percent = string(Lev3_percent1, "%9.3f") if inlist(Lev3_percent, "*", "--") & Lev3_percent1 != . & Lev3_percent1 == Lev3_percent2
+replace Lev3_percent = string(Lev3_percent1, "%9.3f") + "-" + string(Lev3_percent2, "%9.3f") if inlist(Lev3_percent, "*", "--") & Lev3_percent1 != . & Lev3_percent2 != . & Lev3_percent1 != Lev3_percent2
+
+replace Lev3_count = string(round(StudentSubGroup_TotalTested2 * Lev3_percent1)) if inlist(Lev3_count, "*", "--") & StudentSubGroup_TotalTested2 != . & Lev3_percent1 != . & Lev3_percent2 == .
+replace Lev3_count = string(round(StudentSubGroup_TotalTested2 * Lev3_percent1)) if inlist(Lev3_count, "*", "--") & StudentSubGroup_TotalTested2 != . & Lev3_percent1 != . & Lev3_percent2 != . & round(StudentSubGroup_TotalTested2 * Lev3_percent1) == round(StudentSubGroup_TotalTested2 * Lev3_percent2)
+replace Lev3_count = string(round(StudentSubGroup_TotalTested2 * Lev3_percent1)) + "-" + string(round(StudentSubGroup_TotalTested2 * Lev3_percent2)) if inlist(Lev3_count, "*", "--") & StudentSubGroup_TotalTested2 != . & Lev3_percent1 != . & Lev3_percent2 != . & round(StudentSubGroup_TotalTested2 * Lev3_percent1) != round(StudentSubGroup_TotalTested2 * Lev3_percent2)
+
+replace Lev4_percent1 = ProficientOrAbove_percent1 - Lev3_percent1 if Lev4_percent1 == . & ProficientOrAbove_percent1 != . & Lev3_percent1 != . & Lev3_percent2 == .
+replace Lev4_percent1 = ProficientOrAbove_percent1 - Lev3_percent2 if Lev4_percent1 == . & ProficientOrAbove_percent1 != . & Lev3_percent2 != .
+replace Lev4_percent1 = ProficientOrAbove_percent2 - Lev3_percent2 if Lev4_percent1 == . & ProficientOrAbove_percent2 != . & Lev3_percent2 != .
+replace Lev4_percent1 = 0 if Lev4_percent1 < 0 & Lev4_percent1 != .
+
+replace Lev4_percent2 = ProficientOrAbove_percent2 - Lev3_percent1 if Lev4_percent2 == . & ProficientOrAbove_percent2 != . & Lev3_percent1 != .
+replace Lev4_percent2 = ProficientOrAbove_percent1 - Lev3_percent1 if Lev4_percent2 == . & ProficientOrAbove_percent1 != . & Lev3_percent1 != . & ProficientOrAbove_percent2 == . & Lev3_percent2 != .
+replace Lev4_percent2 = 0 if Lev4_percent2 < 0 & Lev4_percent2 != .
+
+replace Lev4_percent = string(Lev4_percent1, "%9.3f") if inlist(Lev4_percent, "*", "--") & Lev4_percent1 != . & Lev4_percent2 == .
+replace Lev4_percent = string(Lev4_percent1, "%9.3f") if inlist(Lev4_percent, "*", "--") & Lev4_percent1 != . & Lev4_percent1 == Lev4_percent2
+replace Lev4_percent = string(Lev4_percent1, "%9.3f") + "-" + string(Lev4_percent2, "%9.3f") if inlist(Lev4_percent, "*", "--") & Lev4_percent1 != . & Lev4_percent2 != . & Lev4_percent1 != Lev4_percent2
+
+replace Lev4_count = string(round(StudentSubGroup_TotalTested2 * Lev4_percent1)) if inlist(Lev4_count, "*", "--") & StudentSubGroup_TotalTested2 != . & Lev4_percent1 != . & Lev4_percent2 == .
+replace Lev4_count = string(round(StudentSubGroup_TotalTested2 * Lev4_percent1)) if inlist(Lev4_count, "*", "--") & StudentSubGroup_TotalTested2 != . & Lev4_percent1 != . & Lev4_percent2 != . & round(StudentSubGroup_TotalTested2 * Lev4_percent1) == round(StudentSubGroup_TotalTested2 * Lev4_percent2)
+replace Lev4_count = string(round(StudentSubGroup_TotalTested2 * Lev4_percent1)) + "-" + string(round(StudentSubGroup_TotalTested2 * Lev4_percent2)) if inlist(Lev4_count, "*", "--") & StudentSubGroup_TotalTested2 != . & Lev4_percent1 != . & Lev4_percent2 != . & round(StudentSubGroup_TotalTested2 * Lev4_percent1) != round(StudentSubGroup_TotalTested2 * Lev4_percent2)
+
+replace Lev1_percent1 = 1 - ProficientOrAbove_percent1 - Lev2_percent1 if Lev1_percent1 == . & ProficientOrAbove_percent1 != . & Lev2_percent1 != .
+replace Lev1_percent1 = 0 if Lev1_percent1 < 0 & Lev1_percent1 != .
+
+replace Lev1_percent2 = 1 - ProficientOrAbove_percent2 - Lev2_percent1 if Lev1_percent2 == . & ProficientOrAbove_percent2 != . & Lev2_percent1 != .
+replace Lev1_percent2 = 1 - ProficientOrAbove_percent1 - Lev2_percent1 if Lev1_percent2 == . & ProficientOrAbove_percent1 != . & Lev2_percent1 != . & ProficientOrAbove_percent2 == .
+replace Lev1_percent2 = 0 if Lev1_percent2 < 0 & Lev1_percent2 != .
+
+replace Lev1_percent = string(Lev1_percent1, "%9.3f") if inlist(Lev1_percent, "*", "--") & Lev1_percent1 != . & Lev1_percent2 == .
+replace Lev1_percent = string(Lev1_percent1, "%9.3f") if inlist(Lev1_percent, "*", "--") & Lev1_percent1 != . & Lev1_percent1 == Lev1_percent2
+replace Lev1_percent = string(Lev1_percent1, "%9.3f") + "-" + string(Lev1_percent2, "%9.3f") if inlist(Lev1_percent, "*", "--") & Lev1_percent1 != . & Lev1_percent2 != . & Lev1_percent1 != Lev1_percent2
+
+replace Lev1_count = string(round(StudentSubGroup_TotalTested2 * Lev1_percent1)) if inlist(Lev1_count, "*", "--") & StudentSubGroup_TotalTested2 != . & Lev1_percent1 != . & Lev1_percent2 == .
+replace Lev1_count = string(round(StudentSubGroup_TotalTested2 * Lev1_percent1)) if inlist(Lev1_count, "*", "--") & StudentSubGroup_TotalTested2 != . & Lev1_percent1 != . & Lev1_percent2 != . & round(StudentSubGroup_TotalTested2 * Lev1_percent1) == round(StudentSubGroup_TotalTested2 * Lev1_percent2)
+replace Lev1_count = string(round(StudentSubGroup_TotalTested2 * Lev1_percent1)) + "-" + string(round(StudentSubGroup_TotalTested2 * Lev1_percent2)) if inlist(Lev1_count, "*", "--") & StudentSubGroup_TotalTested2 != . & Lev1_percent1 != . & Lev1_percent2 != . & round(StudentSubGroup_TotalTested2 * Lev1_percent1) != round(StudentSubGroup_TotalTested2 * Lev1_percent2)
+
+replace Lev2_percent1 = 1 - ProficientOrAbove_percent1 - Lev1_percent1 if Lev2_percent1 == . & ProficientOrAbove_percent1 != . & Lev1_percent1 != . & Lev1_percent2 == .
+replace Lev2_percent1 = 1 - ProficientOrAbove_percent1 - Lev1_percent2 if Lev2_percent1 == . & ProficientOrAbove_percent1 != . & Lev1_percent2 != . & ProficientOrAbove_percent1 == .
+replace Lev2_percent1 = 1 - ProficientOrAbove_percent2 - Lev1_percent2 if Lev2_percent1 == . & ProficientOrAbove_percent2 != . & Lev1_percent2 != .
+replace Lev2_percent1 = 0 if Lev2_percent1 < 0 & Lev2_percent1 != .
+
+replace Lev2_percent = string(Lev2_percent1, "%9.3f") if inlist(Lev2_percent, "*", "--") & Lev2_percent1 != .
+
+replace Lev2_count = string(round(StudentSubGroup_TotalTested2 * Lev2_percent1)) if inlist(Lev2_count, "*", "--") & StudentSubGroup_TotalTested2 != . & Lev2_percent1 != .
 
 gen Lev5_count = ""
 gen Lev5_percent = ""
@@ -202,8 +248,8 @@ tostring ParticipationRate2, replace force
 replace ParticipationRate2 = "0-" + ParticipationRate2 if strpos(ParticipationRate, "<") > 0
 replace ParticipationRate2 = ParticipationRate2 + "-1" if strpos(ParticipationRate, ">") > 0
 replace ParticipationRate2 = "*" if ParticipationRate2 == "."
-drop ParticipationRate test StudentSubGroup_TotalTested2
-rename *2 *
+drop ParticipationRate StudentSubGroup_TotalTested2
+rename ParticipationRate2 ParticipationRate
 
 gen AvgScaleScore = "--"
 
@@ -251,6 +297,11 @@ replace CountyName = proper(CountyName)
 replace DistName = proper(DistName)
 replace DistName = "All Districts" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel != 3
+
+replace DistName = stritrim(DistName)
+replace SchName = stritrim(SchName)
+
+replace StateAssignedSchID = subinstr(StateAssignedSchID, "0", "", 1) if strpos(StateAssignedSchID, "0") == 1
 
 ** Generating new variables
 
