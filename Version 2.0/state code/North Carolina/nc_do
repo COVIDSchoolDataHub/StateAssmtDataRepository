@@ -1117,6 +1117,37 @@ export delimited NC_AssmtData_`year', replace
 
 }
 
+	if `year' == 2014 continue {
+
+	use NC_AssmtData_`year'
+
+	replace ParticipationRate = "--" if ParticipationRate == ""
+	
+	save NC_AssmtData_`year'.dta, replace
+	export delimited NC_AssmtData_`year'.csv, replace
+
+
+	if `year' == 2022 continue {
+
+use NC_AssmtData_`year'
+
+gen participationrate_cleaned = .
+
+// Loop through each observation and apply conditions
+replace participationrate_cleaned = real(participationrate) / 100 if ///
+    !missing(real(participationrate)) & real(participationrate) != . & ///
+    inrange(real(participationrate), 1, 100)
+
+tostring participationrate_cleaned, replace force
+replace participationrate = participationrate_cleaned if ///
+    !missing(real(participationrate)) & real(participationrate) != . & ///
+    inrange(real(participationrate), 1, 100)
+	
+save NC_AssmtData_`year'.dta, replace
+	export delimited NC_AssmtData_`year'.csv, replace
+
+
+
 
 
 
