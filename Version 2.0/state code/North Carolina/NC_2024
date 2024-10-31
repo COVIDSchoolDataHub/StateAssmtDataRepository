@@ -267,11 +267,13 @@ foreach var of varlist ProficientOrAbove_percent {
 foreach var of varlist Lev1_count Lev2_count Lev3_count Lev4_count {
 	split `var', parse("-")
 	destring `var'1, replace i(-)
+	replace `var'1 = round(`var'1)
 	destring `var'2, replace i(-)
+	replace `var'2 = round(`var'2)
 	replace `var'1 = `var'1 * num
 	replace `var'2 = `var'2 * num
-	replace `var'1 = `var'1/100
-	replace `var'2 = `var'2/100 if `var'2 != num
+	replace `var'1 = round(`var'1/100)
+	replace `var'2 = round(`var'2/100) if `var'2 != num
 	replace `var' = string(`var'1, "%6.0g") if !inlist(`var', "*", "--") & `var'2 == .
 	replace `var' = string(`var'1, "%6.0g") + "-" + string(`var'2, "%6.0g") if !inlist(`var', "*", "--") & `var'2 != .
 }
@@ -280,11 +282,13 @@ foreach var of varlist Lev1_count Lev2_count Lev3_count Lev4_count {
 foreach var of varlist ProficientOrAbove_count {
 	split `var', parse("-")
 	destring `var'1, replace i(-)
+	replace `var'1 = round(`var'1)
 	destring `var'2, replace i(-)
+	replace `var'2 = round(`var'2)
 	replace `var'1 = `var'1 * num
 	replace `var'2 = `var'2 * num
-	replace `var'1 = `var'1/100
-	replace `var'2 = `var'2/100 if `var'2 != num
+	replace `var'1 = round(`var'1/100)
+	replace `var'2 = round(`var'2/100) if `var'2 != num
 	replace `var' = string(`var'1, "%6.0g") if !inlist(`var', "*", "--") & `var'2 == .
 	replace `var' = string(`var'1, "%6.0g") + "-" + string(`var'2, "%6.0g") if !inlist(`var', "*", "--") & `var'2 != .
 }
