@@ -1117,6 +1117,82 @@ export delimited NC_AssmtData_`year', replace
 
 }
 
+////New StudentGroup_TotalTested convention//// 10/30/24 update - MO
+foreach year in 2014 2015 2016 2017 2018 2019 2020 2021 2022 2023 {
+	
+import delimited NC_AssmtData_`year'
+drop StudentGroup_TotalTested
+gen StateAssignedDistID1 = StateAssignedDistID
+replace StateAssignedDistID1 = "000000" if DataLevel == 1 //Remove quotations if DistIDs are numeric
+gen StateAssignedSchID1 = StateAssignedSchID
+replace StateAssignedSchID1 = "000000" if DataLevel !=3 //Remove quotations if SchIDs are numeric
+egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
+sort group_id StudentGroup StudentSubGroup
+by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+drop group_id StateAssignedDistID1 StateAssignedSchID1
+replace StateAssignedSchID = "" if (DataLevel == 1 | DataLevel == 2) & StateAssignedSchID != ""
+
+save NC_AssmtData_`year', replace 
+export delimited NC_AssmtData_`year'.csv, replace
+}
+
+////Participation Rate fix//// 10/30/24 update - MO
+if `year' == 2014 continue {
+
+	use NC_AssmtData_`year'
+
+	replace ParticipationRate = "--" if ParticipationRate == ""
+	
+	save NC_AssmtData_`year'.dta, replace
+	export delimited NC_AssmtData_`year'.csv, replace
+
+////Participation Rate whole number fix//// 10/30/24 update - MO
+
+	if `year' == 2022 continue {
+
+use NC_AssmtData_`year'
+
+gen participationrate_cleaned = .
+
+// Loop through each observation and apply conditions
+replace participationrate_cleaned = real(participationrate) / 100 if ///
+    !missing(real(participationrate)) & real(participationrate) != . & ///
+    inrange(real(participationrate), 1, 100)
+
+tostring participationrate_cleaned, replace force
+replace participationrate = participationrate_cleaned if ///
+    !missing(real(participationrate)) & real(participationrate) != . & ///
+    inrange(real(participationrate), 1, 100)
+
+replace Flag_AssmtNameChange = "N" if Subject == "sci"
+replace Flag_AssmtNameChange = "N" if Subject == "math"	
+save NC_AssmtData_`year'.dta, replace
+
+
+export delimited NC_AssmtData_`year'.csv, replace
+
+if `year' == 2021 continue {
+
+use NC_AssmtData_`year'
+replace Flag_AssmtNameChange = "N" if Subject == "math"	
+save NC_AssmtData_`year'.dta, replace
+
+foreach year in 2014 2015 2016 2017 2018 2019 2020 2021 2022 2023 {
+
+use "NC_AssmtData_`year'.dta", clear
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+save "NC_AssmtData_`year'.dta", replace
+export delimited NC_AssmtData_`year'.csv, replace
+}
+
+
+
+
 
 
 
