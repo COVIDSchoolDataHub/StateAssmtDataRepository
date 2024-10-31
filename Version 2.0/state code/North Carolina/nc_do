@@ -1164,11 +1164,19 @@ tostring participationrate_cleaned, replace force
 replace participationrate = participationrate_cleaned if ///
     !missing(real(participationrate)) & real(participationrate) != . & ///
     inrange(real(participationrate), 1, 100)
-	
+
+replace Flag_AssmtNameChange = "N" if Subject == "sci"
+replace Flag_AssmtNameChange = "N" if Subject == "math"	
 save NC_AssmtData_`year'.dta, replace
 
 
 export delimited NC_AssmtData_`year'.csv, replace
+
+if `year' == 2021 continue {
+
+use NC_AssmtData_`year'
+replace Flag_AssmtNameChange = "N" if Subject == "math"	
+save NC_AssmtData_`year'.dta, replace
 
 foreach year in 2014 2015 2016 2017 2018 2019 2020 2021 2022 2023 {
 
