@@ -244,6 +244,16 @@ replace Lev2_percent = string(Lev2_percent1, "%9.3f") if inlist(Lev2_percent, "*
 
 replace Lev2_count = string(round(StudentSubGroup_TotalTested2 * Lev2_percent1)) if inlist(Lev2_count, "*", "--") & StudentSubGroup_TotalTested2 != . & Lev2_percent1 != .
 
+local level Lev1 Lev2 Lev3 Lev4 ProficientOrAbove 
+foreach a of local level {
+	replace `a'_percent = "0-0.05" if inlist(`a'_percent, "0.000-0.050", "0.0000-0.05000", "0-0.050", "0-0.0500")
+	replace `a'_percent = "0.95-1" if inlist(`a'_percent, "0.950-1", "0.9500-1")
+}
+
+gen flag2 = 1 if Lev4_percent == "0-0.05" & strpos(ProficientOrAbove_percent, "-") == 0 & strpos(Lev3_percent, "-") == 0
+replace Lev4_percent = string(real(ProficientOrAbove_percent) - real(Lev3_percent), "%9.3f") if flag2 == 1 & !missing(real(ProficientOrAbove_percent)) & !missing(real(Lev3_percent))
+replace Lev4_count = string(real(ProficientOrAbove_count) - real(Lev3_count)) if flag2 == 1 & !missing(real(ProficientOrAbove_count)) & !missing(real(Lev3_count))
+
 gen Lev5_count = ""
 gen Lev5_percent = ""
 
