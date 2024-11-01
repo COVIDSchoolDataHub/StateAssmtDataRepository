@@ -1,10 +1,11 @@
+## North Carolina Cleaning ReadMe
 This is a ReadMe for North Carolina's data cleaning process, from 2014 to 2024.
 
-Setup
+## Setup
 Create a folder for NC. Inside that folder, create three more folders: "Original", "NCES" and "Output"
 Set the working directory to Users/name/Desktop/North Carolina
 
-Files to Download
+## Files to Download
 
 From the drive, download the Original Data files from 2014-2024 -  Version 2.0 Folder
 there are ten original csv files/text files.
