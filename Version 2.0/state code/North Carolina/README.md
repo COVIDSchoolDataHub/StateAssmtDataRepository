@@ -3,7 +3,6 @@ This is a ReadMe for North Carolina's data cleaning process, from 2014 to 2024.
 
 ## Setup
 Create a folder for NC. Inside that folder, create three more folders: "Original", "NCES" and "Output"
-Set the working directory to Users/name/Desktop/North Carolina
 
 ## Files to Download
 
@@ -14,6 +13,15 @@ Save these files to the "Original" folder.
 From the drive, download NCES District/School files from the "NCES District and School Demographics" Folder, within the "Data Cleaning Materials" Folder.
 
 There should be ten NCES_District files and ten NCES_School files.
+
+## Directories
+```
+Set directories at the top of the do file:
+Users/name/Desktop/North Carolina
+global Original Users/name/Desktop/North Carolina/Original
+global Output Users/name/Desktop/North Carolina/Output
+global NCES Users/name/Desktop/North Carolina/NCES
+```
 
 From Github, download the do-file named "nc_nces", running this will create NCES files for the current year and the "NC_district_id" files to merge in for missing DistNames.
 Save these files to the "NCES" folder.
