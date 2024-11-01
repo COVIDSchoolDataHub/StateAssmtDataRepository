@@ -12,11 +12,11 @@ Create a folder for NC. Inside that folder, create three more folders:
 
 1. From the drive, download the Original Data files from 2014-2024 -  Version 2.0 folder. There are ten original csv files/text files. Save these files to the "Original" folder
 2. From the drive, download NCES District and School files from the "NCES District and School Demographics" folder, within the "Data Cleaning Materials" folder. There should be ten NCES_District files and ten NCES_School files. Save these files to the "NCES" folder
-3. From Github, download the do-file named "nc_nces"
-4. Save these files to the "NCES" folder
-5. From Github, download the "nc_do" file
-6. From Github, download the "NC_EDFactsParticipation_2014_2021" do-file and the "NC_EDFactsParticipation_2022" do-file
-7. These can be saved to the "Original" folder
+3. From Github, download the following do-files:
+   a. "nc_nces.do"
+   b. "nc_do.do" 
+   c. "NC_EDFactsParticipation_2014_2021.do"
+   d. "NC_EDFactsParticipation_2022.do"
 
 ## Directories
 ```
