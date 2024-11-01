@@ -31,11 +31,9 @@ global NCES Users/name/Desktop/North Carolina/NCES
 - "NCES" should link to a folder containing downloaded NCES District and School files (till 2022) 
 
 ## Recreate Cleaning
-1. First run the "nc_nces" do file this will create NCES files for the current year and the "NC_district_id" files to merge in for missing DistNames
-2. Save these to the "NCES" folder
-3. Then run the "nc_do" file. This will create the relevant output files from 2014-2023
-4. Save these to "Output"
-5. Then run the 2014-2021 output files through the "NC_EDFactsParticipation_2014_2021" do file, which should add in participation data for those years
-6. Then run the 2022-2023 output files through the "NC_EDFactsParticipation_2022" do file, which should add in participation data for those years
-7. Finally, from Github, run the "NC_2024" file to generate the cleaned 2024 dataset
-8. Save this to "Output"
+1. Run the "nc_nces" do file this will create NCES files for the current year and the "NC_district_id" files to merge in for missing DistNames
+2. Run "nc_do" file. This will create the relevant output files from 2014-2023
+3. Run the "NC_EDFactsParticipation_2014_2021" do file, which should add in participation data for those years
+4. Run the "NC_EDFactsParticipation_2022" do file, which should add in participation data for those years
+5. Run the "NC_2024" file to generate the cleaned 2024 dataset
+
