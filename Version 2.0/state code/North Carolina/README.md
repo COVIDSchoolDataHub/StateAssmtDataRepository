@@ -2,18 +2,21 @@
 This is a ReadMe for North Carolina's data cleaning process, from 2014 to 2024
 
 ## Setup
-Create a folder for NC. Inside that folder, create three more folders: "Original", "NCES" and "Output"
+Create a folder for NC. Inside that folder, create three more folders: 
+
+1. "Original"
+2. "NCES" 
+3. "Output"
 
 ## Files to Download
 
 1. From the drive, download the Original Data files from 2014-2024 -  Version 2.0 folder. There are ten original csv files/text files. Save these files to the "Original" folder
-2. From the drive, download NCES District/School files from the "NCES District and School Demographics" folder, within the "Data Cleaning Materials" folder. There should be ten NCES_District files and ten NCES_School files
-3. Save these files to the "NCES" folder
-4.  From Github, download the do-file named "nc_nces", running this will create NCES files for the current year and the "NC_district_id" files to merge in for missing DistNames
-5.  Save these files to the "NCES" folder
-6.  From Github, download the "nc_do" file
-7.  From Github, download the "NC_EDFactsParticipation_2014_2021" do-file and the "NC_EDFactsParticipation_2022" do-file
-8.  These can be saved to the "Original" folder
+2. From the drive, download NCES District and School files from the "NCES District and School Demographics" folder, within the "Data Cleaning Materials" folder. There should be ten NCES_District files and ten NCES_School files. Save these files to the "NCES" folder
+3. From Github, download the do-file named "nc_nces", running this will create NCES files for the current year and the "NC_district_id" files to merge in for missing DistNames
+6.  Save these files to the "NCES" folder
+7.  From Github, download the "nc_do" file
+8.  From Github, download the "NC_EDFactsParticipation_2014_2021" do-file and the "NC_EDFactsParticipation_2022" do-file
+9.  These can be saved to the "Original" folder
 
 ## Directories
 ```
