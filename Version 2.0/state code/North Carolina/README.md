@@ -5,6 +5,7 @@ Create a folder for NC. Inside that folder, create three more folders: "Original
 Set the working directory to Users/name/Desktop/North Carolina
 
 Files to Download
+
 From the drive, download the Original Data files from 2014-2024 -  Version 2.0 Folder
 There are ten original csv files/text files
 Save these files to the "Original" folder.
