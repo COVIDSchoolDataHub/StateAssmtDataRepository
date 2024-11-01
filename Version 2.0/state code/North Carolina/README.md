@@ -12,7 +12,7 @@ Create a folder for NC. Inside that folder, create three more folders: "Original
 4.  From Github, download the do-file named "nc_nces", running this will create NCES files for the current year and the "NC_district_id" files to merge in for missing DistNames
 5.  Save these files to the "NCES" folder
 6.  From Github, download the "nc_do" file
-7.  From Github, download the "NC_EDFactsParticipatio_2014_2021" do-file and the "NC_EDFactsParticipation_2022" do-file
+7.  From Github, download the "NC_EDFactsParticipation_2014_2021" do-file and the "NC_EDFactsParticipation_2022" do-file
 8.  These can be saved to the "Original" Folder
 
 ## Directories
