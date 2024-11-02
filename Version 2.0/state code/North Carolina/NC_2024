@@ -227,8 +227,27 @@ gen ParticipationRate = "--"
 tostring StudentSubGroup_TotalTested, replace
 destring StudentSubGroup_TotalTested, gen(num) force
 
+gen Lev1_c = Lev1_percent
+gen Lev2_c = Lev2_percent
+gen Lev3_c = Lev3_percent
+gen Lev4_c = Lev4_percent
+
+destring Lev1_c Lev2_c Lev3_c Lev4_c, replace force 
+
+replace Lev1_c = round(Lev1_c) * num
+replace Lev2_c = round(Lev2_c) * num
+replace Lev3_c = round(Lev3_c) * num
+replace Lev4_c = round(Lev4_c) * num
+
+replace Lev1_c = round(Lev1_c/100)
+replace Lev2_c = round(Lev2_c/100)
+replace Lev3_c = round(Lev3_c/100)
+replace Lev4_c = round(Lev4_c/100)
+
+tostring Lev1_c Lev2_c Lev3_c Lev4_c, replace
+
 gen Lev1_count = Lev1_percent
-gen Lev2_count = Lev2_percent
+gen Lev2_count = Lev2_percent 
 gen Lev3_count = Lev3_percent
 gen Lev4_count = Lev4_percent
 gen ProficientOrAbove_count = ProficientOrAbove_percent
@@ -264,7 +283,7 @@ foreach var of varlist ProficientOrAbove_percent {
 }
 
 //Code to Convert to Decimals with Ranges
-foreach var of varlist Lev1_count Lev2_count Lev3_count Lev4_count {
+foreach var of varlist Lev1_count Lev2_count Lev3_count Lev4_count  {
 	split `var', parse("-")
 	destring `var'1, replace i(-)
 	replace `var'1 = round(`var'1)
@@ -294,6 +313,13 @@ foreach var of varlist ProficientOrAbove_count {
 }
 tostring AvgScaleScore, replace force
 replace AvgScaleScore = "--" if AvgScaleScore == "."
+
+replace Lev1_count = Lev1_c if length(Lev1_count) >= 5 & Lev1_c != "."
+replace Lev2_count = Lev2_c if length(Lev2_count) >= 5 & Lev2_c != "."
+replace Lev3_count = Lev3_c if length(Lev3_count) >= 5 & Lev3_c != "."
+replace Lev4_count = Lev4_c if length(Lev4_count) >= 5 & Lev4_c != "."
+
+drop Lev1_c Lev2_c Lev3_c Lev4_c
 
 gen StateAssignedDistID1 = StateAssignedDistID
 replace StateAssignedDistID1 = "000000" if DataLevel == 1 //Remove quotations if DistIDs are numeric
