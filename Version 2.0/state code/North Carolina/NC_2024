@@ -152,6 +152,7 @@ drop if _merge == 2
 rename seasch StateAssignedSchID 
 rename State_leaid StateAssignedDistID 
 
+
 // create separate district and school names, based on length of code (or datalevel function)
 replace DistName = SchName if DataLevel == "District"
 
@@ -289,27 +290,27 @@ foreach var of varlist Lev1_count Lev2_count Lev3_count Lev4_count  {
 	replace `var'1 = round(`var'1)
 	destring `var'2, replace i(-)
 	replace `var'2 = round(`var'2)
-	replace `var'1 = `var'1 * num
-	replace `var'2 = `var'2 * num
+	replace `var'1 = round(`var'1 * num)
+	replace `var'2 = round(`var'2 * num)
 	replace `var'1 = round(`var'1/100)
 	replace `var'2 = round(`var'2/100) if `var'2 != num
-	replace `var' = string(`var'1, "%6.0g") if !inlist(`var', "*", "--") & `var'2 == .
-	replace `var' = string(`var'1, "%6.0g") + "-" + string(`var'2, "%6.0g") if !inlist(`var', "*", "--") & `var'2 != .
+	replace `var' = string(round(`var'1), "%8.0g") if !inlist(`var', "*", "--") & `var'2 == .
+	replace `var' = string(round(`var'1), "%8.0g") + "-" + string(round(`var'2), "%8.0g") if !inlist(`var', "*", "--") & `var'2 != .
 }
 
 //Code to Convert to Decimals with Ranges
 foreach var of varlist ProficientOrAbove_count {
 	split `var', parse("-")
 	destring `var'1, replace i(-)
-	replace `var'1 = round(`var'1)
+	replace `var'1 = `var'1
 	destring `var'2, replace i(-)
-	replace `var'2 = round(`var'2)
+	replace `var'2 = `var'2
 	replace `var'1 = `var'1 * num
 	replace `var'2 = `var'2 * num
 	replace `var'1 = round(`var'1/100)
 	replace `var'2 = round(`var'2/100) if `var'2 != num
-	replace `var' = string(`var'1, "%6.0g") if !inlist(`var', "*", "--") & `var'2 == .
-	replace `var' = string(`var'1, "%6.0g") + "-" + string(`var'2, "%6.0g") if !inlist(`var', "*", "--") & `var'2 != .
+	replace `var' = string(`var'1, "%8.0g") if !inlist(`var', "*", "--") & `var'2 == .
+	replace `var' = string(`var'1, "%8.0g") + "-" + string(`var'2, "%8.0g") if !inlist(`var', "*", "--") & `var'2 != .
 }
 tostring AvgScaleScore, replace force
 replace AvgScaleScore = "--" if AvgScaleScore == "."
@@ -331,14 +332,6 @@ by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if Stude
 by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
 drop group_id StateAssignedDistID1 StateAssignedSchID1
 replace StateAssignedSchID = "" if (DataLevel == 1 | DataLevel == 2) & StateAssignedSchID != ""
-
-
-gen ProfAbove = ProficientOrAbove_count
-	destring ProfAbove, replace force
-	replace ProfAbove = round(ProfAbove)
-	tostring ProfAbove, replace 
-	replace ProficientOrAbove_count = ProfAbove if strpos(ProficientOrAbove_count, "-") == 0
-
 
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
