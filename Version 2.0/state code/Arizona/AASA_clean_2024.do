@@ -9,21 +9,21 @@ global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cl
 // SCHOOLS
 
 /*
-** 2023 ELA and Math
+** 2024 ELA and Math
 
-import excel "${AASA}/AZ_OriginalData_2023_all.xlsx", sheet("School") firstrow clear
+import excel "${AASA}/AZ_OriginalData_2024_ela_mat.xlsx", sheet("School") firstrow clear
 
-save "${AASA}/AZ_AssmtData_school_2023.dta", replace
+save "${AASA}/AZ_AssmtData_school_2024.dta", replace
 
-import excel "${AASA}/AZ_OriginalData_2023_all.xlsx", sheet("District") firstrow clear   
+import excel "${AASA}/AZ_OriginalData_2024_ela_mat.xlsx", sheet("District") firstrow clear   
                     
-save "${AASA}/AZ_AssmtData_district_2023.dta", replace
+save "${AASA}/AZ_AssmtData_district_2024.dta", replace
 
-import excel "${AASA}/AZ_OriginalData_2023_all.xlsx", sheet("State") firstrow clear
+import excel "${AASA}/AZ_OriginalData_2024_ela_mat.xlsx", sheet("State") firstrow clear
 
-save "${AASA}/AZ_AssmtData_state_2023.dta", replace
+save "${AASA}/AZ_AssmtData_state_2024.dta", replace
 
-** 2023 Science
+** 2024 Science [Wait until it is posted]
 
 import excel "${AzSci}/AZ_OriginalData_2023_sci.xlsx", sheet("School") firstrow clear
 
@@ -39,9 +39,9 @@ save "${AzSci}/AZ_AssmtData_state_sci_2023.dta", replace
 
 */
 
-** 2023 School Cleaning 
+** 2024 School Cleaning 
 
-use "${AASA}/AZ_AssmtData_school_2023.dta", clear
+use "${AASA}/AZ_AssmtData_school_2024.dta", clear
 
 ** Rename existing variables
 rename DistrictName DistName
@@ -77,10 +77,10 @@ tostring StateAssignedDistID, replace
 tostring StateAssignedSchID, generate(seasch)
 tostring StateAssignedSchID, replace
 
-save "${output}/AZ_AssmtData_school_2023.dta", replace
+save "${output}/AZ_AssmtData_school_2024.dta", replace
 
-
-use "${AzSci}/AZ_AssmtData_school_sci_2023.dta", clear
+/*
+use "${AzSci}/AZ_AssmtData_school_sci_2024.dta", clear
 
 rename DistrictName DistName
 rename DistrictEntityID StateAssignedDistID
@@ -115,10 +115,10 @@ tostring StateAssignedSchID, generate(seasch)
 tostring StateAssignedDistID, replace
 tostring StateAssignedSchID, replace
 
-save "${output}/AZ_AssmtData_2023_school_sci.dta", replace
-
-use "${output}/AZ_AssmtData_school_2023.dta", clear
-append using "${output}/AZ_AssmtData_2023_school_sci.dta"
+save "${output}/AZ_AssmtData_2024_school_sci.dta", replace
+*/
+use "${output}/AZ_AssmtData_school_2024.dta", clear
+append using "${output}/AZ_AssmtData_2024_school_sci.dta"
 
 merge m:1 State_leaid using "${NCES}/NCES_2022_District_AZ.dta"
 drop if _merge == 2
@@ -131,15 +131,11 @@ drop _merge
 sort NCESSchoolID GradeLevel Subject
 gen DataLevel = "School"
 
-save "${output}/AZ_AssmtData_school_2023.dta", replace
+save "${output}/AZ_AssmtData_school_2024.dta", replace
 
+** 2024 Dist Cleaning 
 
-
-
-
-** 2023 Dist Cleaning 
-
-use "${AASA}/AZ_AssmtData_district_2023.dta", clear
+use "${AASA}/AZ_AssmtData_district_2024.dta", clear
 
 ** Rename existing variables
 rename DistrictName DistName
@@ -171,9 +167,9 @@ keep if inlist(GradeLevel, "G03", "G04", "G05", "G06", "G07", "G08")
 tostring StateAssignedDistID, generate(State_leaid)
 tostring StateAssignedDistID, replace
 
-save "${output}/AZ_AssmtData_district_2023.dta", replace
-
-use "${AzSci}/AZ_AssmtData_district_sci_2023.dta", clear 
+save "${output}/AZ_AssmtData_district_2024.dta", replace
+/*
+use "${AzSci}/AZ_AssmtData_district_sci_2024.dta", clear 
 
 rename DistrictName DistName
 rename DistrictEntityID StateAssignedDistID
@@ -205,11 +201,11 @@ keep if FAYStatus == "All"
 tostring StateAssignedDistID, generate(State_leaid)
 tostring StateAssignedDistID, replace
 
-save "${output}/AZ_AssmtData_2023_district_sci.dta", replace
+save "${output}/AZ_AssmtData_2024_district_sci.dta", replace
+*/
+use "${output}/AZ_AssmtData_district_2024.dta", clear
 
-use "${output}/AZ_AssmtData_district_2023.dta", clear
-
-append using "${output}/AZ_AssmtData_2023_district_sci.dta"
+append using "${output}/AZ_AssmtData_2024_district_sci.dta"
 
 merge m:1 State_leaid using "${NCES}/NCES_2022_District_AZ.dta"
 drop if _merge == 2
@@ -223,12 +219,12 @@ sort tag NCESDistrictID Subject GradeLevel StudentSubGroup
 drop if tag > 0 & strpos(CountyName, County) == 0
 drop tag
 
-save "${output}/AZ_AssmtData_district_2023.dta", replace
+save "${output}/AZ_AssmtData_district_2024.dta", replace
 
 
-** 2023 State cleaning 
+** 2024 State cleaning 
 
-use "${AASA}/AZ_AssmtData_state_2023.dta", clear
+use "${AASA}/AZ_AssmtData_state_2024.dta", clear
 
 rename Subgroup StudentSubGroup
 rename TestLevel GradeLevel
@@ -252,9 +248,9 @@ replace GradeLevel = "G08" if strpos(GradeLevel, "Grade 8")>0
 keep if inlist(GradeLevel, "G03", "G04", "G05", "G06", "G07", "G08")
 
 
-save "${output}/AZ_AssmtData_state_2023.dta", replace
-
-use "${AzSci}/AZ_AssmtData_state_sci_2023.dta", clear
+save "${output}/AZ_AssmtData_state_2024.dta", replace
+/*
+use "${AzSci}/AZ_AssmtData_state_sci_2024.dta", clear
 
 rename TestLevel GradeLevel
 rename Subgroup StudentSubGroup
@@ -285,11 +281,11 @@ tostring Lev4_percent, replace force
 
 tostring ProficientOrAbove_percent, replace force
 
-save "${output}/AZ_AssmtData_2023_state_sci.dta", replace
+save "${output}/AZ_AssmtData_2024_state_sci.dta", replace
+*/
+use "${output}/AZ_AssmtData_state_2024.dta", clear
 
-use "${output}/AZ_AssmtData_state_2023.dta", clear
-
-append using "${output}/AZ_AssmtData_2023_state_sci.dta"
+append using "${output}/AZ_AssmtData_2024_state_sci.dta"
 
 keep if SchoolType == "All"
 drop SchoolType
@@ -299,13 +295,13 @@ gen DataLevel = "State"
 
 tostring StudentSubGroup_TotalTested, replace force
 
-save "${output}/AZ_AssmtData_state_2023.dta", replace
+save "${output}/AZ_AssmtData_state_2024.dta", replace
 
 
 ** Append all files 
-append using "${output}/AZ_AssmtData_school_2023.dta" "${output}/AZ_AssmtData_district_2023.dta"
+append using "${output}/AZ_AssmtData_school_2024.dta" "${output}/AZ_AssmtData_district_2024.dta"
 
-gen SchYear = "2022-23"
+gen SchYear = "2023-24"
 
 gen StudentGroup = ""
 drop State
@@ -315,7 +311,7 @@ gen StateAbbrev = "AZ"
 drop StateFips
 gen StateFips = 4
 
-save "${output}/AZ_AssmtData_2023.dta", replace
+save "${output}/AZ_AssmtData_2024.dta", replace
 
 
 ** Generating missing variables
@@ -431,8 +427,10 @@ rename DataLevel_n DataLevel
 **
 
 destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
+destring Lev1_percent, gen(Lev1_percent2) force
+destring Lev2_percent, gen(Lev2_percent2) force
 
-foreach v of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent {
+foreach v of varlist Lev3_percent Lev4_percent ProficientOrAbove_percent {
 	split `v', parse("-")
 	destring `v'1, replace force
 	destring `v'2, replace force
@@ -450,11 +448,10 @@ tostring ProficientOrAbove_percent2, format("%9.2g") replace force
 replace ProficientOrAbove_percent = ProficientOrAbove_percent2 if ProficientOrAbove_percent2 != "."
 
 replace Lev1_percent2 = 1 - real(ProficientOrAbove_percent) - real(Lev2_percent) if missing(real(Lev1_percent)) & !missing(real(ProficientOrAbove_percent)) & !missing(real(Lev2_percent))
-replace Lev1_percent = string(1 - real(ProficientOrAbove_percent) - 0.02) + "-" + string(1 - real(ProficientOrAbove_percent)) if missing(real(Lev1_percent)) & Lev2_percent == "0-0.02" & !missing(real(ProficientOrAbove_percent))
-replace Lev1_percent = "0.96-1" if Lev1_percent == "*" & Lev2_percent == "0-0.02" & ProficientOrAbove_percent == "0-0.02"
+replace Lev1_percent = string(1 - real(Lev2_percent) - 0.02) + "-" + string(1 - real(Lev2_percent)) if missing(real(Lev1_percent)) & ProficientOrAbove_percent == "0-0.02" & !missing(real(Lev2_percent))
 replace Lev2_percent2 = 1 - real(ProficientOrAbove_percent) - real(Lev1_percent) if missing(real(Lev2_percent)) & !missing(real(ProficientOrAbove_percent)) & !missing(real(Lev1_percent))
 replace Lev2_percent = string(1 - real(ProficientOrAbove_percent) - 0.02) + "-" + string(1 - real(ProficientOrAbove_percent)) if missing(real(Lev2_percent)) & Lev1_percent == "0-0.02" & !missing(real(ProficientOrAbove_percent))
-replace Lev2_percent = "0.96-1" if Lev2_percent == "*" & Lev1_percent == "0-0.02" & ProficientOrAbove_percent == "0-0.02"
+replace Lev2_percent = string(1 - real(Lev1_percent) - 0.02) + "-" + string(1 - real(Lev1_percent)) if missing(real(Lev2_percent)) & ProficientOrAbove_percent == "0-0.02" & !missing(real(Lev1_percent))
 replace Lev3_percent2 = real(ProficientOrAbove_percent) - real(Lev4_percent) if missing(real(Lev3_percent)) & !missing(real(ProficientOrAbove_percent)) & !missing(real(Lev4_percent))
 replace Lev3_percent = string(real(ProficientOrAbove_percent) - 0.02) + "-" + ProficientOrAbove_percent if missing(real(Lev3_percent)) & Lev4_percent == "0-0.02" & !missing(real(ProficientOrAbove_percent))
 replace Lev4_percent2 = real(ProficientOrAbove_percent) - real(Lev3_percent) if missing(real(Lev4_percent)) & !missing(real(ProficientOrAbove_percent)) & !missing(real(Lev3_percent))
@@ -465,33 +462,107 @@ foreach x of numlist 1/4 {
 	replace Lev`x'_percent = string(Lev`x'_percent2, "%9.2g") if Lev`x'_percent == "*" & Lev`x'_percent2 != .
 	replace Lev`x'_percent = "0" if strpos(Lev`x'_percent, "e") > 0 & strpos(Lev`x'_percent, "-0.02") == 0
 	replace Lev`x'_percent = "0-0.02" if strpos(Lev`x'_percent, "e") > 0 & strpos(Lev`x'_percent, "-0.02") > 0
-	drop Lev`x'_percent1 Lev`x'_percent2
+	cap drop Lev`x'_percent1
+	drop Lev`x'_percent2
 }
 
 foreach x of numlist 1/4 {
 	split Lev`x'_percent, parse("-")
 	destring Lev`x'_percent1, replace force
-	destring Lev`x'_percent2, replace force
-	gen Lev`x'_count = round(Lev`x'_percent1 * StudentSubGroup_TotalTested2) if Lev`x'_percent2 == .
-	tostring Lev`x'_count, replace
-	replace Lev`x'_count = string(round(Lev`x'_percent1 * StudentSubGroup_TotalTested2)) + "-" + string(round(Lev`x'_percent2 * StudentSubGroup_TotalTested2)) if round(Lev`x'_percent1 * StudentSubGroup_TotalTested2) != round(Lev`x'_percent2 * StudentSubGroup_TotalTested2) & Lev`x'_percent2 != .
+	cap destring Lev`x'_percent2, replace force
+	if `x' <=2{
+		gen Lev`x'_count = round(Lev`x'_percent1 * StudentSubGroup_TotalTested2)
+		tostring Lev`x'_count, replace
+	}
+	if `x' > 2{
+		gen Lev`x'_count = round(Lev`x'_percent1 * StudentSubGroup_TotalTested2) if Lev`x'_percent2 == .
+		tostring Lev`x'_count, replace
+		replace Lev`x'_count = string(round(Lev`x'_percent1 * StudentSubGroup_TotalTested2)) + "-" + string(round(Lev`x'_percent2 * StudentSubGroup_TotalTested2)) if round(Lev`x'_percent1 * StudentSubGroup_TotalTested2) != round(Lev`x'_percent2 * StudentSubGroup_TotalTested2) & Lev`x'_percent2 != .
+	}
 	replace Lev`x'_count = "*" if Lev`x'_count == "."
 }
 
 gen Lev5_count = ""
+
+//New Districts and Schools
+replace NCESDistrictID = "0409745" if StateAssignedDistID == "1002079"
+replace DistType = 7 if NCESDistrictID == "0409745"
+replace DistCharter = "Yes" if NCESDistrictID == "0409745"
+replace DistLocale = "City, large" if NCESDistrictID == "0409745"
+replace CountyName = "Maricopa County" if NCESDistrictID == "0409745"
+replace CountyCode = "4013" if NCESDistrictID == "0409745"
+
+replace NCESDistrictID = "0409746" if StateAssignedDistID == "1002080"
+replace DistType = 7 if NCESDistrictID == "0409746"
+replace DistCharter = "Yes" if NCESDistrictID == "0409746"
+replace DistLocale = "City, large" if NCESDistrictID == "0409746"
+replace CountyName = "Maricopa County" if NCESDistrictID == "0409746"
+replace CountyCode = "4013" if NCESDistrictID == "0409746"
+
+replace NCESDistrictID = "0409747" if StateAssignedDistID == "1002101"
+replace DistType = 7 if NCESDistrictID == "0409747"
+replace DistCharter = "Yes" if NCESDistrictID == "0409747"
+replace DistLocale = "City, large" if NCESDistrictID == "0409747"
+replace CountyName = "Maricopa County" if NCESDistrictID == "0409747"
+replace CountyCode = "4013" if NCESDistrictID == "0409747"
+
+replace NCESDistrictID = "0409744" if StateAssignedDistID == "1002029"
+replace DistType = 7 if NCESDistrictID == "0409744"
+replace DistCharter = "Yes" if NCESDistrictID == "0409744"
+replace DistLocale = "Suburb, large" if NCESDistrictID == "0409744"
+replace CountyName = "Maricopa County" if NCESDistrictID == "0409744"
+replace CountyCode = "4013" if NCESDistrictID == "0409744"
+
+replace NCESSchoolID = "040974503850" if StateAssignedSchID == "1002100"
+replace SchType = "Regular school" if NCESSchoolID == "040974503850"
+replace SchLevel = "Primary" if NCESSchoolID == "040974503850"
+replace SchVirtual = "Yes" if NCESSchoolID == "040974503850"
+
+replace NCESSchoolID = "040974603602" if StateAssignedSchID == "1000169"
+replace SchType = "Regular school" if NCESSchoolID == "040974603602"
+replace SchLevel = "Other" if NCESSchoolID == "040974603602"
+replace SchVirtual = "No" if NCESSchoolID == "040974603602"
+
+replace NCESSchoolID = "040974703852" if StateAssignedSchID == "1002105"
+replace SchType = "Regular school" if NCESSchoolID == "040974703852"
+replace SchLevel = "High" if NCESSchoolID == "040974703852"
+replace SchVirtual = "No" if NCESSchoolID == "040974703852"
+
+replace NCESSchoolID = "040974403844" if StateAssignedSchID == "1002031"
+replace SchType = "Regular school" if NCESSchoolID == "040974403844"
+replace SchLevel = "High" if NCESSchoolID == "040974403844"
+replace SchVirtual = "Yes" if NCESSchoolID == "040974403844"
+
+replace NCESSchoolID = "040091303846" if StateAssignedSchID == "1002081"
+replace SchType = "Special education school" if NCESSchoolID == "040091303846"
+replace SchLevel = "Other" if NCESSchoolID == "040091303846"
+replace SchVirtual = "No" if NCESSchoolID == "040091303846"
+
+replace NCESSchoolID = "040005303851" if StateAssignedSchID == "1002102"
+replace SchType = "Regular school" if NCESSchoolID == "040005303851"
+replace SchLevel = "Primary" if NCESSchoolID == "040005303851"
+replace SchVirtual = "No" if NCESSchoolID == "040005303851"
+
+replace NCESSchoolID = "040444003843" if StateAssignedSchID == "1002030"
+replace SchType = "Regular school" if NCESSchoolID == "040444003843"
+replace SchLevel = "Primary" if NCESSchoolID == "040444003843"
+replace SchVirtual = "No" if NCESSchoolID == "040444003843"
+
+replace SchLevel = "Other" if NCESSchoolID == "040974103839"
+replace SchVirtual = "No" if NCESSchoolID == "040974103839"
 
 //Formatting NCES IDs
 replace NCESSchoolID = subinstr(NCESSchoolID, "0", "", 1) if DataLevel == 3
 replace NCESDistrictID = subinstr(NCESDistrictID, "0", "", 1) if DataLevel != 1
 
 //order
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
 duplicates drop
+
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${output}/AZ_AssmtData_2023.dta", replace
-export delimited using "${output}/csv/AZ_AssmtData_2023.csv", replace
+save "${output}/AZ_AssmtData_2024.dta", replace
+export delimited using "${output}/csv/AZ_AssmtData_2024.csv", replace

@@ -1,9 +1,9 @@
 clear
 set more off
 
-global NCESSchool "/Users/maggie/Desktop/Arizona/NCES/School"
-global NCESDistrict "/Users/maggie/Desktop/Arizona/NCES/District"
-global NCES "/Users/maggie/Desktop/Arizona/NCES/Cleaned"
+global NCESSchool "/Users/miramehta/Documents/NCES District and School Demographics/NCES School Files, Fall 1997-Fall 2022"
+global NCESDistrict "/Users/miramehta/Documents/NCES District and School Demographics/NCES District Files, Fall 1997-Fall 2022"
+global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
 
 global years 2009 2010 2011 2012 2013 2014 2015 2016 2017 2018 2020 2021 2022
 
@@ -41,7 +41,7 @@ foreach a in $years {
 	
 	drop if NCESDistrictID == ""
 	
-	save "${NCES}/NCES_`a'_School.dta", replace
+	save "${NCES}/NCES_`a'_School_AZ.dta", replace
 	
 	use "${NCESDistrict}/NCES_`a'_District.dta", clear 
 	keep if state_fips==4
@@ -70,7 +70,7 @@ foreach a in $years {
 	
 	keep State StateAbbrev StateFips NCESDistrictID State_leaid DistName DistType DistCharter DistLocale CountyCode CountyName
 	
-	save "${NCES}/NCES_`a'_District.dta", replace
+	save "${NCES}/NCES_`a'_District_AZ.dta", replace
 	
 }
 	

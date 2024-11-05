@@ -1,12 +1,12 @@
 clear
 set more off
 
-cd "/Users/maggie/Desktop/Arizona"
+cd "/Users/miramehta/Documents/"
 
-global NCESSchool "/Users/maggie/Desktop/Arizona/NCES/School"
-global NCESDistrict "/Users/maggie/Desktop/Arizona/NCES/District"
-global NCES "/Users/maggie/Desktop/Arizona/NCES/Cleaned"
-global EDFacts "/Users/maggie/Desktop/EDFacts/Datasets"
+global NCESSchool "/Users/miramehta/Documents/NCES District and School Demographics/NCES School Files, Fall 1997-Fall 2022"
+global NCESDistrict "/Users/miramehta/Documents/NCES District and School Demographics/NCES District Files, Fall 1997-Fall 2022"
+global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+global EDFacts "/Users/miramehta/Documents/EDFacts"
 
 ** Preparing EDFacts files
 

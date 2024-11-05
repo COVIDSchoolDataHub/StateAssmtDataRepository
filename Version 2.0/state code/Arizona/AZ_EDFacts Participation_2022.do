@@ -1,10 +1,8 @@
 clear
 set more off
 
-global Output_11 "C:/Users/hxu15/Downloads/Output - Version 1.1"
-global Output_20 "C:/Users/hxu15/Downloads/EDFactsDatasets/NewOutput"
-global Original "C:/Users/hxu15/Downloads/EDFactsDatasets/2022"
-
+global Original "/Users/miramehta/Documents/Arizona/Original Data Files"
+global output "/Users/miramehta/Documents/Arizona/Output"
 
 foreach s in ela math sci {
 	import delimited "${Original}/AZ_EFParticipation_2022_`s'.csv", case(preserve) clear
@@ -70,42 +68,9 @@ duplicates drop NCESDistrictID NCESSchoolID GradeLevel Subject StudentSubGroup, 
 save "${Original}/AZ_EFParticipation_2022", replace
 
 //Merging with 2022
-use "${Output_11}/AZ_AssmtData_2022", clear
+use "${output}/AZ_AssmtData_2022.dta", clear
 
-//DataLevel
-label def DataLevel 1 "State" 2 "District" 3 "School"
-encode datalevel, gen(DataLevel_n) label(DataLevel)
-sort DataLevel_n 
-drop datalevel 
-rename DataLevel_n DataLevel
-
-//Convert to numeric if necessary
-destring ncesdistrictid ncesschoolid, replace
-rename ncesdistrictid NCESDistrictID
-rename ncesschoolid NCESSchoolID
-rename gradelevel GradeLevel
-rename subject Subject
-rename studentsubgroup StudentSubGroup
-rename state State
-rename stateabbrev StateAbbrev
-rename statefips StateFips
-rename schyear SchYear
-rename distname DistName
-rename schname SchName
-rename stateassigneddistid StateAssignedDistID
-rename stateassignedschid StateAssignedSchID
-rename assmtname AssmtName
-rename assmttype AssmtType
-rename studentgroup StudentGroup 
-rename studentgroup_totaltested StudentGroup_TotalTested 
-rename studentsubgroup_totaltested StudentSubGroup_TotalTested 
-rename lev1_count Lev1_count 
-rename (lev1_percent lev2_count lev2_percent lev3_count lev3_percent lev4_count lev4_percent lev5_count lev5_percent) (Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent)
-rename (avgscalescore proficiencycriteria proficientorabove_count proficientorabove_percent flag_assmtnamechange flag_cutscorechange_ela flag_cutscorechange_math flag_cutscorechange_sci flag_cutscorechange_soc)(AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc) 
-rename (disttype distcharter distlocale schtype schlevel schvirtual countyname countycode) (DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode)
-rename participationrate ParticipationRate
-
-duplicates drop NCESDistrictID NCESSchoolID GradeLevel Subject StudentSubGroup, force
+destring NCESDistrictID NCESSchoolID, replace
 
 //Merging
 merge 1:1 NCESDistrictID NCESSchoolID GradeLevel Subject StudentSubGroup using "${Original}/AZ_EFParticipation_2022"
@@ -121,7 +86,5 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${Output_20}/AZ_AssmtData_2022", replace
-export delimited "${Output_20}/AZ_AssmtData_2022", replace
-
-
+save "${output}/AZ_AssmtData_2022.dta", replace
+export delimited "${output}/csv/AZ_AssmtData_2022.csv", replace

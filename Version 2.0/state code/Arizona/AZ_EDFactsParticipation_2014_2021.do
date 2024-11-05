@@ -1,9 +1,8 @@
 clear
 set more off
 
-global EDFacts "C:/Users/hxu15/Downloads/EDFactsDatasets"
-global State_Output "C:/Users/hxu15/Downloads/Output - Version 1.1" 
-global New_Output "C:/Users/hxu15/Downloads/EDFactsDatasets/NewOutput"
+global EDFacts "/Users/miramehta/Documents/EDFacts"
+global output "/Users/miramehta/Documents/Arizona/Output"
 
 ** Preparing EDFacts files
 local edyears1 14 15 16 17 18
@@ -245,17 +244,7 @@ foreach year of local edyears2 {
 //Merging Example
 forvalues year = 2014/2021 {
 if `year' == 2020 continue
-import delimited "${State_Output}/AZ_AssmtData_`year'.csv", case(preserve) clear
-
-	
-//DataLevel
-label def DataLevel 1 "State" 2 "District" 3 "School"
-encode DataLevel, gen(DataLevel_n) label(DataLevel)
-sort DataLevel_n 
-drop DataLevel 
-rename DataLevel_n DataLevel
-
-
+use "${output}/AZ_AssmtData_`year'.dta", clear
 //Merging
 
 tempfile tempall
@@ -274,6 +263,8 @@ clear
 use "`tempdist'"
 duplicates report NCESDistrictID StudentSubGroup GradeLevel Subject
 duplicates drop NCESDistrictID StudentSubGroup GradeLevel Subject, force
+destring NCESDistrictID, replace
+destring NCESSchoolID, replace
 merge 1:1 NCESDistrictID StudentSubGroup GradeLevel Subject using "${EDFacts}/`year'/edfactspart`year'districtarizona.dta", gen(DistMerge)
 drop if DistMerge == 2
 save "`tempdist'", replace
@@ -283,6 +274,8 @@ clear
 use "`tempsch'"
 duplicates report NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject
 duplicates drop NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject, force
+destring NCESDistrictID, replace
+destring NCESSchoolID, replace
 merge 1:1 NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject using "${EDFacts}/`year'/edfactspart`year'schoolarizona.dta", gen(SchMerge)
 drop if SchMerge == 2
 save "`tempsch'", replace
@@ -291,6 +284,8 @@ clear
 //Combining DataLevels
 use "`tempall'"
 keep if DataLevel == 1
+destring NCESDistrictID, replace
+destring NCESSchoolID, replace
 append using "`tempdist'" "`tempsch'"
 
 //New Participation Data
@@ -303,6 +298,6 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${New_Output}/AZ_AssmtData_`year'", replace
-export delimited "${New_Output}/AZ_AssmtData_`year'", replace
+save "${output}/AZ_AssmtData_`year'.dta", replace
+export delimited "${output}/csv/AZ_AssmtData_`year'.csv", replace
 }
