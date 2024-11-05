@@ -1,10 +1,10 @@
 clear
 set more off
 
-global path "/Volumes/T7/State Test Project/Wisconsin/Original Data Files"
-global nces "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
-global output "/Volumes/T7/State Test Project/Wisconsin/Output - Version 1.1"
-global temporary "/Volumes/T7/State Test Project/Wisconsin/Temp"
+global path "/Users/kaitlynlucas/Desktop/Wisconsin/Original Files"
+global nces "/Users/kaitlynlucas/Desktop/Wisconsin/nces"
+global output "/Users/kaitlynlucas/Desktop/Wisconsin/output"
+global temporary "/Users/kaitlynlucas/Desktop/Wisconsin/temp"
 
 /*
 import delimited "${path}/WI_OriginalData_2019_all.csv", varnames(1) delimit(",") case(preserve)
@@ -199,10 +199,21 @@ gen StateAbbrev = "WI"
 gen StateFips = 55
 
 // calculate group total tested (after sorted!)
-gen StudentGroup_TotalTested = 0
+/*gen StudentGroup_TotalTested = 0
 replace StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
 replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if StudentGroup_TotalTested == 0
+*/
 
+//New StudentGroup_TotalTested v2.0
+gen StateAssignedDistID1 = StateAssignedDistID
+replace StateAssignedDistID1 = "000000" if DataLevel == 1 //Remove quotations if DistIDs are numeric
+gen StateAssignedSchID1 = StateAssignedSchID
+replace StateAssignedSchID1 = "000000" if DataLevel !=3 //Remove quotations if SchIDs are numeric
+egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
+sort group_id StudentGroup StudentSubGroup
+by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+drop group_id StateAssignedDistID1 StateAssignedSchID1
 replace State_leaid = "" if State_leaid == "."
 replace seasch = "" if seasch == "."
 
@@ -377,11 +388,32 @@ drop if SchName == "JEDI Virtual K-12 - Jefferson and Eastern Dane County Intera
 //Post launch review responsereplace CountyName = "Milwaukee County" if CountyName == "San Mateo County"
 replace CountyCode = "55079" if CountyCode== "6081"
 replace StudentSubGroup_TotalTested = string(StudentGroup_TotalTested) if StudentSubGroup == "All Students" & StudentSubGroup_TotalTested == "*"
-
+/*
+//10-17-24
+replace DistName = "Central City Cyberschool of Milwaukee Inc" if DistName == "Central City Cyberschool"
+replace DistName = "Darrell L. Hines Academy Inc" if DistName == "Darrell Lynn Hines Academy"
+replace DistName = "Downtown Montessori Academy Inc" if DistName == "Downtown Montessori"
+replace DistName = "Isthmus Montessori Academy Inc" if DistName == "Isthmus Montessori Academy Public"
+replace DistName = "La Casa De Esperanza Inc" if DistName == "La Casa de Esperanza Charter School"
+replace DistName = "Milwaukee Math and Science Academy Inc" if DistName == "Milwaukee Math and Science Academy"
+replace DistName = "Milwaukee Scholars Charter School Inc" if DistName == "Milwaukee Scholars Charter School"
+replace DistName = "Rocketship Education Wisconsin Inc" if DistName == "Rocketship Southside Community Prep"
+replace DistName = "United Community Center Inc" if DistName == "United Community Center Acosta Middle"
+replace DistName = "Washington Island" if DistName == "Washington"
+replace DistName = "Woodlands School Inc" if DistName == "Woodlands School - State Street Campus"
+replace DistName = "Woodlands School Inc" if DistName == "Woodlands School"
+*/
 // Sorting and Exporting final
 
 drop Suppressed
 drop SuppressedSubGroup
+
+//V2.0 Suppressed Data Issues
+replace AvgScaleScore = "*" if AvgScaleScore == ""
+tostring StudentGroup_TotalTested, replace
+replace StudentGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "."
+replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
+replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested =="."
 
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 

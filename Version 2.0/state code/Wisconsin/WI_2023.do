@@ -1,22 +1,23 @@
 clear
 set more off
 
-global path "/Volumes/T7/State Test Project/Wisconsin/Original Data Files"
-global nces "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
-global output "/Volumes/T7/State Test Project/Wisconsin/Output - Version 1.1"
-global temporary "/Volumes/T7/State Test Project/Wisconsin/Temp"
+global path "/Users/kaitlynlucas/Desktop/Wisconsin/Original Files"
+global nces "/Users/kaitlynlucas/Desktop/Wisconsin/nces"
+global output "/Users/kaitlynlucas/Desktop/Wisconsin/output"
+global temporary "/Users/kaitlynlucas/Desktop/Wisconsin/temp"
 
-/*
+
 import delimited "${path}/WI_OriginalData_2023_all.csv", varnames(1) delimit(",") case(preserve)
 save "${path}/WI_OriginalData_2023_all", replace
-*/
+
 
 
 use "${path}/WI_OriginalData_2023_all"
 // dropping unused variables
 drop TEST_RESULT GRADE_GROUP CESA CHARTER_IND COUNTY AGENCY_TYPE
 
-drop if TEST_RESULT_CODE == "No Test"
+*drop if TEST_RESULT_CODE == "No Test"
+replace TEST_RESULT_CODE = "5000" if TEST_RESULT_CODE == "No Test"
 
 replace TEST_RESULT_CODE = "0" if TEST_RESULT_CODE == "*"
 
@@ -26,10 +27,19 @@ replace Suppressed = "Y" if TEST_RESULT_CODE == "0"
 gen SuppressedSubGroup = "N"
 replace SuppressedSubGroup = "Y" if GROUP_BY_VALUE == "[Data Suppressed]"
 
+//convert this variable to numeric
+replace STUDENT_COUNT = "5000" if STUDENT_COUNT == "*"
+replace PERCENT_OF_GROUP = "5000" if PERCENT_OF_GROUP == "*"
+replace GROUP_COUNT = "5000" if GROUP_COUNT == "*"
+
+//one virtual school issue
+drop if SCHOOL_NAME == "Rural Virtual Academy" & DISTRICT_NAME != "Medford Area Public"
+
 // force this variable to numeric
+destring STUDENT_COUNT, replace
+destring PERCENT_OF_GROUP, replace
 destring TEST_RESULT_CODE, replace
-destring STUDENT_COUNT, replace force
-destring GROUP_COUNT, replace force
+destring GROUP_COUNT, replace
 
 // main test, not alternate
 keep if TEST_GROUP == "Forward"
@@ -59,14 +69,14 @@ rename TEST_GROUP AssmtName
 
 // renaming groups of variables with *
 rename STUDENT_COUNT* Lev*_count
-drop PERCENT_OF_GROUP*
+*drop PERCENT_OF_GROUP*
 
 // replace zero counts with zero
 forvalues x = 1/4 {
 		replace Lev`x'_count = 0 if Lev`x'_count == .
 }
 
-drop Lev0_count
+*drop Lev0_count
 
 // generating group counts and participation rate
 gen StudentSubGroup_TotalTested = Lev1_count+Lev2_count+Lev3_count+Lev4_count
@@ -76,7 +86,9 @@ forvalues x = 1/4 {
 	replace Lev`x'_percent = 0 if Lev`x'_count == 0
 }
 
-drop SubGroup_enrollment
+*drop SubGroup_enrollment
+
+order DistName SchName Subject GradeLevel StudentGroup StudentSubGroup SubGroup_enrollment StudentSubGroup_TotalTested ParticipationRate Suppressed SuppressedSubGroup Lev0_count PERCENT_OF_GROUP0 Lev1_count PERCENT_OF_GROUP1 Lev2_count PERCENT_OF_GROUP2 Lev3_count PERCENT_OF_GROUP3 Lev4_count PERCENT_OF_GROUP4 SchYear StateAssignedDistID StateAssignedSchID AssmtName AssmtType Lev1_percent Lev2_percent Lev3_percent Lev4_percent
 
 // replacing subject variables
 replace Subject = "ela" if Subject == "ELA"
@@ -112,6 +124,12 @@ replace StudentSubGroup = "Gender X" if StudentSubGroup == "Non-binary"
 gen ProficientOrAbove_percent = Lev3_percent + Lev4_percent
 gen ProficientOrAbove_count = Lev3_count + Lev4_count
 gen ProficiencyCriteria = "Levels 3-4"
+
+//making unique groups
+egen uniquegrp = group(DistName SchName Subject GradeLevel)
+sort uniquegrp StudentGroup StudentSubGroup
+by uniquegrp: gen AllStudents = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by uniquegrp: replace AllStudents = AllStudents[_n-1] if missing(AllStudents)
 
 // generate and replace DataLevel
 gen DataLevel = "School"
@@ -214,9 +232,22 @@ gen StateAbbrev = "WI"
 gen StateFips = 55
 
 // calculate group total tested (after sorted!)
-gen StudentGroup_TotalTested = 0
+/*gen StudentGroup_TotalTested = 0
 replace StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
 replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if StudentGroup_TotalTested == 0
+*/
+
+//New StudentGroup_TotalTested v2.0
+gen StateAssignedDistID1 = StateAssignedDistID
+replace StateAssignedDistID1 = "000000" if DataLevel == 1 //Remove quotations if DistIDs are numeric
+gen StateAssignedSchID1 = StateAssignedSchID
+replace StateAssignedSchID1 = "000000" if DataLevel !=3 //Remove quotations if SchIDs are numeric
+egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
+sort group_id StudentGroup StudentSubGroup
+by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+drop group_id StateAssignedDistID1 StateAssignedSchID1
+
 
 replace State_leaid = "" if State_leaid == "."
 replace seasch = "" if seasch == "."
@@ -231,6 +262,8 @@ foreach var of varlist StudentSubGroup_TotalTested ProficientOrAbove_count Profi
 	tostring `var', replace force format("%9.3g")
 }
 
+tostring Lev5000_count, replace
+tostring Lev0_count, replace
 // Dealing with suppressed cases
 foreach var of varlist Lev*_count Lev*_percent AvgScaleScore ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested ParticipationRate {
 	replace `var' = "*" if Suppressed == "Y" & SuppressedSubGroup == "N"
@@ -418,10 +451,55 @@ replace CountyName = "Milwaukee County" if CountyName == "San Mateo County"
 replace CountyCode = "55079" if CountyCode== "6081"
 replace StudentSubGroup_TotalTested = string(StudentGroup_TotalTested) if StudentSubGroup == "All Students" & StudentSubGroup_TotalTested == "*"
 
-// Sorting and Exporting final
+//10-17-24 updates
+replace DistName = "Adeline Montessori School Inc" if DistName == "Adeline Montessori School, Inc."
+replace DistName = "Carmen High School of Science and Technology Inc." if DistName == "Carmen High School of Science and"
+*carmen middle school?
+replace DistName = "Central City Cyberschool of Milwaukee Inc" if DistName == "Central City Cyberschool of Milwaukee,"
+replace DistName = "Darrell L. Hines Academy Inc" if DistName == "Darrell L. Hines Academy, Inc."
+replace DistName = "Downtown Montessori Academy Inc" if DistName == "Downtown Montessori Academy, Inc."
+replace DistName = "Isthmus Montessori Academy Inc" if DistName == "Isthmus Montessori Academy, Inc."
+replace DistName = "La Casa De Esperanza Inc" if DistName == "La Casa De Esperanza, Inc."
+replace DistName = "Lake Country Classical Academy Inc" if DistName == "Lake Country Classical Academy, Inc."
+replace DistName = "Milestone Democratic School Inc" if DistName == "Milestone Democratic School, Inc."
+replace DistName = "Milwaukee Math and Science Academy Inc" if DistName == "Milwaukee Math and Science Academy, Inc."
+replace DistName = "Milwaukee Scholars Charter School Inc" if DistName == "Milwaukee Scholars Charter School, Inc."
+replace DistName = "Milwaukee Science Education Consortium Inc" if DistName == "Milwaukee Science Education Consortium,"
+replace DistName = "New Leaf Prep Academy Inc" if DistName == "New Leaf Prep Academy, Inc."
+replace DistName = "One City Schools Inc" if DistName == "One City Schools, Inc."
+replace DistName = "Penfield Montessori Academy Inc" if DistName == "Penfield Montessori Academy, Inc."
+replace DistName = "Racine Charter One Inc" if DistName == "Racine Charter One, Inc."
+replace DistName = "Rocketship Education Wisconsin Inc" if DistName == "Rocketship Education Wisconsin, Inc."
+replace DistName = "The Lincoln Academy Inc" if DistName == "The Lincoln Academy, Inc."
+replace DistName = "United Community Center Inc" if DistName == "United Community Center, Inc."
+replace DistName = "UpGrade Media Arts Schools Inc" if DistName == "UpGrade Media Arts Schools, Inc."
+replace DistName = "Waadookodaading Ojibwe Language Institute Inc" if DistName == "Waadookodaading Ojibwe Language"
+replace DistName = "Woodlands School Inc" if DistName == "Woodlands School, Inc."
+replace SchName = "Virtual Academy of Agriculture, Science and Technology" if SchName == "Virtual Academy of Agriculture, Science  and Technology"
 
+foreach var of varlist DistName SchName {
+replace `var' = strtrim(`var')
+replace `var' = stritrim(`var')
+}
+
+tostring NCESDistrictID, replace
+
+//Only keeping observations for these schools in certain districts because they align with NCES - V2.0
+drop if SchName == "Rural Virtual Academy" & DistName != "Medford Area Public"
+drop if SchName == "JEDI Virtual K-12" & DistName != "Marshall"
+
+// Sorting and Exporting final
 drop Suppressed
 drop SuppressedSubGroup
+
+destring NCESSchoolID, replace
+
+//V2.0 Suppressed Data Issues
+replace AvgScaleScore = "*" if AvgScaleScore == ""
+tostring StudentGroup_TotalTested, replace
+replace StudentGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "."
+replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
+replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested =="."
 
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
