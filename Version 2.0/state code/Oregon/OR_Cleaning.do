@@ -1,4 +1,4 @@
-=clear
+clear
 set more off
 set trace off
 
@@ -8,7 +8,15 @@ local Output "/Users/benjaminm/Documents/State_Repository_Research/Oregon/Output
 local NCESDistrict "/Users/benjaminm/Documents/State_Repository_Research/NCES/District"
 local NCESSchool "/Users/benjaminm/Documents/State_Repository_Research/NCES/School"
 
-//Unhide Below Importing Code on First Run
+// use "`Original'/2021"
+use "`Output'/OR_AssmtData_2023", replace
+// tab StudentSubGroup DataLevel
+
+// use "`Output'/OR_AssmtData_2024", replace
+// keep if NCESSchoolID == "Missing/Not Reported" | NCESSchoolID == "411224011374"
+// replace NCESSchoolID = "Missing/not reported" if NCESSchoolID == "Missing/Not Reported"
+// export delimited "`Output'/OR_MissingNCES_Schools", replace
+// //Unhide Below Importing Code on First Run
 
 /*
 forvalues year = 2015/2024 {
@@ -88,6 +96,7 @@ clear
 //Unhide Above importing code on first run
 
 
+**# Bookmark #1
 
 forvalues year == 2015/2024 {
 if `year' == 2020 | `year' == 2021 continue
@@ -393,24 +402,49 @@ replace Lev5_count = "" if Subject == "sci" & `year' > 2018
 replace Lev5_percent = "" if Subject == "sci" & `year' > 2018
 
 //StudentGroup_TotalTested
+duplicates drop DataLevel AssmtName AssmtType NCESDistrictID NCESSchoolID Subject GradeLevel StudentGroup StudentSubGroup, force 
 duplicates drop
 sort StudentGroup
-egen StudentGroup_TotalTested = total(nStudentSubGroup_TotalTested), by(StudentGroup GradeLevel Subject DataLevel SchName DistName)
-tostring StudentGroup_TotalTested, replace
-replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "0"
+gen StateAssignedDistID1 = StateAssignedDistID
+replace StateAssignedDistID1 = "000000" if DataLevel == 1 //Remove quotations if DistIDs are numeric
+gen StateAssignedSchID1 = StateAssignedSchID
+replace StateAssignedSchID1 = "000000" if DataLevel != 3 //Remove quotations if SchIDs are numeric
+egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
+sort group_id StudentGroup StudentSubGroup
+by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+drop group_id StateAssignedDistID1 StateAssignedSchID1
 
 
+//Deriving StudentSubGroup_TotalTested where possible
+gen UnsuppressedSSG = real(StudentSubGroup_TotalTested)
+egen UnsuppressedSG = total(UnsuppressedSSG), by(StudentGroup DistName SchName GradeLevel Subject)
+gen missing_SSG = 1 if missing(real(StudentSubGroup_TotalTested))
+egen missing_multiple = total(missing_SSG), by(StudentGroup DistName SchName GradeLevel Subject)
 
-sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-gen Suppressed = 0
-replace Suppressed = 1 if inlist(StudentSubGroup_TotalTested, "--", "*")
-egen StudentGroup_Suppressed = max(Suppressed), by(StudentGroup GradeLevel Subject DataLevel seasch StateAssignedDistID DistName SchName)
-drop Suppressed
-gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
-replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
-replace StudentGroup_TotalTested = AllStudents_Tested if StudentGroup_Suppressed == 1
-replace StudentGroup_TotalTested = AllStudents_Tested if inlist(StudentGroup, "Homeless Enrolled Status", "Migrant Status", "Foster Care Status", "Military Connected Status", "Disability Status", "Economic Status", "EL Status")
-drop AllStudents_Tested StudentGroup_Suppressed
+order StudentGroup_TotalTested UnsuppressedSG StudentSubGroup_TotalTested UnsuppressedSSG missing_multiple
+
+replace StudentSubGroup_TotalTested = string(real(StudentGroup_TotalTested)-UnsuppressedSG) if missing(real(StudentSubGroup_TotalTested)) & UnsuppressedSG > 0 & (missing_multiple <2 | StudentSubGroup == "English Learner" | StudentSubGroup == "English Proficient") & real(StudentGroup_TotalTested)-UnsuppressedSG > 0
+
+drop Unsuppressed* missing_*
+
+
+// egen StudentGroup_TotalTested = total(nStudentSubGroup_TotalTested), by(StudentGroup GradeLevel Subject DataLevel SchName DistName)
+// tostring StudentGroup_TotalTested, replace
+// replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "0"
+//
+//
+//
+// sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+// gen Suppressed = 0
+// replace Suppressed = 1 if inlist(StudentSubGroup_TotalTested, "--", "*")
+// egen StudentGroup_Suppressed = max(Suppressed), by(StudentGroup GradeLevel Subject DataLevel seasch StateAssignedDistID DistName SchName)
+// drop Suppressed
+// gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+// replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
+// replace StudentGroup_TotalTested = AllStudents_Tested if StudentGroup_Suppressed == 1
+// replace StudentGroup_TotalTested = AllStudents_Tested if inlist(StudentGroup, "Homeless Enrolled Status", "Migrant Status", "Foster Care Status", "Military Connected Status", "Disability Status", "Economic Status", "EL Status")
+// drop AllStudents_Tested StudentGroup_Suppressed
 
 //Supression
 foreach var of varlist StudentSubGroup_TotalTested Lev* ParticipationRate {
@@ -467,18 +501,126 @@ replace NCESSchoolID = "411224011374" if SchName == "Art Rutkin Elementary Schoo
 replace SchType = 1 if SchName == "Clark Elementary School"
 replace SchLevel = 1 if SchName == "Clark Elementary School"
 replace SchVirtual = 0 if SchName == "Clark Elementary School"
-replace NCESSchoolID = "Missing/Not Reported" if SchName == "Clark Elementary School"
+replace NCESSchoolID = "411004011371" if SchName == "Clark Elementary School"
 
 replace SchType = 1 if SchName == "Oakdale Middle School"
 replace SchLevel = 2 if SchName == "Oakdale Middle School"
 replace SchVirtual = 0 if SchName == "Oakdale Middle School"
-replace NCESSchoolID = "Missing/Not Reported" if SchName == "Oakdale Middle School"
+replace NCESSchoolID = "410804011365" if SchName == "Oakdale Middle School"
 
 replace SchType = 1 if SchName == "Tamarack Elementary School"
 replace SchLevel = 1 if SchName == "Tamarack Elementary School"
 replace SchVirtual = 0 if SchName == "Tamarack Elementary School"
-replace NCESSchoolID = "Missing/Not Reported" if SchName == "Tamarack Elementary School"
+replace NCESSchoolID = "410002311372" if SchName == "Tamarack Elementary School"
 }
+
+// R1 Updates
+
+foreach var of varlist DistName SchName {
+replace `var' = strtrim(`var')
+replace `var' = stritrim(`var')
+}
+
+
+// derviations 
+gen flag_gen = 1 if ProficientOrAbove_count == "--" & !missing(real(Lev1_count)) & !missing(real(Lev2_count)) & !missing(real(StudentSubGroup_TotalTested)) 
+replace ProficientOrAbove_count = string(real(StudentSubGroup_TotalTested) - real(Lev1_count) - real(Lev2_count))  if flag_gen == 1
+replace ProficientOrAbove_percent = string(1 - real(Lev1_percent) - real(Lev2_percent)) if flag_gen == 1
+drop flag_gen
+
+// FINISH THE DERIVATIONS, COPY AND PAST OR LOOP TO GEN ALL POSSIBLE MISSING COUNT VARS HERE
+// LAST DERVIATION IS ADDITIONAL SUBGROUPS, THEN DERS COMPLETE
+
+
+// gen flag_gen = 1 if !missing(real(Lev1_count)) & !missing(real(Lev2_count))  & !missing(real(ProficientOrAbove_count)) & !missing(real(StudentSubGroup_TotalTested)) & (Lev4_count == "--" | Lev4_count == "*" )
+
+// deriving Lev4
+gen derive_L4_count_lev34 = 1 if ProficiencyCriteria=="Levels 3-4" & inlist(Lev4_count, "*", "--")  & !inlist(Lev3_count, "*", "--") & !inlist(ProficientOrAbove_count,  "*", "--")
+replace Lev4_count = string(real(ProficientOrAbove_count) - real(Lev3_count)) if derive_L4_count_lev34 == 1
+replace Lev4_percent = string(real(ProficientOrAbove_percent) - real(Lev3_percent)) if derive_L4_count_lev34 == 1
+drop derive_L4_count_lev34 
+
+gen derive_L4_per_lev34 = 1 if ProficiencyCriteria== "Levels 3-4" & !inlist(Lev3_percent, "*", "--") & !inlist(Lev1_percent, "*", "--") & !inlist(Lev2_percent, "*", "-- ")  & inlist(Lev4_percent, "*", "--") 
+replace Lev4_percent = string(1 - real(Lev1_percent) - real(Lev2_percent) - real(Lev3_percent)) if derive_L4_per_lev34 == 1
+drop derive_L4_per_lev34
+
+
+
+// deriving Lev3_count
+ gen derive_L3_count_lev34 = .
+         replace derive_L3_count_lev34 = 1 if ProficiencyCriteria =="Levels 3-4" & inlist(Lev3_count, "*", "--")  & !inlist(Lev4_count, "*", "--") & !inlist(ProficientOrAbove_count, "*", "--")
+replace Lev3_count = string(real(ProficientOrAbove_count) - real(Lev4_count)) if derive_L3_count_lev34 == 1
+replace Lev3_percent = string(real(ProficientOrAbove_percent) - real(Lev4_percent)) if derive_L3_count_lev34 == 1
+drop derive_L3_count_lev34
+
+gen derive_L3_per_lev34 = 1 if ProficiencyCriteria== "Levels 3-4" & !inlist(Lev4_percent, "*", "--") & !inlist(Lev1_percent, "*", "--") & !inlist(Lev2_percent, "*", "-- ")  & inlist(Lev3_percent, "*", "--") 
+replace Lev3_percent = string(1 - real(Lev1_percent) - real(Lev2_percent) - real(Lev4_percent)) if derive_L3_per_lev34 == 1
+drop derive_L3_per_lev34
+
+
+// replace Lev4_percent = string(1 - real(Lev3_percent)) if derive_L4_count_lev34 == 1
+// gen flag_gen = 1 if !missing(real(Lev1_count)) & !missing(real(Lev2_count))  & !missing(real(Lev4_count)) & !missing(real(StudentSubGroup_TotalTested)) & missing(real(Lev3_count)) // Lev4_count == "--" | Lev4_count == "*"
+// replace Lev3_count = string(real(StudentSubGroup_TotalTested) - real(Lev1_count) - real(Lev2_count) - real(Lev4_count))  if flag_gen == 1
+// replace Lev4_percent = string(1 - real(Lev1_percent) - real(Lev2_percent) - real(Lev4_percent)) if flag_gen == 1
+// drop flag_gen 
+
+gen flag_gen = 1 if !missing(real(Lev1_count)) & !missing(real(Lev4_count))  & !missing(real(Lev3_count)) & !missing(real(StudentSubGroup_TotalTested))  & missing(real(Lev2_count)) & ProficiencyCriteria =="Levels 3-4"  
+replace Lev2_count = string(real(StudentSubGroup_TotalTested) - real(Lev1_count) - real(Lev4_count) - real(Lev3_count))  if flag_gen == 1
+replace Lev2_percent = string(1 - real(Lev1_percent) - real(Lev4_percent) - real(Lev3_percent)) if flag_gen == 1
+drop flag_gen 
+
+gen flag_gen = 1 if !missing(real(Lev4_count)) & !missing(real(Lev2_count))  & !missing(real(Lev3_count)) & !missing(real(StudentSubGroup_TotalTested))  & missing(real(Lev1_count)) & ProficiencyCriteria =="Levels 3-4" 
+replace Lev1_count = string(real(StudentSubGroup_TotalTested) - real(Lev4_count) - real(Lev2_count) - real(Lev3_count))  if flag_gen == 1
+replace Lev1_percent = string(1 - real(Lev4_percent) - real(Lev2_percent) - real(Lev3_percent)) if flag_gen == 1
+drop flag_gen 
+
+
+replace StateAssignedDistID = "000000" if DataLevel==1
+
+replace StateAssignedSchID = "000000" if DataLevel==1
+
+replace StateAssignedSchID = "000000" if DataLevel==2
+
+ 
+egen uniquegrp = group(DataLevel StateAssignedDistID StateAssignedSchID AssmtName Subject GradeLevel)
+sort uniquegrp StudentGroup StudentSubGroup 
+by uniquegrp: gen AllStudents = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by uniquegrp: replace AllStudents = AllStudents[_n-1] if missing(AllStudents)
+
+
+replace StudentGroup_TotalTested = "*" if AllStudents == "*" 
+
+replace StateAssignedDistID = "" if DataLevel==1
+
+replace StateAssignedSchID = "" if DataLevel==1
+
+replace StateAssignedSchID = "" if DataLevel==2
+
+
+duplicates drop DataLevel AssmtName AssmtType NCESDistrictID NCESSchoolID Subject GradeLevel StudentGroup StudentSubGroup, force 
+
+duplicates drop
+sort StudentGroup
+gen StateAssignedDistID1 = StateAssignedDistID
+replace StateAssignedDistID1 = "000000" if DataLevel == 1 //Remove quotations if DistIDs are numeric
+gen StateAssignedSchID1 = StateAssignedSchID
+replace StateAssignedSchID1 = "000000" if DataLevel != 3 //Remove quotations if SchIDs are numeric
+egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
+sort group_id StudentGroup StudentSubGroup
+by group_id: replace StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+drop group_id StateAssignedDistID1 StateAssignedSchID1
+
+gen UnsuppressedSSG = real(StudentSubGroup_TotalTested)
+egen UnsuppressedSG = total(UnsuppressedSSG), by(StudentGroup DistName SchName GradeLevel Subject)
+gen missing_SSG = 1 if missing(real(StudentSubGroup_TotalTested))
+egen missing_multiple = total(missing_SSG), by(StudentGroup DistName SchName GradeLevel Subject)
+
+order StudentGroup_TotalTested UnsuppressedSG StudentSubGroup_TotalTested UnsuppressedSSG missing_multiple
+
+replace StudentSubGroup_TotalTested = string(real(StudentGroup_TotalTested)-UnsuppressedSG) if missing(real(StudentSubGroup_TotalTested)) & UnsuppressedSG > 0 & (missing_multiple <2 | StudentSubGroup == "English Learner" | StudentSubGroup == "English Proficient") & real(StudentGroup_TotalTested)-UnsuppressedSG > 0 & !missing(real(StudentGroup_TotalTested)-UnsuppressedSG) & StudentSubGroup != "All Students"
+
+drop Unsuppressed* missing_*
 
 
 //Final Cleaning
@@ -493,3 +635,4 @@ export delimited "`Output'/OR_AssmtData_`year'", replace
 clear
 
 }
+

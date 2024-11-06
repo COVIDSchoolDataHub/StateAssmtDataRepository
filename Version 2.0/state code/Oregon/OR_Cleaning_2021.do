@@ -12,6 +12,14 @@ local NCESSchool "/Users/benjaminm/Documents/State_Repository_Research/NCES/Scho
 
 ** NOTE: RUN OR_CLEANING FIRST **
 
+use "`Output'/OR_AssmtData_2021", clear
+sort DistName SchName Subject GradeLevel StudentSubGroup StudentSubGroup_TotalTested
+//
+// tab DistName if DistName == "Salem-Keizer SD 24J" & Subject == "ela" & GradeLevel == "G03" & StudentSubGroup == "All students" & DataLevel == "District"
+list DistName SchName Subject GradeLevel StudentSubGroup StudentSubGroup_TotalTested if DistName == "Salem-Keizer SD 24J" & Subject == "ela" & GradeLevel == "G03" & StudentSubGroup == "All Students" & DataLevel == 2
+
+
+
 use "`Original'/2021"
 
 //Renaming and Dropping
@@ -187,30 +195,107 @@ gen AvgScaleScore = "--"
 //StudentGroup_TotalTested
 duplicates drop
 sort StudentGroup
-egen StudentGroup_TotalTested = total(nStudentSubGroup_TotalTested), by(StudentGroup GradeLevel Subject DataLevel SchName DistName)
-tostring StudentGroup_TotalTested, replace
-replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "0"
-replace StudentGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "*"
 
-sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-gen Suppressed = 0
-replace Suppressed = 1 if inlist(StudentSubGroup_TotalTested, "--", "*")
-egen StudentGroup_Suppressed = max(Suppressed), by(StudentGroup GradeLevel Subject DataLevel seasch StateAssignedDistID DistName SchName)
-drop Suppressed
-gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
-replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
-replace StudentGroup_TotalTested = AllStudents_Tested if StudentGroup_Suppressed == 1
-replace StudentGroup_TotalTested = AllStudents_Tested if inlist(StudentGroup, "Homeless Enrolled Status", "Migrant Status", "Foster Care Status", "Military Connected Status", "Disability Status", "Economic Status", "EL Status")
-drop AllStudents_Tested StudentGroup_Suppressed
+
+gen StateAssignedDistID1 = StateAssignedDistID
+replace StateAssignedDistID1 = "000000" if DataLevel == 1 //Remove quotations if DistIDs are numeric
+gen StateAssignedSchID1 = StateAssignedSchID
+replace StateAssignedSchID1 = "000000" if DataLevel != 3 //Remove quotations if SchIDs are numeric
+egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
+sort group_id StudentGroup StudentSubGroup
+by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+drop group_id StateAssignedDistID1 StateAssignedSchID1
+
+//Deriving StudentSubGroup_TotalTested where possible
+gen UnsuppressedSSG = real(StudentSubGroup_TotalTested)
+egen UnsuppressedSG = total(UnsuppressedSSG), by(StudentGroup DistName SchName GradeLevel Subject)
+gen missing_SSG = 1 if missing(real(StudentSubGroup_TotalTested))
+egen missing_multiple = total(missing_SSG), by(StudentGroup DistName SchName GradeLevel Subject)
+
+order StudentGroup_TotalTested UnsuppressedSG StudentSubGroup_TotalTested UnsuppressedSSG missing_multiple
+
+replace StudentSubGroup_TotalTested = string(real(StudentGroup_TotalTested)-UnsuppressedSG) if missing(real(StudentSubGroup_TotalTested)) & UnsuppressedSG > 0 & (missing_multiple <2 | StudentSubGroup == "English Learner" | StudentSubGroup == "English Proficient") & real(StudentGroup_TotalTested)-UnsuppressedSG > 0
+
+drop Unsuppressed* missing_*
+
+//
+//
+// egen StudentGroup_TotalTested = total(nStudentSubGroup_TotalTested), by(StudentGroup GradeLevel Subject DataLevel SchName DistName)
+// tostring StudentGroup_TotalTested, replace
+// replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "0"
+// replace StudentGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "*"
+//
+// sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+// gen Suppressed = 0
+// replace Suppressed = 1 if inlist(StudentSubGroup_TotalTested, "--", "*")
+// egen StudentGroup_Suppressed = max(Suppressed), by(StudentGroup GradeLevel Subject DataLevel seasch StateAssignedDistID DistName SchName)
+// drop Suppressed
+// gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+// replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
+// replace StudentGroup_TotalTested = AllStudents_Tested if StudentGroup_Suppressed == 1
+// replace StudentGroup_TotalTested = AllStudents_Tested if inlist(StudentGroup, "Homeless Enrolled Status", "Migrant Status", "Foster Care Status", "Military Connected Status", "Disability Status", "Economic Status", "EL Status")
+// drop AllStudents_Tested StudentGroup_Suppressed
+
 
 //Supression
 foreach var of varlist StudentSubGroup_TotalTested ParticipationRate {
 	replace `var' = "*" if `var' == "--" & ProficientOrAbove_percent != "--"
 }
 
+foreach var of varlist DistName SchName {
+replace `var' = strtrim(`var')
+replace `var' = stritrim(`var')
+}
+
 //Dropping Empty Obs
-drop if ProficientOrAbove_percent == "--"
+// drop if ProficientOrAbove_percent == "--"
 replace StudentGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "*" & StudentSubGroup == "All Students"
+
+
+replace StateAssignedDistID = "000000" if DataLevel==1
+
+replace StateAssignedSchID = "000000" if DataLevel==1
+
+replace StateAssignedSchID = "000000" if DataLevel==2
+
+ 
+egen uniquegrp = group(DataLevel StateAssignedDistID StateAssignedSchID AssmtName Subject GradeLevel)
+sort uniquegrp StudentGroup StudentSubGroup 
+by uniquegrp: gen AllStudents = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by uniquegrp: replace AllStudents = AllStudents[_n-1] if missing(AllStudents)
+
+
+replace StudentGroup_TotalTested = "*" if AllStudents == "*" 
+
+replace StateAssignedDistID = "" if DataLevel==1
+
+replace StateAssignedSchID = "" if DataLevel==1
+
+
+duplicates drop
+sort StudentGroup
+gen StateAssignedDistID1 = StateAssignedDistID
+replace StateAssignedDistID1 = "000000" if DataLevel == 1 //Remove quotations if DistIDs are numeric
+gen StateAssignedSchID1 = StateAssignedSchID
+replace StateAssignedSchID1 = "000000" if DataLevel != 3 //Remove quotations if SchIDs are numeric
+egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
+sort group_id StudentGroup StudentSubGroup
+by group_id: replace StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+drop group_id StateAssignedDistID1 StateAssignedSchID1
+
+gen UnsuppressedSSG = real(StudentSubGroup_TotalTested)
+egen UnsuppressedSG = total(UnsuppressedSSG), by(StudentGroup DistName SchName GradeLevel Subject)
+gen missing_SSG = 1 if missing(real(StudentSubGroup_TotalTested))
+egen missing_multiple = total(missing_SSG), by(StudentGroup DistName SchName GradeLevel Subject)
+
+order StudentGroup_TotalTested UnsuppressedSG StudentSubGroup_TotalTested UnsuppressedSSG missing_multiple
+
+replace StudentSubGroup_TotalTested = string(real(StudentGroup_TotalTested)-UnsuppressedSG) if missing(real(StudentSubGroup_TotalTested)) & UnsuppressedSG > 0 & (missing_multiple <2 | StudentSubGroup == "English Learner" | StudentSubGroup == "English Proficient") & real(StudentGroup_TotalTested)-UnsuppressedSG > 0 & !missing(real(StudentGroup_TotalTested)-UnsuppressedSG) & StudentSubGroup != "All Students"
+
+drop Unsuppressed* missing_*
+
 
 //Final Cleaning
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
@@ -222,5 +307,6 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 save "`Output'/OR_AssmtData_2021", replace
 export delimited "`Output'/OR_AssmtData_2021", replace
 clear
+
 
 
