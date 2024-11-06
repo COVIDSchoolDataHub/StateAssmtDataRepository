@@ -26,10 +26,10 @@ There are 2 .do files.  First run NH_Cleaning.do, and then run NH_EDFactsPartici
 
 The file path setup should be as follows: 
 
-global Original: Folder with all original data files.
-global Output: Folder transformed files.
-global NCES: Folder containing NCES files (in district and school subfolders).
-global EDFacts: Folder containing EDFacts files (in separate folders for each year).
+- global Original: Folder with all original data files.
+- global Output: Folder transformed files.
+- global NCES: Folder containing NCES files (in district and school subfolders).
+- global EDFacts: Folder containing EDFacts files (in separate folders for each year).
 
 ```bash
 global Original "/Users/miramehta/Documents/NH State Testing Data/Original Data Files"
