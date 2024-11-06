@@ -1,9 +1,8 @@
 clear
 set more off
 
-global EDFacts "/Users/kaitlynlucas/Desktop/EDFacts Drive Data"
-global State_Output "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/New Hampshire Assessment" // Version 1.1 Output directory here
-global New_Output "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/New Hampshire V2.0" // Version 2.0 Output directory here
+global EDFacts "/Users/miramehta/Documents/EDFacts"
+global Output "/Users/miramehta/Documents/NH State Testing Data/Output"
 
 ** Preparing EDFacts files
 local edyears1 14 15 16 17 18
@@ -121,23 +120,9 @@ foreach year of local edyears1 {
     }
 }
 
-
-//Conversion to DTA
-forvalues year = 2014/2018 {
-import delimited "${State_Output}/NH_AssmtData_`year'", case(preserve) clear
-save "${State_Output}/NH_AssmtData_`year'", replace
-}
-
 //Merging Example
 forvalues year = 2014/2018 {
-import delimited "${State_Output}/NH_AssmtData_`year'.csv", case(preserve) clear
-
-//DataLevel
-label def DataLevel 1 "State" 2 "District" 3 "School"
-encode DataLevel, gen(DataLevel_n) label(DataLevel)
-sort DataLevel_n 
-drop DataLevel 
-rename DataLevel_n DataLevel
+use "${Output}/NH_AssmtData_`year'.dta", clear
 
 //Merging
 
@@ -158,8 +143,14 @@ clear
 use "`tempsch'"
 duplicates report NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject
 duplicates drop NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject, force
+destring NCESDistrictID, replace
+destring NCESSchoolID, replace
 merge 1:1 NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject using "${EDFacts}/`year'/edfactspart`year'schoolnewhampshire.dta", gen(SchMerge)
 drop if SchMerge == 2
+tostring NCESDistrictID, replace
+tostring NCESSchoolID, replace format("%18.0f")
+replace NCESDistrictID = "" if NCESDistrictID == "."
+replace NCESSchoolID = "" if NCESSchoolID == "."
 save "`tempsch'", replace
 clear
 
@@ -178,6 +169,6 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${New_Output}/NH_AssmtData_`year'", replace
-export delimited "${New_Output}/NH_AssmtData_`year'", replace
+save "${Output}/NH_AssmtData_`year'", replace
+export delimited "${Output}/NH_AssmtData_`year'", replace
 }
