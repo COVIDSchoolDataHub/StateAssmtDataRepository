@@ -195,6 +195,8 @@ replace StudentSubGroup = "English Learner" if StudentSubGroup == "Current EB/EL
 replace StudentSubGroup = "English Proficient" if StudentSubGroup == "Other Non-EB/EL"
 replace StudentSubGroup = "EL Monit or Recently Ex" if StudentSubGroup == "Non-EB/EL (Monitored 1st Year)"
 replace StudentSubGroup = "Non-Migrant" if StudentSubGroup == "Not Migrant"
+replace StudentSubGroup = "All Students" if StudentSubGroup == "" & inlist(DistName, "WOODVILLE ISD", "WORTHAM ISD", "WYLIE ISD", "YANTIS ISD", "YELLOWSTONE COLLEGE PREPARATORY") & DataLevel == 2
+replace StudentSubGroup = "All Students" if StudentSubGroup == "" & inlist(DistName, "YES PREP PUBLIC SCHOOLS INC", "YOAKUM ISD", "YORKTOWN ISD", "YSLETA ISD", "ZAPATA COUNTY ISD", "ZAVALLA ISD", "ZEPHYR ISD") & DataLevel == 2 //adjusting for values that show up oddly from the scraping
 gen StudentGroup = ""
 replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
 replace StudentGroup = "Disability Status" if inlist(StudentSubGroup, "SWD", "Non-SWD")
