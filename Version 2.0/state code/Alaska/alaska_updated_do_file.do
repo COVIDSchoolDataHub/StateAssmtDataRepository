@@ -158,10 +158,6 @@ destring ParticipationRate, replace percent
 gen double ParticipationRate1 = ParticipationRate/100
 drop ParticipationRate
 
-
-
-
-
 // Accurate StudentGroup_Total_Tested using Part Rate and Enrollment
 gen double StudentGroup_TotalTested_New = . 
 replace StudentGroup_TotalTested_New = Enrollment * ParticipationRate1
@@ -170,7 +166,6 @@ rename StudentGroup_TotalTested_New StudentGroup_TotalTested
 
 // rounds student group number to nearest whole number of students
 replace StudentGroup_TotalTested = round(StudentGroup_TotalTested,1)
-
 
 replace SchYear = "2017" if SchYear == "2016-2017"
 replace SchYear = "2018" if SchYear == "2017-2018"
@@ -239,10 +234,8 @@ replace ProficientOrAbove_percent = or_lower if or_lower != ""
 replace ProficientOrAbove_percent = or_higher if or_higher != ""
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
 
-
-
-
 save "$Temp/alaska_cleaned_updated", replace
+
 
 
 
@@ -260,7 +253,7 @@ keep if SchYear == "`a'"
 rename StateAssignedDistID State_leaid
 
 // District NCES Merge
-merge m:1 State_leaid using "$NCES_AK/1_NCES_`prevyear'_District_Alaska" // CHANGED
+merge m:1 State_leaid using "$NCES/NCES_`prevyear'_District_Alaska" // 
 rename _merge DistMerge
 drop if DistMerge == 2
 
@@ -270,18 +263,14 @@ rename State_leaid_og State_leaid
 
 // School NCES merge	
 rename StateAssignedSchID seasch
-merge m:1 seasch using "$NCES_AK/1_NCES_`prevyear'_School_Alaska" // CHANGED 
+merge m:1 seasch using "$NCES/NCES_`prevyear'_School_Alaska" //  
 rename _merge SchoolMerge
 drop if SchoolMerge == 2
 
 rename seasch StateAssignedSchID
 rename seasch_og seasch
 
-
-// codebook DistName if SchName == "All Schools"
-
 drop SchoolMerge
-
 
 drop State
 drop StateAbbrev
@@ -314,50 +303,33 @@ gen Flag_CutScoreChange_sci = "N"
 //SchYear Correct Format
 replace SchYear = "`prevyear'-" + substr("`a'",-2,2)
 
-/*
-// Recode DistrictType to String and Generate Charter Variable
-decode DistType, gen(DistType2)
-drop DistType
-rename DistType2 DistType
-*/
-
-
 gen StudentSubGroup_TotalTested = StudentGroup_TotalTested
-// replace StudentGroup_TotalTested = -1000000 if StudentGroup_TotalTested == .
-bys StudentGroup Subject GradeLevel DistName SchName: egen StudentGroup_TotalTested1 = total(StudentGroup_TotalTested)
-replace StudentGroup_TotalTested1 =. if StudentGroup_TotalTested1 < 0
-tostring StudentGroup_TotalTested1, replace
-replace StudentGroup_TotalTested1 = "*" if StudentGroup_TotalTested1 == "."
 drop StudentGroup_TotalTested
-rename StudentGroup_TotalTested1 StudentGroup_TotalTested
-// CHANGED
+///Gen StudentGroup_TotalTested
+gen StateAssignedDistID1 = StateAssignedDistID
+replace StateAssignedDistID1 = "000000" if DataLevel == 1 //Remove quotations if DistIDs are numeric
+gen StateAssignedSchID1 = StateAssignedSchID
+replace StateAssignedSchID1 = "000000" if DataLevel !=3 //Remove quotations if SchIDs are numeric
+egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
+sort group_id StudentGroup StudentSubGroup
+by group_id: gen StudentGroup_TotalTested_New = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by group_id: replace StudentGroup_TotalTested_New = StudentGroup_TotalTested_New[_n-1] if missing(StudentGroup_TotalTested_New)
+drop group_id StateAssignedDistID1 StateAssignedSchID1
+rename StudentGroup_TotalTested_New StudentGroup_TotalTested
 
-tostring StudentSubGroup_TotalTested, replace 
+// rounds student group number to nearest whole number of students
+replace StudentGroup_TotalTested = round(StudentGroup_TotalTested,1)
 
-tostring CountyCode, replace force
-destring CountyCode, replace force
-
-/*
-decode SchType, gen (SchType1)
-drop SchType
-rename SchType1 SchType
-
-decode SchLevel, gen (SchLevel1)
-drop SchLevel
-rename SchLevel1 SchLevel
-
-decode SchVirtual, gen (SchVirtual1)
-drop SchVirtual
-rename SchVirtual1 SchVirtual
-*/
+tostring StudentGroup_TotalTested StudentSubGroup_TotalTested, replace 
 
 //Post Launch Updates 4/27/24
+replace StudentGroup_TotalTested = "0" if StudentGroup_TotalTested == "."
+replace StudentGroup_TotalTested = "0" if StudentGroup_TotalTested == "."
 replace StudentSubGroup_TotalTested = "0" if StudentSubGroup_TotalTested == "."
 replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "N/A"
 foreach var of varlist *_percent {
 	replace `var' = subinstr(`var', " ", "",.)
 }
-replace ParticipationRate = "" if ParticipationRate == "-"
 
 //Post Launch Response to Review
 if `a' == 2019 replace SchVirtual = 0 if NCESSchoolID == "020051000450"
@@ -382,7 +354,3 @@ save "$Output/AK_AssmtData_`a'_Stata", replace
 export delimited "$Output/AK_AssmtData_`a'.csv", replace
 
 }
-
-
-
-
