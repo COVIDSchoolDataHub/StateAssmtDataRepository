@@ -18,9 +18,7 @@ forvalues i = 3/8 {
 	cap rename grade GRADE
 	drop *cat*
 	drop *ti*
-	*drop *mig*
 	drop *bil*
-	*drop *spe*
 	drop *gif*
 	drop *atr*
 	drop *esl*
@@ -30,7 +28,6 @@ forvalues i = 3/8 {
 	drop *eco2*
 	drop *ecov*
 	drop *eco9*
-	*drop *lepf*
 	drop *leps*
 	drop *lept*
 	drop *lepr*

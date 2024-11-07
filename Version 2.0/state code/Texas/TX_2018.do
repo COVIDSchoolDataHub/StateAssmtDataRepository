@@ -18,9 +18,7 @@ forvalues i = 3/8 {
 	cap rename grade GRADE
 	drop *cat*
 	drop *ti*
-	*drop *mig*
 	drop *bil*
-	*drop *spe*
 	drop *gif*
 	drop *atr*
 	drop *esl*
@@ -30,7 +28,6 @@ forvalues i = 3/8 {
 	drop *eco2*
 	drop *ecov*
 	drop *eco9*
-	*drop *lepf*
 	drop *leps*
 	drop *lepv*
 	drop *migv*
@@ -66,9 +63,7 @@ forvalues i = 3/8 {
 	replace DISTRICT = "00" + DISTRICT if strlen(DISTRICT) == 4
 	drop *cat*
 	drop *ti*
-	*drop *mig*
 	drop *bil*
-	*drop *spe*
 	drop *gif*
 	drop *atr*
 	drop *esl*
@@ -78,7 +73,6 @@ forvalues i = 3/8 {
 	drop *eco2*
 	drop *ecov*
 	drop *eco9*
-	*drop *lepf*
 	drop *leps*
 	drop *lepv*
 	drop *migv*
@@ -119,9 +113,7 @@ forvalues i = 3/8 {
 	replace DISTRICT = "00" + DISTRICT if strlen(DISTRICT) == 4
 	drop *cat*
 	drop *ti*
-	drop *mig*
 	drop *bil*
-	drop *spe*
 	drop *gif*
 	drop *atr*
 	drop *esl*
@@ -131,9 +123,10 @@ forvalues i = 3/8 {
 	drop *eco2*
 	drop *ecov*
 	drop *eco9*
-	drop *lepf*
 	drop *leps*
 	drop *lepv*
+	drop *migv*
+	drop *spev*
 	drop region
 	
 	rename (*_docs_n *_abs_n *_oth_n *_d *_docs_r *_abs_r *_oth_r *_unsatgl_nm *_approgl_nm *_meetsgl_nm *_mastrgl_nm *_unsatgl_rm *_approgl_rm *_meetsgl_rm *_mastrgl_rm *_rs) (docs_n_* abs_n_* oth_n_* d_* docs_r_* abs_r_* oth_r_* unsatgl_nm_* approgl_nm_* meetsgl_nm_* mastrgl_nm_* unsatgl_rm_* approgl_rm_* meetsgl_rm_* mastrgl_rm_* rs_*)

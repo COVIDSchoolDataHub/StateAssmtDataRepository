@@ -9,10 +9,10 @@ global temp_files "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN_Temp"
 
 
 // 2023-24
-
+/*
 // Separating large subject files by datalevel sheets and combining
 // Math
-/*
+
 import excel "$original_files/MN_OriginalData_2024_mat.xlsx", sheet("State") firstrow cellrange(A1:AF201) clear
 drop CountyNumber
 drop CountyName
@@ -352,6 +352,7 @@ replace StudentGroup = "Military Connected Status" if StudentGroup == "Military 
 replace StudentGroup = "Disability Status" if StudentGroup == "Special Education"
 replace StudentGroup = "Homeless Enrolled Status" if StudentGroup == "Homeless Status"
 replace StudentSubGroup = "All Students" if StudentSubGroup == "All students"
+replace StudentSubGroup = "Other Indigenous Peoples" if StudentSubGroup == "Other Indigenous Peoples Students"
 replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "American Indian Students"
 replace StudentSubGroup = "Asian" if StudentSubGroup == "Asian students"
 replace StudentSubGroup = "Black or African American" if StudentSubGroup == "Black or African American students"
@@ -359,7 +360,6 @@ replace StudentSubGroup = "White" if StudentSubGroup == "White students"
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic or Latino students"
 replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "Native Hawaiian or Pacific Islander students"
 replace StudentSubGroup = "Two or More" if StudentSubGroup == "Students with two or more races"
-drop if StudentSubGroup == "Other Indigenous Peoples Students"
 replace StudentSubGroup = "Male" if StudentSubGroup == "Male students"
 replace StudentSubGroup = "Female" if StudentSubGroup == "Female students"
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "English learners"

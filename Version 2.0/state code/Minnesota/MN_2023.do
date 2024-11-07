@@ -1,7 +1,6 @@
 clear
 
 // Define file paths
-
 global original_files "/Users/kaitlynlucas/Desktop/Minnesota State Task"
 global NCES_files "/Users/kaitlynlucas/Desktop/Minnesota State Task/NCES_MN"
 global output_files "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN Output"
@@ -339,6 +338,7 @@ replace StudentGroup = "Military Connected Status" if StudentGroup == "Military 
 replace StudentGroup = "Disability Status" if StudentGroup == "Special Education"
 replace StudentGroup = "Homeless Enrolled Status" if StudentGroup == "Homeless Status"
 replace StudentSubGroup = "All Students" if StudentSubGroup == "All students"
+replace StudentSubGroup = "Other Indigenous Peoples" if StudentSubGroup == "Other Indigenous Peoples Students"
 replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "American Indian Students"
 replace StudentSubGroup = "Asian" if StudentSubGroup == "Asian students"
 replace StudentSubGroup = "Black or African American" if StudentSubGroup == "Black or African American students"
@@ -346,7 +346,6 @@ replace StudentSubGroup = "White" if StudentSubGroup == "White students"
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic or Latino students"
 replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "Native Hawaiian or Pacific Islander students"
 replace StudentSubGroup = "Two or More" if StudentSubGroup == "Students with two or more races"
-drop if StudentSubGroup == "Other Indigenous Peoples Students"
 replace StudentSubGroup = "Male" if StudentSubGroup == "Male students"
 replace StudentSubGroup = "Female" if StudentSubGroup == "Female students"
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "English learners"
@@ -459,10 +458,6 @@ replace State_leaid = "" if DataLevel == 1
 replace DistName = "Wheaton Area Public School District" if DistName == ""
 
 //Had to get rid of this district at the district level because there is no other data and it only appears in this one year. 
-/*
-drop if (DistName == "Minnesota Department of Corrections") & (DataLevel == "District")
-*/
-
 drop if StateAssignedSchID == "0803-01-006"
 
 drop if DistName == "Minnesota Department of Corrections" & DataLevel == 2
