@@ -20,15 +20,15 @@ Set directories at the top of the do file:
 ```
 global path "/Users/kaitlynlucas/Desktop/Wisconsin/Original Files"
 global nces "/Users/kaitlynlucas/Desktop/Wisconsin/nces"
-global output "/Users/kaitlynlucas/Desktop/Wisconsin/output"
 global temporary "/Users/kaitlynlucas/Desktop/Wisconsin/temp"
+global output "/Users/kaitlynlucas/Desktop/Wisconsin/output"
+
 ```
 - "Original" refers to the original data downloaded from the drive
-- "Output" is the output folder
 - "NCES" is the NCES District and School files folder (2016-2022)
 - "Temp" is where the code will temporarily store files to deal with suppressed data
+- "Output" is the output folder
 
 ## Recreate Cleaning
-1. Unhide the Importing Code at the top of each do file
-2. Run the do-files
-3. On future runs you'll want to hide the importing code
+1. Unhide the Importing Code at the top of each do file. (On future runs you'll want to hide the importing code)
+2. Run the do-files in order from 2016 onward. 
