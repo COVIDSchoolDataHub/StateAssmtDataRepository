@@ -231,11 +231,6 @@ gen State = "Wisconsin"
 gen StateAbbrev = "WI"
 gen StateFips = 55
 
-// calculate group total tested (after sorted!)
-/*gen StudentGroup_TotalTested = 0
-replace StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
-replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if StudentGroup_TotalTested == 0
-*/
 
 //New StudentGroup_TotalTested v2.0
 gen StateAssignedDistID1 = StateAssignedDistID
@@ -255,7 +250,7 @@ replace seasch = "" if seasch == "."
 // Restring Counts
 forvalues x = 1/4 {
 		tostring Lev`x'_count, replace force format("%9.3g")
-		tostring Lev`x'_percent, replace force format("%9.3g")
+		tostring Lev`x'_percent, replace force format("%9.4g")
 }
 
 foreach var of varlist StudentSubGroup_TotalTested ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate {
@@ -440,24 +435,24 @@ replace NCESSchoolID = "551724703395" if SchName == "Mill Creek Academy"
 replace SchType = "Regular school" if SchName == "Mill Creek Academy"
 replace SchLevel = "Primary" if SchName == "Mill Creek Academy"
 replace SchVirtual = "No" if SchName == "Mill Creek Academy"
+replace CountyName = "Waukesha County" if DistName == "Mill Creek Academy Inc"
+replace CountyCode = "55133" if DistName == "Mill Creek Academy Inc"
+replace DistLocale = "Missing/not reported" if DistName == "Mill Creek Academy Inc"
 replace DistName = "La Casa De Esperanza Inc" if DistName == "La Casa De Esperanza Inc."
 
 drop if SchName == "Lakeland STAR School--Strong Talented Adventurous Remarkable"
 replace NCESSchoolID = "551509003394" if SchName == "Learning by Design Academy"
 replace SchType = "Regular school" if SchName == "Learning by Design Academy"
 replace SchLevel = "Primary" if SchName == "Learning by Design Academy"
-replace SchVirtual = "Supplemental virtual" if SchName == "Learning by Design Academy"
+replace SchVirtual = "Missing/not reported" if SchName == "Learning by Design Academy"
 replace NCESSchoolID = "551135003391" if SchName == "Palmyra Eagle Montessori School"
 replace SchType = "Regular school" if SchName == "Palmyra Eagle Montessori School"
 replace SchLevel = "Primary" if SchName == "Palmyra Eagle Montessori School"
-replace SchVirtual = "Supplemental virtual" if SchName == "Palmyra Eagle Montessori School"
+replace SchVirtual = "No" if SchName == "Palmyra Eagle Montessori School"
 replace NCESSchoolID = "550189003388" if SchName == "Wisconsin Connect Charter School"
 replace SchType = "Regular school" if SchName == "Wisconsin Connect Charter School"
-replace SchLevel = "Primary" if SchName == "Wisconsin Connect Charter School"
-replace SchVirtual = "No" if SchName == "Wisconsin Connect Charter School"
-replace CountyName = "Waukesha County" if DistName == "Mill Creek Academy Inc"
-replace CountyCode = "55133" if DistName == "Mill Creek Academy Inc"
-replace DistLocale = "Suburb, large" if DistName == "Mill Creek Academy Inc"
+replace SchLevel = "Other" if SchName == "Wisconsin Connect Charter School"
+replace SchVirtual = "Yes" if SchName == "Wisconsin Connect Charter School"
 replace SchLevel = "Middle" if SchName == "Racine County Detention Center"
 replace SchVirtual = "No" if SchName == "Racine County Detention Center"
 

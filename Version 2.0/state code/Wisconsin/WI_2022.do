@@ -212,11 +212,6 @@ gen State = "Wisconsin"
 gen StateAbbrev = "WI"
 gen StateFips = 55
 
-// calculate group total tested (after sorted!)
-/*gen StudentGroup_TotalTested = 0
-replace StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
-replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if StudentGroup_TotalTested == 0
-*/
 
 //New StudentGroup_TotalTested v2.0
 gen StateAssignedDistID1 = StateAssignedDistID
@@ -234,7 +229,7 @@ replace seasch = "" if seasch == "."
 // Restring Counts
 forvalues x = 1/4 {
 		tostring Lev`x'_count, replace force format("%9.3g")
-		tostring Lev`x'_percent, replace force format("%9.3g")
+		tostring Lev`x'_percent, replace force format("%9.4g")
 }
 
 foreach var of varlist StudentSubGroup_TotalTested ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate {
@@ -405,34 +400,17 @@ drop if SchName == "JEDI Virtual K-12 - Jefferson and Eastern Dane County Intera
 //Post launch review responsereplace CountyName = "Milwaukee County" if CountyName == "San Mateo County"
 replace CountyCode = "55079" if CountyCode== "6081"
 replace StudentSubGroup_TotalTested = string(StudentGroup_TotalTested) if StudentSubGroup == "All Students" & StudentSubGroup_TotalTested == "*"
-/*
-//10-17-24 updates
-replace DistName = "Carmen High School of Science and Technology Inc." if DistName == "Carmen Middle School South"
-replace DistName = "Central City Cyberschool of Milwaukee Inc" if DistName == "Central City Cyberschool"
-replace DistName = "Darrell L. Hines Academy Inc" if DistName == "Darrell Lynn Hines Academy"
-replace DistName = "Downtown Montessori Academy Inc" if DistName == "Downtown Montessori"
-replace DistName = "Isthmus Montessori Academy Inc" if DistName == "Isthmus Montessori Academy Public"
-replace DistName = "La Casa De Esperanza Inc" if DistName == "La Casa de Esperanza Charter School"
-replace DistName = "Milestone Democratic School Inc" if DistName == "Milestone Democratic School"
-replace DistName = "Milwaukee Math and Science Academy Inc" if DistName == "Milwaukee Math and Science Academy"
-replace DistName = "Milwaukee Scholars Charter School Inc" if DistName == "Milwaukee Scholars Charter School"
-replace DistName = "New Leaf Prep Academy Inc" if DistName == "New Leaf Prep Academy"
-replace DistName = "Penfield Montessori Academy Inc" if DistName == "Penfield Montessori Academy"
-replace DistName = "Rocketship Education Wisconsin Inc" if DistName == "Rocketship Southside Community Prep"
-replace DistName = "The Lincoln Academy Inc" if DistName == "The Lincoln Academy"
-replace DistName = "United Community Center Inc" if DistName == "United Community Center Acosta Middle"
-replace DistName = "UpGrade Media Arts Schools Inc" if DistName == "UpGrade Media Arts Schools"
-replace DistName = "Waadookodaading Ojibwe Language Institute Inc" if DistName == "WOLI/Akii'gikinoo'amaading Environmental"
-replace DistName = "Woodlands School Inc" if DistName == "Woodlands School - State Street Campus"
-replace DistName = "Woodlands School Inc" if DistName == "Woodlands School"
-*/
+
 // Sorting and Exporting final
 
 drop Suppressed
 drop SuppressedSubGroup
 
+//Only keeping observations for these schools in certain districts because they align with NCES - V2.0
 drop if SchName == "Rural Virtual Academy" & DistName != "Medford Area Public"
+drop if SchName == "JEDI Virtual K-12" & DistName != "Marshall"
 replace AvgScaleScore = "*" if AvgScaleScore == ""
+
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "."
 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."

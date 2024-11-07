@@ -202,11 +202,6 @@ gen State = "Wisconsin"
 gen StateAbbrev = "WI"
 gen StateFips = 55
 
-// calculate group total tested (after sorted!)
-/*gen StudentGroup_TotalTested = 0
-replace StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
-replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if StudentGroup_TotalTested == 0
-*/
 
 //New StudentGroup_TotalTested v2.0
 gen StateAssignedDistID1 = StateAssignedDistID
@@ -224,7 +219,7 @@ replace seasch = "" if seasch == "."
 // Restring Counts
 forvalues x = 1/4 {
 		tostring Lev`x'_count, replace force format("%9.3g")
-		tostring Lev`x'_percent, replace force format("%9.3g")
+		tostring Lev`x'_percent, replace force format("%9.4g")
 }
 
 foreach var of varlist StudentSubGroup_TotalTested ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate {
@@ -388,19 +383,7 @@ drop if StudentGroup == "Disability Status" & StudentSubGroup == "Unknown"
 //Post launch review responsereplace CountyName = "Milwaukee County" if CountyName == "San Mateo County"
 replace CountyCode = "55079" if CountyCode== "6081"
 replace StudentSubGroup_TotalTested = string(StudentGroup_TotalTested) if StudentSubGroup == "All Students" & StudentSubGroup_TotalTested == "*"
-/*
-//10-17-24
-replace DistName = "Central City Cyberschool of Milwaukee Inc" if DistName == "Central City Cyberschool"
-replace DistName = "Darrell L. Hines Academy Inc" if DistName == "Darrell Lynn Hines Academy"
-replace DistName = "Downtown Montessori Academy Inc" if DistName == "Downtown Montessori"
-replace DistName = "Milwaukee Math and Science Academy Inc" if DistName == "Milwaukee Math and Science Academy"
-replace DistName = "Milwaukee Scholars Charter School Inc" if DistName == "Milwaukee Scholars Charter School"
-replace DistName = "Rocketship Education Wisconsin Inc" if DistName == "Rocketship Southside Community Prep"
-replace DistName = "United Community Center Inc" if DistName == "United Community Center Acosta Middle"
-replace DistName = "Washington Island" if DistName == "Washington"
-replace DistName = "Woodlands School Inc" if DistName == "Woodlands School East"
-replace DistName = "Woodlands School Inc" if DistName == "Woodlands School"
-*/
+
 // Sorting and Exporting final
 
 drop Suppressed

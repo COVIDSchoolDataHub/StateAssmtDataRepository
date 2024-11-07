@@ -231,11 +231,6 @@ gen State = "Wisconsin"
 gen StateAbbrev = "WI"
 gen StateFips = 55
 
-// calculate group total tested (after sorted!)
-/*gen StudentGroup_TotalTested = 0
-replace StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
-replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if StudentGroup_TotalTested == 0
-*/
 
 //New StudentGroup_TotalTested v2.0
 gen StateAssignedDistID1 = StateAssignedDistID
@@ -255,7 +250,7 @@ replace seasch = "" if seasch == "."
 // Restring Counts
 forvalues x = 1/4 {
 		tostring Lev`x'_count, replace force format("%9.3g")
-		tostring Lev`x'_percent, replace force format("%9.3g")
+		tostring Lev`x'_percent, replace force format("%9.4g")
 }
 
 foreach var of varlist StudentSubGroup_TotalTested ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate {
