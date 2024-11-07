@@ -6,12 +6,15 @@ This is a ReadMe for Wisconsin's data cleaning process, from 2016 to 2024.
 
 ## Setup
 Create a folder for WI. Inside that folder, create four more folders: 
-"Original", "NCES", "Temp", and "Output"
+1. "Original"
+  - From the drive, download the files in the "Original Data Files" folder. Save these in the "Original" folder.
+2. "NCES"
+  - From the drive, download the NCES school and district files for 2016-2022 from the Data Cleaning Materials - NCES District and School Demographics folder. Put these in the "NCES" folder. All district and school files should be together in this folder (no subfolders).
+3. "Temp"
+  - This will start empty.
+4. "Output"
+  - This will start empty. 
 
-### Files to Download
-- From the drive, download the Original Data - Version 1.1 Folder. Put these in the "Original" folder.
-- Also from the drive, download the NCES school and district files for 2016-2022 from the Data Cleaning Materials - NCES District and School Demographics folder. Put these in the "NCES" folder.
-  
 ### Directories
 Set directories at the top of the do file:
 ```
