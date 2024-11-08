@@ -51,7 +51,7 @@ gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_sci = "N"
-gen Flag_CutScoreChange_soc = "Not Applicable"
+gen Flag_CutScoreChange_soc = "Not applicable"
 
 //DataLevel
 label def DataLevel 1 "State" 2 "District" 3 "School"
