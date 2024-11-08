@@ -34,7 +34,6 @@ rename SupportCount Lev1_count
 rename Support Lev1_percent
 rename Tested ParticipationRate
 
-
 //DataLevel
 label def DataLevel 1 "State" 2 "District" 3 "School"
 encode DataLevel, gen(DataLevel_n) label(DataLevel)
@@ -84,10 +83,9 @@ foreach var of varlist Lev*_percent {
 }
 
 //ParticipationRate
-replace ParticipationRate = string(real(ParticipationRate)/100, "%9.3g")
+replace ParticipationRate = string(real(ParticipationRate)/100)
 
 //ProficientOrAbove Count and Percent
-
 **Ranges
 foreach var of varlist Lev*_percent {
 	gen low`var' = substr(`var', 1, strpos(`var', "-")-1)
@@ -107,15 +105,14 @@ gen ProficientOrAbove_count = string(real(Lev3_count) + real(Lev4_count)) if Lev
 replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == ""
 
 //StudentSubGroup_TotalTested
-gen StudentSubGroup_TotalTested = round(real(Enrollment) * real(ParticipationRate))
-
-//StudentGroup_TotalTested
-egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested), by(GradeLevel DistName SchName Subject StudentGroup)
+gen StudentSubGroup_TotalTested = (real(Enrollment) * real(ParticipationRate))
+replace StudentSubGroup_TotalTested = round(StudentSubGroup_TotalTested)
 
 //NCES Merging
 tempfile temp1
 save "`temp1'", replace
 
+tostring id, replace
 //District Level
 keep if DataLevel == 2
 gen state_leaid = "0" + id if strlen(id) <2
@@ -125,23 +122,24 @@ replace state_leaid = "AK-" + state_leaid
 tempfile tempdist
 save "`tempdist'", replace
 clear
-use "$NCES/NCES_2022_District"
+use "NCES_2022_District"
 keep if state_fips == 2
 keep ncesdistrictid state_leaid district_agency_type DistCharter DistLocale county_code county_name
-merge 1:m state_leaid using "`tempdist'", keep(match using) nogen
+merge 1:m state_leaid using "`tempdist'", keep(match using) 
 save "`tempdist'", replace
 clear
 
 //School Level
 use "`temp1'"
 keep if DataLevel == 3
+tostring id, replace
 gen seasch = id
 replace seasch = "0" + seasch if strlen(seasch) == 5
 gen StateAssignedSchID = seasch
 tempfile tempsch
 save "`tempsch'", replace
 clear
-use "$NCES/NCES_2022_School"
+use "NCES_2022_School"
 keep if state_fips == 2
 keep ncesdistrictid state_leaid district_agency_type DistCharter DistLocale county_code county_name ncesschoolid seasch SchVirtual SchLevel school_type
 foreach var of varlist SchVirtual district_agency_type SchLevel school_type {
@@ -156,6 +154,7 @@ clear
 
 //Combining
 use "`temp1'"
+tostring id, replace
 keep if DataLevel == 1
 append using "`tempdist'" "`tempsch'"
 replace StateAssignedDistID = subinstr(state_leaid, "AK-", "",.) if DataLevel == 3
@@ -185,26 +184,46 @@ gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_sci = "N"
 gen Flag_CutScoreChange_soc = "Not Applicable"
 
+gen StateAssignedDistID1 = StateAssignedDistID
+replace StateAssignedDistID1 = "000000" if DataLevel == 1 //Remove quotations if DistIDs are numeric
+gen StateAssignedSchID1 = StateAssignedSchID
+replace StateAssignedSchID1 = "000000" if DataLevel !=3 //Remove quotations if SchIDs are numeric
+egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
+sort group_id StudentGroup StudentSubGroup
+by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+drop group_id StateAssignedDistID1 StateAssignedSchID1
+
+foreach percent of varlist *_percent {
+local count = subinstr("`percent'", "percent", "count",.)
+replace `count' = string(round(StudentSubGroup_TotalTested * real(substr(`percent',1,strpos(`percent',"-")-1)))) + "-" + string(round(StudentSubGroup_TotalTested * real(substr(`percent',strpos(`percent',"-")+1,3)))) if regexm(`percent', "[0-9]") !=0 & `count' == "*"
+}
+
+tostring ParticipationRate, replace force
+replace ParticipationRate = string(real(ParticipationRate), "%9.3g")
+replace ParticipationRate = "--" if strpos(ParticipationRate, "-") !=0 | ParticipationRate == "." | StudentSubGroup_TotalTested == 0  
+
 //Post Launch Response
 replace StudentSubGroup_TotalTested = 0 if SchYear== "2022-23" & NCESSchoolID== "020060000651"  & GradeLevel == "G38" & StudentSubGroup == "Black or African American" & Subject == "sci"
 replace StudentSubGroup_TotalTested = 0 if SchYear== "2022-23" & NCESSchoolID== "020021000396"  & GradeLevel == "G38" & StudentGroup_TotalTested == 0 
 replace StudentSubGroup_TotalTested = 0 if SchYear== "2022-23" & NCESSchoolID== "020003000626" & Subject == "sci" & GradeLevel == "G38" & StudentSubGroup == "Asian"
 replace StudentSubGroup_TotalTested = 0 if SchYear== "2022-23" & DataLevel == 2 & NCESDistrictID == "0200030" & Subject == "sci" & GradeLevel == "G38" & StudentSubGroup == "Asian"
 
-foreach percent of varlist *_percent {
-local count = subinstr("`percent'", "percent", "count",.)
-replace `count' = string(round(StudentSubGroup_TotalTested * real(substr(`percent',1,strpos(`percent',"-")-1)))) + "-" + string(round(StudentSubGroup_TotalTested * real(substr(`percent',strpos(`percent',"-")+1,3)))) if regexm(`percent', "[0-9]") !=0 & `count' == "*"
-}
-replace ParticipationRate = "--" if strpos(ParticipationRate, "-") !=0 | ParticipationRate == "." | StudentSubGroup_TotalTested == 0 
+tostring StudentGroup_TotalTested StudentSubGroup_TotalTested, replace
 
-//Final Cleaning
+replace StudentSubGroup_TotalTested = "0" if StudentSubGroup_TotalTested == "."
+replace StudentGroup_TotalTested = "0" if StudentGroup_TotalTested == "."
+replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "N/A"
+
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject Grade StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup 
 save "$Output/AK_AssmtData_2023_Stata", replace
 export delimited "$Output/AK_AssmtData_2023.csv", replace
+
 
 
 
