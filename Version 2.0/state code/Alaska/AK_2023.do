@@ -182,7 +182,7 @@ gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_sci = "N"
-gen Flag_CutScoreChange_soc = "Not Applicable"
+gen Flag_CutScoreChange_soc = "Not applicable"
 
 gen StateAssignedDistID1 = StateAssignedDistID
 replace StateAssignedDistID1 = "000000" if DataLevel == 1 //Remove quotations if DistIDs are numeric
