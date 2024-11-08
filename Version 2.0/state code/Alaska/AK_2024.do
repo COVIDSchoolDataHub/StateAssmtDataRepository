@@ -1,30 +1,57 @@
+
+clear all
+set more off
+
+global Original "/Users/name/Desktop/Alaska/Original"
+global Output "/Users/name/Desktop/Alaska/Output"
+global NCES "/Users/name/Desktop/Alaska/NCES"
+
+cd "/Users/name/Desktop/Alaska"
+cap log close
+log using alaska_cleaning2024.log, replace
+
+*****////
+//New Importing Code
 import excel AK_OriginalData_2024.xlsx, clear 
 save "$Original/AK_OriginalData_2024", replace
 export delimited AK_OriginalData_2024.csv, replace 
-use "$Original/AK_OriginalData_2024", clear
-// rename vars
-rename A DataLevel
-rename B id
-rename C DistName
-rename D SchName
-rename E AssmtName
-rename F Subject
-rename G GradeLevel
-rename H StudentGroup
-rename I StudentSubGroup
-rename J Lev4_count
-rename K Lev4_percent
-rename L Lev3_count
-rename M Lev3_percent
-rename N Lev2_count
-rename O Lev2_percent
-rename P Lev1_count
-rename Q Lev1_percent 
-rename R Enrollment 
-rename S ParticipationRate
+clear all
+//////*****
 
-// drops first line
-drop if DataLevel == "datalevel"
+import delimited AK_OriginalData_2024.csv, case(preserve) stringcols(_all) varnames(2) rowrange(3:)
+// rename vars
+rename datalevel DataLevel
+rename District_Name  DistName
+rename School_Name SchName
+rename Test AssmtName
+rename Grade GradeLevel
+rename Group StudentGroup
+rename SubGroup StudentSubGroup
+rename AdvancedCount Lev4_count
+rename Advanced Lev4_percent
+rename ProficientCount Lev3_count
+rename Proficient Lev3_percent
+rename ApproachingCount Lev2_count
+rename Approaching Lev2_percent
+rename SupportCount Lev1_count
+rename Support Lev1_percent
+rename Tested ParticipationRate
+
+//Indicator Variables
+gen State = "Alaska"
+gen StateAbbrev = "AK"
+gen StateFips = 2
+gen SchYear = "2023-24"
+gen AssmtType = "Regular"
+gen Lev5_count = ""
+gen Lev5_percent = ""
+gen AvgScaleScore = "--"
+gen ProficiencyCriteria = "Levels 3-4"
+gen Flag_AssmtNameChange = "N"
+gen Flag_CutScoreChange_ELA = "N"
+gen Flag_CutScoreChange_math = "N"
+gen Flag_CutScoreChange_sci = "N"
+gen Flag_CutScoreChange_soc = "Not Applicable"
 
 //DataLevel
 label def DataLevel 1 "State" 2 "District" 3 "School"
@@ -46,7 +73,6 @@ replace StudentGroup = "RaceEth" if StudentGroup == "Ethnicity"
 replace StudentGroup = "EL Status" if StudentGroup == "English Proficiency"
 
 //StudentSubGroup
-replace StudentSubGroup = "All Students" if StudentSubGroup == "All Students"
 replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "Alaska Native/American Indian"
 replace StudentSubGroup = "Asian" if StudentSubGroup == "Asian/Pacific Islander"
 replace StudentSubGroup = "Black or African American" if StudentSubGroup == "African American"
@@ -55,25 +81,21 @@ replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
 replace StudentSubGroup = "Two or More" if StudentSubGroup == "Two or More Races"
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "English Learners"
 replace StudentSubGroup = "English Proficient" if StudentSubGroup == "Not English Learners"
-replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Economically Disadvantaged"
-replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "Not Economically Disadvantaged"
-replace StudentSubGroup = "Male" if StudentSubGroup == "Male"
-replace StudentSubGroup = "Female" if StudentSubGroup == "Female"
 replace StudentSubGroup = "SWD" if StudentSubGroup == "Students With Disabilities"
 replace StudentSubGroup = "Non-SWD" if StudentSubGroup == "Students Without Disabilities"
 
 //Cleaning Percents
 foreach var of varlist Lev*_percent {
-	replace `var' = "0-" + string(real(substr(`var',1,2))/100, "%9.3g") if strpos(`var', "% or fewer") !=0
+	replace `var' = "0-" + string(real(substr(`var',1,2))/100, "%9.4g") if strpos(`var', "% or fewer") !=0
 	replace `var' = subinstr(`var', "% or fewer","",.)
-	replace `var' = string(real(substr(`var',1,2))/100, "%9.3g") + "-1" if strpos(`var', "% or more") !=0
+	replace `var' = string(real(substr(`var',1,2))/100, "%9.4g") + "-1" if strpos(`var', "% or more") !=0
 	replace `var' = subinstr(`var', "% or more","",.)
-	replace `var' = string(real(`var')/100, "%9.3g") if regexm(`var', "[*-]") == 0
+	replace `var' = string(real(`var')/100, "%9.4g") if regexm(`var', "[*-]") == 0
 	replace `var' = "0-.05" if `var' == "0-."
 }
 
 //ParticipationRate
-replace ParticipationRate = string(real(ParticipationRate)/100, "%9.3g")
+replace ParticipationRate = string(real(ParticipationRate)/100)
 
 //ProficientOrAbove Count and Percent
 
@@ -96,7 +118,8 @@ gen ProficientOrAbove_count = string(real(Lev3_count) + real(Lev4_count)) if Lev
 replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == ""
 
 //StudentSubGroup_TotalTested
-gen StudentSubGroup_TotalTested = round(real(Enrollment) * real(ParticipationRate))
+gen StudentSubGroup_TotalTested = (real(Enrollment) * real(ParticipationRate))
+replace StudentSubGroup_TotalTested = round(StudentSubGroup_TotalTested)
 
 //NCES Merging
 tempfile temp1
@@ -155,22 +178,6 @@ rename county_code CountyCode
 rename school_type SchType
 rename county_name CountyName
 
-//Indicator Variables
-gen State = "Alaska"
-gen StateAbbrev = "AK"
-gen StateFips = 2
-gen SchYear = "2023-24"
-gen AssmtType = "Regular"
-gen Lev5_count = ""
-gen Lev5_percent = ""
-gen AvgScaleScore = "--"
-gen ProficiencyCriteria = "Levels 3-4"
-gen Flag_AssmtNameChange = "N"
-gen Flag_CutScoreChange_ELA = "N"
-gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_sci = "N"
-gen Flag_CutScoreChange_soc = "Not Applicable"
-
 gen StateAssignedDistID1 = StateAssignedDistID
 replace StateAssignedDistID1 = "000000" if DataLevel == 1 //Remove quotations if DistIDs are numeric
 gen StateAssignedSchID1 = StateAssignedSchID
@@ -192,6 +199,8 @@ tostring StudentGroup_TotalTested StudentSubGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "0" if StudentGroup_TotalTested == "."
 replace StudentSubGroup_TotalTested = "0" if StudentSubGroup_TotalTested == "."
 replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "N/A"
+replace Lev5_count = "" if Lev5_count != "" 
+replace Lev5_percent = "" if Lev5_percent != "" 
 
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
@@ -202,4 +211,3 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "$Output/AK_AssmtData_2024", replace
 export delimited "$Output/AK_AssmtData_2024.csv", replace
-
