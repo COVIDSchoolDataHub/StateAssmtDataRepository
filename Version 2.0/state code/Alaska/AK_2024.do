@@ -10,13 +10,13 @@ cd "/Users/name/Desktop/Alaska"
 cap log close
 log using alaska_cleaning2024.log, replace
 
-////*****
+/*
 //New Importing Code
 import excel AK_OriginalData_2024.xlsx, clear 
 save "$Original/AK_OriginalData_2024", replace
 export delimited AK_OriginalData_2024.csv, replace 
 clear all
-*****//////
+*/
 
 import delimited AK_OriginalData_2024.csv, case(preserve) stringcols(_all) varnames(2) rowrange(3:)
 // rename vars
