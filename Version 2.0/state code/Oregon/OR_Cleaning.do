@@ -8,17 +8,6 @@ local Output "/Users/benjaminm/Documents/State_Repository_Research/Oregon/Output
 local NCESDistrict "/Users/benjaminm/Documents/State_Repository_Research/NCES/District"
 local NCESSchool "/Users/benjaminm/Documents/State_Repository_Research/NCES/School"
 
-// use "`Original'/2021"
-use "`Output'/OR_AssmtData_2021", clear
-
-tab SchName if real(ProficientOrAbove_percent) <= 0.01 & real(ProficientOrAbove_percent) != 0
-// tab StudentSubGroup DataLevel
-
-// use "`Output'/OR_AssmtData_2024", replace
-// keep if NCESSchoolID == "Missing/Not Reported" | NCESSchoolID == "411224011374"
-// replace NCESSchoolID = "Missing/not reported" if NCESSchoolID == "Missing/Not Reported"
-// export delimited "`Output'/OR_MissingNCES_Schools", replace
-// //Unhide Below Importing Code on First Run
 
 /*
 forvalues year = 2015/2024 {
