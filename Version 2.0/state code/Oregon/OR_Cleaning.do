@@ -9,7 +9,9 @@ local NCESDistrict "/Users/benjaminm/Documents/State_Repository_Research/NCES/Di
 local NCESSchool "/Users/benjaminm/Documents/State_Repository_Research/NCES/School"
 
 // use "`Original'/2021"
-use "`Output'/OR_AssmtData_2023", replace
+use "`Output'/OR_AssmtData_2021", clear
+
+tab SchName if real(ProficientOrAbove_percent) <= 0.01 & real(ProficientOrAbove_percent) != 0
 // tab StudentSubGroup DataLevel
 
 // use "`Output'/OR_AssmtData_2024", replace
@@ -101,7 +103,8 @@ clear
 forvalues year == 2015/2024 {
 if `year' == 2020 | `year' == 2021 continue
 
-use "`Original'/`year'"
+use "`Original'/`year'", clear
+
 
 
 local prevyear =`=`year'-1'
@@ -390,7 +393,6 @@ foreach var of varlist Flag* {
 
 replace Flag_AssmtNameChange = "N" if Subject == "sci" & `year' == 2015
 replace Flag_AssmtNameChange = "Y" if Subject == "sci" & `year' == 2019
-replace Flag_CutScoreChange_sci = "Y" if `year' == 2023
 
 //Empty Variables
 gen AvgScaleScore = "--"
@@ -526,6 +528,7 @@ replace `var' = stritrim(`var')
 gen flag_gen = 1 if ProficientOrAbove_count == "--" & !missing(real(Lev1_count)) & !missing(real(Lev2_count)) & !missing(real(StudentSubGroup_TotalTested)) 
 replace ProficientOrAbove_count = string(real(StudentSubGroup_TotalTested) - real(Lev1_count) - real(Lev2_count))  if flag_gen == 1
 replace ProficientOrAbove_percent = string(1 - real(Lev1_percent) - real(Lev2_percent)) if flag_gen == 1
+replace ProficientOrAbove_percent = "0" if real(ProficientOrAbove_percent) <= 0.01
 drop flag_gen
 
 // FINISH THE DERIVATIONS, COPY AND PAST OR LOOP TO GEN ALL POSSIBLE MISSING COUNT VARS HERE
@@ -566,12 +569,18 @@ drop derive_L3_per_lev34
 
 gen flag_gen = 1 if !missing(real(Lev1_count)) & !missing(real(Lev4_count))  & !missing(real(Lev3_count)) & !missing(real(StudentSubGroup_TotalTested))  & missing(real(Lev2_count)) & ProficiencyCriteria =="Levels 3-4"  
 replace Lev2_count = string(real(StudentSubGroup_TotalTested) - real(Lev1_count) - real(Lev4_count) - real(Lev3_count))  if flag_gen == 1
+
+
+
+
 replace Lev2_percent = string(1 - real(Lev1_percent) - real(Lev4_percent) - real(Lev3_percent)) if flag_gen == 1
+replace Lev2_percent = "0" if real(Lev2_percent) <= 0.01
 drop flag_gen 
 
 gen flag_gen = 1 if !missing(real(Lev4_count)) & !missing(real(Lev2_count))  & !missing(real(Lev3_count)) & !missing(real(StudentSubGroup_TotalTested))  & missing(real(Lev1_count)) & ProficiencyCriteria =="Levels 3-4" 
 replace Lev1_count = string(real(StudentSubGroup_TotalTested) - real(Lev4_count) - real(Lev2_count) - real(Lev3_count))  if flag_gen == 1
 replace Lev1_percent = string(1 - real(Lev4_percent) - real(Lev2_percent) - real(Lev3_percent)) if flag_gen == 1
+replace Lev1_percent = "0" if real(Lev1_percent) <= 0.01
 drop flag_gen 
 
 
@@ -623,6 +632,9 @@ replace StudentSubGroup_TotalTested = string(real(StudentGroup_TotalTested)-Unsu
 drop Unsuppressed* missing_*
 
 
+replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "."
+
+
 //Final Cleaning
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
@@ -635,4 +647,12 @@ export delimited "`Output'/OR_AssmtData_`year'", replace
 clear
 
 }
+
+
+
+
+
+use "`Output'/OR_AssmtData_2024", replace
+tab DistName if NCESDistrictID == "" & DataLevel == 3
+
 
