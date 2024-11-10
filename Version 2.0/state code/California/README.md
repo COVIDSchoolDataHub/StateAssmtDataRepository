@@ -11,24 +11,19 @@ Original Data Files, NCES, Output, Cleaned DTA.
 
 Download the original .xlsx files and place them into the "Original Data Files" folder. 
 
-Download the PostClean folder from the drive and save it to the California folder.
+Download the NCES crosswalk (CA_DistSchInfo_2010_2024) from the CA Dist and School Info folder
 
-There are 17 .do files. 
+There are 16 .do files. 
 
 Run them in the following order:
 
 california_dta_conversion.do; 
 
-california_NCES_do_file.do; 
-
-california_missing_NCES_updated.do;
+CA_NCES_New.do; 
 
 california_`year'_clean.do;
 
-CA_Science_2019_2023.do;
-
-california_unmerged_PostClean.do
-
+CA_Science_2019_2024.do;
 
 
     
@@ -36,30 +31,26 @@ california_unmerged_PostClean.do
 
 The file path setup should be as follows: 
 
-FOR the california_NCES_do_file.do file ONLY: 
+FOR the CA_NCES.do file ONLY: 
 
 ```
-global NCESOld "/Users/minnamgung/Desktop/SADR/NCESOld"
-
-global California1 "/Users/minnamgung/Desktop/SADR/California/NCES"
+global NCES_Original "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global NCES "/Volumes/T7/State Test Project/California/NCES"
 ```
 
 FOR the california_dta_conversion.do file ONLY: 
 ```
-global original "/Users/minnamgung/Desktop/SADR/California/Original Data Files"
-```
-
-FOR the california_unmerged_PostClean.do file ONLY:
-```
-global cd "/Volumes/T7/State Test Project/California" //This should link to the PostClean folder
+global original "/Volumes/T7/State Test Project/California/Original Data Files"
+global CA_Folder "/Volumes/T7/State Test Project/California"
+global data "/Volumes/T7/State Test Project/California/Cleaned DTA"
 ```
 
 FOR the rest of the do files:
 
-```bash
-global nces "/Users/minnamgung/Desktop/SADR/California/NCES"
-global output "/Users/minnamgung/Desktop/SADR/California/Output"
-global unmerged "/Users/minnamgung/Desktop/SADR/California/Unmerged Districts"
+```
+global data "/Volumes/T7/State Test Project/California/Cleaned DTA"
+global nces "/Volumes/T7/State Test Project/California/NCES"
+global output "/Volumes/T7/State Test Project/California/Output"
 ```
 ## Updates
 
@@ -67,3 +58,4 @@ global unmerged "/Users/minnamgung/Desktop/SADR/California/Unmerged Districts"
 - 06/11/2023: Moved to new NCES files for all years and updated unmerged observations. Added new code to deal with additional unmerged observations.
 - 6/15/23: Fixed mismatched ID's for all years.
 - 6/27/24 Incorporated science data for 2019-2023.
+- 11/10/24: Incorporated 2024, streamlined all do-files, redid nces merging by using crosswalk/dealt with mismatched dist and sch ids
