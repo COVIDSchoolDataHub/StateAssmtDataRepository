@@ -7,14 +7,14 @@ set trace off
 
 //NOTE: To convert excel files to dta., please run Excel DCAS file do FIRST before running this code.
 
-global data "/Users/kaitlynlucas/Desktop/Delaware State Task/2015-2017 DCAS files"
-global NCES "/Users/kaitlynlucas/Desktop/Delaware State Task/NCESOld1" //Jun 2024: file path for Uncleaned NCES data
-global output "/Users/kaitlynlucas/Desktop/Delaware State Task/Output"
+global Original "/Users/miramehta/Documents/DE State Testing Data/Original Data Files"
+global Output "/Users/miramehta/Documents/DE State Testing Data/Output"
+global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
 
 foreach year in 2015 2016 2017 {
 	di as error "`year'"
 //State
-	import excel "${data}/DE_OriginalData_`year'_State_DCAS_sci_soc.xlsx", sheet("Sheet1") firstrow clear
+	import excel "$Original/DE_OriginalData_`year'_State_DCAS_sci_soc.xlsx", sheet("Sheet1") firstrow clear
 	if `year' == 2017 {
 		rename PercentProficient PercentProficiency
 	}
@@ -48,7 +48,7 @@ foreach year in 2015 2016 2017 {
 	
 	
 //District 
-	import excel "${data}/DE_OriginalData_`year'_District_DCAS_sci_soc.xlsx", sheet("Sheet1") firstrow clear
+	import excel "$Original/DE_OriginalData_`year'_District_DCAS_sci_soc.xlsx", sheet("Sheet1") firstrow clear
 	if `year' != 2017 {
 	drop G PercentProficient I
 	}
@@ -93,7 +93,7 @@ foreach year in 2015 2016 2017 {
 	save "`District_`year''"
 
 //School
-	import excel "${data}/DE_OriginalData_`year'_School_DCAS_sci_soc.xlsx", sheet("Sheet1") firstrow clear
+	import excel "$Original/DE_OriginalData_`year'_School_DCAS_sci_soc.xlsx", sheet("Sheet1") firstrow clear
 	if `year' != 2017 {
 	drop G PercentProficient I
 	}
@@ -134,7 +134,7 @@ foreach year in 2015 2016 2017 {
 	save "`School_`year''"
 //Charter (for 2016 & 17)
 	if `year' != 2015 {
-	import excel "${data}/DE_OriginalData_`year'_Charter_DCAS_sci_soc.xlsx", sheet("Sheet1") firstrow clear
+	import excel "$Original/DE_OriginalData_`year'_Charter_DCAS_sci_soc.xlsx", sheet("Sheet1") firstrow clear
 	rename School SchoolName
 	if `year' != 2017 {
 	drop G H I
@@ -467,8 +467,8 @@ replace ParticipationRate = range_part + ParticipationRate
 	order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 	sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-		save "${output}/DE_AssmtData_`year'.dta", replace
-		export delimited using "${output}/DE_AssmtData_`year'.csv", replace
+		save "$Output/DE_AssmtData_`year'.dta", replace
+		export delimited using "$Output/DE_AssmtData_`year'.csv", replace
 		
 		
 		clear
