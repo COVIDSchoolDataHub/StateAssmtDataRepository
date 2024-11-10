@@ -2,21 +2,32 @@ clear
 set more off
 
 cap log close
-log using california_cleaning.log, replace
 
 global original "/Volumes/T7/State Test Project/California/Original Data Files"
-
-cd "/Volumes/T7/State Test Project/California/Cleaned DTA"
+global CA_Folder "/Volumes/T7/State Test Project/California"
+global data "/Volumes/T7/State Test Project/California/Cleaned DTA"
 
 // File conversion loop 
-// Only run this part ONCE! 
+// Only run this part ONCE!
+
+//NCES Directory
+import excel "$CA_Folder/CA_DistSchInfo_2010_2024.xlsx", cellrange(A1) firstrow case(preserve) clear
+replace NCESSchoolID = "" if DataLevel != "School"
+save "$data/CA_DistSchInfo_2010_2024", replace
+
+//Unmerged 2024
+import excel "$CA_Folder/CA_Unmerged_2024", firstrow case(preserve) allstring clear
+drop S-AA Notes *Merge
+save CA_Unmerged_2024, replace
 
 
-global years 2021 2022 2023
+//2021 2022 2023 2024
+global years 2021 2022 2023 2024
 
 foreach a in $years {
 	import delimited "${original}/CA_OriginalData_`a'.txt", delimiter("^") case(preserve) clear 
 	save California_Original_`a', replace
+	
 }
 
 
@@ -27,7 +38,8 @@ foreach a in $years {
 	save California_Original_`a', replace
 }
 
-global years 2021 2022 2023
+//2021 2022 2023 2024
+global years 2021 2022 2023 2024
 
 foreach a in $years {
 	import delimited "${original}/sb_ca`a'entities_csv.txt", delimiter("^") case(preserve) clear 
@@ -51,3 +63,23 @@ foreach a in $years {
 import delimited "${original}/StudentGroups.txt", delimiter("^") case(preserve) clear
 rename DemographicID StudentGroupID
 save "California_Student_Group_Names.dta", replace
+
+//Science Data
+
+//2019
+import delimited "$original/CA_OriginalData_2019_sci.txt", delimiter(",") case(preserve) clear
+save "$original/CA_OriginalData_2019_sci", replace
+import delimited "$original/cast_ca2019entities_csv.txt", delimiter(",") case(preserve) clear
+save "$original/cast_ca2019entities_csv", replace
+
+//2021-2024
+forvalues year = 2024/2024 {
+	import delimited "$original/CA_OriginalData_`year'_sci.txt", delimiter("^") case(preserve) clear
+	save "$original/CA_OriginalData_`year'_sci", replace
+	import delimited "$original/cast_ca`year'entities_csv.txt", delimiter("^") case(preserve) clear
+	save "$original/cast_ca`year'entities_csv", replace
+}
+
+
+
+

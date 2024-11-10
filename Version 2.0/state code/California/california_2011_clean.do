@@ -1,8 +1,6 @@
 clear
 set more off
-
 cap log close
-log using california_cleaning.log, replace
 
 // IMPORTANT NOTE!
 // before running the code, make sure a copy of 
@@ -10,27 +8,28 @@ log using california_cleaning.log, replace
 
 
 // set file directory to cleaned DTA folder
-cd "/Volumes/T7/State Test Project/California/Cleaned DTA"
-
+global data "/Volumes/T7/State Test Project/California/Cleaned DTA"
 global nces "/Volumes/T7/State Test Project/California/NCES"
 global output "/Volumes/T7/State Test Project/California/Output"
-global unmerged "/Volumes/T7/State Test Project/California/Unmerged Districts With NCES"
 
 // 2010-2011
 
-use California_Original_2011, clear
+use "$data/California_Original_2011", clear
 
-// NEW ADDED
 keep if TestType =="C"
-keep if Grade == 3 |  Grade == 4 |  Grade == 5 |  Grade == 6 |  Grade == 7 |  Grade == 8 
-// NEW ADDED
+keep if Grade == 3 |  Grade == 4 |  Grade == 5 |  Grade == 6 |  Grade == 7 |  Grade == 8
+drop if StudentsTested == 0
 
-merge m:1 CountyCode DistrictCode SchoolCode using California_School_District_Names_2011 //no countycode
+merge m:1 CountyCode DistrictCode SchoolCode TestYear using "$data/CA_DistSchInfo_2010_2024"
+drop if _merge == 2
 drop _merge
 
+replace Drop = "DROP" if DistrictName == "California Education Authority"
+drop if Drop == "DROP"
+drop Drop CountyCode
 rename SubgroupID StudentGroupID
 
-merge m:1 StudentGroupID using California_Student_Group_Names
+merge m:1 StudentGroupID using "$data/California_Student_Group_Names"
 drop _merge
 
 // New Demographic/StudentGroup DROP criteria (2024 update)
@@ -51,27 +50,12 @@ drop if DemographicName == "Some college (includes AA degree)"
 drop if DemographicName == "IFEP (Initial fluent English proficient)"
 drop if DemographicName == "TBD (To be determined)"
 
-// REPLACED
-gen DataLevel = ""
-replace DataLevel = "State" if TypeId == 4
-replace DataLevel = "County" if TypeId == 5
-replace DataLevel = "District" if TypeId == 6
-replace DataLevel = "School" if TypeId == 7
-replace DataLevel = "School" if TypeId == 9
-replace DataLevel = "School" if TypeId == 10
-drop if DataLevel == "County"
-// REPLACED
-
-rename TestYear SchYear
-rename DistrictCode StateAssignedDistID
-
-rename SchoolCode StateAssignedSchID
+//Rename vars
 rename DistrictName DistName 
 rename TestId Subject 
 rename Grade GradeLevel
-// StudentGroup already has correct name
 rename DemographicName StudentSubGroup
-rename StudentsTested StudentGroup_TotalTested
+rename StudentsTested StudentSubGroup_TotalTested
 rename SchoolName SchName
 rename PercentageAdvanced Lev5_percent
 rename PercentageProficient Lev4_percent
@@ -82,34 +66,31 @@ rename MeanScaleScore AvgScaleScore
 rename PercentageAtOrAboveProficient ProficientOrAbove_percent
 
 drop StudentGroupID
+drop if missing(StudentSubGroup)
 
-replace DistName = ustrtitle(DistName)
-*replace CountyName = ustrtitle(CountyName)
-drop CountyName
+//DistName Updates
+replace DistName = "Para Los Ninos Charter" if DistName == "Para Los Niños Charter"
+replace DistName = "Para Los Ninos Middle" if DistName == "Para Los Niños Middle"
+replace DistName = "Shanel Valley Academy" if DistName == "Shanél Valley Academy"
 
-tostring CountyCode StateAssignedDistID, replace
-replace CountyCode = "0" + CountyCode if strlen(CountyCode) == 1
-gen State_leaid = CountyCode + StateAssignedDistID
-
-drop CountyCode
 
 //NCES Merging
-merge m:1 State_leaid using "${nces}/1_NCES_2010_District"
-rename _merge DistMerge
-drop if DistMerge == 2
+replace NCESDistrictID = string(real(NCESDistrictID), "%07.0f")
+replace NCESDistrictID = "" if DataLevel == "State"
+replace NCESSchoolID = string(real(NCESSchoolID), "%012.0f")
+replace NCESSchoolID = "" if DataLevel != "School"
+merge m:1 NCESDistrictID using "$nces/NCES_2010_District.dta", gen(DistMerge1)
+merge m:1 NCESDistrictID using "$nces/NCES_2011_District.dta", update gen(DistMerge2)
+merge m:1 NCESDistrictID using "$nces/NCES_2022_District.dta", update gen(DistMerge3)
 
-gen str7 DUMMY = string(StateAssignedSchID,"%07.0f")
-drop StateAssignedSchID
-rename DUMMY StateAssignedSchID
+merge m:1 NCESSchoolID using "${nces}/NCES_2010_School.dta", gen(SchMerge1)
+merge m:1 NCESSchoolID using "${nces}/NCES_2011_School.dta", update gen(SchMerge2)
+merge m:1 NCESSchoolID using "${nces}/NCES_2022_School.dta", update gen(SchMerge3)
 
-rename StateAssignedSchID seasch1
-
-merge m:1 seasch1 using "${nces}/1_NCES_2010_School.dta", force
-rename _merge SchoolMerge
-drop if SchoolMerge == 2
-drop if SchoolMerge == 1 & SchName != ""
-
-rename seasch1 StateAssignedSchID
+foreach var of varlist *Merge* {
+	drop if `var' == 2
+}
+drop *Merge*
 
 
 //DataLevel
@@ -124,68 +105,36 @@ replace DistName = "All Districts" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel == 2
 
-// NEW ADDED
-
-
-drop State
-drop StateAbbrev
-drop StateFips
-gen State = "California"
-gen StateAbbrev = "CA"
-gen StateFips = 6 // CHANGED
+//Indicator Vars
+replace State = "California"
+replace StateAbbrev = "CA"
+replace StateFips = 6
 
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-// gen Flag_CutScoreChange_read = ""
 gen Flag_CutScoreChange_sci = "N"
 gen Flag_CutScoreChange_soc = "N"
 
- 
+gen SchYear = "2010-11"
 
-gen SchYear2 = "2010-11"
-drop SchYear
-rename SchYear2 SchYear
-
-// CHANGED 1.5
 gen AssmtName = "STAR - California Standards Tests (CSTs)" 
 gen AssmtType = "Regular"
 
-
-
-// Changing Subject to Correct Format
+//Subject (confirmed this is correct 11/4/24)
 gen Subject2 = "" 
 replace Subject2 = "math" if Subject == 8 // CHANGED
 replace Subject2 = "ela" if Subject == 7 // CHANGED
 replace Subject2 = "soc" if Subject == 29 // CHANGED
 replace Subject2 = "sci" if Subject == 32 // CHANGED
 replace Subject2 = "math" if Subject == 9 & GradeLevel == 8
-
-// MAY BE ADDING MORE
 drop Subject
 rename Subject2 Subject
-
 drop if Subject == ""
 
-// CHANGED 1.5
-
 // Changing GradeLevel to correct format
-gen GradeLevel2 = ""
-replace GradeLevel2 = "G03" if GradeLevel == 3
-replace GradeLevel2 = "G04" if GradeLevel == 4
-replace GradeLevel2 = "G05" if GradeLevel == 5
-replace GradeLevel2 = "G06" if GradeLevel == 6
-replace GradeLevel2 = "G07" if GradeLevel == 7
-replace GradeLevel2 = "G08" if GradeLevel == 8
-replace GradeLevel2 = "G10" if GradeLevel == 10
-replace GradeLevel2 = "G11" if GradeLevel == 11
-replace GradeLevel2 = "ALL" if GradeLevel == 13
-drop GradeLevel
-rename GradeLevel2 GradeLevel
-
-drop if GradeLevel == "ALL"
-drop if GradeLevel == "G10"
-drop if GradeLevel == "G11"
+tostring GradeLevel, replace
+replace GradeLevel = "G0" + GradeLevel
 
 
 
@@ -200,8 +149,6 @@ replace StudentGroup = "Homeless Enrolled Status" if StudentGroup == "Homeless S
 replace StudentGroup = "Military Connected Status" if StudentGroup == "Military Status"
 replace StudentGroup = "Migrant Status" if StudentGroup == "Migrant"
 replace StudentGroup = "Foster Care Status" if StudentGroup == "Foster Status"
-
-// keep if StudentGroup == "All Students" | StudentGroup == "RaceEth" | StudentGroup == "EL Status" | StudentGroup == "Economic Status" | StudentGroup == "Gender"  // StudentGroup == "Ethnicity"
 
 // StudentSubGroup Correct Labels 
 
@@ -251,131 +198,96 @@ replace StudentSubGroup = "Non-Foster Care" if StudentSubGroup == "Not foster yo
 replace StudentSubGroup = "Military" if StudentSubGroup == "Armed forces family member"
 replace StudentSubGroup = "Non-Military" if StudentSubGroup == "Not armed forces family member"
 
-
-
-//r3 changed
-// Generate Extra Level Variables 
+// Generate Missing Variables 
 gen Lev1_count = "--"
 gen Lev2_count = "--"
 gen Lev3_count = "--"
 gen Lev4_count = "--"
 gen Lev5_count = "--"
-
-
-
-gen ProficiencyCriteria = "Levels 4 and 5"
+gen ProficiencyCriteria = "Levels 4-5"
 gen ProficientOrAbove_count = "--" 
-//r3 changed
 
+//ParticipationRate
+gen ParticipationRate = string(StudentSubGroup_TotalTested/STARReportedEnrollmentCAPAEligib, "%9.3g")
+replace ParticipationRate = "--" if ParticipationRate == "." | missing(ParticipationRate)
+drop STARReportedEnrollmentCAPAEligib
 
-gen ParticipationRate = StudentGroup_TotalTested/STARReportedEnrollmentCAPAEligib // CHANGED 2
+//Converting Percents to Decimal
+foreach var of varlist *_percent {
+	replace `var' = string(real(`var')/100, "%9.3g") if !missing(real(`var'))
+}
 
-
-gen seasch = StateAssignedSchID // CHANGED 2
-
-
-// ENDED HERE
-gen StudentSubGroup_TotalTested = StudentGroup_TotalTested
-destring StudentGroup_TotalTested, replace force ignore(",")
-replace StudentGroup_TotalTested = -1000000 if StudentGroup_TotalTested == . // CHANGED 2 
-bys StudentGroup Subject GradeLevel DistName SchName: egen StudentGroup_TotalTested1 = total(StudentGroup_TotalTested)
-replace StudentGroup_TotalTested1 =. if StudentGroup_TotalTested1 < 0
-tostring StudentGroup_TotalTested1, replace
-replace StudentGroup_TotalTested1 = "*" if StudentGroup_TotalTested1 == "."
-drop StudentGroup_TotalTested
-rename StudentGroup_TotalTested1 StudentGroup_TotalTested
-// CHANGED
-
-
-// NEW ADDED 
-
-tostring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested1)
-drop StudentSubGroup_TotalTested
-rename StudentSubGroup_TotalTested1 StudentSubGroup_TotalTested
-
-// New ADDED 2 
-replace Lev1_percent = "-99999999" if Lev1_percent == "*"
-replace Lev2_percent = "-99999999" if Lev2_percent == "*"
-replace Lev3_percent = "-99999999" if Lev3_percent == "*"
-replace Lev4_percent = "-99999999" if Lev4_percent == "*"
-replace Lev5_percent = "-99999999" if Lev5_percent == "*"
-//replace ProficientOrAbove_count = "-99999999" if ProficientOrAbove_count == "*"
-replace ProficientOrAbove_percent = "-99999999" if ProficientOrAbove_percent == "*"
-// replace ParticipationRate = "-99999999" if ParticipationRate == "*"
-// New ADDED 2 
-
-
-destring Lev1_percent Lev2_percent Lev3_percent Lev4_percent  Lev5_percent ProficientOrAbove_percent ParticipationRate, replace //r3 changed
-
-
-// converting to decimal form from percentage form 
-replace Lev1_percent = Lev1_percent/100 
-replace Lev2_percent = Lev2_percent/100 
-replace Lev3_percent = Lev3_percent/100 
-replace Lev4_percent = Lev4_percent/100 
-replace Lev5_percent = Lev5_percent/100 
-replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
-// replace ParticipationRate = ParticipationRate/100 CHANGED 2 
-
-
-
-// NEW ADDED 2
-tostring Lev1_percent Lev2_percent Lev3_percent Lev4_percent Lev5_percent ProficientOrAbove_percent, replace force // r3 changed
-
-replace Lev1_percent = "*" if Lev1_percent == "-999999.99"
-replace Lev2_percent = "*" if Lev2_percent == "-999999.99"
-replace Lev3_percent = "*" if Lev3_percent == "-999999.99"
-replace Lev4_percent = "*" if Lev4_percent == "-999999.99"
-replace Lev5_percent = "*" if Lev5_percent == "-999999.99"
-replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "-999999.99"
-
-
+//StateAssignedDistID and StateAssignedSchID
+gen StateAssignedDistID = subinstr(State_leaid, "CA-","",.)
+gen StateAssignedSchID = substr(seasch, strpos(seasch, "-") +1,.)
 
 replace StateAssignedDistID = "" if DataLevel == 1
 replace StateAssignedSchID = "" if DataLevel == 1
 replace StateAssignedSchID = "" if DataLevel == 2
 
 replace CountyName = "" if DataLevel == 1
-replace CountyCode =.  if DataLevel == 1
-
-replace NCESDistrictID = subinstr(NCESDistrictID, "6", "06", 1)
-replace NCESDistrictID = subinstr(NCESDistrictID, "006", "06", 1)
-// NEW ADDED 2
+replace CountyCode = ""  if DataLevel == 1
 
 
-replace NCESSchoolID = "063543012538" if StateAssignedSchID == "0120261" //r3 changed
+//Misc Fixes
+
+replace AvgScaleScore="*" if AvgScaleScore==""
+
+replace ParticipationRate = "1" if !missing(real(ParticipationRate)) & real(ParticipationRate) > 1
+
+foreach v of varlist DistType DistLocale CountyName DistCharter {
+	
+	replace `v'="Missing/not reported" if DataLevel==2 & missing(`v')
+	
+}
+
+foreach v of varlist SchType SchLevel SchVirtual DistType DistLocale CountyName DistCharter {
+	
+	replace `v'="Missing/not reported" if DataLevel==3 & missing(`v')
+	
+}
+
+drop if DataLevel==.
+drop if StudentSubGroup=="Never EL"
+
+replace SchVirtual = "Missing/not reported" if missing(SchVirtual) & DataLevel == 3
+
+replace NCESDistrictID="" if DataLevel==1
+replace NCESDistrictID="Missing/not reported" if DataLevel!=1 & NCESDistrictID=="00"
 
 
-// r3 change
-replace NCESDistrictID = "0691006" if NCESDistrictID == "069106"
-replace NCESDistrictID = "0602006" if NCESDistrictID == "060206"
-replace NCESDistrictID = "0600006" if NCESDistrictID == "060006"
-replace NCESDistrictID = "0600063" if NCESDistrictID == "060063"
-replace NCESDistrictID = "0600064" if NCESDistrictID == "060064"
-replace NCESDistrictID = "0600065" if NCESDistrictID == "060065"
-// r3 change
+local nomissing Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent ProficientOrAbove_percent
 
-replace NCESSchoolID = substr(NCESDistrictID, 1, 7) + substr(NCESSchoolID, 8, .) if NCESDistrictID != "00" & DataLevel == 3 //r3 changed
+foreach var of local nomissing {
+	replace `var'="*" if `var'=="."
+}
 
-//NEW ADDED
+//Deriving Counts where possible
+tostring StudentSubGroup_TotalTested, replace
+replace StudentSubGroup_TotalTested = "--" if missing(StudentSubGroup_TotalTested)
+replace ProficientOrAbove_count = "--" if missing(ProficientOrAbove_count)
+foreach count of varlist *_count {
+local percent = subinstr("`count'","count", "percent",.)
+replace `count' = string(round(real(`percent') * real(StudentSubGroup_TotalTested))) if !missing(real(`percent')) & !missing(real(StudentSubGroup_TotalTested)) & missing(real(`count'))
+}
 
-//////////////////////////
-*** 2024 edits 
-//////////////////////////
+//StudentGroup_TotalTested
+cap drop StudentGroup_TotalTested
+gen StateAssignedDistID1 = StateAssignedDistID
+replace StateAssignedDistID1 = "000000" if DataLevel == 1
+gen StateAssignedSchID1 = StateAssignedSchID
+replace StateAssignedSchID1 = "000000" if DataLevel !=3
+egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
+sort group_id StudentGroup StudentSubGroup
+by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+drop group_id StateAssignedDistID1 StateAssignedSchID1
 
-
-drop State
-gen State="California"
-drop StateAbbrev
-gen StateAbbrev="CA"
-drop StateFips
-gen StateFips=6
-
+//Misc Fixes
 drop if strpos(SchName, "District Level Program")
 
 replace AvgScaleScore="*" if AvgScaleScore==""
 
-replace ProficiencyCriteria="Levels 4-5"
 
 foreach v of varlist DistType DistLocale CountyName DistCharter {
 	
@@ -390,13 +302,11 @@ foreach v of varlist SchType SchLevel SchVirtual DistType DistLocale CountyName 
 }
 
 tostring StudentSubGroup_TotalTested, replace
-drop if StudentSubGroup_TotalTested=="0"
 drop if StudentGroup_TotalTested=="0"
 drop if DataLevel==.
 drop if StudentSubGroup=="Never EL"
 
 replace NCESDistrictID="" if DataLevel==1
-replace NCESDistrictID="Missing/not reported" if DataLevel!=1 & NCESDistrictID=="00"
 
 
 local nomissing Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent ProficientOrAbove_percent
@@ -405,49 +315,34 @@ foreach var of local nomissing {
 	replace `var'="*" if `var'=="."
 }
 
-//Deriving Counts where possible
-replace ProficientOrAbove_count = "--" if missing(ProficientOrAbove_count)
-foreach count of varlist *_count {
-local percent = subinstr("`count'","count", "percent",.)
-replace `count' = string(round(real(`percent') * real(StudentSubGroup_TotalTested))) if !missing(real(`percent')) & !missing(real(StudentSubGroup_TotalTested)) & missing(real(`count'))
+foreach var of varlist Lev*_percent {
+	replace `var' = "--" if missing(`var')
 }
-
-//ParticipationRate Updates
-format ParticipationRate %9.3g
-tostring ParticipationRate, replace usedisplayformat force
-replace ParticipationRate = "--" if ParticipationRate == "."
-replace ParticipationRate = "--" if real(ParticipationRate) > 1.05 & !missing(real(ParticipationRate))
 
 //Other Updates
 replace CountyName = proper(CountyName) if CountyName != "Missing/not reported"
 
+//DistName Cleaning
+replace DistName =stritrim(DistName) 
+
 //SchName Cleaning
 replace SchName = strtrim(SchName)
 replace SchName = stritrim(SchName)
-
-//StudentGroup_TotalTested updates based on new convention
-
-sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-drop StudentGroup_TotalTested
-gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
-replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
 
 //Level Count Updates
 foreach var of varlist Lev*_count {
 	replace `var' = "--" if real(`var') < 0 & !missing(real(`var'))
 }
 
-	keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+//Final Cleaning
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 	
-	order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 	
-	sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-//NEW ADDED
-
-drop if missing(Subject)
-drop if StudentGroup==""
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${output}/CA_AssmtData_2011_Stata", replace
+export delimited "${output}/CA_AssmtData_2011", replace
 
 
 
