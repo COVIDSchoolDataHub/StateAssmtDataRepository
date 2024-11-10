@@ -272,6 +272,8 @@ replace StateAssignedDistID = "" if DataLevel==1
 
 replace StateAssignedSchID = "" if DataLevel==1
 
+replace StateAssignedSchID = "" if DataLevel==2
+
 
 duplicates drop
 sort StudentGroup
@@ -295,6 +297,9 @@ order StudentGroup_TotalTested UnsuppressedSG StudentSubGroup_TotalTested Unsupp
 replace StudentSubGroup_TotalTested = string(real(StudentGroup_TotalTested)-UnsuppressedSG) if missing(real(StudentSubGroup_TotalTested)) & UnsuppressedSG > 0 & (missing_multiple <2 | StudentSubGroup == "English Learner" | StudentSubGroup == "English Proficient") & real(StudentGroup_TotalTested)-UnsuppressedSG > 0 & !missing(real(StudentGroup_TotalTested)-UnsuppressedSG) & StudentSubGroup != "All Students"
 
 drop Unsuppressed* missing_*
+
+
+replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "."
 
 
 //Final Cleaning

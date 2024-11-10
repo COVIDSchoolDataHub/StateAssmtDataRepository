@@ -93,3 +93,16 @@ global NCES "/Volumes/T7/State Test Project/NCES/"
 
 Where `Original` contains the original delimited file AK_OriginalData_2024, `Output` is the folder with the cleaned files, and, importantly, **`NCES` is the original (uncleaned) NCES data downloaded directly from the drive.**
 
+Run the do-file
+Unhide the below code on the first run:
+```
+/*
+//New Importing Code
+import excel AK_OriginalData_2024.xlsx, clear 
+save "$Original/AK_OriginalData_2024", replace
+export delimited AK_OriginalData_2024.csv, replace 
+clear all
+*/
+```
+
+
