@@ -11,7 +11,9 @@ Original Data Files, NCES, Output, Cleaned DTA.
 
 Download the original .xlsx files and place them into the "Original Data Files" folder. 
 
-Download the NCES crosswalk (CA_DistSchInfo_2010_2024) from the CA Dist and School Info folder
+Download the NCES crosswalk (CA_DistSchInfo_2010_2024) from the CA Dist and School Info folder and place it in the main California folder.
+
+Download the Unmerged_2024.xlsx file and place it in the main California folder.
 
 There are 16 .do files. 
 
