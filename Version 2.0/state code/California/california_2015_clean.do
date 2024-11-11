@@ -24,10 +24,13 @@ merge m:1 CountyCode DistrictCode SchoolCode TestYear using "$data/CA_DistSchInf
 drop if _merge == 2
 drop _merge
 
+replace DataLevel = "State" if CountyCode == 0 & DistrictCode == 0 & SchoolCode == 0
+
 replace Drop = "DROP" if DistrictName == "California Education Authority"
 drop if Drop == "DROP"
 drop Drop CountyCode
 rename SubgroupID StudentGroupID
+
 
 merge m:1 StudentGroupID using "$data/California_Student_Group_Names"
 drop if _merge ==2 
@@ -313,6 +316,9 @@ foreach var of varlist Lev*_percent {
 	if "`var'" == "Lev5_percent" continue
 	replace `var' = "--" if missing(`var')
 }
+
+//Dropping Duplicate
+drop if DistName== "Sbe - The School Of Arts And Enterprise" & SchName== "Sbe - The School Of Arts And Enterprise"
 
 //Other Updates
 replace CountyName = proper(CountyName) if CountyName != "Missing/not reported"

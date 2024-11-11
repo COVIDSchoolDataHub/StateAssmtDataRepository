@@ -24,6 +24,8 @@ merge m:1 CountyCode DistrictCode SchoolCode TestYear using "$data/CA_DistSchInf
 drop if _merge == 2
 drop _merge
 
+replace DataLevel = "State" if CountyCode == 0 & DistrictCode == 0 & SchoolCode == 0
+
 replace Drop = "DROP" if DistrictName == "California Education Authority"
 drop if Drop == "DROP"
 drop Drop CountyCode

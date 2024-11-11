@@ -24,6 +24,8 @@ merge m:1 CountyCode DistrictCode SchoolCode TestYear using "$data/CA_DistSchInf
 drop if _merge == 2
 drop _merge
 
+replace DataLevel = "State" if CountyCode == 0 & DistrictCode == 0 & SchoolCode == 0
+
 //Get StudentSubGroup info
 cap rename DemographicID StudentGroupID
 merge m:1 StudentGroupID using "$data/California_Student_Group_Names"
