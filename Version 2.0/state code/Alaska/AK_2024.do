@@ -1,11 +1,3 @@
-
-clear all
-set more off
-
-global Original "/Users/name/Desktop/Alaska/Original"
-global Output "/Users/name/Desktop/Alaska/Output"
-global NCES "/Users/name/Desktop/Alaska/NCES"
-
 cd "/Users/name/Desktop/Alaska"
 cap log close
 log using alaska_cleaning2024.log, replace
