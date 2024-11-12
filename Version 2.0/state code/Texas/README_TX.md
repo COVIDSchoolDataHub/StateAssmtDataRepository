@@ -10,6 +10,7 @@ Create a folder for TX. Inside that folder, create the following subfolders:
 2.  "output_files"
 3.  "temp_files"
 4.  "NCES_files" with these additional subfolders:
+   
    a. NCES District Files, Fall 1997-Fall 2022
    b. NCES School Files, Fall 1997-Fall 2022
    c. Cleaned NCES Data
