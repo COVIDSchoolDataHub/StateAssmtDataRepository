@@ -4,14 +4,9 @@ set trace on
 cd "/Users/name/Desktop/Alaska"
 log using alaska_cleaning.log, replace
 
-global Original "/Users/name/Desktop/Alaska/Original"
-global Output "/Users/name/Desktop/Alaska/Output"
-global Temp "/Users/name/Desktop/Alaska/Temp"
-
-*** OLD ***
-//import delimited "/Users/benjaminm/Documents/State_Repository_Research/Alaska/alaska_updated.csv", varnames(nonames) clear 
-// save alaska_updated_original
-*** OLD ***
+global Original "/Volumes/T7/State Test Project/Alaska/Original"
+global Output "/Volumes/T7/State Test Project/Alaska/Output"
+global Temp "/Volumes/T7/State Test Project/Alaska/Temp"
 
 /*
 //New Importing Code
