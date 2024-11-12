@@ -1,4 +1,24 @@
-import delimited NC_OriginalData_2024.csv, clear 
+
+//Name: North Carolina 2024 State Assessment
+//purpose: Cleaning NC State Assessment Data
+//author: Mikael Oberlin
+//date created: 10/01/24
+
+
+clear all 
+set more off
+
+global Abbrev "NC"
+
+global data "/Users/miramehta/Documents/NC State Testing Data"
+global NCES "/Users/miramehta/Documents/NCES District and School Demographics"
+
+//2023-2024
+import delimited "$data/Disag_2023-24_Data.txt", clear
+save "$data/NC_OriginalData_2024.csv", replace
+export delimited "$data/NC_OriginalData_2024.csv", replace
+save "$data/NC_OriginalData_2024.dta", replace
+use "$data/NC_OriginalData_2024", clear 
 
 rename school_code StateAssignedSchID 
 rename name SchName
@@ -116,7 +136,7 @@ replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Foster Care" 
 gen ProficiencyCriteria = "Levels 2-4" 
 // split CODE into district piece, and school piece 
 gen StateAssignedDistID = ""
-replace StateAssignedDistID = StateAssignedSchID if regexm(StateAssignedSchID, "[0-9]{3}LEA")
+replace StateAssignedDistID = StateAssignedSchID if strpos(StateAssignedSchID, "LEA") > 0
 // remove LEA piece from stateassigneddistrictID 
 replace StateAssignedDistID = subinstr(StateAssignedDistID, "LEA", "", .)
 // drop entries which are "regions" by datalevel 
@@ -135,23 +155,22 @@ gen StateAssignedSchID_full = StateAssignedSchID
 //making state assigned school ID just 3 for match 
 replace StateAssignedSchID = substr(StateAssignedSchID, 4, .)
 
-merge m:1 State_leaid using "$North Carolina/NCES_2024_District.dta"
+merge m:1 State_leaid using "$NCES/1_NCES_2022_District_NC.dta"
 rename _merge DistMerge
 drop if DistMerge == 2
 
 drop DistMerge
 
 rename StateAssignedSchID seasch
-merge m:1 State_leaid seasch using "$North Carolina/NCES_2024_School.dta"
+merge m:1 State_leaid seasch using "$NCES/1_NCES_2022_School_NC.dta"
 rename _merge SchoolMerge
 drop if SchoolMerge == 2
 drop SchoolMerge 
 
-merge m:1 State_leaid using "$North Carolina/NC_district_IDs_2024.dta" 
+merge m:1 State_leaid using  "$data/1_NC_district_IDs_2022.dta" 
 drop if _merge == 2
 rename seasch StateAssignedSchID 
 rename State_leaid StateAssignedDistID 
-
 
 // create separate district and school names, based on length of code (or datalevel function)
 replace DistName = SchName if DataLevel == "District"
@@ -322,6 +341,24 @@ replace Lev4_count = Lev4_c if length(Lev4_count) >= 5 & Lev4_c != "."
 
 drop Lev1_c Lev2_c Lev3_c Lev4_c
 
+//Deriving Additional Information
+replace Lev4_percent = string(real(ProficientOrAbove_percent) - real(Lev3_percent) - real(Lev2_percent)) if strpos(Lev4_percent, "-") > 0 & strpos(Lev2_percent, "-") == 0 & strpos(Lev3_percent, "-") == 0 & strpos(ProficientOrAbove_percent, "-") == 0 & Lev2_percent != "*" & Lev3_percent != "*" & ProficientOrAbove_percent != "*" & ProficiencyCriteria == "Levels 2-4" & real(ProficientOrAbove_percent) - real(Lev3_percent) - real(Lev2_percent) >= 0
+
+replace Lev4_count = string(real(ProficientOrAbove_count) - real(Lev3_count) - real(Lev2_count)) if strpos(Lev4_count, "-") > 0 & strpos(Lev2_count, "-") == 0 & strpos(Lev3_count, "-") == 0 & strpos(ProficientOrAbove_count, "-") == 0 & Lev2_count != "*" & Lev3_count != "*" & ProficientOrAbove_count != "*" & ProficiencyCriteria == "Levels 2-4" & real(ProficientOrAbove_count) - real(Lev3_count) - real(Lev2_count) >= 0
+
+replace Lev3_percent = string(real(ProficientOrAbove_percent) - real(Lev4_percent) - real(Lev2_percent)) if strpos(Lev3_percent, "-") > 0 & strpos(Lev2_percent, "-") == 0 & strpos(Lev4_percent, "-") == 0 & strpos(ProficientOrAbove_percent, "-") == 0 & Lev2_percent != "*" & Lev4_percent != "*" & ProficientOrAbove_percent != "*" & ProficiencyCriteria == "Levels 2-4"
+
+replace Lev3_count = string(real(ProficientOrAbove_count) - real(Lev4_count) - real(Lev2_count)) if strpos(Lev3_count, "-") > 0 & strpos(Lev2_count, "-") == 0 & strpos(Lev4_count, "-") == 0 & strpos(ProficientOrAbove_count, "-") == 0 & Lev2_count != "*" & Lev4_count != "*" & ProficientOrAbove_count != "*" & ProficiencyCriteria == "Levels 2-4"
+
+replace Lev2_percent = string(real(ProficientOrAbove_percent) - real(Lev4_percent) - real(Lev3_percent)) if strpos(Lev2_percent, "-") > 0 & strpos(Lev3_percent, "-") == 0 & strpos(Lev4_percent, "-") == 0 & strpos(ProficientOrAbove_percent, "-") == 0 & Lev3_percent != "*" & Lev4_percent != "*" & ProficientOrAbove_percent != "*" & ProficiencyCriteria == "Levels 2-4"
+
+replace Lev2_count = string(real(ProficientOrAbove_count) - real(Lev3_count) - real(Lev4_count)) if strpos(Lev2_count, "-") > 0 & strpos(Lev3_count, "-") == 0 & strpos(Lev4_count, "-") == 0 & strpos(ProficientOrAbove_count, "-") == 0 & Lev3_count != "*" & Lev4_count != "*" & ProficientOrAbove_count != "*" & ProficiencyCriteria == "Levels 2-4"
+
+replace Lev1_percent = string(1 - real(ProficientOrAbove_percent)) if strpos(Lev1_percent, "-") > 0 & strpos(ProficientOrAbove_percent, "-") == 0 & ProficientOrAbove_percent != "*" & ProficiencyCriteria == "Levels 2-4"
+
+replace Lev1_count = string(real(StudentSubGroup_TotalTested) - real(ProficientOrAbove_count)) if strpos(Lev1_count, "-") > 0 & strpos(StudentSubGroup_TotalTested, "-") == 0 & strpos(ProficientOrAbove_count, "-") == 0 & StudentSubGroup_TotalTested != "*" & ProficientOrAbove_count != "*" & ProficiencyCriteria == "Levels 2-4"
+
+//Standardizing IDs & Names
 gen StateAssignedDistID1 = StateAssignedDistID
 replace StateAssignedDistID1 = "000000" if DataLevel == 1 //Remove quotations if DistIDs are numeric
 gen StateAssignedSchID1 = StateAssignedSchID
@@ -333,10 +370,30 @@ by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] i
 drop group_id StateAssignedDistID1 StateAssignedSchID1
 replace StateAssignedSchID = "" if (DataLevel == 1 | DataLevel == 2) & StateAssignedSchID != ""
 
+save "$data/NC_AssmtData_2024_Stata", replace
+
+use "NC_StableNames", clear
+tostring NCESDistrictID, replace
+replace NCESDistrictID = "" if NCESDistrictID == "."
+tostring NCESSchoolID, format("%18.0f") replace
+replace NCESSchoolID = "" if NCESSchoolID == "."
+keep if SchYear == "2022-23"
+drop SchYear
+merge 1:m DataLevel NCESDistrictID NCESSchoolID using "NC_AssmtData_2024_Stata", gen(merge2)
+drop if merge2 == 1
+drop merge2
+replace DistName = newdistname if DataLevel !=1
+replace SchName = newschname if DataLevel == 3
+replace DistName = "All Districts" if DataLevel == 1
+replace SchName = "All Schools" if DataLevel ==1
+
+rename DistName1 DistName
+
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-save NC_AssmtData_2024.csv, replace
-export delimited NC_AssmtData_2024.csv, replace
+
+save "$data/NC_AssmtData_2024", replace
+export delimited "$data/NC_AssmtData_2024.csv", replace

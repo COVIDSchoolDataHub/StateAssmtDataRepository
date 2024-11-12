@@ -1,22 +1,16 @@
 cap log close
 log using nc_nces_cleaning.log, replace
 
+global data "/Users/miramehta/Documents/NC State Testing Data"
+global NCES "/Users/miramehta/Documents/NCES District and School Demographics"
 
-
-cd "/Users/benjaminm/Documents/State_Repository_Research/North_Carolina"
-
-
-global NCES "/Users/benjaminm/Documents/State_Repository_Research/NCES"
-
-//use NCES_2016_School.dta, clear
-// use NCES_2015_School.dta, clear
 
 // match schools by district and ID
-global years 2021  // 2013 2014 2015 2016 2017 2018 2019 2020 2021
+global years 2013 2014 2015 2016 2017 2018 2019 2020 2021 2022
 
 foreach a in $years {
 	
-	use "${NCES}/NCES_School/NCES_`a'_School.dta", clear
+	use "${NCES}/NCES School Files, Fall 1997-Fall 2022/NCES_`a'_School.dta", clear
 	
 
 	keep if state_fips == 37
@@ -62,16 +56,16 @@ order State StateAbbrev StateFips SchType NCESDistrictID NCESSchoolID State_leai
 
 
 
-save "1_NCES_`a'_School_NC.dta", replace
+save "$NCES/1_NCES_`a'_School_NC.dta", replace
 
 keep State_leaid DistName1
 duplicates drop State_leaid, force
 
-save "1_nc_district_IDs_`a'", replace
+save "$data/1_nc_district_IDs_`a'", replace
 
 //use NCES_2021_District.dta, clear
 	
-	use "${NCES}/NCES_District/NCES_`a'_District.dta", clear 
+	use "${NCES}/NCES District Files, Fall 1997-Fall 2022/NCES_`a'_District.dta", clear 
 	keep if state_fips == 37
 	
 	rename state_name State
@@ -92,7 +86,6 @@ order State StateAbbrev StateFips DistType NCESDistrictID State_leaid DistCharte
 
 
 	
-save "1_NCES_`a'_District_NC.dta", replace
+save "$NCES/1_NCES_`a'_District_NC.dta", replace
 	
 }
-
