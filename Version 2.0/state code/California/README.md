@@ -1,34 +1,31 @@
 
 # California Data Cleaning
 
-This is a ReadMe for California's data cleaning process, from 2010 to 2023 (with the exception of 2014 and 2020).
+This is a ReadMe for California's data cleaning process, from 2010 to 2024 (with the exception of 2014 and 2020).
 
 
 ## Setup
 
-There are four folders you need to create: 
-Original Data Files, NCES, Output, Cleaned DTA.
+There are four sub-folders you need to create: 
+1. Original Data Files
+        - Download the original .xlsx files and place them into the "Original Data Files" folder. 
+   
+2. NCES
 
-Download the original .xlsx files and place them into the "Original Data Files" folder. 
+3. Output
+4. Cleaned DTA
 
-Download the NCES crosswalk (CA_DistSchInfo_2010_2024) from the CA Dist and School Info folder and place it in the main California folder.
+The main California file should include the following files:
+        - the NCES crosswalk (CA_DistSchInfo_2010_2024) from the CA Dist and School Info folder on the drive
+        - the Unmerged_2024.xlsx file and place it in the main California folder.
 
-Download the Unmerged_2024.xlsx file and place it in the main California folder.
+There are 16 .do files. Run them in the following order:
 
-There are 16 .do files. 
+1. california_dta_conversion.do;
+2. CA_NCES_New.do;
+3. california_`year'_clean.do;
+4. CA_Science_2019_2024.do;
 
-Run them in the following order:
-
-california_dta_conversion.do; 
-
-CA_NCES_New.do; 
-
-california_`year'_clean.do;
-
-CA_Science_2019_2024.do;
-
-
-    
 ## File Path
 
 The file path setup should be as follows: 
