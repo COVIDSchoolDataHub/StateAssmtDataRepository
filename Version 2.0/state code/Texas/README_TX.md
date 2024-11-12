@@ -6,7 +6,7 @@ This is a ReadMe for Texas's data cleaning process, from 2012 to 2024.
 
 Create a folder for TX. Inside that folder, create the following subfolders:
 
-1.  "original_files" - download all original data files from the drive
+1.  "original_files" - download all original data files from the drive. Do not include the "TX varlist" folder from the drive.
 2.  "output_files"
 3.  "temp_files"
 4.  "NCES_files" with these additional subfolders:
