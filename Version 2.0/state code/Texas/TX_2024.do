@@ -404,6 +404,26 @@ replace DistName = "HUTTO ISD" if NCESSchoolID == "482410023084"
 replace SchType = 1 if NCESSchoolID == "482410023084"
 replace SchLevel = 3 if NCESSchoolID == "482410023084"
 replace SchVirtual = 1 if NCESSchoolID == "482410023084"
+replace NCESSchoolID = "481965023000" if StateAssignedSchID == "079907164"
+replace DistName = "FORT BEND ISD" if NCESSchoolID == "481965023000"
+replace SchType = 1 if NCESSchoolID == "481965023000"
+replace SchLevel = 1 if NCESSchoolID == "481965023000"
+replace SchVirtual = 0 if NCESSchoolID == "481965023000"
+replace NCESSchoolID = "483192023033" if StateAssignedSchID == "167902010"
+replace DistName = "MULLIN ISD" if NCESSchoolID == "483192023033"
+replace SchType = 4 if NCESSchoolID == "483192023033"
+replace SchLevel = 4 if NCESSchoolID == "483192023033"
+replace SchVirtual = 0 if NCESSchoolID == "483192023033"
+replace NCESSchoolID = "480142123060" if StateAssignedSchID == "220817008"
+replace DistName = "NEWMAN INTERNATIONAL ACADEMY OF ARLINGTON" if NCESSchoolID == "480142123060"
+replace SchType = 1 if NCESSchoolID == "480142123060"
+replace SchLevel = 1 if NCESSchoolID == "480142123060"
+replace SchVirtual = 0 if NCESSchoolID == "480142123060"
+replace NCESSchoolID = "484411023082" if StateAssignedSchID == "244903103"
+replace DistName = "VERNON ISD" if NCESSchoolID == "484411023082"
+replace SchType = 4 if NCESSchoolID == "484411023082"
+replace SchLevel = 4 if NCESSchoolID == "484411023082"
+replace SchVirtual = 0 if NCESSchoolID == "484411023082"
 
 replace SchLevel = 1 if NCESSchoolID == "480009222808"
 replace SchLevel = 1 if NCESSchoolID == "480019522865"
@@ -459,12 +479,16 @@ replace SchLevel = 2 if NCESSchoolID == "484071013922"
 replace SchLevel = 7 if NCESSchoolID == "484107008002"
 replace SchLevel = 7 if NCESSchoolID == "484443008402"
 replace SchLevel = 2 if NCESSchoolID == "489913122906"
+replace SchLevel = 1 if NCESSchoolID == "480809013933"
+replace SchLevel = 2 if NCESSchoolID == "483585014191"
+replace SchLevel = 1 if NCESSchoolID == "481485022805"
+replace SchLevel = 1 if NCESSchoolID == "483318022823"
 
 replace SchVirtual = 0 if missing(SchVirtual) & DataLevel == 3 //manually confirmed that this is correct for each school before adding this code!
 
 drop if inlist(seasch, "025908-025908009", "241902-241902002") //these two schools don't actually open until fall 2024 & don't have any non-missing data
 
-drop if inlist(NCESSchoolID, "481686007857", "481818007651", "481970011016") //these three schools don't have any non-suppressed data and are missing SchLevel
+drop if inlist(NCESSchoolID, "481686007857", "481818007651", "481970011016", "482838010527") //these four schools don't have any non-suppressed data and are missing SchLevel
 
 //Final Cleaning
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode ApproachingOrAbove_count ApproachingOrAbove_percent

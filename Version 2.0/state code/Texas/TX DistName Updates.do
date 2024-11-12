@@ -83,6 +83,7 @@ replace DistName = "ESSENCE PREPARATORY CHARTER SCHOOL" if NCESDistrictID == "48
 replace DistName = "ETOILE ACADEMY CHARTER SCHOOL" if NCESDistrictID == "4801460"
 replace DistName = "EXCELLENCE IN LEADERSHIP ACADEMY" if NCESDistrictID == "4801433"
 replace DistName = "FARMERSVILLE ISD" if NCESDistrictID == "4819080"
+replace DistName = "FAITH FAMILY ACADEMY" if NCESDistrictID == "4800105"
 replace DistName = "FAYETTEVILLE ISD" if NCESDistrictID == "4819140"
 replace DistName = "FORT ELLIOTT CISD" if NCESDistrictID == "4811400"
 replace DistName = "FORT STOCKTON ISD" if NCESDistrictID == "4820190"
@@ -152,6 +153,7 @@ replace DistName = "LIGHTHOUSE PUBLIC SCHOOLS" if NCESDistrictID == "4800246"
 replace DistName = "LINDEN-KILDARE CISD" if NCESDistrictID == "4827540"
 replace DistName = "LITTLE CYPRESS-MAURICEVILLE CISD" if NCESDistrictID == "4827690"
 replace DistName = "LONE STAR LANGUAGE ACADEMY" if NCESDistrictID == "4801452"
+replace DistName = "LONE STAR SCHOOL DISTRICT" if NCESDistrictID == "4801432"
 replace DistName = "LOS FRESNOS CISD" if NCESDistrictID == "4828290"
 replace DistName = "LUBBOCK-COOPER ISD" if NCESDistrictID == "4815180"
 replace DistName = "LUEDERS-AVOCA ISD" if NCESDistrictID == "4828530"
@@ -165,6 +167,7 @@ replace DistName = "MILLER GROVE ISD" if NCESDistrictID == "4830810"
 replace DistName = "MINERAL WELLS ISD" if NCESDistrictID == "4830950"
 replace DistName = "MEDINA VALLEY ISD" if NCESDistrictID == "4830060"
 replace DistName = "MERIDIAN WORLD SCHOOL LLC" if NCESDistrictID == "4801422"
+replace DistName = "MEYERPARK CHARTER" if NCESDistrictID == "4800262"
 replace DistName = "MIDLAND ACADEMY CHARTER SCHOOL" if NCESDistrictID == "4800148"
 replace DistName = "MILLER GROVE ISD" if NCESDistrictID == "4830810"
 replace DistName = "MINERAL WELLS ISD" if NCESDistrictID == "4830950"
@@ -282,7 +285,6 @@ replace DistName = "VILLAGE TECH SCHOOLS" if NCESDistrictID == "4801436"
 replace DistName = "VISTA DEL FUTURO CHARTER SCHOOL" if NCESDistrictID == "4801394"
 replace DistName = "WALNUT SPRINGS ISD" if NCESDistrictID == "4844520"
 replace DistName = "WATER VALLEY ISD" if NCESDistrictID == "4844710"
-replace DistName = "WAXAHACHIE FAITH ACADEMY" if NCESDistrictID == "4800105"
 replace DistName = "WELLMAN-UNION CISD" if NCESDistrictID == "4844910"
 replace DistName = "WEST HARDIN COUNTY CISD" if NCESDistrictID == "4845000"
 replace DistName = "WEST ORANGE-COVE CISD" if NCESDistrictID == "4845090"
@@ -292,6 +294,10 @@ replace DistName = "WESTLAKE ACADEMY CHARTER SCHOOL" if NCESDistrictID == "48002
 replace DistName = "YELLOWSTONE COLLEGE PREPARATORY" if NCESDistrictID == "4801463"
 replace DistName = "YES PREP PUBLIC SCHOOLS INC" if NCESDistrictID == "4800209"
 replace DistName = "ZAPATA COUNTY ISD" if NCESDistrictID == "4846710"
+
+	if `year' >= 2022{
+		replace DistName = "ROCKPORT-FULTON ISD" if NCESDistrictID == "4808550"
+	}
 
 //Organize Variables
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
