@@ -25,6 +25,7 @@ There are 6 main folders (with subfolders) you need to create:
 5. EdFacts [There are no subfolders]
    
       a. Download this folder from the Google drive. It will already have the 2022 files in it.
+   
       b. Download all of the .csvs from the _EDFacts --> Datasets folder on the drive for 2014 to 2021 only. They should all be in the EdFacts folder with no subfolders. 
 
 7. Output [will start empty]
