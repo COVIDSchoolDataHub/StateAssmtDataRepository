@@ -34,12 +34,12 @@ There are 6 main folders (with subfolders) you need to create:
 The file path setup should be as follows: 
 
 ```bash
-   global raw "C:\Users\Clare\Desktop\Zelma V2.0\Kansas\Raw"
-   global temp "C:\Users\Clare\Desktop\Zelma V2.0\Kansas\temp"
-   global NCESDistrict "C:\Users\Clare\Desktop\Zelma V2.0\Kansas\NCES District Files, Fall 1997-Fall 2022"
-   global NCESSchool "C:\Users\Clare\Desktop\Zelma V2.0\Kansas\NCES School Files, Fall 1997-Fall 2022"
-   global EDFacts "C:\Users\Clare\Desktop\Zelma V2.0\Kansas\EdFacts"
-   global output "C:\Users\Clare\Desktop\Zelma V2.0\Kansas\Output"
+   global raw "\Users\Clare\Desktop\Zelma V2.0\Kansas\Raw"
+   global temp "\Users\Clare\Desktop\Zelma V2.0\Kansas\temp"
+   global NCESDistrict "\Users\Clare\Desktop\Zelma V2.0\Kansas\NCES District Files, Fall 1997-Fall 2022"
+   global NCESSchool "\Users\Clare\Desktop\Zelma V2.0\Kansas\NCES School Files, Fall 1997-Fall 2022"
+   global EDFacts "\Users\Clare\Desktop\Zelma V2.0\Kansas\EdFacts"
+   global output "\Users\Clare\Desktop\Zelma V2.0\Kansas\Output"
 ```
 
 ## Do File Order
