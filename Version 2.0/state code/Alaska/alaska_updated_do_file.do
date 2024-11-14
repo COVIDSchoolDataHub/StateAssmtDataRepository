@@ -1,17 +1,12 @@
 cap log close
 set trace on
 
-cd "/Volumes/T7/State Test Project/Alaska"
+cd "/Users/name/Desktop/Alaska"
 log using alaska_cleaning.log, replace
 
 global Original "/Volumes/T7/State Test Project/Alaska/Original"
 global Output "/Volumes/T7/State Test Project/Alaska/Output"
 global Temp "/Volumes/T7/State Test Project/Alaska/Temp"
-
-*** OLD ***
-//import delimited "/Users/benjaminm/Documents/State_Repository_Research/Alaska/alaska_updated.csv", varnames(nonames) clear 
-// save alaska_updated_original
-*** OLD ***
 
 /*
 //New Importing Code
@@ -335,8 +330,15 @@ foreach var of varlist *_percent {
 if `a' == 2019 replace SchVirtual = 0 if NCESSchoolID == "020051000450"
 replace ProficientOrAbove_count = string(round(real(StudentSubGroup_TotalTested) * real(substr(ProficientOrAbove_percent,1,strpos(ProficientOrAbove_percent,"-")-1)))) + "-" + string(round(real(StudentSubGroup_TotalTested) * real(substr(ProficientOrAbove_percent,strpos(ProficientOrAbove_percent,"-")+1,3)))) if regexm(ProficientOrAbove_percent, "[0-9]") !=0 & ProficientOrAbove_count == "*"
 replace ParticipationRate = "--" if strpos(ParticipationRate, "-") !=0
-if `a' == 2022 replace Flag_CutScoreChange_sci = "N"
-if `a' == 2018 replace Flag_CutScoreChange_sci = "Not Applicable"
+if `a' == 2022 replace Flag_CutScoreChange_sci = "Y"
+if `a' == 2022 & Subject == "sci" replace Flag_AssmtNameChange = "N" 
+if `a' == 2018 replace Flag_CutScoreChange_sci = "Not applicable"
+
+foreach var of varlist *_percent *_count {
+replace `var' = "0" if `var' == "0-0"
+}
+
+drop if StudentSubGroup_TotalTested == "0" & StudentSubGroup != "All Students"
 
 // NEW ADDED
 // NEW EDITED

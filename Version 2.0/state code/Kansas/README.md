@@ -1,71 +1,56 @@
 
 # Kansas Data Cleaning
 
-This is a ReadMe for Kansas's data cleaning process, from 2015 to 2023.
+This is a ReadMe for Kansas's data cleaning process, from 2015 to 2024.
 
 
 ## Setup
 
-There are three main folders (with subfolders) you need to create: 
+There are 6 main folders (with subfolders) you need to create: 
 
-1. KS State Testing Data
+1. Raw
    
-       a. Original Data Files [Download the original excel files and place them into this folder.]
-       b. Output [will start empty]
- 
+       a. Download the original excel files and place them into this folder.
+
+2. temp [will start empty]
    
-3. NCES District and School Demographics
+3. NCES District Files, Fall 1997-Fall 2022
+
+      a. [Download files from Google drive district folder for NCES_2014 through NCES_2022]
+
+4. NCES School Files, Fall 1997-Fall 2022
+
+      a. [Download files from Google drive school folder for NCES_2014 through NCES_2022]
    
-       a. NCES District Files, Fall 1997-Fall 2022 [Download files from Google drive district folder]
-       b. NCES School Files, Fall 1997-Fall 2022 [Download files from Google drive school folder]
-       c. Cleaned NCES Data [will start empty]
+5. EdFacts [There are no subfolders]
    
-5. EdFacts
+      a. Download this folder from the Google drive. It will already have the 2022 files in it.
    
-       a. There should be a folder for each applicable year in the EdFacts folder (2015 to 2022)
-         -[2022]([url](https://drive.google.com/drive/u/0/folders/14KwXUX3OFAXRwckDPCCxx--vR0Biijrp)) is in the Original Data Files folder for Kansasas and [other years]([url](https://drive.google.com/drive/u/0/folders/1oZMYBDpy9SgKOx9X0IiB6QgaCNGFbu1r)) are in Long Data Versions in the EdFacts folder
-         -
+      b. Download all of the .csvs from the _EDFacts --> Datasets folder on the drive for 2014 to 2021 only. They should all be in the EdFacts folder with no subfolders. 
+
+7. Output [will start empty]
     
 ## File Path
 
 The file path setup should be as follows: 
 
-global NCESSchool: Folder containing NCES school files
-
-global NCESDistrict: Folder containing NCES district files
-
-global NCES: Folder containing cleaned NCES data
-
-global EDFacts: Folder containing EDFacts data (wtih separate subfolders by year)
-
-global raw: Folder containing original KS testing data
-
-global output: Folder where cleaned .dta and .csv files will be saved
-
-
 ```bash
-global NCESSchool "/Users/miramehta/Documents/NCES District and School Demographics/NCES School Files, Fall 1997-Fall 2022"
-global NCESDistrict "/Users/miramehta/Documents/NCES District and School Demographics/NCES District Files, Fall 1997-Fall 2022"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
-global EDFacts "/Users/miramehta/Documents/EdFacts"
-global raw "/Users/miramehta/Documents/KS State Testing Data/Original Data Files"
-global output "/Users/miramehta/Documents/KS State Testing Data/Output"
+   global raw "\Users\Clare\Desktop\Zelma V2.0\Kansas\Raw"
+   global temp "\Users\Clare\Desktop\Zelma V2.0\Kansas\temp"
+   global NCESDistrict "\Users\Clare\Desktop\Zelma V2.0\Kansas\NCES District Files, Fall 1997-Fall 2022"
+   global NCESSchool "\Users\Clare\Desktop\Zelma V2.0\Kansas\NCES School Files, Fall 1997-Fall 2022"
+   global EDFacts "\Users\Clare\Desktop\Zelma V2.0\Kansas\EdFacts"
+   global output "\Users\Clare\Desktop\Zelma V2.0\Kansas\Output"
 ```
 
 ## Do File Order
-There are 10 .do files, one for converting excel and csv files into dta files, one for cleaning EdFacts and NCES data to appropriately merge with testing data, and one file for each year.
+There are 4 .do files, to be run in the following order:
 
 Order
-1. Kansas DTA Conversion.do
-2. Kansas Cleaning Merge Files.do
-3. Kansas 2015 Cleaning.do
-4. Kansas 2016 Cleaning.do
-5. Kansas 2017 Cleaning.do
-6. Kansas 2018 Cleaning.do
-7. Kansas 2019 Cleaning.do
-8. Kansas 2021 Cleaning.do
-9. Kansas 2022 Cleaning.do
-10. Kansas 2023 Cleaning.do 
+1. 01_Kansas_NCES.do [this preps the NCES files for merging]
+2. 02_Kansas_Preparing ED Facts.do [this preps EDFacts files for merging in counts and participation]
+3. 03_Kansas_YearlyCleaning.do [this cleans each raw Kansas data file + merges in NCES]
+4. 04_Kansas_Merging with EDFacts.do [this merges in EDFacts data and calculates tested counts and level counts]
 
 ## Updates
 
@@ -74,3 +59,5 @@ Order
 05/01/24: Updated to pull in updated NCES Fall 2022 data.
 
 6/17/24: Uploaded Kansas_Updates_Jun24.do to apply new StudentGroup_TotalTested convention and derive Student counts for English Proficient where possible. This is a stopgap measure to get kansas ready for V1.1 and should probably be incorporated into the individual cleaning files at a future date.
+
+11/14/24: Restructured code to merge in EDFacts counts at the end of the cleaning process.

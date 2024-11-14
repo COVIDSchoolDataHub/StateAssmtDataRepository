@@ -4,12 +4,21 @@ This is a ReadMe for Texas's data cleaning process, from 2012 to 2024.
 
 ## Setup
 
-Create a folder for TX. Inside that folder, create three more folders: "original_files", "output_files", and "temp_files"
-You should also create a folder for NCES Data with three subfolders: NCES District Files, Fall 1997-Fall 2022,
-NCES School Files, Fall 1997-Fall 2022, and Cleaned NCES Data.
+Create a folder for TX. Inside that folder, create the following subfolders:
 
-1.  Download original data files and place them in the folder.
-2.  Set file directories at the top of each do file:
+1.  "original_files" - download all original data files from the drive. Do not include the "TX varlist" folder from the drive.
+2.  "output_files"
+3.  "temp_files"
+4.  "NCES_files" with these additional subfolders:
+   
+         a. NCES District Files, Fall 1997-Fall 2022
+    
+         b. NCES School Files, Fall 1997-Fall 2022
+    
+         c. Cleaned NCES Data
+
+## Directories
+Set file directories at the top of each do file:
 
 ```         
 global original_files "/Users/miramehta/Documents/TX State Testing Data/Original"

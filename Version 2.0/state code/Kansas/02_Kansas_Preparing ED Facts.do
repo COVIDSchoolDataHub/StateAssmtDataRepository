@@ -1,26 +1,33 @@
+****************************************************************
+** Preparing EDFacts
+****************************************************************
+
 clear
-set more off
 
-cd "/Users/miramehta/Documents"
+global raw "C:\Users\Clare\Desktop\Zelma V2.0\Kansas\Raw"
+global temp "C:\Users\Clare\Desktop\Zelma V2.0\Kansas\temp"
+global NCESDistrict "C:\Users\Clare\Desktop\Zelma V2.0\Kansas\NCES District Files, Fall 1997-Fall 2022"
+global NCESSchool "C:\Users\Clare\Desktop\Zelma V2.0\Kansas\NCES School Files, Fall 1997-Fall 2022"
+global EDFacts "C:\Users\Clare\Desktop\Zelma V2.0\Kansas\EdFacts"
+global output "C:\Users\Clare\Desktop\Zelma V2.0\Kansas\Output"
 
-global NCESSchool "/Users/miramehta/Documents/NCES District and School Demographics/NCES School Files, Fall 1997-Fall 2022"
-global NCESDistrict "/Users/miramehta/Documents/NCES District and School Demographics/NCES District Files, Fall 1997-Fall 2022"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
-global EDFacts "/Users/miramehta/Documents/EdFacts"
-
-** Preparing EDFacts files
+****************************************************************
+** Cleaning 2015-2018
+****************************************************************
 
 local edyears1 15 16 17 18
+local edyears2 2019 2021
 local subject math ela
 local datatype count part
 local datalevel school district
 
+{
 foreach year of local edyears1 {
 	foreach sub of local subject {
 		foreach type of local datatype {
 			foreach lvl of local datalevel {
 				local prevyear = `year' - 1
-				use "${EDFacts}/20`year'/edfacts`type'20`year'`sub'`lvl'.dta", clear
+				import delimited "${EDFacts}/edfacts`type'20`year'`sub'`lvl'.csv", clear
 				keep if stnam == "KANSAS"
 				drop date_cur
 				rename *_`prevyear'`year' *
@@ -56,23 +63,30 @@ foreach year of local edyears1 {
 					gen DataLevel = 2
 				}				
 				gen Subject = "`sub'"
-				save "${EDFacts}/20`year'/edfacts`type'20`year'`sub'`lvl'kansas.dta", replace
+				save "${EDFacts}/edfacts`type'20`year'`sub'`lvl'kansas.dta", replace
+				export delimited "${EDFacts}/edfacts`type'20`year'`sub'`lvl'kansas.csv", replace
 			}
 		}
 	}
 }
 
+// Appending math and ela files for 2015-2018
+
 foreach year of local edyears1 {
 	foreach type of local datatype {
 		foreach lvl of local datalevel {
-			use "${EDFacts}/20`year'/edfacts`type'20`year'math`lvl'kansas.dta", clear
-			append using "${EDFacts}/20`year'/edfacts`type'20`year'ela`lvl'kansas.dta"
+			
+			use "${EDFacts}/edfacts`type'20`year'math`lvl'kansas.dta", clear
+			
+			append using "${EDFacts}/edfacts`type'20`year'ela`lvl'kansas.dta"
+			
 			if ("`lvl'" == "school"){
 				rename ncessch NCESSchoolID
 				recast long NCESSchoolID
 				format NCESSchoolID %18.0g
 				tostring NCESSchoolID, replace usedisplayformat
 			}
+			
 			rename leaid NCESDistrictID
 			tostring NCESDistrictID, replace
 			if ("`type'" == "count") {
@@ -83,10 +97,10 @@ foreach year of local edyears1 {
 				split PctProf, parse("-")
 				destring PctProf1, replace force
 				replace PctProf1 = PctProf1/100
-				tostring PctProf1, replace format("%9.2g") force
+				tostring PctProf1, replace format("%9.4g") force
 				destring PctProf2, replace force
 				replace PctProf2 = PctProf2/100			
-				tostring PctProf2, replace format("%9.2g") force
+				tostring PctProf2, replace format("%9.4g") force
 				replace PctProf = PctProf1 + "-" + PctProf2 if PctProf1 != "." & PctProf2 != "."
 				replace PctProf = PctProf1 if PctProf1 != "." & PctProf2 == "."
 				gen PctProf3 = subinstr(PctProf, "GE", "", .) if strpos(PctProf, "GE") > 0
@@ -94,12 +108,13 @@ foreach year of local edyears1 {
 				replace PctProf3 = subinstr(PctProf, "LE", "", .) if strpos(PctProf, "LE") > 0
 				destring PctProf3, replace force
 				replace PctProf3 = PctProf3/100
-				tostring PctProf3, replace format("%9.2g") force
+				tostring PctProf3, replace format("%9.4g") force
 				replace PctProf = PctProf3 + "-1" if strpos(PctProf, "GE") > 0
 				replace PctProf = "0-" + PctProf3 if strpos(PctProf, "LT") > 0
 				replace PctProf = "0-" + PctProf3 if strpos(PctProf, "LE") > 0
 				drop PctProf1 PctProf2 PctProf3
 			}
+			
 			if ("`type'" == "part") {
 				drop if Participation == ""
 				replace Participation = "--" if Participation == "n/a"
@@ -107,21 +122,22 @@ foreach year of local edyears1 {
 				split Participation, parse("-")
 				destring Participation1, replace force
 				replace Participation1 = Participation1/100
-				tostring Participation1, replace format("%9.2g") force
+				tostring Participation1, replace format("%9.4g") force
 				destring Participation2, replace force
 				replace Participation2 = Participation2/100			
-				tostring Participation2, replace format("%9.2g") force
+				tostring Participation2, replace format("%9.4g") force
 				replace Participation = Participation1 + "-" + Participation2 if Participation1 != "." & Participation2 != "."
 				replace Participation = Participation1 if Participation1 != "." & Participation2 == "."
 				gen Participation3 = subinstr(Participation, "GE", "", .) if strpos(Participation, "GE") > 0
 				replace Participation3 = subinstr(Participation, "LT", "", .) if strpos(Participation, "LT") > 0
 				destring Participation3, replace force
 				replace Participation3 = Participation3/100
-				tostring Participation3, replace format("%9.2g") force
+				tostring Participation3, replace format("%9.4g") force
 				replace Participation = Participation3 + "-1" if strpos(Participation, "GE") > 0
 				replace Participation = "0-" + Participation3 if strpos(Participation, "LT") > 0
 				drop Participation1 Participation2 Participation3
 			}
+			
 			gen GradeLevel = "G" + substr(StudentSubGroup, -2, 2)
 			replace StudentSubGroup = subinstr(StudentSubGroup, substr(StudentSubGroup, -2, 2), "", .)
 			replace StudentSubGroup = "All Students" if StudentSubGroup == "all"
@@ -150,19 +166,23 @@ foreach year of local edyears1 {
 			replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless"
 			replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Military"
 			replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Foster Care"
-			save "${EDFacts}/20`year'/edfacts`type'20`year'`lvl'kansas.dta", replace
+			save "${EDFacts}/_edfacts`type'20`year'`lvl'kansas.dta", replace
+			}
 		}
 	}
 }
 
-
-local edyears2 2019 2021
-
+****************************************************************
+** Cleaning 2019, 2021
+****************************************************************
+{
 foreach year of local edyears2 {
 	foreach sub of local subject {
 		foreach type of local datatype {
 			foreach lvl of local datalevel {
-				use "${EDFacts}/`year'/edfacts`type'`year'`sub'`lvl'.dta", clear
+				
+				import delimited "${EDFacts}/edfacts`type'`year'`sub'`lvl'.csv", clear
+				
 				keep if stnam == "KANSAS"
 				drop date_cur
 				if ("`type'" == "count") {
@@ -181,17 +201,24 @@ foreach year of local edyears2 {
 				if ("`lvl'" == "district") {
 					gen DataLevel = 2
 				}
-				save "${EDFacts}/`year'/edfacts`type'`year'`sub'`lvl'kansas.dta", replace
+				save "${EDFacts}/edfacts`type'`year'`sub'`lvl'kansas.dta", replace
 			}
 		}
 	}
 }
 
+// Appending math and ela files for 2019, 2021
+
 foreach year of local edyears2 {
+	
 	foreach type of local datatype {
+		
 		foreach lvl of local datalevel {
-			use "${EDFacts}/`year'/edfacts`type'`year'math`lvl'kansas.dta", clear
-			append using "${EDFacts}/`year'/edfacts`type'`year'ela`lvl'kansas.dta"
+			
+			use "${EDFacts}/edfacts`type'`year'math`lvl'kansas.dta", clear
+			
+			append using "${EDFacts}/edfacts`type'`year'ela`lvl'kansas.dta"
+			
 			if ("`lvl'" == "school"){
 				rename ncessch NCESSchoolID
 				recast long NCESSchoolID
@@ -208,10 +235,10 @@ foreach year of local edyears2 {
 				split PctProf, parse("-")
 				destring PctProf1, replace force
 				replace PctProf1 = PctProf1/100
-				tostring PctProf1, replace format("%9.2g") force
+				tostring PctProf1, replace format("%9.4g") force
 				destring PctProf2, replace force
 				replace PctProf2 = PctProf2/100			
-				tostring PctProf2, replace format("%9.2g") force
+				tostring PctProf2, replace format("%9.4g") force
 				replace PctProf = PctProf1 + "-" + PctProf2 if PctProf1 != "." & PctProf2 != "."
 				replace PctProf = PctProf1 if PctProf1 != "." & PctProf2 == "."
 				gen PctProf3 = subinstr(PctProf, "GE", "", .) if strpos(PctProf, "GE") > 0
@@ -219,7 +246,7 @@ foreach year of local edyears2 {
 				replace PctProf3 = subinstr(PctProf, "LE", "", .) if strpos(PctProf, "LE") > 0
 				destring PctProf3, replace force
 				replace PctProf3 = PctProf3/100
-				tostring PctProf3, replace format("%9.2g") force
+				tostring PctProf3, replace format("%9.4g") force
 				replace PctProf = PctProf3 + "-1" if strpos(PctProf, "GE") > 0
 				replace PctProf = "0-" + PctProf3 if strpos(PctProf, "LT") > 0
 				replace PctProf = "0-" + PctProf3 if strpos(PctProf, "LE") > 0
@@ -232,17 +259,17 @@ foreach year of local edyears2 {
 				split Participation, parse("-")
 				destring Participation1, replace force
 				replace Participation1 = Participation1/100
-				tostring Participation1, replace format("%9.2g") force
+				tostring Participation1, replace format("%9.4g") force
 				destring Participation2, replace force
 				replace Participation2 = Participation2/100			
-				tostring Participation2, replace format("%9.2g") force
+				tostring Participation2, replace format("%9.4g") force
 				replace Participation = Participation1 + "-" + Participation2 if Participation1 != "." & Participation2 != "."
 				replace Participation = Participation1 if Participation1 != "." & Participation2 == "."
 				gen Participation3 = subinstr(Participation, "GE", "", .) if strpos(Participation, "GE") > 0
 				replace Participation3 = subinstr(Participation, "LT", "", .) if strpos(Participation, "LT") > 0
 				destring Participation3, replace force
 				replace Participation3 = Participation3/100
-				tostring Participation3, replace format("%9.2g") force
+				tostring Participation3, replace format("%9.4g") force
 				replace Participation = Participation3 + "-1" if strpos(Participation, "GE") > 0
 				replace Participation = "0-" + Participation3 if strpos(Participation, "LT") > 0
 				drop Participation1 Participation2 Participation3
@@ -277,16 +304,22 @@ foreach year of local edyears2 {
 			replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless"
 			replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Military"
 			replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Foster Care"
-			save "${EDFacts}/`year'/edfacts`type'`year'`lvl'kansas.dta", replace
+			
+			save "${EDFacts}/_edfacts`type'`year'`lvl'kansas.dta", replace
+			}
 		}
 	}
 }
 
+****************************************************************
+** Cleaning 2022
+****************************************************************
 
-** EdFacts 2022 Cleaning
 local lev "state district school"
+
 foreach v of local lev{
-	import delimited "${EDFacts}/2022/edfacts2022`v'.csv", clear
+	
+	import delimited "${EDFacts}/edfacts2022`v'.csv", clear
 
 	gen DataLevel = "`v'"
 	rename ncesschid NCESSchoolID
@@ -334,7 +367,9 @@ foreach v of local lev{
 	rename denominator Count
 	drop numerator outcome datagroup programtype
 	reshape wide value Count, i(state NCESDistrictID NCESSchoolID Subject GradeLevel StudentSubGroup) j(datadescription) str
+	
 	drop CountParticipation
+	
 	rename valueParticipation Participation
 	rename valuePerformance PctProf
 	
@@ -354,15 +389,17 @@ foreach v of local lev{
 		destring `var'1, replace
 		replace `var'1 = `var'1/100
 		replace `var'1 = . if `var'1 < 0
-		tostring `var'1, replace format("%9.2g") force
+		tostring `var'1, replace format("%9.4g") force
+		
 		if DataLevel == "school"{
 			destring `var'2, replace
 			replace `var'2 = `var'2/100
 			replace `var'2 = . if `var'2 < 0
-			tostring `var'2, replace format("%9.2g") force
+			tostring `var'2, replace format("%9.4g") force
 			replace `var' = `var'1 + "-" + `var'2 if `var'2 != "."
 			drop `var'2
 		}
+		
 		replace `var' = `var'1
 		replace `var' = "*" if `var'1 == "."
 		replace `var' = `var'1 + "-1" if Above == 1
@@ -380,98 +417,29 @@ foreach v of local lev{
 	
 	* for KS specifically
 	drop if state != "KANSAS"
-	drop if StudentSubGroup == "Asian/Pacific Islander"
+	drop if StudentSubGroup == "Asian/Pacific Islander" // this is an aggregate of Asian and "Native Hawaiian or Other Pacific Islander". We have these as separate categories, so we do not need this aggregate
 	
-	save "${EDFacts}/2022/edfacts2022`v'kansas.dta", replace
+	replace DataLevel = "State" if DataLevel == "state"
+	replace DataLevel = "District" if DataLevel == "district"
+	replace DataLevel = "School" if DataLevel == "school"
+	label def DataLevel 1 "State" 2 "District" 3 "School"
+	encode DataLevel, gen(DataLevel_n) label(DataLevel)
+	sort DataLevel_n 
+	drop DataLevel 
+	rename DataLevel_n DataLevel
+	
+	rename CountPerformance Count
+	
+	save "${EDFacts}/_edfacts2022`v'kansas.dta", replace
 }
 
-use "${EDFacts}/2022/edfacts2022statekansas.dta", clear
-append using "${EDFacts}/2022/edfacts2022districtkansas.dta" "${EDFacts}/2022/edfacts2022schoolkansas.dta"
-replace DataLevel = "State" if DataLevel == "state"
-replace DataLevel = "District" if DataLevel == "district"
-replace DataLevel = "School" if DataLevel == "school"
-label def DataLevel 1 "State" 2 "District" 3 "School"
-encode DataLevel, gen(DataLevel_n) label(DataLevel)
-sort DataLevel_n 
-drop DataLevel 
-rename DataLevel_n DataLevel
-rename CountPerformance Count
-save "${EDFacts}/2022/edfacts2022kansas.dta", replace
 
+// Appending 2022 files 
+{
+use "${EDFacts}/_edfacts2022statekansas.dta", clear
 
-** Preparing NCES files
-
-global years 2014 2015 2016 2017 2018 2020 2021
-
-foreach a in $years {
-	
-	use "${NCESDistrict}/NCES_`a'_District.dta", clear 
-	keep if state_location == "KS"
-	
-	rename state_name State
-	rename state_location StateAbbrev
-	rename state_fips StateFips
-	rename ncesdistrictid NCESDistrictID
-	rename state_leaid State_leaid
-	rename district_agency_type DistType
-	rename county_name CountyName
-	rename county_code CountyCode
-	rename lea_name DistName
-	
-	save "${NCES}/NCES_`a'_District_KS.dta", replace
-	
-	use "${NCESSchool}/NCES_`a'_School.dta", clear
-	keep if state_location == "KS"
-	
-	rename state_name State
-	rename state_location StateAbbrev
-	rename state_fips StateFips
-	rename ncesdistrictid NCESDistrictID
-	rename state_leaid State_leaid
-	rename district_agency_type DistType	
-	rename county_name CountyName
-	rename county_code CountyCode
-	rename lea_name DistName	
-	rename ncesschoolid NCESSchoolID
-	rename school_name SchName
-	drop if seasch == ""
-	
-	save "${NCES}/NCES_`a'_School_KS.dta", replace
-	
-}
-
-use "${NCESSchool}/NCES_2022_School.dta", clear
-rename state_name State
-rename state_location StateAbbrev
-rename state_fips_id StateFips
-drop if StateAbbrev != "KS"
-rename ncesschoolid NCESSchoolID
-rename ncesdistrictid NCESDistrictID
-rename lea_name DistName
-rename school_type SchType
-rename school_name SchName
-decode district_agency_type, gen (DistType)
-drop district_agency_type
-rename county_name CountyName
-rename county_code CountyCode
-rename state_leaid State_leaid
-merge 1:1 NCESDistrictID NCESSchoolID using "${NCES}/NCES_2021_School_KS.dta", keepusing (DistLocale CountyCode CountyName DistType SchVirtual)
-drop if _merge == 2
-drop _merge
-keep State StateAbbrev StateFips NCESDistrictID NCESSchoolID seasch State_leaid DistType DistLocale CountyCode CountyName DistCharter SchType SchLevel SchVirtual
-save "${NCES}/NCES_2022_School_KS.dta", replace
+	append using "${EDFacts}/_edfacts2022districtkansas.dta" "${EDFacts}/_edfacts2022schoolkansas.dta"
 		
-use "${NCESDistrict}/NCES_2022_District.dta", clear
-drop if state_location != "KS"
-rename lea_name DistName
-rename ncesdistrictid NCESDistrictID
-rename district_agency_type DistType
-rename county_name CountyName
-rename county_code CountyCode
-rename state_leaid State_leaid
-drop year
-merge 1:1 NCESDistrictID using "${NCES}/NCES_2021_District_KS.dta", keepusing (DistLocale CountyCode CountyName DistCharter)
-drop if _merge == 2
-drop _merge
-save "${NCES}/NCES_2022_District_KS.dta", replace
+	save "${EDFacts}/_edfacts2022kansas.dta", replace
 
+}
