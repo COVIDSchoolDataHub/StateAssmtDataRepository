@@ -18,16 +18,16 @@ There are 6 main folders (with subfolders) you need to create:
 
       a. [Download files from Google drive district folder for NCES_2014 through NCES_2022]
 
-5. NCES School Files, Fall 1997-Fall 2022
+4. NCES School Files, Fall 1997-Fall 2022
 
       a. [Download files from Google drive school folder for NCES_2014 through NCES_2022]
    
-7. EdFacts
+5. EdFacts
    
        a. There are no subfolders
        a. Download all of the .csvs from the _EDFacts --> Datasets folder on the drive for 2014 onward. They should all be in the EdFacts folder with no subfolders. (link: https://drive.google.com/drive/u/0/folders/1ypvFCzY-zjlSFDKC0WAzdPGefv9vZ5o7)
 
-8. Output [will start empty]
+6. Output [will start empty]
     
 ## File Path
 
