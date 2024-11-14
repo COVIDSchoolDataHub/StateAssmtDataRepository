@@ -6,7 +6,7 @@ This is a ReadMe for Kansas's data cleaning process, from 2015 to 2024.
 
 ## Setup
 
-There are three main folders (with subfolders) you need to create: 
+There are 6 main folders (with subfolders) you need to create: 
 
 1. Raw
    
@@ -14,16 +14,20 @@ There are three main folders (with subfolders) you need to create:
 
 2. temp [will start empty]
    
-3. NCES District Files, Fall 1997-Fall 2022 [Download files from Google drive district folder for NCES_2014 through NCES_2022]
+3. NCES District Files, Fall 1997-Fall 2022
 
-4. NCES School Files, Fall 1997-Fall 2022 [Download files from Google drive school folder for NCES_2014 through NCES_2022]
+      a. [Download files from Google drive district folder for NCES_2014 through NCES_2022]
+
+5. NCES School Files, Fall 1997-Fall 2022
+
+      a. [Download files from Google drive school folder for NCES_2014 through NCES_2022]
    
-5. EdFacts
+7. EdFacts
    
        a. There are no subfolders
        a. Download all of the .csvs from the _EDFacts --> Datasets folder on the drive for 2014 onward. They should all be in the EdFacts folder with no subfolders. (link: https://drive.google.com/drive/u/0/folders/1ypvFCzY-zjlSFDKC0WAzdPGefv9vZ5o7)
 
-6. Output [will start empty]
+8. Output [will start empty]
     
 ## File Path
 
