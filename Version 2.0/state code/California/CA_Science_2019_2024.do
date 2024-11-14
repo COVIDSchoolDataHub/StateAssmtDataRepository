@@ -67,13 +67,13 @@ tostring GradeLevel, replace
 replace GradeLevel = "G0" + GradeLevel
 
 //ParticipationRate
-gen ParticipationRate = string(real(StudentSubGroup_TotalTested)/real(Enrollment), "%9.3g") if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Enrollment))
+gen ParticipationRate = string(real(StudentSubGroup_TotalTested)/real(Enrollment), "%9.4g") if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Enrollment))
 replace ParticipationRate = "--" if missing(ParticipationRate)
 drop Enrollment
 
 //Proficiency Level Conversions
 foreach var of varlist Lev*_percent ProficientOrAbove_percent {
-	replace `var' = string(real(`var')/100, "%9.3g") if strpos(`var', "*") == 0
+	replace `var' = string(real(`var')/100, "%9.4g") if strpos(`var', "*") == 0
 	replace `var' = "--" if missing(`var')
 }
 
@@ -206,9 +206,11 @@ gen AssmtType = "Regular"
 gen Subject = "sci"
 
 gen Flag_AssmtNameChange = "N"
+replace Flag_AssmtNameChange = "Y" if `year' == 2019
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_sci = "N"
+replace Flag_CutScoreChange_sci = "Y" if `year' == 2019
 gen Flag_CutScoreChange_soc = "Not applicable"
 
 gen ProficiencyCriteria = "Levels 3-4"
@@ -264,8 +266,12 @@ replace AvgScaleScore = "--" if missing(AvgScaleScore)
 
 drop if missing(DataLevel)
 
-//Incorrect StateAssignedDistID for Lowell Joint in 2019 & 2021
-replace StateAssignedDistID = "3064766" if NCESDistrictID == "0623010"
+
+//ProficientOrAbove_count updates based on V2.0 R1 (Universal code if we have two levels proficient)
+local lowproflev = substr(ProficiencyCriteria, strpos(ProficiencyCriteria, "-")-1,1)
+local highproflev = substr(ProficiencyCriteria, strpos(ProficiencyCriteria, "-")+1,1)
+di `highproflev' - `lowproflev'
+replace ProficientOrAbove_count = string(real(Lev`lowproflev'_count) + real(Lev`highproflev'_count)) if !missing(real(Lev`lowproflev'_count)) & !missing(real(Lev`highproflev'_count))
 
 //Final Cleaning
 foreach var of varlist DistName SchName {
