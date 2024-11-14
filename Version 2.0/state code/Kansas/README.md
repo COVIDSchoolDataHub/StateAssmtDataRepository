@@ -43,7 +43,7 @@ The file path setup should be as follows:
 ```
 
 ## Do File Order
-There are 10 .do files, one for converting excel and csv files into dta files, one for cleaning EdFacts and NCES data to appropriately merge with testing data, and one file for each year.
+There are 4 .do files, to be run in the following order:
 
 Order
 1. 01_Kansas_NCES.do [this preps the NCES files for merging]
