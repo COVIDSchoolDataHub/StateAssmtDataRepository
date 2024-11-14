@@ -31,8 +31,11 @@ foreach a in $years {
 	replace State_leaid = subinstr(State_leaid, "IN-","",.)
 	keep State StateAbbrev StateFips NCESDistrictID State_leaid DistType CountyName CountyCode DistLocale DistCharter DistName
 	
+	replace DistName = strproper(DistName)
+	replace DistName = subinstr(DistName, " Of ", " of ", .)
+	replace DistName = subinstr(DistName, "21ST", "21st", .)
 	
-	save "${NCES}/NCES_`a'_District.dta", replace
+	save "${NCES}/NCES_`a'_District_IN.dta", replace
 	append using "`tempncesd'"
 	save "`tempncesd'", replace
 	
@@ -69,11 +72,16 @@ foreach a in $years {
 	}
 	replace seasch = substr(seasch, strpos(seasch, "-")+1,10)
 	if `a' == 2013 duplicates drop seasch, force
+	
+	replace DistName = strproper(DistName)
+	replace DistName = subinstr(DistName, " Of ", " of ", .)
+	replace DistName = subinstr(DistName, "21ST", "21st", .)
+	
 	keep State StateAbbrev StateFips NCESDistrictID NCESSchoolID State_leaid DistType CountyName CountyCode DistLocale DistCharter SchName SchType SchVirtual SchLevel seasch DistName
 	drop if seasch == ""
 
 	
-	save "${NCES}/NCES_`a'_School.dta", replace
+	save "${NCES}/NCES_`a'_School_IN.dta", replace
 	append using "`tempncess'"
 	save "`tempncess'", replace
 }

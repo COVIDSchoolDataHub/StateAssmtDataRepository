@@ -1,19 +1,20 @@
 clear
 set more off
 
-global Original "/Users/kaitlynlucas/Desktop/EDFacts Drive Data" //Folder with Output .dta
-global EDFacts "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/IN_2022" //Folder with downloaded state-specific 2022 participation data from EDFacts
-global State_Output "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/Indiana Assessment" //Folder with state-specific data
-global Output_20 "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/Indiana V2.0" //Folder for Output 2.0
+global Original "/Users/miramehta/Documents/IN State Testing Data/Original Data Files"
+global temp "/Users/miramehta/Documents/IN State Testing Data/Temp"
+global Output "/Users/miramehta/Documents/IN State Testing Data/Output"
 
-
-foreach s in ela math sci {
-	import delimited "${EDFacts}/IN_EFParticipation_2022_`s'.csv", case(preserve) clear
-	save "${EDFacts}/IN_EFParticipation_2022_`s'.dta", replace
+foreach s in ela math {
+	import delimited "$Original/ELA + Math/IN_EFParticipation_2022_`s'.csv", case(preserve) clear
+	save "$temp/IN_EFParticipation_2022_`s'.dta", replace
 }
 
-use "${EDFacts}/IN_EFParticipation_2022_ela.dta"
-append using "${EDFacts}/IN_EFParticipation_2022_math.dta" "${EDFacts}/IN_EFParticipation_2022_sci.dta"
+import delimited "$Original/Science + Social Studies/IN_EFParticipation_2022_sci.csv", case(preserve) clear
+save "$temp/IN_EFParticipation_2022_sci.dta", replace
+
+use "$temp/IN_EFParticipation_2022_ela.dta", clear
+append using "$temp/IN_EFParticipation_2022_math.dta" "$temp/IN_EFParticipation_2022_sci.dta"
 
 
 //Rename and Drop Vars
@@ -31,15 +32,17 @@ drop ProgramType Outcome Characteristics
 
 //Clean ParticipationRate
 foreach var of varlist Participation {
-replace `var' = "*" if `var' == "S"	
+replace `var' = subinstr(`var', "%", "", 1)
+replace `var' = "*" if `var' == "S"
 gen range`var' = substr(`var',1,1) if regexm(`var',"[<>]") !=0
 replace `var' = subinstr(`var', "=","",.)
-destring `var', gen(n`var') i(*%<>-)
-replace `var' = range`var' + string(n`var'/100, "%9.3g") if `var' != "*" & `var' != "--"
+split `var', parse("-")
+replace `var' = string(real(`var'1)/100, "%9.3g") + "-" + string(real(`var'2)/100, "%9.3g") if `var'2 != "" & `var' != "--"
+destring `var', gen(n`var') i(*%<>-) force
+replace `var' = range`var' + string(n`var'/100, "%9.3g") if `var' != "*" & `var' != "--" & n`var' != . & `var'2 == ""
 replace `var' = subinstr(`var',">","",.) + "-1" if strpos(`var', ">") !=0
 replace `var' = subinstr(`var', "<","0-",.) if strpos(`var', "<") !=0
-drop n`var'
-drop range`var'
+drop n`var' `var'1 `var'2 range`var'
 }
 
 //StudentSubGroup
@@ -76,30 +79,24 @@ append using "`temp1'"
 replace GradeLevel = subinstr(GradeLevel, "Grade ", "G0",.)
 
 //Saving EDFacts Output
-save "${EDFacts}/IN_EFParticipation_2022", replace
+save "$temp/IN_EFParticipation_2022", replace
 
 //Merging with 2022
-use "${State_Output}/IN_AssmtData_2022", clear
+use "$Output/IN_AssmtData_2022", clear
 
-forvalues year = 2015/2022 {
-if `year' == 2020 continue
-import delimited "${State_Output}/IN_AssmtData_`year'", case(preserve) clear
-save "${State_Output}/IN_AssmtData_`year'", replace
-}
-
-//DataLevel
-label def DataLevel 1 "State" 2 "District" 3 "School"
-encode DataLevel, gen(DataLevel_n) label(DataLevel)
-sort DataLevel_n 
-drop DataLevel 
-rename DataLevel_n DataLevel
+destring NCESDistrictID NCESSchoolID, replace
 
 //Merging
-merge 1:1 NCESDistrictID NCESSchoolID GradeLevel Subject StudentSubGroup using "${EDFacts}/IN_EFParticipation_2022"
+merge 1:1 NCESDistrictID NCESSchoolID GradeLevel Subject StudentSubGroup using "$temp/IN_EFParticipation_2022"
 drop if _merge ==2
 replace ParticipationRate = Participation
 replace ParticipationRate = "--" if missing(ParticipationRate)
 drop _merge Participation
+
+tostring NCESDistrictID, replace
+replace NCESDistrictID = "" if NCESDistrictID == "."
+tostring NCESSchoolID, replace format("%18.0f")
+replace NCESSchoolID = "" if NCESSchoolID == "."
 
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
@@ -108,5 +105,5 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${Output_20}/IN_AssmtData_2022", replace
-export delimited "${Output_20}/IN_AssmtData_2022", replace
+save "$Output/IN_AssmtData_2022", replace
+export delimited "$Output/IN_AssmtData_2022", replace

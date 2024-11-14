@@ -1,9 +1,8 @@
 clear
 set more off
 
-global EDFacts "/Users/kaitlynlucas/Desktop/EDFacts Drive Data"
-global State_Output "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/Indiana Assessment" // Version 1.1 Output directory here
-global New_Output "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/Indiana V2.0" // Version 2.0 Output directory here
+global EDFacts "/Users/miramehta/Documents/EDFacts"
+global Output "/Users/miramehta/Documents/IN State Testing Data/Output"
 
 ** Preparing EDFacts files
 local edyears1 14 15 16 17 18
@@ -267,28 +266,12 @@ foreach year of local edyears2 {
 	}
 }
 
-//Conversion to DTA
-forvalues year = 2009/2023 {
-if `year' == 2020 continue
-import delimited "${State_Output}/IN_AssmtData_`year'", case(preserve) clear
-save "${State_Output}/IN_AssmtData_`year'", replace
-}
-
-//Merging Example
+//Merging
 forvalues year = 2014/2021 {
 if `year' == 2020 continue
-import delimited "${State_Output}/IN_AssmtData_`year'.csv", case(preserve) clear
+use "${Output}/IN_AssmtData_`year'.dta", clear
 
-	
-//DataLevel
-label def DataLevel 1 "State" 2 "District" 3 "School"
-encode DataLevel, gen(DataLevel_n) label(DataLevel)
-sort DataLevel_n 
-drop DataLevel 
-rename DataLevel_n DataLevel
-
-
-//Merging
+destring NCESDistrictID NCESSchoolID, replace
 
 tempfile tempall
 save "`tempall'", replace
@@ -325,6 +308,12 @@ use "`tempall'"
 keep if DataLevel == 1
 append using "`tempdist'" "`tempsch'"
 
+//Reformatting NCES IDs
+tostring NCESDistrictID, replace
+replace NCESDistrictID = "" if NCESDistrictID == "."
+tostring NCESSchoolID, replace format("%18.0f")
+replace NCESSchoolID = "" if NCESSchoolID == "."
+
 //New Participation Data
 replace ParticipationRate = Participation if !missing(Participation)
 
@@ -335,6 +324,6 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${New_Output}/IN_AssmtData_`year'", replace
-export delimited "${New_Output}/IN_AssmtData_`year'", replace
+save "${Output}/IN_AssmtData_`year'", replace
+export delimited "${Output}/IN_AssmtData_`year'", replace
 }
