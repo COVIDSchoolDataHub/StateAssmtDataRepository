@@ -22,12 +22,12 @@ There are 6 main folders (with subfolders) you need to create:
 
       a. [Download files from Google drive school folder for NCES_2014 through NCES_2022]
    
-5. EdFacts
+5. EdFacts [There are no subfolders]
    
-       a. There are no subfolders
-       a. Download all of the .csvs from the _EDFacts --> Datasets folder on the drive for 2014 onward. They should all be in the EdFacts folder with no subfolders. (link: https://drive.google.com/drive/u/0/folders/1ypvFCzY-zjlSFDKC0WAzdPGefv9vZ5o7)
+      a. Download this folder from the Google drive. It will already have the 2022 files in it.
+      b. Download all of the .csvs from the _EDFacts --> Datasets folder on the drive for 2014 to 2021 only. They should all be in the EdFacts folder with no subfolders. 
 
-6. Output [will start empty]
+7. Output [will start empty]
     
 ## File Path
 
