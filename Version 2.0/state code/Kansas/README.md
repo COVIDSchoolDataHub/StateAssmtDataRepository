@@ -10,7 +10,7 @@ There are 6 main folders (with subfolders) you need to create:
 
 1. Raw
    
-       a. Original Data Files [Download the original excel files and place them into this folder.]
+       a. Download the original excel files and place them into this folder.
 
 2. temp [will start empty]
    
