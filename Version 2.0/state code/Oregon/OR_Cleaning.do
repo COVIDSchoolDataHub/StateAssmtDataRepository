@@ -9,6 +9,8 @@ local NCESDistrict "/Users/benjaminm/Documents/State_Repository_Research/NCES/Di
 local NCESSchool "/Users/benjaminm/Documents/State_Repository_Research/NCES/School"
 
 
+// //Unhide Below Importing Code on First Run
+
 /*
 forvalues year = 2015/2024 {
 	if `year' == 2020 | `year' == 2021 continue
@@ -89,11 +91,10 @@ clear
 
 **# Bookmark #1
 
-forvalues year == 2015/2024 {
+forvalues year == 2023/2023 {
 if `year' == 2020 | `year' == 2021 continue
 
 use "`Original'/`year'", clear
-
 
 
 local prevyear =`=`year'-1'
@@ -623,6 +624,15 @@ drop Unsuppressed* missing_*
 
 replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "."
 
+gen flag10 = 0
+replace flag10= 1 if Lev4_percent == "."
+replace Lev4_percent = "0" if flag10 == 1
+replace ProficientOrAbove_percent = Lev3_percent if flag10 == 1
+drop flag10
+
+replace Lev3_percent = "0" if Lev3_percent == "." 
+replace Lev2_percent = "0" if Lev2_percent == "." 
+replace Lev1_percent = "0" if Lev1_percent == "." 
 
 //Final Cleaning
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
@@ -636,12 +646,5 @@ export delimited "`Output'/OR_AssmtData_`year'", replace
 clear
 
 }
-
-
-
-
-
-use "`Output'/OR_AssmtData_2024", replace
-tab DistName if NCESDistrictID == "" & DataLevel == 3
 
 
