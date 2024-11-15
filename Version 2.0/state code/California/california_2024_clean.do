@@ -65,7 +65,7 @@ replace GradeLevel = "G0" + GradeLevel
 
 //Converting Percents to Decimal
 foreach var of varlist *_percent {
-	replace `var' = string(real(`var')/100, "%9.3g") if !missing(real(`var'))
+	replace `var' = string(real(`var')/100, "%9.4g") if !missing(real(`var'))
 }
 
 //Cleaning missing counts/percents
@@ -140,7 +140,7 @@ replace StudentGroup = "Migrant Status" if StudentGroup == "Migrant"
 replace StudentGroup = "Foster Care Status" if StudentGroup == "Foster Status"
 
 //ParticipationRate
-gen ParticipationRate = string(real(StudentSubGroup_TotalTested)/real(Enrolled), "%9.3g")
+gen ParticipationRate = string(real(StudentSubGroup_TotalTested)/real(Enrolled), "%9.4g")
 replace ParticipationRate = "--" if ParticipationRate == "."
 drop Enrolled
 
@@ -230,12 +230,18 @@ drop group_id StateAssignedDistID1 StateAssignedSchID1
 //Misc Cleaning in response to self review
 drop if StudentSubGroup_TotalTested == "."
 replace AvgScaleScore = "--" if missing(AvgScaleScore)
-replace ProficientOrAbove_percent = string(real(ProficientOrAbove_count)/real(StudentSubGroup_TotalTested), "%9.3g") if missing(real(ProficientOrAbove_percent)) & !missing(real(ProficientOrAbove_count)) & !missing(real(StudentSubGroup_TotalTested))
+replace ProficientOrAbove_percent = string(real(ProficientOrAbove_count)/real(StudentSubGroup_TotalTested), "%9.4g") if missing(real(ProficientOrAbove_percent)) & !missing(real(ProficientOrAbove_count)) & !missing(real(StudentSubGroup_TotalTested))
 foreach var of varlist *_count *_percent {
 	if "`var'" == "Lev5_count" | "`var'" == "Lev5_percent" continue
 	replace `var' = "--" if `var' == "." | missing(`var')
 }
 replace AvgScaleScore = "--" if missing(AvgScaleScore)
+
+//ProficientOrAbove_count updates based on V2.0 R1 (Universal code if we have two levels proficient)
+local lowproflev = substr(ProficiencyCriteria, strpos(ProficiencyCriteria, "-")-1,1)
+local highproflev = substr(ProficiencyCriteria, strpos(ProficiencyCriteria, "-")+1,1)
+di `highproflev' - `lowproflev'
+replace ProficientOrAbove_count = string(real(Lev`lowproflev'_count) + real(Lev`highproflev'_count)) if !missing(real(Lev`lowproflev'_count)) & !missing(real(Lev`highproflev'_count))
 
 //Final Cleaning
 foreach var of varlist DistName SchName {

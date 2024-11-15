@@ -17,9 +17,9 @@ There are four sub-folders you need to create:
 
 The main California file should include the following files:
 
-        - the NCES crosswalk (CA_DistSchInfo_2010_2024) from the CA Dist and School Info folder on the drive
+ - the NCES crosswalk (CA_DistSchInfo_2010_2024) from the CA Dist and School Info folder on the drive
         
-        - the Unmerged_2024.xlsx file from the main CA folder on the drive
+ - the Unmerged_2024.xlsx file from the main CA folder on the drive
 
 There are 16 .do files. Run them in the following order:
 
