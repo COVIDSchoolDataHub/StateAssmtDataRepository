@@ -202,10 +202,10 @@ replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
 replace StudentGroup = "Disability Status" if inlist(StudentSubGroup, "SWD", "Non-SWD")
 replace StudentGroup = "Economic Status" if inlist(StudentSubGroup, "Economically Disadvantaged", "Not Economically Disadvantaged")
 replace StudentGroup = "EL Status" if inlist(StudentSubGroup, "English Learner", "English Proficient", "EL Monit or Recently Ex")
+replace StudentGroup = "RaceEth" if inlist(StudentSubGroup, "American Indian or Alaska Native", "Asian", "Black or African American", "Hispanic or Latino", "Native Hawaiian or Pacific Islander", "Two or More", "Unknown", "White")
 replace StudentGroup = "Gender" if inlist(StudentSubGroup, "Female", "Male", "No Gender Provided")
 replace StudentSubGroup = "Unknown" if StudentSubGroup == "No Gender Provided"
 replace StudentGroup = "Migrant Status" if inlist(StudentSubGroup, "Migrant", "Non-Migrant")
-replace StudentGroup = "RaceEth" if inlist(StudentSubGroup, "American Indian or Alaska Native", "Asian", "Black or African American", "Hispanic or Latino", "Native Hawaiian or Pacific Islander", "Two or More", "Unkown", "White")
 drop if StudentGroup == ""
 
 //StudentGroup_TotalTested

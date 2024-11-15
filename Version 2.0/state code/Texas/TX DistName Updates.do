@@ -3,7 +3,7 @@ global NCES_files "/Users/miramehta/Documents/NCES District and School Demograph
 global output_files "/Users/miramehta/Documents/TX State Testing Data/Output"
 global temp_files "/Users/miramehta/Documents/TX State Testing Data/Temp"
 
-forvalues year = 2012/2024{
+forvalues year = 2022/2024{
 	if `year' == 2020{
 		continue
 	}
