@@ -169,7 +169,7 @@ replace Lev2_above_percent = Lev2_above_percent/100
 tostring ProficientOrAbove_percent, replace format("%9.2g") force
 replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == "."
 tostring Lev2_above_percent, replace format("%9.2g") force
-replace Lev2_above_percent = "--" if ProficientOrAbove_percent == "."
+replace Lev2_above_percent = "--" if Lev2_above_percent == "."
 tostring ProficientOrAbove_count, replace
 replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == "."
 tostring Lev2_above_count, replace
@@ -218,7 +218,15 @@ sort DataLevel AssmtName StateAssignedDistID StateAssignedSchID Subject GradeLev
 gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
 order Subject GradeLevel StudentGroup_TotalTested StudentGroup StudentSubGroup_TotalTested StudentSubGroup
 replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested) & StudentSubGroup != "All Students"
+
+//Remove Null Observations
 drop if StudentSubGroup_TotalTested == "0" & StudentSubGroup != "All Students"
+gen flag = 1
+forvalues n = 1/4 {
+	replace flag = 0 if Lev`n'_count != "--"
+}
+drop if flag == 1 & inlist(StudentSubGroup_TotalTested, "*", "--") & StudentSubGroup != "All Students"
+drop flag
 
 //Prepare to Merge with NCES
 gen state_leaid = "TX-" + StateAssignedDistID
@@ -267,7 +275,7 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode ApproachingOrAbove_count ApproachingOrAbove_percent
 
-sort DataLevel DistName SchName Subject AssmtName GradeLevel StudentGroup StudentSubGroup
+sort DataLevel DistName SchName AssmtName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${output_files}/TX_AssmtData_2022 - HMH.dta", replace
 export delimited "${output_files}/TX_AssmtData_2022 - HMH.csv", replace
