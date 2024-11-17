@@ -302,11 +302,13 @@ save "$output_files/TX_AssmtData_2017.dta", replace
 
 use "$NCES_files/NCES District Files, Fall 1997-Fall 2022/NCES_2016_District.dta", clear
 
-keep state_location state_fips district_agency_type ncesdistrictid state_leaid DistCharter county_name county_code DistLocale
+keep state_location lea_name state_fips district_agency_type ncesdistrictid state_leaid DistCharter county_name county_code DistLocale
 
 keep if state_location == "TX"
 
 merge 1:m state_leaid using "${output_files}/TX_AssmtData_2017.dta", keep(match using) nogenerate
+replace DistName = lea_name if DataLevel != 1 & lea_name != ""
+drop lea_name
 
 save "$output_files/TX_AssmtData_2017.dta", replace
 
@@ -373,6 +375,9 @@ order Subject GradeLevel StudentGroup_TotalTested StudentGroup StudentSubGroup_T
 replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested) & StudentSubGroup != "All Students"
 drop if StudentSubGroup_TotalTested == 0 & StudentSubGroup != "All Students"
 
+//Updating Two District Names for Clarity
+replace DistName = "HIGHLAND PARK ISD (DALLAS)" if NCESDistrictID == "4823250"
+replace DistName = "HIGHLAND PARK ISD (AMARILLO)" if NCESDistrictID == "4835560"
 
 // Reordering variables and sorting data
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode ApproachingOrAbove_count ApproachingOrAbove_percent

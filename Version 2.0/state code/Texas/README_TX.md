@@ -45,8 +45,7 @@ save "$temp_files/TX_Temp_`year'_All_All.dta", replace
 
 2. Run the do-files for each year. You will want to hide the importing code again after the first run. 
 
-3. Run the do-file "Texas DistName Updates.do" to standardize all the DistNames in each cleaned file.
-
 ## Updates
 10/17/24: Updated to include 2024 data, clean prior years using the csv version of the file instead of the .sas version (for easier Stata processing) and standardize district names to match 2024.
 10/24/24: Updated to use new 2022 and 2023 files which include data for Spanish version of the test.
+11/17/24: Updated to pull in district names from NCES (for standardization).

@@ -6,7 +6,7 @@ This is a ReadMe for Delaware's data cleaning process, from Spring 2015 to Sprin
 ## Setup
 1. Create a folder called DE State Testing Data.
     -  Create two subfolders: Original Data Files and Output.
-    -  Download the original excel files and place them in the Original Data Files folder.
+    -  Download the original excel files (anything that is not in a subfolder on Drive) and place them in the Original Data Files folder.
     -  Place the files in the data request subfolder on Drive into the general Original Data Files folder.
 2. Create a folder called NCES District and School Demographics.
     - Create three subfolders: NCES District Files, Fall 1997-Fall 2022; NCES School Files, Fall 1997-Fall 2022; Cleaned NCES Data.

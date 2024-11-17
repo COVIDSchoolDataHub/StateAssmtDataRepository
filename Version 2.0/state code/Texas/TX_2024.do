@@ -236,7 +236,7 @@ save "$temp_files/TX_AssmtData_2024", replace
 use "$NCES_files/NCES District Files, Fall 1997-Fall 2022/NCES_2022_District.dta", clear
 keep if state_location == "TX"
 rename district_agency_type DistType
-keep state_location state_fips DistType ncesdistrictid state_leaid DistCharter county_name county_code DistLocale
+keep state_location state_fips lea_name DistType ncesdistrictid state_leaid DistCharter county_name county_code DistLocale
 save "$NCES_files/Cleaned NCES Data/NCES_2022_District_TX.dta", replace
 
 use "$NCES_files/NCES School Files, Fall 1997-Fall 2022/NCES_2022_School.dta", clear
@@ -249,6 +249,8 @@ save "$NCES_files/Cleaned NCES Data/NCES_2022_School_TX.dta", replace
 //Merge with NCES Data
 use "$temp_files/TX_AssmtData_2024", clear
 merge m:1 state_leaid using "$NCES_files/Cleaned NCES Data/NCES_2022_District_TX.dta"
+replace DistName = lea_name if DataLevel != 1 & lea_name != ""
+drop lea_name
 drop if _merge == 2
 drop _merge
 
@@ -497,6 +499,10 @@ replace SchVirtual = 0 if missing(SchVirtual) & DataLevel == 3 //manually confir
 drop if inlist(seasch, "025908-025908009", "241902-241902002") //these two schools don't actually open until fall 2024 & don't have any non-missing data
 
 drop if inlist(NCESSchoolID, "481686007857", "481818007651", "481970011016", "482838010527") //these four schools don't have any non-suppressed data and are missing SchLevel
+
+//Updating Two District Names for Clarity
+replace DistName = "HIGHLAND PARK ISD (DALLAS)" if NCESDistrictID == "4823250"
+replace DistName = "HIGHLAND PARK ISD (AMARILLO)" if NCESDistrictID == "4835560"
 
 //Final Cleaning
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode ApproachingOrAbove_count ApproachingOrAbove_percent
