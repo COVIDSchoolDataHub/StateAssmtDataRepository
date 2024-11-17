@@ -7,6 +7,7 @@ log using alaska_cleaning.log, replace
 global Original "/Volumes/T7/State Test Project/Alaska/Original"
 global Output "/Volumes/T7/State Test Project/Alaska/Output"
 global Temp "/Volumes/T7/State Test Project/Alaska/Temp"
+global NCES "/Volumes/T7/State Test Project/Alaska/NCES"
 
 /*
 //New Importing Code
@@ -232,9 +233,7 @@ replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
 save "$Temp/alaska_cleaned_updated", replace
 
 
-
-
-global years1 2017 2018 2019 2021 2022 
+global years1 2017 2018 2019 2021 2022
 
 foreach a in $years1 {
 
@@ -285,25 +284,43 @@ gen Flag_CutScoreChange_sci = "Y"
 
 }
 
-// flags for 2022 should be positive 
-if `a' != 2017 & `a' != 2022  {
+if `a' == 2018 {
+// year specific 2018
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_soc = "Not applicable"
 gen Flag_CutScoreChange_sci = "N"
+}
 
+if `a' == 2019 {
+// year specific 2019
+gen Flag_AssmtNameChange = "N"
+gen Flag_CutScoreChange_ELA = "N"
+gen Flag_CutScoreChange_math = "N"
+gen Flag_CutScoreChange_soc = "Not applicable"
+gen Flag_CutScoreChange_sci = "N"
+}
+
+if `a' == 2021 {
+// year specific 2021
+gen Flag_AssmtNameChange = "N"
+gen Flag_CutScoreChange_ELA = "N"
+gen Flag_CutScoreChange_math = "N"
+gen Flag_CutScoreChange_soc = "Not applicable"
+gen Flag_CutScoreChange_sci = "Not applicable"
 }
 
 if `a' == 2022 {
-gen Flag_AssmtNameChange = "Y"
+// year specific 2022 
+gen Flag_AssmtNameChange = "Y" 
 replace Flag_AssmtNameChange = "N" if Subject == "sci"
-gen Flag_CutScoreChange_sci = "Y"
 gen Flag_CutScoreChange_ELA = "Y"
 gen Flag_CutScoreChange_math = "Y"
 gen Flag_CutScoreChange_soc = "Not applicable"
-}
+gen Flag_CutScoreChange_sci = "Y"
 
+}
 //SchYear Correct Format
 replace SchYear = "`prevyear'-" + substr("`a'",-2,2)
 
@@ -339,15 +356,13 @@ foreach var of varlist *_percent {
 if `a' == 2019 replace SchVirtual = 0 if NCESSchoolID == "020051000450"
 replace ProficientOrAbove_count = string(round(real(StudentSubGroup_TotalTested) * real(substr(ProficientOrAbove_percent,1,strpos(ProficientOrAbove_percent,"-")-1)))) + "-" + string(round(real(StudentSubGroup_TotalTested) * real(substr(ProficientOrAbove_percent,strpos(ProficientOrAbove_percent,"-")+1,3)))) if regexm(ProficientOrAbove_percent, "[0-9]") !=0 & ProficientOrAbove_count == "*"
 replace ParticipationRate = "--" if strpos(ParticipationRate, "-") !=0
-if `a' == 2022 replace Flag_CutScoreChange_sci = "Y"
-if `a' == 2022 & Subject == "sci" replace Flag_AssmtNameChange = "N" 
-if `a' == 2018 replace Flag_CutScoreChange_sci = "Not applicable"
 
 foreach var of varlist *_percent *_count {
 replace `var' = "0" if `var' == "0-0"
 }
 
 drop if StudentSubGroup_TotalTested == "0" & StudentSubGroup != "All Students"
+
 
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
@@ -357,4 +372,3 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 save "$Output/AK_AssmtData_`a'_Stata", replace
 export delimited "$Output/AK_AssmtData_`a'.csv", replace
 
-}
