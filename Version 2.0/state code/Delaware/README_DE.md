@@ -12,7 +12,7 @@ This is a ReadMe for Delaware's data cleaning process, from Spring 2015 to Sprin
     - Create three subfolders: NCES District Files, Fall 1997-Fall 2022; NCES School Files, Fall 1997-Fall 2022; Cleaned NCES Data.
     - Place the original NCES files into the appropriate folder (district or school).
 
-There are 10 .do files. First run NCES_Clean_11.8.24.do.  Then you can run the files for each year in any order you want.
+There are 11 .do files. First run NCES_Clean_11.8.24.do.  Then you can run the files for each year in any order you want, as long as you run DE_sci_soc_2015-17_11.17.24 last.
 
 ## File Path
 
@@ -33,3 +33,4 @@ global Output "/Users/miramehta/Documents/DE State Testing Data/Output"
 08/1/2024: Made filename updates.
 08/30/2024: Added code for 2024 data.
 11/08/2024: Recleaned data based on files received from data request.
+11/17/2024: Incorporated 2015 sci/soc data that was not available by data request.
