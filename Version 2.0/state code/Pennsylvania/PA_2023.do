@@ -1,12 +1,13 @@
-clear all
 
-// Define file paths
-global original_files "/Users/miramehta/Documents/PA State Testing Data/Original_Data_Files"
-global NCES_school "/Users/miramehta/Documents/NCES District and School Demographics/NCES School Files, Fall 1997-Fall 2022"
-global NCES_district "/Users/miramehta/Documents/NCES District and School Demographics/NCES District Files, Fall 1997-Fall 2022"
-global output_files "/Users/miramehta/Documents/PA State Testing Data/Output_Data_Files"
-global temp_files "/Users/miramehta/Documents/PA State Testing Data/Temporary_Data_Files"
+global Abbrev "PA"
+global years 2015 2016 2017 2018 2019 2021 2022 2023 2024
+global Original "/Users/name/Desktop/Pennsylvania/Original"
+global NCES "/Users/name/Desktop/Pennsylvania/NCES"
+global Output "/Users/name/Desktop/Pennsylvania/Output"
+global Temp "/Users/name/Desktop/Pennsylvania/Temp"
 
+cd "/Users/name/Desktop/Pennsylvania/"
+capture log close
 // Import Original Data Files
 /*
 //School import
@@ -16,7 +17,7 @@ import excel "$original_files/PA_OriginalData_2023_Subgroups_School.xlsx", cellr
 gen DataLevel = "School"
 drop County
 
-save "$temp_files/PA_2023_School.dta", replace
+save "$temp/PA_2023_School.dta", replace
 
 
 // District import
@@ -29,7 +30,7 @@ gen DataLevel = "District"
 drop County
 drop N
 
-save "$temp_files/PA_2023_District.dta", replace
+save "$temp/PA_2023_District.dta", replace
 
 // State import
 import excel "$original_files/PA_OriginalData_2023_Subgroups_State.xlsx", cellrange(A4) firstrow clear
@@ -43,16 +44,16 @@ rename PercentProficientandAbove PercentProficientandabove
 drop K L
 drop if Subject == ""
 
-save "$temp_files/PA_2023_State.dta", replace
+save "$temp/PA_2023_State.dta", replace
 
 
 // Appending All DataLevels
 clear
-append using "$temp_files/PA_2023_School.dta" "$temp_files/PA_2023_District.dta" "$temp_files/PA_2023_State.dta"
-save "$temp_files/PA_2023_All.dta", replace
+append using "$temp/PA_2023_School.dta" "$temp/PA_2023_District.dta" "$temp/PA_2023_State.dta"
+save "$temp/PA_2023_All.dta", replace
 */
 
-use "$temp_files/PA_2023_All.dta", clear
+use "$temp/PA_2023_All.dta", clear
 
 // Relabelling variables
 rename AUN StateAssignedDistID
@@ -153,7 +154,7 @@ tostring StateAssignedDistID, gen(state_leaid)
 gen seasch = state_leaid+"-"+substr(StateAssignedSchID,-4,4)
 replace state_leaid = "PA-"+state_leaid
 
-save "${output_files}/PA_AssmtData_2023.dta", replace
+save "${output}/PA_AssmtData_2023.dta", replace
 
 // Merging with NCES School Data
 use "$NCES_school/NCES_2022_School.dta", clear
@@ -169,20 +170,20 @@ rename SchVirtual_n SchVirtual
 rename school_type SchType
 keep state_location state_fips district_agency_type SchType ncesdistrictid state_leaid ncesschoolid seasch DistCharter SchLevel SchVirtual county_name county_code DistLocale
 
-merge 1:m seasch using "${output_files}/PA_AssmtData_2023.dta", keep(match using)
+merge 1:m seasch using "${output}/PA_AssmtData_2023.dta", keep(match using)
 drop _merge
 
-save "${output_files}/PA_AssmtData_2023.dta", replace
+save "${output}/PA_AssmtData_2023.dta", replace
 
 // Merging with NCES District Data
 
-use "$NCES_district/NCES_2022_District.dta", clear
-merge 1:1 ncesdistrictid using "$NCES_district/NCES_2021_District.dta", keepusing (county_code county_name DistCharter)
+use "$NCES/NCES_2022_District.dta", clear
+merge 1:1 ncesdistrictid using "$NCES/NCES_2021_District.dta", keepusing (county_code county_name DistCharter)
 drop if state_location != "PA"
 
 keep state_location state_fips district_agency_type ncesdistrictid state_leaid DistCharter DistLocale county_name county_code
 
-merge 1:m state_leaid using "${output_files}/PA_AssmtData_2023.dta", keep(match using) nogenerate
+merge 1:m state_leaid using "${output}/PA_AssmtData_2023.dta", keep(match using) nogenerate
 
 // Renaming NCES variables
 rename district_agency_type DistType
@@ -211,5 +212,5 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 // Saving and exporting transformed data
 
-save "${output_files}/PA_AssmtData_2023.dta", replace
-export delimited using "$output_files/PA_AssmtData_2023.csv", replace
+save "${output}/PA_AssmtData_2023.dta", replace
+export delimited using "$output/PA_AssmtData_2023.csv", replace
