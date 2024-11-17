@@ -1,6 +1,14 @@
-cd "/Users/name/Desktop/Alaska"
+clear
+set more off
+
 cap log close
 log using alaska_cleaning2024.log, replace
+
+cd "/Volumes/T7/State Test Project/Alaska"
+
+global Original "/Volumes/T7/State Test Project/Alaska/Original"
+global Output "/Volumes/T7/State Test Project/Alaska/Output"
+global NCES "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
 
 /*
 //New Importing Code
@@ -96,6 +104,7 @@ foreach var of varlist Lev*_percent {
 	gen low`var' = substr(`var', 1, strpos(`var', "-")-1)
 	gen high`var' = substr(`var', strpos(`var', "-") +1, 5)
 }
+
 gen lowProficientOrAbove_percent = real(lowLev3_percent) + real(lowLev4_percent) 
 gen highProficientOrAbove_percent = real(highLev3_percent) + real(highLev4_percent)
 replace highProficientOrAbove_percent = 1 if highProficientOrAbove_percent > 1
@@ -170,6 +179,7 @@ rename county_code CountyCode
 rename school_type SchType
 rename county_name CountyName
 
+
 gen StateAssignedDistID1 = StateAssignedDistID
 replace StateAssignedDistID1 = "000000" if DataLevel == 1 //Remove quotations if DistIDs are numeric
 gen StateAssignedSchID1 = StateAssignedSchID
@@ -185,6 +195,9 @@ local count = subinstr("`percent'", "percent", "count",.)
 replace `count' = string(round(StudentSubGroup_TotalTested * real(substr(`percent',1,strpos(`percent',"-")-1)))) + "-" + string(round(StudentSubGroup_TotalTested * real(substr(`percent',strpos(`percent',"-")+1,3)))) if regexm(`percent', "[0-9]") !=0 & `count' == "*"
 }
 
+//Setting Maximum ProficientOrAbove_percent range to 1 - sum of minimum non-proficient levels
+replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, substr(ProficientOrAbove_percent,strpos(ProficientOrAbove_percent, "-")+1,.), string(1- real(substr(Lev1_percent, 1, strpos(Lev1_percent, "-")-1)) - real(substr(Lev2_percent, 1, strpos(Lev2_percent, "-")-1))),.) if regexm(Lev1_percent, "-") !=0 & regexm(Lev2_percent, "-") !=0 & regexm(ProficientOrAbove_percent, "-") !=0
+
 replace ParticipationRate = "--" if strpos(ParticipationRate, "-") !=0 | ParticipationRate == "." | StudentSubGroup_TotalTested == 0 
 
 tostring StudentGroup_TotalTested StudentSubGroup_TotalTested, replace 
@@ -199,7 +212,7 @@ replace Lev5_percent = "" if Lev5_percent != ""
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject Grade StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup 
 
