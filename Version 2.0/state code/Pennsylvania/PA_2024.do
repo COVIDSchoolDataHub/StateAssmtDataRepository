@@ -5,7 +5,7 @@ global years 2015 2016 2017 2018 2019 2021 2022 2023 2024
 global Original "/Users/name/Desktop/Pennsylvania/Original"
 global NCES "/Users/name/Desktop/Pennsylvania/NCES"
 global Output "/Users/name/Desktop/Pennsylvania/Output"
-global Temp "/Users/name/Desktop/Pennsylvania/Temp"4
+global Temp "/Users/name/Desktop/Pennsylvania/Temp"
 
 cd "/Users/name/Desktop/Pennsylvania/"
 capture log close
