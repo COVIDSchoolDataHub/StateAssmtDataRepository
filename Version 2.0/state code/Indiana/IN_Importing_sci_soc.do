@@ -350,8 +350,8 @@ reshape long ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_T
 drop if ProficientOrAbove_count == "" & ProficientOrAbove_percent == "" & StudentSubGroup_TotalTested == ""
 save "$temp/IN_2018_sci_soc_DistSchool_allstud", replace
 
-//2019-2023
-forvalues year = 2019/2023{
+//2019-2024
+forvalues year = 2019/2024{
 	if `year' == 2020 continue
 	foreach Subject in "Science" "Social Studies"{
 		foreach DataLevel in LEA SCH{
@@ -452,7 +452,8 @@ forvalues year = 2019/2023{
 	save "$temp/IN_`year'_sci_soc_DistSchool_allstud", replace
 }
 
-forvalues year = 2014/2023{
+//Append Data
+forvalues year = 2014/2024{
 	if `year' == 2020 continue
 	use "${temp}/`year'_State_sci_soc", clear
 	append using "$temp/`year'_District_school_sci_soc"
@@ -481,5 +482,5 @@ rename proficient ProficientOrAbove_count
 rename proficient_per ProficientOrAbove_percent
 gen DataLevel = "State"
 gen Subject = "Science"
-append using "${temp}/2024_State_sci_soc" "${temp}/2024_District_school_sci_soc"
+append using "${temp}/IN_2024_sci_soc"
 save "$temp/IN_2024_sci_soc", replace
