@@ -205,13 +205,13 @@ gen ProficientOrAbove_count = "--"
 gen ProficiencyCriteria = "Levels 3-4"
 
 //ParticipationRate
-gen ParticipationRate = string(StudentSubGroup_TotalTested/CAASPPReportedEnrollment, "%9.3g")
+gen ParticipationRate = string(StudentSubGroup_TotalTested/CAASPPReportedEnrollment, "%9.4g")
 replace ParticipationRate = "--" if ParticipationRate == "." | missing(ParticipationRate)
 drop CAASPPReportedEnrollment
 
 //Converting Percents to Decimal
 foreach var of varlist *_percent {
-	replace `var' = string(real(`var')/100, "%9.3g") if !missing(real(`var'))
+	replace `var' = string(real(`var')/100, "%9.4g") if !missing(real(`var'))
 }
 
 //StateAssignedDistID and StateAssignedSchID
@@ -266,17 +266,9 @@ local percent = subinstr("`count'","count", "percent",.)
 replace `count' = string(round(real(`percent') * real(StudentSubGroup_TotalTested))) if !missing(real(`percent')) & !missing(real(StudentSubGroup_TotalTested)) & missing(real(`count'))
 }
 
-//StudentGroup_TotalTested
-cap drop StudentGroup_TotalTested
-gen StateAssignedDistID1 = StateAssignedDistID
-replace StateAssignedDistID1 = "000000" if DataLevel == 1
-gen StateAssignedSchID1 = StateAssignedSchID
-replace StateAssignedSchID1 = "000000" if DataLevel !=3
-egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
-sort group_id StudentGroup StudentSubGroup
-by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
-by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
-drop group_id StateAssignedDistID1 StateAssignedSchID1
+//Dropping Duplicate School
+drop if DistName== "Sbe - The School Of Arts And Enterprise" & SchName== "Sbe - The School Of Arts And Enterprise"
+
 
 //Misc Fixes
 drop if strpos(SchName, "District Level Program")
@@ -299,7 +291,6 @@ foreach v of varlist SchType SchLevel SchVirtual DistType DistLocale CountyName 
 }
 
 tostring StudentSubGroup_TotalTested, replace
-drop if StudentGroup_TotalTested=="0"
 drop if DataLevel==.
 drop if StudentSubGroup=="Never EL"
 
@@ -317,8 +308,6 @@ foreach var of varlist Lev*_percent {
 	replace `var' = "--" if missing(`var')
 }
 
-//Dropping Duplicate
-drop if DistName== "Sbe - The School Of Arts And Enterprise" & SchName== "Sbe - The School Of Arts And Enterprise"
 
 //Other Updates
 replace CountyName = proper(CountyName) if CountyName != "Missing/not reported"
@@ -334,6 +323,24 @@ replace SchName = stritrim(SchName)
 foreach var of varlist Lev*_count {
 	replace `var' = "--" if real(`var') < 0 & !missing(real(`var'))
 }
+
+//ProficientOrAbove_count updates based on V2.0 R1 (Universal code if we have two levels proficient)
+local lowproflev = substr(ProficiencyCriteria, strpos(ProficiencyCriteria, "-")-1,1)
+local highproflev = substr(ProficiencyCriteria, strpos(ProficiencyCriteria, "-")+1,1)
+di `highproflev' - `lowproflev'
+replace ProficientOrAbove_count = string(real(Lev`lowproflev'_count) + real(Lev`highproflev'_count)) if !missing(real(Lev`lowproflev'_count)) & !missing(real(Lev`highproflev'_count))
+
+//StudentGroup_TotalTested
+cap drop StudentGroup_TotalTested
+gen StateAssignedDistID1 = StateAssignedDistID
+replace StateAssignedDistID1 = "000000" if DataLevel == 1
+gen StateAssignedSchID1 = StateAssignedSchID
+replace StateAssignedSchID1 = "000000" if DataLevel !=3
+egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
+sort group_id StudentGroup StudentSubGroup
+by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+drop group_id StateAssignedDistID1 StateAssignedSchID1
 
 //Final Cleaning
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode

@@ -208,13 +208,13 @@ gen ProficiencyCriteria = "Levels 4-5"
 gen ProficientOrAbove_count = "--" 
 
 //ParticipationRate
-gen ParticipationRate = string(StudentSubGroup_TotalTested/STARReportedEnrollmentCAPAEligib, "%9.3g")
+gen ParticipationRate = string(StudentSubGroup_TotalTested/STARReportedEnrollmentCAPAEligib, "%9.4g")
 replace ParticipationRate = "--" if ParticipationRate == "." | missing(ParticipationRate)
 drop STARReportedEnrollmentCAPAEligib
 
 //Converting Percents to Decimal
 foreach var of varlist *_percent {
-	replace `var' = string(real(`var')/100, "%9.3g") if !missing(real(`var'))
+	replace `var' = string(real(`var')/100, "%9.4g") if !missing(real(`var'))
 }
 
 //StateAssignedDistID and StateAssignedSchID
@@ -333,6 +333,12 @@ replace SchName = stritrim(SchName)
 foreach var of varlist Lev*_count {
 	replace `var' = "--" if real(`var') < 0 & !missing(real(`var'))
 }
+
+//ProficientOrAbove_count updates based on V2.0 R1 (Universal code if we have two levels proficient)
+local lowproflev = substr(ProficiencyCriteria, strpos(ProficiencyCriteria, "-")-1,1)
+local highproflev = substr(ProficiencyCriteria, strpos(ProficiencyCriteria, "-")+1,1)
+di `highproflev' - `lowproflev'
+replace ProficientOrAbove_count = string(real(Lev`lowproflev'_count) + real(Lev`highproflev'_count)) if !missing(real(Lev`lowproflev'_count)) & !missing(real(Lev`highproflev'_count))
 
 //Final Cleaning
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode

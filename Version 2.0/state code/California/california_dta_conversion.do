@@ -18,7 +18,12 @@ save "$data/CA_DistSchInfo_2010_2024", replace
 //Unmerged 2024
 import excel "$CA_Folder/CA_Unmerged_2024", firstrow case(preserve) allstring clear
 drop S-AA Notes *Merge
-save CA_Unmerged_2024, replace
+save "$data/CA_Unmerged_2024", replace
+
+//2024 Updates
+import excel "$CA_Folder/CA_2024_Updates.xlsx", firstrow case(preserve) allstring clear
+drop DataLevel FILE grades nceslink
+save "$data/CA_2024_Updates", replace
 
 
 //2021 2022 2023 2024
