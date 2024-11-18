@@ -101,6 +101,9 @@ replace ProficientOrAbove_percent = lowProficientOrAbove_percent + "-" + highPro
 foreach var of varlist high* low* {
 	drop `var'
 }
+//Setting Maximum ProficientOrAbove_percent range to 1 - sum of minimum non-proficient levels
+replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, substr(ProficientOrAbove_percent,strpos(ProficientOrAbove_percent, "-")+1,.), string(1- real(substr(Lev1_percent, 1, strpos(Lev1_percent, "-")-1)) - real(substr(Lev2_percent, 1, strpos(Lev2_percent, "-")-1))),.) if regexm(Lev1_percent, "-") !=0 & regexm(Lev2_percent, "-") !=0 & regexm(ProficientOrAbove_percent, "-") !=0
+
 gen ProficientOrAbove_count = string(real(Lev3_count) + real(Lev4_count)) if Lev3_count != "*" & Lev4_count != "*"
 replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == ""
 
@@ -219,9 +222,6 @@ tostring StudentGroup_TotalTested StudentSubGroup_TotalTested, replace
 replace StudentSubGroup_TotalTested = "0" if StudentSubGroup_TotalTested == "."
 replace StudentGroup_TotalTested = "0" if StudentGroup_TotalTested == "."
 replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "N/A"
-
-//Setting Maximum ProficientOrAbove_percent range to 1 - sum of minimum non-proficient levels
-replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, substr(ProficientOrAbove_percent,strpos(ProficientOrAbove_percent, "-")+1,.), string(1- real(substr(Lev1_percent, 1, strpos(Lev1_percent, "-")-1)) - real(substr(Lev2_percent, 1, strpos(Lev2_percent, "-")-1))),.) if regexm(Lev1_percent, "-") !=0 & regexm(Lev2_percent, "-") !=0 & regexm(ProficientOrAbove_percent, "-") !=0
 
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
