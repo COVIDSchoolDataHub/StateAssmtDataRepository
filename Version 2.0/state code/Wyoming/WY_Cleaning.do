@@ -277,7 +277,6 @@ if `year' == 2014 {
 replace SchVirtual = "Missing/not reported"
 }
 
-*if `year' != 2022 & `year' != 2023 & `year' != 2024 merge m:1 school_name using "${NCES}/NCESnew_`year'_School", update
 if !inlist("`year'", "2022", "2023", "2024"){
 	merge m:1 school_name using"${NCES}/NCESnew_`year'_School", update
 	rename _merge _merge2
@@ -285,6 +284,7 @@ if !inlist("`year'", "2022", "2023", "2024"){
 if `year' == 2021{
 	drop _merge1
 }
+//code below may need to be reviewed after V2.0
 merge m:1 school_name using "${NCES}/NCESnew_2020_School", update
 rename _merge _merge3
 drop _merge3
@@ -395,8 +395,10 @@ gen ProficientOrAbove_count = "--"
 // Reset vars before generating counts
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
+
 // Ranges for level counts for 2022 & 2023
-if `year' == 2022 | `year' == 2023 | `year' == 2024{
+
+*if `year' == 2022 | `year' == 2023 | `year' == 2024{
 gen low_end_subgroup = real(substr(StudentSubGroup_TotalTested, 1, strpos(StudentSubGroup_TotalTested, "-") - 1))
 destring StudentGroup_TotalTested, gen(xStudentGroup_TotalTested) force
 gen high_end_subgroup = real(substr(StudentSubGroup_TotalTested, strpos(StudentSubGroup_TotalTested, "-") + 1, 4))
@@ -416,7 +418,7 @@ forvalues n = 1/4 {
 gen lowProfCount = string(round(lowLev3_count + lowLev4_count))
 gen highProfCount = string(round(highLev3_count + highLev4_count))
 replace ProficientOrAbove_count = lowProfCount+"-"+highProfCount if ProficientOrAbove_count == "--"
-}
+
 
 // Standardizing state ids across years
 if `year' == 2014 | `year' == 2015 | `year' == 2016 {
@@ -524,6 +526,8 @@ rename AllStudents StudentGroup_TotalTested
 
 //June 2024 State Task
 replace AssmtType = "Regular and alt"
+
+
 
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
