@@ -6,11 +6,15 @@ This is a ReadMe for Indiana's data cleaning process, from 2014 to 2024.
 ## Set Up
 There are three main folders you will need:
 1. IN State Testing Data, with the following subfolders:
+   
     a. Original Data Files - Download the files from Original Data - Version 2.0 and place them here.
+   
     b. Temp
+   
     c. Output
-2. NCES District and School Demographics, with subfolders for district and school files, as well as a subfolder for clean NCES files.
-3. EDFacts, with a subfolder for each year from 2014-2021.  Download the wide version of the datasets (from the "Long DTA Datasets" folder) and place them in the appropriate subfolders.
+   
+3. NCES District and School Demographics, with subfolders for district and school files, as well as a subfolder for clean NCES files.
+4. EDFacts, with a subfolder for each year from 2014-2021.  Download the wide version of the datasets (from the "Long DTA Datasets" folder) and place them in the appropriate subfolders.
 
 There are 6. do files which must be run in the following order:
 1. Indiana NCES Cleaning.do
