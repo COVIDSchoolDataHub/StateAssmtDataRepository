@@ -28,9 +28,9 @@ global Output "/Users/miramehta/Documents/DE State Testing Data/Output"
 ```
 ## Updates
 
-03/29/2024: Made 2024 updates.
-04/12/2024: Responded to 2024 review comments.
-08/1/2024: Made filename updates.
-08/30/2024: Added code for 2024 data.
-11/08/2024: Recleaned data based on files received from data request.
-11/17/2024: Incorporated 2015 sci/soc data that was not available by data request.
+    - 03/29/2024: Made 2024 updates.
+    - 04/12/2024: Responded to 2024 review comments.
+    - 08/1/2024: Made filename updates.
+    - 08/30/2024: Added code for 2024 data.
+    - 11/08/2024: Recleaned data based on files received from data request.
+    - 11/17/2024: Incorporated 2015 sci/soc data that was not available by data request.
