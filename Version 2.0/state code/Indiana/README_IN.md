@@ -10,7 +10,7 @@ There are three main folders you will need:
     b. Temp
     c. Output
 2. NCES District and School Demographics, with subfolders for district and school files, as well as a subfolder for clean NCES files.
-3. EDFacts, with a subfolder for each year form 2014-2021.  Download the wide version of the datasets and place them in the appropriate subfolders.
+3. EDFacts, with a subfolder for each year form 2014-2021.  Download the wide version of the datasets (from the "Long DTA Datasets" folder) and place them in the appropriate subfolders.
 
 There are 6. do files which must be run in the following order:
 1. Indiana NCES Cleaning.do
