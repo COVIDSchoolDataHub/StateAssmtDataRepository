@@ -10,7 +10,7 @@ This is a ReadMe for Delaware's data cleaning process, from Spring 2015 to Sprin
     -  Place the files in the data request subfolder on Drive ("DE Data Request - Received 11/6/24") into the general Original Data Files folder.
 2. Create a folder called NCES District and School Demographics.
     - Create three subfolders: NCES District Files, Fall 1997-Fall 2022; NCES School Files, Fall 1997-Fall 2022; Cleaned NCES Data.
-    - Place the original NCES files into the appropriate folder (district or school).
+    - Place the original NCES files into the appropriate folder (district or school), starting with NCES_2014 onward.
 
 There are 11 .do files. First run NCES_Clean_11.8.24.do.  Then you can run the files for each year in any order you want, as long as you run DE_sci_soc_2015-17_11.17.24 last.
 
