@@ -197,6 +197,15 @@ merge m:1 DistName SchName using "$data/CA_Unmerged_2024", update gen(Unmerged_1
 drop if Unmerged_1 == 2
 drop Unmerged_1
 
+//2024 Updates
+merge m:1 DistName SchName using "$data/CA_2024_Updates", gen(Updates)
+drop if Updates == 2
+drop Updates
+replace SchVirtual = SchVirtualNEW if !missing(SchVirtualNEW)
+replace SchLevel = SchLevelNEW if !missing(SchLevelNEW)
+drop *NEW
+
+
 //DataLevel
 label def DataLevel 1 "State" 2 "District" 3 "School"
 encode DataLevel, gen(DataLevel_n) label(DataLevel)
