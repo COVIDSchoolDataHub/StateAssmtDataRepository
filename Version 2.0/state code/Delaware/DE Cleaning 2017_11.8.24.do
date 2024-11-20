@@ -81,12 +81,12 @@ order Subject GradeLevel StudentGroup_TotalTested StudentGroup StudentSubGroup_T
 replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested) & StudentSubGroup != "All Students"
 
 gen flag = 1 if StudentSubGroup_TotalTested == .
-bysort DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel StudentGroup: egen group_missing = sum(flag)
-bysort DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel: egen RaceEth = sum(StudentSubGroup_TotalTested) if StudentGroup == "RaceEth"
-bysort DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel: egen Gender = sum(StudentSubGroup_TotalTested) if StudentGroup == "Gender"
-bysort DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel: egen Disability = sum(StudentSubGroup_TotalTested) if StudentGroup == "Disability Status"
-bysort DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel: egen Econ = sum(StudentSubGroup_TotalTested) if StudentGroup == "Economic Status"
-bysort DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel: egen ELStatus = sum(StudentSubGroup_TotalTested) if StudentGroup == "EL Status"
+bysort DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel StudentGroup: egen group_missing = total(flag)
+bysort DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel: egen RaceEth = total(StudentSubGroup_TotalTested) if StudentGroup == "RaceEth"
+bysort DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel: egen Gender = total(StudentSubGroup_TotalTested) if StudentGroup == "Gender"
+bysort DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel: egen Disability = total(StudentSubGroup_TotalTested) if StudentGroup == "Disability Status"
+bysort DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel: egen Econ = total(StudentSubGroup_TotalTested) if StudentGroup == "Economic Status"
+bysort DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel: egen ELStatus = total(StudentSubGroup_TotalTested) if StudentGroup == "EL Status"
 
 replace StudentSubGroup_TotalTested = StudentGroup_TotalTested - RaceEth if StudentSubGroup_TotalTested == . & group_missing == 1 & StudentGroup == "RaceEth"
 replace StudentSubGroup_TotalTested = StudentGroup_TotalTested - Gender if StudentSubGroup_TotalTested == . & group_missing == 1 & StudentGroup == "Gender"

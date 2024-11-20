@@ -314,10 +314,14 @@ foreach a of local level {
 }
 
 gen Lev1_percent = "--"
+replace Lev1_percent = string(1 - real(ProficientOrAbove_percent), "%9.4g") if real(ProficientOrAbove_percent) != .
 
 replace Lev2_percent = "--" if Lev2_percent == ""
 replace Lev2_percent = Proficient if Proficient != ""
 replace Lev3_percent = Advanced if Advanced != ""
+
+replace Lev2_percent = string(real(ProficientOrAbove_percent) - real(Lev3_percent), "%9.4g") if real(ProficientOrAbove_percent) != . & real(Lev3_percent) != . & Lev2_percent == "--"
+replace Lev3_percent = string(real(ProficientOrAbove_percent) - real(Lev2_percent), "%9.4g") if real(ProficientOrAbove_percent) != . & real(Lev2_percent) != . & Lev3_percent == "--"
 
 gen Lev4_count = ""
 gen Lev4_percent = ""
@@ -368,6 +372,18 @@ replace DistName = "All Districts" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel != 3
 replace CountyName = proper(CountyName)
 replace DistName = proper(DistName)
+replace DistName = subinstr(DistName, " Of ", " of ", 1) //fixing from proper case for standardization
+replace DistName = subinstr(DistName, " And ", " and ", 1) //fixing from proper case for standardization
+replace DistName = subinstr(DistName, "Co Pblc Schs", "County Public Schools", 1) //for standardization across years
+replace DistName = subinstr(DistName, "Pblc Schs", "Public Schools", 1) //for standardization across years
+replace DistName = subinstr(DistName, "King Geo ", "King George ", 1) //for standardization across years
+replace DistName = subinstr(DistName, "Colnl Heights ", "Colonial Heights ", 1) //for standardization across years
+replace DistName = subinstr(DistName, "Prince Wm ", "Prince William ", 1) //for standardization across years
+replace DistName = subinstr(DistName, "Fredericksbrg ", "Fredericksburg ", 1) //for standardization across years 
+replace DistName = subinstr(DistName, "Va Beach ", "Virginia Beach ", 1) //for standardization across years
+
+replace SchName = strproper(SchName)
+replace SchName = stritrim(SchName)
 
 merge m:1 SchYear CountyCode using "/${raw}/va_county-list_through2023.dta"
 replace CountyName = newcountyname

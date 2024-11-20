@@ -265,42 +265,40 @@ replace StudentSubGroup_TotalTested = strtrim(StudentSubGroup_TotalTested)
 replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "<"
 replace StudentSubGroup_TotalTested = subinstr(StudentSubGroup_TotalTested, ",", "", .)
 
-gen StudentSubGroup_TotalTested2 = StudentSubGroup_TotalTested
-destring StudentSubGroup_TotalTested2, replace force
-replace StudentSubGroup_TotalTested2 = 0 if StudentSubGroup_TotalTested2 == .
-bysort State_leaid seasch StudentGroup GradeLevel Subject: egen test = min(StudentSubGroup_TotalTested2)
-bysort State_leaid seasch GradeLevel Subject: egen max = max(StudentSubGroup_TotalTested2)
-
-bysort State_leaid seasch GradeLevel Subject: egen Econ = sum(StudentSubGroup_TotalTested2) if StudentGroup == "Economic Status"
-bysort State_leaid seasch GradeLevel Subject: egen EL = sum(StudentSubGroup_TotalTested2) if StudentGroup == "EL Status"
-bysort State_leaid seasch GradeLevel Subject: egen Gender = sum(StudentSubGroup_TotalTested2) if StudentGroup == "Gender"
-bysort State_leaid seasch GradeLevel Subject: egen Migrant = sum(StudentSubGroup_TotalTested2) if StudentGroup == "Migrant Status"
-bysort State_leaid seasch GradeLevel Subject: egen Homeless = sum(StudentSubGroup_TotalTested2) if StudentGroup == "Homeless Enrolled Status"
-bysort State_leaid seasch GradeLevel Subject: egen Military = sum(StudentSubGroup_TotalTested2) if StudentGroup == "Military Connected Status"
-bysort State_leaid seasch GradeLevel Subject: egen Foster = sum(StudentSubGroup_TotalTested2) if StudentGroup == "Foster Care Status"
-bysort State_leaid seasch GradeLevel Subject: egen Disability = sum(StudentSubGroup_TotalTested2) if StudentGroup == "Disability Status"
-replace StudentSubGroup_TotalTested2 = max - Econ if StudentSubGroup == "Not Economically Disadvantaged" & max != 0 & StudentSubGroup_TotalTested == "*" & Econ != 0
-replace StudentSubGroup_TotalTested2 = max - Econ if StudentSubGroup == "Economically Disadvantaged" & max != 0 & StudentSubGroup_TotalTested == "*" & Econ != 0
-replace StudentSubGroup_TotalTested2 = max - EL if StudentSubGroup == "English Proficient" & max != 0 & StudentSubGroup_TotalTested == "*" & EL != 0
-replace StudentSubGroup_TotalTested2 = max - EL if StudentSubGroup == "English Learner" & max != 0 & StudentSubGroup_TotalTested == "*" & EL != 0
-replace StudentSubGroup_TotalTested2 = max - Gender if StudentSubGroup == "Male" & max != 0 & StudentSubGroup_TotalTested == "*" & Gender != 0
-replace StudentSubGroup_TotalTested2 = max - Gender if StudentSubGroup == "Female" & max != 0 & StudentSubGroup_TotalTested == "*" & Gender != 0
-replace StudentSubGroup_TotalTested2 = max - Migrant if StudentSubGroup == "Non-Migrant" & max != 0 & StudentSubGroup_TotalTested == "*" & Migrant != 0
-replace StudentSubGroup_TotalTested2 = max - Migrant if StudentSubGroup == "Migrant" & max != 0 & StudentSubGroup_TotalTested == "*" & Migrant != 0
-replace StudentSubGroup_TotalTested2 = max - Homeless if StudentSubGroup == "Non-Homeless" & max != 0 & StudentSubGroup_TotalTested == "*" & Homeless != 0
-replace StudentSubGroup_TotalTested2 = max - Homeless if StudentSubGroup == "Homeless" & max != 0 & StudentSubGroup_TotalTested == "*" & Homeless != 0
-replace StudentSubGroup_TotalTested2 = max - Military if StudentSubGroup == "Non-Military" & max != 0 & StudentSubGroup_TotalTested == "*" & Military != 0
-replace StudentSubGroup_TotalTested2 = max - Military if StudentSubGroup == "Military" & max != 0 & StudentSubGroup_TotalTested == "*" & Military != 0
-replace StudentSubGroup_TotalTested2 = max - Foster if StudentSubGroup == "Non-Foster Care" & max != 0 & StudentSubGroup_TotalTested == "*" & Foster != 0
-replace StudentSubGroup_TotalTested2 = max - Foster if StudentSubGroup == "Foster Care" & max != 0 & StudentSubGroup_TotalTested == "*" & Foster != 0
-replace StudentSubGroup_TotalTested2 = max - Disability if StudentSubGroup == "Non-SWD" & max != 0 & StudentSubGroup_TotalTested == "*" & Disability != 0
-replace StudentSubGroup_TotalTested2 = max - Disability if StudentSubGroup == "SWD" & max != 0 & StudentSubGroup_TotalTested == "*" & Disability != 0
-replace StudentSubGroup_TotalTested = string(StudentSubGroup_TotalTested2) if StudentSubGroup_TotalTested2 != 0
-
 sort DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel StudentGroup StudentSubGroup
 gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
 order Subject GradeLevel StudentGroup_TotalTested StudentGroup StudentSubGroup_TotalTested StudentSubGroup
 replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested) & StudentSubGroup != "All Students"
+
+gen StudentSubGroup_TotalTested2 = StudentSubGroup_TotalTested
+destring StudentSubGroup_TotalTested2, replace force
+replace StudentSubGroup_TotalTested2 = 0 if StudentSubGroup_TotalTested2 == .
+bysort State_leaid seasch StudentGroup GradeLevel Subject: egen test = min(StudentSubGroup_TotalTested2)
+gen max = real(StudentGroup_TotalTested)
+replace max = 0 if max == .
+
+bysort State_leaid seasch GradeLevel Subject: egen RaceEth = total(StudentSubGroup_TotalTested2) if StudentGroup == "RaceEth"
+bysort State_leaid seasch GradeLevel Subject: egen Econ = total(StudentSubGroup_TotalTested2) if StudentGroup == "Economic Status"
+bysort State_leaid seasch GradeLevel Subject: egen EL = total(StudentSubGroup_TotalTested2) if StudentGroup == "EL Status"
+bysort State_leaid seasch GradeLevel Subject: egen Gender = total(StudentSubGroup_TotalTested2) if StudentGroup == "Gender"
+bysort State_leaid seasch GradeLevel Subject: egen Migrant = total(StudentSubGroup_TotalTested2) if StudentGroup == "Migrant Status"
+bysort State_leaid seasch GradeLevel Subject: egen Homeless = total(StudentSubGroup_TotalTested2) if StudentGroup == "Homeless Enrolled Status"
+bysort State_leaid seasch GradeLevel Subject: egen Military = total(StudentSubGroup_TotalTested2) if StudentGroup == "Military Connected Status"
+bysort State_leaid seasch GradeLevel Subject: egen Foster = total(StudentSubGroup_TotalTested2) if StudentGroup == "Foster Care Status"
+bysort State_leaid seasch GradeLevel Subject: egen Disability = total(StudentSubGroup_TotalTested2) if StudentGroup == "Disability Status"
+
+replace StudentSubGroup_TotalTested2 = max - RaceEth if StudentSubGroup == "RaceEth" & max != 0 & StudentSubGroup_TotalTested == "*" & RaceEth != 0
+replace StudentSubGroup_TotalTested2 = max - Econ if StudentSubGroup == "Economic Status" & max != 0 & StudentSubGroup_TotalTested == "*" & Econ != 0
+replace StudentSubGroup_TotalTested2 = max - EL if StudentGroup == "EL Status" & max != 0 & StudentSubGroup_TotalTested == "*" & EL != 0
+replace StudentSubGroup_TotalTested2 = max - Gender if StudentGroup == "Gender" & max != 0 & StudentSubGroup_TotalTested == "*" & Gender != 0
+replace StudentSubGroup_TotalTested2 = max - Migrant if StudentGroup == "Migrant Status" & max != 0 & StudentSubGroup_TotalTested == "*" & Migrant != 0
+replace StudentSubGroup_TotalTested2 = max - Homeless if StudentGroup == "Homeless Enrolled Status" & max != 0 & StudentSubGroup_TotalTested == "*" & Homeless != 0
+replace StudentSubGroup_TotalTested2 = max - Military if StudentGroup == "Military Connected Statis" & max != 0 & StudentSubGroup_TotalTested == "*" & Military != 0
+replace StudentSubGroup_TotalTested2 = max - Foster if StudentGroup == "Foster Care Status" & max != 0 & StudentSubGroup_TotalTested == "*" & Foster != 0
+replace StudentSubGroup_TotalTested2 = max - Disability if StudentGroup == "Disability Status" & max != 0 & StudentSubGroup_TotalTested == "*" & Disability != 0
+replace StudentSubGroup_TotalTested = string(StudentSubGroup_TotalTested2) if StudentSubGroup_TotalTested2 != 0 & StudentSubGroup_TotalTested == "*"
+drop RaceEth Econ Gender Migrant Homeless Military Foster Disability
+drop if inlist(StudentSubGroup_TotalTested, "*", "0") & StudentSubGroup != "All Students"
 
 rename failcount Lev1_count
 rename failrate Lev1_percent
@@ -331,6 +329,8 @@ foreach a of local level{
 
 replace Lev1_percent = "0.5-1" if Lev1_percent == "99.99"
 replace Lev1_percent = "0-0.5" if Lev1_percent == "11.11"
+replace Lev1_count = "0-" + string(round(0.5 * real(StudentSubGroup_TotalTested))) if Lev1_percent == "0-0.5" & real(StudentSubGroup_TotalTested) != . & inlist(Lev1_count, "*", "--")
+replace Lev1_count = string(round(0.5 * real(StudentSubGroup_TotalTested))) + "-" + StudentSubGroup_TotalTested if Lev1_percent == "0.5-1" & real(StudentSubGroup_TotalTested) != . & inlist(Lev1_count, "*", "--")
 
 rename averagesolscaledscore AvgScaleScore
 replace AvgScaleScore = "*" if AvgScaleScore == " " | AvgScaleScore == ""
@@ -350,6 +350,8 @@ replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
 tostring ProficientOrAbove_percent, replace force
 replace ProficientOrAbove_percent = "0.5-1" if ProficientOrAbove_percent == "99.99"
 replace ProficientOrAbove_percent = "0-0.5" if ProficientOrAbove_percent == "11.11"
+replace ProficientOrAbove_count = "0-" + string(round(0.5 * real(StudentSubGroup_TotalTested))) if ProficientOrAbove_percent == "0-0.5" & real(StudentSubGroup_TotalTested) != . & inlist(ProficientOrAbove_count, "*", "--")
+replace ProficientOrAbove_count = string(round(0.5 * real(StudentSubGroup_TotalTested))) + "-" + StudentSubGroup_TotalTested if ProficientOrAbove_percent == "0.5-1" & real(StudentSubGroup_TotalTested) != . & inlist(ProficientOrAbove_count, "*", "--")
 
 gen ParticipationRate = "--"
 
@@ -358,6 +360,19 @@ replace StateAbbrev = "VA" if DataLevel == 1
 replace StateFips = 51 if DataLevel == 1
 replace CountyName = proper(CountyName)
 replace DistName = proper(DistName)
+replace DistName = subinstr(DistName, " Of ", " of ", 1) //fixing from proper case for standardization
+replace DistName = subinstr(DistName, " And ", " and ", 1) //fixing from proper case for standardization
+replace DistName = subinstr(DistName, "Co Pblc Schs", "County Public Schools", 1) //for standardization across years
+replace DistName = subinstr(DistName, "Pblc Schs", "Public Schools", 1) //for standardization across years
+replace DistName = subinstr(DistName, "King Geo ", "King George ", 1) //for standardization across years
+replace DistName = subinstr(DistName, "Colnl Heights ", "Colonial Heights ", 1) //for standardization across years
+replace DistName = subinstr(DistName, "Prince Wm ", "Prince William ", 1) //for standardization across years
+replace DistName = subinstr(DistName, "Va Beach ", "Virginia Beach ", 1) //for standardization across years
+replace DistName = subinstr(DistName, "Fredericksbrg ", "Fredericksburg ", 1) //for standardization across years 
+replace DistName = "Williamsburg-James City County Public Schools" if DistName == "Williamsburg-James City Public Schools" //for standardization across years
+
+replace SchName = strproper(SchName)
+replace SchName = stritrim(SchName)
 
 merge m:1 SchYear CountyCode using "/${raw}/va_county-list_through2023.dta"
 replace CountyName = newcountyname

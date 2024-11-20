@@ -389,8 +389,8 @@ foreach year in 2015 2016 2017 {
 		order Subject GradeLevel StudentGroup_TotalTested StudentGroup StudentSubGroup_TotalTested StudentSubGroup
 		replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested) & StudentSubGroup != "All Students"
 		gen flag = 1 if missing(real(StudentSubGroup_TotalTested))
-		bysort DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel StudentGroup: egen group_missing = sum(flag)
-		bysort DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel: egen RaceEth = sum(real(StudentSubGroup_TotalTested)) if StudentGroup == "RaceEth"
+		bysort DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel StudentGroup: egen group_missing = total(flag)
+		bysort DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel: egen RaceEth = total(real(StudentSubGroup_TotalTested)) if StudentGroup == "RaceEth"
 		replace StudentSubGroup_TotalTested = string(real(StudentGroup_TotalTested) - RaceEth) if missing(real(StudentSubGroup_TotalTested)) & group_missing == 1 & StudentGroup == "RaceEth"	
 		drop flag group_missing RaceEth
 		drop if StudentSubGroup_TotalTested == "0" & StudentSubGroup != "All Students"

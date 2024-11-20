@@ -184,17 +184,17 @@ forvalues year = 2014/2024 {
 	gen max = real(StudentGroup_TotalTested)
 	replace max = 0 if max == .
 	
-	bysort uniquegrp: egen RaceEth = sum(real(StudentSubGroup_TotalTested)) if StudentGroup == "RaceEth"
-	bysort uniquegrp: egen Gender = sum(real(StudentSubGroup_TotalTested)) if StudentGroup == "Gender"
-	bysort uniquegrp: egen Disability = sum(real(StudentSubGroup_TotalTested)) if StudentGroup == "Disability Status"
-	bysort uniquegrp: egen Econ = sum(real(StudentSubGroup_TotalTested)) if StudentGroup == "Economic Status"
-	bysort uniquegrp: egen ELStatus = sum(real(StudentSubGroup_TotalTested)) if StudentGroup == "EL Status"
-	bysort uniquegrp: egen Homeless = sum(real(StudentSubGroup_TotalTested)) if StudentGroup == "Homeless Enrolled Status"
-	bysort uniquegrp: egen Foster = sum(real(StudentSubGroup_TotalTested)) if StudentGroup == "Foster Care Status"
-	bysort uniquegrp: egen Military = sum(real(StudentSubGroup_TotalTested)) if StudentGroup == "Military Connected Status"
+	bysort uniquegrp: egen RaceEth = total(real(StudentSubGroup_TotalTested)) if StudentGroup == "RaceEth"
+	bysort uniquegrp: egen Gender = total(real(StudentSubGroup_TotalTested)) if StudentGroup == "Gender"
+	bysort uniquegrp: egen Disability = total(real(StudentSubGroup_TotalTested)) if StudentGroup == "Disability Status"
+	bysort uniquegrp: egen Econ = total(real(StudentSubGroup_TotalTested)) if StudentGroup == "Economic Status"
+	bysort uniquegrp: egen ELStatus = total(real(StudentSubGroup_TotalTested)) if StudentGroup == "EL Status"
+	bysort uniquegrp: egen Homeless = total(real(StudentSubGroup_TotalTested)) if StudentGroup == "Homeless Enrolled Status"
+	bysort uniquegrp: egen Foster = total(real(StudentSubGroup_TotalTested)) if StudentGroup == "Foster Care Status"
+	bysort uniquegrp: egen Military = total(real(StudentSubGroup_TotalTested)) if StudentGroup == "Military Connected Status"
 
 	gen x = 1 if missing(real(StudentSubGroup_TotalTested))
-	bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject StudentGroup: egen flag = sum(x)
+	bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject StudentGroup: egen flag = total(x)
 
 	replace StudentSubGroup_TotalTested = string(max - RaceEth) if StudentGroup == "RaceEth" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & flag == 1
 	replace StudentSubGroup_TotalTested = string(max - Gender) if StudentGroup == "Gender" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & flag == 1
@@ -219,17 +219,17 @@ forvalues year = 2014/2024 {
 	
 	if `year' < 2019{
 		replace ProficientOrAbove_count = string(real(Lev2_count) + real(Lev3_count)) if inlist(ProficientOrAbove_count, "*", "--") & !inlist(Lev2_count, "*", "--") & !inlist(Lev3_count, "*", "--")	
-		replace ProficientOrAbove_percent = string(Lev2_percent + Lev3_percent, "%10.0g") if inlist(ProficientOrAbove_percent, "*", "--") & Lev2_percent != . & Lev3_percent != .
+		replace ProficientOrAbove_percent = string(Lev2_percent + Lev3_percent, "%9.8g") if inlist(ProficientOrAbove_percent, "*", "--") & Lev2_percent != . & Lev3_percent != .
 	}
 	if `year' > 2018{
 		replace ProficientOrAbove_count = string(real(Lev3_count) + real(Lev4_count)) if inlist(ProficientOrAbove_count, "*", "--") & !inlist(Lev3_count, "*", "--") & !inlist(Lev4_count, "*", "--")	
-		replace ProficientOrAbove_percent = string(Lev3_percent + Lev4_percent, "%10.0g") if inlist(ProficientOrAbove_percent, "*", "--") & Lev3_percent != . & Lev4_percent != .
+		replace ProficientOrAbove_percent = string(Lev3_percent + Lev4_percent, "%9.8g") if inlist(ProficientOrAbove_percent, "*", "--") & Lev3_percent != . & Lev4_percent != .
 	}
 	
 	foreach var of varlist *_percent {
 		if "`var'" == "ProficientOrAbove_percent" continue
 		local a = subinstr("`var'", "percent", "count", 1)
-		tostring `var', replace format("%10.0g") force
+		tostring `var', replace format("%9.8g") force
 		replace `var' = "*" if `a' == "*"
 		replace `var' = "--" if `var' == "."
 	}
@@ -391,6 +391,26 @@ forvalues year = 2014/2024 {
 	replace CountyName = "DeKalb County" if CountyName == "Dekalb County"
 	replace CountyName = "LaGrange County" if CountyName == "Lagrange County"
 	replace CountyName = "LaPorte County" if CountyName == "Laporte County"
+	
+	//Standardize DistName
+	replace DistName = "MSD Bluffton-Harrison" if NCESDistrictID == "1800720"
+	replace DistName = "MSD Boone Township" if NCESDistrictID == "1800750"
+	replace DistName = "MSD Decatur Township" if NCESDistrictID == "1802640"
+	replace DistName = "MSD Lawrence Township" if NCESDistrictID == "1805670"
+	replace DistName = "MSD Martinsville Schools" if NCESDistrictID == "1806510"
+	replace DistName = "MSD Mount Vernon" if NCESDistrictID == "1807290"
+	replace DistName = "MSD North Posey Co Schools" if NCESDistrictID == "1807950"
+	replace DistName = "MSD of New Durham Township" if NCESDistrictID == "1807470"
+	replace DistName = "MSD Perry Township" if NCESDistrictID == "1808820"
+	replace DistName = "MSD Pike Township" if NCESDistrictID == "1808910"
+	replace DistName = "MSD Shakamak Schools" if NCESDistrictID == "1810110"
+	replace DistName = "MSD Southwest Allen County Schls" if NCESDistrictID == "1800030"
+	replace DistName = "MSD Steuben County" if NCESDistrictID == "1811100"
+	replace DistName = "MSD Wabash County Schools" if NCESDistrictID == "1812180"
+	replace DistName = "MSD Warren County" if NCESDistrictID == "1806080"
+	replace DistName = "MSD Warren Township" if NCESDistrictID == "1812360"
+	replace DistName = "MSD Washington Township" if NCESDistrictID == "1812720"
+	replace DistName = "MSD Wayne Township" if NCESDistrictID == "1812810"
 	
 //Final Cleaning
 duplicates drop
