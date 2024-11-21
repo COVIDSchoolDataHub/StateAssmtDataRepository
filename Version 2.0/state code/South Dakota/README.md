@@ -18,7 +18,7 @@ Create three subfolders within your main South Dakota folder:
 There are 4 files to run (and five to download):
 - SD_2003_2013 (run)
 - SD_2014_2017 (run)
-- SD_EDFactsParticipation_2014_2017 (do *not* run)
+- SD_EDFactsParticipation_2014_2017 (do **not** run)
 - SD_2018_2023 (run)
 - SD_2024 (run)
 
