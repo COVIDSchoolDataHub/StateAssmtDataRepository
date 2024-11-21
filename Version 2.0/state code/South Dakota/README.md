@@ -4,7 +4,7 @@ This ReadMe outlines South Dakota's cleaning process, from 2003 to 2024
 
 ## Setup
 
-Create four subfolders within your main South Dakota folder:
+Create three subfolders within your main South Dakota folder:
 
 1. Original Data
    - This folder should include all data downloaded from the "Files currently used" folder in the drive. No other downloads are necessary.
