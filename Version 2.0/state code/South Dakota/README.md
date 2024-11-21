@@ -31,7 +31,7 @@ global NCES_District "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
 global NCES_School "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
 global Stata_versions "/Volumes/T7/State Test Project/South Dakota/Stata .dta versions"
 ```
-Where each global command corresponds to a subfolder created above.
+Where each global command corresponds to a subfolder created above (or NCES data for NCES_District and NCES_School).
 
 - As a note, in order to recreate cleaning on the first run, you need to unhide some importing code. Namely, each do file includes code that looks like the following that must be unhidden:
   
