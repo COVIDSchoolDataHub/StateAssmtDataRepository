@@ -196,7 +196,7 @@ forvalues n = 1/4{
 
 	}
 	
-replace StudentGroup_TotalTested= "*" if StudentGroup_TotalTested=="1"
+* replace StudentGroup_TotalTested= "*" if StudentGroup_TotalTested=="1" // removed 11/21/24
 
 
 
@@ -352,7 +352,7 @@ forvalues n = 1/4{
 
 	}
 	
-replace StudentGroup_TotalTested= "*" if StudentGroup_TotalTested=="1"
+* replace StudentGroup_TotalTested= "*" if StudentGroup_TotalTested=="1" // removed 11/21/24
 
 
 ** Generating new variables
@@ -526,7 +526,7 @@ forvalues n = 1/4{
 
 	}
 	
-replace StudentGroup_TotalTested= "*" if StudentGroup_TotalTested=="1"
+* replace StudentGroup_TotalTested= "*" if StudentGroup_TotalTested=="1" // removed 11/21/24
 
 
 ** Generating new variables
