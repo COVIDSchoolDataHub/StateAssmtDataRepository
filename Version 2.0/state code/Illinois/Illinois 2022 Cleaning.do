@@ -1,12 +1,13 @@
 clear
 set more off
 
-global output "/Volumes/T7/State Test Project/Illinois/Original Data Files"
-global NCES "/Volumes/T7/State Test Project/Illinois/NCES"
-global EDFacts "/Volumes/T7/State Test Project/EDFACTS"
 
-cd "/Volumes/T7/State Test Project/Illinois"
+// UPDATED
+global output "/Users/benjaminm/Documents/State_Repository_Research/Illinois/Output" 
+global NCES "/Users/benjaminm/Documents/State_Repository_Research/Illinois/NCES/cleaned"
+global EDFacts  "/Users/benjaminm/Documents/State_Repository_Research/EdFacts"
 
+cd "/Users/benjaminm/Documents/State_Repository_Research/Illinois"
 *** Sci
 
 *** Sci Participation
@@ -592,9 +593,19 @@ merge 1:1 DataLevel Subject StudentSubGroup GradeLevel NCESDistrictID NCESSchool
 drop StudentGroup_TotalTested StudentSubGroup_TotalTested
 rename StudentSubGroup_TotalTested1 StudentSubGroup_TotalTested
 
-egen StudentGroup_TotalTested = total(StudentSubGroup_TotalTested), by(StudentGroup GradeLevel Subject NCESDistrictID NCESSchoolID)
-sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-tostring StudentSubGroup_TotalTested StudentGroup_TotalTested, replace
+gen StateAssignedDistID1 = StateAssignedDistID
+replace StateAssignedDistID1 = "000000" if DataLevel == 1 //Remove quotations if DistIDs are numeric
+gen StateAssignedSchID1 = StateAssignedSchID
+replace StateAssignedSchID1 = "000000" if DataLevel != 3 //Remove quotations if SchIDs are numeric
+egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
+sort group_id StudentGroup StudentSubGroup
+by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+drop group_id StateAssignedDistID1 StateAssignedSchID1
+
+tostring StudentSubGroup_TotalTested, replace
+tostring StudentGroup_TotalTested, replace
+
 
 replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
 
@@ -617,6 +628,18 @@ foreach percent of varlist Lev*_percent ProficientOrAbove_percent {
 	replace `count' = string(round(real(`percent')*real(StudentSubGroup_TotalTested))) if regexm(StudentSubGroup_TotalTested, "[0-9]") !=0 & regexm(`percent', "[0-9]") !=0 & regexm(`count', "[0-9]") == 0 
 }
 
+
+foreach var of varlist DistName SchName {
+replace `var' = strtrim(`var')
+replace `var' = stritrim(`var')
+}
+
+replace DistName = "N Pekin & Marquette Hght SD 102" if DistName == "N Pekin & Marquette Hght SD 10" 
+
+
+replace ProficientOrAbove_count = string(real(Lev4_count) + real(Lev5_count)) if ProficiencyCriteria == "Levels 4-5" & !missing(real(Lev4_count)) &!missing(real(Lev5_count)) 
+
+replace ProficientOrAbove_percent = string(round(real(Lev4_percent) + real(Lev5_percent), 0.001)) if ProficientOrAbove_percent != string(round(real(Lev4_percent) + real(Lev5_percent), 0.001)) & ProficiencyCriteria == "Levels 4-5" & !missing(real(Lev4_percent)) &!missing(real(Lev5_percent)) 
 
 
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
