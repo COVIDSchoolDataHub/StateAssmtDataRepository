@@ -15,7 +15,7 @@ Create three subfolders within your main South Dakota folder:
 
 ## Recreate Cleaning
 
-There are 4 files to run (and five to download):
+There are four do-files files to run (and five to download):
 - SD_2003_2013 (run)
 - SD_2014_2017 (run)
 - SD_EDFactsParticipation_2014_2017 (do ***not*** run)
