@@ -92,8 +92,8 @@ replace StudentSubGroup = "Two or More" if StudentSubGroup == "Two or more races
 //Filipino included
 
 // Economic Status
-replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Economically disadvantaged"
-replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "Not economically disadvantaged"
+replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Economically disadvantaged" | StudentSubGroup == "Socioeconomically disadvantaged"
+replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "Not economically disadvantaged" | StudentSubGroup == "Not socioeconomically disadvantaged"
 
 // Gender Group 
 replace StudentSubGroup = "Male" if StudentSubGroup == "Male"
@@ -105,6 +105,7 @@ replace StudentSubGroup = "Never EL" if StudentSubGroup == "EO (English only)"
 replace StudentSubGroup = "Ever EL" if StudentSubGroup == "Ever–EL"
 replace StudentSubGroup = "EL Exited" if StudentSubGroup == "RFEP (Reclassified fluent English proficient)"
 replace StudentSubGroup = "English Proficient" if StudentSubGroup == "IFEP, RFEP, and EO (Fluent English proficient and English only)"
+replace StudentSubGroup = "LTEL" if StudentSubGroup == "LTEL (Long-Term English learner)"
 
 // Disability Status 
 replace StudentSubGroup = "SWD" if StudentSubGroup == "Reported disabilities"
@@ -126,7 +127,7 @@ replace StudentSubGroup = "Military" if StudentSubGroup == "Armed forces family 
 replace StudentSubGroup = "Non-Military" if StudentSubGroup == "Not armed forces family member"
 
 //Extra Groups (dropping)
-drop if StudentSubGroup == "TBD (To be determined)" | StudentSubGroup == "IFEP (Initial fluent English proficient)" | StudentSubGroup == "ELs enrolled 12 months or more" | StudentSubGroup == "ELs enrolled less than 12 months" | StudentSubGroup == "Never EL"
+drop if StudentSubGroup == "TBD (To be determined)" | StudentSubGroup == "IFEP (Initial fluent English proficient)" | StudentSubGroup == "ELs enrolled 12 months or more" | StudentSubGroup == "ELs enrolled less than 12 months" | StudentSubGroup == "Never–EL" | StudentSubGroup == "Never EL" | StudentSubGroup == "AR–LTEL (At-Risk of becoming LTEL)"
 
 //StudentGroup
 replace StudentGroup = "All Students" if StudentGroup == "All Students"

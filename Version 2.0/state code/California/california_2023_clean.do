@@ -33,8 +33,6 @@ merge m:1 StudentGroupID using "$data/California_Student_Group_Names"
 drop if _merge ==2
 drop _merge
 
-replace DemographicName = "LTEL" if StudentGroupID == 250
-replace StudentGroup = "English-Language Fluency" if DemographicName == "LTEL"
 
 // New Demographic/StudentGroup DROP criteria (2024 update)
 drop if StudentGroup == "Ethnicity for Economically Disadvantaged"
@@ -53,6 +51,7 @@ drop if DemographicName == "Not a high school graduate"
 drop if DemographicName == "Some college (includes AA degree)"
 drop if DemographicName == "IFEP (Initial fluent English proficient)"
 drop if DemographicName == "TBD (To be determined)"
+drop if DemographicName == "AR–LTEL (At-Risk of becoming LTEL)"
 
 
 //Rename Variables
@@ -163,8 +162,8 @@ replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic o
 replace StudentSubGroup = "Two or More" if StudentSubGroup == "Two or more races"
 
 // Economic Status
-replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Economically disadvantaged"
-replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "Not economically disadvantaged"
+replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Economically disadvantaged" | StudentSubGroup == "Socioeconomically disadvantaged"
+replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "Not economically disadvantaged" | StudentSubGroup == "Not socioeconomically disadvantaged"
 
 // Gender Group 
 replace StudentSubGroup = "Male" if StudentSubGroup == "Male"
@@ -176,6 +175,7 @@ replace StudentSubGroup = "Never EL" if StudentSubGroup == "EO (English only)"
 replace StudentSubGroup = "Ever EL" if StudentSubGroup == "Ever–EL"
 replace StudentSubGroup = "EL Exited" if StudentSubGroup == "RFEP (Reclassified fluent English proficient)"
 replace StudentSubGroup = "English Proficient" if StudentSubGroup == "IFEP, RFEP, and EO (Fluent English proficient and English only)"
+replace StudentSubGroup = "LTEL" if StudentSubGroup == "LTEL (Long-Term English learner)"
 
 // Disability Status 
 replace StudentSubGroup = "SWD" if StudentSubGroup == "Reported disabilities"
@@ -248,7 +248,7 @@ foreach v of varlist SchType SchLevel SchVirtual DistType DistLocale CountyName 
 }
 
 drop if DataLevel==.
-drop if StudentSubGroup=="Never EL"
+drop if StudentSubGroup == "Never–EL" | StudentSubGroup == "Never EL"
 
 replace SchVirtual = "Missing/not reported" if missing(SchVirtual) & DataLevel == 3
 
