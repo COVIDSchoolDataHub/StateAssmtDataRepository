@@ -78,17 +78,18 @@ replace Subject = "math" if Subject == "Math"
 replace Subject = "sci" if Subject == "Science"
 replace GradeLevel = "G0" + GradeLevel
 replace GradeLevel = "G38" if GradeLevel == "G0Total"
-gen StudentGroup = "Gender"
+gen StudentGroup = ""
 replace StudentSubGroup = "Black or African American" if StudentSubGroup == "Black or African American (not Hispanic)"
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic (any race)"
 replace StudentSubGroup = "Two or More" if StudentSubGroup == "Multi-ethnic (not Hispanic)"
+replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "American Indian/Alaskan Native (not Hispanic)"
 replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "American Indian / Alaskan Native (not Hispanic)"
 replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "Native Hawaiian or other Pacific Islander"
 replace StudentSubGroup = "White" if StudentSubGroup == "White (not Hispanic)"
 replace StudentSubGroup = "Asian" if StudentSubGroup == "Asian (not Hispanic)"
 replace StudentSubGroup = "SWD" if StudentSubGroup == "IEP"
-replace StudentSubGroup = "Gender" if inlist(StudentSubGroup, "Male", "Female")
-replace StudentGroup = "RaceEth" if StudentSubGroup == "American Indian or Alaska Native"
+replace StudentGroup = "Gender" if inlist(StudentSubGroup, "Male", "Female")
+replace StudentGroup = "RaceEth" if StudentSubGroup ==  "American Indian or Alaska Native"
 replace StudentGroup = "RaceEth" if StudentSubGroup == "Asian"
 replace StudentGroup = "RaceEth" if StudentSubGroup == "Black or African American"
 replace StudentGroup = "RaceEth" if StudentSubGroup == "Native Hawaiian or Pacific Islander"
@@ -100,6 +101,7 @@ replace StudentGroup = "EL Status" if StudentSubGroup == "English Learner"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged"
 replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
 replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD"
+replace StudentGroup = "RaceEth" if missing(StudentGroup)
 
 forvalues n = 1/4{
 	replace Lev`n'_percent = Lev`n'_percent/100
@@ -147,10 +149,6 @@ sort group_id StudentGroup StudentSubGroup
 by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
 by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
 drop group_id StateAssignedDistID1 StateAssignedSchID1
-
-gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
-replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
-drop AllStudents_Tested
 
 // NCES merging
 
@@ -201,14 +199,10 @@ rename county_code CountyCode
 rename state_fips StateFips
 rename county_name CountyName
 
-// Final Cleaning
-replace StateAbbrev = "PA" if missing(StateAbbrev)
-replace StateFips = 42 if missing(StateFips)
 replace SchName = lower(SchName)
 replace SchName = proper(SchName)
 replace DistName = lower(DistName)
 replace DistName = proper(DistName)
-drop seasch State_leaid
 
 //New Schools
 replace NCESSchoolID = "421053010035" if SchName == "Galeton Area Sch"
@@ -225,6 +219,12 @@ replace NCESSchoolID = "428939810041" if SchName == "Northeast Secure Treatment 
 replace SchType = 2 if SchName == "Northeast Secure Treatment Unit" 
 replace SchLevel = 3 if SchName == "Northeast Secure Treatment Unit" 
 replace SchVirtual = 0 if SchName == "Northeast Secure Treatment Unit" 
+replace CountyCode = "42079" if DistName == "Northeast Secure Treatment Unit"
+replace CountyName = "Luzerne County" if DistName == "Northeast Secure Treatment Unit"
+replace NCESDistrictID = "4289398" if DistName == "Northeast Secure Treatment Unit"
+replace DistCharter = "No" if DistName == "Northeast Secure Treatment Unit"
+replace DistType = "State-operated agency" if DistName == "Northeast Secure Treatment Unit"
+replace DistLocale = "Missing/not reported" if DistName == "Northeast Secure Treatment Unit"
 
 replace NCESSchoolID = "421764010038" if SchName == "Northern Lebanon El Sch"
 replace SchType = 1 if SchName == "Northern Lebanon El Sch"
@@ -233,7 +233,7 @@ replace SchVirtual = 0 if SchName == "Northern Lebanon El Sch"
 
 replace NCESSchoolID = "421821010037" if SchName == "Oswayo Valley Jshs"
 replace SchType = 1 if SchName == "Oswayo Valley Jshs"
-replace SchLevel = 0 if SchName == "Oswayo Valley Jshs"
+replace SchLevel = 4 if SchName == "Oswayo Valley Jshs"
 replace SchVirtual = 0 if SchName == "Oswayo Valley Jshs"
 
 replace NCESSchoolID = "421899010043" if SchName == "Guidon S Bluford El Sch"
@@ -245,12 +245,17 @@ replace NCESSchoolID = "428939910044" if SchName == "Provident Cs - West"
 replace SchType = 1 if SchName == "Provident Cs - West"
 replace SchLevel = 1 if SchName == "Provident Cs - West"
 replace SchVirtual = 0 if SchName == "Provident Cs - West"
-
+replace CountyCode = "42007" if DistName ==  "Provident Cs - West"
+replace CountyName = "Beaver County" if DistName ==  "Provident Cs - West"
+replace NCESDistrictID = "4289399" if DistName == "Provident Cs - West"
+replace DistCharter = "Yes" if DistName ==  "Provident Cs - West"
+replace DistType = "Charter agency" if DistName ==  "Provident Cs - West"
+replace DistLocale =  "Missing/not reported" if DistName ==  "Provident Cs - West"
 
 replace NCESSchoolID = "422382010039" if SchName == "Tulpehocken Area Ms"
 replace SchType = 1 if SchName == "Tulpehocken Area Ms"
-replace SchLevel = 2 if SchName == "Aronimink El Sch"
-replace SchVirtual = 0 if SchName == "Aronimink El Sch"
+replace SchLevel = 2 if SchName == "Tulpehocken Area Ms"
+replace SchVirtual = 0 if SchName == "Tulpehocken Area Ms"
 
 replace NCESSchoolID = "422432010042" if SchName == "Aronimink El Sch"
 replace SchType = 1 if SchName == "Aronimink El Sch"
@@ -262,12 +267,27 @@ replace SchType = 1 if SchName == "Warrior Run El Sch"
 replace SchLevel = 1 if SchName == "Warrior Run El Sch"
 replace SchVirtual = 0 if SchName == "Warrior Run El Sch"
 
+replace SchVirtual = 0 if SchName == "Gateway Ms"
+replace SchLevel = 2 if SchName == "Gateway Ms"
+replace DistLocale = "Suburb, large" if SchName ==  "Gateway Ms"
+
+//Removing extra spaces
+foreach var of varlist DistName SchName {
+	replace `var' = stritrim(`var') // collapses all consecutive, internal blanks to one blank.
+	replace `var' = strtrim(`var') // removes leading and trailing blanks
+}
+
+// Final Cleaning
+replace StateAbbrev = "PA" if missing(StateAbbrev)
+replace StateFips = 42 if missing(StateFips)
+drop seasch State_leaid
+
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-// Saving and exporting transformed data
+ // Saving and exporting transformed data
 save "$Output/PA_AssmtData_2024.dta", replace
 export delimited using "$Output/PA_AssmtData_2024.csv", replace
