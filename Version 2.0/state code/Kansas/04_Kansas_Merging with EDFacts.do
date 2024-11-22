@@ -1,23 +1,22 @@
 ****************************************************************
 ** Merging with EDFacts / Producing Final Output
 ****************************************************************
-
 clear
 set more off
 
-global raw "C:\Users\Clare\Desktop\Zelma V2.0\Kansas\Raw"
-global temp "C:\Users\Clare\Desktop\Zelma V2.0\Kansas\temp"
-global NCESDistrict "C:\Users\Clare\Desktop\Zelma V2.0\Kansas\NCES District Files, Fall 1997-Fall 2022"
-global NCESSchool "C:\Users\Clare\Desktop\Zelma V2.0\Kansas\NCES School Files, Fall 1997-Fall 2022"
-global EDFacts "C:\Users\Clare\Desktop\Zelma V2.0\Kansas\EdFacts"
-global output "C:\Users\Clare\Desktop\Zelma V2.0\Kansas\Output"
+global raw "C:\Users\Clare\Desktop\Zelma V2.0\Kansas - Version 2.0\Raw"
+global temp "C:\Users\Clare\Desktop\Zelma V2.0\Kansas - Version 2.0\temp"
+global NCESDistrict "C:\Users\Clare\Desktop\Zelma V2.0\Kansas - Version 2.0\NCES District Files, Fall 1997-Fall 2022"
+global NCESSchool "C:\Users\Clare\Desktop\Zelma V2.0\Kansas - Version 2.0\NCES School Files, Fall 1997-Fall 2022"
+global EDFacts "C:\Users\Clare\Desktop\Zelma V2.0\Kansas - Version 2.0\EdFacts"
+global output "C:\Users\Clare\Desktop\Zelma V2.0\Kansas - Version 2.0\Output"
 
 ****************************************************************
 ** Merging with EDFacts 
 ****************************************************************
-local years1 2015 2016 2017 2019 2021  
+local years1 2015 2016 2017 2019 2021 
 local years2 2018
-local years3 2022 2023
+local years3 2022 2023 2024 
 local datatype count part
 local datalevel school district
 
@@ -183,11 +182,13 @@ gen StateAssignedDistID1 = StateAssignedDistID
 replace StateAssignedDistID1 = "000000" if DataLevel == 1 //Remove quotations if DistIDs are numeric
 gen StateAssignedSchID1 = StateAssignedSchID
 replace StateAssignedSchID1 = "000000" if DataLevel !=3 //Remove quotations if SchIDs are numeric
+
 egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
 sort group_id StudentGroup StudentSubGroup
 by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
 by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
 drop group_id StateAssignedDistID1 StateAssignedSchID1
+
 
 // where we have suppressed subgroup_totaltested counts, we will make sure the level counts are suppressed
 forvalues n = 1/4{
@@ -196,7 +197,7 @@ forvalues n = 1/4{
 
 	}
 	
-* replace StudentGroup_TotalTested= "*" if StudentGroup_TotalTested=="1" // removed 11/21/24
+*replace StudentGroup_TotalTested= "*" if StudentGroup_TotalTested=="1"
 
 
 
@@ -352,7 +353,7 @@ forvalues n = 1/4{
 
 	}
 	
-* replace StudentGroup_TotalTested= "*" if StudentGroup_TotalTested=="1" // removed 11/21/24
+*replace StudentGroup_TotalTested= "*" if StudentGroup_TotalTested=="1"
 
 
 ** Generating new variables
@@ -389,7 +390,7 @@ export delimited using "${output}/KS_AssmtData_`year'.csv", replace
 
 
 ****************************************************************
-** 2022, 2023
+** 2022, 2023, 2024
 ****************************************************************
 
 foreach year of local years3 {
@@ -447,6 +448,7 @@ restore
 }
 
 append using "${temp}/KS_`year'_Gender.dta"
+
 
 ** Deriving More SubGroup Counts
 	bysort State_leaid seasch GradeLevel Subject: egen All = max(Count_n)
@@ -526,8 +528,7 @@ forvalues n = 1/4{
 
 	}
 	
-* replace StudentGroup_TotalTested= "*" if StudentGroup_TotalTested=="1" // removed 11/21/24
-
+*replace StudentGroup_TotalTested= "*" if StudentGroup_TotalTested=="1"
 
 ** Generating new variables
 
@@ -545,6 +546,7 @@ gen Flag_CutScoreChange_soc = "Not applicable"
 gen Flag_CutScoreChange_sci = "Not applicable"
 	replace Flag_CutScoreChange_sci = "N" if `year' > 2018
 	
+	
 //Cleanup and Ordering
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
@@ -555,7 +557,7 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 save "${output}/KS_AssmtData_`year'.dta", replace
 export delimited using "${output}/KS_AssmtData_`year'.csv", replace
 }
-
+*/
 
 // Added 11/21/24 to better align level counts/percents with ProficientOrAbove_counts/percents. Previously, ProficientOrAbove_count/percent were being pulled in from EDFacts, but this meant that there was misalignment when we compared outcomes to the sums of levels 3 + 4. 
 {
@@ -565,7 +567,7 @@ forvalues year = 2015/2024 {
 	
 	use "${output}/KS_AssmtData_`year'.dta", clear
 
-	//Updating Proficient Or Above counts  
+	//Deriving Proficient Or Above counts  
 	gen ProfAbove_count_new = .
 	
 		// First derived as a sum of level 3 + level 4, when available in the data 
