@@ -1,7 +1,7 @@
 
 
 global Abbrev "PA"
-global years 2015 2016 2017 2018 2019 2021 2022 2023 2024
+global years 2024
 global Original "/Users/name/Desktop/Pennsylvania/Original"
 global NCES "/Users/name/Desktop/Pennsylvania/NCES"
 global Output "/Users/name/Desktop/Pennsylvania/Output"
