@@ -537,6 +537,15 @@ replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == ".-."
 //June 2024 State Task
 replace AssmtType = "Regular and alt"
 
+//Replacing Assessment name after 2018
+if `year'>2017 {
+	replace AssmtName = "WY-TOPP and WY-ALT" if AssmtName == "WY-TOPP"
+}
+
+//Fixing one school
+replace NCESSchoolID = "560198000574" if SchName == "PODER Academy Secondary School"
+replace StateAssignedSchID = "1101000-1101045" if SchName == "PODER Academy Secondary School"
+
 
 
 //Final Cleaning
