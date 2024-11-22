@@ -572,7 +572,7 @@ forvalues year = 2015/2024 {
 		replace ProfAbove_count_new = real(Lev3_count) + real(Lev4_count) if !inlist(Lev3_count, "*", "--") & !inlist(Lev4_count, "*", "--")	
 		
 		// Next applied from the EDFacts file, when missing
-		replace ProfAbove_count_new = ProficientOrAbove_count if ProfAbove_count_new == .
+		replace ProfAbove_count_new = real(ProficientOrAbove_count) if ProfAbove_count_new == .
 		
 		// Dropping ProficientOrAbove_count (which was previously all from EDFacts and did not align with publicly reported data)
 		drop ProficientOrAbove_count
@@ -585,7 +585,7 @@ forvalues year = 2015/2024 {
 		replace ProfAbove_per_new = real(Lev3_percent) + real(Lev4_percent) if !inlist(Lev3_percent, "*", "--") & !inlist(Lev4_percent, "*", "--")	
 		
 		// Next applied from the EDFacts file, when missing
-		replace ProfAbove_per_new = ProficientOrAbove_percent if ProfAbove_per_new == .
+		replace ProfAbove_per_new = real(ProficientOrAbove_percent) if ProfAbove_per_new == .
 		
 		// Dropping ProficientOrAbove_percent (which was previously all from EDFacts and did not align with publicly reported data)
 		drop ProficientOrAbove_percent
