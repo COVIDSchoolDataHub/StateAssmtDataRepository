@@ -368,6 +368,9 @@ foreach year in 2015 2016 2017 {
 		replace CountyName = "Kent County" if DistName == "POLYTECH School District"
 		replace CountyCode = "10001" if DistName == "POLYTECH School District"
 		
+		//Standardizing DistName
+		replace DistName = "Campus Community School" if NCESDistrictID == "1000007"
+		
 		if `year' == 2017 {
 			if strpos(seasch, "-") !=0 {
 				replace StateAssignedSchID = substr(StateAssignedSchID, strpos(StateAssignedSchID, "-")+1,3)
@@ -408,7 +411,20 @@ foreach year in 2015 2016 2017 {
 			rename Lev`n'_string Lev`n'_percent
 			tostring Lev`n'_count, replace
 		}
-		gen ProficientOrAbove_count = floor(ProficientOrAbove_percent * count) if DataLevel == 1
+		foreach n in 1 2 3 4 {
+			replace Lev`n'_percent = rangeind`n' + Lev`n'_percent
+			replace Lev`n'_percent = subinstr(Lev`n'_percent, "<", "0-", 1)
+			replace Lev`n'_count = "0-" + Lev`n'_count if strpos(Lev`n'_percent, "0-") > 0
+		}
+		//Deriving More Specific Values Where Raw Data Provided Ranges
+		gen flag = 1 if strpos(Lev4_count, "-") > 0 & Lev4_count != "--"
+		replace Lev4_count = string(real(StudentSubGroup_TotalTested) - real(Lev1_count) - real(Lev2_count) - real(Lev3_count)) if flag == 1
+		drop flag
+		gen flag = 1 if strpos(Lev4_percent, "-") > 0 & Lev4_percent != "--"
+		replace Lev4_percent = string(1 - real(Lev1_percent) - real(Lev2_percent) - real(Lev3_percent), "%9.2f") if flag == 1
+		replace Lev4_percent = "0.002" if Lev4_percent == "0.00" & Lev4_count == "1" & flag == 1 //fixing one unique observation where an extra decimal place is necessary to make the count match the percentage
+		drop flag
+		gen ProficientOrAbove_count = real(Lev3_count) + real(Lev4_count) if DataLevel == 1
 		tostring(ProficientOrAbove_count), replace
 		replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == "."
 		gen ProficientOrAbove_string = string(ProficientOrAbove_percent, "%9.2f")
@@ -418,13 +434,14 @@ foreach year in 2015 2016 2017 {
 		drop ParticipationRate
 		rename ParticipationRate_string ParticipationRate
 		replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
-		*tostring StudentGroup_TotalTested, replace
 		replace StudentGroup_TotalTested = "--" if DataLevel !=1
 		replace ProficientOrAbove_percent = "*" if AvgScaleScore == "*"
 		replace ParticipationRate = "*" if AvgScaleScore == "*"
 		foreach n in 1 2 3 4 5 {
 			replace Lev`n'_percent = "--" if Lev`n'_percent == "."
 			replace Lev`n'_count = "--" if Lev`n'_count == "."
+			replace Lev`n'_percent = "*" if Lev`n'_count == "0-0"
+			replace Lev`n'_count = "*" if Lev`n'_count == "0-0"
 			replace Lev`n'_percent = "" if `n'==5
 			replace Lev`n'_count = "" if `n'==5
 		}
@@ -448,10 +465,8 @@ foreach year in 2015 2016 2017 {
 		if `year' == 2017 {
 	replace StateAssignedDistID = "9606" if NCESSchoolID == "100005400362"
 	replace StateAssignedSchID = "4050" if NCESSchoolID == "100005400362"
-	*replace seasch = StateAssignedDistID + "-" + StateAssignedSchID if NCESSchoolID == "100005400362"
 	replace StateAssignedDistID = "9612" if NCESSchoolID == "100005900372"
 	replace StateAssignedSchID = "4080" if NCESSchoolID == "100005900372"
-	*replace seasch = StateAssignedDistID + "-" + StateAssignedSchID if NCESSchoolID == "100005900372"
 }
 		tempfile final_`year'
 		save "`final_`year''"
@@ -469,12 +484,6 @@ foreach year in 2015 2016 2017 {
 //Misc stuff partially in reponse to R1
 replace StateAssignedSchID = "" if DataLevel !=3
 
-//Range inclusion in response to R2:
-foreach n in 1 2 3 4 {
-	replace Lev`n'_percent = rangeind`n' + Lev`n'_percent
-	replace Lev`n'_percent = subinstr(Lev`n'_percent, "<", "0-", 1)
-	replace Lev`n'_count = "0-" + Lev`n'_count if strpos(Lev`n'_percent, "0-") > 0
-}
 replace ParticipationRate = range_part + ParticipationRate
 replace ParticipationRate = "0.95-1" if ParticipationRate == ">0.95"
 replace ParticipationRate = "0.99-1" if ParticipationRate == ">0.99"
