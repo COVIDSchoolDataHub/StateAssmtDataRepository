@@ -12,11 +12,15 @@ This is a ReadMe for Wyoming's data cleaning process, from 2014 to 2024.
 There are five folders you need to create: 
 Original Data Files, NCES, Output, EDFacts, and Temp. 
 
-Download the three original files (one for each data level). Place them in the "Original Data Files" folder. Download the EDFacts count files from the Long DTA Versions folder and place them in the EDFacts folder. Also download the WY 2022 EDFacts file from the WY original data folder and place it in the EDFacts folder. The NCES cleaning file will generate altered NCES files, so you may also want a folder to store these files. 
+Download NCES files from the drive (2013-2022) and place them into the NCES folder (can place both School and District files in the same folder).
 
-There are 3 .do files. 
+Download the three original files (one for each data level) from Original Data on the drive. Place them in the "Original Data Files" folder. Download the EDFacts count files from the Long DTA Versions folder (2014-2021) and place them in the EDFacts folder. Also download the WY 2022 EDFacts file from the WY Original Data folder and place it in the EDFacts folder. 
+
+There are 4 .do files. 
 
 Run them in the following order:
+
+Cleaning NCES.do;
 
 WY_Cleaning.do; 
 
