@@ -1,9 +1,9 @@
 clear
-local Original "/Users/kaitlynlucas/Desktop/Wyoming State Task/Original Data Files"
-local Output "/Users/kaitlynlucas/Desktop/Wyoming State Task/Output"
-local NCES "/Users/kaitlynlucas/Desktop/Wyoming State Task/NCESNew"
-local EDFacts "/Users/kaitlynlucas/Desktop/EDFacts Drive Data"
-local New_Output "/Users/kaitlynlucas/Desktop/Wyoming State Task/Wyoming V2.0"
+global Original "/Users/kaitlynlucas/Desktop/Wyoming/Original"
+global Output "/Users/kaitlynlucas/Desktop/Wyoming/Output"
+global NCES "/Users/kaitlynlucas/Desktop/Wyoming/NCES"
+global EDFacts "/Users/kaitlynlucas/Desktop/EDFacts Drive Data"
+global New_Output "/Users/kaitlynlucas/Desktop/Wyoming/V2.0+"
 
 ** Preparing EDFacts files
 local edyears1 14 15 16 17 18
@@ -269,10 +269,10 @@ foreach year of local edyears2 {
 }
 
 //Change AssmtType label
-forvalues year = 2014/2023 {
+forvalues year = 2014/2024 {
 	if `year' == 2020 continue
 	
-	import delimited "`Output'/WY_AssmtData_`year'", case(preserve) clear
+	import delimited "${Output}/WY_AssmtData_`year'", case(preserve) clear
 	replace AssmtType = "Regular and alt"
 	export delimited "WY_AssmtData_`year'", replace
 	
@@ -341,6 +341,20 @@ drop Unsuppressed* AllStudentsTested
 
 //New Participation Data
 replace ParticipationRate = Participation if !missing(Participation)
+
+{
+replace StateAssignedDistID = "000000" if DataLevel== 1 // State
+replace StateAssignedSchID = "000000" if DataLevel== 1 // State
+replace StateAssignedSchID = "000000" if DataLevel== 2 // District
+egen uniquegrp = group(SchYear DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel)
+sort uniquegrp StudentGroup StudentSubGroup 
+by uniquegrp: gen AllStudents = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by uniquegrp: replace AllStudents = AllStudents[_n-1] if missing(AllStudents)
+drop StudentGroup_TotalTested
+rename AllStudents StudentGroup_TotalTested
+replace StateAssignedDistID = "" if DataLevel ==1
+replace StateAssignedSchID = "" if DataLevel != 3
+}
 
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode

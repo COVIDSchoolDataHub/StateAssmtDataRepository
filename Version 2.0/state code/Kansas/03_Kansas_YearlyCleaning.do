@@ -4,12 +4,12 @@
 clear
 set more off
 
-global raw "C:\Users\Clare\Desktop\Zelma V2.0\Kansas\Raw"
-global temp "C:\Users\Clare\Desktop\Zelma V2.0\Kansas\temp"
-global NCESDistrict "C:\Users\Clare\Desktop\Zelma V2.0\Kansas\NCES District Files, Fall 1997-Fall 2022"
-global NCESSchool "C:\Users\Clare\Desktop\Zelma V2.0\Kansas\NCES School Files, Fall 1997-Fall 2022"
-global EDFacts "C:\Users\Clare\Desktop\Zelma V2.0\Kansas\EdFacts"
-global output "C:\Users\Clare\Desktop\Zelma V2.0\Kansas\Output"
+global raw "C:\Users\Clare\Desktop\Zelma V2.0\Kansas - Version 2.0\Raw"
+global temp "C:\Users\Clare\Desktop\Zelma V2.0\Kansas - Version 2.0\temp"
+global NCESDistrict "C:\Users\Clare\Desktop\Zelma V2.0\Kansas - Version 2.0\NCES District Files, Fall 1997-Fall 2022"
+global NCESSchool "C:\Users\Clare\Desktop\Zelma V2.0\Kansas - Version 2.0\NCES School Files, Fall 1997-Fall 2022"
+global EDFacts "C:\Users\Clare\Desktop\Zelma V2.0\Kansas - Version 2.0\EdFacts"
+global output "C:\Users\Clare\Desktop\Zelma V2.0\Kansas - Version 2.0\Output"
 
 ****************************************************************
 ** 2015 
@@ -1336,13 +1336,156 @@ export delimited "${temp}/kansas_2023_temp2.csv", replace
 ** 2024
 ****************************************************************
 
+import excel "${raw}/KS_OriginalData_2024_all.xlsx", sheet("2024") firstrow clear
+
+** Renaming variables
+
+rename Organization DistName
+rename Building SchName
+rename PctLevel1 Lev1_percent
+rename PctLevel2 Lev2_percent
+rename PctLevel3 Lev3_percent
+rename PctLevel4 Lev4_percent
+rename StudentSubgroup StudentSubGroup
+rename Grade GradeLevel
+rename BldgNo StateAssignedSchID
+rename OrgNo StateAssignedDistID
+rename SchoolYear SchYear
+
+** Dropping entries
+
+drop PctNotTested // all are 0 
+drop if inlist(GradeLevel, "10th Grade", "11th Grade", "All Grades")
+
+drop if inlist(StudentSubGroup, "Building Mobile students", "District Mobile Student", "Free Lunch only", "Gifted only", "Reduced Lunch only", "Regular Ed. only", "English Learner with Disabilities", "With Disability") 
+
+** Replacing/generating variables
+
+tostring SchYear, replace
+replace SchYear = "2023-24"
+
+replace Subject = strlower(Subject)
+replace Subject = "sci" if Subject == "science"
+
+replace GradeLevel = "G0" + substr(GradeLevel, 1, 1)
+
+gen DataLevel = "School"
+replace StateAssignedDistID = strtrim(StateAssignedDistID)
+replace StateAssignedSchID = strtrim(StateAssignedSchID)
+replace DataLevel = "District" if StateAssignedSchID == "0"
+replace DataLevel = "State" if StateAssignedDistID == "0"
+
+replace SchName = stritrim(SchName)
+
+replace SchName = "All Schools" if DataLevel != "School"
+replace DistName = "All Districts" if DataLevel == "State"
+
+	// Cleaning up DistNames & SchNames
+	replace DistName =strtrim(DistName) 
+	replace DistName =stritrim(DistName) 
+	replace SchName =strtrim(SchName) 
+	replace SchName =stritrim(SchName) 
+	
+tostring StateAssignedSchID, replace
+replace StateAssignedSchID = "" if DataLevel != "School"
+replace StateAssignedDistID = "" if DataLevel == "State"
+
+replace StudentSubGroup = strtrim(StudentSubGroup)
+replace StudentSubGroup = "Black or African American" if StudentSubGroup == "African-American Students"
+replace StudentSubGroup = "English Learner" if StudentSubGroup == "English Learner Students"
+replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Free and Reduced Lunch"
+replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
+replace StudentSubGroup = "Two or More" if StudentSubGroup == "Multi-Racial"
+replace StudentSubGroup = "English Proficient" if StudentSubGroup == "Non-English Learner Students"
+replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "Self-Paid Lunch only"
+replace StudentSubGroup = "SWD" if StudentSubGroup == "Students with  Disabilities"
+replace StudentSubGroup = "Non-SWD" if StudentSubGroup == "Not Disabled"
+replace StudentSubGroup = "Military" if StudentSubGroup == "Military Connected Students"
+
+gen StudentGroup = "RaceEth"
+replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
+replace StudentGroup = "EL Status" if inlist(StudentSubGroup, "English Learner", "English Proficient")
+replace StudentGroup = "Economic Status" if inlist(StudentSubGroup, "Economically Disadvantaged", "Not Economically Disadvantaged")
+replace StudentGroup = "Disability Status" if inlist(StudentSubGroup, "SWD", "Non-SWD")
+replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless"
+replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Foster Care"
+replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Military"
+
+gen StudentSubGroup_TotalTested = "--"
+
+local level 1 2 3 4
+foreach a of local level {
+	replace Lev`a'_percent = Lev`a'_percent/100
+	gen Lev`a'_count = "--"
+}
+
+gen Lev5_count = ""
+gen Lev5_percent = ""
+
+gen AssmtName = "KAP"
+gen AssmtType = "Regular"
+
+gen AvgScaleScore = "--"
+
+gen ParticipationRate = "--"
+
+gen ProficiencyCriteria = "Levels 3-4"
+gen ProficientOrAbove_count = "--"
+gen ProficientOrAbove_percent = Lev3_percent + Lev4_percent
+tostring ProficientOrAbove_percent, replace format("%9.4g") force
+replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == "."
+replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == ""
+
+** Changing DataLevel
+
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+sort DataLevel_n 
+drop DataLevel 
+rename DataLevel_n DataLevel
+
+order SchYear DataLevel DistName SchName StateAssignedDistID StateAssignedSchID AssmtName AssmtType Subject GradeLevel Lev1_count Lev2_count Lev1_percent Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent StudentGroup StudentSubGroup StudentSubGroup_TotalTested  ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent  AvgScaleScore ParticipationRate 
+
+
+// save to temp
+save "${temp}/kansas_2024_temp1.dta", replace
+
+
+*********************************************
+** Merging with NCES
+use  "${temp}/kansas_2024_temp1.dta"
+
+gen State_leaid = "KS-" + StateAssignedDistID
+replace State_leaid = "" if DataLevel == 1
+
+//Still using NCES_2022 until updated data are released
+merge m:1 State_leaid using "${NCESDistrict}/NCES_2022_District_KS.dta"
+
+drop if _merge == 1 & DataLevel != 1
+drop if _merge == 2
+drop _merge
+
+gen seasch = StateAssignedDistID + "-" + StateAssignedSchID
+
+merge m:1 seasch using "${NCESSchool}/NCES_2022_School_KS.dta"
+
+drop if _merge == 2
+drop _merge
+
+replace StateAbbrev = "KS"
+replace State = "Kansas"
+replace StateFips = 20
 
 
 
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup  StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate  DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 
+// save to temp
+save "${temp}/kansas_2024_temp2.dta", replace
+export delimited "${temp}/kansas_2024_temp2.csv", replace
 
 
-
-
-
+****************************************************************
+** 2025
+****************************************************************

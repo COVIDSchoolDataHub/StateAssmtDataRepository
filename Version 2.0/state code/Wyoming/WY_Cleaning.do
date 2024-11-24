@@ -464,7 +464,7 @@ if `year' ==2024{
 	replace SchVirtual = "No" if SchName == "Laramie Montessori"
 	replace CountyName = "Albany County" if SchName == "Laramie Montessori"
 	replace StateAssignedDistID = "WY-0101000" if SchName == "Laramie Montessori"
-	replace StateAssignedSchID = "WY-0101000-0101031" if SchName == "Laramie Montessori"
+	replace StateAssignedSchID = "0101000-0101031" if SchName == "Laramie Montessori"
 	replace NCESDistrictID = "5600730" if DistName == "Albany #1"
 	replace CountyCode = "56001" if SchName == "Laramie Montessori"
 	replace DistType = "Regular local school district" if SchName == "PODER"
@@ -475,7 +475,7 @@ if `year' ==2024{
 	replace SchVirtual = "No" if SchName == "PODER"
 	replace CountyName = "Laramie County" if SchName == "PODER"
 	replace StateAssignedDistID = "WY-1101000" if SchName == "PODER"
-	replace StateAssignedSchID = "WY-1101000-1101040" if SchName == "PODER"
+	replace StateAssignedSchID = "1101000-1101040" if SchName == "PODER"
 	replace NCESDistrictID = "5601980" if DistName == "Laramie #1"
 	replace CountyCode = "56021" if SchName == "PODER"
 	replace NCESSchoolID = "560073000542" if SchName == "Laramie Montessori"
@@ -489,7 +489,7 @@ if `year' ==2024{
 	replace SchType = "Regular school" if SchName == "Prairie View Community School"
 	replace SchLevel = "Other" if SchName == "Prairie View Community School"
 	replace SchVirtual = "No" if SchName == "Prairie View Community School"
-	replace StateAssignedSchID = "WY-5003000-5003001" if SchName == "Prairie View Community School"
+	replace StateAssignedSchID = "5003000-5003001" if SchName == "Prairie View Community School"
 	replace NCESDistrictID = "5680259" if DistName == "Prairie View Community School"
 	replace CountyName = "Platte County" if DistName == "Prairie View Community School"
 	replace CountyCode = "56031" if DistName == "Prairie View Community School"
@@ -503,15 +503,17 @@ if `year' ==2024{
 	replace SchType = "Regular school" if SchName == "Wyoming Classical Academy"
 	replace SchLevel = "Primary" if SchName == "Wyoming Classical Academy"
 	replace SchVirtual = "No" if SchName == "Wyoming Classical Academy"
-	replace StateAssignedSchID = "WY-5002000-5002001" if SchName == "Wyoming Classical Academy"
+	replace StateAssignedSchID = "5002000-5002001" if SchName == "Wyoming Classical Academy"
 	replace NCESDistrictID = "5680258" if DistName == "Wyoming Classical Academy"
 	replace NCESSchoolID = "568025800598" if SchName == "Wyoming Classical Academy"
 }
 
+//Fixing Space Issues
 replace SchName = "Albany #1 - Indian Paintbrush Elementary" if SchName == "Albany #1 - Indian Paintbrush  Elementary"
 replace SchName = "Indian Paintbrush Elementary" if SchName == "Indian Paintbrush  Elementary"
 
 
+//adding update StudentGroup_TotalTested code V2.0
 {
 replace StateAssignedDistID = "000000" if DataLevel== 1 // State
 replace StateAssignedSchID = "000000" if DataLevel== 1 // State
@@ -522,10 +524,27 @@ by uniquegrp: gen AllStudents = StudentSubGroup_TotalTested if StudentSubGroup =
 by uniquegrp: replace AllStudents = AllStudents[_n-1] if missing(AllStudents)
 drop StudentGroup_TotalTested
 rename AllStudents StudentGroup_TotalTested
+replace StateAssignedDistID = "" if DataLevel ==1
+replace StateAssignedSchID = "" if DataLevel != 3
 }
+
+//Period issues in 2014, 2017, 2018 for 7 observations
+forvalues n = 1/4 {
+	replace Lev`n'_count = "--" if Lev`n'_count == "."
+}
+replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == ".-."
 
 //June 2024 State Task
 replace AssmtType = "Regular and alt"
+
+//Replacing Assessment name after 2018
+if `year'>2017 {
+	replace AssmtName = "WY-TOPP and WY-ALT" if AssmtName == "WY-TOPP"
+}
+
+//Fixing one school
+replace NCESSchoolID = "560198000574" if SchName == "PODER Academy Secondary School"
+replace StateAssignedSchID = "1101000-1101045" if SchName == "PODER Academy Secondary School"
 
 
 

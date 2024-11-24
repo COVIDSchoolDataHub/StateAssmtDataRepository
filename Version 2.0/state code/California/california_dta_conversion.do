@@ -67,7 +67,7 @@ foreach a in $years {
 
 import delimited "${original}/StudentGroups.txt", delimiter("^") case(preserve) clear
 rename DemographicID StudentGroupID
-save "California_Student_Group_Names.dta", replace
+save "$data/California_Student_Group_Names.dta", replace
 
 //Science Data
 

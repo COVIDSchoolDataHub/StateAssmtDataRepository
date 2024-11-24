@@ -154,8 +154,8 @@ replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic o
 replace StudentSubGroup = "Two or More" if StudentSubGroup == "Two or more races"
 
 // Economic Status
-replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Economically disadvantaged"
-replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "Not economically disadvantaged"
+replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Economically disadvantaged" | StudentSubGroup == "Socioeconomically disadvantaged"
+replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "Not economically disadvantaged" | StudentSubGroup == "Not socioeconomically disadvantaged"
 
 // Gender Group 
 replace StudentSubGroup = "Male" if StudentSubGroup == "Male"
@@ -348,6 +348,7 @@ local lowproflev = substr(ProficiencyCriteria, strpos(ProficiencyCriteria, "-")-
 local highproflev = substr(ProficiencyCriteria, strpos(ProficiencyCriteria, "-")+1,1)
 di `highproflev' - `lowproflev'
 replace ProficientOrAbove_count = string(real(Lev`lowproflev'_count) + real(Lev`highproflev'_count)) if !missing(real(Lev`lowproflev'_count)) & !missing(real(Lev`highproflev'_count))
+replace ProficientOrAbove_count = string(real(StudentSubGroup_TotalTested)) if real(ProficientOrAbove_count) > real(StudentSubGroup_TotalTested) & !missing(real(StudentSubGroup_TotalTested)) & !missing(real(ProficientOrAbove_count))
 
 //Final Cleaning
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode

@@ -12,40 +12,40 @@ capture log close
 /*
 //School import
 
-import excel "$original/2015-2022 PSSA Schools.xlsx", sheet("Sheet1") firstrow clear
+import excel "$Original/2015-2022 PSSA Schools.xlsx", sheet("Sheet1") firstrow clear
 
-save "$temp/PA_DataRequest_School_Part1.dta", replace
+save "$Temp/PA_DataRequest_School_Part1.dta", replace
 
 clear
-import excel "$original/2015-2022 PSSA Schools.xlsx", sheet("Sheet2") firstrow clear
+import excel "$Original/2015-2022 PSSA Schools.xlsx", sheet("Sheet2") firstrow clear
 
 drop if AUN == .
 
-save "$temp/PA_DataRequest_School_Part2.dta", replace
+save "$Temp/PA_DataRequest_School_Part2.dta", replace
 
 
 
 // School append
 
 clear
-append using "$temp/PA_DataRequest_School_Part1.dta" "$temp/PA_DataRequest_School_Part2.dta"
+append using "$Temp/PA_DataRequest_School_Part1.dta" "$Temp/PA_DataRequest_School_Part2.dta"
 
 gen DataLevel = "School"
 
-save "$temp/PA_DataRequest_School_All.dta", replace
+save "$Temp/PA_DataRequest_School_All.dta", replace
 
 // District import
 
-import excel "$original/2015-2022 PSSA District.xlsx", firstrow clear
+import excel "$Original/2015-2022 PSSA District.xlsx", firstrow clear
 
 gen SchoolName = "All Schools"
 gen SchoolNumber = ""
 gen DataLevel = "District"
 
-save "$temp/PA_DataRequest_District.dta", replace
+save "$Temp/PA_DataRequest_District.dta", replace
 
 // State import
-import excel "$original/2015-2022 PSSA State.xlsx", firstrow clear
+import excel "$Original/2015-2022 PSSA State.xlsx", firstrow clear
 
 gen AUN = .
 gen DistrictName = "All Districts"
@@ -55,18 +55,18 @@ drop N
 rename Subgroup Group
 gen DataLevel = "State"
 
-save "$temp/PA_DataRequest_State.dta", replace
+save "$Temp/PA_DataRequest_State.dta", replace
 
 
 // Appending All DataLevels
 clear
-append using "$temp/PA_DataRequest_School_All.dta" "$temp/PA_DataRequest_District.dta" "$temp/PA_DataRequest_State.dta"
+append using "$Temp/PA_DataRequest_School_All.dta" "$Temp/PA_DataRequest_District.dta" "$Temp/PA_DataRequest_State.dta"
 
 duplicates drop
-save "$temp/PA_DataRequest_All.dta", replace
+save "$Temp/PA_DataRequest_All.dta", replace
 */
 
-use "$temp/PA_DataRequest_All.dta", clear
+use "$Temp/PA_DataRequest_All.dta", clear
 
 // Relabelling variables
 rename AUN StateAssignedDistID
@@ -93,7 +93,7 @@ replace Subject = "math" if Subject == "Math"
 replace Subject = "sci" if Subject == "Science" | Subject == "S"
 tostring GradeLevel, replace
 replace GradeLevel = "G0"+GradeLevel
-gen StudentGroup = "Replace"
+gen StudentGroup = ""
 replace StudentSubGroup = "Black or African American" if StudentSubGroup == "Black"
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
 replace StudentSubGroup = "Two or More" if StudentSubGroup == "Multi-ethnic"
@@ -162,7 +162,7 @@ rename DataLevel_n DataLevel
 
 // Now NCES merging based on year
 // 2015
-/*
+
 preserve 
 keep if SchYear == "2014-15"
 
@@ -170,7 +170,7 @@ keep if SchYear == "2014-15"
 gen seasch = substr(StateAssignedSchID,-4,4)
 tostring StateAssignedDistID, gen(state_leaid)
 
-save "${output}/PA_AssmtData_2015.dta", replace
+save "$Output/PA_AssmtData_2015.dta", replace
 
 // Merging with NCES School Data
 
@@ -181,12 +181,12 @@ keep state_location state_fips district_agency_type SchType ncesdistrictid state
 keep if state_location == "PA"
 drop if seasch == ""
 
-merge 1:m state_leaid seasch using "${output}/PA_AssmtData_2015.dta", keep(match using)
+merge 1:m state_leaid seasch using "$Output/PA_AssmtData_2015.dta", keep(match using)
 
 drop if _merge == 2 & DataLevel == 3
 drop _merge
 
-save "${output}/PA_AssmtData_2015.dta", replace
+save "$Output/PA_AssmtData_2015.dta", replace
 
 // Merging with NCES District Data
 
@@ -196,7 +196,7 @@ keep state_location state_fips district_agency_type ncesdistrictid state_leaid D
 
 keep if state_location == "PA"
 
-merge 1:m state_leaid using "${output}/PA_AssmtData_2015.dta", keep(match using) nogenerate
+merge 1:m state_leaid using "$Output/PA_AssmtData_2015.dta", keep(match using) nogenerate
 
 // Renaming NCES variables
 rename district_agency_type DistType
@@ -214,14 +214,42 @@ replace CountyName = strproper(CountyName)
 replace CountyName = "McKean County" if CountyCode == "42083"
 replace DistName = stritrim(DistName)
 
-// Fixing State Level Data
-replace StateAbbrev = "PA" if DataLevel == 1
-replace StateFips = 42 if DataLevel == 1
+// Final Cleaning
+replace StateAbbrev = "PA" if missing(StateAbbrev)
+replace StateFips = 42 if missing(StateFips)
+replace SchName = lower(SchName)
+replace SchName = proper(SchName)
+replace DistName = lower(DistName)
+replace DistName = proper(DistName)
 replace DistName = "All Districts" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel == 2
 
+//Removing extra spaces
+foreach var of varlist DistName SchName {
+	replace `var' = stritrim(`var') // collapses all consecutive, internal blanks to one blank.
+	replace `var' = strtrim(`var') // removes leading and trailing blanks
+}
+
 drop seasch State_leaid
+
+
+// Generating StudentGroup count
+gen StateAssignedDistID1 = StateAssignedDistID
+replace StateAssignedDistID1 = 000000 if DataLevel == 1 //Remove quotations if DistIDs are numeric
+gen StateAssignedSchID1 = StateAssignedSchID
+replace StateAssignedSchID1 = "000000" if DataLevel != 3 //Remove quotations if SchIDs are numeric
+egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
+sort group_id StudentGroup StudentSubGroup
+drop StudentGroup_TotalTested
+by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+drop group_id StateAssignedDistID1 StateAssignedSchID1
+
+gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
+replace StudentGroup_TotalTested = AllStudents_Tested 
+drop AllStudents_Tested
 
 // Reordering variables and sorting data
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
@@ -230,13 +258,13 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 // Saving and exporting transformed data
 
-save "${output}/PA_AssmtData_2015.dta", replace
-export delimited using "$output/PA_AssmtData_2015.csv", replace
+save "$Output/PA_AssmtData_2015.dta", replace
+export delimited using "$Output/PA_AssmtData_2015.csv", replace
 
 restore
-*/
+
 // 2016
-/*
+*//
 preserve 
 keep if SchYear == "2015-16"
 
@@ -244,7 +272,7 @@ keep if SchYear == "2015-16"
 gen seasch = substr(StateAssignedSchID,-4,4)
 tostring StateAssignedDistID, gen(state_leaid)
 
-save "${output}/PA_AssmtData_2016.dta", replace
+save "$Output/PA_AssmtData_2016.dta", replace
 
 // Merging with NCES School Data
 
@@ -255,9 +283,9 @@ keep state_location state_fips district_agency_type SchType ncesdistrictid state
 keep if state_location == "PA"
 drop if seasch == ""
 
-merge 1:m state_leaid seasch using "${output}/PA_AssmtData_2016.dta", keep(match using) nogenerate
+merge 1:m state_leaid seasch using "$Output/PA_AssmtData_2016.dta", keep(match using) nogenerate
 
-save "${output}/PA_AssmtData_2016.dta", replace
+save "$Output/PA_AssmtData_2016.dta", replace
 
 // Merging with NCES District Data
 
@@ -267,7 +295,7 @@ keep state_location state_fips district_agency_type ncesdistrictid state_leaid D
 
 keep if state_location == "PA"
 
-merge 1:m state_leaid using "${output}/PA_AssmtData_2016.dta", keep(match using) nogenerate
+merge 1:m state_leaid using "$Output/PA_AssmtData_2016.dta", keep(match using) nogenerate
 
 // Renaming NCES variables
 rename district_agency_type DistType
@@ -283,14 +311,42 @@ rename county_name CountyName
 //Other Reformatting
 replace DistName = stritrim(DistName)
 
-// Fixing State Level Data
-replace StateAbbrev = "PA" if DataLevel == 1
-replace StateFips = 42 if DataLevel == 1
+// Final Cleaning
+replace StateAbbrev = "PA" if missing(StateAbbrev)
+replace StateFips = 42 if missing(StateFips)
+replace SchName = lower(SchName)
+replace SchName = proper(SchName)
+replace DistName = lower(DistName)
+replace DistName = proper(DistName)
 replace DistName = "All Districts" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel == 2
 
+//Removing extra spaces
+foreach var of varlist DistName SchName {
+	replace `var' = stritrim(`var') // collapses all consecutive, internal blanks to one blank.
+	replace `var' = strtrim(`var') // removes leading and trailing blanks
+}
+
 drop seasch State_leaid
+
+
+// Generating StudentGroup count
+gen StateAssignedDistID1 = StateAssignedDistID
+replace StateAssignedDistID1 = 000000 if DataLevel == 1 //Remove quotations if DistIDs are numeric
+gen StateAssignedSchID1 = StateAssignedSchID
+replace StateAssignedSchID1 = "000000" if DataLevel != 3 //Remove quotations if SchIDs are numeric
+egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
+sort group_id StudentGroup StudentSubGroup
+drop StudentGroup_TotalTested
+by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+drop group_id StateAssignedDistID1 StateAssignedSchID1
+
+gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
+replace StudentGroup_TotalTested = AllStudents_Tested 
+drop AllStudents_Tested
 
 // Reordering variables and sorting data
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
@@ -299,13 +355,13 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 // Saving and exporting transformed data
 
-save "${output}/PA_AssmtData_2016.dta", replace
-export delimited using "$output/PA_AssmtData_2016.csv", replace
+save "$Output/PA_AssmtData_2016.dta", replace
+export delimited using "$Output/PA_AssmtData_2016.csv", replace
 
 restore
-*/
+
 // 2017
-/*
+
 preserve 
 keep if SchYear == "2016-17"
 
@@ -314,7 +370,7 @@ tostring StateAssignedDistID, gen(state_leaid)
 gen seasch = state_leaid+"-"+substr(StateAssignedSchID,-4,4)
 replace state_leaid = "PA-"+state_leaid
 
-save "${output}/PA_AssmtData_2017.dta", replace
+save "$Output/PA_AssmtData_2017.dta", replace
 
 // Merging with NCES School Data
 
@@ -325,9 +381,9 @@ keep state_location state_fips district_agency_type SchType ncesdistrictid state
 keep if state_location == "PA"
 drop if seasch == ""
 
-merge 1:m state_leaid seasch using "${output}/PA_AssmtData_2017.dta", keep(match using) nogenerate
+merge 1:m state_leaid seasch using "$Output/PA_AssmtData_2017.dta", keep(match using) nogenerate
 
-save "${output}/PA_AssmtData_2017.dta", replace
+save "$Output/PA_AssmtData_2017.dta", replace
 
 // Merging with NCES District Data
 
@@ -337,7 +393,7 @@ keep state_location state_fips district_agency_type ncesdistrictid state_leaid D
 
 keep if state_location == "PA"
 
-merge 1:m state_leaid using "${output}/PA_AssmtData_2017.dta", keep(match using) nogenerate
+merge 1:m state_leaid using "$Output/PA_AssmtData_2017.dta", keep(match using) nogenerate
 
 // Renaming NCES variables
 rename district_agency_type DistType
@@ -353,30 +409,59 @@ rename county_name CountyName
 //Other Reformatting
 replace DistName = stritrim(DistName)
 
-// Fixing State Level Data
-replace StateAbbrev = "PA" if DataLevel == 1
-replace StateFips = 42 if DataLevel == 1
+// Final Cleaning
+replace StateAbbrev = "PA" if missing(StateAbbrev)
+replace StateFips = 42 if missing(StateFips)
+replace SchName = lower(SchName)
+replace SchName = proper(SchName)
+replace DistName = lower(DistName)
+replace DistName = proper(DistName)
 replace DistName = "All Districts" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel == 2
 
+//Removing extra spaces
+foreach var of varlist DistName SchName {
+	replace `var' = stritrim(`var') // collapses all consecutive, internal blanks to one blank.
+	replace `var' = strtrim(`var') // removes leading and trailing blanks
+}
+
 drop seasch State_leaid
+
+
+// Generating StudentGroup count
+gen StateAssignedDistID1 = StateAssignedDistID
+replace StateAssignedDistID1 = 000000 if DataLevel == 1 //Remove quotations if DistIDs are numeric
+gen StateAssignedSchID1 = StateAssignedSchID
+replace StateAssignedSchID1 = "000000" if DataLevel != 3 //Remove quotations if SchIDs are numeric
+egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
+sort group_id StudentGroup StudentSubGroup
+drop StudentGroup_TotalTested
+by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+drop group_id StateAssignedDistID1 StateAssignedSchID1
+
+gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
+replace StudentGroup_TotalTested = AllStudents_Tested 
+drop AllStudents_Tested
 
 // Reordering variables and sorting data
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 // Saving and exporting transformed data
 
-save "${output}/PA_AssmtData_2017.dta", replace
-export delimited using "$output/PA_AssmtData_2017.csv", replace
+save "$Output/PA_AssmtData_2017.dta", replace
+export delimited using "$Output/PA_AssmtData_2017.csv", replace
 
 restore
-*/
 
 // 2018
-/*
+
 preserve 
 keep if SchYear == "2017-18"
 
@@ -385,7 +470,7 @@ tostring StateAssignedDistID, gen(state_leaid)
 gen seasch = state_leaid+"-"+substr(StateAssignedSchID,-4,4)
 replace state_leaid = "PA-"+state_leaid
 
-save "${output}/PA_AssmtData_2018.dta", replace
+save "$Output/PA_AssmtData_2018.dta", replace
 
 // Merging with NCES School Data
 
@@ -396,9 +481,9 @@ keep state_location state_fips district_agency_type SchType ncesdistrictid state
 keep if state_location == "PA"
 drop if seasch == ""
 
-merge 1:m state_leaid seasch using "${output}/PA_AssmtData_2018.dta", keep(match using) nogenerate
+merge 1:m state_leaid seasch using "$Output/PA_AssmtData_2018.dta", keep(match using) nogenerate
 
-save "${output}/PA_AssmtData_2018.dta", replace
+save "$Output/PA_AssmtData_2018.dta", replace
 
 // Merging with NCES District Data
 
@@ -408,7 +493,7 @@ keep state_location state_fips district_agency_type ncesdistrictid state_leaid D
 
 keep if state_location == "PA"
 
-merge 1:m state_leaid using "${output}/PA_AssmtData_2018.dta", keep(match using) nogenerate
+merge 1:m state_leaid using "$Output/PA_AssmtData_2018.dta", keep(match using) nogenerate
 
 // Renaming NCES variables
 rename district_agency_type DistType
@@ -421,30 +506,61 @@ rename county_code CountyCode
 rename state_fips StateFips
 rename county_name CountyName
 
-// Fixing State Level Data
-replace StateAbbrev = "PA" if DataLevel == 1
-replace StateFips = 42 if DataLevel == 1
+keep if SchYear == "2017-18"
+replace StateAbbrev = "PA" if missing(StateAbbrev)
+replace StateFips = 42 if missing(StateFips)
+replace SchName = lower(SchName)
+replace SchName = proper(SchName)
+replace DistName = lower(DistName)
+replace DistName = proper(DistName)
 replace DistName = "All Districts" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel == 2
 
+//Removing extra spaces
+foreach var of varlist DistName SchName {
+	replace `var' = stritrim(`var') // collapses all consecutive, internal blanks to one blank.
+	replace `var' = strtrim(`var') // removes leading and trailing blanks
+}
+
 drop seasch State_leaid
 
+duplicates drop AssmtName AssmtType NCESDistrictID NCESSchoolID Subject GradeLevel StudentGroup StudentSubGroup, force
+
+
+// Generating StudentGroup count
+gen StateAssignedDistID1 = StateAssignedDistID
+replace StateAssignedDistID1 = 000000 if DataLevel == 1 //Remove quotations if DistIDs are numeric
+gen StateAssignedSchID1 = StateAssignedSchID
+replace StateAssignedSchID1 = "000000" if DataLevel != 3 //Remove quotations if SchIDs are numeric
+egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
+sort group_id StudentGroup StudentSubGroup
+drop StudentGroup_TotalTested
+by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+drop group_id StateAssignedDistID1 StateAssignedSchID1
+
+gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
+replace StudentGroup_TotalTested = AllStudents_Tested 
+drop AllStudents_Tested
+
 // Reordering variables and sorting data
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode 
+
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 // Saving and exporting transformed data
 
-save "${output}/PA_AssmtData_2018.dta", replace
-export delimited using "$output/PA_AssmtData_2018.csv", replace
+save "$Output/PA_AssmtData_2018.dta", replace
+export delimited using "$Output/PA_AssmtData_2018.csv", replace
 
 restore
-*/
 
 // 2019
-/*
+
 preserve 
 keep if SchYear == "2018-19"
 
@@ -453,7 +569,7 @@ tostring StateAssignedDistID, gen(state_leaid)
 gen seasch = state_leaid+"-"+substr(StateAssignedSchID,-4,4)
 replace state_leaid = "PA-"+state_leaid
 
-save "${output}/PA_AssmtData_2019.dta", replace
+save "$Output/PA_AssmtData_2019.dta", replace
 
 // Merging with NCES School Data
 
@@ -464,9 +580,9 @@ keep state_location state_fips district_agency_type SchType ncesdistrictid state
 keep if state_location == "PA"
 drop if seasch == ""
 
-merge 1:m state_leaid seasch using "${output}/PA_AssmtData_2019.dta", keep(match using) nogenerate
+merge 1:m state_leaid seasch using "$Output/PA_AssmtData_2019.dta", keep(match using) nogenerate
 
-save "${output}/PA_AssmtData_2019.dta", replace
+save "$Output/PA_AssmtData_2019.dta", replace
 
 // Merging with NCES District Data
 
@@ -476,7 +592,7 @@ keep state_location state_fips district_agency_type ncesdistrictid state_leaid D
 
 keep if state_location == "PA"
 
-merge 1:m state_leaid using "${output}/PA_AssmtData_2019.dta", keep(match using) nogenerate
+merge 1:m state_leaid using "$Output/PA_AssmtData_2019.dta", keep(match using) nogenerate
 
 // Renaming NCES variables
 rename district_agency_type DistType
@@ -489,30 +605,57 @@ rename county_code CountyCode
 rename state_fips StateFips
 rename county_name CountyName
 
-// Fixing State Level Data
-replace StateAbbrev = "PA" if DataLevel == 1
-replace StateFips = 42 if DataLevel == 1
+// Final Cleaning
+replace StateAbbrev = "PA" if missing(StateAbbrev)
+replace StateFips = 42 if missing(StateFips)
+replace SchName = lower(SchName)
+replace SchName = proper(SchName)
+replace DistName = lower(DistName)
+replace DistName = proper(DistName)
 replace DistName = "All Districts" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel == 2
 
+//Removing extra spaces
+foreach var of varlist DistName SchName {
+	replace `var' = stritrim(`var') // collapses all consecutive, internal blanks to one blank.
+	replace `var' = strtrim(`var') // removes leading and trailing blanks
+}
+
 drop seasch State_leaid
 
+
+// Generating StudentGroup count
+gen StateAssignedDistID1 = StateAssignedDistID
+replace StateAssignedDistID1 = 000000 if DataLevel == 1 //Remove quotations if DistIDs are numeric
+gen StateAssignedSchID1 = StateAssignedSchID
+replace StateAssignedSchID1 = "000000" if DataLevel != 3 //Remove quotations if SchIDs are numeric
+egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
+sort group_id StudentGroup StudentSubGroup
+drop StudentGroup_TotalTested
+by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+drop group_id StateAssignedDistID1 StateAssignedSchID1
+
+gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
+replace StudentGroup_TotalTested = AllStudents_Tested 
+drop AllStudents_Tested
 // Reordering variables and sorting data
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 // Saving and exporting transformed data
 
-save "${output}/PA_AssmtData_2019.dta", replace
-export delimited using "$output/PA_AssmtData_2019.csv", replace
+save "$Output/PA_AssmtData_2019.dta", replace
+export delimited using "$Output/PA_AssmtData_2019.csv", replace
 
 restore
-*/
 
 // 2021
-/*
 preserve 
 keep if SchYear == "2020-21"
 
@@ -521,7 +664,7 @@ tostring StateAssignedDistID, gen(state_leaid)
 gen seasch = state_leaid+"-"+substr(StateAssignedSchID,-4,4)
 replace state_leaid = "PA-"+state_leaid
 
-save "${output}/PA_AssmtData_2021.dta", replace
+save "$Output/PA_AssmtData_2021.dta", replace
 
 // Merging with NCES School Data
 
@@ -532,9 +675,9 @@ keep state_location state_fips district_agency_type SchType ncesdistrictid state
 keep if state_location == "PA"
 drop if seasch == ""
 
-merge 1:m state_leaid seasch using "${output}/PA_AssmtData_2021.dta", keep(match using) nogenerate
+merge 1:m state_leaid seasch using "$Output/PA_AssmtData_2021.dta", keep(match using) nogenerate
 
-save "${output}/PA_AssmtData_2021.dta", replace
+save "$Output/PA_AssmtData_2021.dta", replace
 
 // Merging with NCES District Data
 
@@ -544,7 +687,7 @@ keep state_location state_fips district_agency_type ncesdistrictid state_leaid D
 
 keep if state_location == "PA"
 
-merge 1:m state_leaid using "${output}/PA_AssmtData_2021.dta", keep(match using) nogenerate
+merge 1:m state_leaid using "$Output/PA_AssmtData_2021.dta", keep(match using) nogenerate
 
 // Renaming NCES variables
 rename district_agency_type DistType
@@ -557,12 +700,39 @@ rename county_code CountyCode
 rename state_fips StateFips
 rename county_name CountyName
 
-// Fixing State Level Data
-replace StateAbbrev = "PA" if DataLevel == 1
-replace StateFips = 42 if DataLevel == 1
+// Final Cleaning
+replace StateAbbrev = "PA" if missing(StateAbbrev)
+replace StateFips = 42 if missing(StateFips)
+replace SchName = lower(SchName)
+replace SchName = proper(SchName)
+replace DistName = lower(DistName)
+replace DistName = proper(DistName)
 replace DistName = "All Districts" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel == 2
+
+//Removing extra spaces
+foreach var of varlist DistName SchName {
+	replace `var' = stritrim(`var') // collapses all consecutive, internal blanks to one blank.
+	replace `var' = strtrim(`var') // removes leading and trailing blanks
+}
+
+// Generating StudentGroup count
+gen StateAssignedDistID1 = StateAssignedDistID
+replace StateAssignedDistID1 = 000000 if DataLevel == 1 //Remove quotations if DistIDs are numeric
+gen StateAssignedSchID1 = StateAssignedSchID
+replace StateAssignedSchID1 = "000000" if DataLevel != 3 //Remove quotations if SchIDs are numeric
+egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
+sort group_id StudentGroup StudentSubGroup
+drop StudentGroup_TotalTested
+by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+drop group_id StateAssignedDistID1 StateAssignedSchID1
+
+gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
+replace StudentGroup_TotalTested = AllStudents_Tested 
+drop AllStudents_Tested
 
 drop seasch State_leaid
 
@@ -573,15 +743,14 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 // Saving and exporting transformed data
 
-save "${output}/PA_AssmtData_2021.dta", replace
-export delimited using "$output/PA_AssmtData_2021.csv", replace
+save "$Output/PA_AssmtData_2021.dta", replace
+export delimited using "$Output/PA_AssmtData_2021.csv", replace
 
 restore
-*/
 
 // 2022
-/*
 preserve 
+drop if SchYear != "2021-22"
 keep if SchYear == "2021-22"
 
 // Generate ID to match NCES
@@ -589,7 +758,7 @@ tostring StateAssignedDistID, gen(state_leaid)
 gen seasch = state_leaid+"-"+substr(StateAssignedSchID,-4,4)
 replace state_leaid = "PA-"+state_leaid
 
-save "${output}/PA_AssmtData_2022.dta", replace
+save "$Output/PA_AssmtData_2022.dta", replace
 
 // Merging with NCES School Data
 
@@ -600,9 +769,9 @@ keep state_location state_fips district_agency_type SchType ncesdistrictid state
 keep if state_location == "PA"
 drop if seasch == ""
 
-merge 1:m state_leaid seasch using "${output}/PA_AssmtData_2022.dta", keep(match using) nogenerate
+merge 1:m state_leaid seasch using "$Output/PA_AssmtData_2022.dta", keep(match using) nogenerate
 
-save "${output}/PA_AssmtData_2022.dta", replace
+save "$Output/PA_AssmtData_2022.dta", replace
 
 // Merging with NCES District Data
 
@@ -612,7 +781,7 @@ keep state_location state_fips district_agency_type ncesdistrictid state_leaid D
 
 keep if state_location == "PA"
 
-merge 1:m state_leaid using "${output}/PA_AssmtData_2022.dta", keep(match using) nogenerate
+merge 1:m state_leaid using "$Output/PA_AssmtData_2022.dta", keep(match using) nogenerate
 
 // Renaming NCES variables
 rename district_agency_type DistType
@@ -625,24 +794,73 @@ rename county_code CountyCode
 rename state_fips StateFips
 rename county_name CountyName
 
-// Fixing State Level Data
-replace StateAbbrev = "PA" if DataLevel == 1
-replace StateFips = 42 if DataLevel == 1
+use "$Output/PA_AssmtData_2022.dta", clear
+// Final Cleaning
+replace StateAbbrev = "PA" if missing(StateAbbrev)
+replace StateFips = 42 if missing(StateFips)
+replace SchName = lower(SchName)
+replace SchName = proper(SchName)
+replace DistName = lower(DistName)
+replace DistName = proper(DistName)
 replace DistName = "All Districts" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel == 2
 
-drop seasch State_leaid
+//Removing extra spaces
+foreach var of varlist DistName SchName {
+	replace `var' = stritrim(`var') // collapses all consecutive, internal blanks to one blank.
+	replace `var' = strtrim(`var') // removes leading and trailing blanks
+}
+
+use "$Output/PA_AssmtData_2022.dta", clear
+replace ParticipationRate = string(real(ParticipationRate) / 100) if real(ParticipationRate) > 1 & strpos(ParticipationRate, "-") == 0
 
 // Reordering variables and sorting data
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 // Saving and exporting transformed data
 
-save "${output}/PA_AssmtData_2022.dta", replace
-export delimited using "$output/PA_AssmtData_2022.csv", replace
+save "$Output/PA_AssmtData_2022.dta", replace
+export delimited using "$Output/PA_AssmtData_2022.csv", replace
+
+
+
+// Generating StudentGroup count
+gen StateAssignedDistID1 = StateAssignedDistID
+replace StateAssignedDistID1 = 000000 if DataLevel == 1 //Remove quotations if DistIDs are numeric
+gen StateAssignedSchID1 = StateAssignedSchID
+replace StateAssignedSchID1 = "000000" if DataLevel != 3 //Remove quotations if SchIDs are numeric
+egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
+sort group_id StudentGroup StudentSubGroup
+drop StudentGroup_TotalTested
+by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+drop group_id StateAssignedDistID1 StateAssignedSchID1
+
+gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
+replace StudentGroup_TotalTested = AllStudents_Tested 
+drop AllStudents_Tested
+
+drop seasch State_leaid
+ 
+// Reordering variables and sorting data
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
+// Saving and exporting transformed data
+
+save "$Output/PA_AssmtData_2022.dta", replace
+export delimited using "$Output/PA_AssmtData_2022.csv", replace
 
 restore
 */

@@ -1,7 +1,7 @@
 
 # Illinois Data Cleaning
 
-This is a ReadMe for Illinois's data cleaning process, from 2015 to 2023.
+This is a ReadMe for Illinois's data cleaning process, from 2015 to 2024.
 
 
 ## Setup
@@ -10,7 +10,7 @@ Create a folder for IL. Inside that folder, create two more folders:
 
 1. Download do-files and place them in the IL folder.
 2. Download the "Datasets" folder in the EDFacts folder under _Data Cleaning Materials
-3. Make sure you're using updated NCES files (from february 2024)
+3. Make sure you're using updated NCES files 
 4. Set Directories as follows:
 The `cd` command should map to the IL folder
 `NCESSchool` should map to the folder containing NCES .dta files at the school level
@@ -26,7 +26,7 @@ The `cd` command should map to the IL folder
 - To clean all years at once after running the conversion and merge do-files, run the following code:
 ```
 cd "[YOUR FOLDER PATH FOR IL]"
-forvalues year = 2015/2023 {
+forvalues year = 2015/2024 {
 if `year' == 2020 continue
 do Illinois `year' Cleaning
 }

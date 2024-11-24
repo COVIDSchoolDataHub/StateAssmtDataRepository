@@ -104,6 +104,7 @@ drop if StudentSubGroup == "Not a high school graduate"
 drop if StudentSubGroup == "Some college (includes AA degree)"
 drop if StudentSubGroup == "IFEP (Initial fluent English proficient)"
 drop if StudentSubGroup == "TBD (To be determined)"
+drop if StudentSubGroup == "AR–LTEL (At-Risk of becoming LTEL)"
 
 replace StudentGroup = "All Students" if StudentGroup == "All Students"
 replace StudentGroup = "RaceEth" if StudentGroup == "Race and Ethnicity"
@@ -126,8 +127,8 @@ replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic o
 replace StudentSubGroup = "Two or More" if StudentSubGroup == "Two or more races"
 *drop if StudentSubGroup == "Filipino" //Not dropping as of 10/15/24
 
-replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Economically disadvantaged"
-replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "Not economically disadvantaged"
+replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Economically disadvantaged" | StudentSubGroup == "Socioeconomically disadvantaged"
+replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "Not economically disadvantaged" | StudentSubGroup == "Not socioeconomically disadvantaged"
 
 replace StudentSubGroup = "Male" if StudentSubGroup == "Male"
 replace StudentSubGroup = "Female" if StudentSubGroup == "Female"
@@ -137,6 +138,8 @@ replace StudentSubGroup = "Never EL" if StudentSubGroup == "EO (English only)"
 replace StudentSubGroup = "Ever EL" if StudentSubGroup == "Ever–EL"
 replace StudentSubGroup = "EL Exited" if StudentSubGroup == "RFEP (Reclassified fluent English proficient)"
 replace StudentSubGroup = "English Proficient" if StudentSubGroup == "IFEP, RFEP, and EO (Fluent English proficient and English only)"
+replace StudentSubGroup = "LTEL" if StudentSubGroup == "LTEL (Long-Term English learner)"
+
 
 replace StudentSubGroup = "SWD" if StudentSubGroup == "Reported disabilities"
 replace StudentSubGroup = "Non-SWD" if StudentSubGroup == "No reported disabilities"
@@ -152,7 +155,7 @@ replace StudentSubGroup = "Non-Foster Care" if StudentSubGroup == "Not foster yo
 replace StudentSubGroup = "Military" if StudentSubGroup == "Armed forces family member"
 replace StudentSubGroup = "Non-Military" if StudentSubGroup == "Not armed forces family member"
 
-drop if StudentSubGroup == "Never EL"
+drop if StudentSubGroup == "Never–EL" | StudentSubGroup == "Never EL"
 
 //NCES Merging
 replace NCESDistrictID = string(real(NCESDistrictID), "%07.0f")
@@ -279,6 +282,7 @@ local lowproflev = substr(ProficiencyCriteria, strpos(ProficiencyCriteria, "-")-
 local highproflev = substr(ProficiencyCriteria, strpos(ProficiencyCriteria, "-")+1,1)
 di `highproflev' - `lowproflev'
 replace ProficientOrAbove_count = string(real(Lev`lowproflev'_count) + real(Lev`highproflev'_count)) if !missing(real(Lev`lowproflev'_count)) & !missing(real(Lev`highproflev'_count))
+replace ProficientOrAbove_count = string(real(StudentSubGroup_TotalTested)) if real(ProficientOrAbove_count) > real(StudentSubGroup_TotalTested) & !missing(real(StudentSubGroup_TotalTested)) & !missing(real(ProficientOrAbove_count))
 
 //Final Cleaning
 foreach var of varlist DistName SchName {

@@ -56,7 +56,7 @@ global output "/Volumes/T7/State Test Project/California/Output"
 ## Updates
 
 - 03/10/2024: Responded to first round of 2024 data update review comments.
-- 06/11/2023: Moved to new NCES files for all years and updated unmerged observations. Added new code to deal with additional unmerged observations.
-- 6/15/23: Fixed mismatched ID's for all years.
+- 06/11/2024: Moved to new NCES files for all years and updated unmerged observations. Added new code to deal with additional unmerged observations.
+- 6/15/24: Fixed mismatched ID's for all years.
 - 6/27/24 Incorporated science data for 2019-2023.
 - 11/10/24: Incorporated 2024, streamlined all do-files, redid nces merging by using crosswalk/dealt with mismatched dist and sch ids, brought state up to V2.0 conventions

@@ -158,8 +158,8 @@ replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic o
 replace StudentSubGroup = "Two or More" if StudentSubGroup == "Two or more races"
 
 // Economic Status
-replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Economically disadvantaged"
-replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "Not economically disadvantaged"
+replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Economically disadvantaged" | StudentSubGroup == "Socioeconomically disadvantaged"
+replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "Not economically disadvantaged" | StudentSubGroup == "Not socioeconomically disadvantaged"
 
 // Gender Group 
 replace StudentSubGroup = "Male" if StudentSubGroup == "Male"
@@ -329,6 +329,7 @@ local lowproflev = substr(ProficiencyCriteria, strpos(ProficiencyCriteria, "-")-
 local highproflev = substr(ProficiencyCriteria, strpos(ProficiencyCriteria, "-")+1,1)
 di `highproflev' - `lowproflev'
 replace ProficientOrAbove_count = string(real(Lev`lowproflev'_count) + real(Lev`highproflev'_count)) if !missing(real(Lev`lowproflev'_count)) & !missing(real(Lev`highproflev'_count))
+replace ProficientOrAbove_count = string(real(StudentSubGroup_TotalTested)) if real(ProficientOrAbove_count) > real(StudentSubGroup_TotalTested) & !missing(real(StudentSubGroup_TotalTested)) & !missing(real(ProficientOrAbove_count))
 
 //StudentGroup_TotalTested
 cap drop StudentGroup_TotalTested

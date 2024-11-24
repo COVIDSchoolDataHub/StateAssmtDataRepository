@@ -1,57 +1,52 @@
+clear
+set more off
+cd "/Volumes/T7/State Test Project/South Dakota"
+cap log close
+set trace off
+
+global Original "/Volumes/T7/State Test Project/South Dakota/Original Data"
+global Output "/Volumes/T7/State Test Project/South Dakota/Output"
+global NCES_District "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global NCES_School "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global Stata_versions "/Volumes/T7/State Test Project/South Dakota/Stata .dta versions"
+
+local years 2003 2004 2005 2006 2007 2008 2009 2010 2011 2012 2013 
+local subjects ela math sci
+local DataLevels State District School
 
 
+
+**Prepping Files**
+//For this code to work, the first time it runs must be to convert all excel files to .dta format. Simply unhide the import and save commands and hide the use command.
+foreach year of local years {
+di "~~~~~~~~~~~~"
+display( "`year'" )
+di "~~~~~~~~~~~~"	
+
+	local prevyear =`=`year'-1'
+	tempfile temp_`year'
 	clear
-	set more off
-	cd "/Users/benjaminm/Documents/State_Repository_Research"
-	cap log close
-	set trace off
-	//log using Observe.log, replace
-
-
-	local Original "/Users/benjaminm/Documents/State_Repository_Research/South Dakota/Original Data"
-	local Output "/Users/benjaminm/Documents/State_Repository_Research/South Dakota/Output"
-	local NCES_District "/Users/benjaminm/Documents/State_Repository_Research/NCES/District"
-	local NCES_School "/Users/benjaminm/Documents/State_Repository_Research/NCES/School"
-	local Stata_versions "/Users/benjaminm/Documents/State_Repository_Research/South Dakota/Stata .dta versions"
-
-
-	local years 2003 2004 2005 2006 2007 2008 2009 2010 2011 2012 2013 
-	local subjects read math sci
-	local DataLevels State District School
-
-
-
-	**Prepping Files**
-	//For this code to work, the first time it runs must be to convert all excel files to .dta format. Simply unhide the import and save commands and hide the use command.
-	foreach year of local years {
-	di "~~~~~~~~~~~~"
-	display( "`year'" )
-	di "~~~~~~~~~~~~"	
-
-		local prevyear =`=`year'-1'
-		tempfile temp_`year'
-		clear
-		save "`temp_`year''", emptyok
-		foreach subject of local subjects {
-			 if "`subject'" == "sci" & (`year' == 2003 | `year' == 2004 | `year' == 2005 | `year' == 2006) {
-				continue
-			 }
-			 if "`subject'" == "math" & `year' == 2005 {
-				continue
-			 }
-			foreach DataLevel of local DataLevels {
-				*import excel "`Original'/`subject'_`prevyear'-`year'.xlsx", case(preserve) sheet("`DataLevel'")
-				*save "`Stata_versions'/`year'_`subject'_`DataLevel'", replace
-				use "`Stata_versions'/`year'_`subject'_`DataLevel'"
+	save "`temp_`year''", emptyok
+	foreach subject of local subjects {
+			if "`subject'" == "sci" & (`year' == 2003 | `year' == 2004 | `year' == 2005 | `year' == 2006) {
+			continue
+			}
+			if "`subject'" == "math" & `year' == 2005 {
+			continue
+			}
+		foreach DataLevel of local DataLevels {
+			*import excel "$Original/`subject'_`prevyear'-`year'.xlsx", case(preserve) sheet("`DataLevel'")
+			*save "$Stata_versions/`year'_`subject'_`DataLevel'", replace
+			use "$Stata_versions/`year'_`subject'_`DataLevel'"
 				
 				
 		
 
 
-	** Cleaning **
-	//Varnames in prep for reshape
-	drop in 1/6
-	if "`DataLevel'" == "State" {
+** Cleaning **
+//Varnames in prep for reshape
+drop in 1/6
+if "`DataLevel'" == "State" {
 	drop A
 	rename B GradeLevel
 	rename C Total_Tested
@@ -383,7 +378,6 @@
 	if "`DataLevel'" == "School" {
 	reshape long Lev1_percent Lev2_percent Lev3_percent Lev4_percent, i(DistName SchName GradeLevel) j(StudentSubGroup, string)
 	}		
-	*save "/Volumes/T7/State Test Project/South Dakota/test/`year'_`DataLevel'_`subject'", replace
 
 
 
@@ -398,7 +392,7 @@
 	save "`temp1'"
 	clear
 
-	use "`NCES_District'/NCES_`prevyear'_District.dta"
+	use "$NCES_District/NCES_`prevyear'_District.dta"
 	replace state_fips = 46 if state_location == "SD"
 	keep if state_fips == 46
 
@@ -408,14 +402,10 @@
 	duplicates drop UniqueDistID, force
 	merge 1:m UniqueDistID using "`temp1'"
 	drop if _merge==1
-	drop if _merge == 2 // changed 6/3/24
+	//drop if _merge == 2 // changed 6/3/24 hidden 11/15/24
 	if _rc !=0 {
 	di as error "Problem with DistID, check `year'_`subject'_`DataLevel'"
 	}
-
-
-
-
 
 
 	}
@@ -428,10 +418,7 @@
 	tempfile temp1
 	save "`temp1'"
 	clear
-	use "`NCES_School'/NCES_`prevyear'_School.dta"
-	if `year' == 2010 {
-		drop _merge
-	}
+	use "$NCES_School/NCES_`prevyear'_School.dta"
 
 	replace state_fips = 46 if state_location == "SD"
 	keep if state_fips == 46
@@ -463,7 +450,7 @@
 	merge 1:m UniqueSchID using "`temp1'"
 	display("BBBBBBB")
 	drop if _merge==1
-	drop if _merge == 2 // changed 6/3/24
+	//drop if _merge == 2 // changed 6/3/24 hidden 11/15/24
 	if _rc !=0 {
 	di as error "Problem with SchID, check `year'_`subject'_`DataLevel'"
 	}
@@ -471,7 +458,6 @@
 	}
 
 	//Combining DataLevel and subject
-	*save "/Volumes/T7/State Test Project/South Dakota/test/`year'_`DataLevel'_`subject'", replace
 	gen Subject = "`subject'"
 	gen DataLevel = "`DataLevel'"
 	tempfile `subject'_`DataLevel'
@@ -481,7 +467,6 @@
 	append using "`temp_`year''"
 	save "`temp_`year''", replace
 	clear
-	*save "/Volumes/T7/State Test Project/South Dakota/test/`year'", replace
 
 
 
@@ -551,8 +536,8 @@
 	gen StudentSubGroup_TotalTested = "" 
 	replace StudentSubGroup_TotalTested = Total_Tested if StudentSubGroup == "All Students"
 	replace StudentSubGroup_TotalTested = "--" if missing(StudentSubGroup_TotalTested)
-	//StudentGroup_TotalTested
-	gen StudentGroup_TotalTested = StudentSubGroup_TotalTested
+	
+	
 	//Level Counts and Percents
 	foreach n in 1 2 3 4 {
 		gen Lev`n'_count = "--"
@@ -567,13 +552,6 @@
 	//Final Variables
 
 	gen ParticipationRate = "--"
-
-	// gen Flag_AssmtNameChange = "N"
-	// gen Flag_CutScoreChange_ELA = ""
-	// gen Flag_CutScoreChange_math = "N"
-	// gen Flag_CutScoreChange_oth = ""
-	// replace Flag_CutScoreChange_oth = "N" if `year' >= 2007
-	// gen Flag_CutScoreChange_read = "N"
 
 	gen Flag_AssmtNameChange = "N"
 	gen Flag_CutScoreChange_ELA = "N"
@@ -605,6 +583,7 @@
 
 	//GradeLevel
 	replace GradeLevel = "G0" + GradeLevel
+	
 	//Fixing State Level Data
 	drop State 
 	gen State = "South Dakota"
@@ -668,8 +647,8 @@
 
 	replace Subject = "ela" if Subject == "read" 
 	
-		drop if NCESDistrictID == "MISSING"
-drop if NCESSchoolID == "MISSING"
+	drop if NCESDistrictID == "MISSING"
+	drop if NCESSchoolID == "MISSING"
 	
 	
     replace StateAssignedDistID = "0" + StateAssignedDistID if strlen(StateAssignedDistID) == 4
@@ -688,36 +667,92 @@ drop if NCESSchoolID == "MISSING"
 	
 	
 	
-	if `year' == 2003 | `year' == 2004 | `year' == 2005 | `year' == 2006 | `year' == 2007 | `year' == 2008  {
-	replace CountyName = strtrim(CountyName) + " County" if DataLevel == 2 | DataLevel == 3
-	}
+if `year' == 2003 | `year' == 2004 | `year' == 2005 | `year' == 2006 | `year' == 2007 | `year' == 2008  {
+replace CountyName = strtrim(CountyName) + " County" if DataLevel == 2 | DataLevel == 3
+}
 	
 replace CountyName = "McCook County" if CountyName == "Mccook County"
 replace CountyName = "McPherson County" if CountyName == "Mcpherson County"
 
- //SD reivew added 6/6/24
- sort GradeLevel Subject DataLevel SchName DistName StudentGroup
-by GradeLevel Subject DataLevel SchName DistName (StudentGroup): gen all_students_tested = StudentGroup_TotalTested if StudentGroup == "All Students"
-by GradeLevel Subject DataLevel SchName DistName: replace all_students_tested = all_students_tested[_n-1] if missing(all_students_tested)
-replace StudentGroup_TotalTested = all_students_tested
+//Misc Updates
+if `year' == 2010 drop if SchName == "Wood Elementary" & NCESSchoolID == "461413000140"
+
+//Unmerged Schools/Districts with no data or are private
+if `year' > 2008 & `year' < 2014 drop if (missing(NCESDistrictID) & DataLevel !=1) | (missing(NCESSchoolID) & DataLevel == 3) // Unmerged are private schools
+if `year' == 2003 drop if SchName == "E.A.G.L.E. Center" & missing(NCESSchoolID)
+if `year' == 2005 drop if DistName == "DSS Auxiliary Placements" & missing(NCESDistrictID)
+if `year' == 2008 drop if DistName == "St Lawrence School" & missing(NCESDistrictID)
+
+
+//StudentGroup_TotalTested
+cap drop StudentGroup_TotalTested
+gen StateAssignedDistID1 = StateAssignedDistID
+replace StateAssignedDistID1 = "000000" if DataLevel == 1
+gen StateAssignedSchID1 = StateAssignedSchID
+replace StateAssignedSchID1 = "000000" if DataLevel !=3
+egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
+sort group_id StudentGroup StudentSubGroup
+by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+drop group_id StateAssignedDistID1 StateAssignedSchID1
+
+//Deriving StudentSubGroup_TotalTested where possible
+gen UnsuppressedSSG = real(StudentSubGroup_TotalTested)
+egen UnsuppressedSG = total(UnsuppressedSSG), by(StudentGroup DistName SchName GradeLevel Subject)
+gen missing_SSG = 1 if missing(real(StudentSubGroup_TotalTested))
+egen missing_multiple = total(missing_SSG), by(StudentGroup DistName SchName GradeLevel Subject)
+
+order StudentGroup_TotalTested UnsuppressedSG StudentSubGroup_TotalTested UnsuppressedSSG missing_multiple
+
+replace StudentSubGroup_TotalTested = string(real(StudentGroup_TotalTested)-UnsuppressedSG) if missing(real(StudentSubGroup_TotalTested)) & UnsuppressedSG > 0 & (missing_multiple <2 | StudentSubGroup == "English Learner" | StudentSubGroup == "English Proficient") & real(StudentGroup_TotalTested)-UnsuppressedSG > 0 & !missing(real(StudentGroup_TotalTested)-UnsuppressedSG) & StudentSubGroup != "All Students"
+
+drop Unsuppressed* missing_*
+
+//Level percent (and corresponding count) derivations if we have all other percents
+replace Lev1_percent = string(1-real(Lev4_percent)-real(Lev3_percent)-real(Lev2_percent), "%9.3g") if !missing(1) & !missing(real(Lev4_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev2_percent)) & missing(real(Lev1_percent))
+
+replace Lev2_percent = string(1-real(Lev4_percent)-real(Lev3_percent)-real(Lev1_percent), "%9.3g") if !missing(1) & !missing(real(Lev4_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev1_percent)) & missing(real(Lev2_percent))
+
+replace Lev3_percent = string(1-real(Lev4_percent)-real(Lev1_percent)-real(Lev2_percent), "%9.3g") if !missing(1) & !missing(real(Lev4_percent)) & !missing(real(Lev1_percent)) & !missing(real(Lev2_percent)) & missing(real(Lev3_percent))
+
+replace Lev4_percent = string(1-real(Lev1_percent)-real(Lev3_percent)-real(Lev2_percent), "%9.3g") if !missing(1) & !missing(real(Lev1_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev2_percent)) & missing(real(Lev4_percent))
+
+foreach percent of varlist Lev*_percent {
+	replace `percent' = "0" if real(`percent') < 0.005 & !missing(real(`percent'))
+}
+
+replace ProficientOrAbove_percent = string(real(Lev3_percent) + real(Lev4_percent)) if !missing(real(Lev3_percent)) & !missing(real(Lev4_percent)) & missing(real(ProficientOrAbove_percent))
+
+foreach count of varlist Lev*_count {
+	local percent = subinstr("`count'", "count", "percent",.)
+	replace `count' = string(round(real(`percent') * real(StudentSubGroup_TotalTested))) if !missing(real(`percent')) & !missing(real(StudentSubGroup_TotalTested))
+}
+
+//Misc Fixes
+replace ProficientOrAbove_percent = "1" if real(ProficientOrAbove_percent) > 1 & !missing(real(ProficientOrAbove_percent))
+replace ProficientOrAbove_count = string(real(Lev3_count) + real(Lev4_count)) if !missing(real(Lev3_count)) & !missing(real(Lev4_count))
+
+//Final Cleaning
+foreach var of varlist DistName SchName {
+	replace `var' = stritrim(`var')
+	replace `var' = strtrim(`var')
+}
+
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 
 
-	order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+//Saving
+save "$Output/SD_AssmtData_`year'.dta" , replace
+export delimited "$Output/SD_AssmtData_`year'", replace	
+clear
+erase "`temp_`year''"
 
-	keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
-	sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-
-
-
-	//Saving
-	save "`Output'/SD_AssmtData_`year'.dta" , replace
-	export delimited "`Output'/SD_AssmtData_`year'", replace	
-	clear
-	erase "`temp_`year''"
-
-	}
+}
 
 	
 	
