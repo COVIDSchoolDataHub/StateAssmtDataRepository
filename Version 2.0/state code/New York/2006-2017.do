@@ -2,10 +2,14 @@ clear
 set more off
 set trace off
 
+global original "/Users/miramehta/Documents/New York/Original"
+global output "/Users/miramehta/Documents/New York/Output"
+global nces_school "/Users/miramehta/Documents/NCES District and School Demographics/NCES School Files, Fall 1997-Fall 2022"
+global nces_district "/Users/miramehta/Documents/NCES District and School Demographics/NCES District Files, Fall 1997-Fall 2022"
 
-forvalues year = 2013/2013 {
+forvalues year = 2006/2017 {
 local prevyear =`=`year'-1'
-use "${original}/Combined_`year'"
+use "${original}/Combined_`year'", clear
 
 //Data contains test score data from prior year in each file
 drop if `year' != v3
@@ -173,7 +177,7 @@ gen ProficiencyCriteria = "Levels 3-4"
 
 //Subject
 replace Subject = "ela" if Subject == "ELA"
-replace Subject = "math" if Subject == "MATH"
+replace Subject = "math" if inlist(Subject, "MATH", "mat")
 replace Subject = "sci" if Subject == "SCIENCE"
 replace Subject = "soc" if Subject == "SOC"
 
@@ -213,8 +217,10 @@ replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Milita
 *tab StudentGroup, missing
 
 //StudentGroup_TotalTested
-sort StudentGroup
-egen StudentGroup_TotalTested = total(StudentSubGroup_TotalTested), by(StudentGroup GradeLevel Subject DataLevel StateAssignedSchID StateAssignedDistID)
+sort DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel StudentGroup StudentSubGroup
+gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+order Subject GradeLevel StudentGroup_TotalTested StudentGroup StudentSubGroup_TotalTested StudentSubGroup
+replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested) & StudentSubGroup != "All Students"
 
 //Flags
 gen Flag_AssmtNameChange = "N"
@@ -237,22 +243,22 @@ gen ProficientOrAbove_percent = ""
 destring Lev*, replace force
 gen tempvar1 = Lev3_count + Lev4_count
 gen tempvar2 = tempvar1/StudentSubGroup_TotalTested
-tostring tempvar2, replace force format("%9.3g")
-tostring tempvar1, replace force format("%9.3g")
+tostring tempvar2, replace force format("%9.5g")
+tostring tempvar1, replace force format("%9.5g")
 replace ProficientOrAbove_count = tempvar1
 replace ProficientOrAbove_percent = tempvar2
 foreach n in 1 2 3 4 {
 	replace Lev`n'_percent = Lev`n'_percent/100
 }
-tostring Lev*, replace force format("%9.3g")
+tostring Lev*, replace force format("%9.5g")
 foreach num in 1 2 3 4 {
 	replace Lev`num'_count = "*" if SUP == "s"
 	replace Lev`num'_percent = "*" if SUP == "s"
-	
 }
 replace ProficientOrAbove_count = "*" if SUP == "s"
 replace ProficientOrAbove_percent = "*" if SUP =="s"
 replace AvgScaleScore = "*" if SUP == "s"
+replace AvgScaleScore = subinstr(AvgScaleScore, "0", "", 1) if strpos(AvgScaleScore, "0") == 1 & AvgScaleScore != "0"
 replace Lev5_count = ""
 replace Lev5_percent = ""
 
@@ -298,10 +304,18 @@ if `year'== 2016 replace SchVirtual = 0 if SchName == "UNION SPRINGS MIDDLE SCHO
 replace CountyName = "Kings County" if CountyName == "Cook County"
 replace CountyCode = "36047" if CountyCode == "17031"
 
-replace Subject = "math" if Subject == "mat"
+*replace Subject = "math" if Subject == "mat"
 
-//CountyNames
+//Standardizing Names
 replace CountyName = proper(CountyName)
+replace CountyName = CountyName + " County" if `year' < 2009 & DataLevel != 1
+replace DistName = strtrim(DistName)
+replace DistName = stritrim(DistName)
+replace SchName = strtrim(SchName)
+replace SchName = stritrim(SchName)
+
+replace DistName = subinstr(DistName, "CENTRAL SCHOOL DISTRICT", "CSD", 1)
+replace DistName = subinstr(DistName, "CITY SCHOOL DISTRICT", "CITY SD", 1)
 
 //Response to post-launch review
 if `year' == 2011 {
@@ -314,7 +328,7 @@ if `year' == 2012 {
 	replace SchVirtual = -1 if NCESSchoolID == "360098506136"
 }
 
-if `year' == 2006 replace CountyCode = "36103" if CountyName == "Suffolk"
+if `year' == 2006 replace CountyCode = "36103" if CountyName == "Suffolk County"
 
 replace ParticipationRate = "--" if ParticipationRate == "." //Updated 7/23/24
 
@@ -326,7 +340,6 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${output}/NY_AssmtData_`year'", replace
 export delimited "${output}/NY_AssmtData_`year'", replace
-
 		
 }
 

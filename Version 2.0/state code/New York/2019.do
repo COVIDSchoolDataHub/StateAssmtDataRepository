@@ -1,14 +1,15 @@
 clear
 set more off
 
-			** NOTE: SET GLOBAL DIRECTORIES IN NY_Master do-file **
+global original "/Users/miramehta/Documents/New York/Original"
+global output "/Users/miramehta/Documents/New York/Output"
+global nces_school "/Users/miramehta/Documents/NCES District and School Demographics/NCES School Files, Fall 1997-Fall 2022"
+global nces_district "/Users/miramehta/Documents/NCES District and School Demographics/NCES District Files, Fall 1997-Fall 2022"
 
-			
-			
 //Standardizing varnames and combining
 
 //ELA *CROSSWALK IN README IS WRONG*
-import delimited "${original}/NY_OriginalData_ela_2019.txt", clear stringcols(1)
+import delimited "${original}/2019-2024/NY_OriginalData_ela_2019.txt", clear stringcols(1)
 rename v2 ENTITY_NAME
 rename v3 YEAR
 rename v4 ASSESSMENT
@@ -34,7 +35,7 @@ save "`temp1'"
 
 //MATH
 
-import delimited "${original}/NY_OriginalData_mat_2019.txt", clear stringcols(1)
+import delimited "${original}/2019-2024/NY_OriginalData_mat_2019.txt", clear stringcols(1)
 rename v2 ENTITY_NAME
 rename v3 YEAR
 rename v4 ASSESSMENT
@@ -62,7 +63,7 @@ save "`temp2'"
 
 //SCI *CROSSWALK IN README IS WRONG*
 
-import delimited "${original}/NY_OriginalData_sci_2019.txt", clear stringcols(1)
+import delimited "${original}/2019-2024/NY_OriginalData_sci_2019.txt", clear stringcols(1)
 
 rename v2 ENTITY_NAME
 rename v3 YEAR
@@ -116,7 +117,7 @@ replace StateAssignedDistID = ENTITY_CD if strpos(ENTITY_NAME, "CHARTER") !=0 & 
 //GradeLevel
 drop if strpos(ASSESSMENT, "Regents") !=0 | strpos(ASSESSMENT, "Combined") !=0
 gen GradeLevel = "G0" + substr(ASSESSMENT, -1, 1)
-replace GradeLevel = "G38" if strpos(ASSESSMENT, "_") !=0
+drop if strpos(ASSESSMENT, "_") !=0 //Values dropped- they include data for Lev5_count and Lev5_percent, indicating that they aggregate Regents exam information as well.
 
 //Merging and cleaning NCES Data
 tempfile temp1
@@ -233,8 +234,10 @@ replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Milita
 
 //StudentGroup_TotalTested
 *duplicates drop
-destring StudentSubGroup_TotalTested, replace
-egen StudentGroup_TotalTested = total(StudentSubGroup_TotalTested), by(StudentGroup GradeLevel Subject DataLevel StateAssignedSchID StateAssignedDistID)
+sort DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel StudentGroup StudentSubGroup
+gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+order Subject GradeLevel StudentGroup_TotalTested StudentGroup StudentSubGroup_TotalTested StudentSubGroup
+replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested) & StudentSubGroup != "All Students"
 
 //Flags
 gen Flag_AssmtNameChange = "N"
@@ -277,13 +280,19 @@ replace DistType = "Charter Agency" if DistType == "" & strpos(SchName, "CHARTER
 replace StateAssignedDistID = StateAssignedSchID if DistCharter == "Yes" | strpos(SchName, "CHARTER") !=0
 
 //Dropping if No Students Tested
-drop if StudentSubGroup_TotalTested == 0
+drop if StudentSubGroup_TotalTested == 0 & StudentSubGroup != "All Students"
 
-//CountyNames
+//Standardizing Names
 replace CountyName = proper(CountyName)
+replace DistName = strtrim(DistName)
+replace DistName = stritrim(DistName)
+replace SchName = strtrim(SchName)
+replace SchName = stritrim(SchName)
+
+replace DistName = subinstr(DistName, "CENTRAL SCHOOL DISTRICT", "CSD", 1)
+replace DistName = subinstr(DistName, "CITY SCHOOL DISTRICT", "CITY SD", 1)
 
 //Post Launch review
-drop if GradeLevel == "G38" //Values dropped- they include data for Lev5_count and Lev5_percent, indicating that they aggregate Regents exam information as well.
 replace ParticipationRate = "." if ParticipationRate == "--" //explicitly asked for in review, done to merge more easily in future years
 
 

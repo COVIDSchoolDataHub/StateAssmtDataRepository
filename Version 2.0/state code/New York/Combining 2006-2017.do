@@ -2,7 +2,7 @@ clear
 set more off
 set trace off
 
-cd "/Volumes/T7/State Test Project/New York/Original/2006-2017"
+cd "/Users/miramehta/Documents/New York/Original/2006-2018"
 
 local subjects ela mat sci soc
 local allgrades G03 G04 G05 G06 G07 G08

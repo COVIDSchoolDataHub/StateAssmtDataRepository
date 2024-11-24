@@ -1,10 +1,42 @@
 clear
 set more off
 
-use "${original}/Combined_2018.dta"
+global original "/Users/miramehta/Documents/New York/Original"
+global output "/Users/miramehta/Documents/New York/Output"
+global nces_school "/Users/miramehta/Documents/NCES District and School Demographics/NCES School Files, Fall 1997-Fall 2022"
+global nces_district "/Users/miramehta/Documents/NCES District and School Demographics/NCES District Files, Fall 1997-Fall 2022"
+
+//Import Data
+import delimited "${original}/2006-2018/NY_OriginalData_ela_2018.txt", clear stringcols(1)
+
+gen subject = "ELA"
+
+tempfile temp1
+save "`temp1'"
+
+import delimited "${original}/2006-2018/NY_OriginalData_mat_2018.txt", clear stringcols(1)
+
+gen subject = "MATH"
+
+tempfile temp2
+save "`temp2'"
+
+import delimited "${original}/2006-2018/NY_OriginalData_sci_2018.txt", clear stringcols(1)
+
+gen subject = "SCIENCE"
+
+tempfile temp3
+save "`temp3'"
+clear
+
+//Appending
+
+foreach n in 1 2 3 {
+	append using "`temp`n''", force
+}
 
 //Data contains 2017 score data
-drop if v3 != "2018"
+drop if v3 != 2018
 
 //Mapping v[n] onto variables in crosswalk
 rename v2 ENTITY_NAME
@@ -34,9 +66,9 @@ drop v1
 order ENTITY_CD
 
 //creating DataLevel, StateAssignedSchID, StateAssignedDistID, based on ENTITY_CD
-drop if strlen(ENTITY_CD)<12
+*drop if strlen(ENTITY_CD)<12
 drop if substr(ENTITY_CD,1,2)== "00"
-gen DataLevel= "State" if ENTITY_CD== "111111111111"
+gen DataLevel= "State" if ENTITY_CD== "1"
 replace DataLevel= "District" if substr(ENTITY_CD,9,4)=="0000" & substr(ENTITY_CD,7,2) !="86"
 replace DataLevel= "School" if substr(ENTITY_CD,9,4) !="0000" & substr(ENTITY_CD,7,2) !="86"
 replace DataLevel= "School" if substr(ENTITY_CD,7,2) =="86" //All Charter schools are their own district
@@ -49,7 +81,7 @@ replace StateAssignedDistID = ENTITY_CD if strpos(ENTITY_NAME, "CHARTER") !=0 & 
 //GradeLevel
 drop if strpos(ASSESSMENT, "Regents") !=0 | strpos(ASSESSMENT, "Combined") !=0
 gen GradeLevel = "G0" + substr(ASSESSMENT, -1, 1)
-replace GradeLevel = "G38" if strpos(ASSESSMENT, "_") !=0
+drop if strpos(ASSESSMENT, "_") !=0 //Values dropped- they include data for Lev5_count and Lev5_percent, indicating that they aggregate Regents exam information as well.
 
 //Merging and cleaning NCES Data
 tempfile temp1
@@ -167,8 +199,10 @@ replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Milita
 tab StudentGroup, missing
 
 //StudentGroup_TotalTested
-destring StudentSubGroup_TotalTested, replace
-egen StudentGroup_TotalTested = total(StudentSubGroup_TotalTested), by(StudentGroup GradeLevel Subject DataLevel StateAssignedSchID StateAssignedDistID)
+sort DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel StudentGroup StudentSubGroup
+gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+order Subject GradeLevel StudentGroup_TotalTested StudentGroup StudentSubGroup_TotalTested StudentSubGroup
+replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested) & StudentSubGroup != "All Students"
 
 //Flags
 gen Flag_AssmtNameChange = "N"
@@ -212,13 +246,19 @@ replace DistType = "Charter Agency" if DistType == "" & strpos(SchName, "CHARTER
 replace StateAssignedDistID = StateAssignedSchID if DistCharter == "Yes" | strpos(SchName, "CHARTER") !=0
 
 //Dropping if No Students Tested
-drop if StudentSubGroup_TotalTested == 0
+drop if StudentSubGroup_TotalTested == 0 & StudentSubGroup != "All Students"
 
-//CountyNames
+//Standardizing Names
 replace CountyName = proper(CountyName)
+replace DistName = strtrim(DistName)
+replace DistName = stritrim(DistName)
+replace SchName = strtrim(SchName)
+replace SchName = stritrim(SchName)
+
+replace DistName = subinstr(DistName, "CENTRAL SCHOOL DISTRICT", "CSD", 1)
+replace DistName = subinstr(DistName, "CITY SCHOOL DISTRICT", "CITY SD", 1)
 
 //Response to Post-launch review
-drop if GradeLevel == "G38" //Values dropped- they include data for Lev5_count and Lev5_percent, indicating that they aggregate Regents exam information as well.
 replace ParticipationRate = "." if ParticipationRate == "--" //explicitly asked for in review, done to merge more easily in future years
 
 //Final Cleaning and Dropping extra variables
@@ -230,4 +270,3 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${output}/NY_AssmtData_2018", replace
 export delimited "${output}/NY_AssmtData_2018", replace
-
