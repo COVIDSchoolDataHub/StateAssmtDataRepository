@@ -25,7 +25,7 @@ global Temp: Folder containing .dta format versions of the original data
 global Original "/Users/name/Desktop/Pennsylvania/Original"
 global NCES "/Users/name/Desktop/Pennsylvania/NCES"
 global Output "/Users/name/Desktop/Pennsylvania/Output"
-global Temp "/Users/name/Desktop/Pennsylvania/Temp"4
+global Temp "/Users/name/Desktop/Pennsylvania/Temp"
 ```
 ## Re-creating cleaning process
 
