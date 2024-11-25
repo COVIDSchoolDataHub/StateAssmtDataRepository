@@ -1,15 +1,16 @@
 
-global Abbrev "PA"
-global years 2015 2016 2017 2018 2019 2021 2022
+clear all 
+set more off
+
 global Original "/Users/name/Desktop/Pennsylvania/Original"
 global NCES "/Users/name/Desktop/Pennsylvania/NCES"
 global Output "/Users/name/Desktop/Pennsylvania/Output"
 global Temp "/Users/name/Desktop/Pennsylvania/Temp"
 
 cd "/Users/name/Desktop/Pennsylvania/"
-capture log close
+
 // All years from data request
-/*
+
 //School import
 
 import excel "$Original/2015-2022 PSSA Schools.xlsx", sheet("Sheet1") firstrow clear
@@ -794,7 +795,6 @@ rename county_code CountyCode
 rename state_fips StateFips
 rename county_name CountyName
 
-use "$Output/PA_AssmtData_2022.dta", clear
 // Final Cleaning
 replace StateAbbrev = "PA" if missing(StateAbbrev)
 replace StateFips = 42 if missing(StateFips)
@@ -812,43 +812,8 @@ foreach var of varlist DistName SchName {
 	replace `var' = strtrim(`var') // removes leading and trailing blanks
 }
 
-use "$Output/PA_AssmtData_2022.dta", clear
 replace ParticipationRate = string(real(ParticipationRate) / 100) if real(ParticipationRate) > 1 & strpos(ParticipationRate, "-") == 0
 
-// Reordering variables and sorting data
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
-
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
-sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-
-// Saving and exporting transformed data
-
-save "$Output/PA_AssmtData_2022.dta", replace
-export delimited using "$Output/PA_AssmtData_2022.csv", replace
-
-
-
-// Generating StudentGroup count
-gen StateAssignedDistID1 = StateAssignedDistID
-replace StateAssignedDistID1 = 000000 if DataLevel == 1 //Remove quotations if DistIDs are numeric
-gen StateAssignedSchID1 = StateAssignedSchID
-replace StateAssignedSchID1 = "000000" if DataLevel != 3 //Remove quotations if SchIDs are numeric
-egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
-sort group_id StudentGroup StudentSubGroup
-drop StudentGroup_TotalTested
-by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
-by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
-drop group_id StateAssignedDistID1 StateAssignedSchID1
-
-gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
-replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
-replace StudentGroup_TotalTested = AllStudents_Tested 
-drop AllStudents_Tested
-
-drop seasch State_leaid
- 
 // Reordering variables and sorting data
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
