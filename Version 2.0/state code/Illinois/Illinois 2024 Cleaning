@@ -3,8 +3,8 @@
 clear
 set more off
 
+// There is no science data included in this file, as the science data in the 2024 file is not disaggregated by grade level
 
-// UPDATED
 global output "/Users/benjaminm/Documents/State_Repository_Research/Illinois/Output" 
 global NCES "/Users/benjaminm/Documents/State_Repository_Research/Illinois/NCES/cleaned"
 // global NCES_School"/Users/benjaminm/Documents/State_Repository_Research/NCES/School"
