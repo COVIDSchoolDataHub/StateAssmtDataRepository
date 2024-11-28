@@ -764,3 +764,4 @@ export delimited using "${output}/IL_AssmtData_2018.csv", replace
 
 use "${output}/IL_AssmtData_2018.dta", clear
 
+
