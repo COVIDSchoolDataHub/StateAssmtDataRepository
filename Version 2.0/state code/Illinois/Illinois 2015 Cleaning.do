@@ -436,13 +436,55 @@ replace ProficientOrAbove_percent = string(round(real(Lev4_percent) + real(Lev5_
 
 
 
+
+replace DistName ="Horizon Science Acad-McKinley Park Charter Sch" if NCESDistrictID=="1701410"
+replace DistName ="Horizon Science Acad-Belmont Charter Sch" if NCESDistrictID=="1701412"
+replace DistName ="Milford Area PSD 124" if NCESDistrictID=="1701416"
+replace DistName ="Huntley Community School District 158" if NCESDistrictID=="1719830"
+replace DistName ="Salt Fork Community Unit District 512" if NCESDistrictID=="1701418"
+replace DistName ="Spring Garden Community Consolidated School District 178" if NCESDistrictID=="1701419"
+replace DistName ="LEARN John and Kathy Schreiber Charter School" if NCESDistrictID=="1701423"
+replace DistName ="Betty Shabazz International Charter School" if NCESDistrictID=="1701424"
+replace DistName ="Community Unit School District No 196" if NCESDistrictID=="1712720"
+replace DistName="Chicago Public Schools District 299" if NCESDistrictID=="1709930"
+
+replace	SchName = "Acero Chtr Sch Network - Bartolome de las Casas Elem Sch" if NCESSchoolID== "170993006448"			
+replace	SchName = "Acero Chtr Sch Network - Brighton Park Elem School" if NCESSchoolID== "170993006474"			
+replace	SchName = "Acero Chtr Sch Network - Carlos Fuentes Elem School" if NCESSchoolID== "17099300648"		
+replace	SchName = "Acero Chtr Sch Network - Esmeralda Santiago Elem Sch" if NCESSchoolID== "170993006521"				
+replace	SchName = "Acero Chtr Sch Network - Jovita Idar Elem School" if NCESSchoolID== "170993006505"			
+replace	SchName = "Acero Chtr Sch Network - Octavio Paz Elem School" if NCESSchoolID== "170993006482"			
+replace	SchName = "Acero Chtr Sch Network - Officer Donald J Marquez Elem" if NCESSchoolID== "170993006497"			
+replace	SchName = "Acero Chtr Sch Network - PFC Omar E Torres Elem Sch" if NCESSchoolID== "170993006522"		
+replace	SchName = "Acero Chtr Sch Network - Rufino Tamayo Elem Sch" if NCESSchoolID== "170993006455"			
+replace	SchName = "Acero Chtr Sch Network - SPC Daniel Zizumbo Elem Sch" if NCESSchoolID== "170993006444"				
+replace	SchName = "Acero Chtr Sch Network- Sandra Cisneros Elem School" if NCESSchoolID== "170993006436"		
+replace	SchName = "Acero Chtr Sch Newtwork - Roberto Clemente Elem School" if NCESSchoolID== "170993006524"		
+replace	SchName = "EPG Middle School" if NCESSchoolID == "170032605635"			
+replace	SchName = "KIPP Chicago Charters - Ascend Academy" if NCESSchoolID== "170993006509"		
+replace	SchName = "Legacy Acad of Excellence Charter Sch" if NCESSchoolID == "173451006077"		
+replace	SchName = "MacArthur International Spanish Academy" if NCESSchoolID== "173474003649"		
+replace	SchName ="KIPP Chicago Charter School - KIPP One Academy" if NCESSchoolID== "170993006520"			
+replace	SchName = "Horizon Sci Academy - Southwest Charter" if NCESSchoolID== "170993006331"			
+replace	SchName = "Nicholson Technology Acad Elem Sch" if NCESSchoolID== "170993000597"		
+replace	SchName= "A C Thompson Elem School" if NCESSchoolID== "173451003593"		
+replace	SchName= "Acero Chtr Sch Network- Sor Juana Ines de la Cruz K-12" if NCESSchoolID == "170993006508"		
+replace	SchName= "Asian Human Services -Passage Chrtr" if NCESSchoolID== "170993005682"			
+replace	SchName= "Colonel George Iles Elementary School" if NCESSchoolID== "173300005056"				
+replace	SchName= "Sarah Atwater Denman Elementary School" if NCESSchoolID== "173300005055"			
+replace	SchName= "Thomas S Baldwin Elementary School" if NCESSchoolID== "173300003359"			
+replace	SchName= "Waverly Junior/Senior High School" if NCESSchoolID== "174128004145"	
+
+
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
  
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
 save "${output}/IL_AssmtData_2015_1.dta", replace
 
 export delimited using "${output}/IL_AssmtData_2015.csv", replace
 
-
+use "${output}/IL_AssmtData_2015.dta", clear
