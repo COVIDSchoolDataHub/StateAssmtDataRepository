@@ -16,7 +16,6 @@ The `cd` command should map to the Vermont folder
 `NCES_Schoool` should map to the folder containing NCES .dta files at the school level
 `NCES_District ` should map to the folder containing NCES .dta files at the district level
 `EDFacts` should map to the folder containing the EDFacts datasets exactly as formatted in the drive, where each year is its own folder.
-- As an aside, both the final output and the raw files will be found in the "Original" folder. Cleaned files are identified by their name, "IL_AssmtData_`year'" in .csv format. Feel free to change this, just make sure to note changes in this file.
 
 ## Recreating Cleaning Process
 - Run the one yearly cleaning do file
