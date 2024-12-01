@@ -20,7 +20,6 @@ The `cd` command should map to the Vermont folder
 ## Recreating Cleaning Process
 - Run the one yearly cleaning do file
 - Run the 2016-2017 and 2022 Edfacts files next 
-```
 
 
 
