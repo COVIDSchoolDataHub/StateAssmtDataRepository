@@ -166,8 +166,8 @@ bysort State_leaid seasch GradeLevel Subject: egen Military = total(StudentSubGr
 bysort State_leaid seasch GradeLevel Subject: egen Foster = total(StudentSubGroup_TotalTested2) if StudentGroup == "Foster Care Status"
 bysort State_leaid seasch GradeLevel Subject: egen Disability = total(StudentSubGroup_TotalTested2) if StudentGroup == "Disability Status"
 
-replace StudentSubGroup_TotalTested2 = max - RaceEth if StudentSubGroup == "RaceEth" & max != 0 & StudentSubGroup_TotalTested == "*" & RaceEth != 0
-replace StudentSubGroup_TotalTested2 = max - Econ if StudentSubGroup == "Economic Status" & max != 0 & StudentSubGroup_TotalTested == "*" & Econ != 0
+replace StudentSubGroup_TotalTested2 = max - RaceEth if StudentGroup == "RaceEth" & max != 0 & StudentSubGroup_TotalTested == "*" & RaceEth != 0
+replace StudentSubGroup_TotalTested2 = max - Econ if StudentGroup == "Economic Status" & max != 0 & StudentSubGroup_TotalTested == "*" & Econ != 0
 replace StudentSubGroup_TotalTested2 = max - Gender if StudentGroup == "Gender" & max != 0 & StudentSubGroup_TotalTested == "*" & Gender != 0
 replace StudentSubGroup_TotalTested2 = max - Migrant if StudentGroup == "Migrant Status" & max != 0 & StudentSubGroup_TotalTested == "*" & Migrant != 0
 replace StudentSubGroup_TotalTested2 = max - Homeless if StudentGroup == "Homeless Enrolled Status" & max != 0 & StudentSubGroup_TotalTested == "*" & Homeless != 0
