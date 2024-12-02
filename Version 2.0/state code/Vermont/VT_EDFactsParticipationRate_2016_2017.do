@@ -1,12 +1,19 @@
 clear
 set more off
 
-global EDFacts "/Users/kaitlynlucas/Desktop/EDFacts Drive Data"
-global State_Output "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/Vermont Assessment" // Version 1.1 Output directory here
-global New_Output "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/Vermont V2.0" // Version 2.0 Output directory here
+// global EDFacts "/Users/kaitlynlucas/Desktop/EDFacts Drive Data"
+// global State_Output "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/Vermont Assessment" // Version 1.1 Output directory here
+// global New_Output "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/Vermont V2.0" // Version 2.0 Output directory here
+//
+
+
+global EDFacts "/Users/benjaminm/Documents/State_Repository_Research/EdFacts" //Folder with downloaded state-specific 2022 participation data from EDFacts
+global State_Output "/Users/benjaminm/Documents/State_Repository_Research/Vermont/State_Output" // Folder with state-specific data
+global New_Output "/Users/benjaminm/Documents/State_Repository_Research/Vermont/New_Output"
+
 
 ** Preparing EDFacts files
-local edyears1 16 17 18
+local edyears1 16 17 // 18
 local edyears2 2019 2021
 local subject math ela
 local datatype part
@@ -19,6 +26,7 @@ foreach year of local edyears1 {
             foreach lvl of local datalevel {
                 local prevyear = `year' - 1
                 use "${EDFacts}/20`year'/edfacts`type'20`year'`sub'`lvl'.dta", clear
+				rename *, lower
                 keep if stnam == "VERMONT"
                 rename *_`prevyear'`year' *
                 if ("`sub'" == "math") {
@@ -135,138 +143,140 @@ foreach year of local edyears1 {
     }
 }
 
-foreach year of local edyears2 {
-	foreach sub of local subject {
-		foreach type of local datatype {
-			foreach lvl of local datalevel {
-				use "${EDFacts}/`year'/edfacts`type'`year'`sub'`lvl'.dta", clear
-				keep if stnam == "VERMONT"
-				drop date_cur
-				if ("`type'" == "count") {
-					rename numvalid Count
-					rename pctprof PctProf
-				}
-				if ("`type'" == "part") {
-					rename pctpart Participation
-					drop numpart
-				}
-				rename subject Subject
-				replace Subject = "`sub'"
-				if ("`lvl'" == "school") {
-					gen DataLevel = 3
-				}
-				if ("`lvl'" == "district") {
-					gen DataLevel = 2
-				}
-				save "${EDFacts}/`year'/edfacts`type'`year'`sub'`lvl'vermont.dta", replace
-			}
-		}
-	}
-}
-
-foreach year of local edyears2 {
-	foreach type of local datatype {
-		foreach lvl of local datalevel {
-			use "${EDFacts}/`year'/edfacts`type'`year'math`lvl'vermont.dta", clear
-			append using "${EDFacts}/`year'/edfacts`type'`year'ela`lvl'vermont.dta"
-			if ("`lvl'" == "school"){
-				rename ncessch NCESSchoolID
-			}
-			rename leaid NCESDistrictID
-			if ("`type'" == "count") {
-				drop if Count == .
-				drop if PctProf == ""
-				replace PctProf = "--" if PctProf == "n/a"
-				replace PctProf = "*" if PctProf == "PS"
-				split PctProf, parse("-")
-				destring PctProf1, replace force
-				replace PctProf1 = PctProf1/100
-				tostring PctProf1, replace format("%9.2g") force
-				destring PctProf2, replace force
-				replace PctProf2 = PctProf2/100			
-				tostring PctProf2, replace format("%9.2g") force
-				replace PctProf = PctProf1 + "-" + PctProf2 if PctProf1 != "." & PctProf2 != "."
-				replace PctProf = PctProf1 if PctProf1 != "." & PctProf2 == "."
-				gen PctProf3 = subinstr(PctProf, "GE", "", .) if strpos(PctProf, "GE") > 0
-				replace PctProf3 = subinstr(PctProf, "LT", "", .) if strpos(PctProf, "LT") > 0
-				replace PctProf3 = subinstr(PctProf, "LE", "", .) if strpos(PctProf, "LE") > 0
-				destring PctProf3, replace force
-				replace PctProf3 = PctProf3/100
-				tostring PctProf3, replace format("%9.2g") force
-				replace PctProf = PctProf3 + "-1" if strpos(PctProf, "GE") > 0
-				replace PctProf = "0-" + PctProf3 if strpos(PctProf, "LT") > 0
-				replace PctProf = "0-" + PctProf3 if strpos(PctProf, "LE") > 0
-				drop PctProf1 PctProf2 PctProf3
-			}
-			if ("`type'" == "part") {
-				drop if Participation == ""
-				replace Participation = "--" if Participation == "n/a"
-				replace Participation = "*" if Participation == "PS"
-				split Participation, parse("-")
-				destring Participation1, replace force
-				replace Participation1 = Participation1/100
-				tostring Participation1, replace format("%9.2g") force
-				destring Participation2, replace force
-				replace Participation2 = Participation2/100			
-				tostring Participation2, replace format("%9.2g") force
-				replace Participation = Participation1 + "-" + Participation2 if Participation1 != "." & Participation2 != "."
-				replace Participation = Participation1 if Participation1 != "." & Participation2 == "."
-				gen Participation3 = subinstr(Participation, "GE", "", .) if strpos(Participation, "GE") > 0
-				replace Participation3 = subinstr(Participation, "LT", "", .) if strpos(Participation, "LT") > 0
-				replace Participation3 = subinstr(Participation, "LE", "", .) if strpos(Participation, "LE") > 0
-				destring Participation3, replace force
-				replace Participation3 = Participation3/100
-				tostring Participation3, replace format("%9.2g") force
-				replace Participation = Participation3 + "-1" if strpos(Participation, "GE") > 0
-				replace Participation = "0-" + Participation3 if strpos(Participation, "LT") > 0
-				replace Participation = "0-" + Participation3 if strpos(Participation, "LE") > 0
-				drop Participation1 Participation2 Participation3
-			}
-			drop if grade == "HS"
-			rename grade GradeLevel
-			replace GradeLevel = "G" + GradeLevel
-			replace GradeLevel = "G38" if GradeLevel == "G00"
-			rename category StudentSubGroup
-			replace StudentSubGroup = "All Students" if StudentSubGroup == "ALL"
-			replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "ECD"
-			replace StudentSubGroup = "Female" if StudentSubGroup == "F"
-			replace StudentSubGroup = "English Learner" if StudentSubGroup == "LEP"
-			replace StudentSubGroup = "Male" if StudentSubGroup == "M"
-			replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "MAM"
-			replace StudentSubGroup = "Asian" if StudentSubGroup == "MAS"
-			replace StudentSubGroup = "Black or African American" if StudentSubGroup == "MBL"
-			replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "MHI"
-			replace StudentSubGroup = "Two or More" if StudentSubGroup == "MTR"
-			replace StudentSubGroup = "White" if StudentSubGroup == "MWH"
-			replace StudentSubGroup = "SWD" if StudentSubGroup == "CWD"
-			replace StudentSubGroup = "Migrant" if StudentSubGroup == "MIG"
-			replace StudentSubGroup = "Homeless" if StudentSubGroup == "HOM"
-			replace StudentSubGroup = "Military" if StudentSubGroup == "MIL"
-			replace StudentSubGroup = "Foster Care" if StudentSubGroup == "FCS"
-			gen StudentGroup = "RaceEth"
-			replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
-			replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged"
-			replace StudentGroup = "Gender" if inlist(StudentSubGroup, "Female", "Male")
-			replace StudentGroup = "EL Status" if StudentSubGroup == "English Learner"
-			replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD"
-			replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant"
-			replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless"
-			replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Military"
-			replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Foster Care"
-			save "${EDFacts}/`year'/edfacts`type'`year'`lvl'vermont.dta", replace
-		}
-	}
-}
+// foreach year of local edyears2 {
+// 	foreach sub of local subject {
+// 		foreach type of local datatype {
+// 			foreach lvl of local datalevel {
+// 				use "${EDFacts}/`year'/edfacts`type'`year'`sub'`lvl'.dta", clear
+// 				keep if stnam == "VERMONT"
+// 				drop date_cur
+// 				if ("`type'" == "count") {
+// 					rename numvalid Count
+// 					rename pctprof PctProf
+// 				}
+// 				if ("`type'" == "part") {
+// 					rename pctpart Participation
+// 					drop numpart
+// 				}
+// 				rename subject Subject
+// 				replace Subject = "`sub'"
+// 				if ("`lvl'" == "school") {
+// 					gen DataLevel = 3
+// 				}
+// 				if ("`lvl'" == "district") {
+// 					gen DataLevel = 2
+// 				}
+// 				save "${EDFacts}/`year'/edfacts`type'`year'`sub'`lvl'vermont.dta", replace
+// 			}
+// 		}
+// 	}
+// }
+//
+// foreach year of local edyears2 {
+// 	foreach type of local datatype {
+// 		foreach lvl of local datalevel {
+// 			use "${EDFacts}/`year'/edfacts`type'`year'math`lvl'vermont.dta", clear
+// 			append using "${EDFacts}/`year'/edfacts`type'`year'ela`lvl'vermont.dta"
+// 			if ("`lvl'" == "school"){
+// 				rename ncessch NCESSchoolID
+// 			}
+// 			rename leaid NCESDistrictID
+// 			if ("`type'" == "count") {
+// 				drop if Count == .
+// 				drop if PctProf == ""
+// 				replace PctProf = "--" if PctProf == "n/a"
+// 				replace PctProf = "*" if PctProf == "PS"
+// 				split PctProf, parse("-")
+// 				destring PctProf1, replace force
+// 				replace PctProf1 = PctProf1/100
+// 				tostring PctProf1, replace format("%9.2g") force
+// 				destring PctProf2, replace force
+// 				replace PctProf2 = PctProf2/100			
+// 				tostring PctProf2, replace format("%9.2g") force
+// 				replace PctProf = PctProf1 + "-" + PctProf2 if PctProf1 != "." & PctProf2 != "."
+// 				replace PctProf = PctProf1 if PctProf1 != "." & PctProf2 == "."
+// 				gen PctProf3 = subinstr(PctProf, "GE", "", .) if strpos(PctProf, "GE") > 0
+// 				replace PctProf3 = subinstr(PctProf, "LT", "", .) if strpos(PctProf, "LT") > 0
+// 				replace PctProf3 = subinstr(PctProf, "LE", "", .) if strpos(PctProf, "LE") > 0
+// 				destring PctProf3, replace force
+// 				replace PctProf3 = PctProf3/100
+// 				tostring PctProf3, replace format("%9.2g") force
+// 				replace PctProf = PctProf3 + "-1" if strpos(PctProf, "GE") > 0
+// 				replace PctProf = "0-" + PctProf3 if strpos(PctProf, "LT") > 0
+// 				replace PctProf = "0-" + PctProf3 if strpos(PctProf, "LE") > 0
+// 				drop PctProf1 PctProf2 PctProf3
+// 			}
+// 			if ("`type'" == "part") {
+// 				drop if Participation == ""
+// 				replace Participation = "--" if Participation == "n/a"
+// 				replace Participation = "*" if Participation == "PS"
+// 				split Participation, parse("-")
+// 				destring Participation1, replace force
+// 				replace Participation1 = Participation1/100
+// 				tostring Participation1, replace format("%9.2g") force
+// 				destring Participation2, replace force
+// 				replace Participation2 = Participation2/100			
+// 				tostring Participation2, replace format("%9.2g") force
+// 				replace Participation = Participation1 + "-" + Participation2 if Participation1 != "." & Participation2 != "."
+// 				replace Participation = Participation1 if Participation1 != "." & Participation2 == "."
+// 				gen Participation3 = subinstr(Participation, "GE", "", .) if strpos(Participation, "GE") > 0
+// 				replace Participation3 = subinstr(Participation, "LT", "", .) if strpos(Participation, "LT") > 0
+// 				replace Participation3 = subinstr(Participation, "LE", "", .) if strpos(Participation, "LE") > 0
+// 				destring Participation3, replace force
+// 				replace Participation3 = Participation3/100
+// 				tostring Participation3, replace format("%9.2g") force
+// 				replace Participation = Participation3 + "-1" if strpos(Participation, "GE") > 0
+// 				replace Participation = "0-" + Participation3 if strpos(Participation, "LT") > 0
+// 				replace Participation = "0-" + Participation3 if strpos(Participation, "LE") > 0
+// 				drop Participation1 Participation2 Participation3
+// 			}
+// 			drop if grade == "HS"
+// 			rename grade GradeLevel
+// 			replace GradeLevel = "G" + GradeLevel
+// 			replace GradeLevel = "G38" if GradeLevel == "G00"
+// 			rename category StudentSubGroup
+// 			replace StudentSubGroup = "All Students" if StudentSubGroup == "ALL"
+// 			replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "ECD"
+// 			replace StudentSubGroup = "Female" if StudentSubGroup == "F"
+// 			replace StudentSubGroup = "English Learner" if StudentSubGroup == "LEP"
+// 			replace StudentSubGroup = "Male" if StudentSubGroup == "M"
+// 			replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "MAM"
+// 			replace StudentSubGroup = "Asian" if StudentSubGroup == "MAS"
+// 			replace StudentSubGroup = "Black or African American" if StudentSubGroup == "MBL"
+// 			replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "MHI"
+// 			replace StudentSubGroup = "Two or More" if StudentSubGroup == "MTR"
+// 			replace StudentSubGroup = "White" if StudentSubGroup == "MWH"
+// 			replace StudentSubGroup = "SWD" if StudentSubGroup == "CWD"
+// 			replace StudentSubGroup = "Migrant" if StudentSubGroup == "MIG"
+// 			replace StudentSubGroup = "Homeless" if StudentSubGroup == "HOM"
+// 			replace StudentSubGroup = "Military" if StudentSubGroup == "MIL"
+// 			replace StudentSubGroup = "Foster Care" if StudentSubGroup == "FCS"
+// 			gen StudentGroup = "RaceEth"
+// 			replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
+// 			replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged"
+// 			replace StudentGroup = "Gender" if inlist(StudentSubGroup, "Female", "Male")
+// 			replace StudentGroup = "EL Status" if StudentSubGroup == "English Learner"
+// 			replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD"
+// 			replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant"
+// 			replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless"
+// 			replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Military"
+// 			replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Foster Care"
+// 			save "${EDFacts}/`year'/edfacts`type'`year'`lvl'vermont.dta", replace
+// 		}
+// 	}
+// }
 
 //Conversion to DTA
-forvalues year = 2016/2023 {
+forvalues year = 2016/2017 {
 if `year' == 2020 continue
 import delimited "${State_Output}/VT_AssmtData_`year'", case(preserve) clear
 save "${State_Output}/VT_AssmtData_`year'", replace
 }
 
+
+
 //Merging Example
-forvalues year = 2016/2021 {
+forvalues year = 2016/2017 {
 if `year' == 2020 continue
 import delimited "${State_Output}/VT_AssmtData_`year'.csv", case(preserve) clear
 
@@ -279,28 +289,32 @@ drop DataLevel
 rename DataLevel_n DataLevel
 
 
-//Merging
+// //Merging
+//
+// tempfile tempall
+// save "`tempall'", replace
+// keep if DataLevel == 2
+// tempfile tempdist
+// save "`tempdist'", replace
+// clear
 
 tempfile tempall
 save "`tempall'", replace
-keep if DataLevel == 2
-tempfile tempdist
-save "`tempdist'", replace
-clear
-use "`tempall'"
 keep if DataLevel == 3
 tempfile tempsch
 save "`tempsch'", replace
 clear
 
-//District Merge
-use "`tempdist'"
-duplicates report NCESDistrictID StudentSubGroup GradeLevel Subject
-duplicates drop NCESDistrictID StudentSubGroup GradeLevel Subject, force
-merge 1:1 NCESDistrictID StudentSubGroup GradeLevel Subject using "${EDFacts}/`year'/edfactspart`year'districtvermont.dta", gen(DistMerge)
-drop if DistMerge == 2
-save "`tempdist'", replace
-clear
+
+
+// //District Merge
+// use "`tempdist'"
+// duplicates report NCESDistrictID StudentSubGroup GradeLevel Subject
+// duplicates drop NCESDistrictID StudentSubGroup GradeLevel Subject, force
+// merge 1:1 NCESDistrictID StudentSubGroup GradeLevel Subject using "${EDFacts}/`year'/edfactspart`year'districtvermont.dta", gen(DistMerge)
+// drop if DistMerge == 2
+// save "`tempdist'", replace
+// clear
 
 //School Merge
 use "`tempsch'"
@@ -314,7 +328,7 @@ clear
 //Combining DataLevels
 use "`tempall'"
 keep if DataLevel == 1
-append using "`tempdist'" "`tempsch'"
+append using "`tempsch'"
 
 //New Participation Data
 replace ParticipationRate = Participation if !missing(Participation)
@@ -329,3 +343,5 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 save "${New_Output}/VT_AssmtData_`year'", replace
 export delimited "${New_Output}/VT_AssmtData_`year'", replace
 }
+
+

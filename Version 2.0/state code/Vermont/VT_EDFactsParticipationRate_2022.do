@@ -1,10 +1,15 @@
 clear
 set more off
 
-global Original "/Users/kaitlynlucas/Desktop/EDFacts Drive Data" //Folder with Output .dta
-global EDFacts "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/VT_2022" //Folder with downloaded state-specific 2022 participation data from EDFacts
-global State_Output "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/Vermont Assessment" //Folder with state-specific data
-global Output_20 "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/Vermont V2.0" //Folder for Output 2.0
+// global Original "/Users/kaitlynlucas/Desktop/EDFacts Drive Data" //Folder with Output .dta
+// global EDFacts "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/VT_2022" //Folder with downloaded state-specific 2022 participation data from EDFacts
+// global State_Output "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/Vermont Assessment" //Folder with state-specific data
+// global Output_20 "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/Vermont V2.0" //Folder for Output 2.0
+
+
+global EDFacts "/Users/benjaminm/Documents/State_Repository_Research/EdFacts" //Folder with downloaded state-specific 2022 participation data from EDFacts
+global State_Output "/Users/benjaminm/Documents/State_Repository_Research/Vermont/State_Output" // Folder with state-specific data
+global New_Output "/Users/benjaminm/Documents/State_Repository_Research/Vermont/New_Output"
 
 
 foreach s in ela math sci {
@@ -81,7 +86,7 @@ save "${EDFacts}/VT_EFParticipation_2022", replace
 //Merging with 2022
 use "${State_Output}/VT_AssmtData_2022", clear
 
-forvalues year = 2016/2022 {
+forvalues year = 2022/2022 {
 if `year' == 2020 continue
 import delimited "${State_Output}/VT_AssmtData_`year'", case(preserve) clear
 save "${State_Output}/VT_AssmtData_`year'", replace
@@ -108,5 +113,5 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${Output_20}/VT_AssmtData_2022", replace
-export delimited "${Output_20}/VT_AssmtData_2022", replace
+save "${New_Output}/VT_AssmtData_2022", replace
+export delimited "${New_Output}/VT_AssmtData_2022", replace

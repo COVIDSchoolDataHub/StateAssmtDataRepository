@@ -1,19 +1,25 @@
 clear
 set more off
 set trace off
-global Original "/Volumes/T7/State Test Project/Vermont/Original Data"
-global Output "/Volumes/T7/State Test Project/Vermont/Output"
-global NCES "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+
+global Original "/Users/benjaminm/Documents/State_Repository_Research/Vermont/Original Data" 
+global Output "/Users/benjaminm/Documents/State_Repository_Research/Vermont/State_Output" 
+global NCES_District "/Users/benjaminm/Documents/State_Repository_Research/NCES/District"
+global NCES_School "/Users/benjaminm/Documents/State_Repository_Research/NCES/School"
+
+cd "/Users/benjaminm/Documents/State_Repository_Research/Vermont"
+
 
 //Converting to .dta format (unhide on first run)
 
 /*
 
-forvalues year = 2016/2022 {
+forvalues year = 2016/2023 {
 	if `year' == 2020 continue
 	foreach assessment in Smarter_Balance Science {
 		if (`year' == 2016 | `year' == 2017 | `year' == 2018) & ("`assessment'" == "Science") continue
-		import delimited /VT_`assessment'_Assessment_`year'.csv", case(preserve)
+		if (`year' == 2023) & ("`assessment'" == "Smarter_Balance") continue
+		import delimited "${Original}/VT_`assessment'_Assessment_`year'.csv", case(preserve)
 		save "${Original}/VT_`assessment'_Assessment_`year'", replace
 		clear
 	}
@@ -38,8 +44,8 @@ use "${Original}/VT_CAP_ELA_Math_Assessment_2023"
 append using "${Original}/VT_Science_Assessment_2023"
 save "${Original}/VT_OriginalData_2023", replace
 clear
-
 */
+
 forvalues year = 2016/2023 {
 	if `year' == 2020 continue
 	local prevyear =`=`year'-1'
@@ -207,7 +213,7 @@ if `year' > 2016 replace state_leaid = "VT-" + state_leaid
 tempfile tempdist
 save "`tempdist'", replace
 clear
-use "${NCES}/NCES_`prevyear'_District.dta"
+use "${NCES_District}/NCES_`prevyear'_District.dta"
 keep if state_name == "Vermont"
 keep ncesdistrictid state_leaid district_agency_type DistCharter DistLocale county_code county_name lea_name
 merge 1:m state_leaid using "`tempdist'", keep(match using) nogen
@@ -221,7 +227,7 @@ gen seasch = StateAssignedSchID
 tempfile tempschool
 save "`tempschool'", replace
 clear
-use "${NCES}/NCES_`prevyear'_School.dta"
+use "${NCES_School}/NCES_`prevyear'_School.dta"
 keep if state_name == "Vermont"
 if `year' > 2016 replace seasch = substr(seasch, strpos(seasch,"-")+1, 10)
 if `year' < 2023 keep ncesdistrictid state_leaid district_agency_type DistCharter DistLocale county_code county_name ncesschoolid seasch SchVirtual SchLevel SchType lea_name
@@ -276,7 +282,7 @@ foreach var of varlist _all {
 //AssmtName
 gen AssmtName = "Smarter Balanced Assessment"
 replace AssmtName = "Vermont Science Assessment" if Subject == "sci"
-replace AssmtName = "Cognia" if `year' == 2023
+replace AssmtName = "Vermont Comprehensive Assessment Program" if `year' == 2023
 
 //Missing/empty variables
 
@@ -300,10 +306,12 @@ gen Lev5_count = ""
 gen SchYear = "`prevyear'" + "-" + substr("`year'",-2,2)
 gen AssmtType = "Regular"
 
+
 //Flags
-replace Flag_CutScoreChange_sci = "N" if `year' == 2019
+replace Flag_CutScoreChange_sci = "Y" if `year' == 2019
 replace Flag_CutScoreChange_sci = "N" if `year' > 2019 & `year' < 2023
 replace Flag_AssmtNameChange = "Y" if `year' == 2023
+replace Flag_AssmtNameChange = "Y" if `year' == 2019 & Subject == "sci"
 replace Flag_CutScoreChange_ELA = "Y" if `year' == 2023
 replace Flag_CutScoreChange_math = "Y" if `year' == 2023
 replace Flag_CutScoreChange_sci = "Y" if `year' == 2023
@@ -320,10 +328,16 @@ drop if DataLevel ==2
 
 //Post Launch Updates
 //All Students value for StudentGroup
-sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-gen All_Students = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
-replace All_Students = All_Students[_n-1] if missing(All_Students)
-replace StudentGroup_TotalTested = All_Students if regexm(StudentGroup_TotalTested, "[0-9]") == 0
+drop StudentGroup_TotalTested
+gen StateAssignedDistID1 = StateAssignedDistID
+replace StateAssignedDistID1 = "000000" if DataLevel == 1 //Remove quotations if DistIDs are numeric
+gen StateAssignedSchID1 = StateAssignedSchID
+replace StateAssignedSchID1 = "000000" if DataLevel != 3 //Remove quotations if SchIDs are numeric
+egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
+sort group_id StudentGroup StudentSubGroup
+by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+drop group_id StateAssignedDistID1 StateAssignedSchID1
 
 //Deriving Counts Where Possible
 foreach percent of varlist *_percent {
@@ -331,10 +345,25 @@ foreach percent of varlist *_percent {
 	replace `count' = string(round(real(StudentSubGroup_TotalTested) * real(`percent'))) if regexm(StudentSubGroup_TotalTested, "[0-9]") !=0 & regexm(`percent', "[0-9]") !=0
 }
 
+// replacing ProficientOrAbove_count with corrected value
+replace ProficientOrAbove_count = string(real(Lev3_count) + real(Lev4_count)) if ProficiencyCriteria == "Levels 3-4" & !missing(real(Lev3_count)) &!missing(real(Lev4_count)) 
+
+
+foreach var of varlist DistName SchName {
+replace `var' = strtrim(`var')
+replace `var' = stritrim(`var')
+}
+
+gen CleanDistName = substr(DistName, 1, strpos(DistName, "#") - 1) if strpos(DistName, "#") > 0
+replace DistName = CleanDistName if strpos(DistName, "#") > 0 
+
+
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${Output}/VT_AssmtData_`year'", replace
 export delimited "${Output}/VT_AssmtData_`year'", replace

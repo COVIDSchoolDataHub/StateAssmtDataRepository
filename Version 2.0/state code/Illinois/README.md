@@ -22,7 +22,7 @@ The `cd` command should map to the IL folder
 
 ## Recreating Cleaning Process
 - Run the Illinois DTA conversion file or the Illinois Cleaning Merge files first. Make sure to check the do-files for hidden importing code on the first run (this is always at the top of the file)
-- Run the yearly cleaning files after these files in any order.
+- Run the yearly cleaning files next.
 - To clean all years at once after running the conversion and merge do-files, run the following code:
 ```
 cd "[YOUR FOLDER PATH FOR IL]"
