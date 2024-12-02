@@ -7,8 +7,10 @@ This is a ReadMe for New York's data cleaning process, from 2006 to 2024.
 ## Setup
 Create two main folders:
 1. NCES District and School Demographics; this will have two subfolders:
+   
     a. NCES District Files, Fall 1997-Fall 2022
     b. NCES School Files, Fall 1997-Fall 2022
+   
 2. New York; this will have two subfolders:
     a. Original (download the original data files from Drive and keep them in their appropriate subfolders).
     b. Output
