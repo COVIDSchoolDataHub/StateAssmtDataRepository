@@ -3,9 +3,6 @@
 
 This is a ReadMe for Arizona's data cleaning process, from 2010 to 2024.
 
-
-
-
 ## Setup
 
 There are six folders you need: 
@@ -28,8 +25,6 @@ AZ_EDFactsParticipation_2014-2021.do;
 AZ_EDFactsParticipation_2022.do.
 
 Remember to un-comment the beginning of each `exam'_Clean_`year'.do file when running for the first time to convert files into .dta format.
-
-
 
     
 ## File Path
@@ -55,5 +50,7 @@ global output "/Users/maggie/Desktop/Arizona/Output"
 
 03/06/2024: Updated new StudentGroup/StudentSubGroup labels; New variable order/sort; New flag variables.
 
-11/01/24: Updated to include 2024 data, derive additional StudentSubGroup_TotalTested
-and performance information, and match v2.0 StudentGroup_TotalTested convention.
+11/01/2024: Updated to include 2024 data, derive additional StudentSubGroup_TotalTested and performance information,
+and match v2.0 StudentGroup_TotalTested convention.
+
+12/01/2024: Updated to include 2024 science data.

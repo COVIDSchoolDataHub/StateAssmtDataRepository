@@ -6,7 +6,7 @@ global AzSci "/Users/miramehta/Documents/Arizona/Original Data Files/AzSci"
 global output "/Users/miramehta/Documents/Arizona/Output"
 global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
 
-// SCHOOLS
+// Import Data - Unhide on First Run
 
 /*
 ** 2024 ELA and Math
@@ -23,19 +23,19 @@ import excel "${AASA}/AZ_OriginalData_2024_ela_mat.xlsx", sheet("State") firstro
 
 save "${AASA}/AZ_AssmtData_state_2024.dta", replace
 
-** 2024 Science [Wait until it is posted]
+** 2024 Science
 
-import excel "${AzSci}/AZ_OriginalData_2023_sci.xlsx", sheet("School") firstrow clear
+import excel "${AzSci}/AZ_OriginalData_2024_sci.xlsx", sheet("School") firstrow clear
 
-save "${AzSci}/AZ_AssmtData_school_sci_2023.dta", replace
+save "${AzSci}/AZ_AssmtData_school_sci_2024.dta", replace
 
-import excel "${AzSci}/AZ_OriginalData_2023_sci.xlsx", sheet("District") firstrow clear
+import excel "${AzSci}/AZ_OriginalData_2024_sci.xlsx", sheet("District") firstrow clear
 
-save "${AzSci}/AZ_AssmtData_district_sci_2023.dta", replace
+save "${AzSci}/AZ_AssmtData_district_sci_2024.dta", replace
 
-import excel "${AzSci}/AZ_OriginalData_2023_sci.xlsx", sheet("State") firstrow clear
+import excel "${AzSci}/AZ_OriginalData_2024_sci.xlsx", sheet("State") firstrow clear
 
-save "${AzSci}/AZ_AssmtData_state_sci_2023.dta", replace
+save "${AzSci}/AZ_AssmtData_state_sci_2024.dta", replace
 
 */
 
@@ -79,7 +79,7 @@ tostring StateAssignedSchID, replace
 
 save "${output}/AZ_AssmtData_school_2024.dta", replace
 
-/*
+
 use "${AzSci}/AZ_AssmtData_school_sci_2024.dta", clear
 
 rename DistrictName DistName
@@ -116,7 +116,7 @@ tostring StateAssignedDistID, replace
 tostring StateAssignedSchID, replace
 
 save "${output}/AZ_AssmtData_2024_school_sci.dta", replace
-*/
+
 use "${output}/AZ_AssmtData_school_2024.dta", clear
 append using "${output}/AZ_AssmtData_2024_school_sci.dta"
 
@@ -168,7 +168,7 @@ tostring StateAssignedDistID, generate(State_leaid)
 tostring StateAssignedDistID, replace
 
 save "${output}/AZ_AssmtData_district_2024.dta", replace
-/*
+
 use "${AzSci}/AZ_AssmtData_district_sci_2024.dta", clear 
 
 rename DistrictName DistName
@@ -202,7 +202,7 @@ tostring StateAssignedDistID, generate(State_leaid)
 tostring StateAssignedDistID, replace
 
 save "${output}/AZ_AssmtData_2024_district_sci.dta", replace
-*/
+
 use "${output}/AZ_AssmtData_district_2024.dta", clear
 
 append using "${output}/AZ_AssmtData_2024_district_sci.dta"
@@ -249,7 +249,7 @@ keep if inlist(GradeLevel, "G03", "G04", "G05", "G06", "G07", "G08")
 
 
 save "${output}/AZ_AssmtData_state_2024.dta", replace
-/*
+
 use "${AzSci}/AZ_AssmtData_state_sci_2024.dta", clear
 
 rename TestLevel GradeLevel
@@ -282,7 +282,7 @@ tostring Lev4_percent, replace force
 tostring ProficientOrAbove_percent, replace force
 
 save "${output}/AZ_AssmtData_2024_state_sci.dta", replace
-*/
+
 use "${output}/AZ_AssmtData_state_2024.dta", clear
 
 append using "${output}/AZ_AssmtData_2024_state_sci.dta"
