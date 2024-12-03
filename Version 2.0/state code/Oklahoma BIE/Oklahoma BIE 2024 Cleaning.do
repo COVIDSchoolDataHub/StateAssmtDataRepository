@@ -5,7 +5,7 @@ global raw "/Users/miramehta/Documents/Oklahoma/Original Data Files"
 global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
 global output "/Users/miramehta/Documents/Oklahoma/Oklahoma BIE"
 
-import excel "${raw}/Publicly Available Data Files/OK_OriginalData_2023_all.xlsx", sheet("OKOSTP2223MediaRedacted") firstrow clear
+import excel "${raw}/Publicly Available Data Files/OK_OriginalData_2024_all.xlsx", sheet("OKOSTP2324MediaRedacted") firstrow clear
 
 ** Renaming variables
 
@@ -46,7 +46,7 @@ keep if strpos(StateAssignedSchID, "B") > 0
 
 ** Replacing variables
 
-gen SchYear = "2022-23"
+gen SchYear = "2023-24"
 
 replace Subject = "ela" if Subject == "ELA"
 replace Subject = "math" if Subject == "Mathematics"
@@ -154,9 +154,9 @@ replace CountyName = CountyName + " County"
 ** Generating new variables
 
 gen Flag_AssmtNameChange = "N"
-gen Flag_CutScoreChange_ELA = "N"
-gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_sci = "Y"
+gen Flag_CutScoreChange_ELA = "Y"
+gen Flag_CutScoreChange_math = "Y"
+gen Flag_CutScoreChange_sci = "N"
 gen Flag_CutScoreChange_soc = "Not applicable"
 
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
@@ -165,6 +165,6 @@ order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistric
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${output}/OK_BIE_AssmtData_2023.dta", replace
+save "${output}/OK_BIE_AssmtData_2024.dta", replace
 
-export delimited using "${output}/csv/OK_BIE_AssmtData_2023.csv", replace
+export delimited using "${output}/csv/OK_BIE_AssmtData_2024.csv", replace

@@ -1,26 +1,37 @@
 clear
 set more off
 
-global raw "/Users/maggie/Desktop/Oklahoma/Original Data Files"
-global NCES "/Users/maggie/Desktop/Oklahoma BIE/Cleaned NCES"
-global output "/Users/maggie/Desktop/Oklahoma BIE/Output"
+global raw "/Users/miramehta/Documents/Oklahoma/Original Data Files"
+global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+global output "/Users/miramehta/Documents/Oklahoma/Oklahoma BIE"
 
-cd "/Users/maggie/Desktop/Oklahoma"
+//Import Data - Unhide on First Run
+/*
+foreach a of numlist 3/8 {
+	import excel "${raw}/Publicly Available Data Files/OK_OriginalData_2018_G0`a'.xlsx", sheet("Grade `a' Data") firstrow clear
+	gen GradeLevel = "G0" + "`a'"
+	tostring ELAWritingCompositeScore, replace
+	tostring MathematicsTotalN, replace
+	tostring  MathematicsValidN, replace
+	tostring MathematicsNumberOperation, replace
+	tostring ScienceTotalN, replace
+	tostring ScienceValidN, replace
+	cap drop MathematicsAlgebraicReasonin
+	cap drop MathematicsGeometryMeasure
+	cap drop MathematicsDataProbability 
+	cap drop SciencePhysicalScienceVal
+	cap drop ScienceLifeScienceValidN
+	cap drop ScienceEarthSpaceScience
+	save "${raw}/OK_AssmtData_2018_G0`a'_BIE.dta", replace
+}
 
-use "${raw}/OK_AssmtData_2018_G03.dta", clear
-gen GradeLevel = "G03"
-append using "${raw}/OK_AssmtData_2018_G04.dta"
-replace GradeLevel = "G04" if GradeLevel == ""
-append using "${raw}/OK_AssmtData_2018_G05.dta"
-replace GradeLevel = "G05" if GradeLevel == ""
-append using "${raw}/OK_AssmtData_2018_G06.dta"
-replace GradeLevel = "G06" if GradeLevel == ""
-append using "${raw}/OK_AssmtData_2018_G07.dta"
-replace GradeLevel = "G07" if GradeLevel == ""
-tostring MathematicsValidN, replace
-tostring ScienceValidN, replace
-append using "${raw}/OK_AssmtData_2018_G08.dta"
-replace GradeLevel = "G08" if GradeLevel == ""
+use "${raw}/OK_AssmtData_2018_G03_BIE.dta", clear
+foreach a of numlist 4/8 {
+	append using "${raw}/OK_AssmtData_2018_G0`a'_BIE.dta"
+	save "${raw}/OK_AssmtData_2018_BIE.dta", replace
+}
+*/
+use "${raw}/OK_AssmtData_2018_BIE.dta", clear
 
 ** Renaming variables
 
@@ -151,7 +162,7 @@ gen State_leaid = ""
 replace State_leaid = "BI-D01B02" if DistName == "Riverside Indian School"
 replace State_leaid = "BI-D09B02" if DistName == "Jones Academy"
 
-merge m:1 State_leaid using "${NCES}/NCES_2017_District.dta"
+merge m:1 State_leaid using "${NCES}/NCES_2017_District_OK_BIE.dta"
 
 drop if _merge == 2
 drop _merge
@@ -159,7 +170,7 @@ drop _merge
 gen seasch = subinstr(State_leaid, "BI-", "", .) + "-" + subinstr(State_leaid, "BI-", "", .)
 replace seasch = "" if DataLevel != 3
 
-merge m:1 seasch using "${NCES}/NCES_2017_School.dta"
+merge m:1 seasch using "${NCES}/NCES_2017_School_OK_BIE.dta"
 
 drop if _merge == 2
 drop _merge

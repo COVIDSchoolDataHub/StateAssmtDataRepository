@@ -1,13 +1,14 @@
 clear
 set more off
 
-global raw "/Users/maggie/Desktop/Oklahoma/Original Data Files"
-global NCES "/Users/maggie/Desktop/Oklahoma BIE/Cleaned NCES"
-global output "/Users/maggie/Desktop/Oklahoma BIE/Output"
+global raw "/Users/miramehta/Documents/Oklahoma/Original Data Files"
+global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+global output "/Users/miramehta/Documents/Oklahoma/Oklahoma BIE"
 
-cd "/Users/maggie/Desktop/Oklahoma"
+*cd "/Users/maggie/Desktop/Oklahoma"
 
-use "${raw}/OK_AssmtData_2019.dta", clear
+*use "${raw}/OK_AssmtData_2019.dta", clear
+import excel "${raw}/Publicly Available Data Files/OK_OriginalData_2019_all.xlsx", sheet("Sheet1") firstrow clear
 
 ** Renaming variables
 
@@ -141,7 +142,7 @@ gen State_leaid = ""
 replace State_leaid = "BI-D01B02" if DistName == "Riverside Indian School"
 replace State_leaid = "BI-D09B02" if DistName == "Jones Academy"
 
-merge m:1 State_leaid using "${NCES}/NCES_2018_District.dta"
+merge m:1 State_leaid using "${NCES}/NCES_2018_District_OK_BIE.dta"
 
 drop if _merge == 2
 drop _merge
@@ -149,7 +150,7 @@ drop _merge
 gen seasch = subinstr(State_leaid, "BI-", "", .) + "-" + subinstr(State_leaid, "BI-", "", .)
 replace seasch = "" if DataLevel != 3
 
-merge m:1 seasch using "${NCES}/NCES_2018_School.dta"
+merge m:1 seasch using "${NCES}/NCES_2018_School_OK_BIE.dta"
 
 drop if _merge == 2
 drop _merge
