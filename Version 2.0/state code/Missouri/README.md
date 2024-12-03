@@ -1,7 +1,7 @@
 
 # Missouri Data Cleaning
 
-This is a ReadMe for Missouri's data cleaning process, from 2010 to 2023.
+This is a ReadMe for Missouri's data cleaning process, from 2010 to 2024.
 * Note that 2020 is excluded, as MO did not administer spring tests during that year due to COVID.
 
 
