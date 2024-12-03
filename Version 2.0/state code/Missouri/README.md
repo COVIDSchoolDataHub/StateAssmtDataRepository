@@ -16,7 +16,7 @@ Also create an Output subfolder of the MO State Testing Data folder to which to 
 There are 5 .do files.
 You should run "Missouri DTA Conversion.do" first to convert the original files into .dta files.
 Then run "Missouri NCES Cleaning.do" to clean the NCES files so taht they are prepared to merge into the testing data.
-The other three files are for the years 2010-14, 2015-17, and 2018-23.  You can run these three in any order.
+The other three files are for the years 2010-14, 2015-17, and 2018-24.  You can run these three in any order.
     
 ## File Path
 
