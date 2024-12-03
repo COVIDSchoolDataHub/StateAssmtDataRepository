@@ -8,18 +8,18 @@ global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cl
 
 // SCHOOLS
 
-/*
+/* Unhide on first run
 ** 2022 ELA and Math
 
-import excel "${AASA}/AZ_OriginalData_2022_all.xlsx", sheet("School") firstrow clear
+import excel "${AASA}/AZ_OriginalData_2022_ela_mat.xlsx", sheet("School") firstrow clear
 
 save "${AASA}/AZ_AssmtData_school_2022.dta", replace
 
-import excel "${AASA}/AZ_OriginalData_2022_all.xlsx", sheet("District") firstrow clear   
+import excel "${AASA}/AZ_OriginalData_2022_ela_mat.xlsx", sheet("District") firstrow clear   
                     
 save "${AASA}/AZ_AssmtData_district_2022.dta", replace
 
-import excel "${AASA}/AZ_OriginalData_2022_all.xlsx", sheet("State") firstrow clear
+import excel "${AASA}/AZ_OriginalData_2022_ela_mat.xlsx", sheet("State") firstrow clear
 
 save "${AASA}/AZ_AssmtData_state_2022.dta", replace
 
@@ -58,9 +58,10 @@ rename PercentProficiencyLevel3 Lev3_percent
 rename PercentProficiencyLevel4 Lev4_percent
 rename PercentPassing ProficientOrAbove_percent
 
-drop Charter DistrictCTDS SchoolCTDS
+drop Charter DistrictCTDS SchoolCTDS Alternative
 
 ** Generate grade observations from TestLevel variable
+drop if strpos(GradeLevel, "Alt") > 0
 replace GradeLevel = "G03" if strpos(GradeLevel, "Grade 3")>0
 replace GradeLevel = "G04" if strpos(GradeLevel, "Grade 4")>0
 replace GradeLevel = "G05" if strpos(GradeLevel, "Grade 5")>0
@@ -70,6 +71,9 @@ replace GradeLevel = "G08" if strpos(GradeLevel, "Grade 8")>0
 
 keep if inlist(GradeLevel, "G03", "G04", "G05", "G06", "G07", "G08")
 
+keep if FAYStatus == "All"
+
+tostring StateAssignedDistID, replace
 gen State_leaid = StateAssignedDistID
 tostring StateAssignedSchID, generate(seasch)
 tostring StateAssignedSchID, replace
@@ -155,6 +159,7 @@ rename PercentPassing ProficientOrAbove_percent
 drop DistrictCTDS
 
 ** Generate grade observations from TestLevel variable
+drop if strpos(GradeLevel, "Alt") > 0
 replace GradeLevel = "G03" if strpos(GradeLevel, "Grade 3")>0
 replace GradeLevel = "G04" if strpos(GradeLevel, "Grade 4")>0
 replace GradeLevel = "G05" if strpos(GradeLevel, "Grade 5")>0
@@ -164,6 +169,9 @@ replace GradeLevel = "G08" if strpos(GradeLevel, "Grade 8")>0
 
 keep if inlist(GradeLevel, "G03", "G04", "G05", "G06", "G07", "G08")
 
+keep if FAYStatus == "All"
+
+tostring StateAssignedDistID, replace
 gen State_leaid = StateAssignedDistID
 
 save "${output}/AZ_AssmtData_district_2022.dta", replace
@@ -189,7 +197,6 @@ replace Subject="sci"
 
 ** Generate grade observations from TestLevel variable
 drop if strpos(GradeLevel, "Alt") > 0
-
 replace GradeLevel = "G05" if strpos(GradeLevel, "Grade 5")>0
 replace GradeLevel = "G08" if strpos(GradeLevel, "Grade 8")>0
 
@@ -236,6 +243,7 @@ rename PercentProficiencyLevel4 Lev4_percent
 rename PercentPassing ProficientOrAbove_percent
 
 ** Generate grade observations from TestLevel variable
+drop if strpos(GradeLevel, "Alt") > 0
 replace GradeLevel = "G03" if strpos(GradeLevel, "Grade 3")>0
 replace GradeLevel = "G04" if strpos(GradeLevel, "Grade 4")>0
 replace GradeLevel = "G05" if strpos(GradeLevel, "Grade 5")>0
@@ -244,6 +252,8 @@ replace GradeLevel = "G07" if strpos(GradeLevel, "Grade 7")>0
 replace GradeLevel = "G08" if strpos(GradeLevel, "Grade 8")>0
 
 keep if inlist(GradeLevel, "G03", "G04", "G05", "G06", "G07", "G08")
+
+keep if FAYStatus == "All"
 
 save "${output}/AZ_AssmtData_state_2022.dta", replace
 
@@ -263,7 +273,6 @@ replace Subject="sci"
 
 ** Generate grade observations from TestLevel variable
 drop if strpos(GradeLevel, "Alt") > 0
-
 tostring GradeLevel, replace
 replace GradeLevel = "G05" if strpos(GradeLevel, "Grade 5")>0
 replace GradeLevel = "G08" if strpos(GradeLevel, "Grade 8")>0

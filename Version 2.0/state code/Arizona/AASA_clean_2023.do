@@ -11,15 +11,15 @@ global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cl
 /*
 ** 2023 ELA and Math
 
-import excel "${AASA}/AZ_OriginalData_2023_all.xlsx", sheet("School") firstrow clear
+import excel "${AASA}/AZ_OriginalData_2023_ela_mat.xlsx", sheet("School") firstrow clear
 
 save "${AASA}/AZ_AssmtData_school_2023.dta", replace
 
-import excel "${AASA}/AZ_OriginalData_2023_all.xlsx", sheet("District") firstrow clear   
+import excel "${AASA}/AZ_OriginalData_2023_ela_mat.xlsx", sheet("District") firstrow clear   
                     
 save "${AASA}/AZ_AssmtData_district_2023.dta", replace
 
-import excel "${AASA}/AZ_OriginalData_2023_all.xlsx", sheet("State") firstrow clear
+import excel "${AASA}/AZ_OriginalData_2023_ela_mat.xlsx", sheet("State") firstrow clear
 
 save "${AASA}/AZ_AssmtData_state_2023.dta", replace
 
@@ -457,8 +457,10 @@ replace Lev2_percent = string(1 - real(ProficientOrAbove_percent) - 0.02) + "-" 
 replace Lev2_percent = "0.96-1" if Lev2_percent == "*" & Lev1_percent == "0-0.02" & ProficientOrAbove_percent == "0-0.02"
 replace Lev3_percent2 = real(ProficientOrAbove_percent) - real(Lev4_percent) if missing(real(Lev3_percent)) & !missing(real(ProficientOrAbove_percent)) & !missing(real(Lev4_percent))
 replace Lev3_percent = string(real(ProficientOrAbove_percent) - 0.02) + "-" + ProficientOrAbove_percent if missing(real(Lev3_percent)) & Lev4_percent == "0-0.02" & !missing(real(ProficientOrAbove_percent))
+replace Lev3_percent = "0-0.02" if Lev3_percent == "0-.02"
 replace Lev4_percent2 = real(ProficientOrAbove_percent) - real(Lev3_percent) if missing(real(Lev4_percent)) & !missing(real(ProficientOrAbove_percent)) & !missing(real(Lev3_percent))
 replace Lev4_percent = string(real(ProficientOrAbove_percent) - 0.02) + "-" + ProficientOrAbove_percent if missing(real(Lev4_percent)) & Lev3_percent == "0-0.02" & !missing(real(ProficientOrAbove_percent))
+replace Lev4_percent = "0-0.02" if Lev4_percent == "0-.02"
 
 foreach x of numlist 1/4 {
 	replace Lev`x'_percent2 = 0 if Lev`x'_percent2 < 0 & Lev`x'_percent2 != .

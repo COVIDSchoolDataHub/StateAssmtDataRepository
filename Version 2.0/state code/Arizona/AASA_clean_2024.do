@@ -214,7 +214,37 @@ drop _merge
 sort NCESDistrictID GradeLevel Subject
 gen DataLevel = "District"
 
-duplicates tag NCESDistrictID Subject GradeLevel StudentSubGroup, gen (tag)
+//Unmerged
+replace NCESDistrictID = "0409745" if StateAssignedDistID == "1002079"
+replace DistType = 7 if NCESDistrictID == "0409745"
+replace DistCharter = "Yes" if NCESDistrictID == "0409745"
+replace DistLocale = "City, large" if NCESDistrictID == "0409745"
+replace CountyName = "Maricopa County" if NCESDistrictID == "0409745"
+replace CountyCode = "4013" if NCESDistrictID == "0409745"
+
+replace NCESDistrictID = "0409746" if StateAssignedDistID == "1002080"
+replace DistType = 7 if NCESDistrictID == "0409746"
+replace DistCharter = "Yes" if NCESDistrictID == "0409746"
+replace DistLocale = "City, large" if NCESDistrictID == "0409746"
+replace CountyName = "Maricopa County" if NCESDistrictID == "0409746"
+replace CountyCode = "4013" if NCESDistrictID == "0409746"
+
+replace NCESDistrictID = "0409747" if StateAssignedDistID == "1002101"
+replace DistType = 7 if NCESDistrictID == "0409747"
+replace DistCharter = "Yes" if NCESDistrictID == "0409747"
+replace DistLocale = "City, large" if NCESDistrictID == "0409747"
+replace CountyName = "Maricopa County" if NCESDistrictID == "0409747"
+replace CountyCode = "4013" if NCESDistrictID == "0409747"
+
+replace NCESDistrictID = "0409744" if StateAssignedDistID == "1002029"
+replace DistType = 7 if NCESDistrictID == "0409744"
+replace DistCharter = "Yes" if NCESDistrictID == "0409744"
+replace DistLocale = "Suburb, large" if NCESDistrictID == "0409744"
+replace CountyName = "Maricopa County" if NCESDistrictID == "0409744"
+replace CountyCode = "4013" if NCESDistrictID == "0409744"
+
+//Duplicates
+duplicates tag NCESDistrictID Subject GradeLevel StudentSubGroup, gen(tag)
 sort tag NCESDistrictID Subject GradeLevel StudentSubGroup
 drop if tag > 0 & strpos(CountyName, County) == 0
 drop tag
@@ -454,8 +484,10 @@ replace Lev2_percent = string(1 - real(ProficientOrAbove_percent) - 0.02) + "-" 
 replace Lev2_percent = string(1 - real(Lev1_percent) - 0.02) + "-" + string(1 - real(Lev1_percent)) if missing(real(Lev2_percent)) & ProficientOrAbove_percent == "0-0.02" & !missing(real(Lev1_percent))
 replace Lev3_percent2 = real(ProficientOrAbove_percent) - real(Lev4_percent) if missing(real(Lev3_percent)) & !missing(real(ProficientOrAbove_percent)) & !missing(real(Lev4_percent))
 replace Lev3_percent = string(real(ProficientOrAbove_percent) - 0.02) + "-" + ProficientOrAbove_percent if missing(real(Lev3_percent)) & Lev4_percent == "0-0.02" & !missing(real(ProficientOrAbove_percent))
+replace Lev3_percent = "0-0.02" if Lev3_percent == "0-.02"
 replace Lev4_percent2 = real(ProficientOrAbove_percent) - real(Lev3_percent) if missing(real(Lev4_percent)) & !missing(real(ProficientOrAbove_percent)) & !missing(real(Lev3_percent))
 replace Lev4_percent = string(real(ProficientOrAbove_percent) - 0.02) + "-" + ProficientOrAbove_percent if missing(real(Lev4_percent)) & Lev3_percent == "0-0.02" & !missing(real(ProficientOrAbove_percent))
+replace Lev4_percent = "0-0.02" if Lev4_percent == "0-.02"
 
 foreach x of numlist 1/4 {
 	replace Lev`x'_percent2 = 0 if Lev`x'_percent2 < 0 & Lev`x'_percent2 != .
