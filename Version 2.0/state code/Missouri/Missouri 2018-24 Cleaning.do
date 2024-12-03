@@ -1,21 +1,28 @@
 clear
 set more off
-
 global data "/Users/kaitlynlucas/Desktop/Missouri/MO State Testing Files"
 global output "/Users/kaitlynlucas/Desktop/Missouri/MO State Testing Files/Output"
 global NCES "/Users/kaitlynlucas/Desktop/Missouri/NCES School and District Demographics/Clean NCES"
 
 
-
 set trace off
 
-forvalues year = 2015/2017{
+forvalues year = 2018/2024{
 	local prevyear = `year' - 1
 	
 	** Append data into one file & rename variables
-	use "${data}/MO_AssmtData_2015-2017_state.dta", clear
-	append using "${data}/MO_AssmtData_2015-2017_district.dta"
-	append using "${data}/MO_AssmtData_2015-2017_school.dta"
+	if `year' == 2020{
+		continue
+	}
+	use "${data}/MO_AssmtData_`year'_state.dta", clear
+	if `year' == 2024 {
+	destring COUNTY_DISTRICT, replace
+	}
+	append using "${data}/MO_AssmtData_`year'_district.dta"
+	if `year' == 2023 | `year' == 2024 {
+		destring SCHOOL_CODE, replace
+	}
+	append using "${data}/MO_AssmtData_`year'_school.dta"
 	
 	rename YEAR SchYear
 	rename SUMMARY_LEVEL DataLevel
@@ -38,14 +45,10 @@ forvalues year = 2015/2017{
 	rename ADVANCED_PCT Lev4_percent
 	
 	** Drop unncessary variables and entries
-	drop ACCOUNTABLE LEVEL_NOT_DETERMINED
-	
-	keep if SchYear == `year'
-	
 	keep if inlist(GradeLevel, "3", "4", "5", "6", "7", "8")
 	
 	replace StudentSubGroup = strtrim(StudentSubGroup)
-	drop if (strpos(StudentSubGroup, "<") | strpos(StudentSubGroup, "EL") | strpos(StudentSubGroup, "Direct Certification") > 0) & !inlist(StudentSubGroup, "LEP/ELL Monitoring", "LEP/ELL Students")
+	drop if (strpos(StudentSubGroup, "<") | strpos(StudentSubGroup, "EL") | strpos(StudentSubGroup, "Direct Certification") > 0) & !inlist(StudentSubGroup, "EL Students", "EL Monitoring", "LEP/ELL Monitoring", "LEP/ELL Students")
 	drop if inlist(StudentSubGroup, "Gifted", "High School Vocational", "TitleI", "IEP MAPA", "IEP_student")
 	
 	** Change DataLevel
@@ -74,8 +77,8 @@ forvalues year = 2015/2017{
 	replace StudentSubGroup = "Two or More" if StudentSubGroup == "Multiracial"
 	replace StudentSubGroup = "Unknown" if StudentSubGroup == "No Response"
 	replace StudentSubGroup = "White" if StudentSubGroup == "White (not Hispanic)"
-	replace StudentSubGroup = "English Learner" if StudentSubGroup == "LEP/ELL Students"
-	replace StudentSubGroup = "EL Monit or Recently Ex" if StudentSubGroup == "LEP/ELL Monitoring"
+	replace StudentSubGroup = "English Learner" if inlist(StudentSubGroup, "EL Students", "LEP/ELL Students")
+	replace StudentSubGroup = "EL Monit or Recently Ex" if inlist(StudentSubGroup, "LEP/ELL Monitoring", "EL Monitoring")
 	replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Map Free and Reduced Lunch"
 	replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "Non Free and Reduced Lunch"
 	replace StudentSubGroup = "SWD" if StudentSubGroup == "IEP Non MAPA"
@@ -137,6 +140,7 @@ forvalues year = 2015/2017{
 	tostring ProficientOrAbove_percent, replace format("%7.4f") force
 	replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
 	
+	
 	tostring ProficientOrAbove_count, replace force
 	replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
 	drop Lev1_count2 Lev2_count2 Lev3_count2 Lev4_count2 NotProfCount
@@ -147,6 +151,10 @@ forvalues year = 2015/2017{
 	gen ProficiencyCriteria = "Levels 3-4"
 
 	gen AvgScaleScore = "--"
+	if `year' == 2022 {
+		rename NONPARTICIPANTLNDPCT LEVEL_NOT_DETERMINED_PCT
+	}
+	destring LEVEL_NOT_DETERMINED_PCT, replace force
 	gen ParticipationRate = 100 - LEVEL_NOT_DETERMINED_PCT
 	replace ParticipationRate = ParticipationRate/100
 	tostring ParticipationRate, replace format("%9.2g") force
@@ -154,65 +162,74 @@ forvalues year = 2015/2017{
 	
 	** Merge with NCES
 	gen State_leaid = StateAssignedDistID
-	if `year' == 2017{
-		replace State_leaid = "0" + State_leaid if substr(State_leaid, 5, 1) == ""
-		replace State_leaid = "0" + State_leaid if substr(State_leaid, 6, 1) == ""
-		replace State_leaid = "MO-" + State_leaid
-	}
+	replace State_leaid = "0" + State_leaid if substr(State_leaid, 5, 1) == ""
+	replace State_leaid = "0" + State_leaid if substr(State_leaid, 6, 1) == ""
+	replace State_leaid = "MO-" + State_leaid
 	replace State_leaid = "" if DataLevel == 1
 	
+	if `year' != 2024{
 	merge m:1 State_leaid using "${NCES}/NCES_`prevyear'_District_MO.dta"
-
 	drop if _merge == 2
 	drop _merge
-	
-	if `year' < 2017{
-		gen seasch = StateAssignedSchID + State_leaid
-	}
-	if `year' == 2017{
-		gen seasch = subinstr(State_leaid, "MO-", "", .) + "-" + StateAssignedSchID + subinstr(State_leaid, "MO-", "", .)
 	}
 	
-	replace seasch = "" if DataLevel != 3
+	if `year' == 2024{
+	merge m:1 State_leaid using "${NCES}/NCES_2022_District_MO.dta"
+	drop if _merge == 2
+	drop _merge
+	}
 
-	merge m:1 seasch using "${NCES}/NCES_`prevyear'_School_MO.dta"
+	gen seasch = subinstr(State_leaid, "MO-", "", .) + "-" + StateAssignedSchID + subinstr(State_leaid, "MO-", "", .)
+	replace seasch = "" if DataLevel != 3
 	
+	if `year' != 2024{
+	merge m:1 seasch using "${NCES}/NCES_`prevyear'_School_MO.dta"
+	}
+	
+	if `year' == 2024{
+	merge m:1 seasch using "${NCES}/NCES_2022_School_MO.dta"
+	}
+
+
+	if `year' != 2023{
+		replace SchVirtual = 0 if SchVirtual == . & DataLevel == 3
+	}
+
 	drop if NCESSchoolID == "" & DataLevel == 3
 	drop if _merge == 2
 	drop _merge
+
+	replace StateAbbrev = "MO"
+	replace State = "Missouri"
+	replace StateFips = 29
 	
-	replace StateAbbrev = "MO" if DataLevel == 1
-	replace State = "Missouri" if DataLevel == 1
-	replace StateFips = 29 if DataLevel == 1
-	
-	if `year' == 2015{
-		replace CountyName = strproper(CountyName)
-		replace CountyName= "McDonald County" if CountyCode == "29119"
-		replace CountyName= "DeKalb County" if CountyCode == "29063"
-	}
-	
-	if `year' != 2015{
-		replace CountyName= "St. Louis City" if CountyCode == "29510"
-	}
+	replace CountyName= "St. Louis City" if CountyCode == "29510"
 	
 	gen Flag_AssmtNameChange = "N"
-	gen Flag_CutScoreChange_ELA = "Y"
-	gen Flag_CutScoreChange_math = "Y"
+	gen Flag_CutScoreChange_ELA = "N"
+	gen Flag_CutScoreChange_math = "N"
 	gen Flag_CutScoreChange_soc = "Not applicable"
 	gen Flag_CutScoreChange_sci = "N"
-	
-	if `year' == 2017{
-		replace Flag_CutScoreChange_ELA = "N"
-		replace Flag_CutScoreChange_math = "N"
+	if `year' == 2018{
+		replace Flag_CutScoreChange_ELA = "Y"
+		replace Flag_CutScoreChange_math = "Y"
+		replace Flag_CutScoreChange_sci = "Not applicable"
+	}
+	if `year' == 2019{
+		replace Flag_CutScoreChange_sci = "Y"
 	}
 	
+	** Unmerged Schools
+	if `year' == 2023{
+		replace SchVirtual = 1 if inlist(SchName, "Missouri Digital Academy", "Missouri Virtual Academy") & SchVirtual == .
+		replace SchVirtual = -1 if DataLevel == 3 & SchVirtual == .
+	}
 	replace SchName = strtrim(SchName)
 	replace SchName = stritrim(SchName)
 	
 	replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "-0.0010"
 	
-		** Generating student group total counts (V2.0)
-gen StateAssignedDistID1 = StateAssignedDistID
+	gen StateAssignedDistID1 = StateAssignedDistID
 replace StateAssignedDistID1 = "000000" if DataLevel == 1 //Remove quotations if DistIDs are numeric
 gen StateAssignedSchID1 = StateAssignedSchID
 replace StateAssignedSchID1 = "000000" if DataLevel !=3 //Remove quotations if SchIDs are numeric
@@ -221,7 +238,6 @@ sort group_id StudentGroup StudentSubGroup
 by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
 by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
 drop group_id StateAssignedDistID1 StateAssignedSchID1
-	
 	
 	keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 	

@@ -59,15 +59,18 @@ drop Accommodations
 rename Nbr_AllStudents_Tested StudentSubGroup_TotalTested
 rename Pct_AllStudents_Tested ParticipationRate
 rename Nbr_AllStudentsProficient ProficientOrAbove_count
-rename Pct_AllStudentsProficient ProficientOrAbove_percent
+*rename Pct_AllStudentsProficient ProficientOrAbove_percent
 rename Nbr_AllStudents_Below_BasicLe Lev1_count
-rename Pct_AllStudents_Below_BasicLe Lev1_percent
+*rename Pct_AllStudents_Below_BasicLe Lev1_percent
 rename Nbr_AllStudents_BasicLevel2 Lev2_count
-rename Pct_AllStudents_BasicLevel2 Lev2_percent
+*rename Pct_AllStudents_BasicLevel2 Lev2_percent
 rename Nbr_AllStudents_ProficientLev Lev3_count
-rename Pct_AllStudents_ProficientLev Lev3_percent
+*rename Pct_AllStudents_ProficientLev Lev3_percent
 rename Nbr_AllStudents_AdvancedLevel Lev4_count
-rename Pct_AllStudents_AdvancedLevel Lev4_percent
+*rename Pct_AllStudents_AdvancedLevel Lev4_percent
+
+** Percent variables have a denominator of enrollment, rather than tested, so the percents add to ParticipationRate rather than 100%. Deriving percents based on counts instead.
+
 
 // Correcting DataLevel
 gen DistName = Entity_Name if DataLevel == "District"
@@ -85,7 +88,7 @@ replace SchName = "All Schools" if DataLevel !=3
 
 
 // Dropping Extra Variables
-keep DataLevel GradeLevel Subject StudentSubGroup AssmtType StudentSubGroup_TotalTested ParticipationRate ProficientOrAbove_count ProficientOrAbove_percent Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent DistName SchName StateAssignedDistID StateAssignedSchID
+keep DataLevel GradeLevel Subject StudentSubGroup AssmtType StudentSubGroup_TotalTested ParticipationRate ProficientOrAbove_count Lev1_count Lev2_count Lev3_count Lev4_count DistName SchName StateAssignedDistID StateAssignedSchID
 
 // GradeLevel
 replace GradeLevel = "G" + GradeLevel
@@ -123,18 +126,16 @@ foreach var of varlist _all {
 }
 
 // ParticipationRate
-replace ParticipationRate = string(real(ParticipationRate)/100, "%9.3g") if ParticipationRate != "*"
+replace ParticipationRate = string(real(ParticipationRate)/100, "%9.4g") if ParticipationRate != "*"
 replace ParticipationRate = "--" if missing(real(ParticipationRate)) & ParticipationRate != "*"
 
-// Proficiency Levels
-replace ProficientOrAbove_percent = string(real(ProficientOrAbove_percent)/100, "%9.3g") if ProficientOrAbove_percent != "*" & !missing(real(ProficientOrAbove_percent))
-replace ProficientOrAbove_percent = "0" if ProficientOrAbove_percent == "NULL"
-replace ProficientOrAbove_percent = "--" if missing(real(ProficientOrAbove_percent)) & ProficientOrAbove_percent != "*"
-
-foreach n in 1 2 3 4 {
-	replace Lev`n'_percent = string(real(Lev`n'_percent)/100, "%9.3g") if !missing(real(Lev`n'_percent))
-	replace Lev`n'_percent = "0" if Lev`n'_percent == "NULL"
-	replace Lev`n'_percent = "--" if missing(real(Lev`n'_percent)) & Lev`n'_percent != "*"
+// Proficiency Percent Levels
+foreach count of varlist *count {
+	local percent = subinstr("`count'", "count", "percent",.)
+	gen `percent' = string(real(`count')/real(StudentSubGroup_TotalTested), "%9.4g") if !missing(real(`count')) & !missing(real(StudentSubGroup_TotalTested))
+	replace `percent' = "*" if `count' == "*"
+	replace `percent' = "0" if `count' == "0"
+	replace `percent' = "--" if missing(`percent')
 }
 
 // Merging
@@ -238,7 +239,7 @@ gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_sci = "N" 
 if `year' == 2021 {
-replace Flag_CutScoreChange_sci = "Y" // `year' == 2018
+replace Flag_CutScoreChange_sci = "Y"
 }
 
 gen Flag_CutScoreChange_soc = "Not applicable"
@@ -305,23 +306,24 @@ replace StudentSubGroup_TotalTested = string(real(StudentGroup_TotalTested)-Unsu
 drop Unsuppressed* missing_* Derivable
 
 //Level percent (and corresponding count) derivations if we have all other percents
-replace Lev1_percent = string(1-real(Lev4_percent)-real(Lev3_percent)-real(Lev2_percent), "%9.3g") if !missing(1) & !missing(real(Lev4_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev2_percent)) & missing(real(Lev1_percent))
+replace Lev1_percent = string(1-real(Lev4_percent)-real(Lev3_percent)-real(Lev2_percent), "%9.4g") if !missing(1) & !missing(real(Lev4_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev2_percent)) & missing(real(Lev1_percent))
 
-replace Lev2_percent = string(1-real(Lev4_percent)-real(Lev3_percent)-real(Lev1_percent), "%9.3g") if !missing(1) & !missing(real(Lev4_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev1_percent)) & missing(real(Lev2_percent))
+replace Lev2_percent = string(1-real(Lev4_percent)-real(Lev3_percent)-real(Lev1_percent), "%9.4g") if !missing(1) & !missing(real(Lev4_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev1_percent)) & missing(real(Lev2_percent))
 
-replace Lev3_percent = string(1-real(Lev4_percent)-real(Lev1_percent)-real(Lev2_percent), "%9.3g") if !missing(1) & !missing(real(Lev4_percent)) & !missing(real(Lev1_percent)) & !missing(real(Lev2_percent)) & missing(real(Lev3_percent))
+replace Lev3_percent = string(1-real(Lev4_percent)-real(Lev1_percent)-real(Lev2_percent), "%9.4g") if !missing(1) & !missing(real(Lev4_percent)) & !missing(real(Lev1_percent)) & !missing(real(Lev2_percent)) & missing(real(Lev3_percent))
 
-replace Lev4_percent = string(1-real(Lev1_percent)-real(Lev3_percent)-real(Lev2_percent), "%9.3g") if !missing(1) & !missing(real(Lev1_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev2_percent)) & missing(real(Lev4_percent))
+replace Lev4_percent = string(1-real(Lev1_percent)-real(Lev3_percent)-real(Lev2_percent), "%9.4g") if !missing(1) & !missing(real(Lev1_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev2_percent)) & missing(real(Lev4_percent))
 
 foreach percent of varlist Lev*_percent {
 	replace `percent' = "0" if real(`percent') <  0.005 & !missing(real(`percent'))
 }
 
-replace ProficientOrAbove_percent = string(real(Lev3_percent) + real(Lev4_percent)) if !missing(real(Lev3_percent)) & !missing(real(Lev4_percent)) & missing(real(ProficientOrAbove_percent))
+replace ProficientOrAbove_percent = string(real(Lev3_percent) + real(Lev4_percent)) if !missing(real(Lev3_percent)) & !missing(real(Lev4_percent))
+replace ProficientOrAbove_percent = "*" if missing(ProficientOrAbove_percent)
 
 foreach count of varlist Lev*_count {
 	local percent = subinstr("`count'", "count", "percent",.)
-	replace `count' = string(round(real(`percent') * real(StudentSubGroup_TotalTested))) if !missing(real(`percent')) & !missing(real(StudentSubGroup_TotalTested))
+	replace `count' = string(round(real(`percent') * real(StudentSubGroup_TotalTested))) if !missing(real(`percent')) & !missing(real(StudentSubGroup_TotalTested)) & missing(real(`count'))
 }
 
 //Misc Fixes
@@ -329,6 +331,9 @@ replace DistName = subinstr(DistName, "School District ", "",.)
 replace ProficientOrAbove_percent = "1" if real(ProficientOrAbove_percent) > 1 & !missing(real(ProficientOrAbove_percent))
 replace ParticipationRate = "1" if real(ParticipationRate) > 1 & !missing(real(ParticipationRate))
 replace ProficientOrAbove_count = string(real(Lev3_count) + real(Lev4_count)) if !missing(real(Lev3_count)) & !missing(real(Lev4_count))
+
+
+
 
 //Final Cleaning
 foreach var of varlist DistName SchName {

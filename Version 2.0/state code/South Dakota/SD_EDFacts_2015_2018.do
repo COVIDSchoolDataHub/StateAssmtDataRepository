@@ -1,10 +1,18 @@
 clear
 set more off
+
+cd "/Volumes/T7/State Test Project/South Dakota"
+global Original "/Volumes/T7/State Test Project/South Dakota/Original Data"
+global Output "/Volumes/T7/State Test Project/South Dakota/Output"
+global NCES_District "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global NCES_School "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global Stata_versions "/Volumes/T7/State Test Project/South Dakota/Stata .dta versions"
+global EDFacts "/Volumes/T7/State Test Project/EDFACTS"
+
 ** Preparing EDFacts files
-local edyears1 14 15 16 17 18
-local edyears2 2019 2021
+local edyears1 15 16 17 18
 local subject math ela
-local datatype part
+local datatype part count
 local datalevel school district
 
 foreach year of local edyears1 {
@@ -60,8 +68,11 @@ foreach year of local edyears1 {
             append using "${EDFacts}/20`year'/edfacts`type'20`year'ela`lvl'southdakota.dta"
 			if ("`lvl'" == "school") {
                 rename ncessch NCESSchoolID
+				format NCESSchoolID %14.0g
 			}
 				rename leaid NCESDistrictID
+				
+			tostring NCES*, replace usedisplayformat
             if ("`type'" == "part") {
                 drop if Participation == ""
                 replace Participation = "--" if Participation == "n/a"
@@ -110,139 +121,15 @@ foreach year of local edyears1 {
             replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless"
             replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant Status"
             save "${EDFacts}/20`year'/edfacts`type'20`year'`lvl'southdakota.dta", replace
+			
         }
     }
 }
 
-foreach year of local edyears2 {
-	foreach sub of local subject {
-		foreach type of local datatype {
-			foreach lvl of local datalevel {
-				use "${EDFacts}/`year'/edfacts`type'`year'`sub'`lvl'.dta", clear
-				keep if stnam == "SOUTH DAKOTA"
-				drop date_cur
-				if ("`type'" == "count") {
-					rename numvalid Count
-					rename pctprof PctProf
-				}
-				if ("`type'" == "part") {
-					rename pctpart Participation
-					drop numpart
-				}
-				rename subject Subject
-				replace Subject = "`sub'"
-				if ("`lvl'" == "school") {
-					gen DataLevel = 3
-				}
-				if ("`lvl'" == "district") {
-					gen DataLevel = 2
-				}
-				save "${EDFacts}/`year'/edfacts`type'`year'`sub'`lvl'southdakota.dta", replace
-			}
-		}
-	}
-}
-
-foreach year of local edyears2 {
-	foreach type of local datatype {
-		foreach lvl of local datalevel {
-			use "${EDFacts}/`year'/edfacts`type'`year'math`lvl'southdakota.dta", clear
-			append using "${EDFacts}/`year'/edfacts`type'`year'ela`lvl'southdakota.dta"
-			if "`lvl'" == "school" {
-				rename ncessch NCESSchoolID
-			}
-				rename leaid NCESDistrictID
-			if ("`type'" == "count") {
-				drop if Count == .
-				drop if PctProf == ""
-				replace PctProf = "--" if PctProf == "n/a"
-				replace PctProf = "*" if PctProf == "PS"
-				split PctProf, parse("-")
-				destring PctProf1, replace force
-				replace PctProf1 = PctProf1/100
-				tostring PctProf1, replace format("%9.2g") force
-				destring PctProf2, replace force
-				replace PctProf2 = PctProf2/100			
-				tostring PctProf2, replace format("%9.2g") force
-				replace PctProf = PctProf1 + "-" + PctProf2 if PctProf1 != "." & PctProf2 != "."
-				replace PctProf = PctProf1 if PctProf1 != "." & PctProf2 == "."
-				gen PctProf3 = subinstr(PctProf, "GE", "", .) if strpos(PctProf, "GE") > 0
-				replace PctProf3 = subinstr(PctProf, "LT", "", .) if strpos(PctProf, "LT") > 0
-				replace PctProf3 = subinstr(PctProf, "LE", "", .) if strpos(PctProf, "LE") > 0
-				destring PctProf3, replace force
-				replace PctProf3 = PctProf3/100
-				tostring PctProf3, replace format("%9.2g") force
-				replace PctProf = PctProf3 + "-1" if strpos(PctProf, "GE") > 0
-				replace PctProf = "0-" + PctProf3 if strpos(PctProf, "LT") > 0
-				replace PctProf = "0-" + PctProf3 if strpos(PctProf, "LE") > 0
-				drop PctProf1 PctProf2 PctProf3
-			}
-			if ("`type'" == "part") {
-				drop if Participation == ""
-				replace Participation = "--" if Participation == "n/a"
-				replace Participation = "*" if Participation == "PS"
-				split Participation, parse("-")
-				destring Participation1, replace force
-				replace Participation1 = Participation1/100
-				tostring Participation1, replace format("%9.2g") force
-				destring Participation2, replace force
-				replace Participation2 = Participation2/100			
-				tostring Participation2, replace format("%9.2g") force
-				replace Participation = Participation1 + "-" + Participation2 if Participation1 != "." & Participation2 != "."
-				replace Participation = Participation1 if Participation1 != "." & Participation2 == "."
-				gen Participation3 = subinstr(Participation, "GE", "", .) if strpos(Participation, "GE") > 0
-				replace Participation3 = subinstr(Participation, "LT", "", .) if strpos(Participation, "LT") > 0
-				replace Participation3 = subinstr(Participation, "LE", "", .) if strpos(Participation, "LE") > 0
-				destring Participation3, replace force
-				replace Participation3 = Participation3/100
-				tostring Participation3, replace format("%9.2g") force
-				replace Participation = Participation3 + "-1" if strpos(Participation, "GE") > 0
-				replace Participation = "0-" + Participation3 if strpos(Participation, "LT") > 0
-				replace Participation = "0-" + Participation3 if strpos(Participation, "LE") > 0
-				drop Participation1 Participation2 Participation3
-			}
-			drop if grade == "HS"
-			rename grade GradeLevel
-			replace GradeLevel = "G" + GradeLevel
-			replace GradeLevel = "G38" if GradeLevel == "G00"
-			rename category StudentSubGroup
-			replace StudentSubGroup = "All Students" if StudentSubGroup == "ALL"
-			replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "ECD"
-			replace StudentSubGroup = "Female" if StudentSubGroup == "F"
-			replace StudentSubGroup = "English Learner" if StudentSubGroup == "LEP"
-			replace StudentSubGroup = "Male" if StudentSubGroup == "M"
-			replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "MAM"
-			replace StudentSubGroup = "Asian" if StudentSubGroup == "MAS"
-			replace StudentSubGroup = "Black or African American" if StudentSubGroup == "MBL"
-			replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "MHI"
-			replace StudentSubGroup = "Two or More" if StudentSubGroup == "MTR"
-			replace StudentSubGroup = "White" if StudentSubGroup == "MWH"
-			replace StudentSubGroup = "SWD" if StudentSubGroup == "CWD"
-			replace StudentSubGroup = "Migrant" if StudentSubGroup == "MIG"
-			replace StudentSubGroup = "Homeless" if StudentSubGroup == "HOM"
-			replace StudentSubGroup = "Military" if StudentSubGroup == "MIL"
-			replace StudentSubGroup = "Foster Care" if StudentSubGroup == "FCS"
-			gen StudentGroup = "RaceEth"
-			replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
-			replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged"
-			replace StudentGroup = "Gender" if inlist(StudentSubGroup, "Female", "Male")
-			replace StudentGroup = "EL Status" if StudentSubGroup == "English Learner"
-			replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD"
-			replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant"
-			replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless"
-			replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Military"
-			replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Foster Care"
-			save "${EDFacts}/`year'/edfacts`type'`year'`lvl'southdakota.dta", replace
-		}
-	}
-}
-
-
 //Merging
-forvalues year = 2014/2018 {
+forvalues year = 2015/2018 {
 if `year' == 2020 continue
 use "${Output}/SD_AssmtData_`year'", clear
-destring NCES*, replace
 
 //Merging
 
@@ -258,12 +145,15 @@ tempfile tempsch
 save "`tempsch'", replace
 clear
 
+//Merging Count & Participation
+
+foreach type in count part {
 //District Merge
 use "`tempdist'"
 duplicates report NCESDistrictID StudentSubGroup GradeLevel Subject
 duplicates drop NCESDistrictID StudentSubGroup GradeLevel Subject, force
-merge 1:1 NCESDistrictID StudentSubGroup GradeLevel Subject using "${EDFacts}/`year'/edfactspart`year'districtsouthdakota.dta", gen(DistMerge)
-drop if DistMerge == 2
+merge 1:1 NCESDistrictID StudentSubGroup GradeLevel Subject using "${EDFacts}/`year'/edfacts`type'`year'districtsouthdakota.dta", gen(DistMerge`type')
+drop if DistMerge`type' == 2
 save "`tempdist'", replace
 clear
 
@@ -271,18 +161,82 @@ clear
 use "`tempsch'"
 duplicates report NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject
 duplicates drop NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject, force
-merge 1:1 NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject using "${EDFacts}/`year'/edfactspart`year'schoolsouthdakota.dta", gen(SchMerge)
-drop if SchMerge == 2
+merge 1:1 NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject using "${EDFacts}/`year'/edfacts`type'`year'schoolsouthdakota.dta", gen(SchMerge`type')
+drop if SchMerge`type' == 2
 save "`tempsch'", replace
-clear 
+clear
 
+}
 //Combining DataLevels
 use "`tempall'"
 keep if DataLevel == 1
 append using "`tempdist'" "`tempsch'"
 
-//New Participation Data
-replace ParticipationRate = Participation if !missing(Participation)
+//New Data
+replace ParticipationRate = Participation if !missing(Participation) & missing(real(ParticipationRate))
+replace StudentSubGroup_TotalTested = string(Count) if missing(real(StudentSubGroup_TotalTested)) & !missing(Count) & Count < real(StudentGroup_TotalTested)
+
+//New Counts
+foreach percent of varlist Lev*_percent {
+	local count = subinstr("`percent'", "percent", "count",.)
+	replace `count' = string(round(real(`percent')*real(StudentSubGroup_TotalTested))) if !missing(real(`percent')) & !missing(real(StudentSubGroup_TotalTested))
+	replace `count' = "*" if `percent' == "*"
+	replace `count' = "--" if missing(`count') & "`count'" != "Lev5_count"
+}
+replace ProficientOrAbove_count = string(real(Lev3_count) + real(Lev4_count)) if !missing(real(Lev3_count)) & !missing(real(Lev4_count)) & missing(real(ProficientOrAbove_count))
+
+//StudentGroup_TotalTested
+cap drop StudentGroup_TotalTested
+gen StateAssignedDistID1 = StateAssignedDistID
+replace StateAssignedDistID1 = "000000" if DataLevel == 1
+gen StateAssignedSchID1 = StateAssignedSchID
+replace StateAssignedSchID1 = "000000" if DataLevel !=3
+egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
+sort group_id StudentGroup StudentSubGroup
+by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+drop group_id StateAssignedDistID1 StateAssignedSchID1
+
+//Deriving StudentSubGroup_TotalTested where possible
+gen UnsuppressedSSG = real(StudentSubGroup_TotalTested)
+egen UnsuppressedSG = total(UnsuppressedSSG), by(StudentGroup DistName SchName GradeLevel Subject)
+gen missing_SSG = 1 if missing(real(StudentSubGroup_TotalTested))
+egen missing_multiple = total(missing_SSG), by(StudentGroup DistName SchName GradeLevel Subject)
+
+order StudentGroup_TotalTested UnsuppressedSG StudentSubGroup_TotalTested UnsuppressedSSG missing_multiple
+
+gen Derivable = 1 if missing(real(StudentSubGroup_TotalTested)) & UnsuppressedSG > 0 & (missing_multiple <2 | StudentSubGroup == "English Learner" | StudentSubGroup == "English Proficient") & real(StudentGroup_TotalTested)-UnsuppressedSG > 0 & !missing(real(StudentGroup_TotalTested)-UnsuppressedSG) & StudentSubGroup != "All Students"
+
+replace StudentSubGroup_TotalTested = string(real(StudentGroup_TotalTested)-UnsuppressedSG) if Derivable == 1
+
+drop Unsuppressed* missing_* Derivable
+
+//Level percent (and corresponding count) derivations if we have all other percents
+replace Lev1_percent = string(1-real(Lev4_percent)-real(Lev3_percent)-real(Lev2_percent), "%9.4g") if !missing(1) & !missing(real(Lev4_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev2_percent)) & missing(real(Lev1_percent))
+
+replace Lev2_percent = string(1-real(Lev4_percent)-real(Lev3_percent)-real(Lev1_percent), "%9.4g") if !missing(1) & !missing(real(Lev4_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev1_percent)) & missing(real(Lev2_percent))
+
+replace Lev3_percent = string(1-real(Lev4_percent)-real(Lev1_percent)-real(Lev2_percent), "%9.4g") if !missing(1) & !missing(real(Lev4_percent)) & !missing(real(Lev1_percent)) & !missing(real(Lev2_percent)) & missing(real(Lev3_percent))
+
+replace Lev4_percent = string(1-real(Lev1_percent)-real(Lev3_percent)-real(Lev2_percent), "%9.4g") if !missing(1) & !missing(real(Lev1_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev2_percent)) & missing(real(Lev4_percent))
+
+foreach percent of varlist Lev*_percent {
+	replace `percent' = "0" if real(`percent') <  0.005 & !missing(real(`percent'))
+}
+
+replace ProficientOrAbove_percent = string(real(Lev3_percent) + real(Lev4_percent)) if !missing(real(Lev3_percent)) & !missing(real(Lev4_percent)) & missing(real(ProficientOrAbove_percent))
+
+foreach count of varlist Lev*_count {
+	local percent = subinstr("`count'", "count", "percent",.)
+	replace `count' = string(round(real(`percent') * real(StudentSubGroup_TotalTested))) if !missing(real(`percent')) & !missing(real(StudentSubGroup_TotalTested)) & missing(real(`count'))
+	replace `percent' = string(real(`percent'), "%9.4g") if !missing(real(`percent'))
+}
+
+//Derive ProficientOrAbove_count/percent based on non proficient levels
+replace ProficientOrAbove_count = string(real(StudentSubGroup_TotalTested)-real(Lev1_count)-real(Lev2_count)) if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Lev1_count)) & !missing(real(Lev2_count)) & missing(real(ProficientOrAbove_count))
+replace ProficientOrAbove_percent = string(1-real(Lev1_percent)-real(Lev2_percent), "%9.4g") if !missing(real(Lev1_percent)) & !missing(real(Lev2_percent)) & missing(real(ProficientOrAbove_percent))
+replace ProficientOrAbove_percent = "0" if 1-real(Lev1_percent)-real(Lev2_percent) < 0.005
+
 
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode

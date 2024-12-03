@@ -11,8 +11,8 @@ global NCES_School "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
 global Stata_versions "/Volumes/T7/State Test Project/South Dakota/Stata .dta versions"
 global EDFacts "/Volumes/T7/State Test Project/EDFACTS"
 
-local years 2014 2015 2016 2017
-local subjects ela math sci
+local years 2014
+local subjects sci
 local DataLevels State District School
 
 
@@ -592,8 +592,6 @@ clear
 erase "`temp_`year''"
 }
 
-//Get edfacts ParticipationRates
-do SD_EDFactsParticipation_2014_2017
 
 
 
