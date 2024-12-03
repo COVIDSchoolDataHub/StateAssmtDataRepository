@@ -1,11 +1,9 @@
 clear
 set more off
 
-cd "/Users/maggie/Desktop/Oklahoma"
-
-global raw "/Users/maggie/Desktop/Oklahoma/Original Data Files"
-global output "/Users/maggie/Desktop/Oklahoma/Output"
-global NCES "/Users/maggie/Desktop/Oklahoma/NCES/Cleaned"
+global raw "/Users/miramehta/Documents/Oklahoma/Original Data Files"
+global output "/Users/miramehta/Documents/Oklahoma/Output"
+global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
 
 local subject Math Reading Science
 local datatype Participation Performance
@@ -14,13 +12,13 @@ local datatype Participation Performance
 
 foreach a of local subject {
 	foreach b of local datatype {
-		import excel "${raw}/`a'_`b'_Redacted.xlsx", sheet("`a'_`b'") firstrow clear
+		import excel "${raw}/OK ELA, Math Sci Assmt Data (2017-2023) Received via Data Request - 4-25-24/`a'_`b'_Redacted.xlsx", sheet("`a'_`b'") firstrow clear
 		save "${raw}/`a' `b'.dta", replace
 	}
 }
 
 foreach a of numlist 3/8 {
-	import excel "${raw}/OK_OriginalData_2017_G0`a'.xlsx", sheet("Grade `a' Data") firstrow clear
+	import excel "${raw}/Publicly Available Data Files/OK_OriginalData_2017_G0`a'.xlsx", sheet("Grade `a' Data") firstrow clear
 	keep OrganizationID *MeanOPI Group
 	rename *MeanOPI AvgScaleScore*
 	gen GradeLevel = "G0" + "`a'"
@@ -50,7 +48,7 @@ foreach a of numlist 3/8 {
 }
 
 foreach a of numlist 3/8 {
-	import excel "${raw}/OK_OriginalData_2018_G0`a'.xlsx", sheet("Grade `a' Data") firstrow clear
+	import excel "${raw}/Publicly Available Data Files/OK_OriginalData_2018_G0`a'.xlsx", sheet("Grade `a' Data") firstrow clear
 	keep OrganizationId *MeanOPI Group
 	rename *MeanOPI AvgScaleScore*
 	gen GradeLevel = "G0" + "`a'"
@@ -85,7 +83,7 @@ foreach b of numlist 2017/2018 {
 	}
 }
 
-import excel "${raw}/OK_OriginalData_2019_all.xlsx", sheet("Sheet1") firstrow clear
+import excel "${raw}/Publicly Available Data Files/OK_OriginalData_2019_all.xlsx", sheet("Sheet1") firstrow clear
 keep grade OrganizationId *MeanOPI
 rename *MeanOPI AvgScaleScore*
 rename grade GradeLevel
@@ -100,7 +98,7 @@ replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "sci" if Subject == "Science"
 save "${raw}/OK_AssmtData_2019.dta", replace
 
-import excel "${raw}/OK_OriginalData_2022_all.xlsx", sheet("OK2122MediaRedacted") firstrow clear
+import excel "${raw}/Publicly Available Data Files/OK_OriginalData_2022_all.xlsx", sheet("OK2122MediaRedacted") firstrow clear
 keep Grade OrganizationId *MeanOPI
 rename *MeanOPI AvgScaleScore*
 rename Grade GradeLevel
@@ -117,7 +115,7 @@ replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "sci" if Subject == "Science"
 save "${raw}/OK_AssmtData_2022.dta", replace
 
-import excel "${raw}/OK_OriginalData_2023_all.xlsx", sheet("OKOSTP2223MediaRedacted") firstrow clear
+import excel "${raw}/Publicly Available Data Files/OK_OriginalData_2023_all.xlsx", sheet("OKOSTP2223MediaRedacted") firstrow clear
 keep Grade OrganizationId *MeanOPI
 rename *MeanOPI AvgScaleScore*
 rename Grade GradeLevel
@@ -144,7 +142,38 @@ replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "sci" if Subject == "Science"
 save "${raw}/OK_AssmtData_2023.dta", replace
 
-foreach b of numlist 2017/2023 {
+import excel "${raw}/Publicly Available Data Files/OK_OriginalData_2024_all.xlsx", sheet("OKOSTP2324MediaRedacted") firstrow clear
+keep Grade OrganizationId *MeanOPI
+rename *MeanOPI AvgScaleScore*
+rename Grade GradeLevel
+tostring GradeLevel, replace force
+replace GradeLevel = "G0" + GradeLevel
+gen StudentSubGroup = "All Students"
+gen State_leaid = "OK-" + substr(OrganizationId, 1, 2) + "-" + substr(OrganizationId, 3, 4) if strlen(OrganizationId) >= 6
+replace State_leaid = "OK-55-E003" if OrganizationId == "55000"
+replace State_leaid = "OK-55-E012" if OrganizationId == "55000000000000"
+replace State_leaid = "OK-72-E004" if OrganizationId == "720000"
+replace State_leaid = "OK-72-E005" if OrganizationId == "7200000"
+replace State_leaid = "OK-72-E006" if OrganizationId == "72000000"
+replace State_leaid = "OK-61-E020" if OrganizationId == "6.10000000000e+21"
+replace State_leaid = "OK-55-E026" if OrganizationId == "5.50000000000e+27"
+replace State_leaid = "OK-55-E028" if OrganizationId == "5.50000000000e+29"
+replace State_leaid = "OK-55-E030" if OrganizationId == "5.50000000000e+31"
+replace State_leaid = "OK-72-E017" if OrganizationId == "7.20000000000e+18"
+replace State_leaid = "OK-72-E018" if OrganizationId == "7.20000000000e+19"
+gen seasch = substr(OrganizationId, 1, 2) + "-" + substr(OrganizationId, 3, 4) + "-" + substr(OrganizationId, 7, 3) if strlen(OrganizationId) > 6
+replace seasch = "" if strpos(seasch, ".") > 0 //correcting district level data for values of state_leaid above
+replace seasch = "" if seasch == "55-0000-000" & State_leaid == "OK-55-E012"
+replace seasch = "" if seasch == "72-0000-00" & State_leaid == "OK-72-E006"
+replace seasch = "" if seasch == "72-0000-0" & State_leaid == "OK-72-E005"
+drop OrganizationId
+reshape long AvgScaleScore, i(State_leaid seasch GradeLevel) j(Subject) string
+replace Subject = "ela" if Subject == "ELA"
+replace Subject = "math" if Subject == "Mathematics"
+replace Subject = "sci" if Subject == "Science"
+save "${raw}/OK_AssmtData_2024.dta", replace
+
+foreach b of numlist 2017/2024 {
 	if `b' == 2020 | `b' == 2021 {
 		continue
 	}

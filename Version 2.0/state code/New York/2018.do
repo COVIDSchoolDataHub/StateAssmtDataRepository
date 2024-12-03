@@ -239,6 +239,7 @@ replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == "."
 
 replace Lev5_percent = ""
 replace AvgScaleScore = "*" if SUP=="s"
+replace AvgScaleScore = "0" if AvgScaleScore == "00"
 
 //Fixing Charter Schools (In NY, Charter Schools are classified as their own district)
 replace DistName = SchName if DistName == "" & (DistCharter== "Yes" | strpos(SchName, "CHARTER") !=0)

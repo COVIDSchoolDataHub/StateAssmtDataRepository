@@ -1,11 +1,9 @@
 clear
 set more off
 
-global raw "/Users/maggie/Desktop/Oklahoma/Original Data Files"
-global output "/Users/maggie/Desktop/Oklahoma/Output"
-global NCES "/Users/maggie/Desktop/Oklahoma/NCES/Cleaned"
-
-cd "/Users/maggie/Desktop/Oklahoma"
+global raw "/Users/miramehta/Documents/Oklahoma/Original Data Files"
+global output "/Users/miramehta/Documents/Oklahoma/Output"
+global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
 
 foreach sub in Math Reading Science {
 	use "${raw}/`sub' Performance.dta", clear
@@ -132,13 +130,10 @@ foreach a of varlist ProficientOrAbove_percent ParticipationRate {
 	rename `a'2 `a'
 }
 
-replace StudentSubGroup_TotalTested2 = 0 if StudentSubGroup_TotalTested2 == . | StudentGroup != "All Students"
-bysort SchYear countycode StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen test = max(StudentSubGroup_TotalTested2)
-bysort SchYear countycode StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen StudentGroup_TotalTested = max(StudentSubGroup_TotalTested2) if test != 0
-tostring StudentGroup_TotalTested, replace force
-replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
-
-drop *2
+replace Lev3_count = string(real(ProficientOrAbove_count) - 3) + "-" + ProficientOrAbove_count if real(ProficientOrAbove_count) != . & Lev3_count == "*" & Lev4_count == "0-3"
+split Lev4_percent, parse("-")
+replace Lev3_percent = string(real(ProficientOrAbove_percent) - real(Lev4_percent2)) + "-" + ProficientOrAbove_percent if real(ProficientOrAbove_percent) != . & Lev3_percent == "*" & Lev4_percent2 != ""
+drop Lev4_percent1 Lev4_percent2
 
 ** Changing DataLevel
 
@@ -174,12 +169,12 @@ forvalues year = 2017/2023 {
 	
 	keep if strpos(SchYear, "`prevyear'") > 0
 	
-	merge m:1 State_leaid using "${NCES}/NCES_`prevyear'_District.dta"
+	merge m:1 State_leaid using "${NCES}/NCES_`prevyear'_District_OK.dta"
 
 	drop if _merge == 2
 	drop _merge
 	
-	merge m:1 seasch using "${NCES}/NCES_`prevyear'_School.dta"
+	merge m:1 seasch using "${NCES}/NCES_`prevyear'_School_OK.dta"
 
 	drop if _merge == 2
 	drop _merge
@@ -223,7 +218,17 @@ forvalues year = 2017/2023 {
 	if `year' == 2017 | `year' == 2023 {
 		replace Flag_CutScoreChange_sci = "Y"
 	}
+	
+	//StudentGroup_TotalTested & StudentSubGroup_TotalTested
+	sort SchYear DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel StudentGroup StudentSubGroup
+	gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+	order Subject GradeLevel StudentGroup_TotalTested StudentGroup StudentSubGroup_TotalTested StudentSubGroup
+	replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested) & StudentSubGroup != "All Students"
+	
+	replace StudentSubGroup_TotalTested2 = 0 if StudentSubGroup_TotalTested2 == . | StudentGroup != "All Students"
+	drop *2
 
+	//Final Cleaning
 	keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 	order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
