@@ -1,11 +1,9 @@
 clear
 set more off
 
-global data "/Users/miramehta/Documents/MO State Testing Data"
-global output "/Users/miramehta/Documents/MO State Testing Data/Output"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
-
-cd "/Users/miramehta/Documents"
+global data "/Users/kaitlynlucas/Desktop/Missouri/MO State Testing Files"
+global output "/Users/kaitlynlucas/Desktop/Missouri/MO State Testing Files/Output"
+global NCES "/Users/kaitlynlucas/Desktop/Missouri/NCES School and District Demographics/Clean NCES"
 
 set trace off
 
@@ -119,13 +117,14 @@ forvalues year = 2010/2014{
 	replace Subject = "ela" if Subject == "Eng. Language Arts"
 	replace Subject = "math" if Subject == "Mathematics"
 	replace Subject = "sci" if Subject == "Science"
-	
+	/*
 	bysort DistName SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = sum(StudentSubGroup_TotalTested)
 	sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 	gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
 	replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
 	replace StudentGroup_TotalTested = AllStudents_Tested if inlist(StudentGroup, "EL Status", "Economic Status")
-	
+	*/
+
 	** Levels & Proficiency Information
 	forvalues a = 1/4{
 		destring Lev`a'_percent, replace force
@@ -199,6 +198,7 @@ forvalues year = 2010/2014{
 	gen Flag_CutScoreChange_soc = "Not applicable"
 	gen Flag_CutScoreChange_sci = "N"
 	
+	//unsure why this was added to the code (v2.0)
 	gen flag = 1 if NCESSchoolID == "290825000226" & StudentSubGroup == "White" & Subject == "sci" & GradeLevel == "G05"
 	
 	forvalues n = 1/4{
@@ -207,7 +207,7 @@ forvalues year = 2010/2014{
 		replace Lev`n'_percent = "*" if flag == 1
 		replace Lev`n'_count = "*" if flag == 1
 	}
-	tostring ProficientOrAbove_percent, replace format("%7.3f") force
+	tostring ProficientOrAbove_percent, replace format("%7.4f") force
 	tostring ProficientOrAbove_count, replace
 	replace ProficientOrAbove_percent = "*" if flag == 1
 	replace ProficientOrAbove_count = "*" if flag == 1
@@ -224,6 +224,22 @@ forvalues year = 2010/2014{
 	replace CountyName = "Cole County" if DistName == "MO VIRTUAL INSTRUCTION PROGRAM"
 	replace CountyCode = "29051" if DistName == "MO VIRTUAL INSTRUCTION PROGRAM"
 	drop if inlist(DistName, "NORTHWEST MISSOURI STATE UNIV", "SOUTHWEST MISSOURI STATE UNIV")
+	
+	replace SchName = strtrim(SchName)
+	replace SchName = stritrim(SchName)
+
+		** Generating student group total counts (V2.0) 
+//there are missing SG_TT values from 2010-2014 but these are missing in the raw data and likely due to data suppression <10
+gen StateAssignedDistID1 = StateAssignedDistID
+replace StateAssignedDistID1 = "000000" if DataLevel == 1 //Remove quotations if DistIDs are numeric
+gen StateAssignedSchID1 = StateAssignedSchID
+replace StateAssignedSchID1 = "000000" if DataLevel !=3 //Remove quotations if SchIDs are numeric
+egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
+sort group_id StudentGroup StudentSubGroup
+by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+drop group_id StateAssignedDistID1 StateAssignedSchID1
+	
 		
 	keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 	
