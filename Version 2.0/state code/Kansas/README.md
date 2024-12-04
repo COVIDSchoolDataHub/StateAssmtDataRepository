@@ -44,7 +44,7 @@ The file path setup should be as follows:
 ```
 
 ## Do File Order
-There are 4 .do files, to be run in the following order:
+There are 5 .do files, to be run in the following order:
 
 Order
 1. 01_Kansas_NCES.do [this preps the NCES files for merging]
