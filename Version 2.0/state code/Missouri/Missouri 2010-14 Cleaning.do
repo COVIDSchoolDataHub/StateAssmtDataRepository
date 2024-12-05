@@ -198,7 +198,8 @@ forvalues year = 2010/2014{
 	gen Flag_CutScoreChange_soc = "Not applicable"
 	gen Flag_CutScoreChange_sci = "N"
 	
-	//unsure why this was added to the code (v2.0)
+
+	//only way to make sure the values are stored as strings in the output .csv file
 	gen flag = 1 if NCESSchoolID == "290825000226" & StudentSubGroup == "White" & Subject == "sci" & GradeLevel == "G05"
 	
 	forvalues n = 1/4{
@@ -207,6 +208,7 @@ forvalues year = 2010/2014{
 		replace Lev`n'_percent = "*" if flag == 1
 		replace Lev`n'_count = "*" if flag == 1
 	}
+	
 	tostring ProficientOrAbove_percent, replace format("%7.4f") force
 	tostring ProficientOrAbove_count, replace
 	replace ProficientOrAbove_percent = "*" if flag == 1
@@ -227,6 +229,9 @@ forvalues year = 2010/2014{
 	
 	replace SchName = strtrim(SchName)
 	replace SchName = stritrim(SchName)
+	
+	//dropped school name
+	replace SchName = "IA OF ACADEMIC SUCCESS" if NCESSchoolID == "290058103170"
 
 		** Generating student group total counts (V2.0) 
 //there are missing SG_TT values from 2010-2014 but these are missing in the raw data and likely due to data suppression <10
@@ -239,8 +244,67 @@ sort group_id StudentGroup StudentSubGroup
 by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
 by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
 drop group_id StateAssignedDistID1 StateAssignedSchID1
-	
-		
+
+//remove leading zeros/standardizing for StateAssignedDistID
+replace StateAssignedDistID = substr(StateAssignedDistID, 2, .) if substr(StateAssignedDistID, 1, 1) == "0"
+replace StateAssignedDistID = "7123" if DistName == "ADRIAN R-III"
+replace StateAssignedDistID = "2090" if DistName == "AVENUE CITY R-IX"
+replace StateAssignedDistID = "7122" if DistName == "BALLARD R-II"
+replace StateAssignedDistID = "1092" if DistName == "ADAIR CO. R-II"
+replace StateAssignedDistID = "7129" if DistName == "BUTLER R-V"
+replace StateAssignedDistID = "5123" if DistName == "CASSVILLE R-IV"
+replace StateAssignedDistID = "8111" if DistName == "COLE CAMP R-I"
+replace StateAssignedDistID = "4106" if DistName == "COMMUNITY R-VI"
+replace StateAssignedDistID = "5122" if DistName == "EXETER R-VI"
+replace StateAssignedDistID = "3033" if DistName == "FAIRFAX R-III"
+replace StateAssignedDistID = "6103" if DistName == "GOLDEN CITY R-III"
+replace StateAssignedDistID = "7125" if DistName == "HUME R-VIII"
+replace StateAssignedDistID = "1091" if DistName == "KIRKSVILLE R-III"
+replace StateAssignedDistID = "6104" if DistName == "LAMAR R-I"
+replace StateAssignedDistID = "9078" if DistName == "LEOPOLD R-III"
+replace StateAssignedDistID = "6101" if DistName == "LIBERAL R-II"
+replace StateAssignedDistID = "8106" if DistName == "LINCOLN R-II"
+replace StateAssignedDistID = "9080" if DistName == "WOODLAND R-IV"
+replace StateAssignedDistID = "4110" if DistName == "MEXICO 59"
+replace StateAssignedDistID = "7121" if DistName == "MIAMI R-I" & StateAssignedDistID == "07121"
+replace StateAssignedDistID = "5128" if DistName == "MONETT R-I"
+replace StateAssignedDistID = "2089" if DistName == "NORTH ANDREW CO. R-VI"
+replace StateAssignedDistID = "1090" if DistName == "ADAIR CO. R-I"
+replace StateAssignedDistID = "9077" if DistName == "MEADOW HEIGHTS R-II"
+replace StateAssignedDistID = "5124" if DistName == "PURDY R-II"
+replace StateAssignedDistID = "7124" if DistName == "RICH HILL R-IV"
+replace StateAssignedDistID = "3032" if DistName == "ROCK PORT R-II"
+replace StateAssignedDistID = "2097" if DistName == "SAVANNAH R-III"
+replace StateAssignedDistID = "5127" if DistName == "SHELL KNOB 78"
+replace StateAssignedDistID = "5121" if DistName == "SOUTHWEST R-V"
+replace StateAssignedDistID = "3031" if DistName == "TARKIO R-I"
+replace StateAssignedDistID = "4109" if DistName == "VAN-FAR R-I"
+replace StateAssignedDistID = "8107" if DistName == "WARSAW R-IX"
+replace StateAssignedDistID = "5120" if DistName == "WHEATON R-III"
+replace StateAssignedDistID = "9079" if DistName == "ZALMA R-V"
+
+//changing these districts' names because they are the exact same
+replace DistName = "MIAMI R-I (Bates County)" if NCESDistrictID == "2920820"
+replace DistName = "MIAMI R-I (Saline County)" if NCESDistrictID == "2920840"
+tostring StudentGroup_TotalTested, replace
+replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested == ""
+
+//deriving additional level counts and percents
+tostring StudentSubGroup_TotalTested, replace
+
+replace ProficientOrAbove_percent = string(1 - real(Lev1_percent) - real(Lev2_percent), "%9.8f") if ProficientOrAbove_percent == "*" & Lev1_percent != "*" & Lev2_percent != "*"
+replace Lev3_percent = string(real(ProficientOrAbove_percent) - real(Lev4_percent), "%9.8f") if Lev3_percent == "*" & ProficientOrAbove_percent != "*" & Lev4_percent != "*"
+replace Lev4_percent = string(real(ProficientOrAbove_percent) - real(Lev3_percent), "%9.8f") if Lev4_percent == "*" & ProficientOrAbove_percent != "*" & Lev3_percent != "*"
+replace Lev1_percent = string(1 - real(ProficientOrAbove_percent) - real(Lev2_percent), "%9.8f") if Lev1_percent == "*" & ProficientOrAbove_percent != "*" & Lev2_percent != "*"
+replace Lev2_percent = string(1 - real(ProficientOrAbove_percent) - real(Lev1_percent), "%9.8f") if Lev2_percent == "*" & ProficientOrAbove_percent != "*" & Lev1_percent != "*"
+
+
+replace ProficientOrAbove_count = string(real(StudentSubGroup_TotalTested) - real(Lev1_count) - real(Lev2_count)) if inlist(ProficientOrAbove_count, "*", "0-3") & !inlist(StudentSubGroup_TotalTested, "*", "0-3") & !inlist(Lev1_count, "*", "0-3") & !inlist(Lev2_count, "*", "0-3")
+replace Lev1_count = string(real(StudentSubGroup_TotalTested) - real(ProficientOrAbove_count) - real(Lev2_count)) if inlist(Lev1_count, "*", "0-3") & !inlist(StudentSubGroup_TotalTested, "*", "0-3") & !inlist(ProficientOrAbove_count, "*", "0-3") & !inlist(Lev2_count, "*", "0-3")
+replace Lev2_count = string(real(StudentSubGroup_TotalTested) - real(ProficientOrAbove_count) - real(Lev1_count)) if inlist(Lev2_count, "*", "0-3") & !inlist(StudentSubGroup_TotalTested, "*", "0-3") & !inlist(ProficientOrAbove_count, "*", "0-3") & !inlist(Lev1_count, "*", "0-3")
+replace Lev3_count = string(real(ProficientOrAbove_count) - real(Lev4_count)) if inlist(Lev3_count, "*", "0-3") & !inlist(ProficientOrAbove_count, "*", "0-3") & !inlist(Lev4_count, "*", "0-3")
+replace Lev4_count = string(real(ProficientOrAbove_count) - real(Lev3_count)) if inlist(Lev4_count, "*", "0-3") & !inlist(ProficientOrAbove_count, "*", "0-3") & !inlist(Lev3_count, "*", "0-3")
+
 	keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 	
 	order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
@@ -251,3 +315,7 @@ drop group_id StateAssignedDistID1 StateAssignedSchID1
 	
 	export delimited using "${output}/MO_AssmtData_`year'.csv", replace
 }
+
+
+
+
