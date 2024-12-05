@@ -103,17 +103,6 @@ tostring ParticipationRate, replace format("%9.4f") force
 replace ParticipationRate = "*" if ParticipationRate == "."
 replace ParticipationRate = "0" if StudentSubGroup_TotalTested == 0 & req_testers == 0
 drop if StudentSubGroup_TotalTested == 0 & StudentSubGroup != "All Students"
-
-//StudentGroup_TotalTested
-replace DistName = stritrim(DistName)
-replace DistName = strtrim(DistName)
-replace SchName = stritrim(SchName)
-replace SchName = strtrim(SchName)
-sort DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel StudentGroup StudentSubGroup
-gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
-replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
-gen StudentGroup_TotalTested = AllStudents_Tested
-drop AllStudents_Tested
 	
 //Other Variables
 gen AssmtName = "Ohio's State Tests (OST)"
@@ -195,6 +184,61 @@ forvalues n = 2/5{
 }
 replace StateAssignedDistID = "" if DataLevel == "State"
 replace StateAssignedSchID = "" if DataLevel != "School"
+
+//Aggregating Values for Schools Listed in Multiple Districts
+egen uniquegrp = group(DataLevel StateAssignedDistID StateAssignedSchID AssmtName Subject GradeLevel StudentSubGroup)
+gen x = 1
+bysort uniquegrp: egen num = total(x)
+drop flag
+
+destring ProficientOrAbove_count, gen(Prof) force
+
+foreach var of varlist Prof StudentSubGroup_TotalTested {
+	gen flag = 1 if `var' == .
+	replace flag = 0 if flag == .
+	bysort uniquegrp: egen flag2 = max(flag)
+	bysort uniquegrp: egen `var'agg = total(`var')
+	replace `var'agg = . if flag2 > 0
+	drop flag flag2
+}
+
+gen weight = StudentSubGroup_TotalTested/StudentSubGroup_TotalTestedagg
+destring ParticipationRate, gen(Part) force
+gen Part_weighted = Part * weight
+gen flag = 1 if Part_weighted == .
+replace flag = 0 if flag == .
+bysort uniquegrp: egen flag2 = max(flag)
+bysort uniquegrp: egen Partagg = total(Part_weighted)
+replace Partagg = . if flag2 > 0
+drop flag flag2
+
+replace StudentSubGroup_TotalTested = StudentSubGroup_TotalTestedagg if StudentSubGroup_TotalTestedagg != . & num > 1 & uniquegrp != .
+replace ProficientOrAbove_count = string(Profagg) if Profagg != . & num > 1 & uniquegrp != .
+replace ProficientOrAbove_count = "*" if Profagg == . & num > 1 & uniquegrp != .
+gen Prof_pctagg = Profagg/StudentSubGroup_TotalTestedagg if Profagg != . & StudentSubGroup_TotalTestedagg != . & num > 1 & uniquegrp != .
+replace ProficientOrAbove_percent = string(Prof_pctagg, "%9.4f") if Prof_pctagg != . & num > 1 & uniquegrp != .
+replace ProficientOrAbove_percent = "*" if Prof_pctagg == . & num > 1 & uniquegrp != .
+replace ParticipationRate = string(Partagg, "%9.4f") if Partagg != . & num > 1 & uniquegrp != .
+replace ParticipationRate = "*" if Partagg == . & num > 1 & uniquegrp != .
+
+foreach var of varlist Lev*_count Lev*_percent{
+	replace `var' = "*" if num > 1 & uniquegrp != .
+}
+
+sort uniquegrp
+drop if uniquegrp == uniquegrp[_n-1] & num > 1 & uniquegrp != .
+drop num uniquegrp
+
+//StudentGroup_TotalTested
+replace DistName = stritrim(DistName)
+replace DistName = strtrim(DistName)
+replace SchName = stritrim(SchName)
+replace SchName = strtrim(SchName)
+sort DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel StudentGroup StudentSubGroup
+gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
+gen StudentGroup_TotalTested = AllStudents_Tested
+drop AllStudents_Tested
 
 //Label & Organize Variables
 label def DataLevel 1 "State" 2 "District" 3 "School"

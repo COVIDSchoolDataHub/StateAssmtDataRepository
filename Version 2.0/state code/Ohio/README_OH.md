@@ -30,4 +30,5 @@ global NCES_clean "/Users/miramehta/Documents/NCES District and School Demograph
 2. Run the do-files for each year.  These can be run in any order.
 
 # Updates
-10/23/24: Original cleaning.
+10/23/24: Original cleaning (with files from DR received 9/25/24 for V2.0).
+12/04/24: Updated to aggregate information for schools listed in multiple districts in raw data to one observationo with NCES listed district.
