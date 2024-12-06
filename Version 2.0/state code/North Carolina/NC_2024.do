@@ -254,10 +254,10 @@ gen Lev4_c = Lev4_percent
 
 destring Lev1_c Lev2_c Lev3_c Lev4_c, replace force 
 
-replace Lev1_c = round(Lev1_c) * num
-replace Lev2_c = round(Lev2_c) * num
-replace Lev3_c = round(Lev3_c) * num
-replace Lev4_c = round(Lev4_c) * num
+replace Lev1_c = Lev1_c * num
+replace Lev2_c = Lev2_c * num
+replace Lev3_c = Lev3_c * num
+replace Lev4_c = Lev4_c * num
 
 replace Lev1_c = round(Lev1_c/100)
 replace Lev2_c = round(Lev2_c/100)
@@ -342,21 +342,40 @@ replace Lev4_count = Lev4_c if length(Lev4_count) >= 5 & Lev4_c != "."
 drop Lev1_c Lev2_c Lev3_c Lev4_c
 
 //Deriving Additional Information
+replace ProficientOrAbove_percent = string(real(Lev2_percent) + real(Lev3_percent) + real(Lev4_percent)) if strpos(ProficientOrAbove_percent, "-") > 0 & strpos(Lev4_percent, "-") == 0 & strpos(Lev2_percent, "-") == 0 & strpos(Lev3_percent, "-") == 0 & Lev2_percent != "*" & Lev3_percent != "*" & Lev4_percent != "*" & ProficiencyCriteria == "Levels 2-4"
+replace ProficientOrAbove_count = string(real(Lev2_count) + real(Lev3_count) + real(Lev4_count)) if strpos(ProficientOrAbove_count, "-") > 0 & strpos(Lev2_count, "-") == 0 & strpos(Lev3_count, "-") == 0 & strpos(Lev4_count, "-") == 0 & Lev2_count != "*" & Lev3_percent != "*" & Lev4_count != "*" & ProficiencyCriteria == "Levels 2-4"
+
 replace Lev4_percent = string(real(ProficientOrAbove_percent) - real(Lev3_percent) - real(Lev2_percent)) if strpos(Lev4_percent, "-") > 0 & strpos(Lev2_percent, "-") == 0 & strpos(Lev3_percent, "-") == 0 & strpos(ProficientOrAbove_percent, "-") == 0 & Lev2_percent != "*" & Lev3_percent != "*" & ProficientOrAbove_percent != "*" & ProficiencyCriteria == "Levels 2-4" & real(ProficientOrAbove_percent) - real(Lev3_percent) - real(Lev2_percent) >= 0
+replace Lev4_percent = "0" if strpos(Lev4_percent, "-") > 0 & strpos(Lev2_percent, "-") == 0 & strpos(Lev3_percent, "-") == 0 & strpos(ProficientOrAbove_percent, "-") == 0 & Lev2_percent != "*" & Lev3_percent != "*" & ProficientOrAbove_percent != "*" & ProficiencyCriteria == "Levels 2-4" & real(ProficientOrAbove_percent) - real(Lev3_percent) - real(Lev2_percent) < 0
+replace Lev4_percent = "0" if strpos(Lev4_percent, "e") > 0
 
 replace Lev4_count = string(real(ProficientOrAbove_count) - real(Lev3_count) - real(Lev2_count)) if strpos(Lev4_count, "-") > 0 & strpos(Lev2_count, "-") == 0 & strpos(Lev3_count, "-") == 0 & strpos(ProficientOrAbove_count, "-") == 0 & Lev2_count != "*" & Lev3_count != "*" & ProficientOrAbove_count != "*" & ProficiencyCriteria == "Levels 2-4" & real(ProficientOrAbove_count) - real(Lev3_count) - real(Lev2_count) >= 0
+replace Lev4_percent = "0" if Lev4_count == "0"
+replace Lev4_count = "0" if Lev4_percent == "0"
 
-replace Lev3_percent = string(real(ProficientOrAbove_percent) - real(Lev4_percent) - real(Lev2_percent)) if strpos(Lev3_percent, "-") > 0 & strpos(Lev2_percent, "-") == 0 & strpos(Lev4_percent, "-") == 0 & strpos(ProficientOrAbove_percent, "-") == 0 & Lev2_percent != "*" & Lev4_percent != "*" & ProficientOrAbove_percent != "*" & ProficiencyCriteria == "Levels 2-4"
+replace Lev3_percent = string(real(ProficientOrAbove_percent) - real(Lev4_percent) - real(Lev2_percent)) if strpos(Lev3_percent, "-") > 0 & strpos(Lev2_percent, "-") == 0 & strpos(Lev4_percent, "-") == 0 & strpos(ProficientOrAbove_percent, "-") == 0 & Lev2_percent != "*" & Lev4_percent != "*" & ProficientOrAbove_percent != "*" & ProficiencyCriteria == "Levels 2-4" & real(ProficientOrAbove_percent) - real(Lev4_percent) - real(Lev2_percent) >= 0
+replace Lev3_percent = "0" if strpos(Lev3_percent, "-") > 0 & strpos(Lev2_percent, "-") == 0 & strpos(Lev4_percent, "-") == 0 & strpos(ProficientOrAbove_percent, "-") == 0 & Lev2_percent != "*" & Lev4_percent != "*" & ProficientOrAbove_percent != "*" & ProficiencyCriteria == "Levels 2-4" & real(ProficientOrAbove_percent) - real(Lev4_percent) - real(Lev2_percent) < 0
+replace Lev3_percent = "0" if strpos(Lev3_percent, "e") > 0
 
 replace Lev3_count = string(real(ProficientOrAbove_count) - real(Lev4_count) - real(Lev2_count)) if strpos(Lev3_count, "-") > 0 & strpos(Lev2_count, "-") == 0 & strpos(Lev4_count, "-") == 0 & strpos(ProficientOrAbove_count, "-") == 0 & Lev2_count != "*" & Lev4_count != "*" & ProficientOrAbove_count != "*" & ProficiencyCriteria == "Levels 2-4"
+replace Lev3_percent = "0" if Lev3_count == "0"
+replace Lev3_count = "0" if Lev3_percent == "0"
 
-replace Lev2_percent = string(real(ProficientOrAbove_percent) - real(Lev4_percent) - real(Lev3_percent)) if strpos(Lev2_percent, "-") > 0 & strpos(Lev3_percent, "-") == 0 & strpos(Lev4_percent, "-") == 0 & strpos(ProficientOrAbove_percent, "-") == 0 & Lev3_percent != "*" & Lev4_percent != "*" & ProficientOrAbove_percent != "*" & ProficiencyCriteria == "Levels 2-4"
+replace Lev2_percent = string(real(ProficientOrAbove_percent) - real(Lev4_percent) - real(Lev3_percent)) if strpos(Lev2_percent, "-") > 0 & strpos(Lev3_percent, "-") == 0 & strpos(Lev4_percent, "-") == 0 & strpos(ProficientOrAbove_percent, "-") == 0 & Lev3_percent != "*" & Lev4_percent != "*" & ProficientOrAbove_percent != "*" & ProficiencyCriteria == "Levels 2-4" & & real(ProficientOrAbove_percent) - real(Lev4_percent) - real(Lev3_percent) >= 0
+replace Lev2_percent = "0" if strpos(Lev2_percent, "-") > 0 & strpos(Lev3_percent, "-") == 0 & strpos(Lev4_percent, "-") == 0 & strpos(ProficientOrAbove_percent, "-") == 0 & Lev3_percent != "*" & Lev4_percent != "*" & ProficientOrAbove_percent != "*" & ProficiencyCriteria == "Levels 2-4" & & real(ProficientOrAbove_percent) - real(Lev4_percent) - real(Lev3_percent) < 0
+replace Lev2_percent = "0" if strpos(Lev2_percent, "e") > 0
 
 replace Lev2_count = string(real(ProficientOrAbove_count) - real(Lev3_count) - real(Lev4_count)) if strpos(Lev2_count, "-") > 0 & strpos(Lev3_count, "-") == 0 & strpos(Lev4_count, "-") == 0 & strpos(ProficientOrAbove_count, "-") == 0 & Lev3_count != "*" & Lev4_count != "*" & ProficientOrAbove_count != "*" & ProficiencyCriteria == "Levels 2-4"
+replace Lev2_percent = "0" if Lev2_count == "0"
+replace Lev2_count = "0" if Lev2_percent == "0"
 
-replace Lev1_percent = string(1 - real(ProficientOrAbove_percent)) if strpos(Lev1_percent, "-") > 0 & strpos(ProficientOrAbove_percent, "-") == 0 & ProficientOrAbove_percent != "*" & ProficiencyCriteria == "Levels 2-4"
+replace Lev1_percent = string(1 - real(ProficientOrAbove_percent)) if strpos(Lev1_percent, "-") > 0 & strpos(ProficientOrAbove_percent, "-") == 0 & ProficientOrAbove_percent != "*" & ProficiencyCriteria == "Levels 2-4" & 1 - real(ProficientOrAbove_percent) >= 0
+replace Lev1_percent = "0" if strpos(Lev1_percent, "-") > 0 & strpos(ProficientOrAbove_percent, "-") == 0 & ProficientOrAbove_percent != "*" & ProficiencyCriteria == "Levels 2-4" & 1 - real(ProficientOrAbove_percent) < 0
+replace Lev1_percent = "0" if strpos(Lev1_percent, "e") > 0
 
 replace Lev1_count = string(real(StudentSubGroup_TotalTested) - real(ProficientOrAbove_count)) if strpos(Lev1_count, "-") > 0 & strpos(StudentSubGroup_TotalTested, "-") == 0 & strpos(ProficientOrAbove_count, "-") == 0 & StudentSubGroup_TotalTested != "*" & ProficientOrAbove_count != "*" & ProficiencyCriteria == "Levels 2-4"
+replace Lev1_percent = "0" if Lev1_count == "0"
+replace Lev1_count = "0" if Lev1_percent == "0"
 
 //Standardizing IDs & Names
 gen StateAssignedDistID1 = StateAssignedDistID
@@ -372,14 +391,14 @@ replace StateAssignedSchID = "" if (DataLevel == 1 | DataLevel == 2) & StateAssi
 
 save "$data/NC_AssmtData_2024_Stata", replace
 
-use "NC_StableNames", clear
+use "$data/NC_StableNames", clear
 tostring NCESDistrictID, replace
 replace NCESDistrictID = "" if NCESDistrictID == "."
 tostring NCESSchoolID, format("%18.0f") replace
 replace NCESSchoolID = "" if NCESSchoolID == "."
 keep if SchYear == "2022-23"
 drop SchYear
-merge 1:m DataLevel NCESDistrictID NCESSchoolID using "NC_AssmtData_2024_Stata", gen(merge2)
+merge 1:m DataLevel NCESDistrictID NCESSchoolID using "$data/NC_AssmtData_2024_Stata", gen(merge2)
 drop if merge2 == 1
 drop merge2
 replace DistName = newdistname if DataLevel !=1

@@ -1100,6 +1100,10 @@ use NC_AssmtData_`year'_Stata, clear
 tostring StudentSubGroup_TotalTested, replace
 	
 //ProficiencyCriteria == Levels 2-4
+replace ProficientOrAbove_percent = string(real(Lev2_percent) + real(Lev3_percent) + real(Lev4_percent)) if strpos(ProficientOrAbove_percent, "-") > 0 &strpos(Lev2_percent, "-") == 0 & strpos(Lev3_percent, "-") == 0 & strpos(Lev4_percent, "-") == 0 & Lev2_percent != "*" & Lev3_percent != "*" & Lev4_percent != "*" & ProficiencyCriteria == "Levels 2-4" & real(Lev2_percent) + real(Lev3_percent) + real(Lev4_percent) < 1
+
+replace ProficientOrAbove_count = string(real(Lev2_count) + real(Lev3_count) + real(Lev4_count)) if strpos(ProficientOrAbove_count, "-") > 0 & strpos(Lev2_count, "-") == 0 & strpos(Lev3_count, "-") == 0 & strpos(Lev4_count, "-") == 0 & Lev2_count != "*" & Lev3_percent != "*" & Lev4_count != "*" & ProficiencyCriteria == "Levels 2-4" & real(Lev2_count) + real(Lev3_count) + real(Lev4_count) < real(StudentSubGroup_TotalTested)
+
 replace Lev4_percent = string(real(ProficientOrAbove_percent) - real(Lev3_percent) - real(Lev2_percent)) if strpos(Lev4_percent, "-") > 0 & strpos(Lev2_percent, "-") == 0 & strpos(Lev3_percent, "-") == 0 & strpos(ProficientOrAbove_percent, "-") == 0 & Lev2_percent != "*" & Lev3_percent != "*" & ProficientOrAbove_percent != "*" & ProficiencyCriteria == "Levels 2-4"
 
 replace Lev4_count = string(real(ProficientOrAbove_count) - real(Lev3_count) - real(Lev2_count)) if strpos(Lev4_count, "-") > 0 & strpos(Lev2_count, "-") == 0 & strpos(Lev3_count, "-") == 0 & strpos(ProficientOrAbove_count, "-") == 0 & Lev2_count != "*" & Lev3_count != "*" & ProficientOrAbove_count != "*" & ProficiencyCriteria == "Levels 2-4"
@@ -1115,6 +1119,7 @@ replace Lev2_count = string(real(ProficientOrAbove_count) - real(Lev3_count) - r
 replace Lev1_percent = string(1 - real(ProficientOrAbove_percent)) if strpos(Lev1_percent, "-") > 0 & strpos(ProficientOrAbove_percent, "-") == 0 & ProficientOrAbove_percent != "*" & ProficiencyCriteria == "Levels 2-4"
 
 replace Lev1_count = string(real(StudentSubGroup_TotalTested) - real(ProficientOrAbove_count)) if strpos(Lev1_count, "-") > 0 & strpos(StudentSubGroup_TotalTested, "-") == 0 & strpos(ProficientOrAbove_count, "-") == 0 & StudentSubGroup_TotalTested != "*" & ProficientOrAbove_count != "*" & ProficiencyCriteria == "Levels 2-4"
+replace Lev1_percent = "0" if Lev1_count == "0"
 
 //ProficiencyCriteria == Levels 3-5
 replace Lev4_percent = string(real(ProficientOrAbove_percent) - real(Lev3_percent) - real(Lev5_percent)) if strpos(Lev4_percent, "-") > 0 & strpos(Lev5_percent, "-") == 0 & strpos(Lev3_percent, "-") == 0 & strpos(ProficientOrAbove_percent, "-") == 0 & Lev5_percent != "*" & Lev3_percent != "*" & ProficientOrAbove_percent != "*" & ProficiencyCriteria == "Levels 3-5"
