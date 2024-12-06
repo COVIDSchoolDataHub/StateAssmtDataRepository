@@ -1,11 +1,6 @@
 clear
 set more off
 
-// global EDFacts "/Users/kaitlynlucas/Desktop/EDFacts Drive Data"
-// global State_Output "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/Vermont Assessment" // Version 1.1 Output directory here
-// global New_Output "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/Vermont V2.0" // Version 2.0 Output directory here
-//
-
 
 global EDFacts "/Users/benjaminm/Documents/State_Repository_Research/EdFacts" //Folder with downloaded state-specific 2022 participation data from EDFacts
 global State_Output "/Users/benjaminm/Documents/State_Repository_Research/Vermont/State_Output" // Folder with state-specific data
@@ -332,6 +327,16 @@ append using "`tempsch'"
 
 //New Participation Data
 replace ParticipationRate = Participation if !missing(Participation)
+
+
+replace ParticipationRate = ".608" if ParticipationRate == "60.8"
+replace ParticipationRate = ".708" if ParticipationRate == "70.8"
+replace ParticipationRate = ".758" if ParticipationRate == "75.8"
+replace ParticipationRate = ".808" if ParticipationRate == "80.8"
+replace ParticipationRate = ".809" if ParticipationRate == "80.9"
+replace ParticipationRate = ".859" if ParticipationRate == "85.9"
+replace ParticipationRate = ".909" if ParticipationRate == "90.9"
+
 
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode

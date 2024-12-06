@@ -2,6 +2,7 @@ clear
 set more off
 set trace off
 
+// UPDATED
 global Original "/Users/benjaminm/Documents/State_Repository_Research/Vermont/Original Data" 
 global Output "/Users/benjaminm/Documents/State_Repository_Research/Vermont/State_Output" 
 global NCES_District "/Users/benjaminm/Documents/State_Repository_Research/NCES/District"
@@ -63,6 +64,7 @@ if `year' == 2023 {
 	replace IndicatorLabel = "Proficient With Distinction" if IndicatorLabel == "Proficient with Distinction"
 	
 }
+
 
 //Reshaping from long to wide
 label def IndicatorLabel 1 "Average Scaled Score" 2 "Number of Students Tested" 3 "Partially Proficient" 4 "Proficiency Cut Score" 5 "Proficient" 6 "Proficient With Distinction" 7 "Substantially Below Proficient" 8 "Total Below Proficient" 9 "Total Proficient and Above"
@@ -250,6 +252,9 @@ use "`temp1'"
 keep if DataLevel == 1
 append using "`tempdist'" "`tempschool'"
 
+
+
+
 //Fixing NCES Variables
 rename district_agency_type DistType
 cap rename school_type SchType
@@ -284,6 +289,7 @@ gen AssmtName = "Smarter Balanced Assessment"
 replace AssmtName = "Vermont Science Assessment" if Subject == "sci"
 replace AssmtName = "Vermont Comprehensive Assessment Program" if `year' == 2023
 
+
 //Missing/empty variables
 
 foreach n in 1 2 3 4 {
@@ -298,8 +304,8 @@ replace StateAbbrev = "VT"
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_sci = "Not Applicable"
-gen Flag_CutScoreChange_soc = "Not Applicable"
+gen Flag_CutScoreChange_sci = "Not applicable"
+gen Flag_CutScoreChange_soc = "Not applicable"
 gen ProficiencyCriteria = "Levels 3-4"
 gen Lev5_percent = ""
 gen Lev5_count = ""
@@ -371,4 +377,3 @@ clear
 
 
 }
-
