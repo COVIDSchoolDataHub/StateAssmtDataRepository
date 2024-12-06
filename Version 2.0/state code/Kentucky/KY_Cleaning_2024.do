@@ -83,7 +83,7 @@ replace StudentGroup = "Gender" if inlist(StudentSubGroup, "Female", "Male")
 replace StudentGroup = "Homeless Enrolled Status" if inlist(StudentSubGroup, "Homeless", "Non-Homeless")
 replace StudentGroup = "Military Connected Status" if inlist(StudentSubGroup, "Military", "Non-Military")
 replace StudentGroup = "Migrant Status" if inlist(StudentSubGroup, "Migrant", "Non-Migrant")
-replace StudentGroup = "RaceEth" if inlist(StudentSubGroup, "American Indian or Alaska Native", "Asian", "Black or African American", "Hispanic or Latino", "Two or More", "White")
+replace StudentGroup = "RaceEth" if inlist(StudentSubGroup, "American Indian or Alaska Native", "Asian", "Black or African American", "Hispanic or Latino", "Native Hawaiian or Pacific Islander", "Two or More", "White")
 drop if StudentGroup == ""
 
 //Performance Information
@@ -95,6 +95,7 @@ foreach var of varlist *_percent{
 	replace `var' = "*" if `var' == "." & suppressed == "Y"
 	replace `var' = "--" if `var' == "."
 }
+drop if suppressed == ""
 drop suppressed
 
 gen ProficiencyCriteria = "Levels 3-4"
@@ -183,6 +184,8 @@ replace StateFips = 21
 replace StateAbbrev = "KY"
 gen State = "Kentucky"
 
+replace CountyName= "LaRue County" if CountyName == "Larue County"
+
 //New Schools 2024
 replace NCESSchoolID = "210129002566" if StateAssignedSchID == "132035"
 replace SchType = 1 if NCESSchoolID == "210129002566"
@@ -264,6 +267,15 @@ replace CountyCode = "21219" if NCESSchoolID == "210555002581"
 drop if NCESSchoolID == "" & DataLevel == 3 //these are two schools (in the Model Laboratory district) that don't exist in the NCES record + the dist level observations have the same exact information
 drop if NCESDistrictID == "" & DataLevel == 2 //one district that doesn't have any available NCES information yet -- may remove this once update NCES info is available
 drop _merge
+
+//Standardize DistName
+replace DistName = "KY School for the Blind" if NCESDistrictID == "2100094"
+replace DistName = "KY School for the Deaf" if NCESDistrictID == "2100095"
+replace DistName = "Raceland-Worthington Independent" if NCESDistrictID == "2104980"
+replace DistName = "LaRue County" if NCESDistrictID == "2103180"
+replace DistName = "McCracken County" if NCESDistrictID == "2103960"
+replace DistName = "McCreary County" if NCESDistrictID == "2103990"
+replace DistName = "McLean County" if NCESDistrictID == "2104020"
 
 //Student Counts
 merge 1:1 DataLevel NCESDistrictID NCESSchoolID Subject GradeLevel StudentSubGroup using "$Original/edfacts2022_ky_ssgtt.dta"

@@ -27,12 +27,9 @@ foreach year in 2021 2022 2023 {
 
 */
 
-//Unhide Above Code
+//Cleaning
 
-// HANDLE 2012 to 2022 FIRST 
-// This is due to 2023 NCES issues
-
-forvalues year = 2021/2021 {
+forvalues year = 2012/2023 {
 	if `year' == 2020 continue
 use "${Original}/KY_OriginalData_`year'", clear
 local prevyear =`=`year'-1'
@@ -158,6 +155,7 @@ rename DISAGG_LABEL StudentSubGroup
 rename StudentSubGroup DEMOGRAPHIC
 replace DEMOGRAPHIC = "All Students" if DEMOGRAPHIC == "TST"
 replace DEMOGRAPHIC = "American Indian or Alaska Native" if DEMOGRAPHIC == "ETI"
+replace DEMOGRAPHIC = "Asian" if DEMOGRAPHIC == "ETA"
 replace DEMOGRAPHIC = "Black or African American" if DEMOGRAPHIC == "ETB"
 replace DEMOGRAPHIC = "Native Hawaiian or Pacific Islander" if DEMOGRAPHIC == "ETP"
 replace DEMOGRAPHIC = "Two or More" if DEMOGRAPHIC == "ETO"
@@ -180,24 +178,23 @@ replace DEMOGRAPHIC = "Not Economically Disadvantaged" if DEMOGRAPHIC == "Non-Ec
 replace DEMOGRAPHIC = "Military" if DEMOGRAPHIC == "Military Dependent"
 replace DEMOGRAPHIC = "SWD" if DEMOGRAPHIC == "Students with Disabilities (IEP)" 
 replace DEMOGRAPHIC = "Non-SWD" if DEMOGRAPHIC == "Students without IEP"
-replace DEMOGRAPHIC = "EL + Monitored" if DEMOGRAPHIC == "English Learners including Monitored"
+replace DEMOGRAPHIC = "EL and Monit or Recently Ex" if DEMOGRAPHIC == "English Learners including Monitored"
+replace DEMOGRAPHIC = "EL and Monit or Recently Ex" if DEMOGRAPHIC == "English Learner including Monitored"
 
 replace DEMOGRAPHIC = "Non-Military" if DEMOGRAPHIC == "MLN"
-	replace DEMOGRAPHIC = "Military" if DEMOGRAPHIC == "MIL"
-	replace DEMOGRAPHIC = "SWD" if DEMOGRAPHIC == "ACD" 
-	replace DEMOGRAPHIC = "Non-SWD" if DEMOGRAPHIC == "ACO"
-	replace DEMOGRAPHIC = "Homeless" if DEMOGRAPHIC == "HOM"
-	replace DEMOGRAPHIC = "Non-Homeless" if DEMOGRAPHIC == "HON"
-	replace DEMOGRAPHIC = "Homeless" if DEMOGRAPHIC == "HOM"
-	replace DEMOGRAPHIC = "Migrant" if DEMOGRAPHIC == "MIG"
-	replace DEMOGRAPHIC = "Non-Migrant" if DEMOGRAPHIC == "MIN"
-	replace DEMOGRAPHIC = "Foster Care" if DEMOGRAPHIC == "FOS"
-	replace DEMOGRAPHIC = "Non-Foster Care" if DEMOGRAPHIC == "FON"
-	replace DEMOGRAPHIC = "EL Exited" if DEMOGRAPHIC == "LEX"
-	replace DEMOGRAPHIC = "EL and Monit or Recently Ex" if DEMOGRAPHIC =="ELM"
-	replace DEMOGRAPHIC = "Ever EL" if DEMOGRAPHIC == "LC"
-
-
+replace DEMOGRAPHIC = "Military" if DEMOGRAPHIC == "MIL"
+replace DEMOGRAPHIC = "SWD" if DEMOGRAPHIC == "ACD" 
+replace DEMOGRAPHIC = "Non-SWD" if DEMOGRAPHIC == "ACO"
+replace DEMOGRAPHIC = "Homeless" if DEMOGRAPHIC == "HOM"
+replace DEMOGRAPHIC = "Non-Homeless" if DEMOGRAPHIC == "HON"
+replace DEMOGRAPHIC = "Homeless" if DEMOGRAPHIC == "HOM"
+replace DEMOGRAPHIC = "Migrant" if DEMOGRAPHIC == "MIG"
+replace DEMOGRAPHIC = "Non-Migrant" if DEMOGRAPHIC == "MIN"
+replace DEMOGRAPHIC = "Foster Care" if DEMOGRAPHIC == "FOS"
+replace DEMOGRAPHIC = "Non-Foster Care" if DEMOGRAPHIC == "FON"
+replace DEMOGRAPHIC = "EL Exited" if DEMOGRAPHIC == "LEX"
+replace DEMOGRAPHIC = "EL and Monit or Recently Ex" if DEMOGRAPHIC =="ELM"
+replace DEMOGRAPHIC = "Ever EL" if DEMOGRAPHIC == "LC"
 
 rename DEMOGRAPHIC StudentSubGroup
 
@@ -207,10 +204,11 @@ replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
 replace StudentGroup = "RaceEth" if StudentSubGroup == "American Indian or Alaska Native" | StudentSubGroup == "Asian" | StudentSubGroup == "Black or African American" | StudentSubGroup == "White" | StudentSubGroup == "Two or More" | StudentSubGroup == "Native Hawaiian or Pacific Islander"
 replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged"
 replace StudentGroup = "Gender" if StudentSubGroup == "Male" | StudentSubGroup == "Female" | StudentSubGroup == "Unknown"
-replace StudentGroup = "EL Status" if StudentSubGroup == "English Proficient" | StudentSubGroup == "English Learner" | StudentSubGroup == "EL and Monit or Recently Ex" | StudentSubGroup == "EL Exited" | StudentSubGroup == "Ever EL" | StudentSubGroup == "EL + Monitored"
+replace StudentGroup = "EL Status" if StudentSubGroup == "English Proficient" | StudentSubGroup == "English Learner" | StudentSubGroup == "EL and Monit or Recently Ex" | StudentSubGroup == "EL Exited" | StudentSubGroup == "Ever EL"
 replace StudentGroup = "RaceEth" if StudentSubGroup == "Hispanic or Latino"
 
 replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD" | StudentSubGroup == "Non-SWD" 
+replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Foster Care" | StudentSubGroup == "Non-Foster Care"
 replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant"  | StudentSubGroup == "Non-Migrant"
 replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless" | StudentSubGroup == "Non-Homeless" 
 replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Non-Military" | StudentSubGroup == "Military"
@@ -372,6 +370,7 @@ replace StateAbbrev = "KY"
 if `year' == 2018 drop if missing(DistName)
 
 replace CountyName = strproper(CountyName)
+replace CountyName= "LaRue County" if CountyName == "Larue County"
 replace CountyName = "McCracken County" if CountyName == "Mccracken County"
 replace CountyName = "McCreary County" if CountyName == "Mccreary County"
 replace CountyName = "McLean County" if CountyName == "Mclean County"
@@ -465,14 +464,17 @@ if `year' < 2015 {
 }
 
 }
-
+//Standardize Names & IDs
 replace DistName = stritrim(DistName)
 replace SchName = stritrim(SchName)
+replace DistName = "KY School for the Blind" if NCESDistrictID == "2100094"
+replace DistName = "KY School for the Deaf" if NCESDistrictID == "2100095"
 replace StateAssignedDistID = "00" + StateAssignedDistID if strlen(StateAssignedDistID) == 1
 replace StateAssignedDistID = "0" + StateAssignedDistID if strlen(StateAssignedDistID) == 2
 replace StateAssignedSchID = "00" + StateAssignedSchID if strlen(StateAssignedSchID) == 4
 replace StateAssignedSchID = "0" + StateAssignedSchID if strlen(StateAssignedSchID) == 5
 
+//Final Cleaning
 	keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 	
 	order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
