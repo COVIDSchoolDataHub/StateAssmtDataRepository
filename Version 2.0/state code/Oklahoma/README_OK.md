@@ -4,8 +4,11 @@ This is a ReadMe for Oklahoma's data cleaning process, from 2017 to 2024.
 
 ## Setup
 
-There are two main folders you need: 
-- Oklahoma (with subfolders for Original Data Files and Output (and a csv folder within this))
+There are main folders and subfolders you need include: 
+- Oklahoma 
+    - Original Data Files
+    - Output
+        - csv
 - NCES (with subfolders for school, district, and cleaned data)
 
 Download the original raw data .xlsx and .csv files on Google Drive, and keep them within the subfolders they are in on Drive.
