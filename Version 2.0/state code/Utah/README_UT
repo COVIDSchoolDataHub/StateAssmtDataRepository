@@ -47,3 +47,5 @@ global edfacts "/Users/miramehta/Documents/EdFacts"
 05/01/2024: Updated to fix inconsistent school names across years.
 
 09/08/2024: Updated to include 2024 data and match version 2.0 conventions (e.g. StudentGroup_TotalTested values).
+
+12/06/2024: Updated to derive additional values, particularly where we previously had ranges (per Stanford feedback).

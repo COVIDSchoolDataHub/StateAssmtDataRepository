@@ -39,4 +39,5 @@ global EDFacts "/Users/miramehta/Documents/EDFacts"
 ```
 ## Updates
 
-11/05/2024: UPdated to include 2024 data, derive additional values, and match V2.0 StudentGroup_TotalTested convention.
+11/05/2024: Updated to include 2024 data, derive additional values, and match v2.0 StudentGroup_TotalTested convention.
+12/06/2024: Updated to derive more specific values for ranges (per Stanford feedback).
