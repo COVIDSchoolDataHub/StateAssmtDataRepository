@@ -306,15 +306,15 @@ foreach var of varlist ProficientOrAbove_percent {
 foreach var of varlist Lev1_count Lev2_count Lev3_count Lev4_count  {
 	split `var', parse("-")
 	destring `var'1, replace i(-)
-	replace `var'1 = round(`var'1)
+	replace `var'1 = `var'1
 	destring `var'2, replace i(-)
-	replace `var'2 = round(`var'2)
-	replace `var'1 = round(`var'1 * num)
-	replace `var'2 = round(`var'2 * num)
+	replace `var'2 = `var'2
+	replace `var'1 = `var'1 * num
+	replace `var'2 = `var'2 * num
 	replace `var'1 = round(`var'1/100)
 	replace `var'2 = round(`var'2/100) if `var'2 != num
-	replace `var' = string(round(`var'1), "%8.0g") if !inlist(`var', "*", "--") & `var'2 == .
-	replace `var' = string(round(`var'1), "%8.0g") + "-" + string(round(`var'2), "%8.0g") if !inlist(`var', "*", "--") & `var'2 != .
+	replace `var' = string(`var'1, "%8.0g") if !inlist(`var', "*", "--") & `var'2 == .
+	replace `var' = string(`var'1, "%8.0g") + "-" + string(`var'2, "%8.0g") if !inlist(`var', "*", "--") & `var'2 != .
 }
 
 //Code to Convert to Decimals with Ranges
@@ -326,10 +326,10 @@ foreach var of varlist ProficientOrAbove_count {
 	replace `var'2 = `var'2
 	replace `var'1 = `var'1 * num
 	replace `var'2 = `var'2 * num
-	replace `var'1 = (`var'1/100)
-	replace `var'2 = (`var'2/100) if `var'2 != num
-	replace `var' = string(round(`var'1), "%8.0g") if !inlist(`var', "*", "--") & `var'2 == .
-	replace `var' = string(round(`var'1), "%8.0g") + "-" + string(round(`var'2), "%8.0g") if !inlist(`var', "*", "--") & `var'2 != .
+	replace `var'1 = round(`var'1/100)
+	replace `var'2 = round(`var'2/100) if `var'2 != num
+	replace `var' = string(`var'1, "%8.0g") if !inlist(`var', "*", "--") & `var'2 == .
+	replace `var' = string(`var'1, "%8.0g") + "-" + string(`var'2, "%8.0g") if !inlist(`var', "*", "--") & `var'2 != .
 }
 tostring AvgScaleScore, replace force
 replace AvgScaleScore = "--" if AvgScaleScore == "."
