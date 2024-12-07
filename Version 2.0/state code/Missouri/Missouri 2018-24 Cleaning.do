@@ -195,7 +195,6 @@ forvalues year = 2018/2024{
 		replace SchVirtual = 0 if SchVirtual == . & DataLevel == 3
 	}
 
-	drop if NCESSchoolID == "" & DataLevel == 3
 	drop if _merge == 2
 	drop _merge
 
@@ -228,6 +227,34 @@ forvalues year = 2018/2024{
 	replace SchName = stritrim(SchName)
 	
 	replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "-0.0010"
+	
+	//Unmerged Schools for 2024
+	if `year' == 2024{
+	replace NCESSchoolID = "290558003435" if SchName == "Greenways Academy"
+	replace SchType = 1 if SchName == "Greenways Academy"
+	replace SchLevel = 4 if SchName == "Greenways Academy"
+	replace NCESSchoolID = "291377003447" if SchName == "Hartville Middle"
+	replace SchType = 1 if SchName == "Hartville Middle"
+	replace SchLevel = 2 if SchName == "Hartville Middle"
+	replace NCESSchoolID = "292041003445" if SchName == "Northwest 5th Grade Center"
+	replace SchType = 1 if SchName == "Northwest 5th Grade Center"
+	replace SchLevel = 2 if SchName == "Northwest 5th Grade Center"
+	replace NCESSchoolID = "292181003440" if SchName == "RISE Elementary"
+	replace SchType = 1 if SchName == "RISE Elementary"
+	replace SchLevel = 1 if SchName == "RISE Elementary"
+	replace NCESSchoolID = "292265003444" if SchName == "NMS @ Lucas Crossing"
+	replace SchType = 1 if SchName == "NMS @ Lucas Crossing"
+	replace SchLevel = 2 if SchName == "NMS @ Lucas Crossing"
+	replace NCESSchoolID = "292514003441" if SchName == "Clopton Middle"
+	replace SchType = 1 if SchName == "Clopton Middle"
+	replace SchLevel = 2 if SchName == "Clopton Middle"
+	replace NCESSchoolID = "292523003443" if SchName == "Barry School"
+	replace SchType = 1 if SchName == "Barry School"
+	replace SchLevel = 1 if SchName == "Barry School"
+	replace NCESSchoolID = "292523003442" if SchName == "Platte Purchase Middle School"
+	replace SchType = 1 if SchName == "Platte Purchase Middle School"
+	replace SchLevel = 2 if SchName == "Platte Purchase Middle School"
+	}
 	
 gen StateAssignedDistID1 = StateAssignedDistID
 replace StateAssignedDistID1 = "000000" if DataLevel == 1 //Remove quotations if DistIDs are numeric
@@ -283,6 +310,9 @@ replace DistName= "MIAMI R-I (Saline County)" if NCESDistrictID == "2920840"
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested == ""
 
+//dropping these observations because cannot determine what school it maps onto (12/7/24)
+drop if DistName == "DIVISION OF YOUTH SERVICE" & DataLevel ==3
+
 //deriving additional level counts and percents
 tostring StudentSubGroup_TotalTested, replace
 replace ProficientOrAbove_percent = string(1 - real(Lev1_percent) - real(Lev2_percent), "%9.8f") if ProficientOrAbove_percent == "*" & Lev1_percent != "*" & Lev2_percent != "*"
@@ -295,6 +325,9 @@ replace Lev1_count = string(real(StudentSubGroup_TotalTested) - real(ProficientO
 replace Lev2_count = string(real(StudentSubGroup_TotalTested) - real(ProficientOrAbove_count) - real(Lev1_count)) if inlist(Lev2_count, "*", "0-3") & !inlist(StudentSubGroup_TotalTested, "*", "0-3") & !inlist(ProficientOrAbove_count, "*", "0-3") & !inlist(Lev1_count, "*", "0-3")
 replace Lev3_count = string(real(ProficientOrAbove_count) - real(Lev4_count)) if inlist(Lev3_count, "*", "0-3") & !inlist(ProficientOrAbove_count, "*", "0-3") & !inlist(Lev4_count, "*", "0-3")
 replace Lev4_count = string(real(ProficientOrAbove_count) - real(Lev3_count)) if inlist(Lev4_count, "*", "0-3") & !inlist(ProficientOrAbove_count, "*", "0-3") & !inlist(Lev3_count, "*", "0-3")
+
+replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "-0.00100000"
+
 
 	keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 	
