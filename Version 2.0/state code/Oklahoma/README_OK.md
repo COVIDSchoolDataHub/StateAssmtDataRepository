@@ -4,26 +4,30 @@ This is a ReadMe for Oklahoma's data cleaning process, from 2017 to 2024.
 
 ## Setup
 
-There are two main folders you need: 
-- Oklahoma (with subfolders for Original Data Files and Output (and a csv folder within this))
-- NCES (with subfolders for school, district, and cleaned data)
+There are main folders and subfolders you need include: 
+- Oklahoma 
+    - Original Data Files
+    - Output
+        - csv
+- NCES
+    - NCES District Files, Fall 1997-Fall 2022
+    - NCES School Files, Fall 1997-Fall 2022
+    - Cleaned NCES Data [will start empty]
 
 Download the original raw data .xlsx and .csv files on Google Drive, and keep them within the subfolders they are in on Drive.
 
 - Data from Version 1.0 (in the Publicly Available Data Files folder on Drive) will be used for AvgScaleScore.
 - Data from the Data Requests will be used for everything else.
 
-There are 4 .do files. 
+There are 4 .do files. Run them in the following order:
 
-Run them in the following order:
+    Oklahoma DTA Conversion.do; 
 
-Oklahoma DTA Conversion.do; 
+    Oklahoma NCES Cleaning.do; 
 
-Oklahoma NCES Cleaning.do; 
+    Oklahoma Cleaning 2017-2023.do;
 
-Oklahoma Cleaning 2017-2023.do;
-
-Oklahoma Cleaning 2024.do.
+    Oklahoma Cleaning 2024.do.
     
 ## File Path
 
