@@ -9,7 +9,9 @@ There are main folders and subfolders you need include:
     - Original Data Files
     - Output
         - csv
-- NCES (with subfolders for school, district, and cleaned data)
+- NCES
+    - NCES District Files, Fall 1997-Fall 2022
+    - NCES School Files, Fall 1997-Fall 2022
 
 Download the original raw data .xlsx and .csv files on Google Drive, and keep them within the subfolders they are in on Drive.
 
