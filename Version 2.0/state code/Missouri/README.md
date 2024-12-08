@@ -7,25 +7,35 @@ This is a ReadMe for Missouri's data cleaning process, from 2010 to 2024.
 
 ## Setup
 
-There are two main folders you need to create: MO State Testing Data and NCES District and School Demographics.
-There should be three folders within the NCES folder:
-NCES District Files, Fall 1997-Fall 2022, NCES School Files, Fall 1997-Fall 2022, and Cleaned NCES Data.
-Download the original excel and .csv files, and place them in the MO State Testing Data folder.
-Also create an Output subfolder of the MO State Testing Data folder to which to save the cleaned files.
+The main folders and subfolders you need to create include: 
 
-There are 5 .do files.
-You should run "Missouri DTA Conversion.do" first to convert the original files into .dta files.
-Then run "Missouri NCES Cleaning.do" to clean the NCES files so taht they are prepared to merge into the testing data.
-The other three files are for the years 2010-14, 2015-17, and 2018-24.  You can run these three in any order.
+1. MO State Testing Data [Download the original excel and .csv files, and place them in this folder.]
+   a. Output
+   
+2. NCES District and School Demographics
+   a. NCES District Files, Fall 1997-Fall 2022
+   b. NCES School Files, Fall 1997-Fall 2022
+   c. Cleaned NCES Data
+   
+There .do files should be run in the following order:
+1. Run "Missouri DTA Conversion.do" first to convert the original files into .dta files.
+2. Run "Missouri NCES Cleaning.do" to clean the NCES files so that they are prepared to merge into the testing data.
+3. Run 2010-14 Cleaning
+4. Run 2015-17 Cleaning
+5. Run 2018-24
     
 ## File Path
 
 The file path setup should be as follows: 
 
 global NCESSchool: Folder containing NCES school files
+
 global NCESDistrict: Folder containing NCES district files
+
 global NCESClean: Folder containing cleaned NCES data
+
 global data: Folder containing original data files (in both excel/csv and .dta form)
+
 global output: Folder containing cleaned + merged files
 
 ```bash
