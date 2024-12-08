@@ -271,11 +271,32 @@ replace SchVirtual = 0 if SchName == "Gateway Ms"
 replace SchLevel = 2 if SchName == "Gateway Ms"
 replace DistLocale = "Suburb, large" if SchName ==  "Gateway Ms"
 
+	destring StateAssignedSchID, replace
+gen StateAssignedSchID1 = substr(string(StateAssignedSchID, "%20.0f"), -4, 4)
+drop StateAssignedSchID
+rename StateAssignedSchID1 StateAssignedSchID
+
 //Removing extra spaces
-foreach var of varlist DistName SchName {
-	replace `var' = stritrim(`var') // collapses all consecutive, internal blanks to one blank.
-	replace `var' = strtrim(`var') // removes leading and trailing blanks
-}
+	foreach var of varlist DistName SchName {
+		replace `var' = stritrim(`var') // collapses all consecutive, internal blanks to one blank.
+		replace `var' = strtrim(`var') // removes leading and trailing blanks
+	}
+	
+	
+	foreach var of varlist StateAssignedDistID {
+		replace `var'  = . if  `var' == 1
+		replace `var'  = . if  `var' == 1
+		replace `var'  = . if  `var' == 0
+	}
+	
+				foreach var of varlist StateAssignedSchID {
+    replace `var' = "" if `var' == "1"
+    replace `var' = "" if `var' == "0"
+    replace `var' = "" if `var' == "."
+    drop if `var' == "" & DataLevel == 3
+	drop if `var' == "." & DataLevel == 3
+}	
+
 
 // Final Cleaning
 replace StateAbbrev = "PA" if missing(StateAbbrev)
