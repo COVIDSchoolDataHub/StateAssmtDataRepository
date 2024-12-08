@@ -288,6 +288,7 @@ replace DistName = "MIAMI R-I (Bates County)" if NCESDistrictID == "2920820"
 replace DistName = "MIAMI R-I (Saline County)" if NCESDistrictID == "2920840"
 tostring StudentGroup_TotalTested, replace
 replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested == ""
+replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested =="."
 
 //deriving additional level counts and percents
 tostring StudentSubGroup_TotalTested, replace
