@@ -241,6 +241,32 @@ drop dup
 duplicates tag DataLevel AssmtName AssmtType NCESDistrictID NCESSchoolID Subject GradeLevel StudentGroup StudentSubGroup, gen(dup2)
 drop if dup2 > 0 & Lev1_count == "." & Lev2_count == "." & Lev3_count == "." & Lev4_count == "."
 
+destring StateAssignedSchID, replace
+gen StateAssignedSchID1 = substr(string(StateAssignedSchID, "%20.0f"), -4, 4)
+drop StateAssignedSchID
+rename StateAssignedSchID1 StateAssignedSchID
+
+	//Removing extra spaces
+	foreach var of varlist DistName SchName {
+		replace `var' = stritrim(`var') // collapses all consecutive, internal blanks to one blank.
+		replace `var' = strtrim(`var') // removes leading and trailing blanks
+	}
+	
+	
+	foreach var of varlist StateAssignedDistID {
+		replace `var'  = . if  `var' == 1
+		replace `var'  = . if  `var' == 1
+		replace `var'  = . if  `var' == 0
+	}
+	
+				foreach var of varlist StateAssignedSchID {
+    replace `var' = "" if `var' == "1"
+    replace `var' = "" if `var' == "0"
+    replace `var' = "" if `var' == "."
+    drop if `var' == "" & DataLevel == 3
+	drop if `var' == "." & DataLevel == 3
+}	
+
 // Reordering variables and sorting data
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
