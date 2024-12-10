@@ -9,8 +9,11 @@ Create a folder for OH. Inside that folder, create the following folders:
 1. "Original Data" [Download original data files and place them in the folder.]
 2. "Output"
 3. "NCES Data" with the following subfolders:
+   
    a. NCES District Files, Fall 1997-Fall 2022
+   
    b. NCES School Files, Fall 1997-Fall 2022
+   
    c. Cleaned NCES Data
 
 ## File Directories
