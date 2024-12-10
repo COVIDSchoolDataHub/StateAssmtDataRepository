@@ -1,4 +1,6 @@
-### Washington Cleaning Notes
+### Washington Cleaning
+
+
 
 WA only uses the following do-files:
 - Washington DTA Conversion.do
@@ -41,4 +43,6 @@ foreach count of varlist Lev*_count {
 8/1/24: Applied new StudentGroup_TotalTested convention to all files. Investigated "NULL" values in raw data, confirmed they were correctly coded as suppressed.
 
 9/21/24: Incorporated 2024 data, implemented changes from V2.0 Review. Updated BIE code.
+
+12/9/24: Fixed count issues, set StudentSubGroup_TotalTested to sum of level counts rather than ParticipationRate * Enrollment
 
