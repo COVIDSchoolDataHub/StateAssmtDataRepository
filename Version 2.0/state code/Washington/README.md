@@ -26,8 +26,6 @@ forvalues n = 1/4 {
 }
 
 //2. Derive StudentSubGroup_TotalTested
-// gen StudentSubGroup_TotalTested = string(round(real(ParticipationRate) * ExpectedCount)) if !missing(real(ParticipationRate)) & !missing(ExpectedCount)
-// replace StudentSubGroup_TotalTested = "*" if missing(StudentSubGroup_TotalTested)
 gen StudentSubGroup_TotalTested = string(real(Lev1_count) + real(Lev2_count) + real(Lev3_count) + real(Lev4_count)) //Confirmed that rows are always entirely suppressed (i.e, it's not the case that only Lev1 will be suppressed)
 replace StudentSubGroup_TotalTested = "*" if missing(real(StudentSubGroup_TotalTested))
 
