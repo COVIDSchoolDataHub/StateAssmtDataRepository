@@ -2,6 +2,12 @@ clear
 set more off
 set trace off
 
+global Original "/Users/miramehta/Documents/AR State Testing Data/Original Data"
+global Output "/Users/miramehta/Documents/AR State Testing Data/Output"
+global NCES "//Users/miramehta/Documents/NCES District and School Demographics"
+global Temp "/Users/miramehta/Documents/AR State Testing Data/Temp"
+global EDFacts "/Users/miramehta/Documents/AR State Testing Data/EDFacts"
+
 //Importing
 
 forvalues year = 2016/2023 {
@@ -75,6 +81,9 @@ cap rename DistrictName DistName
 cap rename SchoolName SchName 
 if `year' == 2022 replace StateAssignedDistID = DISTRICTLEA if missing(StateAssignedDistID)
 if `year' == 2022 drop DISTRICTLEA
+if `year' == 2022 {
+	drop if GradeLevel == "" & DistName == "" & SchName == ""
+}
 //Reshaping from wide to long
 reshape long Lev1_percent Lev2_percent Lev3_percent Lev4_percent StudentSubGroup_TotalTested ProficientOrAbove_percent, i(GradeLevel StateAssignedSchID StateAssignedDistID) j(Subject, string)
 *save "/Volumes/T7/State Test Project/Arkansas/Testing/`year'", replace
@@ -138,7 +147,7 @@ keep if DataLevel == 2
 tempfile tempdist
 save "`tempdist'", replace
 clear
-use "${NCES}/NCES_`prevyear'_District"
+use "${NCES}/NCES District Files, Fall 1997-Fall 2022/NCES_`prevyear'_District"
 keep if state_name == "Arkansas" | state_location == "AR"
 gen StateAssignedDistID = subinstr(state_leaid, "AR-","",.)
 duplicates drop StateAssignedDistID, force
@@ -154,7 +163,7 @@ keep if DataLevel ==3
 tempfile tempsch
 save "`tempsch'", replace
 clear
-use "${NCES}/NCES_`prevyear'_School"
+use "${NCES}/NCES School Files, Fall 1997-Fall 2022/NCES_`prevyear'_School"
 keep if state_name == "Arkansas" | state_location == "AR"
 gen StateAssignedSchID1 = seasch
  if `year' ==2019 replace StateAssignedSchID1 = "6061700-6061702" if ncesschoolid == "050042301657"

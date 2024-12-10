@@ -1,9 +1,15 @@
 clear
 set more off
 
+global Original "/Users/miramehta/Documents/AR State Testing Data/Original Data"
+global Output "/Users/miramehta/Documents/AR State Testing Data/Output"
+global NCES "//Users/miramehta/Documents/NCES District and School Demographics"
+global Temp "/Users/miramehta/Documents/AR State Testing Data/Temp"
+global EDFacts "/Users/miramehta/Documents/AR State Testing Data/EDFacts"
+
 //Importing
 
-import excel "ar_full-dist-sch-stable-list_through2023.xlsx", firstrow case(preserve) allstring
+import excel "${Original}/ar_full-dist-sch-stable-list_through2023.xlsx", firstrow case(preserve) allstring clear
 
 //Fixing DataLevel
 label def DataLevel 1 "State" 2 "District" 3 "School"
@@ -29,11 +35,17 @@ clear
 
 
 //Looping Through Years
-forvalues year = 2009/2023 {
+forvalues year = 2009/2024 {
 	if `year' == 2020 continue
-use "${Temp}/AR_StableNames"
+use "${Temp}/AR_StableNames", clear
 local prevyear = `=`year'-1'
-keep if SchYear == "`prevyear'-" + substr("`year'",-2,2)
+
+if `year' != 2024 {
+	keep if SchYear == "`prevyear'-" + substr("`year'",-2,2)
+}
+if `year' == 2024 drop SchYear
+duplicates drop DataLevel NCESDistrictID NCESSchoolID, force
+
 merge 1:m DataLevel NCESDistrictID NCESSchoolID using "${Output}/AR_AssmtData_`year'", update
 drop if _merge == 1
 replace DistName = newdistname if DataLevel !=1 & !missing(newdistname)
@@ -41,7 +53,10 @@ replace SchName = newschname if DataLevel == 3 & !missing(newschname)
 replace DistName = "All Districts" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel ==1
 
-
+replace DistName = strtrim(DistName)
+replace DistName = stritrim(DistName)
+replace SchName = strtrim(SchName)
+replace SchName = stritrim(SchName)
 
 //Final Cleaning and Saving
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode

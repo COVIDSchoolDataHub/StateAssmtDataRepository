@@ -1,16 +1,15 @@
 
 # Arkansas Data Cleaning
 
-This is a ReadMe for Arkansas's data cleaning process, from 2009 to 2023.
-
+This is a ReadMe for Arkansas's data cleaning process, from 2009 to 2024.
 
 ## Setup
-Create a folder for Arkansas. Inside that folder, create five more folders: 
-Original, NCES, Output, Temp, and EDFacts. 
+Create three main folders for Arkansas. Inside that folder, create five more folders: 
+Original Data, NCES, Output, Temp, and EDFacts. 
 
 Download do-files and place them in the Arkansas folder.
 
-Download the original .xlsx files and place them into the "Original" folder. Download the EDFacts data in Long .dta format and place them in the EDfacts folder. Download updated NCES files and place them in the NCES folder. Download ar_full-dist-sch-stable-list_through2023.xlsx and place it in the main folder.
+Download the original .xlsx files and place them into the "Original Data" folder. Keep the files in the subfolders they are in on Drive (State, Dist, Sch Subgroup Data - Added 3-5-24, Download the EDFacts data in Long .dta format and place them in the EDfacts folder. Download updated NCES files and place them in the NCES folder.
 
 ## Explanation of cleaning process
 Each do-file cleans data that has a very similar structure. The data each do-file cleans is outlined below.
@@ -46,5 +45,6 @@ Run this do-file.
 
 To recreate cleaning for 2009-2014 only, run the AR_Cleaning_2009_2014 do-file and the AR_StableNames do-file.
 To recreate cleaning for 2015 only, run the AR_Cleaning_2015 do-file and the AR_StableNames do-file.
-To recreate cleaning for 2016-2023, just run the master file. 2009-2015 doesn't take much time and 2016-2023 relies on many data sources which need to be appended and then merged with EDFacts. If you really want to only clean 2016-2023, delete AR_Cleaning_2009_2014 and AR_Cleaning_2015 froom the local "dofiles" macro.
+To recreate cleaning for 2016-2023, just run the master file. 2009-2015 doesn't take much time and 2016-2023 relies on many data sources which need to be appended and then merged with EDFacts. If you really want to only clean 2016-2023, delete AR_Cleaning_2009_2014 and AR_Cleaning_2015 from the local "dofiles" macro.
 
+## Updates

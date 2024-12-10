@@ -2,6 +2,12 @@ clear
 set more off
 set trace off
 
+global Original "/Users/miramehta/Documents/AR State Testing Data/Original Data"
+global Output "/Users/miramehta/Documents/AR State Testing Data/Output"
+global NCES "//Users/miramehta/Documents/NCES District and School Demographics"
+global Temp "/Users/miramehta/Documents/AR State Testing Data/Temp"
+global EDFacts "/Users/miramehta/Documents/AR State Testing Data/EDFacts"
+
 //Adding State SG Data for 2019-2022
 forvalues year = 2019/2023 {
 if `year' == 2020 continue

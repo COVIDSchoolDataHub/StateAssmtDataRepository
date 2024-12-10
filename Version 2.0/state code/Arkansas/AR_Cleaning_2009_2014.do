@@ -117,7 +117,7 @@ keep if DataLevel == 2
 tempfile tempdist
 save "`tempdist'"
 clear
-use "${NCES}/NCES_`prevyear'_District"
+use "${NCES}/NCES District Files, Fall 1997-Fall 2022/NCES_`prevyear'_District"
 keep if state_name == "Arkansas" | state_location == "AR"
 gen StateAssignedDistID1 = substr(state_leaid,1,4)
 duplicates drop StateAssignedDistID, force 
@@ -132,7 +132,7 @@ keep if DataLevel == 3
 tempfile tempsch
 save "`tempsch'"
 clear
-use "${NCES}/NCES_`prevyear'_School"
+use "${NCES}/NCES School Files, Fall 1997-Fall 2022/NCES_`prevyear'_School"
 keep if state_name == "Arkansas" | state_location == "AR"
 gen StateAssignedSchID1 = seasch
 if `year' == 2010 replace StateAssignedSchID1 = "5802005" if StateAssignedSchID1 == "5802009"

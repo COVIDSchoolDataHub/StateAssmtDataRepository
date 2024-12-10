@@ -2,14 +2,14 @@ clear
 set more off
 
 //Set Directory for all folders
-cd "/Volumes/T7/State Test Project/Arkansas"
+cd "/Users/miramehta/Documents"
 
 //SET FILE DIRECTORIES BELOW
-global Original "/Volumes/T7/State Test Project/Arkansas/Original Data"
-global Output "/Volumes/T7/State Test Project/Arkansas/Output"
-global NCES "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
-global Temp "/Volumes/T7/State Test Project/Arkansas/Temp"
-global EDFacts "/Volumes/T7/State Test Project/EDFACTS"
+global Original "/Users/miramehta/Documents/AR State Testing Data/Original Data"
+global Output "/Users/miramehta/Documents/AR State Testing Data/Output"
+global NCES "//Users/miramehta/Documents/NCES District and School Demographics"
+global Temp "/Users/miramehta/Documents/AR State Testing Data/Temp"
+global EDFacts "/Users/miramehta/Documents/AR State Testing Data/EDFacts"
 
 local dofiles AR_Cleaning_2009_2014 AR_Cleaning_2015 AR_AllStudents_2016_2023 AR_NoCountsSubGroupData_2016_2023 AR_StateSG_2019_2023
 
@@ -42,6 +42,14 @@ replace ProficientOrAbove_percent = string(1-(real(Lev1_percent) + real(Lev2_per
 if `year' == 2016 replace Flag_CutScoreChange_sci = "Y"
 if `year' == 2018 replace Flag_CutScoreChange_sci = "N"
 replace Flag_CutScoreChange_soc = "Not Applicable"
+
+sort DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel StudentGroup StudentSubGroup
+order Subject GradeLevel StudentGroup_TotalTested StudentGroup StudentSubGroup_TotalTested StudentSubGroup
+replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if StudentSubGroup != "All Students"
+
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${Output}/AR_AssmtData_`year'", replace
 }

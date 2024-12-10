@@ -141,12 +141,12 @@ replace ParticipationRate = "--" if Subject == "sci"
 destring ParticipationRate, gen(nParticipationRate) i(-*%)
 replace ParticipationRate = string(nParticipationRate/100, "%9.3g") if ParticipationRate != "*" & ParticipationRate != "--"
 
-
 //StudentGroup_TotalTested
-sort StudentGroup
-egen StudentGroup_TotalTested = total(StudentSubGroup_TotalTested), by(StudentGroup GradeLevel Subject DataLevel SchName DistName)
+sort DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel StudentGroup StudentSubGroup
+gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+order Subject GradeLevel StudentGroup_TotalTested StudentGroup StudentSubGroup_TotalTested StudentSubGroup
+replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested) & StudentSubGroup != "All Students"
 tostring StudentGroup_TotalTested, replace
-replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "0"
 
 **Merging**
 replace StateAssignedDistID = StateAssignedDistID + "000" if Subject == "sci" & DataLevel !=1
@@ -161,7 +161,7 @@ keep if DataLevel == 2
 tempfile tempdist
 save "`tempdist'", replace
 clear
-use "${NCES}/NCES_2014_District"
+use "${NCES}/NCES District Files, Fall 1997-Fall 2022/NCES_2014_District"
 keep if state_name == "Arkansas" | state_location == "AR"
 gen StateAssignedDistID = state_leaid
 duplicates drop StateAssignedDistID, force
@@ -176,11 +176,12 @@ keep if DataLevel ==3
 tempfile tempsch
 save "`tempsch'", replace
 clear
-use "${NCES}/NCES_2014_School"
+use "${NCES}/NCES School Files, Fall 1997-Fall 2022/NCES_2014_School"
 keep if state_name == "Arkansas" | state_location == "AR"
 gen StateAssignedSchID = seasch
 duplicates drop StateAssignedSchID, force
 merge 1:m StateAssignedSchID using "`tempsch'"
+replace StateAssignedDistID = state_leaid if Subject == "sci"
 drop if _merge ==1
 save "`tempsch'", replace
 
@@ -265,9 +266,6 @@ foreach var of varlist Lev* ProficientOrAbove* StudentGroup_TotalTested StudentS
 	replace `var' = "--"
 }
 append using "`temp1'"
-
-
-
 
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode

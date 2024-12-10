@@ -2,6 +2,12 @@ clear
 set more off
 set trace off //TURN THIS ON FOR DEBUGGING LOOPS
 
+global Original "/Users/miramehta/Documents/AR State Testing Data/Original Data"
+global Output "/Users/miramehta/Documents/AR State Testing Data/Output"
+global NCES "//Users/miramehta/Documents/NCES District and School Demographics"
+global Temp "/Users/miramehta/Documents/AR State Testing Data/Temp"
+global EDFacts "/Users/miramehta/Documents/AR State Testing Data/EDFacts"
+
 forvalues year = 2016/2023 {
 local prevyear =`=`year'-1'
 if `year' == 2020 continue
@@ -16,7 +22,7 @@ clear
 
 //Importing & Combining & Renaming for each Year at District and School Level Data
 foreach dl in District School {
-import excel using "${Original}/AR_`dl'_Subgroups_`year'_no counts.xlsx"
+import excel using "${Original}/State, Dist, Sch Subgroup Data - Added 3-5-24/AR_`dl'_Subgroups_`year'_no counts.xlsx"
 drop in 1
 
 //Setting up variable names
@@ -133,7 +139,7 @@ keep if DataLevel == 2
 tempfile tempdist
 save "`tempdist'", replace
 clear
-use "${NCES}/NCES_`prevyear'_District.dta"
+use "${NCES}/NCES District Files, Fall 1997-Fall 2022/NCES_`prevyear'_District.dta"
 keep if state_name == "Arkansas"
 if `year' == 2016 gen StateAssignedDistID = state_leaid
 if `year' > 2016 gen StateAssignedDistID = subinstr(state_leaid, "AR-","",.)
@@ -150,7 +156,7 @@ keep if DataLevel == 3
 tempfile tempsch
 save "`tempsch'", replace
 clear
-use "${NCES}/NCES_`prevyear'_School.dta"
+use "${NCES}/NCES School Files, Fall 1997-Fall 2022/NCES_`prevyear'_School.dta"
 label def SchType -1 "Missing/not reported", add
 keep if state_name == "Arkansas"
 if `year' == 2016 gen StateAssignedSchID = seasch
@@ -218,6 +224,9 @@ rename county_name CountyName
 rename county_code CountyCode
 if `year' == 2023 rename school_type SchType
 
+replace StateAssignedDistID = state_leaid if DataLevel == 3 & StateAssignedDistID == ""
+replace StateAssignedDistID = subinstr(StateAssignedDistID, "AR-", "", 1)
+
 //Saving Before Moving on to State Level Cleaning
 save "${Temp}/DistSch_`year'_temp", replace
 clear
@@ -227,7 +236,7 @@ clear
 			 ** STATE LEVEL CLEANING **
 
 //Importing and Adding State Level Data
-import excel using "${Original}/AR_State_Subgroups_`year'_no counts.xlsx", firstrow
+import excel using "${Original}/State, Dist, Sch Subgroup Data - Added 3-5-24/AR_State_Subgroups_`year'_no counts.xlsx", firstrow
 keep Group Element StateofArkansas
 drop in 1
 split(Group), parse("-")

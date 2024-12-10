@@ -1,9 +1,11 @@
 clear
 set more off
 
-global EDFacts "/Users/kaitlynlucas/Desktop/EDFacts Drive Data"
-global State_Output "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/Arkansas Assessment" // Version 1.1 Output directory here
-global New_Output "/Users/kaitlynlucas/Desktop/EDFacts Drive Data/Arkansas V2.0" // Version 2.0 Output directory here
+global Original "/Users/miramehta/Documents/AR State Testing Data/Original Data"
+global Output "/Users/miramehta/Documents/AR State Testing Data/Output"
+global NCES "//Users/miramehta/Documents/NCES District and School Demographics"
+global Temp "/Users/miramehta/Documents/AR State Testing Data/Temp"
+global EDFactsWide "/Users/miramehta/Documents/EDFacts"
 
 ** Preparing EDFacts files
 local edyears1 14 15 16 17 18
@@ -17,7 +19,7 @@ foreach year of local edyears1 {
         foreach type of local datatype {
             foreach lvl of local datalevel {
                 local prevyear = `year' - 1
-                use "${EDFacts}/20`year'/edfacts`type'20`year'`sub'`lvl'.dta", clear
+                use "${EDFactsWide}/20`year'/edfacts`type'20`year'`sub'`lvl'.dta", clear
                 keep if stnam == "ARKANSAS"
                 rename *_`prevyear'`year' *
                 if ("`sub'" == "math") {
@@ -52,7 +54,7 @@ foreach year of local edyears1 {
                     gen DataLevel = 2
                 }               
                 gen Subject = "`sub'"
-                save "${EDFacts}/20`year'/edfacts`type'20`year'`sub'`lvl'arkansas.dta", replace
+                save "${EDFactsWide}/20`year'/edfacts`type'20`year'`sub'`lvl'arkansas.dta", replace
             }
         }
     }
@@ -61,8 +63,8 @@ foreach year of local edyears1 {
 foreach year of local edyears1 {
     foreach type of local datatype {
         foreach lvl of local datalevel {
-            use "${EDFacts}/20`year'/edfacts`type'20`year'math`lvl'arkansas.dta", clear
-            append using "${EDFacts}/20`year'/edfacts`type'20`year'ela`lvl'arkansas.dta"
+            use "${EDFactsWide}/20`year'/edfacts`type'20`year'math`lvl'arkansas.dta", clear
+            append using "${EDFactsWide}/20`year'/edfacts`type'20`year'ela`lvl'arkansas.dta"
             if ("`lvl'" == "school"){
                 rename ncessch NCESSchoolID
             }
@@ -128,7 +130,7 @@ foreach year of local edyears1 {
 			replace Subject = "read" if mod(row,2) !=0
 			drop exp row
 			append using "`temp1'"
-			save "${EDFacts}/20`year'/edfacts`type'20`year'`lvl'arkansas.dta", replace
+			save "${EDFactsWide}/20`year'/edfacts`type'20`year'`lvl'arkansas.dta", replace
         }
     }
 }
@@ -137,7 +139,7 @@ foreach year of local edyears2 {
 	foreach sub of local subject {
 		foreach type of local datatype {
 			foreach lvl of local datalevel {
-				use "${EDFacts}/`year'/edfacts`type'`year'`sub'`lvl'.dta", clear
+				use "${EDFactsWide}/`year'/edfacts`type'`year'`sub'`lvl'.dta", clear
 				keep if stnam == "ARKANSAS"
 				drop date_cur
 				if ("`type'" == "count") {
@@ -156,7 +158,7 @@ foreach year of local edyears2 {
 				if ("`lvl'" == "district") {
 					gen DataLevel = 2
 				}
-				save "${EDFacts}/`year'/edfacts`type'`year'`sub'`lvl'arkansas.dta", replace
+				save "${EDFactsWide}/`year'/edfacts`type'`year'`sub'`lvl'arkansas.dta", replace
 			}
 		}
 	}
@@ -165,8 +167,8 @@ foreach year of local edyears2 {
 foreach year of local edyears2 {
 	foreach type of local datatype {
 		foreach lvl of local datalevel {
-			use "${EDFacts}/`year'/edfacts`type'`year'math`lvl'arkansas.dta", clear
-			append using "${EDFacts}/`year'/edfacts`type'`year'ela`lvl'arkansas.dta"
+			use "${EDFactsWide}/`year'/edfacts`type'`year'math`lvl'arkansas.dta", clear
+			append using "${EDFactsWide}/`year'/edfacts`type'`year'ela`lvl'arkansas.dta"
 			if ("`lvl'" == "school"){
 				rename ncessch NCESSchoolID
 			}
@@ -262,34 +264,20 @@ foreach year of local edyears2 {
 			replace Subject = "read" if mod(row,2) !=0
 			drop exp row
 			append using "`temp1'"
-			save "${EDFacts}/`year'/edfacts`type'`year'`lvl'arkansas.dta", replace
+			save "${EDFactsWide}/`year'/edfacts`type'`year'`lvl'arkansas.dta", replace
 		}
 	}
-}
-
-//Conversion to DTA
-forvalues year = 2009/2023 {
-if `year' == 2020 continue
-import delimited "${State_Output}/AR_AssmtData_`year'", case(preserve) clear
-save "${State_Output}/AR_AssmtData_`year'", replace
 }
 
 //Merging Example
 forvalues year = 2014/2021 {
 if `year' == 2020 continue
-import delimited "${State_Output}/AR_AssmtData_`year'.csv", case(preserve) clear
+use "${Output}/AR_AssmtData_`year'.dta", clear
 
-	
-//DataLevel
-label def DataLevel 1 "State" 2 "District" 3 "School"
-encode DataLevel, gen(DataLevel_n) label(DataLevel)
-sort DataLevel_n 
-drop DataLevel 
-rename DataLevel_n DataLevel
-
+destring NCESDistrictID, replace
+destring NCESSchoolID, replace
 
 //Merging
-
 tempfile tempall
 save "`tempall'", replace
 keep if DataLevel == 2
@@ -306,7 +294,7 @@ clear
 use "`tempdist'"
 duplicates report NCESDistrictID StudentSubGroup GradeLevel Subject
 duplicates drop NCESDistrictID StudentSubGroup GradeLevel Subject, force
-merge 1:1 NCESDistrictID StudentSubGroup GradeLevel Subject using "${EDFacts}/`year'/edfactspart`year'districtarkansas.dta", gen(DistMerge)
+merge 1:1 NCESDistrictID StudentSubGroup GradeLevel Subject using "${EDFactsWide}/`year'/edfactspart`year'districtarkansas.dta", gen(DistMerge)
 drop if DistMerge == 2
 save "`tempdist'", replace
 clear
@@ -315,7 +303,7 @@ clear
 use "`tempsch'"
 duplicates report NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject
 duplicates drop NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject, force
-merge 1:1 NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject using "${EDFacts}/`year'/edfactspart`year'schoolarkansas.dta", gen(SchMerge)
+merge 1:1 NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject using "${EDFactsWide}/`year'/edfactspart`year'schoolarkansas.dta", gen(SchMerge)
 drop if SchMerge == 2
 save "`tempsch'", replace
 clear
@@ -328,6 +316,11 @@ append using "`tempdist'" "`tempsch'"
 //New Participation Data
 replace ParticipationRate = Participation if !missing(Participation)
 
+tostring NCESDistrictID, replace
+tostring NCESSchoolID, replace format("%18.0f")
+replace NCESDistrictID = "" if NCESDistrictID == "."
+replace NCESSchoolID = "" if NCESSchoolID == "."
+
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
  
@@ -335,6 +328,6 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${New_Output}/AR_AssmtData_`year'", replace
-export delimited "${New_Output}/AR_AssmtData_`year'", replace
+save "${Output}/AR_AssmtData_`year'", replace
+export delimited "${Output}/AR_AssmtData_`year'", replace
 }

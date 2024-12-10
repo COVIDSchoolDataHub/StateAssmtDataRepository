@@ -3,15 +3,21 @@ set more off
 set trace off
 
 	*** EDFACTS CLEANING ***
+global Original "/Users/miramehta/Documents/AR State Testing Data/Original Data"
+global Output "/Users/miramehta/Documents/AR State Testing Data/Output"
+global NCES "//Users/miramehta/Documents/NCES District and School Demographics"
+global Temp "/Users/miramehta/Documents/AR State Testing Data/Temp"
+global EDFacts "/Users/miramehta/Documents/AR State Testing Data/EDFacts"
 
 //Importing
 
-forvalues year = 2016/2023 {
+forvalues year = 2016/2021 {
 if `year' == 2020 continue
 foreach data in part count {
 foreach subject in ela math {
 foreach dl in district school {
-use "${EDFacts}/edfacts`data'`year'`subject'`dl'.dta"
+	if `year' < 2022 use "${EDFacts}/edfacts`data'`year'`subject'`dl'.dta"
+	if `year' >= 2022 use "${EDFacts}/edfacts`data'2021`subject'`dl'.dta"
 keep if STNAM == "ARKANSAS"
 
 //Renaming
@@ -246,6 +252,140 @@ clear
 
 }		
 
+//2022 Data
+import delimited "${Original}/edfacts2022_AR_count1.csv", clear
+save "${Original}/edfacts2022.dta", replace
+import delimited "${Original}/edfacts2022_AR_count2.csv", clear
+append using "${Original}/edfacts2022.dta"
+tostring characteristics, replace
+save "${Original}/edfacts2022.dta", replace
+import delimited "${Original}/edfacts2022_AR_count3.csv", clear
+tostring subgroup, replace
+append using "${Original}/edfacts2022.dta"
 
+* DataLevel & IDs
+rename lea DistName
+rename school SchName
+rename ncesleaid NCESDistrictID
+rename ncesschid NCESSchoolID
 
+tostring NCESDistrictID, replace
+tostring NCESSchoolID, replace format ("%18.0f")
+replace NCESDistrictID = "" if NCESDistrictID == "."
+replace NCESSchoolID = "" if NCESSchoolID == "."
+gen DataLevel = 3
+replace DataLevel = 2 if NCESSchoolID == ""
+replace DataLevel = 1 if NCESDistrictID == ""
 
+* Subject & GradeLevel
+rename academicsubject Subject
+replace Subject = "ela" if Subject == "Reading/Language Arts"
+replace Subject = "math" if Subject == "Mathematics"
+replace Subject = "sci" if Subject == "Science"
+
+rename agegrade GradeLevel
+replace GradeLevel = subinstr(GradeLevel, "Grade ", "G0", 1)
+
+* StudentSubGroup
+rename subgroup StudentSubGroup
+replace StudentSubGroup = characteristics if characteristics != "."
+drop characteristics population
+replace StudentSubGroup = "American Indian or Alaska Native" if strpos(StudentSubGroup, "American Indian") > 0
+replace StudentSubGroup = "Asian" if strpos(StudentSubGroup, "Asian") > 0
+replace StudentSubGroup = "Black or African American" if strpos(StudentSubGroup, "Black") > 0
+replace StudentSubGroup = "Foster Care" if StudentSubGroup == "Foster care students"
+replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic/Latino"
+replace StudentSubGroup = "Migrant" if StudentSubGroup == "Migratory students"
+replace StudentSubGroup = "Military" if StudentSubGroup == "Military connected"
+replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "Native Hawaiian or Other Pacific Islander"
+replace StudentSubGroup = "SWD" if StudentSubGroup == "Children with disabilities"
+replace StudentSubGroup = "White" if strpos(StudentSubGroup, "White") > 0
+
+gen StudentGroup = "RaceEth" if inlist(StudentSubGroup, "American Indian or Alaska Native", "Asian", "Black or African American", "Hispanic or Latino", "Native Hawaiian or Pacific Islander", "White")
+replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD"
+replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged"
+replace StudentGroup = "EL Status" if StudentSubGroup == "English Learner"
+replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Foster Care"
+replace StudentGroup = "Gender" if inlist(StudentSubGroup, "Male", "Female")
+replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless"
+replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant"
+replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Military"
+drop programtype outcome datagroup
+
+* Values
+gen nStudentSubGroup_TotalTested = .
+replace nStudentSubGroup_TotalTested = denominator if strpos(datadescription, "Performance") > 0
+replace nStudentSubGroup_TotalTested = numerator if strpos(datadescription, "Participation") > 0
+drop numerator denominator value datadescription schoolyear state
+duplicates drop
+
+save "${Temp}/edfacts2022.dta", replace
+
+//Merge
+
+forvalues year = 2022/2024 {
+use "${Output}/AR_AssmtData_`year'", clear
+
+replace NCESDistrictID = subinstr(NCESDistrictID, "0", "", 1) if strpos(NCESDistrictID, "0") == 1
+replace NCESSchoolID = subinstr(NCESSchoolID, "0", "", 1) if strpos(NCESSchoolID, "0") == 1
+
+replace StudentSubGroup_TotalTested = "" if StudentSubGroup_TotalTested == "--"
+destring StudentSubGroup_TotalTested, gen(nStudentSubGroup_TotalTested) i(*-)
+
+merge 1:1 NCESDistrictID NCESSchoolID Subject GradeLevel StudentSubGroup using "${Temp}/edfacts2022.dta"
+drop if _merge == 2
+drop _merge
+
+bysort StateAssignedDistID StateAssignedSchID StudentGroup GradeLevel Subject: egen test = min(nStudentSubGroup_TotalTested)
+gen max = real(StudentGroup_TotalTested)
+replace max = 0 if max == .
+
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen RaceEth = total(nStudentSubGroup_TotalTested) if StudentGroup == "RaceEth"
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen Econ = total(nStudentSubGroup_TotalTested) if StudentGroup == "Economic Status"
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen EL = total(nStudentSubGroup_TotalTested) if StudentGroup == "EL Status"
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen Gender = total(nStudentSubGroup_TotalTested) if StudentGroup == "Gender"
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen Migrant = total(nStudentSubGroup_TotalTested) if StudentGroup == "Migrant Status"
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen Homeless = total(nStudentSubGroup_TotalTested) if StudentGroup == "Homeless Enrolled Status"
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen Military = total(nStudentSubGroup_TotalTested) if StudentGroup == "Military Connected Status"
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen Foster = total(nStudentSubGroup_TotalTested) if StudentGroup == "Foster Care Status"
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen Disability = total(nStudentSubGroup_TotalTested) if StudentGroup == "Disability Status"
+
+replace StudentSubGroup_TotalTested = string(max - RaceEth) if StudentGroup == "RaceEth" & max != 0 & nStudentSubGroup_TotalTested == . & RaceEth != 0
+replace StudentSubGroup_TotalTested = string(max - Econ) if StudentGroup == "Economic Status" & max != 0 & nStudentSubGroup_TotalTested == . & Econ != 0
+replace StudentSubGroup_TotalTested = string(max - EL) if StudentSubGroup == "English Proficient" & max != 0 & nStudentSubGroup_TotalTested == . & EL != 0
+replace StudentSubGroup_TotalTested = string(max - Gender) if StudentGroup == "Gender" & max != 0 & nStudentSubGroup_TotalTested == . & Gender != 0
+replace StudentSubGroup_TotalTested = string(max - Migrant) if StudentGroup == "Migrant Status" & max != 0 & nStudentSubGroup_TotalTested == . & Migrant != 0
+replace StudentSubGroup_TotalTested = string(max - Homeless) if StudentGroup == "Homeless Enrolled Status" & max != 0 & nStudentSubGroup_TotalTested == . & Homeless != 0
+replace StudentSubGroup_TotalTested = string(max - Military) if StudentGroup == "Military Connected Status" & max != 0 & nStudentSubGroup_TotalTested == . & Military != 0
+replace StudentSubGroup_TotalTested = string(max - Foster) if StudentGroup == "Foster Care Status" & max != 0 & nStudentSubGroup_TotalTested == . & Foster != 0
+replace StudentSubGroup_TotalTested = string(max - Disability) if StudentGroup == "Disability Status" & max != 0 & nStudentSubGroup_TotalTested == . & Disability != 0
+drop RaceEth Econ EL Gender Migrant Homeless Military Foster Disability nStudentSubGroup_TotalTested
+
+tostring StudentSubGroup_TotalTested, replace
+tostring StudentGroup_TotalTested, replace
+replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
+replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested == "."
+drop if StudentSubGroup_TotalTested == "0" & StudentSubGroup != "All Students"
+replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == ""
+
+//Deriving Counts
+foreach var of varlist Lev*_percent ProficientOrAbove_percent {
+	local count = subinstr("`var'","percent","count",.)
+replace `count' = string(round(real(`var')*real(StudentSubGroup_TotalTested))) if regexm(`var', "[0-9]") !=0 & regexm(StudentSubGroup_TotalTested, "[0-9]") !=0	
+}
+
+replace Lev5_count = ""
+replace Lev5_percent = ""
+
+//Final Cleaning
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
+replace StateAssignedDistID = StateAssignedDistID[_n-1] if missing(StateAssignedDistID) & DataLevel == 3
+
+save "${Output}/AR_AssmtData_`year'", replace
+export delimited "${Output}/AR_AssmtData_`year'", replace
+clear
+
+}
