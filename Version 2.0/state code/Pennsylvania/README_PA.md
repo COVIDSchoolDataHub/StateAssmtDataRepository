@@ -29,7 +29,7 @@ global Temp "/Users/name/Desktop/Pennsylvania/Temp"
 ```
 ## Re-creating cleaning process
 
-There are five do-files to re-create the output files: 
+There are six do-files to re-create the output files: 
 - Run "PA_All_DataRequest.do" to clean the data for 2015-2022. The specific code for each year is also hidden -- unhide as needed to get the years you want.
 - Run the PA_EDFactsParticipation_2015_2021 do file to add in particpation data for 2015-2021.
 -  Run "PA_2022.do" to clean the data for 2022.
