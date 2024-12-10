@@ -50,6 +50,6 @@ There are six do-files to re-create the output files:
 
 ## Updates
 
-05/07/2024: Updated to incorporate post-launch formatting changes, including including SWD for 2023, use updated NCES files, and generate counts for 2023 data.
-12/08/2024: Aggregated in some missing data in 2022 with a public data request file.
-12/08/2024: Updated the StudentGroup_TotalTested derivation for all years.
+- 05/07/2024: Updated to incorporate post-launch formatting changes, including including SWD for 2023, use updated NCES files, and generate counts for 2023 data.
+- 12/08/2024: Aggregated in some missing data in 2022 with a public data request file.
+- 12/08/2024: Updated the StudentGroup_TotalTested derivation for all years.
