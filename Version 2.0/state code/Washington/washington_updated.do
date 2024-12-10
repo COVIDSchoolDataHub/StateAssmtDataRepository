@@ -10,7 +10,7 @@ global NCESOLD "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
 global NCES "/Volumes/T7/State Test Project/Washington/NCES"
 
 * 2015 2016 2017 2018 2019 2021 2022 2023 2024
-foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 2024 {
+foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 2024  {
 	
 use "${output}/WA_AssmtData_`year'_all", clear
 	
@@ -274,6 +274,7 @@ if `year' == 2021 {
 }
 
 if `year' == 2018 | `year' == 2019 | `year' == 2022 | `year' == 2023 | `year' == 2024 {
+	drop if real(GradeLevel) > 8
 	replace GradeLevel = "G" + GradeLevel 
 }
 
@@ -347,7 +348,7 @@ tostring PercentNoScore, replace force
 
 ** Make ParticipationRate (ALL YEARS, including 2023 & 2024)
 
-gen ParticipationRate = string(1 - real(PercentNoScore), "%9.3g") if !missing(real(PercentNoScore))
+gen ParticipationRate = string(1 - real(PercentNoScore)) if !missing(real(PercentNoScore))
 replace ParticipationRate = "*" if missing(ParticipationRate)
 
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
@@ -360,7 +361,8 @@ replace ProficientOrAbove_percent = string(real(ProficientOrAbove_percent), "%9.
 //Note: Currently Level percents are based on the ExpectedCount (basically enrollment), rather than the number of students tested. Process for deriving level counts & percents is as follows:
 
 // 1. Derive Level Counts as PercentLevel * Expected Count
-// 2. Derive StudentSubGroup_TotalTested as ParticipationRate * ExpectedCount
+// OLD 2. Derive StudentSubGroup_TotalTested as ParticipationRate * ExpectedCount
+// NEW 2. Derive StudentSubGroup_TotalTested as Sum of Derived Level Counts
 // 3. Derive Lev*_percent as Lev*_count/StudentSubGroup_TotalTested
 
 destring ExpectedCount, replace force
@@ -372,8 +374,10 @@ forvalues n = 1/4 {
 }
 
 //2. Derive StudentSubGroup_TotalTested
-gen StudentSubGroup_TotalTested = string(round(real(ParticipationRate) * ExpectedCount)) if !missing(real(ParticipationRate)) & !missing(ExpectedCount)
-replace StudentSubGroup_TotalTested = "*" if missing(StudentSubGroup_TotalTested)
+// gen StudentSubGroup_TotalTested = string(round(real(ParticipationRate) * ExpectedCount)) if !missing(real(ParticipationRate)) & !missing(ExpectedCount)
+// replace StudentSubGroup_TotalTested = "*" if missing(StudentSubGroup_TotalTested)
+gen StudentSubGroup_TotalTested = string(real(Lev1_count) + real(Lev2_count) + real(Lev3_count) + real(Lev4_count)) //Confirmed that rows are always entirely suppressed (i.e, it's not the case that only Lev1 will be suppressed)
+replace StudentSubGroup_TotalTested = "*" if missing(real(StudentSubGroup_TotalTested))
 
 //3. Deriving Level Percents
 foreach count of varlist Lev*_count {
@@ -658,18 +662,32 @@ replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "NULL"
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "NULL"
 
 //StudentGroup_TotalTested
-tostring StateAssigned*, replace
-replace StateAssignedDistID = "" if DataLevel == 1
-replace StateAssignedSchID = "" if DataLevel !=3
+cap drop StudentGroup_TotalTested
 gen StateAssignedDistID1 = StateAssignedDistID
-replace StateAssignedDistID1 = "000000" if DataLevel == 1
+cap replace StateAssignedDistID1 = 000000 if DataLevel == 1
+cap replace StateAssignedDistID1 = "000000" if DataLevel == 1
 gen StateAssignedSchID1 = StateAssignedSchID
-replace StateAssignedSchID1 = "000000" if DataLevel !=3
+cap replace StateAssignedSchID1 = 000000 if DataLevel !=3
+cap replace StateAssignedSchID1 = "000000" if DataLevel !=3
 egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
 sort group_id StudentGroup StudentSubGroup
 by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
 by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
 drop group_id StateAssignedDistID1 StateAssignedSchID1
+
+//Deriving StudentSubGroup_TotalTested where possible
+gen UnsuppressedSSG = real(StudentSubGroup_TotalTested)
+egen UnsuppressedSG = total(UnsuppressedSSG), by(StudentGroup DistName SchName GradeLevel Subject)
+gen missing_SSG = 1 if missing(real(StudentSubGroup_TotalTested))
+egen missing_multiple = total(missing_SSG), by(StudentGroup DistName SchName GradeLevel Subject)
+
+order StudentGroup_TotalTested UnsuppressedSG StudentSubGroup_TotalTested UnsuppressedSSG missing_multiple
+
+gen Derivable = 1 if missing(real(StudentSubGroup_TotalTested)) & UnsuppressedSG > 0 & (missing_multiple <2 | StudentSubGroup == "English Learner" | StudentSubGroup == "English Proficient") & real(StudentGroup_TotalTested)-UnsuppressedSG > 0 & !missing(real(StudentGroup_TotalTested)-UnsuppressedSG) & StudentSubGroup != "All Students"
+
+replace StudentSubGroup_TotalTested = string(real(StudentGroup_TotalTested)-UnsuppressedSG) if Derivable == 1
+
+drop Unsuppressed* missing_* Derivable
 
 //Deriving ProficientOrAbove_count if possible
 replace ProficientOrAbove_count = string(real(Lev3_count)+real(Lev4_count)) if !missing(real(Lev3_count)) & !missing(real(Lev4_count)) & missing(real(ProficientOrAbove_count))
@@ -680,9 +698,6 @@ replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent)*r
 
 if `year' >= 2018 drop if SchLevel == "Prekindergarten"
 
-//Deriving SSG_TT if we have all level counts
-replace StudentSubGroup_TotalTested = string(real(Lev1_count) + real(Lev2_count) + real(Lev3_count) + real(Lev4_count)) if !missing(real(Lev1_count)) & !missing(real(Lev2_count)) & !missing(real(Lev3_count)) & !missing(real(Lev4_count)) & missing(real(StudentSubGroup_TotalTested))
-
 //ParticipationRate
 replace ParticipationRate = "--" if missing(ParticipationRate)
 
@@ -691,6 +706,14 @@ replace ProficientOrAbove_percent = "*" if missing(ProficientOrAbove_percent)
 
 //AssmtType
 replace AssmtType = "Regular"
+
+//Setting Level counts to "--" because they don't match proficient or above counts
+if `year' < 2018 {
+	foreach var of varlist Lev*_count {
+		replace `var' = "--" if "`var'" != "Lev5_count"
+	}
+}
+
 
 //Final Cleaning
 

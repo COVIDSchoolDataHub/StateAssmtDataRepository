@@ -269,11 +269,12 @@ if `year' == 2021 {
 	destring GradeLevel, replace
 	replace GradeLevel = GradeLevel - 1
 	tostring GradeLevel, replace
-
+	drop if real(GradeLevel) > 8
 	replace GradeLevel = "G0" + GradeLevel 
 }
 
 if `year' == 2018 | `year' == 2019 | `year' == 2022 | `year' == 2023 | `year' == 2024 {
+	drop if real(GradeLevel) > 8
 	replace GradeLevel = "G" + GradeLevel 
 }
 
@@ -365,7 +366,8 @@ replace ProficientOrAbove_percent = string(real(ProficientOrAbove_percent), "%9.
 //Note: Currently Level percents are based on the ExpectedCount (basically enrollment), rather than the number of students tested. Process for deriving level counts & percents is as follows:
 
 // 1. Derive Level Counts as PercentLevel * Expected Count
-// 2. Derive StudentSubGroup_TotalTested as ParticipationRate * ExpectedCount
+// OLD 2. Derive StudentSubGroup_TotalTested as ParticipationRate * ExpectedCount
+// NEW 2. Derive StudentSubGroup_TotalTested as Sum of Derived Level Counts
 // 3. Derive Lev*_percent as Lev*_count/StudentSubGroup_TotalTested
 
 destring ExpectedCount, replace force
@@ -377,8 +379,10 @@ forvalues n = 1/4 {
 }
 
 //2. Derive StudentSubGroup_TotalTested
-gen StudentSubGroup_TotalTested = string(round(real(ParticipationRate) * ExpectedCount)) if !missing(real(ParticipationRate)) & !missing(ExpectedCount)
-replace StudentSubGroup_TotalTested = "*" if missing(StudentSubGroup_TotalTested)
+// gen StudentSubGroup_TotalTested = string(round(real(ParticipationRate) * ExpectedCount)) if !missing(real(ParticipationRate)) & !missing(ExpectedCount)
+// replace StudentSubGroup_TotalTested = "*" if missing(StudentSubGroup_TotalTested)
+gen StudentSubGroup_TotalTested = string(real(Lev1_count) + real(Lev2_count) + real(Lev3_count) + real(Lev4_count)) //Confirmed that rows are always entirely suppressed (i.e, it's not the case that only Lev1 will be suppressed)
+replace StudentSubGroup_TotalTested = "*" if missing(real(StudentSubGroup_TotalTested))
 
 //3. Deriving Level Percents
 foreach count of varlist Lev*_count {
@@ -739,6 +743,16 @@ replace ParticipationRate = "--" if missing(ParticipationRate)
 
 //AssmtType
 replace AssmtType = "Regular"
+
+//CountyName
+if `year' == 2015 replace CountyName = proper(CountyName)
+
+//Setting Level counts to "--" because they don't match proficient or above counts
+if `year' < 2018 {
+	foreach var of varlist Lev*_count {
+		replace `var' = "--" if "`var'" != "Lev5_count"
+	}
+}
 
 //Final Cleaning
 
