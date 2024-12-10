@@ -27,10 +27,10 @@ There are four main folders you need to create: NCES District and School Demogra
 
 The file path setup should be as follows: 
 
--global Original: Folder containing original data files
--global NCES: Folder containing NCES school & district files
--global Output: Folder containing cleaned data files
--global Temp: Folder containing .dta format versions of the original data
+- global Original: Folder containing original data files
+- global NCES: Folder containing NCES school & district files
+- global Output: Folder containing cleaned data files
+- global Temp: Folder containing .dta format versions of the original data
 
 ```bash
 global Original "/Users/name/Desktop/Pennsylvania/Original"
