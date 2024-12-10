@@ -4,12 +4,17 @@ This is a ReadMe for Ohio's data cleaning process, from 2016 to 2024.
 
 ## Setup
 
-Create a folder for OH. Inside that folder, create two more folders: "Original Data" and "Output"
-You should also create a folder for NCES Data with three subfolders: NCES District Files, Fall 1997-Fall 2022,
-NCES School Files, Fall 1997-Fall 2022, and Cleaned NCES Data.
+Create a folder for OH. Inside that folder, create the following folders: 
 
-1.  Download original data files and place them in the folder.
-2.  Set file directories at the top of each do file:
+1. "Original Data" [Download original data files and place them in the folder.]
+2. "Output"
+3. "NCES Data" with the following subfolders:
+   a. NCES District Files, Fall 1997-Fall 2022
+   b. NCES School Files, Fall 1997-Fall 2022
+   c. Cleaned NCES Data
+
+## File Directories
+Set file directories at the top of each do file:
 
 ```         
 global raw "/Users/miramehta/Documents/OH State Testing Data/Original Data"
