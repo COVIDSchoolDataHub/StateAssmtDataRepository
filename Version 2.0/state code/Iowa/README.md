@@ -14,8 +14,10 @@ The main folders (with subfolders) you need to creaste include:
 	
 
 2. NCES_full [Place all of the most recent NCES school and district files from the Google drive in this folder. Do not create any subfolders.]
+   
 	
 3. NCES_iowa. [will start empty]
+   
 
 4. Original Data Files. From the "Original Data Files" folder on the Google drive, download the following subfolders:
 
@@ -26,8 +28,9 @@ The main folders (with subfolders) you need to creaste include:
 	c. Stable Dist and Sch Names
 	
 	d. You will also need the "ia_county-list_through2023.xlsx" file in this folder
+
 	
-7. Output  [empty]
+5. Output  [empty]
 
 # Process
 You should run the 4 do files in the following order, updating all paths as needed.
