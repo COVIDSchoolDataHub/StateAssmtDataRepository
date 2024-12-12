@@ -12,6 +12,10 @@ capture log close
 log using 2022_PA, replace
 
 // Import Original Data Files
+
+
+// All years from data request
+
 //School import
 
 import excel "$Original/2015-2022 PSSA Schools.xlsx", sheet("Sheet1") firstrow clear
@@ -30,7 +34,7 @@ gen DataLevel = "School"
 save "$Temp/PA_DataRequest_School_Part2.dta", replace
 
 import excel "$Original/PA_2022_OriginalData_School.xlsx", cellrange(A5) firstrow clear
-
+//The original data request did not contain certain Student Subgroup information that the public data did, so we merged it in with PA_2022_OriginalData_School
 drop if AUN == .
 
 gen DataLevel = "School"
@@ -116,6 +120,7 @@ replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
 replace StudentSubGroup = "Two or More" if StudentSubGroup == "Multi-ethnic"
 replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "Native American"
 replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "Native Hawaiian or other Pacific Islander"
+replace StudentSubGroup = "SWD" if StudentSubGroup == "IEP"
 replace StudentGroup = "RaceEth" if StudentSubGroup == "American Indian or Alaska Native"
 replace StudentGroup = "RaceEth" if StudentSubGroup == "Asian"
 replace StudentGroup = "RaceEth" if StudentSubGroup == "Black or African American"
@@ -133,7 +138,7 @@ replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Dis
 replace StudentGroup = "Gender" if StudentSubGroup == "Male"
 replace StudentGroup = "Gender" if StudentSubGroup == "Female"
 replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
-replace StudentGroup = "Disability Status" if StudentSubGroup == "IEP"
+replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD"
 
 // Relabelling Data Levels
 label def DataLevel 1 "State" 2 "District" 3 "School"
@@ -146,8 +151,8 @@ forvalues n = 1/4{
 	replace Lev`n'_percent = Lev`n'_percent/100
 }
 
-gen ProficientOrAbove_percent = Lev3_percent + Lev4_percent
-gen ProficientOrAbove_count = Lev3_count + Lev4_count
+gen ProficientOrAbove_percent = Lev3_percent + Lev4_percent 
+gen ProficientOrAbove_count = Lev3_count + Lev4_count if Lev3_percent != . & Lev4_percent != . & StudentSubGroup_TotalTested != .
 
 foreach var of varlist Lev1_percent Lev1_count Lev2_percent Lev2_count Lev3_percent Lev3_count Lev4_percent Lev4_count ProficientOrAbove_percent ProficientOrAbove_count {
 	gen s`var' = string(`var',"%9.3g")
@@ -216,6 +221,13 @@ by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if Stude
 by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
 drop group_id StateAssignedDistID1 StateAssignedSchID1
 
+gen Prof = ProficientOrAbove_percent
+destring Prof, replace force
+gen Profcount = (StudentSubGroup_TotalTested) * Prof if Lev3_count == "." & Lev4_count == "."
+replace Profcount = round(Profcount)
+tostring Profcount, replace
+replace ProficientOrAbove_count = Profcount if Lev3_count == "." & Lev4_count == "."
+
 // Renaming NCES variables
 rename district_agency_type DistType
 rename ncesschoolid NCESSchoolID
@@ -241,31 +253,14 @@ drop dup
 duplicates tag DataLevel AssmtName AssmtType NCESDistrictID NCESSchoolID Subject GradeLevel StudentGroup StudentSubGroup, gen(dup2)
 drop if dup2 > 0 & Lev1_count == "." & Lev2_count == "." & Lev3_count == "." & Lev4_count == "."
 
-destring StateAssignedSchID, replace
-gen StateAssignedSchID1 = substr(string(StateAssignedSchID, "%20.0f"), -4, 4)
-drop StateAssignedSchID
-rename StateAssignedSchID1 StateAssignedSchID
+replace Lev1_count = "--" if Lev1_count == "." 
+replace Lev2_count = "--" if Lev2_count == "."
+replace Lev3_count = "--" if Lev3_count == "."
+replace Lev4_count = "--" if Lev4_count == "."
+replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == "."
+replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == "."
+replace ParticipationRate = "" if ParticipationRate == "."
 
-	//Removing extra spaces
-	foreach var of varlist DistName SchName {
-		replace `var' = stritrim(`var') // collapses all consecutive, internal blanks to one blank.
-		replace `var' = strtrim(`var') // removes leading and trailing blanks
-	}
-	
-	
-	foreach var of varlist StateAssignedDistID {
-		replace `var'  = . if  `var' == 1
-		replace `var'  = . if  `var' == 1
-		replace `var'  = . if  `var' == 0
-	}
-	
-				foreach var of varlist StateAssignedSchID {
-    replace `var' = "" if `var' == "1"
-    replace `var' = "" if `var' == "0"
-    replace `var' = "" if `var' == "."
-    drop if `var' == "" & DataLevel == 3
-	drop if `var' == "." & DataLevel == 3
-}	
 destring StateAssignedSchID, replace
 gen StateAssignedSchID1 = substr(string(StateAssignedSchID, "%20.0f"), -4, 4)
 drop StateAssignedSchID
