@@ -27,3 +27,6 @@ global NCES "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
 1. Unhide the Importing Code
 2. Run the do-files
 3. On future runs you'll want to hide the importing code
+
+## Notes
+The 2015-2023 file in the Original Data - Version 1.1+ folder is the same as "HalloranDataRequest20240409"
