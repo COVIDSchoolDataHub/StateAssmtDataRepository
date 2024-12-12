@@ -18,7 +18,7 @@ Create three main folders for Arkansas:
    
     a. NCES District Files, Fall 1997-Fall 2022
    
-    b. NCES Shcool Files, Fall 1997-Fall 2022
+    b. NCES School Files, Fall 1997-Fall 2022
    
 3. EDFacts, with subfolders for each year (contains the wide versions of the data)
 
