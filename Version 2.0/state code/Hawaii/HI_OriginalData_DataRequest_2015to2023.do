@@ -1,20 +1,20 @@
 clear
 set more off
 set trace off
-global Original "/Volumes/T7/State Test Project/Hawaii/Original Data"
-global Output "/Volumes/T7/State Test Project/Hawaii/Output"
-global NCES "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global Original "/Users/kaitlynlucas/Desktop/Hawaii/Original"
+global Cleaned "/Users/kaitlynlucas/Desktop/Hawaii/Output"
+global NCES "/Users/kaitlynlucas/Desktop/Hawaii/NCES"
 
 //Importing (Unhide on First Run)
 /*
-import excel "$Original/HI_OriginalData_DataRequest_All", firstrow sheet("SBAData")
-save "$Original/HI_OriginalData_DataRequest_All", replace
+import excel "$Original/HI_OriginalData_DataRequest_2015to2023", firstrow sheet("SBAData")
+save "$Original/HI_OriginalData_DataRequest_2015to2023", replace
 
 
 //Separating by Year
 forvalues year = 2015/2023 {
 	if `year' == 2020 continue
-	use "$Original/HI_OriginalData_DataRequest_All", clear
+	use "$Original/HI_OriginalData_DataRequest_2015to2023", clear
 	keep if Column4 == `year'
 	save "$Original/HI_OriginalData_DataRequest_`year'", replace
 }
@@ -185,17 +185,16 @@ rename county_code CountyCode
 rename county_name CountyName
 rename ncesschoolid NCESSchoolID
 
-//StudentGroup_TotalTested (with new convention)
-sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
-replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
-
-**Deriving StudentSubGroup_TotalTested if possible (Doesn't look like any derivations are possible)
-destring StudentSubGroup_TotalTested, gen(UnsuppressedSSG) force
-egen UnsuppressedSG = total(UnsuppressedSSG), by(StudentGroup DistName SchName Subject GradeLevel)
-gen ind = 1 if UnsuppressedSG !=0 & regexm(StudentSubGroup_TotalTested, "[0-9]") == 0 & regexm(StudentGroup_TotalTested, "[0-9]") !=0 & StudentGroup != "RaceEth"
-replace StudentSubGroup_TotalTested = string(real(StudentGroup_TotalTested) - UnsuppressedSG) if UnsuppressedSG !=0 & regexm(StudentSubGroup_TotalTested, "[0-9]") == 0 & regexm(StudentGroup_TotalTested, "[0-9]") !=0 & StudentGroup != "RaceEth"
-drop ind UnsuppressedSG UnsuppressedSSG
+//V2.0 StudentGroup_TotalTested
+gen StateAssignedDistID1 = StateAssignedDistID
+replace StateAssignedDistID1 = "000000" if DataLevel == 1 //Remove quotations if DistIDs are numeric
+tostring StateAssignedSchID, gen(StateAssignedSchID1)
+replace StateAssignedSchID1 = "000000" if DataLevel !=3 //Remove quotations if SchIDs are numeric
+egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
+sort group_id StudentGroup StudentSubGroup
+by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+drop group_id StateAssignedDistID1 StateAssignedSchID1
 
 //Indicator Variables
 gen ProficiencyCriteria = "Levels 3-4"
@@ -262,7 +261,61 @@ foreach var of varlist Lev*_count {
 	replace `var' = "0" if real(`var') < 0 & !missing(real(`var'))
 }
 
+//deriving additional counts & percents
+replace ProficientOrAbove_percent = string(1 - real(Lev1_percent) - real(Lev2_percent), "%9.8f") if ProficientOrAbove_percent == "*" & Lev1_percent != "*" & Lev2_percent != "*"
+replace Lev3_percent = string(real(ProficientOrAbove_percent) - real(Lev4_percent), "%9.8f") if Lev3_percent == "*" & ProficientOrAbove_percent != "*" & Lev4_percent != "*"
+replace Lev4_percent = string(real(ProficientOrAbove_percent) - real(Lev3_percent), "%9.8f") if Lev4_percent == "*" & ProficientOrAbove_percent != "*" & Lev3_percent != "*"
+replace Lev1_percent = string(1 - real(ProficientOrAbove_percent) - real(Lev2_percent), "%9.8f") if Lev1_percent == "*" & ProficientOrAbove_percent != "*" & Lev2_percent != "*"
+replace Lev2_percent = string(1 - real(ProficientOrAbove_percent) - real(Lev1_percent), "%9.8f") if Lev2_percent == "*" & ProficientOrAbove_percent != "*" & Lev1_percent != "*"
 
+forvalues n = 1/4{
+	replace Lev`n'_percent = "0" if Lev`n'_percent == "-0.00000000"
+	replace Lev`n'_percent = "0" if Lev`n'_percent == "0.00e+00"
+	replace Lev`n'_count = "0" if Lev`n'_percent == "0" & Lev`n'_count == "0-3"
+}
+
+replace ProficientOrAbove_percent = "0" if ProficientOrAbove_percent == "-0.00000000"
+replace ProficientOrAbove_percent = "0" if ProficientOrAbove_percent == "0.00e+00"
+replace ProficientOrAbove_count = "0" if ProficientOrAbove_percent == "0" & ProficientOrAbove_count == "0-3"
+
+replace ProficientOrAbove_count = string(real(StudentSubGroup_TotalTested) - real(Lev1_count) - real(Lev2_count)) if inlist(ProficientOrAbove_count, "*", "0-3") & !inlist(StudentSubGroup_TotalTested, "*", "0-3") & !inlist(Lev1_count, "*", "0-3") & !inlist(Lev2_count, "*", "0-3")
+replace ProficientOrAbove_percent = "1" if ProficientOrAbove_percent == "1.00e+00"
+replace ProficientOrAbove_percent = "0" if ProficientOrAbove_count == "0"
+replace ProficientOrAbove_count = "0" if ProficientOrAbove_percent == "0"
+
+replace Lev1_count = string(real(StudentSubGroup_TotalTested) - real(ProficientOrAbove_count) - real(Lev2_count)) if inlist(Lev1_count, "*", "0-3") & !inlist(StudentSubGroup_TotalTested, "*", "0-3") & !inlist(ProficientOrAbove_count, "*", "0-3") & !inlist(Lev2_count, "*", "0-3") & real(StudentSubGroup_TotalTested) - real(ProficientOrAbove_count) - real(Lev2_count) >= 0
+replace Lev1_count = "0" if inlist(Lev1_count, "*", "0-3") & !inlist(StudentSubGroup_TotalTested, "*", "0-3") & !inlist(ProficientOrAbove_count, "*", "0-3") & !inlist(Lev2_count, "*", "0-3") & real(StudentSubGroup_TotalTested) - real(ProficientOrAbove_count) - real(Lev2_count) < 0
+replace Lev2_count = string(real(StudentSubGroup_TotalTested) - real(ProficientOrAbove_count) - real(Lev1_count)) if inlist(Lev2_count, "*", "0-3") & !inlist(StudentSubGroup_TotalTested, "*", "0-3") & !inlist(ProficientOrAbove_count, "*", "0-3") & !inlist(Lev1_count, "*", "0-3") & real(StudentSubGroup_TotalTested) - real(ProficientOrAbove_count) - real(Lev1_count) >= 0
+replace Lev2_count = "0" if inlist(Lev2_count, "*", "0-3") & !inlist(StudentSubGroup_TotalTested, "*", "0-3") & !inlist(ProficientOrAbove_count, "*", "0-3") & !inlist(Lev1_count, "*", "0-3") & real(StudentSubGroup_TotalTested) - real(ProficientOrAbove_count) - real(Lev1_count) < 0
+replace Lev3_count = string(real(ProficientOrAbove_count) - real(Lev4_count)) if inlist(Lev3_count, "*", "0-3") & !inlist(ProficientOrAbove_count, "*", "0-3") & !inlist(Lev4_count, "*", "0-3") & real(ProficientOrAbove_count) - real(Lev4_count) >= 0
+replace Lev3_count = "0" if inlist(Lev3_count, "*", "0-3") & !inlist(ProficientOrAbove_count, "*", "0-3") & !inlist(Lev4_count, "*", "0-3") & real(ProficientOrAbove_count) - real(Lev4_count) < 0
+replace Lev4_count = string(real(ProficientOrAbove_count) - real(Lev3_count)) if inlist(Lev4_count, "*", "0-3") & !inlist(ProficientOrAbove_count, "*", "0-3") & !inlist(Lev3_count, "*", "0-3") & real(ProficientOrAbove_count) - real(Lev3_count) >= 0
+replace Lev4_count = "0" if inlist(Lev4_count, "*", "0-3") & !inlist(ProficientOrAbove_count, "*", "0-3") & !inlist(Lev3_count, "*", "0-3") & real(ProficientOrAbove_count) - real(Lev3_count) < 0
+
+forvalues n = 1/4{
+	replace Lev`n'_percent = "1" if Lev`n'_percent == "1.00e+00"
+	replace Lev`n'_percent = "0" if strpos(Lev`n'_percent, "e") > 0
+	replace Lev`n'_count = "0" if Lev`n'_percent == "0"
+	replace Lev`n'_percent = "0" if Lev`n'_count == "0"
+}
+
+//Deriving StudentSubGroup_TotalTested where possible
+gen UnsuppressedSSG = real(StudentSubGroup_TotalTested)
+egen UnsuppressedSG = total(UnsuppressedSSG), by(StudentGroup DistName SchName GradeLevel Subject)
+gen missing_SSG = 1 if missing(real(StudentSubGroup_TotalTested))
+egen missing_multiple = total(missing_SSG), by(StudentGroup DistName SchName GradeLevel Subject)
+
+order StudentGroup_TotalTested UnsuppressedSG StudentSubGroup_TotalTested UnsuppressedSSG missing_multiple
+
+replace StudentSubGroup_TotalTested = string(real(StudentGroup_TotalTested)-UnsuppressedSG) if missing(real(StudentSubGroup_TotalTested)) & UnsuppressedSG > 0 & (missing_multiple <2 | StudentSubGroup == "English Learner" | StudentSubGroup == "English Proficient") & real(StudentGroup_TotalTested)-UnsuppressedSG > 0 & !missing(real(StudentGroup_TotalTested)-UnsuppressedSG) & StudentSubGroup != "All Students"
+
+drop Unsuppressed* missing_*
+
+
+foreach var of varlist DistName SchName {
+replace `var' = strtrim(`var')
+replace `var' = stritrim(`var')
+}
 
 //Final Cleaning and Exporting
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
@@ -271,8 +324,8 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${Output}/HI_AssmtData_`year'", replace
-export delimited "${Output}/HI_AssmtData_`year'", replace
+save "${Cleaned}/HI_AssmtData_`year'", replace
+export delimited "${Cleaned}/HI_AssmtData_`year'", replace
 clear
 }
 
