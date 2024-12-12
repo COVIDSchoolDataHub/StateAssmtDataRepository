@@ -44,7 +44,7 @@ You should run the 4 do files in the following order, updating all paths as need
 4. 04_IA_Final Cleaning.do
 
 
-Updates
+# Updates
 7/3/24: Added EDFacts Participation Data to 2014 through 2022
 
 8/2/24: Applied new stable district names to all years (referenced by IA_StableNames do-file, which should be run last).
