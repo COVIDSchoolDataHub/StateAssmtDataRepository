@@ -104,9 +104,9 @@ gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_sci = "N"
-gen Flag_CutScoreChange_soc = ""
+gen Flag_CutScoreChange_soc = "Not applicable"
 gen ProficiencyCriteria = "Levels 3-4"
-gen AssmtType = "Regular"
+gen AssmtType = "Regular and alt"
 gen AssmtName = "ACT Aspire"
 gen SchYear = "`prevyear'" + "-" + substr("`year'",-2,2)
 gen StateFips = 5
@@ -130,8 +130,6 @@ gen Lev5_percent = "--"
 foreach var of varlist *_percent {
 	replace `var' = "--" if `var' == "."
 }
-
-
 
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc

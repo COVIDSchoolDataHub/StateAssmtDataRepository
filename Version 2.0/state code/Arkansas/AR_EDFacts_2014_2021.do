@@ -272,7 +272,7 @@ foreach year of local edyears2 {
 //Merging Example
 forvalues year = 2014/2021 {
 if `year' == 2020 continue
-use "${Output}/AR_AssmtData_`year'.dta", clear
+use "${Output}/AR_AssmtData_`year'", clear
 
 destring NCESDistrictID, replace
 destring NCESSchoolID, replace

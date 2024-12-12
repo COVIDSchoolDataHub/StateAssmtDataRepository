@@ -9,7 +9,55 @@ global NCES "//Users/miramehta/Documents/NCES District and School Demographics"
 global Temp "/Users/miramehta/Documents/AR State Testing Data/Temp"
 global EDFacts "/Users/miramehta/Documents/AR State Testing Data/EDFacts"
 
-//Importing
+//Combining separate data files for 2016-2023
+forvalues year = 2016/2023 {
+if `year' == 2020 continue
+use "${Temp}/AR_AssmtData_`year'_AllStudents"
+append using "${Temp}/AR_AssmtData_`year'_nocountsSG"
+if `year' >= 2019 append using "${Temp}/AR_AssmtData_`year'_StateSG"
+replace SchName = proper(SchName)
+replace DistName = proper(DistName)
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
+//Dropping Blank Rows
+drop if Lev1_percent == "--" & Lev3_percent == "--" & Lev4_percent== "--" & ProficientOrAbove_percent == "--"
+drop if missing(State)
+
+	** Post Launch Review **
+//NCESSchoolID for 2019
+if `year' == 2019 replace NCESSchoolID = "050042401683" if StateAssignedSchID == "6061702" 
+
+//Deriving ProficientOrAbove_percent where possible
+replace ProficientOrAbove_percent = string(1-(real(Lev1_percent) + real(Lev2_percent)), "%9.3g") if regexm(Lev1_percent, "[0-9]") !=0 & regexm(Lev2_percent, "[0-9]") !=0 & regexm(ProficientOrAbove_percent, "[0-9]") ==0
+
+//Updating Flags
+if `year' == 2016 replace Flag_CutScoreChange_sci = "Y"
+if `year' == 2018 replace Flag_CutScoreChange_sci = "N"
+replace Flag_CutScoreChange_soc = "Not applicable"
+
+replace StateAssignedDistID = "3201000" if StateAssignedSchID == "3201042" //flagged ID mismatches
+
+drop StudentGroup_TotalTested
+replace StateAssignedDistID = "00000" if DataLevel == 1
+replace StateAssignedSchID = "00000" if DataLevel != 3
+egen uniquegrp = group(DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel)
+sort uniquegrp StudentGroup StudentSubGroup
+by uniquegrp: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+order Subject GradeLevel StudentGroup_TotalTested StudentGroup StudentSubGroup_TotalTested StudentSubGroup
+by uniquegrp: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+replace StudentGroup_TotalTested = "--" if missing(StudentGroup_TotalTested)
+replace StateAssignedDistID = "" if DataLevel == 1
+replace StateAssignedSchID = "" if DataLevel != 3
+
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
+save "${Output}/AR_AssmtData_`year'", replace
+
+}
+
+//Importing EDFacts Data 2016-2021
 
 forvalues year = 2016/2021 {
 if `year' == 2020 continue
@@ -127,20 +175,19 @@ save "${Temp}/`year'_math_count", replace
 
 use "${Output}/AR_AssmtData_`year'"
 replace StudentSubGroup_TotalTested = "" if StudentSubGroup_TotalTested == "--"
-replace StudentGroup_TotalTested = "" if StudentGroup_TotalTested == "--"
 destring StudentSubGroup_TotalTested, gen(nStudentSubGroup_TotalTested) i(*-)
 
 
 tempfile temp1
 save "`temp1'", replace
 keep if (Subject == "eng" | Subject == "read" | Subject == "ela") & StudentSubGroup_TotalTested == ""
-drop StudentGroup_TotalTested StudentSubGroup_TotalTested
+drop StudentSubGroup_TotalTested
 tempfile tempela
 save "`tempela'", replace
 clear
 use "`temp1'"
 keep if Subject == "math" & StudentSubGroup_TotalTested == ""
-drop StudentGroup_TotalTested StudentSubGroup_TotalTested
+drop StudentSubGroup_TotalTested
 tempfile tempmath
 save "`tempmath'", replace
 clear
@@ -161,12 +208,36 @@ append using "`tempela'" "`tempmath'"
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-egen nStudentGroup_TotalTested = total(nStudentSubGroup_TotalTested), by(StudentGroup GradeLevel Subject DataLevel SchName DistName)
+bysort StateAssignedDistID StateAssignedSchID StudentGroup GradeLevel Subject: egen test = min(nStudentSubGroup_TotalTested)
+gen max = real(StudentGroup_TotalTested)
+replace max = 0 if max == .
 
-replace StudentSubGroup_TotalTested = string(nStudentSubGroup_TotalTested) if !missing(nStudentSubGroup_TotalTested) & (StudentSubGroup_TotalTested == "--" | StudentSubGroup_TotalTested == "*")
-replace StudentGroup_TotalTested = string(nStudentGroup_TotalTested) if !missing(nStudentGroup_TotalTested)
-replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested == "0" 
-replace StudentSubGroup_TotalTested = "--" if missing(nStudentSubGroup_TotalTested)
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen RaceEth = total(nStudentSubGroup_TotalTested) if StudentGroup == "RaceEth"
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen Econ = total(nStudentSubGroup_TotalTested) if StudentGroup == "Economic Status"
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen EL = total(nStudentSubGroup_TotalTested) if StudentGroup == "EL Status"
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen Gender = total(nStudentSubGroup_TotalTested) if StudentGroup == "Gender"
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen Migrant = total(nStudentSubGroup_TotalTested) if StudentGroup == "Migrant Status"
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen Homeless = total(nStudentSubGroup_TotalTested) if StudentGroup == "Homeless Enrolled Status"
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen Military = total(nStudentSubGroup_TotalTested) if StudentGroup == "Military Connected Status"
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen Foster = total(nStudentSubGroup_TotalTested) if StudentGroup == "Foster Care Status"
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen Disability = total(nStudentSubGroup_TotalTested) if StudentGroup == "Disability Status"
+
+replace StudentSubGroup_TotalTested = string(max - RaceEth) if StudentGroup == "RaceEth" & max != 0 & nStudentSubGroup_TotalTested == . & RaceEth != 0
+replace StudentSubGroup_TotalTested = string(max - Econ) if StudentGroup == "Economic Status" & max != 0 & nStudentSubGroup_TotalTested == . & Econ != 0
+replace StudentSubGroup_TotalTested = string(max - EL) if StudentSubGroup == "English Proficient" & max != 0 & nStudentSubGroup_TotalTested == . & EL != 0
+replace StudentSubGroup_TotalTested = string(max - Gender) if StudentGroup == "Gender" & max != 0 & nStudentSubGroup_TotalTested == . & Gender != 0
+replace StudentSubGroup_TotalTested = string(max - Migrant) if StudentGroup == "Migrant Status" & max != 0 & nStudentSubGroup_TotalTested == . & Migrant != 0
+replace StudentSubGroup_TotalTested = string(max - Homeless) if StudentGroup == "Homeless Enrolled Status" & max != 0 & nStudentSubGroup_TotalTested == . & Homeless != 0
+replace StudentSubGroup_TotalTested = string(max - Military) if StudentGroup == "Military Connected Status" & max != 0 & nStudentSubGroup_TotalTested == . & Military != 0
+replace StudentSubGroup_TotalTested = string(max - Foster) if StudentGroup == "Foster Care Status" & max != 0 & nStudentSubGroup_TotalTested == . & Foster != 0
+replace StudentSubGroup_TotalTested = string(max - Disability) if StudentGroup == "Disability Status" & max != 0 & nStudentSubGroup_TotalTested == . & Disability != 0
+drop RaceEth Econ EL Gender Migrant Homeless Military Foster Disability nStudentSubGroup_TotalTested
+
+tostring StudentSubGroup_TotalTested, replace
+replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
+drop if StudentSubGroup_TotalTested == "0" & StudentSubGroup != "All Students"
+replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == ""
+
 drop _merge
 
 
@@ -238,7 +309,8 @@ foreach var of varlist Lev*_percent ProficientOrAbove_percent {
 replace `count' = string(round(real(`var')*real(StudentSubGroup_TotalTested))) if regexm(`var', "[0-9]") !=0 & regexm(StudentSubGroup_TotalTested, "[0-9]") !=0	
 }
 
-
+replace Lev5_count = "" if ProficiencyCriteria == "Levels 3-4"
+replace Lev5_percent = "" if ProficiencyCriteria == "Levels 3-4"
 
 //Final Cleaning
 drop if missing(State)
@@ -252,7 +324,7 @@ clear
 
 }		
 
-//2022 Data
+//Importing EDFacts 2022 Data
 import delimited "${Original}/edfacts2022_AR_count1.csv", clear
 save "${Original}/edfacts2022.dta", replace
 import delimited "${Original}/edfacts2022_AR_count2.csv", clear
@@ -321,7 +393,7 @@ duplicates drop
 
 save "${Temp}/edfacts2022.dta", replace
 
-//Merge
+//Apply 2022 Counts to 2022-2024
 
 forvalues year = 2022/2024 {
 use "${Output}/AR_AssmtData_`year'", clear
@@ -362,7 +434,6 @@ replace StudentSubGroup_TotalTested = string(max - Disability) if StudentGroup =
 drop RaceEth Econ EL Gender Migrant Homeless Military Foster Disability nStudentSubGroup_TotalTested
 
 tostring StudentSubGroup_TotalTested, replace
-tostring StudentGroup_TotalTested, replace
 replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
 replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested == "."
 drop if StudentSubGroup_TotalTested == "0" & StudentSubGroup != "All Students"
@@ -374,8 +445,8 @@ foreach var of varlist Lev*_percent ProficientOrAbove_percent {
 replace `count' = string(round(real(`var')*real(StudentSubGroup_TotalTested))) if regexm(`var', "[0-9]") !=0 & regexm(StudentSubGroup_TotalTested, "[0-9]") !=0	
 }
 
-replace Lev5_count = ""
-replace Lev5_percent = ""
+replace Lev5_count = "" if ProficiencyCriteria == "Levels 3-4"
+replace Lev5_percent = "" if ProficiencyCriteria == "Levels 3-4"
 
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode

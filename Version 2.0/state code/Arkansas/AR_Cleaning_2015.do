@@ -2,6 +2,12 @@ clear
 set more off
 set trace off
 
+global Original "/Users/miramehta/Documents/AR State Testing Data/Original Data"
+global Output "/Users/miramehta/Documents/AR State Testing Data/Output"
+global NCES "//Users/miramehta/Documents/NCES District and School Demographics"
+global Temp "/Users/miramehta/Documents/AR State Testing Data/Temp"
+global EDFacts "/Users/miramehta/Documents/AR State Testing Data/EDFacts"
+
 //Importing
 tempfile temp1
 save "`temp1'", emptyok
@@ -141,16 +147,11 @@ replace ParticipationRate = "--" if Subject == "sci"
 destring ParticipationRate, gen(nParticipationRate) i(-*%)
 replace ParticipationRate = string(nParticipationRate/100, "%9.3g") if ParticipationRate != "*" & ParticipationRate != "--"
 
-//StudentGroup_TotalTested
-sort DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel StudentGroup StudentSubGroup
-gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
-order Subject GradeLevel StudentGroup_TotalTested StudentGroup StudentSubGroup_TotalTested StudentSubGroup
-replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested) & StudentSubGroup != "All Students"
-tostring StudentGroup_TotalTested, replace
-
 **Merging**
 replace StateAssignedDistID = StateAssignedDistID + "000" if Subject == "sci" & DataLevel !=1
-replace StateAssignedDistID = "1702000" if DistName == "CEDARVILLE SCHOOL DISTRICT"
+gen flag = 1 if Subject == "ela" & GradeLevel == "G08"
+replace StateAssignedDistID = "1702000" if DistName == "CEDARVILLE SCHOOL DISTRICT" & flag != 1
+drop flag
 tempfile temp1
 save "`temp1'", replace
 clear
@@ -210,7 +211,7 @@ replace Flag_AssmtNameChange = "N" if Subject == "sci"
 gen Flag_CutScoreChange_ELA = "Y"
 gen Flag_CutScoreChange_math = "Y"
 gen Flag_CutScoreChange_sci = "N"
-gen Flag_CutScoreChange_soc = "Not Applicable"
+gen Flag_CutScoreChange_soc = "Not applicable"
 gen ProficiencyCriteria = "Levels 4-5"
 replace ProficiencyCriteria = "Levels 3-4" if Subject == "sci"
 gen AssmtType = "Regular"
@@ -243,15 +244,27 @@ replace SchName = "CLOVERDALE AEROSPACE TECH CHARTER" if NCESSchoolID == "050900
 replace CountyName = proper(CountyName)
 
 //Deriving ProficientOrAbove_percent Where Possible
+replace ProficientOrAbove_percent = string(real(Lev4_percent) + real(Lev5_percent), "%9.3g") if real(ProficientOrAbove_percent) == . & real(Lev4_percent) != . & real(Lev5_percent) != . & Subject != "sci"
 replace ProficientOrAbove_percent = string(1-(real(Lev1_percent) + real(Lev2_percent) + real(Lev3_percent)), "%9.3g") if regexm(Lev1_percent, "[0-9]") !=0 & regexm(Lev2_percent, "[0-9]") !=0 & regexm(Lev3_percent, "[0-9]") !=0 & regexm(ProficientOrAbove_percent, "[0-9]") ==0 & Subject != "sci"
 replace ProficientOrAbove_percent = string(1-(real(Lev1_percent) + real(Lev2_percent)), "%9.3g") if regexm(Lev1_percent, "[0-9]") !=0 & regexm(Lev2_percent, "[0-9]") !=0 & regexm(ProficientOrAbove_percent, "[0-9]") ==0 & Subject == "sci"
+replace ProficientOrAbove_percent = "0" if strpos(ProficientOrAbove_percent, "e") > 0
+replace ProficientOrAbove_percent = "0" if real(ProficientOrAbove_percent) < 0
 
+//Deriving Additional Values
+replace Lev2_percent = string(1 - real(ProficientOrAbove_percent) - real(Lev1_percent) - real(Lev3_percent), "%9.3g") if real(Lev2_percent) == . & real(ProficientOrAbove_percent) != . & real(Lev1_percent) != . & real(Lev3_percent) != . & ProficiencyCriteria == "Levels 4-5"
+replace Lev2_percent = "0" if strpos(Lev1_percent, "e") > 0
+replace Lev2_percent = "0" if real(Lev1_percent) < 0
+
+replace Lev1_percent = string(1 - real(ProficientOrAbove_percent) - real(Lev2_percent) - real(Lev3_percent), "%9.3g") if real(Lev1_percent) == . & real(ProficientOrAbove_percent) != . & real(Lev2_percent) != . & real(Lev3_percent) != . & ProficiencyCriteria == "Levels 4-5"
+replace Lev1_percent = "0" if strpos(Lev1_percent, "e") > 0
+replace Lev1_percent = "0" if real(Lev1_percent) < 0
 
 //Deriving Counts
 foreach var of varlist Lev*_percent ProficientOrAbove_percent {
 	local count = subinstr("`var'","percent","count",.)
 replace `count' = string(round(real(`var')*StudentSubGroup_TotalTested)) if regexm(`var', "[0-9]") !=0
 }
+
 *Making StudentSubGroup and StudentGroup Strings by Adding Rows
 tostring StudentSubGroup_TotalTested, replace
 tempfile temp1
@@ -262,14 +275,27 @@ drop in 1/2
 replace StudentGroup = "Gender"
 replace StudentSubGroup = "Male" if mod(_n,2) == 0
 replace StudentSubGroup = "Female" if mod(_n,2) != 0
-foreach var of varlist Lev* ProficientOrAbove* StudentGroup_TotalTested StudentSubGroup_TotalTested AvgScaleScore {
+foreach var of varlist Lev* ProficientOrAbove* StudentSubGroup_TotalTested AvgScaleScore {
 	replace `var' = "--"
 }
 append using "`temp1'"
 
+//StudentGroup_TotalTested
+sort DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel StudentGroup StudentSubGroup
+gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+order Subject GradeLevel StudentGroup_TotalTested StudentGroup StudentSubGroup_TotalTested StudentSubGroup
+replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested) & StudentSubGroup != "All Students"
+tostring StudentGroup_TotalTested, replace
+
+replace Lev5_count = "" if Subject == "sci"
+replace Lev5_percent = "" if Subject == "sci"
+
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+duplicates drop
+
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${Output}/AR_AssmtData_2015", replace

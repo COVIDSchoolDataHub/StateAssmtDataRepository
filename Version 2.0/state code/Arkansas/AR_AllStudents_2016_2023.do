@@ -253,7 +253,7 @@ gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_sci = "N"
 gen Flag_CutScoreChange_soc = ""
 gen ProficiencyCriteria = "Levels 3-4"
-gen AssmtType = "Regular"
+gen AssmtType = "Regular and alt"
 gen AssmtName = "ACT Aspire"
 gen SchYear = "`prevyear'" + "-" + substr("`year'",-2,2)
 replace Flag_CutScoreChange_ELA = "Y" if `year' == 2018

@@ -122,7 +122,7 @@ replace SchName = "All Schools" if DataLevel != 3
 
 //ProficientOrAbove_percent
 rename Prof_ ProficientOrAbove_percent
-replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == "N/A"
+drop if ProficientOrAbove_percent == "N/A" //these are mostly grades that are no applicable for a given school (but sometimes subgroups without any real data available)
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "RV"
 destring ProficientOrAbove_percent, gen(nProficientOrAbove_percent) i(*-)
 
@@ -287,8 +287,6 @@ replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Milita
 //GradeLevel
 replace GradeLevel = "G0" + substr(GradeLevel, strpos(GradeLevel, ":")-1,1)
 
-
-
 //DataLevel
 gen DataLevel = "State"
 label def DataLevel 1 "State" 2 "District" 3 "School"
@@ -298,7 +296,6 @@ drop DataLevel
 rename DataLevel_n DataLevel
 gen SchName = "All Schools"
 gen DistName = "All Districts"
-
 
 		** STATE, DISTRICT, SCHOOL COMBINING AND CLEANING **
 
@@ -320,7 +317,7 @@ gen Flag_CutScoreChange_sci = "N"
 gen Flag_CutScoreChange_read = "N"
 gen Flag_CutScoreChange_soc = ""
 gen ProficiencyCriteria = "Levels 3-4"
-gen AssmtType = "Regular"
+gen AssmtType = "Regular and alt"
 replace AssmtName = "ACT Aspire"
 gen SchYear = "`prevyear'" + "-" + substr("`year'",-2,2)
 replace Flag_CutScoreChange_ELA = "Y" if `year' == 2018
