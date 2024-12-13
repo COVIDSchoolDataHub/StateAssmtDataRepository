@@ -400,9 +400,8 @@ keep if SchYear == "2022-23"
 drop SchYear
 merge 1:m DataLevel NCESDistrictID NCESSchoolID using "$data/NC_AssmtData_2024_Stata", gen(merge2)
 drop if merge2 == 1
-drop merge2
-replace DistName = newdistname if DataLevel !=1
-replace SchName = newschname if DataLevel == 3
+replace DistName = newdistname if DataLevel !=1 & merge2 == 3
+replace SchName = newschname if DataLevel == 3 & merge2 == 3
 replace DistName = "All Districts" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel ==1
 
