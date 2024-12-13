@@ -1,11 +1,9 @@
 clear
 set more off
 
-global raw "/Volumes/T7/State Test Project/New Mexico/Original Data Files"
-global output "/Volumes/T7/State Test Project/New Mexico/Output"
-global NCES "/Volumes/T7/State Test Project/New Mexico/NCES"
-
-cd "/Volumes/T7/State Test Project/New Mexico"
+global raw "/Users/miramehta/Documents/New Mexico/Original Data Files"
+global output "/Users/miramehta/Documents/New Mexico/Output"
+global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
 
 ** Converting to dta **
 

@@ -1,11 +1,10 @@
 clear
 set more off
 
-global raw "/Volumes/T7/State Test Project/New Mexico/Original Data Files"
-global output "/Volumes/T7/State Test Project/New Mexico/Output"
-global NCES "/Volumes/T7/State Test Project/New Mexico/NCES"
-
-cd "/Volumes/T7/State Test Project/New Mexico"
+global raw "/Users/miramehta/Documents/New Mexico/Original Data Files"
+global output "/Users/miramehta/Documents/New Mexico/Output"
+global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+global EDFacts "/Users/miramehta/Documents/EDFacts"
 
 use "${raw}/NM_AssmtData_2022_all.dta", clear
 
@@ -129,10 +128,10 @@ gen seasch = StateAssignedDistID + "-" + StateAssignedSchID if DataLevel == 3
 
 
 //District
-merge m:1 State_leaid using "$NCES/NCES_2021_District.dta", keep(match master) nogen
+merge m:1 State_leaid using "$NCES/NCES_2021_District_NM.dta", keep(match master) nogen
 
 //School
-merge m:1 seasch using "$NCES/NCES_2021_School.dta", keep(match master) 
+merge m:1 seasch using "$NCES/NCES_2021_School_NM.dta", keep(match master) 
 
 //Cleaning Unmerged
 ** All Unmerged schools have no corresponding school in the Index sheet from the data request and have no corresponding school in NCES. Therefore dropping, as it's impossible to tell what schools these represent.
@@ -153,15 +152,19 @@ gen StudentGroup_TotalTested = AllStudents_TotalTested
 replace StudentSubGroup_TotalTested = string(real(AllStudents_TotalTested)-UnsuppressedSG_TotalTested) if regexm(StudentSubGroup_TotalTested, "[0-9]") == 0 & regexm(AllStudents_TotalTested, "[0-9]") !=0 & UnsuppressedSG_TotalTested !=0 & StudentGroup != "RaceEth"
 
 //Indicator & empty variables
-forvalues n = 1/5 {
-	gen Lev`n'_count = "--"
-	gen Lev`n'_percent = "--"
+local level 1 2 3 4
+foreach a of local level {
+	gen Lev`a'_percent = "--"
+	gen Lev`a'_count = "--"
 }
+
+gen Lev5_percent = ""
+gen Lev5_count = ""
 
 gen ProficiencyCriteria = "Levels 3-4"
 gen AvgScaleScore = "--"
-gen AssmtName = "NM-MSSA" if Subject != "sci"
-replace AssmtName = "NM-ASR" if Subject == "sci"
+gen AssmtName = "NM-MSSA & Dynamic Learning Maps" if Subject != "sci"
+replace AssmtName = "NM-ASR & Dynamic Learning Maps" if Subject == "sci"
 
 **Flags
 gen Flag_AssmtNameChange = "N"
@@ -200,6 +203,21 @@ foreach count of varlist *_count {
 local percent = subinstr("`count'", "count","percent",.)
 replace `count' = string(round(real(`percent')*real(StudentSubGroup_TotalTested))) if regexm(`count', "[0-9]") == 0 & regexm(`percent', "-") == 0 & regexm(`percent', "[0-9]") !=0 & regexm(StudentSubGroup_TotalTested, "[0-9]") !=0
 }
+
+//Deriving Additional Values of StudentSubGroup_TotalTested
+drop nStudentSubGroup_TotalTested
+destring StudentSubGroup_TotalTested, gen(nStudentSubGroup_TotalTested) i(*-)
+gen missing_ssgtt = 1 if nStudentSubGroup_TotalTested == .
+bysort StateAssignedDistID StateAssignedSchID StudentGroup GradeLevel Subject: egen missing_multiple = total(missing_ssgtt)
+gen max = real(StudentGroup_TotalTested)
+replace max = 0 if max == .
+
+bysort StateAssignedDistID StateAssignedSchID AssmtType GradeLevel Subject: egen RaceEth = total(nStudentSubGroup_TotalTested) if StudentGroup == "RaceEth" & StudentSubGroup != "Hispanic or Latino"
+
+replace StudentSubGroup_TotalTested = string(max - RaceEth) if StudentGroup == "RaceEth" & StudentSubGroup != "Hispanic or Latino" & max != 0 & nStudentSubGroup_TotalTested == . & RaceEth != 0 & missing_multiple == 1
+drop RaceEth max missing_ssgtt missing_multiple nStudentSubGroup_TotalTested
+
+drop if StudentSubGroup_TotalTested == "0" & StudentSubGroup != "All Students"
 
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode

@@ -1,12 +1,10 @@
 clear
 set more off
 
-global raw "/Volumes/T7/State Test Project/New Mexico/Original Data Files"
-global output "/Volumes/T7/State Test Project/New Mexico/Output"
-global NCES "/Volumes/T7/State Test Project/New Mexico/NCES"
-global EDFacts "/Volumes/T7/State Test Project/EDFACTS"
-
-cd "/Volumes/T7/State Test Project/New Mexico"
+global raw "/Users/miramehta/Documents/New Mexico/Original Data Files"
+global output "/Users/miramehta/Documents/New Mexico/Output"
+global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+global EDFacts "/Users/miramehta/Documents/EDFacts"
 
 use "${raw}/NM_AssmtData_2019_TAMELA.dta", clear
 keep if strpos(Assessment, "Grade") > 0
@@ -136,11 +134,11 @@ rename DataLevel_n DataLevel
 
 ** Merging with NCES
 
-merge m:1 State_leaid using "${NCES}/NCES_2018_District.dta", update replace
+merge m:1 State_leaid using "${NCES}/NCES_2018_District_NM.dta", update replace
 drop if _merge == 2
 drop _merge
 
-merge m:1 seasch using "${NCES}/NCES_2018_School.dta", update replace
+merge m:1 seasch using "${NCES}/NCES_2018_School_NM.dta", update replace
 drop if _merge == 1 & DataLevel == 3
 drop if _merge == 2
 drop _merge
@@ -154,28 +152,29 @@ replace CountyName = "Dona Ana County" if CountyName == "DoÃ±a Ana County"
 
 merge m:1 DataLevel NCESDistrictID StudentGroup StudentSubGroup GradeLevel Subject using "${EDFacts}/2019/edfactscount2019districtnewmexico.dta"
 tostring Count, replace
-replace StudentSubGroup_TotalTested = Count if Count != "."
+replace StudentSubGroup_TotalTested = Count if Count != "." & NCESDistrictID != "3500010" //the edfacts data for this district was very inconsistent with raw data from the state
 drop if _merge == 2
 drop SCHOOL_YEAR-_merge
 
 merge m:1 DataLevel NCESDistrictID StudentGroup StudentSubGroup GradeLevel Subject using "${EDFacts}/2019/edfactspart2019districtnewmexico.dta"
-replace ParticipationRate = Participation if Participation != ""
+replace ParticipationRate = Participation if Participation != "" & NCESDistrictID != "3500010" //the edfacts data for this district was very inconsistent with raw data from the state
 drop if _merge == 2
 drop SCHOOL_YEAR-_merge 
 
 merge m:1 DataLevel NCESSchoolID StudentGroup StudentSubGroup GradeLevel Subject using "${EDFacts}/2019/edfactscount2019schoolnewmexico.dta"
 tostring Count, replace
-replace StudentSubGroup_TotalTested = Count if Count != "."
+replace StudentSubGroup_TotalTested = Count if Count != "." & NCESDistrictID != "3500010" //the edfacts data for this district was very inconsistent with raw data from the state
 drop if _merge == 2
 drop SCHOOL_YEAR-_merge
 
 merge m:1 DataLevel NCESSchoolID StudentGroup StudentSubGroup GradeLevel Subject using "${EDFacts}/2019/edfactspart2019schoolnewmexico.dta"
-replace ParticipationRate = Participation if Participation != ""
+replace ParticipationRate = Participation if Participation != "" & NCESDistrictID != "3500010" //the edfacts data for this district was very inconsistent with raw data from the state
 drop if _merge == 2
 drop SCHOOL_YEAR-_merge
 
 
 destring StudentSubGroup_TotalTested, gen(UnsuppressedSSG_TotalTested) force
+replace ParticipationRate = ".98" if ParticipationRate == "98"
 
 // Aggregating to State Level
 tempfile temp1
@@ -197,7 +196,6 @@ sort DataLevel
 ** StudentSubGroup_TotalTested
 replace StudentSubGroup_TotalTested = string(UnsuppressedSSG_TotalTested) if DataLevel == 1 & UnsuppressedSSG_TotalTested !=0
 drop UnsuppressedSSG_TotalTested
-gen StudentGroup_TotalTested = StudentSubGroup_TotalTested
 
 ** Generating new variables
 
@@ -286,11 +284,6 @@ replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Milita
 //StudentSubGroup_TotalTested
 replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == " "
 
-//StudentGroup_TotalTested
-sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
-replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
-
 //ProficientOrAbove_percent
 replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, "≤", "<",.)
 replace ProficientOrAbove_percent = subinstr(ProficientOrAbove_percent, "≥", ">",.)
@@ -318,16 +311,16 @@ replace StateAssignedDistID = "" if StateAssignedDistID == "."
 gen State_leaid = "NM-" + StateAssignedDistID if DataLevel !=1
 gen seasch = StateAssignedDistID + "-" + StateAssignedSchID if DataLevel == 3
 
-merge m:1 State_leaid using "$NCES/NCES_2018_District", gen(DistMerge)
+merge m:1 State_leaid using "$NCES/NCES_2018_District_NM", gen(DistMerge)
 drop if DistMerge == 2
-merge m:1 seasch using "$NCES/NCES_2018_School", gen(SchMerge)
+merge m:1 seasch using "$NCES/NCES_2018_School_NM", gen(SchMerge)
 drop if SchMerge == 2
 drop if SchMerge == 1 & ProficientOrAbove_percent == "--" & DataLevel == 3
 
 drop *Merge sch_lowest State_leaid seasch
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-order State StateAbbrev StateFips DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested ProficientOrAbove_percent ProficientOrAbove_count DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+order State StateAbbrev StateFips DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID Subject GradeLevel StudentGroup StudentSubGroup StudentSubGroup_TotalTested ProficientOrAbove_percent ProficientOrAbove_count DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 replace State = "New Mexico"
 replace StateAbbrev = "NM"
@@ -337,36 +330,40 @@ replace StateFips = 35
 
 gen ParticipationRate = "--"
 
-merge m:1 DataLevel NCESDistrictID StudentGroup StudentSubGroup GradeLevel Subject using "${EDFacts}/2019/edfactscount2019districtnewmexico.dta"
+merge m:1 DataLevel NCESDistrictID StudentGroup StudentSubGroup GradeLevel Subject using "${EDFacts}/2019/edfactscount2019districtnewmexico.dta" //the edfacts data for this district was very inconsistent with raw data from the state
 tostring Count, replace
-replace StudentSubGroup_TotalTested = Count if Count != "."
+replace StudentSubGroup_TotalTested = Count if Count != "." & missing(real(StudentSubGroup_TotalTested)) & NCESDistrictID != "3500010"
 drop if _merge == 2
 drop STNAM-_merge
 
 merge m:1 DataLevel NCESDistrictID StudentGroup StudentSubGroup GradeLevel Subject using "${EDFacts}/2019/edfactspart2019districtnewmexico.dta"
-replace ParticipationRate = Participation if Participation != ""
+replace ParticipationRate = Participation if Participation != "" & NCESDistrictID != "3500010" //the edfacts data for this district was very inconsistent with raw data from the state
 drop if _merge == 2
 drop STNAM-_merge
 
 merge m:1 DataLevel NCESSchoolID StudentGroup StudentSubGroup GradeLevel Subject using "${EDFacts}/2019/edfactscount2019schoolnewmexico.dta"
 tostring Count, replace
-replace StudentSubGroup_TotalTested = Count if Count != "."
+replace StudentSubGroup_TotalTested = Count if Count != "." & missing(real(StudentSubGroup_TotalTested)) & NCESDistrictID != "3500010" //the edfacts data for this district was very inconsistent with raw data from the state
 drop if _merge == 2
 drop STNAM-_merge
 
 merge m:1 DataLevel NCESSchoolID StudentGroup StudentSubGroup GradeLevel Subject using "${EDFacts}/2019/edfactspart2019schoolnewmexico.dta"
-replace ParticipationRate = Participation if Participation != ""
+replace ParticipationRate = Participation if Participation != "" & NCESDistrictID != "3500010" //the edfacts data for this district was very inconsistent with raw data from the state
 drop if _merge == 2
 drop STNAM-_merge
 
+replace ParticipationRate = ".98" if ParticipationRate == "98"
+replace ParticipationRate = ".8-.89" if ParticipationRate == "80-89"
+replace ParticipationRate = ".85-.89" if ParticipationRate == "85-89"
+replace ParticipationRate = ".9-.94" if ParticipationRate == "90-94"
 
 //Missing & Empty vars
-forvalues n = 1/4 {
+forvalues n = 1/5 {
 	gen Lev`n'_count = "--"
 	gen Lev`n'_percent = "--"
 }
-gen Lev5_count = ""
-gen Lev5_percent = ""
+replace Lev5_count = "" if Subject == "sci"
+replace Lev5_percent = "" if Subject == "sci"
 
 gen AvgScaleScore = "--"'
 
@@ -382,8 +379,8 @@ gen Flag_CutScoreChange_soc = "Not applicable"
 gen Flag_CutScoreChange_sci = "N"
 
 gen AssmtName = ""
-replace AssmtName = "NMSBA" if Subject == "sci"
-replace AssmtName = "TAMELA" if Subject != "sci"
+replace AssmtName = "NMSBA & NMAPA" if Subject == "sci"
+replace AssmtName = "TAMELA & NMAPA" if Subject != "sci"
 
 gen AssmtType = "Regular and alt"
 
@@ -395,6 +392,7 @@ append using "$output/NM_AssmtData_2019"
 //Deriving ProficientOrAbove_percent if we have Levels 1-3 for ela/math or Levels 1-2 for sci
 replace ProficientOrAbove_percent = string(1-real(Lev1_percent)-real(Lev2_percent)-real(Lev3_percent), "%9.3g") if !missing(real(Lev1_percent)) & !missing(real(Lev2_percent)) & !missing(real(Lev3_percent)) & missing(real(ProficientOrAbove_percent)) & Subject != "sci"
 replace ProficientOrAbove_percent = string(1-real(Lev1_percent)-real(Lev2_percent), "%9.3g") if !missing(real(Lev1_percent)) & !missing(real(Lev2_percent)) & missing(real(ProficientOrAbove_percent)) & Subject == "sci"
+replace ProficientOrAbove_percent = "0" if strpos(ProficientOrAbove_percent, "e") > 0
 
 //Applying Final Count Derivations
 foreach count of varlist *_count {
@@ -402,6 +400,29 @@ foreach count of varlist *_count {
 	replace `count' = string(round(real(`percent')* real(StudentSubGroup_TotalTested))) if !missing(real(`percent')) & !missing(real(StudentSubGroup_TotalTested)) & missing(real(`count'))
 	replace `count' = string(round(real(substr(`percent',1,strpos(`percent', "-")-1))*real(StudentSubGroup_TotalTested))) + "-" + string(round(real(substr(`percent',strpos(`percent', "-")+1,5))*real(StudentSubGroup_TotalTested))) if regexm(`percent', "[0-9]") !=0 & strpos(`percent', "-") !=0 & !missing(real(StudentSubGroup_TotalTested))
 }
+
+forvalues n = 3/5{
+	split Lev`n'_percent, parse("-")
+	destring Lev`n'_percent1, replace force
+	destring Lev`n'_percent2, replace force
+	replace Lev`n'_percent2 = 0 if Lev`n'_percent2 == . & Lev`n'_percent1 != .
+	split Lev`n'_count, parse("-")
+	destring Lev`n'_count1, replace force
+	destring Lev`n'_count2, replace force
+	replace Lev`n'_count2 = 0 if Lev`n'_count2 == . & Lev`n'_count1 != .
+}
+
+replace ProficientOrAbove_count = string(Lev4_count1 + Lev5_count1) + "-" + string(Lev4_count2 + Lev5_count2) if inlist(ProficientOrAbove_count, "*", "--") & !inlist(Lev4_count, "*", "--") & !inlist(Lev5_count, "*", "--") & ProficiencyCriteria == "Levels 4-5"
+replace ProficientOrAbove_percent = string(Lev4_percent1 + Lev5_percent1) + "-" + string(Lev4_percent2 + Lev5_percent2) if inlist(ProficientOrAbove_percent, "*", "--") & !inlist(Lev4_percent, "*", "--") & !inlist(Lev5_percent, "*", "--") & ProficiencyCriteria == "Levels 4-5"
+
+replace ProficientOrAbove_count = string(Lev3_count1 + Lev4_count1) + "-" + string(Lev3_count2 + Lev4_count2) if inlist(ProficientOrAbove_count, "*", "--") & !inlist(Lev3_count, "*", "--") & !inlist(Lev4_count, "*", "--") & ProficiencyCriteria == "Levels 3-4"
+replace ProficientOrAbove_percent = string(Lev3_percent1 + Lev4_percent1) + "-" + string(Lev3_percent2 + Lev4_percent2) if inlist(ProficientOrAbove_percent, "*", "--") & !inlist(Lev3_percent, "*", "--") & !inlist(Lev4_percent, "*", "--") & ProficiencyCriteria == "Levels 3-4"
+
+replace ProficientOrAbove_count = "0" if ProficientOrAbove_count == "0-0"
+
+//Correcting One Specific Obs with Odd Values due to Ranges
+replace ProficientOrAbove_count = "19-21" if ProficientOrAbove_count == "19-22" & ProficientOrAbove_percent == ".9-1.08"
+replace ProficientOrAbove_percent = ".9-1" if ProficientOrAbove_percent == ".9-1.08"
 
 //Standardizing Entity Names
 tempfile temp1
@@ -433,6 +454,27 @@ replace SchType = 1 if SchName == "Roots & Wings Community"
 replace SchLevel = 1 if SchName == "Roots & Wings Community"
 replace SchVirtual = 0 if SchName == "Roots & Wings Community"
 
+//StudentGroup_TotalTested
+sort DataLevel DistName SchName AssmtType Subject GradeLevel StudentGroup StudentSubGroup
+gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested) & StudentSubGroup != "All Students"
+
+//Deriving Additional Values of StudentSubGroup_TotalTested
+destring StudentSubGroup_TotalTested, gen(nStudentSubGroup_TotalTested) i(*-)
+bysort StateAssignedDistID StateAssignedSchID StudentGroup GradeLevel Subject: egen test = min(nStudentSubGroup_TotalTested)
+gen max = real(StudentGroup_TotalTested)
+replace max = 0 if max == .
+
+bysort StateAssignedDistID StateAssignedSchID AssmtType GradeLevel Subject: egen RaceEth = total(nStudentSubGroup_TotalTested) if StudentGroup == "RaceEth" & StudentSubGroup != "Hispanic or Latino"
+bysort StateAssignedDistID StateAssignedSchID AssmtType GradeLevel Subject: egen Gender = total(nStudentSubGroup_TotalTested) if StudentGroup == "Gender"
+
+replace StudentSubGroup_TotalTested = string(max - RaceEth) if StudentGroup == "RaceEth" & max != 0 & nStudentSubGroup_TotalTested == . & RaceEth != 0
+replace StudentSubGroup_TotalTested = string(max - Gender) if StudentGroup == "Gender" & max != 0 & nStudentSubGroup_TotalTested == . & Gender != 0
+drop RaceEth Gender max nStudentSubGroup_TotalTested
+
+replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
+replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested == "."
+drop if StudentSubGroup_TotalTested == "0" & StudentSubGroup != "All Students"
 
 //Final Cleaning
 replace CountyName = "Dona Ana County" if CountyName == "DoÃ±a Ana County"

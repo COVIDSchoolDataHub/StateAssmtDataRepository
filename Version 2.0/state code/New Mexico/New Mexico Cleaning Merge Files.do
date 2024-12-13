@@ -1,16 +1,15 @@
 clear
 set more off
 
-cd "/Volumes/T7/State Test Project/New Mexico"
-
-global NCESSchool "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
-global NCESDistrict "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
-global NCES "/Volumes/T7/State Test Project/New Mexico/NCES"
-global EDFacts "/Volumes/T7/State Test Project/EDFACTS"
+global NCESSchool "/Users/miramehta/Documents/NCES District and School Demographics/NCES School Files, Fall 1997-Fall 2022"
+global NCESDistrict "/Users/miramehta/Documents/NCES District and School Demographics/NCES District Files, Fall 1997-Fall 2022"
+global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+global EDFacts "/Users/miramehta/Documents/EDFacts"
 
 ** Preparing EDFacts files
 
 local edyears1 17 18
+local edyears2 2019 2021
 local subject math ela
 local datatype count part
 local datalevel school district
@@ -20,7 +19,7 @@ foreach year of local edyears1 {
 		foreach type of local datatype {
 			foreach lvl of local datalevel {
 				local prevyear = `year' - 1
-				use "${EDFacts}/20`year'/edfacts`type'20`year'`sub'`lvl'.dta", clear
+				import delimited "${EDFacts}/20`year'/edfacts`type'20`year'`sub'`lvl'.csv", case(preserve) clear
 				keep if STNAM == "NEW MEXICO"
 				drop DATE_CUR
 				rename *_`prevyear'`year' *
@@ -137,13 +136,11 @@ foreach year of local edyears1 {
 	}
 }
 
-local edyears2 2019 2021
-
 foreach year of local edyears2 {
 	foreach sub of local subject {
 		foreach type of local datatype {
 			foreach lvl of local datalevel {
-				use "${EDFacts}/`year'/edfacts`type'`year'`sub'`lvl'.dta", clear
+				import delimited "${EDFacts}/`year'/edfacts`type'`year'`sub'`lvl'.csv", case(preserve) clear
 				keep if STNAM == "NEW MEXICO"
 				drop DATE_CUR
 				if ("`type'" == "count") {
@@ -171,7 +168,7 @@ foreach year of local edyears2 {
 foreach year of local edyears2 {
 	foreach type of local datatype {
 		foreach lvl of local datalevel {
-			use "${EDFacts}/`year'/edfacts`type'`year'math`lvl'newmexico.dta", clear
+			import delimited "${EDFacts}/`year'/edfacts`type'`year'math`lvl'newmexico.dta", case(preserve) clear
 			append using "${EDFacts}/`year'/edfacts`type'`year'ela`lvl'newmexico.dta"
 			if ("`lvl'" == "school"){
 				rename NCESSCH NCESSchoolID
@@ -254,7 +251,7 @@ foreach a in $years {
 	keep State StateAbbrev StateFips NCESDistrictID State_leaid DistType CountyName CountyCode DistLocale DistCharter DistName
 	
 	
-	save "${NCES}/NCES_`a'_District.dta", replace
+	save "${NCES}/NCES_`a'_District_NM.dta", replace
 	
 	use "${NCESSchool}/NCES_`a'_School.dta", clear
 	keep if state_location == "NM"
@@ -282,6 +279,6 @@ foreach a in $years {
 	drop if seasch == ""
 
 	
-	save "${NCES}/NCES_`a'_School.dta", replace
+	save "${NCES}/NCES_`a'_School_NM.dta", replace
 	
 }
