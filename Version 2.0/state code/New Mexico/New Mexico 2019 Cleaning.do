@@ -175,6 +175,9 @@ drop SCHOOL_YEAR-_merge
 
 destring StudentSubGroup_TotalTested, gen(UnsuppressedSSG_TotalTested) force
 replace ParticipationRate = ".98" if ParticipationRate == "98"
+replace ParticipationRate = ".8-.89" if ParticipationRate == "80-89"
+replace ParticipationRate = ".85-.89" if ParticipationRate == "85-89"
+replace ParticipationRate = ".9-.94" if ParticipationRate == "90-94"
 
 // Aggregating to State Level
 tempfile temp1
@@ -393,6 +396,10 @@ append using "$output/NM_AssmtData_2019"
 replace ProficientOrAbove_percent = string(1-real(Lev1_percent)-real(Lev2_percent)-real(Lev3_percent), "%9.3g") if !missing(real(Lev1_percent)) & !missing(real(Lev2_percent)) & !missing(real(Lev3_percent)) & missing(real(ProficientOrAbove_percent)) & Subject != "sci"
 replace ProficientOrAbove_percent = string(1-real(Lev1_percent)-real(Lev2_percent), "%9.3g") if !missing(real(Lev1_percent)) & !missing(real(Lev2_percent)) & missing(real(ProficientOrAbove_percent)) & Subject == "sci"
 replace ProficientOrAbove_percent = "0" if strpos(ProficientOrAbove_percent, "e") > 0
+
+//Deriving Specific Values for Lev5 Ranges
+replace Lev5_percent = string(real(ProficientOrAbove_percent) - real(Lev4_percent), "%9.3g") if missing(real(Lev5_percent)) & strpos(ProficientOrAbove_percent, "-") == 0 & strpos(Lev4_percent, "-") == 0 & !missing(real(Lev4_percent)) & !missing(real(ProficientOrAbove_percent)) & real(ProficientOrAbove_percent) - real(Lev4_percent) >= 0 & ProficiencyCriteria == "Levels 4-5"
+replace Lev5_percent = "0" if missing(real(Lev5_percent)) & strpos(ProficientOrAbove_percent, "-") == 0 & strpos(Lev4_percent, "-") == 0 & !missing(real(Lev4_percent)) & !missing(real(ProficientOrAbove_percent)) & real(ProficientOrAbove_percent) - real(Lev4_percent) < 0 & ProficiencyCriteria == "Levels 4-5"
 
 //Applying Final Count Derivations
 foreach count of varlist *_count {

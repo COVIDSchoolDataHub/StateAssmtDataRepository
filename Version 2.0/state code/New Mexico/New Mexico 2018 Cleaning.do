@@ -362,6 +362,9 @@ drop if _merge == 2
 drop STNAM-_merge
 
 replace ParticipationRate = ".98" if ParticipationRate == "98"
+replace ParticipationRate = ".8-.89" if ParticipationRate == "80-89"
+replace ParticipationRate = ".85-.89" if ParticipationRate == "85-89"
+replace ParticipationRate = ".9-.94" if ParticipationRate == "90-94"
 
 //Missing & Empty vars
 forvalues n = 1/5 {
@@ -399,6 +402,10 @@ append using "$output/NM_AssmtData_2018"
 replace ProficientOrAbove_percent = string(1-real(Lev1_percent)-real(Lev2_percent)-real(Lev3_percent), "%9.3g") if !missing(real(Lev1_percent)) & !missing(real(Lev2_percent)) & !missing(real(Lev3_percent)) & missing(real(ProficientOrAbove_percent)) & Subject != "sci"
 replace ProficientOrAbove_percent = string(1-real(Lev1_percent)-real(Lev2_percent), "%9.3g") if !missing(real(Lev1_percent)) & !missing(real(Lev2_percent)) & missing(real(ProficientOrAbove_percent)) & Subject == "sci"
 
+//Deriving Specific Values for Lev5 Ranges
+replace Lev5_percent = string(real(ProficientOrAbove_percent) - real(Lev4_percent), "%9.3g") if missing(real(Lev5_percent)) & strpos(ProficientOrAbove_percent, "-") == 0 & strpos(Lev4_percent, "-") == 0 & !missing(real(Lev4_percent)) & !missing(real(ProficientOrAbove_percent)) & real(ProficientOrAbove_percent) - real(Lev4_percent) >= 0 & ProficiencyCriteria == "Levels 4-5"
+replace Lev5_percent = "0" if missing(real(Lev5_percent)) & strpos(ProficientOrAbove_percent, "-") == 0 & strpos(Lev4_percent, "-") == 0 & !missing(real(Lev4_percent)) & !missing(real(ProficientOrAbove_percent)) & real(ProficientOrAbove_percent) - real(Lev4_percent) < 0 & ProficiencyCriteria == "Levels 4-5"
+
 //Applying Final Count Derivations
 foreach count of varlist Lev1_count Lev2_count Lev3_count Lev4_count Lev5_count ProficientOrAbove_count {
 	local percent = subinstr("`count'", "count", "percent",.)
@@ -425,6 +432,13 @@ replace ProficientOrAbove_count = string(Lev3_count1 + Lev4_count1) + "-" + stri
 replace ProficientOrAbove_percent = string(Lev3_percent1 + Lev4_percent1) + "-" + string(Lev3_percent2 + Lev4_percent2) if inlist(ProficientOrAbove_percent, "*", "--") & !inlist(Lev3_percent, "*", "--") & !inlist(Lev4_percent, "*", "--") & ProficiencyCriteria == "Levels 3-4"
 
 replace ProficientOrAbove_count = "0" if ProficientOrAbove_count == "0-0"
+replace Lev4_count = "0" if ProficientOrAbove_count == "0" & strpos(Lev4_count, "0-") ==1
+replace Lev5_count = "0" if ProficientOrAbove_count == "0" & ProficiencyCriteria == "Levels 4-5" & strpos(Lev5_count, "0-") ==1
+replace Lev3_count = "0" if ProficientOrAbove_count == "0" & ProficiencyCriteria == "Levels 3-4" & strpos(Lev3_count, "0-") ==1
+
+replace Lev4_percent = "0" if ProficientOrAbove_percent == "0" & strpos(Lev4_percent, "0-") ==1
+replace Lev5_percent = "0" if ProficientOrAbove_percent == "0" & ProficiencyCriteria == "Levels 4-5" & strpos(Lev5_percent, "0-") ==1
+replace Lev3_percent = "0" if ProficientOrAbove_percent == "0" & ProficiencyCriteria == "Levels 3-4" & strpos(Lev3_percent, "0-") ==1
 
 //Correcting A Few Specific Obs with Odd Values due to Ranges
 replace ProficientOrAbove_percent = ".9-1" if ProficientOrAbove_percent == ".9-1.08"

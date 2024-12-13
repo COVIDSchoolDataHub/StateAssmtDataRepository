@@ -353,6 +353,9 @@ replace ParticipationRate = Participation if Participation != ""
 drop if _merge == 2
 drop STNAM-_merge
 
+replace ParticipationRate = ".8-.89" if ParticipationRate == "80-89"
+replace ParticipationRate = ".85-.89" if ParticipationRate == "85-89"
+replace ParticipationRate = ".9-.94" if ParticipationRate == "90-94"
 
 //Missing & Empty vars
 forvalues n = 1/5 {
@@ -389,13 +392,18 @@ append using "$output/NM_AssmtData_2017"
 replace ProficientOrAbove_percent = string(1-real(Lev1_percent)-real(Lev2_percent)-real(Lev3_percent), "%9.3g") if !missing(real(Lev1_percent)) & !missing(real(Lev2_percent)) & !missing(real(Lev3_percent)) & missing(real(ProficientOrAbove_percent)) & Subject != "sci"
 replace ProficientOrAbove_percent = string(1-real(Lev1_percent)-real(Lev2_percent), "%9.3g") if !missing(real(Lev1_percent)) & !missing(real(Lev2_percent)) & missing(real(ProficientOrAbove_percent)) & Subject == "sci"
 
-//Applying Final Count Derivations
+//Deriving Specific Values for Lev5 Ranges
+replace Lev5_percent = string(real(ProficientOrAbove_percent) - real(Lev4_percent), "%9.3g") if missing(real(Lev5_percent)) & strpos(ProficientOrAbove_percent, "-") == 0 & strpos(Lev4_percent, "-") == 0 & !missing(real(Lev4_percent)) & !missing(real(ProficientOrAbove_percent)) & real(ProficientOrAbove_percent) - real(Lev4_percent) >= 0 & ProficiencyCriteria == "Levels 4-5"
+replace Lev5_percent = "0" if missing(real(Lev5_percent)) & strpos(ProficientOrAbove_percent, "-") == 0 & strpos(Lev4_percent, "-") == 0 & !missing(real(Lev4_percent)) & !missing(real(ProficientOrAbove_percent)) & real(ProficientOrAbove_percent) - real(Lev4_percent) < 0 & ProficiencyCriteria == "Levels 4-5"
+
+//Applying Count Derivations
 foreach count of varlist *_count {
 	local percent = subinstr("`count'", "count", "percent",.)
 	replace `count' = string(round(real(`percent')* real(StudentSubGroup_TotalTested))) if !missing(real(`percent')) & !missing(real(StudentSubGroup_TotalTested)) & missing(real(`count'))
 	replace `count' = string(round(real(substr(`percent',1,strpos(`percent', "-")-1))*real(StudentSubGroup_TotalTested))) + "-" + string(round(real(substr(`percent',strpos(`percent', "-")+1,5))*real(StudentSubGroup_TotalTested))) if regexm(`percent', "[0-9]") !=0 & strpos(`percent', "-") !=0 & !missing(real(StudentSubGroup_TotalTested))
 }
 
+//Additional Derivations
 forvalues n = 3/5{
 	split Lev`n'_percent, parse("-")
 	destring Lev`n'_percent1, replace force
@@ -408,10 +416,10 @@ forvalues n = 3/5{
 }
 
 replace ProficientOrAbove_count = string(Lev4_count1 + Lev5_count1) + "-" + string(Lev4_count2 + Lev5_count2) if inlist(ProficientOrAbove_count, "*", "--") & !inlist(Lev4_count, "*", "--") & !inlist(Lev5_count, "*", "--") & ProficiencyCriteria == "Levels 4-5"
-replace ProficientOrAbove_percent = string(Lev4_percent1 + Lev5_percent1) + "-" + string(Lev4_percent2 + Lev5_percent2) if inlist(ProficientOrAbove_percent, "*", "--") & !inlist(Lev4_percent, "*", "--") & !inlist(Lev5_percent, "*", "--") & ProficiencyCriteria == "Levels 4-5"
+replace ProficientOrAbove_percent = string(Lev4_percent1 + Lev5_percent1, "%9.3g") + "-" + string(Lev4_percent2 + Lev5_percent2, "%9.3g") if inlist(ProficientOrAbove_percent, "*", "--") & !inlist(Lev4_percent, "*", "--") & !inlist(Lev5_percent, "*", "--") & ProficiencyCriteria == "Levels 4-5"
 
 replace ProficientOrAbove_count = string(Lev3_count1 + Lev4_count1) + "-" + string(Lev3_count2 + Lev4_count2) if inlist(ProficientOrAbove_count, "*", "--") & !inlist(Lev3_count, "*", "--") & !inlist(Lev4_count, "*", "--") & ProficiencyCriteria == "Levels 3-4"
-replace ProficientOrAbove_percent = string(Lev3_percent1 + Lev4_percent1) + "-" + string(Lev3_percent2 + Lev4_percent2) if inlist(ProficientOrAbove_percent, "*", "--") & !inlist(Lev3_percent, "*", "--") & !inlist(Lev4_percent, "*", "--") & ProficiencyCriteria == "Levels 3-4"
+replace ProficientOrAbove_percent = string(Lev3_percent1 + Lev4_percent1, "%9.3g") + "-" + string(Lev3_percent2 + Lev4_percent2, "%9.3g") if inlist(ProficientOrAbove_percent, "*", "--") & !inlist(Lev3_percent, "*", "--") & !inlist(Lev4_percent, "*", "--") & ProficiencyCriteria == "Levels 3-4"
 
 replace ProficientOrAbove_count = "0" if ProficientOrAbove_count == "0-0"
 
