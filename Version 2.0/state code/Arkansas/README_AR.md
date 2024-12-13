@@ -5,13 +5,21 @@ This is a ReadMe for Arkansas's data cleaning process, from 2009 to 2024.
 ## Setup
 Create three main folders for Arkansas:
 1. AR State Testing Data, with the following subfolders:
+   
     a. Original Data - Keep all files in the subfolders they are in on Drive.
+   
     b. Output
+   
     c. Temp
+   
     d. EDFacts (contains the long .dta fomratted data)
+   
 2. NCES District and School Demographics, with the following subfolders:
+   
     a. NCES District Files, Fall 1997-Fall 2022
-    b. NCES Shcool Files, Fall 1997-Fall 2022
+   
+    b. NCES School Files, Fall 1997-Fall 2022
+   
 3. EDFacts, with subfolders for each year (contains the wide versions of the data)
 
 ## Recreating Cleaning Process

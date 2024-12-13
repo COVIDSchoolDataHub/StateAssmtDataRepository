@@ -1,29 +1,33 @@
 
 # Hawaii Data Cleaning
 
-This is a ReadMe for Hawaii's data cleaning process, from 2013 to 2023.
+This is a ReadMe for Hawaii's data cleaning process, from 2015 to 2023.
 
 
 ## Setup
-Create a folder for HI. Inside that folder, create two more folders: 
-"Original", and "Output"
+Create a folder for HI. Inside that folder, create three more folders: 
+"Original" and "Output" and "NCES"
 
 ### Files to Download
-- From the drive, download the Original Data - Version 1.1 Folder
-- From github, download the files named "Hawaii2013_2014" (with the nces_school do-file, only used for 2013 and 2014) and "Hawaii_DataRequestCleaning_AllYears.do"
+- From the drive, download the Original Data - Version 1.1+ Folder
+- From the drive, download NCES district and school files (2014-2022, or newest NCES year) and place them into the "NCES" folder. The do file cleans the NCES files so no need to clean them with another do file. 
+- From github, download the file named "HI_OriginalData_DataRequest_2015to2023.do"
 
 ### Directories
 Set directories at the top of the do file:
 ```
-global Original "/Volumes/T7/State Test Project/Hawaii/Original Data"
-global Output "/Volumes/T7/State Test Project/Hawaii/Output"
-global NCES "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global Original "/Users/kaitlynlucas/Desktop/Hawaii/Original"
+global Cleaned "/Users/kaitlynlucas/Desktop/Hawaii/Output"
+global NCES "/Users/kaitlynlucas/Desktop/Hawaii/NCES"
 ```
 - "Original" refers to the original data downloaded from the drive
 - "Output" is the output folder
-- "NCES" should link to a folder containing updated (as of Feb 2024) NCES District and School files.
+- "NCES" is the folder containing updated (as of Feb 2024) NCES District and School files.
 
 ## Recreate Cleaning
 1. Unhide the Importing Code
-2. Run the do-files
+2. Run HI_OriginalData_DataRequest_2015to2023.do
 3. On future runs you'll want to hide the importing code
+
+## Notes
+The 2015-2023 file in the Original Data - Version 1.1+ folder is the same as "HalloranDataRequest20240409". Removed 2013 and 2014 files from the Original Data V1.1+ folder.
