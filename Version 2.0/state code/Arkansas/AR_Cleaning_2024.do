@@ -183,7 +183,7 @@ replace StudentSubGroup = "Male" if StudentSubGroup == "MAL"
 
 //Assessment & Performance Information
 gen SchYear = "2023-24"
-gen AssmtName = "ATLAS"
+gen AssmtName = "ATLAS & Dynamic Learning Maps"
 gen AssmtType = "Regular and alt"
 gen ProficiencyCriteria = "Levels 3-4"
 gen Flag_AssmtNameChange = "Y"
@@ -298,8 +298,8 @@ gen Flag_CutScoreChange_math = "Y"
 gen Flag_CutScoreChange_sci = "Y"
 gen Flag_CutScoreChange_soc = "Not applicable"
 gen ProficiencyCriteria = "Levels 3-4"
-gen AssmtType = "Regular"
-gen AssmtName = "ATLAS"
+gen AssmtType = "Regular and alt"
+gen AssmtName = "ATLAS & Dynamic Learning Maps"
 gen SchYear = "2023-24"
 
 //Missing Variables

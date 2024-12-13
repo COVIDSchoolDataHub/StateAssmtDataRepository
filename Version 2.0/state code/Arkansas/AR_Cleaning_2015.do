@@ -1,4 +1,4 @@
-clear
+clear all
 set more off
 set trace off
 
@@ -149,9 +149,7 @@ replace ParticipationRate = string(nParticipationRate/100, "%9.3g") if Participa
 
 **Merging**
 replace StateAssignedDistID = StateAssignedDistID + "000" if Subject == "sci" & DataLevel !=1
-gen flag = 1 if Subject == "ela" & GradeLevel == "G08"
-replace StateAssignedDistID = "1702000" if DistName == "CEDARVILLE SCHOOL DISTRICT" & flag != 1
-drop flag
+drop if StateAssignedDistID == "1703000" //mismatched ID; cannot properly be connected to a dist/school
 tempfile temp1
 save "`temp1'", replace
 clear

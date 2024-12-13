@@ -315,6 +315,7 @@ append using "`tempdist'" "`tempsch'"
 
 //New Participation Data
 replace ParticipationRate = Participation if !missing(Participation)
+replace ParticipationRate = "--" if ParticipationRate == "."
 
 tostring NCESDistrictID, replace
 tostring NCESSchoolID, replace format("%18.0f")

@@ -254,7 +254,8 @@ gen Flag_CutScoreChange_sci = "N"
 gen Flag_CutScoreChange_soc = ""
 gen ProficiencyCriteria = "Levels 3-4"
 gen AssmtType = "Regular and alt"
-gen AssmtName = "ACT Aspire"
+if `year' < 2018 gen AssmtName = "ACT Aspire & Arkansas Alternate Assessment"
+if `year' >= 2018 gen AssmtName = "ACT Aspire & Dynamic Learning Maps"
 gen SchYear = "`prevyear'" + "-" + substr("`year'",-2,2)
 replace Flag_CutScoreChange_ELA = "Y" if `year' == 2018
 replace Flag_CutScoreChange_sci = "Y" if `year' == 2018
@@ -269,8 +270,8 @@ foreach n in 1 2 3 4 {
 	gen Lev`n'_count = "--"
 }
 gen ProficientOrAbove_count = "--"
-gen Lev5_percent = "--"
-gen Lev5_count = "--"
+gen Lev5_percent = ""
+gen Lev5_count = ""
 gen AvgScaleScore = "--"
 gen ParticipationRate = "--"
 
