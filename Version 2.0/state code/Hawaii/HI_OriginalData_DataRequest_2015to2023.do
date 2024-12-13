@@ -311,6 +311,14 @@ replace StudentSubGroup_TotalTested = string(real(StudentGroup_TotalTested)-Unsu
 
 drop Unsuppressed* missing_*
 
+//deriving more ssg_tt V2.0
+gen flag = "Yes" if StudentSubGroup_TotalTested == "*"
+gen temp_sum = real(Lev1_count) + real(Lev2_count) + real(Lev3_count) + real(Lev4_count) if Lev1_count != "--" & Lev1_count != "*" & Lev2_count != "--" & Lev2_count != "*" & Lev3_count != "--" & Lev3_count != "*" & Lev4_count != "--" & Lev4_count != "*"
+replace flag = string(temp_sum)
+replace StudentSubGroup_TotalTested = flag if StudentSubGroup_TotalTested == "*" & flag != "."
+drop flag
+drop temp_sum
+
 
 foreach var of varlist DistName SchName {
 replace `var' = strtrim(`var')
