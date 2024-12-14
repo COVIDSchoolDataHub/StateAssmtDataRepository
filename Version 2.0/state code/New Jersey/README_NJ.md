@@ -1,36 +1,37 @@
 
 # New Jersey Data Cleaning
 
-This is a ReadMe for New Jersey's data cleaning process, from 2015 to 2023.
+This is a ReadMe for New Jersey's data cleaning process, from 2015 to 2024.
 * Note that 2020 and 2021 are excluded, as NJ did not administer spring tests during those years due to COVID.
 
 
 ## Setup
 
-There are two main folders you need to create: NJ State Testing Data and NCES District and School Demographics.
-There should be three folders within the NCES folder:
-NCES District Files, Fall 1997-Fall 2022, NCES School Files, Fall 1997-Fall 2022, and Cleaned NCES Data.
-There should be a subfolder for each year within the NJ State Testing Data folder.
-Download the original excel files and place them into the appropriate subfolder here.
+There are four main folders you need to create: NCES, Original, Output, and Temp.
+1. Download the original excel files from the Google Drive by downloading the folders (2015-2024), as well as:
+      - NJ_EFParticipation_2022_ela.xlsx
+      - NJ_EFParticipation_2022_sci.xlsx
+      - NJ_EFParticipation_2022_math.xlsx
+  and place them in the Original folder.
+2. Download the NCES District Files, Fall 1997-Fall 2022 and NCES School Files, Fall 1997-Fall 2022, and place them in the NCES folder.
+3. Download the NJ Cleaning 2015_2018 (when PARCC was administered), NJ Cleaning 2019_2023 (when NJSLA is administered), NJ_2024, NJ_EDFactsParticipation_2015_2021, and NJ_EDFactsParticipation_2022 do-files.
 
-There are 2 .do files, one for 2015-2018 (when PARCC was administered) and on for 2019-2023 (when NJSLA is administered).
-You can run the files in either order.
-    
 ## File Path
 
 The file path setup should be as follows: 
 
-global data: Large folder within which original data files for each year are stored
-global NCESSchool: Folder containing NCES school files
-global NCESDistrict: Folder containing NCES district files
-global NCESClean: Folder containing cleaned NCES data
+- global Original: Folder containing original data files
+- global NCES: Folders containing NCES school & district files
+- global Output: Folder containing cleaned data files
+- global Temp: Folder containing .dta format versions of the original data
 
 ```bash
-global data "/Users/miramehta/Documents/NJ State Testing Data"
-global NCESSchool "/Users/miramehta/Documents/NCES District and School Demographics/NCES School Files, Fall 1997-Fall 2022"
-global NCESDistrict "/Users/miramehta/Documents/NCES District and School Demographics/NCES District Files, Fall 1997-Fall 2022"
-global NCESClean "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+global Original "/Users/name/Desktop/New Jersey/Original"
+global NCES "/Users/name/Desktop/New Jersey/NCES"
+global Output "/Users/name/Desktop/New Jersey/Output"
+global Temp "/Users/name/Desktop/New Jersey/Temp"
 ```
 ## Updates
 
 04/23/2024: Updated to add in unmerged NCES information and match new StudentGroup_TotalTested convention.
+12/14/2024: Updated to add in new StudentGroup_TotalTested derivation
