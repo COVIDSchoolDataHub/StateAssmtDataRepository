@@ -31,6 +31,14 @@ global NCES "/Users/name/Desktop/New Jersey/NCES"
 global Output "/Users/name/Desktop/New Jersey/Output"
 global Temp "/Users/name/Desktop/New Jersey/Temp"
 ```
+## Re-creating cleaning process
+
+There are five do-files to re-create the output files: 
+1. Run "NJ Cleaning 2015_2018.do" to clean the data for 2015-2018.
+2. Run "NJ Cleaning 2019_2023.do" to clean the data for 2019-2023.
+3. Run the NJ_EDFactsParticipation_2015_2021 do file to add in particpation data for 2015-2021.
+4. Run the NJ_EDFactsParticipation_2022 do file to add in particaption data for 2022.
+7. Run "NJ_2024.do" to clean the data for 2024.
 ## Updates
 
 04/23/2024: Updated to add in unmerged NCES information and match new StudentGroup_TotalTested convention.
