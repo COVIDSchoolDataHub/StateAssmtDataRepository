@@ -1,13 +1,20 @@
 
+//Name: Pennsylvania 2024 State Assessment
+//purpose: Cleaning PA State Assessment Data
+//author: Mikael Oberlin
+//date created: 11/13/24
+
+clear all 
+set more off
 
 global Abbrev "PA"
 global years 2024
-global Original "/Users/name/Desktop/Pennsylvania/Original"
-global NCES "/Users/name/Desktop/Pennsylvania/NCES"
-global Output "/Users/name/Desktop/Pennsylvania/Output"
-global Temp "/Users/name/Desktop/Pennsylvania/Temp"
+global Original "/Users/mikaeloberlin/Desktop/Pennsylvania/Original"
+global NCES "/Users/mikaeloberlin/Desktop/Pennsylvania/NCES"
+global Output "/Users/mikaeloberlin/Desktop/Pennsylvania/Output"
+global Temp "/Users/mikaeloberlin/Desktop/Pennsylvania/Temp"
 
-cd "/Users/name/Desktop/Pennsylvania/"
+cd "/Users/mikaeloberlin/Desktop/Pennsylvania/"
 capture log close
 log using 2024_PA, replace
 
