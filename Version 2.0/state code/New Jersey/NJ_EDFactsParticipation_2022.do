@@ -1,10 +1,10 @@
 clear
 set more off
 
-global EDFacts "/Users/mikaeloberlin/Desktop/New Jersey/EDFacts"
-global NCES "/Users/mikaeloberlin/Desktop/New Jersey/NCES"
-global Output "/Users/mikaeloberlin/Desktop/New Jersey/Output"
-global Original "/Users/mikaeloberlin/Desktop/New Jersey/Original"
+global EDFacts "/Users/name/Desktop/New Jersey/EDFacts"
+global NCES "/Users/name/Desktop/New Jersey/NCES"
+global Output "/Users/name/Desktop/New Jersey/Output"
+global Original "/Users/name/Desktop/New Jersey/Original"
 
 
 foreach s in ela math sci {
