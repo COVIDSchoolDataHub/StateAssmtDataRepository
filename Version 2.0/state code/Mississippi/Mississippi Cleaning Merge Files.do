@@ -1,11 +1,11 @@
 clear
 set more off
 
-global MS "/Volumes/T7/State Test Project/Mississippi"
-global NCESSchool "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
-global NCESDistrict "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
-global NCES "/Volumes/T7/State Test Project/Mississippi/NCES"
-global EDFacts "/Volumes/T7/State Test Project/EDFACTS"
+global MS "/Users/miramehta/Documents/Mississippi"
+global NCESSchool "/Users/miramehta/Documents/NCES District and School Demographics/NCES School Files, Fall 1997-Fall 2022"
+global NCESDistrict "/Users/miramehta/Documents/NCES District and School Demographics/NCES District Files, Fall 1997-Fall 2022"
+global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+global EDFacts "/Users/miramehta/Documents/EDFacts"
 
 ** Preparing district/school name standardization file
 
@@ -350,17 +350,17 @@ rename AcademicSubject Subject
 drop ProgramType Outcome Characteristics
 
 //Clean ParticipationRate
-foreach var of varlist Participation {
-replace `var' = "*" if `var' == "S"	
-gen range`var' = substr(`var',1,1) if regexm(`var',"[<>]") !=0
-replace `var' = subinstr(`var', "=","",.)
-destring `var', gen(n`var') i(*%<>-)
-replace `var' = range`var' + string(n`var'/100, "%9.3g") if `var' != "*" & `var' != "--"
-replace `var' = subinstr(`var',">","",.) + "-1" if strpos(`var', ">") !=0
-replace `var' = subinstr(`var', "<","0-",.) if strpos(`var', "<") !=0
-drop n`var'
-drop range`var'
-}
+replace Participation = "*" if Participation == "S"	
+gen rangeParticipation = substr(Participation,1,1) if regexm(Participation,"[<>]") !=0
+replace Participation = subinstr(Participation, "=","",.)
+split Participation, parse("-")
+destring Participation1, replace i(*%<>-)
+destring Participation2, replace i(*%<>-)
+replace Participation = rangeParticipation + string(Participation1/100, "%9.3g") if !inlist(Participation, "*",  "--") & Participation2 == .
+replace Participation = string(Participation1/100, "%9.3g") + "-" + string(Participation2/100, "%9.3g") if !inlist(Participation, "*",  "--") & Participation2 != .
+replace Participation = subinstr(Participation,">","",.) + "-1" if strpos(Participation, ">") !=0
+replace Participation = subinstr(Participation, "<","0-",.) if strpos(Participation, "<") !=0
+drop rangeParticipation Participation1 Participation2
 
 //StudentSubGroup
 replace StudentSubGroup = "All Students" if strpos(StudentSubGroup, "All Students") !=0

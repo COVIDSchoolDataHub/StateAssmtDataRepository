@@ -17,6 +17,7 @@ append using "${Temp}/AR_AssmtData_`year'_nocountsSG"
 if `year' >= 2019 append using "${Temp}/AR_AssmtData_`year'_StateSG"
 replace SchName = proper(SchName)
 replace DistName = proper(DistName)
+drop if DistName == "N/A"
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 //Dropping Blank Rows

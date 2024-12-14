@@ -1,12 +1,12 @@
 clear
 set more off
 
-global MS "/Volumes/T7/State Test Project/Mississippi"
-global raw "/Volumes/T7/State Test Project/Mississippi/Original Data Files"
-global output "/Volumes/T7/State Test Project/Mississippi/Output"
-global NCES "/Volumes/T7/State Test Project/Mississippi/NCES"
-global EDFacts "/Volumes/T7/State Test Project/EDFACTS"
-global Request "/Volumes/T7/State Test Project/Mississippi/Original Data Files/Data Request"
+global MS "/Users/miramehta/Documents/Mississippi"
+global raw "/Users/miramehta/Documents/Mississippi/Original Data Files"
+global output "/Users/miramehta/Documents/Mississippi/Output"
+global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+global EDFacts "/Users/miramehta/Documents/EDFacts"
+
 local subject math ela sci
 local datatype performance participation
 local datalevel district school state
@@ -111,11 +111,17 @@ by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if Stude
 by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
 drop group_id StateAssignedDistID1 StateAssignedSchID1
 
+** Deriving Additional Values of StudentSubGroup_TotalTested
+foreach v of numlist 1/5 {
+	destring Lev`v'_count, gen(Lev`v'_count2) force
+}
+replace StudentSubGroup_TotalTested = string(Lev1_count2 + Lev2_count2 + Lev3_count2 + Lev4_count2 + Lev5_count2) if StudentSubGroup_TotalTested == "*" & Lev1_count2 != . & Lev2_count2 != . & Lev3_count2 != . & Lev4_count2 != . & Lev5_count2 != . & Subject != "sci"
+replace StudentSubGroup_TotalTested = string(Lev1_count2 + Lev2_count2 + Lev3_count2 + Lev4_count2) if StudentSubGroup_TotalTested == "*" & Lev1_count2 != . & Lev2_count2 != . & Lev3_count2 != . & Lev4_count2 != . & Subject == "sci"
+
 destring StudentSubGroup_TotalTested, gen(StudentSubGroup_TotalTested2) force
 ** Generating level percents
 
 foreach v of numlist 1/5 {
-	destring Lev`v'_count, gen(Lev`v'_count2) force
 	gen Lev`v'_percent = Lev`v'_count2/StudentSubGroup_TotalTested2
 	tostring Lev`v'_percent, replace format("%9.4g") force
 	replace Lev`v'_percent = "*" if Lev`v'_percent == "."

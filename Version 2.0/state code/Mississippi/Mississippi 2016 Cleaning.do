@@ -1,12 +1,11 @@
 clear
 set more off
 
-global MS "/Volumes/T7/State Test Project/Mississippi"
-global raw "/Volumes/T7/State Test Project/Mississippi/Original Data Files"
-global output "/Volumes/T7/State Test Project/Mississippi/Output"
-global NCES "/Volumes/T7/State Test Project/Mississippi/NCES"
-global EDFacts "/Volumes/T7/State Test Project/EDFACTS"
-global Request "/Volumes/T7/State Test Project/Mississippi/Original Data Files/Data Request"
+global MS "/Users/miramehta/Documents/Mississippi"
+global raw "/Users/miramehta/Documents/Mississippi/Original Data Files"
+global output "/Users/miramehta/Documents/Mississippi/Output"
+global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+global EDFacts "/Users/miramehta/Documents/EDFacts"
 
 local subject math ela sci
 local datatype performance participation
@@ -243,6 +242,10 @@ replace Lev2_percent = string(1-real(Lev4_percent)-real(Lev3_percent)-real(Lev1_
 replace Lev3_percent = string(1-real(Lev4_percent)-real(Lev2_percent)-real(Lev1_percent)) if !missing(1) & !missing(real(Lev4_percent)) & !missing(real(Lev2_percent)) & !missing(real(Lev1_percent)) & missing(real(Lev3_percent)) & (1-real(Lev4_percent)-real(Lev2_percent)-real(Lev1_percent)) > 0 & Subject == "sci"
 
 replace Lev4_percent = string(1-real(Lev3_percent)-real(Lev2_percent)-real(Lev1_percent)) if !missing(1) & !missing(real(Lev3_percent)) & !missing(real(Lev2_percent)) & !missing(real(Lev1_percent)) & missing(real(Lev4_percent)) & (1-real(Lev3_percent)-real(Lev2_percent)-real(Lev1_percent)) > 0 & Subject == "sci"
+
+foreach v of numlist 1/5 {
+	replace Lev`v'_percent = "*" if strpos(Lev`v'_percent, "e") != 0 & Lev`v'_count == "*"
+}
 
 //Clean up AvgScaleScore
 replace AvgScaleScore = string(real(AvgScaleScore), "%9.3f") if !missing(real(AvgScaleScore))

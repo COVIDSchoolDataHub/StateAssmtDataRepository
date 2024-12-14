@@ -1,11 +1,11 @@
 clear
 set more off
 
-global MS "/Volumes/T7/State Test Project/Mississippi"
-global raw "/Volumes/T7/State Test Project/Mississippi/Original Data Files"
-global output "/Volumes/T7/State Test Project/Mississippi/Output"
-global NCES "/Volumes/T7/State Test Project/Mississippi/NCES"
-global Request "/Volumes/T7/State Test Project/Mississippi/Original Data Files/Data Request"
+global MS "/Users/miramehta/Documents/Mississippi"
+global raw "/Users/miramehta/Documents/Mississippi/Original Data Files"
+global output "/Users/miramehta/Documents/Mississippi/Output"
+global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+global Request "/Users/miramehta/Documents/Mississippi/Original Data Files/Data Request"
 
 ** Preparing data request files
 
@@ -129,25 +129,99 @@ foreach year of local requestyear {
 				rename type AssmtType
 				
 				if ("`type'" == "performance") {
-					keep if AssmtType == "REGASSWOACC"
-					replace AssmtType = "Regular"
-					reshape wide cnt, i(StateAssignedDistID StateAssignedSchID Subject GradeLevel StudentGroup StudentSubGroup) j(level) string
+					
+					*keep if AssmtType == "REGASSWOACC"
+					*replace AssmtType = "Regular"
+					reshape wide cnt, i(StateAssignedDistID StateAssignedSchID Subject GradeLevel StudentGroup StudentSubGroup AssmtType) j(level) string
 					
 					if (`year' < 2020) {
-						rename cntL* Lev*_count
+						*rename cntL* Lev*_count
+						replace StateAssignedDistID = "000000" if "`lvl'" == "state"
+						replace StateAssignedSchID = "000000" if "`lvl'" == "state"
+						replace StateAssignedSchID = "000000" if "`lvl'" == "district"
+						egen uniquegrp = group(StateAssignedDistID StateAssignedSchID Subject GradeLevel StudentGroup StudentSubGroup)
+
+						forvalues n = 1/5{
+							if `n' == 5 & "`sub'" == "sci" & `year' < 2019 continue
+							destring cntL`n', replace i(*)
+							gen flag`n' = 1 if cntL`n' == .
+							replace flag`n' = 0 if flag`n' == .
+							bysort uniquegrp: egen Lev`n'_count = total(cntL`n')
+							bysort uniquegrp: egen sup`n' = max(flag`n')
+							replace Lev`n'_count = . if sup`n' == 1
+							tostring Lev`n'_count, replace
+							replace Lev`n'_count = "*" if Lev`n'_count == "."
+							
+						}
+						
+					drop AssmtType uniquegrp flag* sup* cntL*
+					duplicates drop
+					gen AssmtType = "Regular"
+						
+					replace StateAssignedDistID = "" if StateAssignedDistID == "000000"
+					replace StateAssignedSchID = "" if StateAssignedSchID == "000000"
 					}
 						
 					if (`year' > 2020) {
-						rename cntPROFICIENT ProficientOrAbove_count
-						rename cntNOTPROFICIENT NotProficient_count
+						*rename cntPROFICIENT ProficientOrAbove_count
+						*rename cntNOTPROFICIENT NotProficient_count
+						destring cntPROFICIENT, gen(Prof) i(*)
+						destring cntNOTPROFICIENT, gen(NotProf) i(*)
+						gen flagProf = 1 if Prof == .
+						replace flagProf = 0 if flagProf == .
+						gen flagNot = 1 if NotProf == .
+						replace flagNot = 0 if flagNot == .
+						
+						replace StateAssignedDistID = "000000" if "`lvl'" == "state"
+						replace StateAssignedSchID = "000000" if "`lvl'" == "state"
+						replace StateAssignedSchID = "000000" if "`lvl'" == "district"
+						
+						egen uniquegrp = group(StateAssignedDistID StateAssignedSchID Subject GradeLevel StudentGroup StudentSubGroup)
+						bysort uniquegrp: egen ProficientOrAbove_count = total(Prof)
+						bysort uniquegrp: egen NotProficient_count = total(NotProf)
+						bysort uniquegrp: egen supProf = max(flagProf)
+						bysort uniquegrp: egen supNot = max(flagNot)
+						replace ProficientOrAbove_count = . if supProf == 1
+						replace NotProficient_count = . if supNot == 1
+						tostring ProficientOrAbove_count, replace
+						tostring NotProficient_count, replace
+						replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
+						replace NotProficient_count = "*" if NotProficient_count == "."
+						drop AssmtType uniquegrp flagProf flagNot supProf supNot cntPROFICIENT cntNOTPROFICIENT Prof NotProf
+						duplicates drop
+						gen AssmtType = "Regular"
+						
+						replace StateAssignedDistID = "" if StateAssignedDistID == "000000"
+						replace StateAssignedSchID = "" if StateAssignedSchID == "000000"
 					}
 
 				}
 				 
 				if ("`type'" == "participation"){
-					keep if AssmtType == "REGPARTWOACC"
-					replace AssmtType = "Regular"
-					rename cnt StudentSubGroup_TotalTested
+					keep if inlist(AssmtType, "REGPARTWACC", "REGPARTWOACC")
+					*replace AssmtType = "Regular"
+					*rename cnt StudentSubGroup_TotalTested
+					
+					destring cnt, gen(countnum) i(*)
+					gen flag = 1 if countnum == .
+					replace flag = 0 if flag == .
+						
+					replace StateAssignedDistID = "000000" if "`lvl'" == "state"
+					replace StateAssignedSchID = "000000" if "`lvl'" == "state"
+					replace StateAssignedSchID = "000000" if "`lvl'" == "district"
+						
+					egen uniquegrp = group(StateAssignedDistID StateAssignedSchID Subject GradeLevel StudentGroup StudentSubGroup)
+					bysort uniquegrp: egen StudentSubGroup_TotalTested = total(countnum)
+					bysort uniquegrp: egen sup = max(flag)
+					replace StudentSubGroup_TotalTested = . if sup == 1
+					tostring StudentSubGroup_TotalTested, replace
+					replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "."
+					drop AssmtType uniquegrp flag sup cnt countnum
+					duplicates drop
+					gen AssmtType = "Regular"
+						
+					replace StateAssignedDistID = "" if StateAssignedDistID == "000000"
+					replace StateAssignedSchID = "" if StateAssignedSchID == "000000"
 				}
 				
 				save "${Request}/`year'/`sub'`type'/`lvl'cleaned.dta", replace

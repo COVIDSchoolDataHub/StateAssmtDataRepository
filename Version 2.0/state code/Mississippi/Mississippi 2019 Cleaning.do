@@ -1,12 +1,11 @@
 clear
 set more off
 
-global MS "/Volumes/T7/State Test Project/Mississippi"
-global raw "/Volumes/T7/State Test Project/Mississippi/Original Data Files"
-global output "/Volumes/T7/State Test Project/Mississippi/Output"
-global NCES "/Volumes/T7/State Test Project/Mississippi/NCES"
-global EDFacts "/Volumes/T7/State Test Project/EDFACTS"
-global Request "/Volumes/T7/State Test Project/Mississippi/Original Data Files/Data Request"
+global MS "/Users/miramehta/Documents/Mississippi"
+global raw "/Users/miramehta/Documents/Mississippi/Original Data Files"
+global output "/Users/miramehta/Documents/Mississippi/Output"
+global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+global EDFacts "/Users/miramehta/Documents/EDFacts"
 
 local subject math ela
 local datatype performance participation
@@ -107,6 +106,7 @@ gen sum = Lev1_count2 + Lev2_count2 + Lev3_count2 + Lev4_count2 + Lev5_count2
 gen diff = StudentSubGroup_TotalTested2 - sum
 tostring sum, replace force
 replace StudentSubGroup_TotalTested = sum if diff != 0 & sum != "."
+replace StudentSubGroup_TotalTested = sum if StudentSubGroup_TotalTested2 == . & sum != "."
 drop StudentSubGroup_TotalTested2 sum diff
 
 ** Generating student group total counts
@@ -256,7 +256,7 @@ append using "`g5'"
 gen olddistname = Entity
 gen oldschname = Entity
 drop if missing(Entity)
-
+save "$raw/MS_AssmtData_2019_sci", replace
 
 //Merging in IDs
 use "$MS/ms_full-dist-sch-stable-list_through2024", clear

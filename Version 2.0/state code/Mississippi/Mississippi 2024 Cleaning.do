@@ -1,12 +1,12 @@
 clear
 set more off
 
-global MS "/Volumes/T7/State Test Project/Mississippi"
-global raw "/Volumes/T7/State Test Project/Mississippi/Original Data Files"
-global output "/Volumes/T7/State Test Project/Mississippi/Output"
-global NCES "/Volumes/T7/State Test Project/Mississippi/NCES"
-global EDFacts "/Volumes/T7/State Test Project/EDFACTS"
-global Request "/Volumes/T7/State Test Project/Mississippi/Original Data Files/Data Request"
+global MS "/Users/miramehta/Documents/Mississippi"
+global raw "/Users/miramehta/Documents/Mississippi/Original Data Files"
+global output "/Users/miramehta/Documents/Mississippi/Output"
+global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+global EDFacts "/Users/miramehta/Documents/EDFacts"
+global Request "/Users/miramehta/Documents/Mississippi/Original Data Files/Data Request"
 
 ** State Level data
 
