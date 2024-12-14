@@ -1,12 +1,16 @@
-clear all
+
+clear all 
 set more off
 
-cd "/Users/miramehta/Documents/"
-global data "/Users/miramehta/Documents/NJ State Testing Data"
-global NCESSchool "/Users/miramehta/Documents/NCES District and School Demographics/NCES School Files, Fall 1997-Fall 2022"
-global NCESDistrict "/Users/miramehta/Documents/NCES District and School Demographics/NCES District Files, Fall 1997-Fall 2022"
-global NCESClean "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+global Abbrev "NJ"
+global years 2015 2016 2017 2018
+global data "/Users/name/Desktop/New Jersey/Original"
+global NCES "/Users/name/Desktop/New Jersey/NCES"
+global output "/Users/name/Desktop/New Jersey/Output"
 
+cd "/Users/name/Desktop/New Jersey/"
+capture log close
+log using 2015_2018_NJ, replace
 set trace off
 
 forvalues year = 2015/2018{
@@ -16,7 +20,7 @@ forvalues year = 2015/2018{
 	local subject "ela mat"
 	foreach s of local subject{
 		forvalues n = 3/8{
-			import excel "${data}/`year'/NJ_OriginalData_`year'_`s'_G0`n'", clear
+			import excel "${data}/NJ_OriginalData_`year'_`s'_G0`n'", clear
 			gen Subject = "`s'"
 	
 			gen GradeLevel = "G0`n'"
@@ -36,19 +40,21 @@ forvalues year = 2015/2018{
 			rename P Lev3_percent
 			rename Q Lev4_percent
 			rename R Lev5_percent
-			save "${data}/`year'/NJ_OriginalData_`year'_`s'_G0`n'", replace
+			save "${data}/NJ_OriginalData_`year'_`s'_G0`n'", replace
 		}
 	}
+	
+use "${data}/NJ_OriginalData_`year'_ela_G03", clear
+	
+	append using "${data}/NJ_OriginalData_`year'_ela_G04" "${data}/NJ_OriginalData_`year'_ela_G05" 	"${data}/NJ_OriginalData_`year'_ela_G06" "${data}/NJ_OriginalData_`year'_ela_G07" "${data}/NJ_OriginalData_`year'_ela_G08"
+	
+	append using "${data}/NJ_OriginalData_`year'_mat_G03" "${data}/NJ_OriginalData_`year'_mat_G04" "${data}/NJ_OriginalData_`year'_mat_G05" "${data}/NJ_OriginalData_`year'_mat_G06" "${data}/NJ_OriginalData_`year'_mat_G07" "${data}/NJ_OriginalData_`year'_mat_G08"
+	save "${data}/NJ_OriginalData_`year'", replace
 
-	use "${data}/`year'/NJ_OriginalData_`year'_ela_G03", clear
-	
-	append using "${data}/`year'/NJ_OriginalData_`year'_ela_G04" "${data}/`year'/NJ_OriginalData_`year'_ela_G05" 	"${data}/`year'/NJ_OriginalData_`year'_ela_G06" "${data}/`year'/NJ_OriginalData_`year'_ela_G07" "${data}/`year'/NJ_OriginalData_`year'_ela_G08"
-	
-	append using "${data}/`year'/NJ_OriginalData_`year'_mat_G03" "${data}/`year'/NJ_OriginalData_`year'_mat_G04" "${data}/`year'/NJ_OriginalData_`year'_mat_G05" "${data}/`year'/NJ_OriginalData_`year'_mat_G06" "${data}/`year'/NJ_OriginalData_`year'_mat_G07" "${data}/`year'/NJ_OriginalData_`year'_mat_G08"
-	save "${data}/`year'/NJ_OriginalData_`year'", replace
+	save "${data}/NJ_OriginalData_`year'", replace
 
 	//Clean DTA File (Pre-Merge)
-	use "${data}/`year'/NJ_OriginalData_`year'", clear
+	use "${data}/NJ_OriginalData_`year'", clear
 	replace Subject = "math" if Subject == "mat"
 
 	drop if StateAssignedDistID == "DFG Not Designated"
@@ -91,29 +97,30 @@ forvalues year = 2015/2018{
 	replace StudentGroup = "EL Status" if inlist(StudentSubGroup, "English Learner", "EL Exited")
 	replace StudentGroup = "Economic Status" if inlist(StudentSubGroup, "Economically Disadvantaged", "Not Economically Disadvantaged")
 	replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD"
-	replace StudentGroup = "Ever EL" if StudentSubGroup == "Ever EL"
+	replace StudentGroup = "EL Status" if StudentSubGroup == "Ever EL"
+	
 
+	// Generating StudentGroup count
 	gen StudentSubGroup_TotalTested = L
 	destring L, replace force
-	replace L = -1000000000 if L == .
-	bys DataLevel DistName SchName StudentGroup GradeLevel Subject: egen StudentGroup_TotalTested = total(L)
-	replace StudentGroup_TotalTested =. if StudentGroup_TotalTested < 0
-	tostring StudentGroup_TotalTested, replace
+	gen StateAssignedDistID1 = StateAssignedDistID
+	replace StateAssignedDistID1 = "000000" if DataLevel == "State" //Remove quotations if DistIDs are numeric
+	gen StateAssignedSchID1 = StateAssignedSchID
+	replace StateAssignedSchID1 = "000000" if DataLevel != "School" //Remove quotations if SchIDs are numeric
+	egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
+	sort group_id StudentGroup StudentSubGroup
+	by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+	by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+	drop group_id StateAssignedDistID1 StateAssignedSchID1
+	tostring StudentGroup_TotalTested StudentSubGroup_TotalTested, replace 
+	drop if StudentGroup_TotalTested == "." & StudentSubGroup_TotalTested == "."
 	replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
-	replace StudentGroup_TotalTested = StudentSubGroup_TotalTested if inlist(StudentGroup, "Ever EL", "All Students")
-	replace StudentGroup = "EL Status" if StudentGroup == "Ever EL"
-	
-	sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-	gen Suppressed = 0
-	replace Suppressed = 1 if inlist(StudentSubGroup_TotalTested, "--", "*")
-	egen StudentGroup_Suppressed = max(Suppressed), by(StudentGroup GradeLevel Subject DataLevel StateAssignedSchID StateAssignedDistID DistName SchName)
-	drop Suppressed
-	gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
-	replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
-	replace StudentGroup_TotalTested = AllStudents_Tested if StudentGroup_Suppressed == 1
-	replace StudentGroup_TotalTested = AllStudents_Tested if inlist(StudentGroup, "Disability Status", "All Students")
-	drop AllStudents_Tested StudentGroup_Suppressed
-	
+	replace StudentSubGroup_TotalTested = "*" if StudentGroup_TotalTested == ""
+	replace StudentSubGroup_TotalTested = "*" if StudentGroup_TotalTested == "*" & StudentSubGroup_TotalTested == "."
+	replace StudentSubGroup_TotalTested = "*" if StudentGroup_TotalTested == "*" & StudentSubGroup_TotalTested == ""
+	drop if StudentSubGroup_TotalTested == ""
+	drop if StudentGroup_TotalTested == ""
+
 	*Generate Additional Variables
 	gen SchYear = "`prevyear'-`year'"
 	replace SchYear = substr(SchYear, 1, 5) + substr(SchYear, 8, 9)
@@ -155,8 +162,7 @@ forvalues year = 2015/2018{
 		replace Lev`x'_count = "*" if Lev`x'_count == "."
 		drop Level`x'
 	}
-
-	tostring ProficientOrAbove_percent, replace format("%10.0g") force
+	tostring ProficientOrAbove_percent, replace format("%10.3g") force
 	replace ProficientOrAbove_count = round(ProficientOrAbove_count)
 	tostring ProficientOrAbove_count, replace
 	replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
@@ -167,37 +173,35 @@ forvalues year = 2015/2018{
 
 	//Clean NCES Data
 	if `year' < 2017{
-		use "${NCESSchool}/NCES_`prevyear'_School.dta", clear
+		use "${NCES}/NCES_`prevyear'_School.dta", clear
 		drop if state_location != "NJ"
 		gen str StateAssignedDistID = substr(state_leaid, 3, 6)
 		gen StateAssignedSchID = seasch
-		save "${NCESClean}/NCES_`prevyear'_School_NJ.dta", replace
+		save "${NCES}/NCES_`prevyear'_School_NJ.dta", replace
 
-		use "${NCESDistrict}/NCES_`prevyear'_District.dta", clear
+		use "${NCES}/NCES_`prevyear'_District.dta", clear
 		drop if state_location != "NJ"
 		gen str StateAssignedDistID = substr(state_leaid, 3, 6)
-		save "${NCESClean}/NCES_`prevyear'_District_NJ.dta", replace
+		save "${NCES}/NCES_`prevyear'_District_NJ.dta", replace
 	}
 	if `year' >= 2017{
-		use "${NCESSchool}/NCES_`prevyear'_School.dta", clear
+		use "${NCES}/NCES_`prevyear'_School.dta", clear
 		drop if state_location != "NJ"
 		gen str StateAssignedDistID = substr(state_leaid, 6, 8)
 		gen str StateAssignedSchID = substr(seasch, 8, 10)
-		save "${NCESClean}/NCES_`prevyear'_School_NJ.dta", replace
+		save "${NCES}/NCES_`prevyear'_School_NJ.dta", replace
 
-		use "${NCESDistrict}/NCES_`prevyear'_District.dta", clear
+		use "${NCES}/NCES_`prevyear'_District.dta", clear
 		drop if state_location != "NJ"
 		gen str StateAssignedDistID = substr(state_leaid, 6, 8)
-		save "${NCESClean}/NCES_`prevyear'_District_NJ.dta", replace
+		save "${NCES}/NCES_`prevyear'_District_NJ.dta", replace
 	}
 
 	//Merge Data
 	use "${data}/NJ_OriginalData_`year'", clear
-	merge m:1 StateAssignedDistID using "${NCESClean}/NCES_`prevyear'_District_NJ.dta"
-	drop if _merge == 2
+	merge m:1 StateAssignedDistID using "${NCES}/NCES_`prevyear'_District_NJ.dta"
 
-	merge m:1 StateAssignedSchID StateAssignedDistID using "${NCESClean}/NCES_`prevyear'_School_NJ.dta", gen (merge2)
-	drop if merge2 == 2
+	merge m:1 StateAssignedSchID StateAssignedDistID using "${NCES}/NCES_`prevyear'_School_NJ.dta", gen (merge2)
 
 	//Clean Merged Data
 	rename state_name State
@@ -248,14 +252,30 @@ forvalues year = 2015/2018{
 	replace CountyName = "Camden County" if DistName == "MASTERY SCHOOLS OF CAMDEN" & CountyName == ""
 	replace CountyCode = "34007" if DistName == "MASTERY SCHOOLS OF CAMDEN" & CountyCode == ""
 	
-	//Organize Variables
-	keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+		//Removing extra spaces
+foreach var of varlist DistName SchName {
+	replace `var' = stritrim(`var') // collapses all consecutive, internal blanks to one blank.
+	replace `var' = strtrim(`var') // removes leading and trailing blanks
+	replace `var' = lower(`var')
+	replace `var' = proper(`var')
+}
+
+	drop if missing(SchYear)
+	drop if missing(DistName) & missing(SchName)
+	replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
+	replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "."
+	replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
+	replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
+	drop if StudentGroup_TotalTested == "."
 	
 	label def DataLevel 1 "State" 2 "District" 3 "School"
 	encode DataLevel, gen(DataLevel_n) label(DataLevel)
 	sort DataLevel_n 
 	drop DataLevel 
 	rename DataLevel_n DataLevel
+	
+	//Organize Variables
+	keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 	order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 

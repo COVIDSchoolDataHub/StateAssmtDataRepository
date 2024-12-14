@@ -1,4 +1,6 @@
 
+clear all 
+set more off
 
 global Abbrev "PA"
 global years 2024
@@ -293,8 +295,6 @@ rename StateAssignedSchID1 StateAssignedSchID
     replace `var' = "" if `var' == "1"
     replace `var' = "" if `var' == "0"
     replace `var' = "" if `var' == "."
-    drop if `var' == "" & DataLevel == 3
-	drop if `var' == "." & DataLevel == 3
 }	
 
 	// Final Cleaning

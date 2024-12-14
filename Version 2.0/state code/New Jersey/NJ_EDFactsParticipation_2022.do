@@ -1,13 +1,14 @@
 clear
 set more off
 
-global Output_11 "C:/Users/hxu15/Downloads/Output - Version 1.1"
-global Output_20 "C:/Users/hxu15/Downloads/EDFactsDatasets/NewOutput"
-global Original "C:/Users/hxu15/Downloads/EDFactsDatasets/2022"
+global EDFacts "/Users/name/Desktop/New Jersey/EDFacts"
+global NCES "/Users/name/Desktop/New Jersey/NCES"
+global Output "/Users/name/Desktop/New Jersey/Output"
+global Original "/Users/name/Desktop/New Jersey/Original"
 
 
 foreach s in ela math sci {
-	import delimited "${Original}/NJ_EFParticipation_2022_`s'.csv", case(preserve) clear
+	import excel "${Original}/NJ_EFParticipation_2022_`s'.xlsx", case(preserve) clear
 	save "${Original}/NJ_EFParticipation_2022_`s'.dta", replace
 }
 
@@ -16,19 +17,22 @@ foreach s in ela math sci {
 use "${Original}/NJ_EFParticipation_2022_ela.dta"
 append using "${Original}/NJ_EFParticipation_2022_math.dta" "${Original}/NJ_EFParticipation_2022_sci.dta"
 
-
-//Rename and Drop Vars
-drop SchoolYear State
-rename NCESLEAID NCESDistrictID
-drop LEA School
-rename NCESSCHID NCESSchoolID
-rename Value Participation
-drop DataGroup DataDescription Denominator Numerator Population
-rename Subgroup StudentSubGroup
+rename A SchYear
+rename B State
+rename C NCESDistrictID
+rename D DistName
+rename E SchName
+rename F NCESSchoolID
+rename I Participation
+rename K StudentSubGroup_TotalTested
+rename L StudentGroup
+rename M StudentSubGroup
+rename N Characteristics
 replace StudentSubGroup = Characteristics if missing(StudentSubGroup) & !missing(Characteristics)
-rename AgeGrade GradeLevel
-rename AcademicSubject Subject
-drop ProgramType Outcome Characteristics
+rename O GradeLevel
+rename P Subject
+
+tostring StudentSubGroup_TotalTested, replace
 
 //Clean ParticipationRate
 foreach var of varlist Participation {
@@ -72,10 +76,10 @@ duplicates drop NCESDistrictID NCESSchoolID GradeLevel Subject StudentSubGroup, 
 save "${Original}/NJ_EFParticipation_2022", replace
 
 //Merging with 2022
-import delimited "${Output_11}/NJ_AssmtData_2022", case(preserve) clear
-save "${Output_11}/NJ_AssmtData_2022", replace
+import delimited "${Output}/NJ_AssmtData_2022", case(preserve) clear
+save "${Output}/NJ_AssmtData_2022", replace
 
-use "${Output_11}/NJ_AssmtData_2022", clear
+use "${Output}/NJ_AssmtData_2022", clear
 
 //DataLevel
 label def DataLevel 1 "State" 2 "District" 3 "School"
@@ -95,6 +99,7 @@ merge 1:1 NCESDistrictID NCESSchoolID GradeLevel Subject StudentSubGroup using "
 drop if _merge ==2
 replace ParticipationRate = Participation
 replace ParticipationRate = "--" if missing(ParticipationRate)
+replace StudentSubGroup_TotalTested = "*" if missing(StudentSubGroup_TotalTested)
 drop _merge Participation
 
 //Final Cleaning
@@ -104,7 +109,7 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${Output_20}/NJ_AssmtData_2022", replace
-export delimited "${Output_20}/NJ_AssmtData_2022", replace
+save "${Output}/NJ_AssmtData_2022", replace
+export delimited "${Output}/NJ_AssmtData_2022", replace
 
 

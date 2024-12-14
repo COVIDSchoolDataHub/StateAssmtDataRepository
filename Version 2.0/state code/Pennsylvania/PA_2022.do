@@ -283,8 +283,6 @@ rename StateAssignedSchID1 StateAssignedSchID
     replace `var' = "" if `var' == "1"
     replace `var' = "" if `var' == "0"
     replace `var' = "" if `var' == "."
-    drop if `var' == "" & DataLevel == 3
-	drop if `var' == "." & DataLevel == 3
 }	
 
 // Reordering variables and sorting data

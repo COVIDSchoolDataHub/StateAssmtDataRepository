@@ -1,6 +1,7 @@
+clear all 
+set more off
 
 global Abbrev "PA"
-global years 2015 2016 2017 2018 2019 2021 2022 2023 2024
 global Original "/Users/name/Desktop/Pennsylvania/Original"
 global NCES "/Users/name/Desktop/Pennsylvania/NCES"
 global Output "/Users/name/Desktop/Pennsylvania/Output"
@@ -8,6 +9,8 @@ global Temp "/Users/name/Desktop/Pennsylvania/Temp"
 
 cd "/Users/name/Desktop/Pennsylvania/"
 capture log close
+log using 2023_PA, replace
+
 // Import Original Data Files
 
 //School import
@@ -235,8 +238,6 @@ rename StateAssignedSchID1 StateAssignedSchID
     replace `var' = "" if `var' == "1"
     replace `var' = "" if `var' == "0"
     replace `var' = "" if `var' == "."
-    drop if `var' == "" & DataLevel == 3
-	drop if `var' == "." & DataLevel == 3
 }	
 
 // Reordering variables and sorting data
