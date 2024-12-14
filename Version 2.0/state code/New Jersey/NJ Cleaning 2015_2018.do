@@ -1,18 +1,14 @@
-//Name: New Jersey Re-cleaning State Assessment
-//purpose: Cleaning NJ State Assessment Data
-//author: Mikael Oberlin
-//date created: 12/02/24
 
 clear all 
 set more off
 
 global Abbrev "NJ"
 global years 2015 2016 2017 2018
-global data "/Users/mikaeloberlin/Desktop/New Jersey/Original"
-global NCES "/Users/mikaeloberlin/Desktop/New Jersey/NCES"
-global output "/Users/mikaeloberlin/Desktop/New Jersey/Output"
+global data "/Users/name/Desktop/New Jersey/Original"
+global NCES "/Users/name/Desktop/New Jersey/NCES"
+global output "/Users/name/Desktop/New Jersey/Output"
 
-cd "/Users/mikaeloberlin/Desktop/New Jersey/"
+cd "/Users/name/Desktop/New Jersey/"
 capture log close
 log using 2015_2018_NJ, replace
 set trace off
