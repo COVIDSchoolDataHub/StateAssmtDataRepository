@@ -1,14 +1,14 @@
 clear all 
 set more off
 
-global Abbrev "PA"
+global Abbrev "NJ"
 global years 2015 2016 2017 2018 2019 2021  
-global original "/Users/mikaeloberlin/Desktop/New Jersey/Original"
-global nces "/Users/mikaeloberlin/Desktop/New Jersey/NCES"
-global output "/Users/mikaeloberlin/Desktop/New Jersey/Output"
-global edfacts "/Users/mikaeloberlin/Desktop/New Jersey/EDFacts"
+global original "/Users/name/Desktop/New Jersey/Original"
+global nces "/Users/name/Desktop/New Jersey/NCES"
+global output "/Users/name/Desktop/New Jersey/Output"
+global edfacts "/Users/name/Desktop/New Jersey/EDFacts"
 
-cd "/Users/mikaeloberlin/Desktop/New Jersey/"
+cd "/Users/name/Desktop/New Jersey/"
 capture log close
 log using 2015_21_edfacts_NJ, replace
 
