@@ -7,7 +7,7 @@ global NCES "/Users/name/Desktop/Pennsylvania/NCES"
 global Output "/Users/name/Desktop/Pennsylvania/Output"
 global Temp "/Users/name/Desktop/Pennsylvania/Temp"
 
-cd "/Users/mikaeloberlin/Desktop/Pennsylvania/"
+cd "/Users/name/Desktop/Pennsylvania/"
 capture log close
 log using 2023_PA, replace
 
