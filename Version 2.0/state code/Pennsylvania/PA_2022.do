@@ -140,16 +140,14 @@ replace StudentGroup = "Gender" if StudentSubGroup == "Female"
 replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
 replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD"
 
-// Relabelling Data Levels
-label def DataLevel 1 "State" 2 "District" 3 "School"
-encode DataLevel, gen(DataLevel_n) label(DataLevel)
-sort DataLevel_n 
-drop DataLevel 
-rename DataLevel_n DataLevel 
-
 forvalues n = 1/4{
 	replace Lev`n'_percent = Lev`n'_percent/100
 }
+
+replace Lev1_count = round(StudentSubGroup_TotalTested * Lev1_percent) if Lev1_count == . & Lev1_percent != .
+replace Lev2_count = round(StudentSubGroup_TotalTested * Lev2_percent) if Lev2_count == . & Lev2_percent != .
+replace Lev3_count = round(StudentSubGroup_TotalTested * Lev3_percent) if Lev3_count == . & Lev3_percent != .
+replace Lev4_count = round(StudentSubGroup_TotalTested * Lev4_percent) if Lev4_count == . & Lev4_percent != .
 
 gen ProficientOrAbove_percent = Lev3_percent + Lev4_percent 
 gen ProficientOrAbove_count = Lev3_count + Lev4_count if Lev3_percent != . & Lev4_percent != . & StudentSubGroup_TotalTested != .
@@ -212,9 +210,9 @@ merge 1:m state_leaid using "$Output/PA_AssmtData_2022.dta", keep(match using) n
 
 // Generating StudentGroup count
 gen StateAssignedDistID1 = StateAssignedDistID
-replace StateAssignedDistID1 = 000000 if DataLevel == 1 //Remove quotations if DistIDs are numeric
+replace StateAssignedDistID1 = 000000 if DataLevel == "State" //Remove quotations if DistIDs are numeric
 gen StateAssignedSchID1 = StateAssignedSchID
-replace StateAssignedSchID1 = "000000" if DataLevel !=3 //Remove quotations if SchIDs are numeric
+replace StateAssignedSchID1 = "000000" if DataLevel != "School" //Remove quotations if SchIDs are numeric
 egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
 sort group_id StudentGroup StudentSubGroup
 by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
@@ -250,47 +248,19 @@ replace DistName = proper(DistName)
 duplicates tag, gen (dup)
 duplicates drop 
 drop dup
-duplicates tag DataLevel AssmtName AssmtType NCESDistrictID NCESSchoolID Subject GradeLevel StudentGroup StudentSubGroup, gen(dup2)
-drop if dup2 > 0 & Lev1_count == "." & Lev2_count == "." & Lev3_count == "." & Lev4_count == "."
-
-replace Lev1_count = "--" if Lev1_count == "." 
-replace Lev2_count = "--" if Lev2_count == "."
-replace Lev3_count = "--" if Lev3_count == "."
-replace Lev4_count = "--" if Lev4_count == "."
-replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == "."
-replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == "."
-replace ParticipationRate = "" if ParticipationRate == "."
-
-destring StateAssignedSchID, replace
-gen StateAssignedSchID1 = substr(string(StateAssignedSchID, "%20.0f"), -4, 4)
-drop StateAssignedSchID
-rename StateAssignedSchID1 StateAssignedSchID
-
-	//Removing extra spaces
-	foreach var of varlist DistName SchName {
-		replace `var' = stritrim(`var') // collapses all consecutive, internal blanks to one blank.
-		replace `var' = strtrim(`var') // removes leading and trailing blanks
-	}
-	
-	
-	foreach var of varlist StateAssignedDistID {
-		replace `var'  = . if  `var' == 1
-		replace `var'  = . if  `var' == 1
-		replace `var'  = . if  `var' == 0
-	}
-	
-				foreach var of varlist StateAssignedSchID {
-    replace `var' = "" if `var' == "1"
-    replace `var' = "" if `var' == "0"
-    replace `var' = "" if `var' == "."
-    drop if `var' == "" & DataLevel == 3
-	drop if `var' == "." & DataLevel == 3
-}	
+duplicates tag DataLevel AssmtName AssmtType NCESDistrictID NCESSchoolID Subject GradeLevel StudentGroup StudentSubGroup, gen(dup2)	
 
 // Reordering variables and sorting data
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+// Relabelling Data Levels
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+sort DataLevel_n 
+drop DataLevel 
+rename DataLevel_n DataLevel 
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
