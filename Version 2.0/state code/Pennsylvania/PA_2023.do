@@ -2,17 +2,16 @@ clear all
 set more off
 
 global Abbrev "PA"
-global Original "/Users/name/Desktop/Pennsylvania/Original"
-global NCES "/Users/name/Desktop/Pennsylvania/NCES"
-global Output "/Users/name/Desktop/Pennsylvania/Output"
-global Temp "/Users/name/Desktop/Pennsylvania/Temp"
+global Original "/Users/miramehta/Documents/Pennsylvania/Original"
+global NCES "/Users/miramehta/Documents/NCES District and School Demographics"
+global Output "/Users/miramehta/Documents/Pennsylvania/Output"
+global Temp "/Users/miramehta/Documents/Pennsylvania/Temp"
 
-cd "/Users/name/Desktop/Pennsylvania/"
 capture log close
 log using 2023_PA, replace
 
 // Import Original Data Files
-
+/*
 //School import
 
 import excel "$Original/PA_OriginalData_2023_Subgroups_School.xlsx", cellrange(A5) firstrow clear
@@ -166,12 +165,12 @@ replace state_leaid = "PA-"+state_leaid
 save "$Output/PA_AssmtData_2023.dta", replace
 
 // Merging with NCES School Data
-use "$NCES/NCES_2022_School.dta", clear
+use "$NCES/NCES School Files, Fall 1997-Fall 2022/NCES_2022_School.dta", clear
 rename SchVirtual SchVirtual_n
 decode district_agency_type, gen (DistType)
 drop district_agency_type
 rename DistType district_agency_type
-merge 1:1 ncesdistrictid ncesschoolid using "$NCES/NCES_2021_School.dta", keepusing (county_code county_name district_agency_type SchVirtual)
+merge 1:1 ncesdistrictid ncesschoolid using "$NCES/NCES School Files, Fall 1997-Fall 2022/NCES_2021_School.dta", keepusing (county_code county_name district_agency_type SchVirtual)
 drop if state_location != "PA"
 replace SchVirtual_n = SchVirtual if inlist(SchVirtual_n, -1, .)
 drop SchVirtual
@@ -186,8 +185,8 @@ save "$Output/PA_AssmtData_2023.dta", replace
 
 // Merging with NCES District Data
 
-use "$NCES/NCES_2022_District.dta", clear
-merge 1:1 ncesdistrictid using "$NCES/NCES_2021_District.dta", keepusing (county_code county_name DistCharter)
+use "$NCES/NCES District Files, Fall 1997-Fall 2022/NCES_2022_District.dta", clear
+merge 1:1 ncesdistrictid using "$NCES/NCES District Files, Fall 1997-Fall 2022/NCES_2021_District.dta", keepusing (county_code county_name DistCharter)
 drop if state_location != "PA"
 
 keep state_location state_fips district_agency_type ncesdistrictid state_leaid DistCharter DistLocale county_name county_code
@@ -218,6 +217,8 @@ replace SchName = "All Schools" if DataLevel == 2
 
 destring StateAssignedSchID, replace
 gen StateAssignedSchID1 = substr(string(StateAssignedSchID, "%20.0f"), -4, 4)
+replace StateAssignedSchID1 = substr(string(StateAssignedSchID, "%20.0f"), -3, 4) if StateAssignedSchID1 == "" & DataLevel == 3
+replace StateAssignedSchID1 = substr(string(StateAssignedSchID, "%20.0f"), -2, 4) if StateAssignedSchID1 == "" & DataLevel == 3
 drop StateAssignedSchID
 rename StateAssignedSchID1 StateAssignedSchID
 

@@ -7,12 +7,11 @@ global NCES "/Users/name/Desktop/Pennsylvania/NCES"
 global Output "/Users/name/Desktop/Pennsylvania/Output"
 global Temp "/Users/name/Desktop/Pennsylvania/Temp"
 
-cd "/Users/name/Desktop/Pennsylvania/"
 capture log close
 log using 2022_PA, replace
 
 // Import Original Data Files
-
+/*
 
 // All years from data request
 
@@ -190,7 +189,7 @@ save "$Output/PA_AssmtData_2022.dta", replace
 
 // Merging with NCES School Data
 
-use "$NCES/NCES_2021_School.dta", clear 
+use "$NCES/NCES School Files, Fall 1997-Fall 2022/NCES_2021_School.dta", clear 
 
 keep state_location state_fips district_agency_type SchType ncesdistrictid state_leaid ncesschoolid seasch DistCharter SchLevel SchVirtual county_name county_code DistLocale
 
@@ -202,7 +201,7 @@ save "$Output/PA_AssmtData_2022.dta", replace
 
 // Merging with NCES District Data
 
-use "$NCES/NCES_2021_District.dta", clear 
+use "$NCES/NCES District Files, Fall 1997-Fall 2022/NCES_2021_District.dta", clear 
 
 keep state_location state_fips district_agency_type ncesdistrictid state_leaid DistCharter county_name county_code DistLocale
 
@@ -263,6 +262,8 @@ replace ParticipationRate = "" if ParticipationRate == "."
 
 destring StateAssignedSchID, replace
 gen StateAssignedSchID1 = substr(string(StateAssignedSchID, "%20.0f"), -4, 4)
+replace StateAssignedSchID1 = substr(string(StateAssignedSchID, "%20.0f"), -3, 4) if StateAssignedSchID1 == "" & DataLevel == 3
+replace StateAssignedSchID1 = substr(string(StateAssignedSchID, "%20.0f"), -2, 4) if StateAssignedSchID1 == "" & DataLevel == 3
 drop StateAssignedSchID
 rename StateAssignedSchID1 StateAssignedSchID
 
