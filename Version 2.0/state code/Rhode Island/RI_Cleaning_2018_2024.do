@@ -30,6 +30,8 @@ save "$Original/RI_OriginalData_2018_2024", replace
 //Drop duplicate obs
 duplicates drop
 
+
+
 //Rename and drop Vars
 drop Growth* AvgGrowthPercentile
 rename Year SchYear
@@ -71,9 +73,11 @@ replace SchName = "All Schools" if DataLevel != 3
 sort SchYear DataLevel Subject StudentSubGroup
 
 //GradeLevel
+replace GradeLevel = "38" if GradeLevel == "All Grades" & Subject != "sci"
 replace GradeLevel = subinstr(GradeLevel, "Grade: ","",.)
-drop if real(GradeLevel) > 8 //This also drops the GradeLevel value "All Grades"
+drop if real(GradeLevel) > 8 & real(GradeLevel) != 38 //This also drops the GradeLevel value "All Grades" for science
 replace GradeLevel = "G" + GradeLevel
+drop if SchName == "Blackstone Valley Prep" & GradeLevel == "G38" & (SchYear == "2018-19" | SchYear == "2017-18") //two sets of G38 values for each of grades 3 & 4 and 5-8, so dropping. 
 
 //StudentSubGroup
 replace StudentSubGroup = "Unknown" if StudentSubGroup == "Other"
@@ -106,7 +110,7 @@ replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeles
 replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Foster Care" | StudentSubGroup == "Non-Foster Care"
 replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Military" | StudentSubGroup == "Non-Military"
 
-//Cleaning Percents (Some percents decimal, some numeric out of 100). Determining which here because there's not really a pattern. Also sometimes one level is a percent and another is a decimal (??????)
+//Cleaning Percents (Some percents decimal, some numeric out of 100). Determining which here because there's not really a pattern. Also sometimes one level is a percent and another is a decimal, so not even consistent across the same observation
 
 foreach var of varlist *_percent ParticipationRate {
 	gen `var'_perx = 1 if strpos(`var', "%")
@@ -130,7 +134,7 @@ foreach var of varlist Lev*_percent ProficientOrAbove_percent ParticipationRate 
 //A couple numeric Lev4_percents less than 1 causing remaining problems
 gen sumperc = real(Lev1_percent) + real(Lev2_percent) + real(Lev3_percent) + real(Lev4_percent)
 replace Lev4_percent = string(real(Lev4_percent)/100) if abs(1-sumperc) > .01 & !missing(sumperc) & !missing(real(Lev4_percent))
-replace Lev4_percent = "0" if abs(real(ProficientOrAbove_percent) - real(Lev3_percent)) < 0.01 & !missing(real(ProficientOrAbove_percent) - real(Lev3_percent))
+replace Lev4_percent = "0" if abs(real(ProficientOrAbove_percent) - real(Lev3_percent)) < 0.001 & !missing(real(ProficientOrAbove_percent) - real(Lev3_percent))
 drop *_perx *_dec sumperc
 
 //Generate Counts
