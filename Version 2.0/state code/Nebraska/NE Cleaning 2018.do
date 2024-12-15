@@ -1,13 +1,16 @@
-//FILE CREATED 11.1.23
-
+//FILE CREATED 11.27.23
 clear all
 set more off
 
-cd "/Volumes/T7/State Test Project/Nebraska"
-global data "/Volumes/T7/State Test Project/Nebraska/Original Data Files"
-global NCES "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
-global counts "/Volumes/T7/State Test Project/EDFACTS"
-global output "/Volumes/T7/State Test Project/Nebraska/Output"
+
+cd "/Users/benjaminm/Documents/State_Repository_Research/Nebraska"
+global data "/Users/benjaminm/Documents/State_Repository_Research/Nebraska/Original Data Files" 
+global counts "/Users/benjaminm/Documents/State_Repository_Research/Nebraska/Counts_2016_2017_2018" 
+global NCES "/Users/benjaminm/Documents/State_Repository_Research/NCES"
+global output "/Users/benjaminm/Documents/State_Repository_Research/Nebraska/Output" 
+
+
+
 
 //Import and Append Subject Files
 import delimited "$data/NE_OriginalData_2018_ela.csv", clear
@@ -269,6 +272,36 @@ replace StateAssignedDistID = subinstr(State_leaid, "NE-","",.)
 //Deriving ProficientOrAbove_percent and ProficientOrAbove_count when we have Lev1_percent
 replace ProficientOrAbove_percent = string(1-real(Lev1_percent), "%9.3g") if regexm(Lev1_percent, "[0-9]") !=0 & regexm(ProficientOrAbove_percent, "[0-9]") ==0 
 replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent) * real(StudentSubGroup_TotalTested))) if regexm(ProficientOrAbove_count, "[0-9]") == 0 & regexm(ProficientOrAbove_percent, "[0-9]") !=0 & regexm(StudentSubGroup_TotalTested, "[0-9]") !=0
+
+
+foreach var of varlist DistName SchName {
+replace `var' = strtrim(`var')
+replace `var' = stritrim(`var')
+}
+
+replace Lev3_percent = string(real(ProficientOrAbove_percent) - real(Lev2_percent)) if Lev3_percent == "*" & !missing(real(ProficientOrAbove_percent)) & !missing(real(Lev2_percent)) 
+
+replace Lev3_count = string(real(StudentSubGroup_TotalTested) - real(Lev1_count) - real(Lev2_percent)) if Lev3_count == "*" & !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Lev1_count)) & !missing(real(Lev2_count)) 
+
+
+gen derive_L1_count_lev23 = .
+replace derive_L1_count_lev23 = 1 if ProficiencyCriteria== "Levels 2-3" & inlist(Lev1_count, "*", "--") & !inlist(ProficientOrAbove_count, "*", "--") & !inlist(StudentSubGroup_TotalTested, "*", "--")
+replace Lev1_count = string(real(StudentSubGroup_TotalTested) - real(ProficientOrAbove_count)) if derive_L1_count_lev23 == 1
+
+gen derive_L2_count_lev23 = .
+replace derive_L2_count_lev23 = 1 if ProficiencyCriteria == "Levels 2-3" & inlist(Lev2_count, "*", "--") & !inlist(ProficientOrAbove_count, "*", "--") & !inlist(Lev3_count, "*", "--") 
+replace Lev2_count = string(real(ProficientOrAbove_count) - real(Lev3_count)) if derive_L2_count_lev23 == 1
+
+gen derive_L3_count_lev23 = .
+replace derive_L3_count_lev23 = 1 if ProficiencyCriteria =="Levels 2-3" & inlist(Lev3_count, "*", "--") & !inlist(Lev2_count, "*", "--") & !inlist(ProficientOrAbove_count, "*", "--")
+replace Lev3_count = string(real(ProficientOrAbove_count) - real(Lev2_count)) if derive_L3_count_lev23 == 1
+
+
+replace Lev1_percent = string(1 - real(ProficientOrAbove_percent)) if derive_L1_count_lev23 == 1
+replace Lev2_percent = string(real(ProficientOrAbove_percent) - real(Lev3_percent)) if derive_L2_count_lev23 == 1
+replace Lev3_percent = string(real(ProficientOrAbove_percent) - real(Lev2_percent)) if derive_L3_count_lev23 == 1
+
+replace Lev3_count = string(round(real(Lev3_percent) * real(StudentSubGroup_TotalTested),1)) if Lev3_count == "*" & Lev3_count == "0" & !inlist(StudentSubGroup_TotalTested, "*", "--")
 
 
 
