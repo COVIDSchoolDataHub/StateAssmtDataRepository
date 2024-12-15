@@ -24,7 +24,7 @@ RI_NCES:
 global NCES_Original "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024" //Original NCES data from drive
 global NCES "/Volumes/T7/State Test Project/Rhode Island/NCES" //NCES folder created above
 ```
-RI_Cleaning_2018_2024 and RI_Data_Conversion
+RI_Cleaning_2018_2024 and RI_Data_Conversion:
 
 ```
 cd "/Volumes/T7/State Test Project/Rhode Island" //Directory to main RI folder
