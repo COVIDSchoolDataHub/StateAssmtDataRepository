@@ -1,4 +1,4 @@
-# Rhode Island
+ # Rhode Island
 This is a ReadMe for Rhode Island's cleaning process, from 2018-2024
 
 ## Setup
@@ -47,5 +47,5 @@ Level percentages had varying formats (e.g, they were both decimals and percenta
 Two crosswalks used to merge NCES data. Both include most schools, but only by using them together can we get all IDs for now. Something to streamline later.
 
 ## Updates
-12/13/24: Recleaned all RI data using new scraped data from 2018-2024
-12/15/24: Responded to R1
+- 12/13/24: Recleaned all RI data using new scraped data from 2018-2024
+- 12/15/24: Responded to R1
