@@ -1,4 +1,4 @@
-#Computer Science Department Copyright Notice
+# Computer Science Department Copyright Notice
 
 Copyright 2024, Brown University, Providence, RI.
 
