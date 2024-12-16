@@ -1,7 +1,9 @@
-Computer Science Department Copyright Notice
+#Computer Science Department Copyright Notice
+
 Copyright 2024, Brown University, Providence, RI.
 
-#All Rights Reserved
+
+## All Rights Reserved
 
 Permission to use, copy, modify, and distribute this software and
 its documentation for any purpose other than its incorporation into a
@@ -23,5 +25,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 
 Computer Science at Brown University
+
 Providence, Rhode Island 02912 USA
+
 Phone: 401-863-7600
