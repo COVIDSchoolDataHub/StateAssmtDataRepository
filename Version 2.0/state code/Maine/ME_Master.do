@@ -204,6 +204,30 @@ replace Lev3_count = string(real(StudentSubGroup_TotalTested) - real(Lev1_count)
     if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Lev1_count)) & !missing(real(Lev2_count)) & !missing(real(Lev4_count)) & missing(real(Lev3_count))
 replace Lev4_count = string(real(StudentSubGroup_TotalTested) - real(Lev1_count) - real(Lev2_count) - real(Lev3_count), "%9.3g") ///
     if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Lev1_count)) & !missing(real(Lev2_count)) & !missing(real(Lev3_count)) & missing(real(Lev4_count))
+	
+//fixing specifically 2022 and 2023 cases
+replace Lev4_count = string(real(ProficientOrAbove_count) - real(Lev3_count), "%9.3g") ///
+    if !missing(real(ProficientOrAbove_count)) & !missing(real(Lev3_count)) & Lev4_count == "*"
+	
+replace Lev4_percent = string(real(ProficientOrAbove_percent) - real(Lev3_percent), "%9.3g") ///
+    if !missing(real(ProficientOrAbove_percent)) & !missing(real(Lev3_percent)) & Lev4_percent == "*"
+	
+replace Lev1_count = string(real(StudentSubGroup_TotalTested) - real(Lev2_count) - real(Lev3_count) - real(Lev4_count), "%9.3g") if !missing(StudentSubGroup_TotalTested) & !missing(real(Lev4_count)) & !missing(real(Lev2_count)) & !missing(real(Lev3_count)) & Lev1_count == "*"
+
+replace Lev1_percent = string(1 - real(Lev2_percent) - real(Lev3_percent) - real(Lev4_percent), "%9.3g") if !missing(real(Lev4_percent)) & !missing(real(Lev2_percent)) & !missing(real(Lev3_percent)) & Lev1_percent == "*"
+
+if `year' == 2023{
+	replace Lev1_count = "--" if Lev1_count == "."
+}
+
+//fixing "e" issue in level percents
+replace Lev1_percent = "0" if strpos(Lev1_percent, "e") > 0
+replace Lev4_percent = "0" if strpos(Lev4_percent, "e") > 0
+
+replace Lev5_percent = ""
+replace Lev5_count = ""
+
+
 
 
 //Final Cleaning
