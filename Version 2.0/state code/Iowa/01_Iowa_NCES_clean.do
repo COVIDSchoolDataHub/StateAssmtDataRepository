@@ -2,14 +2,14 @@
 * IOWA
 
 * File name: 01_IA_NCES_clean
-* Last update: 12/12/2024
+* Last update: 12/15/2024
 
 *******************************************************
 * Notes
 
 	* This do file isolates Iowa's NCES information from the larger NCES files. 
 	* Completed files are saved to the NCES_iowa folder
-	* As of 12/12/24, the most recent NCES file available is NCES_2022. This will be used for 2023 and 2024 data files.
+	* As of 12/15/24, the most recent NCES file available is NCES_2022. This will be used for 2023 and 2024 data files.
 	* This file will need to be updated when NCES_2023 becomes available
 	
 *******************************************************
@@ -17,19 +17,19 @@ clear
 *set more off
 
 // Update with appropriate file paths
-global NCES "\Desktop\Zelma V2.0\Iowa - Version 2.0\NCES_full"
-global NCES_iowa "\Desktop\Zelma V2.0\Iowa - Version 2.0\NCES_iowa"
-global original "\Desktop\Zelma V2.0\Iowa - Version 2.0\Original Data Files"
-global raw "\Desktop\Zelma V2.0\Iowa - Version 2.0\Original Data Files\2014 and Previous Files"
-global dr "\Desktop\Zelma V2.0\Iowa - Version 2.0\Original Data Files\2015 and Post Files"
-global int "\Desktop\Zelma V2.0\Iowa - Version 2.0\Intermediate"
-global output "\Desktop\Zelma V2.0\Iowa - Version 2.0\Output - Version 2.0"
+global NCES "C:\Users\Clare\Desktop\Zelma V2.0\Iowa - Version 2.0\NCES_full"
+global NCES_iowa "C:\Users\Clare\Desktop\Zelma V2.0\Iowa - Version 2.0\NCES_iowa"
+global original "C:\Users\Clare\Desktop\Zelma V2.0\Iowa - Version 2.0\Original Data Files"
+global raw "C:\Users\Clare\Desktop\Zelma V2.0\Iowa - Version 2.0\Original Data Files\2014 and Previous Files"
+global dr "C:\Users\Clare\Desktop\Zelma V2.0\Iowa - Version 2.0\Original Data Files\2015 and Post Files"
+global int "C:\Users\Clare\Desktop\Zelma V2.0\Iowa - Version 2.0\Intermediate"
+global output "C:\Users\Clare\Desktop\Zelma V2.0\Iowa - Version 2.0\Output"
 
 /////////////////////////////////////////
 *** NCES Cleaning for IA ***
 /////////////////////////////////////////
 
-global years  2003 2004 2005 2006 2007 2008 2009 2010 2011 2012 2013 2014 2015 2016 2017 2018 2019 2020 2021 2022 //update as years are added. No 2023 available as of 12/10/24.
+global years  2003 2004 2005 2006 2007 2008 2009 2010 2011 2012 2013 2014 2015 2016 2017 2018 2019 2020 2021 2022 //update as years are added. No 2023 available as of 12/15/24.
 
 
 foreach a in $years {
