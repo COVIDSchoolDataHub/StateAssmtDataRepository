@@ -142,30 +142,25 @@ local year 2024
 	replace StateAssignedDistID = "" if DataLevel == "State"
 
 	*Student Groups, SubGroups, & Counts
-	drop if strupper(StudentSubGroup) == "SE ACCOMMODATION"
+	drop if StudentSubGroup == "SE Accommodation"
 
-	replace StudentSubGroup = "All Students" if StudentSubGroup == "ALL STUDENTS"
-	replace StudentSubGroup = "American Indian or Alaska Native" if strupper(StudentSubGroup) == "AMERICAN INDIAN"
-	replace StudentSubGroup = "Asian" if StudentSubGroup == "ASIAN"
-	replace StudentSubGroup = "Black or African American" if strupper(StudentSubGroup) == "AFRICAN AMERICAN"
-	replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if inlist(StudentSubGroup, "NATIVE HAWAIIAN", "NATIVE HAWAIIAN OR OTHER PACIFIC ISLANDER", "Native Hawaiian")
-	replace StudentSubGroup = "White" if StudentSubGroup == "WHITE"
-	replace StudentSubGroup = "Hispanic or Latino" if strupper(StudentSubGroup) == "HISPANIC"
-	replace StudentSubGroup = "Unknown" if strupper(StudentSubGroup) == "OTHER"
-	replace StudentSubGroup = "Male" if StudentSubGroup == "MALE"
-	replace StudentSubGroup = "Female" if StudentSubGroup == "FEMALE"
-	replace StudentSubGroup = "SWD" if strupper(StudentSubGroup) == "STUDENTS WITH DISABILITIES" | StudentSubGroup == "STUDENTS WITH DISABLITIES"
-	replace StudentSubGroup = "English Learner" if strupper(StudentSubGroup) == "CURRENT - ELL"
-	replace StudentSubGroup = "Economically Disadvantaged" if strupper(StudentSubGroup) == "ECONOMICALLY DISADVANTAGED"
-	replace StudentSubGroup = "Not Economically Disadvantaged" if strupper(StudentSubGroup) == "NON-ECON. DISADVANTAGED" |StudentSubGroup == "NON ECON. DISADVANTAGED"
-	replace StudentSubGroup = "EL Exited" if strupper(StudentSubGroup) == "FORMER - ML"
-	replace StudentSubGroup = "Ever EL" if strupper(StudentSubGroup) == "MULTILINGUAL LEARNERS" | strupper(StudentSubGroup) == "CURRENT - ML" | strupper(StudentSubGroup) == "FORMER - MI"
+	replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "American Indian"
+	replace StudentSubGroup = "Black or African American" if StudentSubGroup == "African American"
+	replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if inlist(StudentSubGroup, "Native Hawaiian or other Pacific Islander", "Native Hawaiian")
+	replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
+	replace StudentSubGroup = "Unknown" if StudentSubGroup == "Other"
+	replace StudentSubGroup = "English Learner" if StudentSubGroup == "Current - Ml" 
+	replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Economically Disadvantaged" 
+	replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "Non-Econ. Disadvantaged" 
+	replace StudentSubGroup = "EL Exited" if StudentSubGroup == "Former - Ml" 
+	replace StudentSubGroup = "Ever EL" if StudentSubGroup == "Multilingual Learners"
 	replace StudentSubGroup = "Gender X" if StudentSubGroup == "Non-Binary/Undesignated"
-	
-	replace StudentGroup = "RaceEth" if strupper(StudentGroup) == "RACE/ETHNICITY"
-	replace StudentGroup = "Gender" if strupper(StudentGroup) == "GENDER"
+	replace StudentSubGroup = "SWD" if StudentSubGroup == "Students With Disabilities"
+
+	replace StudentGroup = "RaceEth" if StudentGroup ==  "Race/Ethnicity"
+	replace StudentGroup = "Gender" if StudentGroup == "Gender"
 	replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
-	replace StudentGroup = "EL Status" if inlist(StudentSubGroup, "Ever EL", "Engish Learner", "EL Exited")
+	replace StudentGroup = "EL Status" if inlist(StudentSubGroup, "Ever EL", "English Learner", "EL Exited")
 	replace StudentGroup = "Economic Status" if inlist(StudentSubGroup, "Economically Disadvantaged", "Not Economically Disadvantaged")
 	replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD"
 	
@@ -309,7 +304,7 @@ local year 2024
 	replace SchLevel = "Other" if SchName == "People'S Achieve Community Charter School" 
 	replace SchVirtual = "No" if SchName == "People'S Achieve Community Charter School"
 	replace NCESDistrictID = "3480365" if SchName == "People'S Achieve Community Charter School"
-	replace NCESSchoolID = "348036706160" if SchName == "People'S Achieve Community Charter School" 
+	replace NCESSchoolID = "348036706160" if SchName == "People'S Achieve Community Charter School" & DataLevel == "School" 
 	replace CountyCode = "34013" if SchName == "People'S Achieve Community Charter School"
 	replace CountyName = "Essex County" if SchName == "People'S Achieve Community Charter School"
 	replace DistLocale = "City, large" if SchName == "People'S Achieve Community Charter School" 
@@ -378,8 +373,6 @@ local year 2024
 	replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
 	replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
 	drop if StudentGroup_TotalTested == "."
-	replace Lev5_count = "*" if missing(Lev5_count)
-	replace Lev5_percent = "*" if missing(Lev5_percent)
 	
 	duplicates drop DataLevel AssmtName AssmtType NCESDistrictID NCESSchoolID Subject GradeLevel StudentGroup StudentSubGroup, force
 	

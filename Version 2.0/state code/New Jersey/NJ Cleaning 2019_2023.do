@@ -1,20 +1,28 @@
+//Name: New Jersey Re-cleaning State Assessment
+//purpose: Cleaning PA State Assessment Data
+//author: Mikael Oberlin
+//date created: 12/02/24
+
 clear all 
 set more off
 
 global Abbrev "NJ"
 global years 2019 2021 2022 2023
-global data "/Users/name/Desktop/New Jersey/Original"
-global NCES "/Users/name/Desktop/New Jersey/NCES"
-global output "/Users/name/Desktop/New Jersey/Output"
+global data "/Users/mikaeloberlin/Desktop/New Jersey/Original"
+global NCES "/Users/mikaeloberlin/Desktop/New Jersey/NCES"
+global output "/Users/mikaeloberlin/Desktop/New Jersey/Output"
 
-cd "/Users/name/Desktop/New Jersey/"
+cd "/Users/mikaeloberlin/Desktop/New Jersey/"
 capture log close
 log using 2019_2023_NJ, replace
 
 set trace off
 
 forvalues year = 2019/2023{
+	if `year' == 2019 continue
+	if `year' == 2020 continue
 	if `year' == 2021 continue
+	if `year' == 2022 continue
 	local prevyear = `year' - 1
 	
 	//Import Excel Files and Convert to .dta Files
@@ -180,6 +188,7 @@ forvalues year = 2019/2023{
 	by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
 	by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if StudentSubGroup != "All Students"
 	by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+	
 	drop group_id StateAssignedDistID1 StateAssignedSchID1
 	tostring StudentGroup_TotalTested StudentSubGroup_TotalTested, replace 
 	
@@ -347,22 +356,25 @@ forvalues year = 2019/2023{
 		replace `var' = stritrim(`var') // collapses all consecutive, internal blanks to one blank.
 		replace `var' = strtrim(`var') // removes leading and trailing blanks
 	}
+
+	if `year' == 2022{
+	tostring StateAssignedSchID StateAssignedDistID, replace
+    replace StateAssignedDistID = subinstr(StateAssignedDistID, "0", "", 1)
+	}
 	
 	replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
-	replace StudentSubGroup_TotalTested = "*" if StudentGroup_TotalTested == ""
 	replace StudentSubGroup_TotalTested = "*" if StudentGroup_TotalTested == "*" & StudentSubGroup_TotalTested == "."
 	replace StudentSubGroup_TotalTested = "*" if StudentGroup_TotalTested == "*" & StudentSubGroup_TotalTested == ""
-	drop if StudentSubGroup_TotalTested == ""
-	drop if StudentGroup_TotalTested == ""
 	replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
-	replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "."
 	replace StudentGroup_TotalTested = "*" if missing(StudentGroup_TotalTested)
+	replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "."
 	replace StudentSubGroup_TotalTested = "*" if missing(StudentSubGroup_TotalTested)
 	replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
 	replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
-	drop if StudentGroup_TotalTested == "."
-	replace Lev5_count = "*" if missing(Lev5_count)
-	replace Lev5_percent = "*" if missing(Lev5_percent)
+
+	tostring StateAssignedSchID, replace
+	replace StateAssignedSchID = "" if DataLevel != "School"
+
 	duplicates drop DataLevel AssmtName AssmtType NCESDistrictID NCESSchoolID Subject GradeLevel StudentGroup StudentSubGroup, force
 	
 	label def DataLevel 1 "State" 2 "District" 3 "School"
