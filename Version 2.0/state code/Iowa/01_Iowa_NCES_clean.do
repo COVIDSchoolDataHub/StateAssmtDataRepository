@@ -17,13 +17,13 @@ clear
 *set more off
 
 // Update with appropriate file paths
-global NCES "C:\Users\Clare\Desktop\Zelma V2.0\Iowa - Version 2.0\NCES_full"
-global NCES_iowa "C:\Users\Clare\Desktop\Zelma V2.0\Iowa - Version 2.0\NCES_iowa"
-global original "C:\Users\Clare\Desktop\Zelma V2.0\Iowa - Version 2.0\Original Data Files"
-global raw "C:\Users\Clare\Desktop\Zelma V2.0\Iowa - Version 2.0\Original Data Files\2014 and Previous Files"
-global dr "C:\Users\Clare\Desktop\Zelma V2.0\Iowa - Version 2.0\Original Data Files\2015 and Post Files"
-global int "C:\Users\Clare\Desktop\Zelma V2.0\Iowa - Version 2.0\Intermediate"
-global output "C:\Users\Clare\Desktop\Zelma V2.0\Iowa - Version 2.0\Output"
+global NCES "\Desktop\Zelma V2.0\Iowa - Version 2.0\NCES_full"
+global NCES_iowa "\Desktop\Zelma V2.0\Iowa - Version 2.0\NCES_iowa"
+global original "\Desktop\Zelma V2.0\Iowa - Version 2.0\Original Data Files"
+global raw "\Desktop\Zelma V2.0\Iowa - Version 2.0\Original Data Files\2014 and Previous Files"
+global dr "\Desktop\Zelma V2.0\Iowa - Version 2.0\Original Data Files\2015 and Post Files"
+global int "\Desktop\Zelma V2.0\Iowa - Version 2.0\Intermediate"
+global output "\Desktop\Zelma V2.0\Iowa - Version 2.0\Output"
 
 /////////////////////////////////////////
 *** NCES Cleaning for IA ***
