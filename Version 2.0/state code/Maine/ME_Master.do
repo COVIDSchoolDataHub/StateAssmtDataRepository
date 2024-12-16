@@ -1,12 +1,12 @@
 clear
 set more off
 set trace off
-cd "/Volumes/T7/State Test Project/Maine"
-global Output "/Volumes/T7/State Test Project/Maine/Output"
-global NCES_School "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
-global NCES_District "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global Original "/Users/kaitlynlucas/Desktop/maine/original"
+global Output "/Users/kaitlynlucas/Desktop/maine/output"
+global NCES_School "/Users/kaitlynlucas/Desktop/maine/nces clean"
+global NCES_District "/Users/kaitlynlucas/Desktop/maine/nces clean"
 
-
+/*
 //Running Do files and Combining Original and Data Request Data
 local dofiles ME_Cleaning_2015.do ME_Cleaning_2016-2019.do ME_Cleaning_2021-2022.do ME_Cleaning_2023.do
 
@@ -15,7 +15,7 @@ foreach file of local dofiles {
 }
 
 do ME_DataRequest_2015_2023
-
+*/
 forvalues year = 2016/2023 {
 	if 	`year' == 2020 continue
 	use "$Output/ME_WebsiteData_`year'"
@@ -168,6 +168,43 @@ if `year' == 2023 drop if GradeLevel == "GZ" & DataLevel !=3
 
 //Converting StateAssignedSchID to StateAssignedDistID - StateAssignedSchID so that School ID's are unique
 replace StateAssignedSchID = StateAssignedDistID + "-" + StateAssignedSchID if DataLevel == 3
+
+//fixing odd Flag_cutscore thing
+replace Flag_CutScoreChange_ELA = "Y" if `year' == 2016
+replace Flag_CutScoreChange_math = "Y" if `year' == 2016
+replace Flag_CutScoreChange_soc = "Not applicable"
+
+//Deriving additional ssg_tt
+gen UnsuppressedSSG = real(StudentSubGroup_TotalTested)
+egen UnsuppressedSG = total(UnsuppressedSSG), by(StudentGroup DistName SchName GradeLevel Subject)
+gen missing_SSG = 1 if missing(real(StudentSubGroup_TotalTested))
+egen missing_multiple = total(missing_SSG), by(StudentGroup DistName SchName GradeLevel Subject)
+
+order StudentGroup_TotalTested UnsuppressedSG StudentSubGroup_TotalTested UnsuppressedSSG missing_multiple
+
+replace StudentSubGroup_TotalTested = string(real(StudentGroup_TotalTested)-UnsuppressedSG) if missing(real(StudentSubGroup_TotalTested)) & UnsuppressedSG > 0 & (missing_multiple <2 | StudentSubGroup == "English Learner" | StudentSubGroup == "English Proficient") & real(StudentGroup_TotalTested)-UnsuppressedSG > 0 & !missing(real(StudentGroup_TotalTested)-UnsuppressedSG) & StudentSubGroup != "All Students"
+
+drop Unsuppressed* missing_*
+replace Lev5_count = ""
+
+
+//Level percent derivations if we have all other percents
+replace Lev1_percent = string(1-real(Lev4_percent)-real(Lev3_percent)-real(Lev2_percent), "%9.3g") if !missing(1) & !missing(real(Lev4_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev2_percent)) & missing(real(Lev1_percent))
+
+replace Lev2_percent = string(1-real(Lev4_percent)-real(Lev3_percent)-real(Lev1_percent), "%9.3g") if !missing(1) & !missing(real(Lev4_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev1_percent)) & missing(real(Lev2_percent))
+
+replace Lev3_percent = string(1-real(Lev4_percent)-real(Lev1_percent)-real(Lev2_percent), "%9.3g") if !missing(1) & !missing(real(Lev4_percent)) & !missing(real(Lev1_percent)) & !missing(real(Lev2_percent)) & missing(real(Lev3_percent))
+
+replace Lev4_percent = string(1-real(Lev1_percent)-real(Lev3_percent)-real(Lev2_percent), "%9.3g") if !missing(1) & !missing(real(Lev1_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev2_percent)) & missing(real(Lev4_percent))
+
+replace Lev1_count = string(real(StudentSubGroup_TotalTested) - real(Lev2_count) - real(Lev3_count) - real(Lev4_count), "%9.3g") if !missing(StudentSubGroup_TotalTested) & !missing(real(Lev4_count)) & !missing(real(Lev2_count)) & !missing(real(Lev3_count)) & missing(real(Lev1_count))
+replace Lev2_count = string(real(StudentSubGroup_TotalTested) - real(Lev1_count) - real(Lev3_count) - real(Lev4_count), "%9.3g") ///
+    if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Lev1_count)) & !missing(real(Lev3_count)) & !missing(real(Lev4_count)) & missing(real(Lev2_count))
+replace Lev3_count = string(real(StudentSubGroup_TotalTested) - real(Lev1_count) - real(Lev2_count) - real(Lev4_count), "%9.3g") ///
+    if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Lev1_count)) & !missing(real(Lev2_count)) & !missing(real(Lev4_count)) & missing(real(Lev3_count))
+replace Lev4_count = string(real(StudentSubGroup_TotalTested) - real(Lev1_count) - real(Lev2_count) - real(Lev3_count), "%9.3g") ///
+    if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Lev1_count)) & !missing(real(Lev2_count)) & !missing(real(Lev3_count)) & missing(real(Lev4_count))
+
 
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode

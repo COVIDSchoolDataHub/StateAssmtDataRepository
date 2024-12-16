@@ -1,19 +1,18 @@
 clear
 set more off
 set trace off
-cd "/Volumes/T7/State Test Project/Maine"
-global Original "/Volumes/T7/State Test Project/Maine/Original Data Files"
-global Output "/Volumes/T7/State Test Project/Maine/Output"
-global NCES_School "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
-global NCES_District "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global Original "/Users/kaitlynlucas/Desktop/maine/original"
+global Output "/Users/kaitlynlucas/Desktop/maine/output"
+global NCES_School "/Users/kaitlynlucas/Desktop/maine/nces clean"
+global NCES_District "/Users/kaitlynlucas/Desktop/maine/nces clean"
 
 forvalues year = 2021/2022 {
 local prevyear =`=`year'-1'
 //Run code below to convert to dta format first
 
-/*
 
-import delimited "${Original}/ME_OriginalData_`year'.csv", case(preserve)
+
+import delimited "${Original}/Maine_OriginalData_`year'.csv", case(preserve)
 save "${Original}/Maine_OriginalData_`year'.dta", replace
 clear
 
@@ -251,6 +250,39 @@ replace Lev1_count = string(real(StudentSubGroup_TotalTested)-real(Lev4_count)-r
 replace Lev1_percent = string(real(Lev1_count)/real(StudentSubGroup_TotalTested), "%9.3g") if !missing(real(Lev1_count)) & !missing(real(StudentSubGroup_TotalTested)) & Subject == "sci"
 
 replace Lev1_percent = string(1-real(Lev4_percent)-real(Lev3_percent)-real(Lev2_percent), "%9.3g") if !missing(real(Lev4_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev2_percent)) & 1-real(Lev4_percent)-real(Lev3_percent)-real(Lev2_percent) >=0.01 & Subject == "sci" & missing(real(Lev1_percent))
+
+//Deriving StudentSubGroup_TotalTested where possible
+gen UnsuppressedSSG = real(StudentSubGroup_TotalTested)
+egen UnsuppressedSG = total(UnsuppressedSSG), by(StudentGroup DistName SchName GradeLevel Subject)
+gen missing_SSG = 1 if missing(real(StudentSubGroup_TotalTested))
+egen missing_multiple = total(missing_SSG), by(StudentGroup DistName SchName GradeLevel Subject)
+
+order StudentGroup_TotalTested UnsuppressedSG StudentSubGroup_TotalTested UnsuppressedSSG missing_multiple
+
+replace StudentSubGroup_TotalTested = string(real(StudentGroup_TotalTested)-UnsuppressedSG) if missing(real(StudentSubGroup_TotalTested)) & UnsuppressedSG > 0 & (missing_multiple <2 | StudentSubGroup == "English Learner" | StudentSubGroup == "English Proficient") & real(StudentGroup_TotalTested)-UnsuppressedSG > 0 & !missing(real(StudentGroup_TotalTested)-UnsuppressedSG) & StudentSubGroup != "All Students"
+
+drop Unsuppressed* missing_*
+
+
+//Level percent derivations if we have all other percents
+replace Lev1_percent = string(1-real(Lev4_percent)-real(Lev3_percent)-real(Lev2_percent), "%9.3g") if !missing(1) & !missing(real(Lev4_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev2_percent)) & missing(real(Lev1_percent))
+
+replace Lev2_percent = string(1-real(Lev4_percent)-real(Lev3_percent)-real(Lev1_percent), "%9.3g") if !missing(1) & !missing(real(Lev4_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev1_percent)) & missing(real(Lev2_percent))
+
+replace Lev3_percent = string(1-real(Lev4_percent)-real(Lev1_percent)-real(Lev2_percent), "%9.3g") if !missing(1) & !missing(real(Lev4_percent)) & !missing(real(Lev1_percent)) & !missing(real(Lev2_percent)) & missing(real(Lev3_percent))
+
+replace Lev4_percent = string(1-real(Lev1_percent)-real(Lev3_percent)-real(Lev2_percent), "%9.3g") if !missing(1) & !missing(real(Lev1_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev2_percent)) & missing(real(Lev4_percent))
+
+replace Lev1_count = string(real(StudentSubGroup_TotalTested) - real(Lev2_count) - real(Lev3_count) - real(Lev4_count), "%9.3g") if !missing(StudentSubGroup_TotalTested) & !missing(real(Lev4_count)) & !missing(real(Lev2_count)) & !missing(real(Lev3_count)) & missing(real(Lev1_count))
+replace Lev2_count = string(real(StudentSubGroup_TotalTested) - real(Lev1_count) - real(Lev3_count) - real(Lev4_count), "%9.3g") ///
+    if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Lev1_count)) & !missing(real(Lev3_count)) & !missing(real(Lev4_count)) & missing(real(Lev2_count))
+replace Lev3_count = string(real(StudentSubGroup_TotalTested) - real(Lev1_count) - real(Lev2_count) - real(Lev4_count), "%9.3g") ///
+    if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Lev1_count)) & !missing(real(Lev2_count)) & !missing(real(Lev4_count)) & missing(real(Lev3_count))
+replace Lev4_count = string(real(StudentSubGroup_TotalTested) - real(Lev1_count) - real(Lev2_count) - real(Lev3_count), "%9.3g") ///
+    if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Lev1_count)) & !missing(real(Lev2_count)) & !missing(real(Lev3_count)) & missing(real(Lev4_count))
+
+replace ParticipationRate = "1" if ParticipationRate>"1"
+replace Lev5_count = ""
 
 
 //Final Cleaning

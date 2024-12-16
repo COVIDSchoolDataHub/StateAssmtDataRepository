@@ -1,11 +1,10 @@
 clear
 set more off
 
-cd "/Volumes/T7/State Test Project/Maine"
-global Original "/Volumes/T7/State Test Project/Maine/Original Data Files/For V2.0+ Data Received from Maine - August 2024"
-global Output "/Volumes/T7/State Test Project/Maine/Output"
-global NCES_School "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
-global NCES_District "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global Original "/Users/kaitlynlucas/Desktop/maine/original"
+global Output "/Users/kaitlynlucas/Desktop/maine/output"
+global NCES_School "/Users/kaitlynlucas/Desktop/maine/nces clean"
+global NCES_District "/Users/kaitlynlucas/Desktop/maine/nces clean"
 
 //2015-2022 State Level Data
 import excel "${Original}/ME_2008 to 2023_state_ela,math_by grade and prof level_no counts", clear firstrow sheet("ALL DATA (2007-2023)")

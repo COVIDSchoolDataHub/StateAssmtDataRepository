@@ -1,11 +1,10 @@
 clear
 set more off
 set trace off
-cd "/Volumes/T7/State Test Project/Maine"
-global Original "/Volumes/T7/State Test Project/Maine/Original Data Files"
-global Output "/Volumes/T7/State Test Project/Maine/Output"
-global NCES_School "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
-global NCES_District "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global Original "/Users/kaitlynlucas/Desktop/maine/original"
+global Output "/Users/kaitlynlucas/Desktop/maine/output"
+global NCES_School "/Users/kaitlynlucas/Desktop/maine/nces old"
+global NCES_District "/Users/kaitlynlucas/Desktop/maine/nces old"
 
 //Combining Subjects
 tempfile temp_combined
@@ -87,10 +86,22 @@ gen SchYear = "2014-15"
 //StudentGroup and StudentSubGroup
 gen StudentGroup = "All Students"
 gen StudentSubGroup = "All Students"
-gen StudentGroup_TotalTested = StudentSubGroup_TotalTested
+*gen StudentGroup_TotalTested = StudentSubGroup_TotalTested
 
 //GradeLevel
 gen GradeLevel = "GZ" //Data Decision, includes High School Data
+
+** Generating student group total counts
+gen StateAssignedDistID1 = StateAssignedDistID
+replace StateAssignedDistID1 = "000000" if DataLevel == 1 //Remove quotations if DistIDs are numeric
+gen StateAssignedSchID1 = StateAssignedSchID
+replace StateAssignedSchID1 = "000000" if DataLevel !=3 //Remove quotations if SchIDs are numeric
+egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
+sort group_id StudentGroup StudentSubGroup
+by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+drop group_id StateAssignedDistID1 StateAssignedSchID1
+
 
 //Proficiency Criteria
 gen ProficiencyCriteria = "Levels 3-4"
@@ -125,6 +136,8 @@ foreach percent of varlist *_percent ParticipationRate  {
 }
 
 replace CountyName = proper(CountyName)
+replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
+replace Lev5_count = ""
 
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
