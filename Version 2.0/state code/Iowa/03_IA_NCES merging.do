@@ -2,7 +2,7 @@
 * IOWA
 
 * File name: 03_IA_NCES merging
-* Last update: 12/12/2024
+* Last update: 12/15/2024
 
 *******************************************************
 clear
@@ -14,7 +14,7 @@ global original "\Desktop\Zelma V2.0\Iowa - Version 2.0\Original Data Files"
 global raw "\Desktop\Zelma V2.0\Iowa - Version 2.0\Original Data Files\2014 and Previous Files"
 global dr "\Desktop\Zelma V2.0\Iowa - Version 2.0\Original Data Files\2015 and Post Files"
 global int "\Desktop\Zelma V2.0\Iowa - Version 2.0\Intermediate"
-global output "\Desktop\Zelma V2.0\Iowa - Version 2.0\Output - Version 2.0"
+global output "\Desktop\Zelma V2.0\Iowa - Version 2.0\Output"
 
 /////////////////////////////////////////
 *** Merging in NCES Data ***
@@ -143,5 +143,3 @@ foreach year in 2024 {
 }
 
 * end of 03_IA_NCES_merging
-
-
