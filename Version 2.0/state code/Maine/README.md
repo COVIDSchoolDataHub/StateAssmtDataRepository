@@ -3,7 +3,7 @@
 
 This is a ReadMe for Maine's data cleaning process, from 2015 to 2023.
 
-##Folders
+## Folders
 Create 3 folders: Output, Original, and NCES
 
 ## Directories
