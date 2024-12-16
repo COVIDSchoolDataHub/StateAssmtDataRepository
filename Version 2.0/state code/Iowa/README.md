@@ -49,4 +49,4 @@ You should run the 4 do files in the following order, updating all paths as need
 
 8/2/24: Applied new stable district names to all years (referenced by IA_StableNames do-file, which should be run last).
 
-12/12/24: New .do files to streamline cleaning. Integrated 2024 data and applied StudentGroup_TotalTested convention.
+12/15/24: New .do files to streamline cleaning. Integrated 2024 data and applied StudentGroup_TotalTested convention.
