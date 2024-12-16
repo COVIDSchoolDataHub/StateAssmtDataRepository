@@ -352,6 +352,9 @@ replace Lev3_count = string(round(real(Lev3_percent) * real(StudentSubGroup_Tota
 replace StudentSubGroup_TotalTested = string(real(Lev1_count) + real(Lev2_count) + real(Lev3_count)) if StudentSubGroup_TotalTested == "0" & !missing(real(Lev1_count)) & !missing(real(Lev2_count)) & !missing(real(Lev3_count))
 
 
+replace Lev3_percent= "*" if Lev3_percent == "." 
+replace Lev2_percent= "*" if Lev2_percent == "." 
+replace Lev1_percent = "*" if Lev1_percent == "." 
 
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
@@ -360,4 +363,3 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "$output/NE_AssmtData_2024.dta", replace
 export delimited "$output/NE_AssmtData_2024.csv", replace
-clear
