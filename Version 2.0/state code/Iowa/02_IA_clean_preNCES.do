@@ -2,7 +2,7 @@
 * IOWA
 
 * File name: 02_IA_clean_preNCES
-* Last update: 12/12/2024
+* Last update: 12/15/2024
 
 *******************************************************
 * Notes: 2004 to 2014 
@@ -31,7 +31,7 @@ global original "\Desktop\Zelma V2.0\Iowa - Version 2.0\Original Data Files"
 global raw "\Desktop\Zelma V2.0\Iowa - Version 2.0\Original Data Files\2014 and Previous Files"
 global dr "\Desktop\Zelma V2.0\Iowa - Version 2.0\Original Data Files\2015 and Post Files"
 global int "\Desktop\Zelma V2.0\Iowa - Version 2.0\Intermediate"
-global output "\Desktop\Zelma V2.0\Iowa - Version 2.0\Output - Version 2.0"
+global output "\Desktop\Zelma V2.0\Iowa - Version 2.0\Output"
 global years  2024 2023 2022 2021 2019 2018 2017 2016 2015 2014 2013 2012 2011 2010 2009 2008 2007 2006 2005 2004 //List all available years
 
 
@@ -1456,7 +1456,7 @@ foreach year in 2004 2005 2006 2007 2008 2009 2010 2011 2012 2013 2014  {
 	save "${int}/intermediate1/IA_AssmtData_`year'.dta", replace
 	export delimited "${int}/intermediate1/IA_AssmtData_`year'.csv", replace
 	}
-*/
+
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1670,6 +1670,23 @@ foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 2024 {
 	export delimited "${int}/intermediate1/IA_AssmtData_`year'.csv", replace
 	
 }
+
+/////////////////////////////////////////
+// County Names
+/////////////////////////////////////////
+clear
+import excel "${original}/ia_county-list_through2023.xlsx", firstrow
+save "${original}/ia_county-list_through2023.dta", replace
+
+// for merging with 2024 
+clear 
+import excel "${original}/ia_county-list_through2023.xlsx", firstrow
+	
+	keep if SchYear == "2022-23"
+	drop SchYear 
+	duplicates drop 
+	
+save "${original}/ia_county-list_noyear.dta", replace
 
 ********************************************************
 *end of 02_IA_clean_preNCES
