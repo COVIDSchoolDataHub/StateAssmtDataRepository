@@ -304,7 +304,7 @@ local year 2024
 	replace SchLevel = "Other" if SchName == "People'S Achieve Community Charter School" 
 	replace SchVirtual = "No" if SchName == "People'S Achieve Community Charter School"
 	replace NCESDistrictID = "3480365" if SchName == "People'S Achieve Community Charter School"
-	replace NCESSchoolID = "348036706160" if SchName == "People'S Achieve Community Charter School" & DataLevel == "School" 
+	replace NCESSchoolID = "348036506160" if SchName == "People'S Achieve Community Charter School" & DataLevel == "School" 
 	replace CountyCode = "34013" if SchName == "People'S Achieve Community Charter School"
 	replace CountyName = "Essex County" if SchName == "People'S Achieve Community Charter School"
 	replace DistLocale = "City, large" if SchName == "People'S Achieve Community Charter School" 
