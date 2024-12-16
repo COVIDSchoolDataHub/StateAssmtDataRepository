@@ -92,14 +92,14 @@ foreach var of varlist Lev* {
 }
 
 foreach percent of varlist Lev*_percent {
-	replace `percent' = string(real(`percent'), "%9.3g") if !missing(real(`percent'))
+	replace `percent' = string(real(`percent')) if !missing(real(`percent'))
 }
 
 //Generating Variables
-gen ProficientOrAbove_percent = string(real(Lev3_percent) + real(Lev4_percent), "%9.3g") if !missing(real(Lev3_percent)) & !missing(real(Lev4_percent))
+gen ProficientOrAbove_percent = string(real(Lev3_percent) + real(Lev4_percent)) if !missing(real(Lev3_percent)) & !missing(real(Lev4_percent))
 replace ProficientOrAbove_percent = "--" if missing(ProficientOrAbove_percent)
 
-gen ProficientOrAbove_count = string(real(Lev3_count) + real(Lev4_count), "%9.3g") if !missing(real(Lev3_count)) & !missing(real(Lev4_count))
+gen ProficientOrAbove_count = string(real(Lev3_count) + real(Lev4_count)) if !missing(real(Lev3_count)) & !missing(real(Lev4_count))
 replace ProficientOrAbove_count = "--" if missing(ProficientOrAbove_count)
 
 gen StudentSubGroup_TotalTested = string(real(Lev1_count) + real(Lev2_count) + real(Lev3_count) + real(Lev4_count)) if !missing(real(Lev1_count)) & !missing(real(Lev2_count)) & !missing(real(Lev3_count)) & !missing(real(Lev4_count))
