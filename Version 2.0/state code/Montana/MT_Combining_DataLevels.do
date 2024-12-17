@@ -88,6 +88,9 @@ foreach count of varlist Lev3_count Lev4_count {
 //Set very slightly high prof percent values to 1 (these are like 1.00000132)
 replace ProficientOrAbove_percent = "1" if real(ProficientOrAbove_percent) > 1 & !missing(real(ProficientOrAbove_percent))
 
+//Set ProficientOrAbove_count to Lev3_count + Lev4_count if not missing either
+replace ProficientOrAbove_count = string(real(Lev3_count) + real(Lev4_count)) if !missing(real(Lev3_count)) & !missing(real(Lev4_count))
+
 //Updating Flags and AssmtName for Sci 2022 & 2023
 if `year' == 2022 {
 	replace Flag_CutScoreChange_sci = "Y"
