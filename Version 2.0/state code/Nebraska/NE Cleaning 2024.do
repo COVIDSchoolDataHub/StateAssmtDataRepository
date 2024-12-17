@@ -1,4 +1,4 @@
-//FILE CREATED 11.27.23
+//FILE CREATED 12.08.24
 clear
 set more off
 
@@ -244,7 +244,7 @@ local count = subinstr("`var'", "percent", "count",.)
 replace `var' = "*" if `count' == "*" & strpos(`var',"e") !=0
 replace `var' = "0" if `count' == "0" & strpos(`var', "e") !=0
 replace `var' = "--" if `count' == "--" & strpos(`var', "e") !=0
-replace `var' = "0" if real(`var') < 0 & `var' != "*" & `var' != "--" //Rounding sometimes leads to negative numbers for level percents
+replace `var' = "*" if real(`var') < 0 & `var' != "*" & `var' != "--" //Rounding sometimes leads to negative numbers for level percents
 }
 
 
@@ -355,6 +355,15 @@ replace StudentSubGroup_TotalTested = string(real(Lev1_count) + real(Lev2_count)
 replace Lev3_percent= "*" if Lev3_percent == "." 
 replace Lev2_percent= "*" if Lev2_percent == "." 
 replace Lev1_percent = "*" if Lev1_percent == "." 
+replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "." 
+
+// replace Lev1_count = "0" if Lev1_percent == "0"
+
+gen flag1 = 1 if !missing(real(ProficientOrAbove_percent)) & !missing(real(ProficientOrAbove_count)) & StudentSubGroup_TotalTested == "*"
+replace StudentSubGroup_TotalTested = string(round(real(ProficientOrAbove_count)/real(ProficientOrAbove_percent),1)) if flag1 == 1
+replace Lev1_count = string(real(StudentSubGroup_TotalTested) - real(Lev2_count) - real(Lev3_count)) if flag1 == 1
+replace Lev1_percent = string(1 - real(Lev2_percent) - real(Lev3_percent)) if flag1 == 1
+drop flag1 
 
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
@@ -363,3 +372,4 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "$output/NE_AssmtData_2024.dta", replace
 export delimited "$output/NE_AssmtData_2024.csv", replace
+
