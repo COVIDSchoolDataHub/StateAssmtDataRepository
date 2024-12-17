@@ -29,11 +29,13 @@ global NCES_District "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024" //NCES 
   
 - After downloading and setting directories in all do-files in github, run the ME_Master.do file. It is necessary to run this file to fully recreate the cleaning process as there are additions to each year inside that do-file.
 
-- To make changes, you should probably add them to the yearly do-files as opposed to the master do-file just for clarity, but it doesn't matter too much.
+- To make changes, add them to the yearly do-files as opposed to the master do-file.
 
 ## Updates
 
 8/16/24: Added data request data.
+
+12/16/24: Updated to V2.0 conventions.
 
 
 
