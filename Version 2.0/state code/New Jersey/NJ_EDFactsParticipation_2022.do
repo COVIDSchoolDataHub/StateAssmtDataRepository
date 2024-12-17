@@ -1,21 +1,19 @@
 clear
 set more off
 
-global EDFacts "/Users/mikaeloberlin/Desktop/New Jersey/EDFacts"
-global NCES "/Users/mikaeloberlin/Desktop/New Jersey/NCES"
-global Output "/Users/mikaeloberlin/Desktop/New Jersey/Output"
-global Original "/Users/mikaeloberlin/Desktop/New Jersey/Original"
-
+global data "/Users/miramehta/Documents/NJ State Testing Data/Original"
+global NCES "/Users/miramehta/Documents/NJ State Testing Data/NCES"
+global output "/Users/miramehta/Documents/NJ State Testing Data/Output"
 
 foreach s in ela math sci {
-	import excel "${Original}/NJ_EFParticipation_2022_`s'.xlsx", case(preserve) clear
-	save "${Original}/NJ_EFParticipation_2022_`s'.dta", replace
+	import excel "${data}/NJ_EFParticipation_2022_`s'.xlsx", case(preserve) clear
+	save "${data}/NJ_EFParticipation_2022_`s'.dta", replace
 }
 
 
 
-use "${Original}/NJ_EFParticipation_2022_ela.dta"
-append using "${Original}/NJ_EFParticipation_2022_math.dta" "${Original}/NJ_EFParticipation_2022_sci.dta"
+use "${data}/NJ_EFParticipation_2022_ela.dta"
+append using "${data}/NJ_EFParticipation_2022_math.dta" "${data}/NJ_EFParticipation_2022_sci.dta"
 
 rename A SchYear
 rename B State
@@ -35,17 +33,17 @@ rename P Subject
 tostring StudentSubGroup_TotalTested, replace
 
 //Clean ParticipationRate
-foreach var of varlist Participation {
-replace `var' = "*" if `var' == "S"	
-gen range`var' = substr(`var',1,1) if regexm(`var',"[<>]") !=0
-replace `var' = subinstr(`var', "=","",.)
-destring `var', gen(n`var') i(*%<>-)
-replace `var' = range`var' + string(n`var'/100, "%9.3g") if `var' != "*" & `var' != "--"
-replace `var' = subinstr(`var',">","",.) + "-1" if strpos(`var', ">") !=0
-replace `var' = subinstr(`var', "<","0-",.) if strpos(`var', "<") !=0
-drop n`var'
-drop range`var'
-}
+replace Participation = "*" if Participation == "S"	
+gen rangeParticipation = substr(Participation,1,1) if regexm(Participation,"[<>]") !=0
+replace Participation = subinstr(Participation, "=","",.)
+split Participation, parse("-")
+destring Participation1, replace i(*%<>-)
+destring Participation2, replace i(*%<>-)
+replace Participation = rangeParticipation + string(Participation1/100, "%9.3g") if !inlist(Participation, "*",  "--") & Participation2 == .
+replace Participation = string(Participation1/100, "%9.3g") + "-" + string(Participation2/100, "%9.3g") if !inlist(Participation, "*",  "--") & Participation2 != .
+replace Participation = subinstr(Participation,">","",.) + "-1" if strpos(Participation, ">") !=0
+replace Participation = subinstr(Participation, "<","0-",.) if strpos(Participation, "<") !=0
+drop rangeParticipation Participation1 Participation2
 
 //StudentSubGroup
 replace StudentSubGroup = "All Students" if strpos(StudentSubGroup, "All Students") !=0
@@ -73,13 +71,13 @@ replace GradeLevel = subinstr(GradeLevel, "Grade ", "G0",.)
 duplicates drop NCESDistrictID NCESSchoolID GradeLevel Subject StudentSubGroup, force
 
 //Saving EDFacts Output
-save "${Original}/NJ_EFParticipation_2022", replace
+save "${data}/NJ_EFParticipation_2022", replace
 
 //Merging with 2022
-import delimited "${Output}/NJ_AssmtData_2022", case(preserve) clear
-save "${Output}/NJ_AssmtData_2022", replace
+import delimited "${output}/NJ_AssmtData_2022", case(preserve) clear
+save "${output}/NJ_AssmtData_2022", replace
 
-use "${Output}/NJ_AssmtData_2022", clear
+use "${output}/NJ_AssmtData_2022", clear
 
 //Convert to numeric if necessary
 destring NCESDistrictID NCESSchoolID, replace
@@ -88,15 +86,12 @@ destring NCESDistrictID NCESSchoolID, replace
 duplicates drop NCESDistrictID NCESSchoolID GradeLevel Subject StudentSubGroup, force
 
 //Merging
-merge 1:1 NCESDistrictID NCESSchoolID GradeLevel Subject StudentSubGroup using "${Original}/NJ_EFParticipation_2022"
+merge 1:1 NCESDistrictID NCESSchoolID GradeLevel Subject StudentSubGroup using "${data}/NJ_EFParticipation_2022"
 drop if _merge ==2
 replace ParticipationRate = Participation
 replace ParticipationRate = "--" if missing(ParticipationRate)
 replace StudentSubGroup_TotalTested = "*" if missing(StudentSubGroup_TotalTested)
 drop _merge Participation
-
-gen is_whole = mod(real(ParticipationRate), 1) == 0 if !missing(real(ParticipationRate))  // Check if ParticipationRate is a whole number
-replace ParticipationRate = string(real(ParticipationRate) / 100) if is_whole == 0
 
 	foreach var of varlist DistName SchName {
 	replace `var' = lower(`var')
@@ -123,7 +118,7 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${Output}/NJ_AssmtData_2022", replace
-export delimited "${Output}/NJ_AssmtData_2022", replace
+save "${output}/NJ_AssmtData_2022", replace
+export delimited "${output}/NJ_AssmtData_2022", replace
 
 

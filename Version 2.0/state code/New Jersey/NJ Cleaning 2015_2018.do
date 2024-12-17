@@ -4,19 +4,19 @@ set more off
 
 global Abbrev "NJ"
 global years 2015 2016 2017 2018
-global data "/Users/name/Desktop/New Jersey/Original"
-global NCES "/Users/name/Desktop/New Jersey/NCES"
-global output "/Users/name/Desktop/New Jersey/Output"
+global data "/Users/miramehta/Documents/New Jersey/Original"
+global NCES "/Users/miramehta/Documents/New Jersey/NCES"
+global output "/Users/miramehta/Documents/New Jersey/Output"
 
-cd "/Users/name/Desktop/New Jersey/"
+*cd "/Users/name/Desktop/New Jersey/"
 capture log close
 log using 2015_2018_NJ, replace
 set trace off
 
 forvalues year = 2015/2018{
 	local prevyear = `year' - 1
-	
-	//Import Excel Files and Convert to .dta Files
+	/*
+	//Import Excel Files and Convert to .dta Files - Unhide on first run
 	local subject "ela mat"
 	foreach s of local subject{
 		forvalues n = 3/8{
@@ -52,7 +52,7 @@ use "${data}/NJ_OriginalData_`year'_ela_G03", clear
 	save "${data}/NJ_OriginalData_`year'", replace
 
 	save "${data}/NJ_OriginalData_`year'", replace
-
+*/
 	//Clean DTA File (Pre-Merge)
 	use "${data}/NJ_OriginalData_`year'", clear
 	replace Subject = "math" if Subject == "mat"

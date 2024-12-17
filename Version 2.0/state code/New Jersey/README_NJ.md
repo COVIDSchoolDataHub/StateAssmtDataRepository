@@ -4,7 +4,6 @@
 This is a ReadMe for New Jersey's data cleaning process, from 2015 to 2024.
 * Note that 2020 and 2021 are excluded, as NJ did not administer spring tests during those years due to COVID.
 
-
 ## Setup
 
 There are four main folders you need to create: NCES, Original, Output, and Temp.
@@ -20,13 +19,13 @@ There are four main folders you need to create: NCES, Original, Output, and Temp
 
 The file path setup should be as follows: 
 
-- global Original: Folder containing original data files
+- global data: Folder containing original data files
 - global NCES: Folders containing NCES school & district files
 - global Output: Folder containing cleaned data files
 - global Temp: Folder containing .dta format versions of the original data
 
 ```bash
-global Original "/Users/name/Desktop/New Jersey/Original"
+global data "/Users/name/Desktop/New Jersey/Original"
 global NCES "/Users/name/Desktop/New Jersey/NCES"
 global Output "/Users/name/Desktop/New Jersey/Output"
 global Temp "/Users/name/Desktop/New Jersey/Temp"
@@ -39,7 +38,7 @@ There are five do-files to re-create the output files:
 3. Run the NJ_EDFactsParticipation_2015_2021 do file to add in particpation data for 2015-2021.
 4. Run the NJ_EDFactsParticipation_2022 do file to add in particaption data for 2022.
 7. Run "NJ_2024.do" to clean the data for 2024.
-## Updates
 
+## Updates
 04/23/2024: Updated to add in unmerged NCES information and match new StudentGroup_TotalTested convention.
-12/14/2024: Updated to add in new StudentGroup_TotalTested derivation
+12/14/2024: Updated to add in new StudentGroup_TotalTested derivation and 2024 data.

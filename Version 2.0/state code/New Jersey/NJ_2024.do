@@ -8,11 +8,10 @@ set more off
 
 global Abbrev "NJ"
 global year 2024
-global data "/Users/mikaeloberlin/Desktop/New Jersey/Original"
-global NCES "/Users/mikaeloberlin/Desktop/New Jersey/NCES"
-global output "/Users/mikaeloberlin/Desktop/New Jersey/Output"
+global data "/Users/miramehta/Documents/NJ State Testing Data/Original"
+global NCES "/Users/miramehta/Documents/NJ State Testing Data/NCES"
+global output "/Users/miramehta/Documents/NJ State Testing Data/Output"
 
-cd "/Users/mikaeloberlin/Desktop/New Jersey/"
 capture log close
 log using 2024_NJ, replace
 
@@ -264,7 +263,7 @@ local year 2024
 		save "${NCES}/NCES_2024_District_NJ.dta", replace
 
 	//Merge Data
-	use "/Users/mikaeloberlin/Desktop/New Jersey/Original/NJ_OriginalData_2024.dta", clear
+	use "${data}/NJ_OriginalData_2024.dta", clear
 		destring StateAssignedDistID, replace force
 		destring StateAssignedSchID, replace force
 	merge m:1 StateAssignedDistID using "${NCES}/NCES_2024_District_NJ.dta"

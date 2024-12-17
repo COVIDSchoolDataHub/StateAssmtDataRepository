@@ -7,25 +7,22 @@ clear all
 set more off
 
 global Abbrev "NJ"
-global years 2019 2021 2022 2023
-global data "/Users/mikaeloberlin/Desktop/New Jersey/Original"
-global NCES "/Users/mikaeloberlin/Desktop/New Jersey/NCES"
-global output "/Users/mikaeloberlin/Desktop/New Jersey/Output"
+global years 2019 2022 2023
+global data "/Users/miramehta/Documents/NJ State Testing Data/Original"
+global NCES "/Users/miramehta/Documents/NJ State Testing Data/NCES"
+global output "/Users/miramehta/Documents/NJ State Testing Data/Output"
 
-cd "/Users/mikaeloberlin/Desktop/New Jersey/"
 capture log close
 log using 2019_2023_NJ, replace
 
 set trace off
 
 forvalues year = 2019/2023{
-	if `year' == 2019 continue
 	if `year' == 2020 continue
 	if `year' == 2021 continue
-	if `year' == 2022 continue
 	local prevyear = `year' - 1
 	
-	//Import Excel Files and Convert to .dta Files
+	//Import Excel Files and Convert to .dta Files - Unhide on First Run
 		forvalues n = 3/8{
 			if `year' == 2022 & `n' == 3{
 				import excel "${data}/NJ_OriginalData_`year'_ela_G0`n'", cellrange (A3:Q26162) clear
@@ -178,7 +175,6 @@ forvalues year = 2019/2023{
 	
 	// Generating StudentGroup count
 	rename K StudentSubGroup_TotalTested 
-	destring StudentSubGroup_TotalTested, replace force
 	gen StateAssignedDistID1 = StateAssignedDistID
 	replace StateAssignedDistID1 = "000000" if DataLevel == "State" //Remove quotations if DistIDs are numeric
 	gen StateAssignedSchID1 = StateAssignedSchID
@@ -188,7 +184,7 @@ forvalues year = 2019/2023{
 	by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
 	by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if StudentSubGroup != "All Students"
 	by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
-	
+	replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested == ""
 	drop group_id StateAssignedDistID1 StateAssignedSchID1
 	tostring StudentGroup_TotalTested StudentSubGroup_TotalTested, replace 
 	
@@ -311,7 +307,7 @@ forvalues year = 2019/2023{
 	}
 
 	//Merge Data
-	use "/Users/mikaeloberlin/Desktop/New Jersey/Original/NJ_OriginalData_`year'.dta", clear
+	use "${data}/NJ_OriginalData_`year'.dta", clear
 	if `year' == 2023{
 		destring StateAssignedDistID, replace force
 		destring StateAssignedSchID, replace force
@@ -359,16 +355,11 @@ forvalues year = 2019/2023{
 
 	if `year' == 2022{
 	tostring StateAssignedSchID StateAssignedDistID, replace
-    replace StateAssignedDistID = subinstr(StateAssignedDistID, "0", "", 1)
+    replace StateAssignedDistID = subinstr(StateAssignedDistID, "0", "", 1) if strpos(StateAssignedDistID, "0") == 1
+	replace StateAssignedDistID = subinstr(StateAssignedDistID, "0", "", 1) if strpos(StateAssignedDistID, "0") == 1
+	replace StateAssignedSchID = subinstr(StateAssignedSchID, "0", "", 1) if strpos(StateAssignedSchID, "0") == 1
 	}
 	
-	replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
-	replace StudentSubGroup_TotalTested = "*" if StudentGroup_TotalTested == "*" & StudentSubGroup_TotalTested == "."
-	replace StudentSubGroup_TotalTested = "*" if StudentGroup_TotalTested == "*" & StudentSubGroup_TotalTested == ""
-	replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested == "."
-	replace StudentGroup_TotalTested = "*" if missing(StudentGroup_TotalTested)
-	replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "."
-	replace StudentSubGroup_TotalTested = "*" if missing(StudentSubGroup_TotalTested)
 	replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
 	replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
 
@@ -394,4 +385,5 @@ order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistric
 	save "${output}/NJ_AssmtData_`year'", replace
 	export delimited "${output}/NJ_AssmtData_`year'", replace
 	clear
+
 }
