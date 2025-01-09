@@ -1,0 +1,24 @@
+// check on "Non-Traditional Program Middle" in NCES data. If added to new files, incorporate for Zelma files. 
+
+clear
+set more off
+
+
+global Original "/Users/benjaminm/Documents/State_Repository_Research/Maryland/Original"
+global Output "/Users/benjaminm/Documents/State_Repository_Research/Maryland/Output"
+global NCES_MD "/Users/benjaminm/Documents/State_Repository_Research/Maryland/NCES_MD"
+
+
+global dofiles "/Users/benjaminm/Documents/State_Repository_Research/Maryland/Do Files"
+foreach year of numlist 2015/2024 {
+	if `year' == 2020 {
+		continue
+	}
+	do "$dofiles/MD_`year'_Final.do"
+}
+
+cd "/Users/benjaminm/Documents/State_Repository_Research/Maryland/Do Files"
+do MD_EDFactsParticipation_2015_2021.do
+do MD_EDFactsParticipationRate_2022.do
+
+ 

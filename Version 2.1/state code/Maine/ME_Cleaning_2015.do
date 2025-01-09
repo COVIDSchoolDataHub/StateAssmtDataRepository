@@ -1,0 +1,152 @@
+clear
+set more off
+set trace off
+global Original "/Users/kaitlynlucas/Desktop/maine/original"
+global Output "/Users/kaitlynlucas/Desktop/maine/output"
+global NCES_School "/Users/kaitlynlucas/Desktop/maine/nces old"
+global NCES_District "/Users/kaitlynlucas/Desktop/maine/nces old"
+
+//Combining Subjects
+tempfile temp_combined
+save "`temp_combined'", replace emptyok
+foreach Subject in ela math sci {
+	
+	import excel "${Original}/ME_OriginalData_`Subject'_2015", firstrow case(preserve)
+	gen Subject = "`Subject'"
+	append using "`temp_combined'"
+	save "`temp_combined'", replace
+	clear
+}
+use "`temp_combined'"
+
+//Standardizing Variable Names
+rename DISTRICT_PUBL~E DistName
+rename SCHOOL_NAME SchName
+gen StudentSubGroup_TotalTested = ""
+replace StudentSubGroup_TotalTested = ParticipantScience if Subject == "sci"
+replace StudentSubGroup_TotalTested = ParticipantMath if Subject == "math"
+replace StudentSubGroup_TotalTested = ParticipantELA if Subject == "ela"
+rename ProficientorP~i ProficientOrAbove_count
+rename PercentagePro~i ProficientOrAbove_percent
+rename DISTRICT_ID StateAssignedDistID
+rename SCHOOL_ID StateAssignedSchID
+replace ProficientOrAbove_count = MetStandardorMetStandardwit if missing(ProficientOrAbove_count)
+replace ProficientOrAbove_percent = PercentageMetStandardorMetS if missing(ProficientOrAbove_percent)
+
+//Dropping Extra Variables
+keep DistName SchName StateAssignedDistID StateAssignedSchID ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate StudentSubGroup_TotalTested Subject
+
+//DataLevel
+gen DataLevel = ""
+replace DataLevel = "State" if SchName == "State Totals" | missing(SchName) & !missing(ParticipationRate)
+replace DataLevel = "School" if !missing(SchName) & DataLevel != "State"
+drop if missing(DataLevel)
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+sort DataLevel_n 
+drop DataLevel 
+rename DataLevel_n DataLevel
+order DataLevel
+replace SchName = "All Schools" if DataLevel ==1
+replace DistName = "All Districts" if DataLevel ==1
+
+//Fixing Suppressed Data
+foreach var of varlist _all {
+	cap replace `var' = "*" if strpos(`var',"*") !=0
+}
+
+//Merging NCES
+save "`temp_combined'", replace
+clear
+use "${NCES_School}/NCES_2014_School"
+keep if state_name == "Maine" | state_location == "ME"
+gen StateAssignedSchID = seasch
+replace StateAssignedSchID = "1822" if school_name == "Beatrice Rafferty School"
+replace StateAssignedSchID = "1820" if school_name == "Indian Island School"
+replace StateAssignedSchID = "1821" if school_name == "Indian Township School"
+merge 1:m StateAssignedSchID using "`temp_combined'"
+drop if _merge==1
+
+
+//Dropping if lowest grade is 9th grade
+drop if sch_lowest_grade_offered > 8 & !missing(sch_lowest_grade_offered)
+
+//Cleaning NCES
+gen StateAbbrev = "ME"
+gen State = "Maine"
+gen StateFips = 23
+rename ncesdistrictid NCESDistrictID
+rename state_leaid State_leaid
+rename district_agency_type DistType
+rename county_code CountyCode
+rename county_name CountyName
+rename ncesschoolid NCESSchoolID
+gen SchYear = "2014-15"
+
+//StudentGroup and StudentSubGroup
+gen StudentGroup = "All Students"
+gen StudentSubGroup = "All Students"
+*gen StudentGroup_TotalTested = StudentSubGroup_TotalTested
+
+//GradeLevel
+gen GradeLevel = "GZ" //Data Decision, includes High School Data
+
+** Generating student group total counts
+gen StateAssignedDistID1 = StateAssignedDistID
+replace StateAssignedDistID1 = "000000" if DataLevel == 1 //Remove quotations if DistIDs are numeric
+gen StateAssignedSchID1 = StateAssignedSchID
+replace StateAssignedSchID1 = "000000" if DataLevel !=3 //Remove quotations if SchIDs are numeric
+egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
+sort group_id StudentGroup StudentSubGroup
+by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+drop group_id StateAssignedDistID1 StateAssignedSchID1
+
+
+//Proficiency Criteria
+gen ProficiencyCriteria = "Levels 3-4"
+
+//AssmtName
+gen AssmtName = "Smarter Balanced Assessment"
+replace AssmtName = "Maine Educational Assessment" if Subject == "sci"
+
+//AssmtType
+gen AssmtType = "Regular"
+
+//Generating Missing Variables
+foreach n in 1 2 3 4 {
+	gen Lev`n'_count = "--"
+	gen Lev`n'_percent = "--"
+}
+gen Lev5_count = ""
+gen Lev5_percent = ""
+gen AvgScaleScore = "--"
+
+//Flags
+gen Flag_AssmtNameChange = "N"
+replace Flag_AssmtNameChange = "Y" if Subject != "sci"
+gen Flag_CutScoreChange_ELA = "Y"
+gen Flag_CutScoreChange_math = "Y"
+gen Flag_CutScoreChange_soc = "Not applicable"
+gen Flag_CutScoreChange_sci = "N"
+
+//Cleaning Percents
+foreach percent of varlist *_percent ParticipationRate  {
+	replace `percent' = string(real(`percent'), "%9.3g") if regexm(`percent', "[0-9]") !=0
+}
+
+replace CountyName = proper(CountyName)
+replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
+replace Lev5_count = ""
+
+//Final Cleaning
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+ 
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
+
+save "${Output}/ME_AssmtData_2015", replace
+clear
+

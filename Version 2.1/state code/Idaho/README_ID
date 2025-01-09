@@ -1,0 +1,34 @@
+
+# Idaho Data Cleaning
+
+This is a ReadMe for Idahos's data cleaning process, from 2016 to 2024.
+* Note that 2020 is excluded, as ID did not administer spring tests during that year due to COVID.
+
+
+## Setup
+
+There are two main folders you need to create: ID State Testing Data and NCES District and School Demographics.
+There should be two folders within the NCES folder:
+NCES District Files, Fall 1997-Fall 2022 and NCES School Files, Fall 1997-Fall 2022.  Download the NCES district and school files and place them in the appropriate folders.
+There should be three folders within the ID State Testing Data folder: Original Data, Output, and Temp. Download the original excel files (including data included in the "Idaho data received from data request 11/27/23" folder on drive), and place them in the Original Data folder.
+
+There are 8 .do files, one for each year.  You can run them in any order you choose.
+
+## File Path
+
+The file path setup should be as follows: 
+
+global original_files: Folder containing original data files
+global NCES_files: Folder containing NCES district and school subfolders
+global output_files: Folder containing cleaned + merged .dta and .csv files
+global temp_files: Folder containing intermediate files saved in the middle of the cleaning process.
+
+```bash
+global original_files "/Users/miramehta/Documents/ID State Testing Data/Original Data"
+global NCES_files "/Users/miramehta/Documents/NCES District and School Demographics"
+global output_files "/Users/miramehta/Documents/ID State Testing Data/Output"
+global temp_files "/Users/miramehta/Documents/ID State Testing Data/Temp"
+```
+## Updates
+
+09/07/2024: Updated to include 2024 data as well as to address new conventions and review standards in version 2.0 (including deriving additional counts based on percentages and StudentSubGroup_TotalTested).

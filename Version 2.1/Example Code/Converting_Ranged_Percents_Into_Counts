@@ -1,0 +1,56 @@
+// split ranged percents
+local a  "1 2 3 4 5" 
+foreach b in `a' {
+split Lev`b'_percent, parse("-")
+}
+
+// split ranged ProficientOrAbove_percent
+split ProficientOrAbove_percent, parse("-")
+
+// destring variables (convert to numeric)
+destring Lev1_percent1 Lev2_percent1 Lev3_percent1 Lev4_percent1 Lev5_percent1 ProficientOrAbove_percent1 Lev1_percent2 Lev2_percent2 Lev3_percent2 Lev4_percent2 Lev5_percent2 ProficientOrAbove_percent2, replace ignore("*") // small change as compared to 2016-2021
+
+// calculate lower bound of count range 
+gen Lev1_count1 = Lev1_percent1* StudentSubGroup_TotalTested
+gen Lev2_count1 = Lev2_percent1* StudentSubGroup_TotalTested
+gen Lev3_count1 = Lev3_percent1* StudentSubGroup_TotalTested
+gen Lev4_count1 = Lev4_percent1* StudentSubGroup_TotalTested
+gen Lev5_count1 = Lev5_percent1* StudentSubGroup_TotalTested
+gen ProficientOrAbove_count1 = ProficientOrAbove_percent1* StudentSubGroup_TotalTested
+
+// calculate upper bound of count range 
+gen Lev1_count2 = Lev1_percent2* StudentSubGroup_TotalTested
+gen Lev2_count2 = Lev2_percent2* StudentSubGroup_TotalTested
+gen Lev3_count2 = Lev3_percent2* StudentSubGroup_TotalTested
+gen Lev4_count2 = Lev4_percent2* StudentSubGroup_TotalTested
+gen Lev5_count2 = Lev5_percent2* StudentSubGroup_TotalTested
+gen ProficientOrAbove_count2 = ProficientOrAbove_percent2* StudentSubGroup_TotalTested
+
+// round lower bound 
+local a  "1 2 3 4 5" 
+foreach b in `a' {
+replace Lev`b'_count1 = round(Lev`b'_count1, 1)
+}
+
+// round upper bound, concatenate lower and upper bounds together
+local a  "1 2 3 4 5" 
+foreach b in `a' {
+replace Lev`b'_count2 = round(Lev`b'_count2, 1)
+tostring Lev`b'_count1 Lev`b'_count2, replace force 
+egen Lev`b'_countX = concat(Lev`b'_count1 Lev`b'_count2) if Lev`b'_count2 != ".", punct("-") 
+replace Lev`b'_countX = Lev`b'_count1 if Lev`b'_count2 == "."
+drop Lev`b'_count1 Lev`b'_count2 Lev`b'_percent1 Lev`b'_percent2
+replace Lev`b'_count = Lev`b'_countX
+drop Lev`b'_count
+rename Lev`b'_countX Lev`b'_count
+
+// replace ranged counts if there is suppression
+replace Lev`b'_count = "*" if Lev`b'_percent == "*"
+
+// if the range is a range of two of the same values, convert to exact value 
+split Lev`b'_count, parse("-")
+replace Lev`b'_count = Lev`b'_count1 if Lev`b'_count1 == Lev`b'_count2
+drop Lev`b'_count1 Lev`b'_count2
+// updated 4/30/24
+
+}
