@@ -333,6 +333,7 @@ replace CountyName = proper(CountyName)
 replace DistName = proper(DistName)
 replace DistName = subinstr(DistName, " Of ", " of ", 1) //fixing from proper case for standardization
 replace DistName = subinstr(DistName, " And ", " and ", 1) //fixing from proper case for standardization
+replace DistName = subinstr(DistName, "Cty Public Schools", "City Public Schools", 1) //for standardization across years
 replace DistName = subinstr(DistName, "Co Pblc Schs", "County Public Schools", 1) //for standardization across years
 replace DistName = subinstr(DistName, "Pblc Schs", "Public Schools", 1) //for standardization across years
 replace DistName = subinstr(DistName, "King Geo ", "King George ", 1) //for standardization across years

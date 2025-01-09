@@ -7,29 +7,38 @@ global output "/Users/miramehta/Documents/Virginia/Output"
 
 cd "/Users/miramehta/Documents"
 
-////	Import state level data - unhide on first run
+////	Import original data - unhide on first run
 /*
 local levels "State District School"
 foreach lev of local levels {
-	import excel "$raw/2024/VA_OriginalData_2024_`lev'_Part1", firstrow clear
+	import excel "$raw/2024/VA_OriginalData_2024_`lev'_Part1_New", firstrow clear
 	save "$output/VA_OriginalData_2024_`lev'.dta", replace
-	import excel "$raw/2024/VA_OriginalData_2024_`lev'_Part2", firstrow clear
+	import excel "$raw/2024/VA_OriginalData_2024_`lev'_Part2_New", firstrow clear
 	append using "$output/VA_OriginalData_2024_`lev'.dta"
 	gen DataLevel = "`lev'"
 	save "$output/VA_OriginalData_2024_`lev'.dta", replace
 }
+
+forvalues n = 3/8{
+	import delimited "$raw/2024/VA_OriginalData_2024_District_AllStudents_Gr`n'_downloaded", case(preserve) stringcols (_all) clear
+	gen DataLevel = "District"
+	append using "$output/VA_OriginalData_2024_District.dta"
+	save "$output/VA_OriginalData_2024_District.dta", replace
+}
 */
+
 use "$output/VA_OriginalData_2024_State.dta", clear
 append using "$output/VA_OriginalData_2024_District.dta" "$output/VA_OriginalData_2024_School.dta"
+duplicates drop
 
 gen StudentSubGroup = "All Students"
-replace StudentSubGroup = Race if Race != "All Races"
+replace StudentSubGroup = Race if !inlist(Race, "All Races", "")
 replace StudentSubGroup = "Female" if Gender == "F"
 replace StudentSubGroup = "Male" if Gender == "M"
 replace StudentSubGroup = "Economically Disadvantaged" if Disadvantaged == "Y"
 replace StudentSubGroup = "Not Economically Disadvantaged" if Disadvantaged == "N"
 replace StudentSubGroup = "English Learner" if EnglishLearners == "Y"
-replace StudentSubGroup = "EL Exited" if EnglishLearnersincludeFormer == "Y"
+replace StudentSubGroup = "EL and Monit or Recently Ex" if EnglishLearnersincludeFormer == "Y"
 replace StudentSubGroup = "English Proficient" if EnglishLearners == "N"
 replace StudentSubGroup = "Migrant" if Migrant == "Y"
 replace StudentSubGroup = "Non-Migrant" if Migrant == "N"
@@ -48,7 +57,7 @@ replace StudentSubGroup = "Two or More" if StudentSubGroup == "Non-Hispanic, two
 replace StudentSubGroup = "White" if StudentSubGroup == "White, not of Hispanic origin"
 
 gen StudentGroup = "All Students"
-replace StudentGroup = "RaceEth" if Race != "All Races"
+replace StudentGroup = "RaceEth" if !inlist(Race, "All Races", "")
 replace StudentGroup = "Gender" if Gender != ""
 replace StudentGroup = "Economic Status" if Disadvantaged != ""
 replace StudentGroup = "EL Status" if EnglishLearners != ""
@@ -138,12 +147,16 @@ replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "sci" if Subject == "Science"
 
 rename Grade GradeLevel
-drop if GradeLevel == "All Grades"
 replace GradeLevel = "G0" + GradeLevel
+
+replace TestLevel = subinstr(TestLevel, "Grade ", "G0", 1)
+drop if GradeLevel != TestLevel & TestLevel != ""
+drop TestLevel
 
 rename TotalCount StudentSubGroup_TotalTested
 replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "<"
 replace StudentSubGroup_TotalTested = subinstr(StudentSubGroup_TotalTested, ",", "", .)
+replace StudentSubGroup_TotalTested = strtrim(StudentSubGroup_TotalTested)
 
 sort DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel StudentGroup StudentSubGroup
 gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
@@ -228,6 +241,14 @@ replace ProficientOrAbove_percent = "0.5-1" if ProficientOrAbove_percent == "99.
 replace ProficientOrAbove_percent = "0-0.5" if ProficientOrAbove_percent == "11.11"
 replace ProficientOrAbove_count = "0-" + string(round(0.5 * real(StudentSubGroup_TotalTested))) if ProficientOrAbove_percent == "0-0.5" & real(StudentSubGroup_TotalTested) != . & inlist(ProficientOrAbove_count, "*", "--")
 replace ProficientOrAbove_count = string(round(0.5 * real(StudentSubGroup_TotalTested))) + "-" + StudentSubGroup_TotalTested if ProficientOrAbove_percent == "0.5-1" & real(StudentSubGroup_TotalTested) != . & inlist(ProficientOrAbove_count, "*", "--")
+
+forvalues n = 1/3{
+	replace Lev`n'_count = "1" if Lev`n'_count == "1-1"
+}
+
+replace ProficientOrAbove_count = "1" if ProficientOrAbove_count == "1-1"
+
+replace ProficientOrAbove_count = strtrim(ProficientOrAbove_count)
 
 replace State = "Virginia" if DataLevel == 1
 replace StateAbbrev = "VA" if DataLevel == 1

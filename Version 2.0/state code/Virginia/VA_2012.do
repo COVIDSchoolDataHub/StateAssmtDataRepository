@@ -265,6 +265,12 @@ replace ProficientOrAbove_percent = "0-0.5" if ProficientOrAbove_percent == "11.
 replace ProficientOrAbove_count = "0-" + string(round(0.5 * real(StudentSubGroup_TotalTested))) if ProficientOrAbove_percent == "0-0.5" & real(StudentSubGroup_TotalTested) != . & inlist(ProficientOrAbove_count, "*", "--")
 replace ProficientOrAbove_count = string(round(0.5 * real(StudentSubGroup_TotalTested))) + "-" + StudentSubGroup_TotalTested if ProficientOrAbove_percent == "0.5-1" & real(StudentSubGroup_TotalTested) != . & inlist(ProficientOrAbove_count, "*", "--")
 
+forvalues n = 1/3{
+	replace Lev`n'_count = "1" if Lev`n'_count == "1-1"
+}
+
+replace ProficientOrAbove_count = "1" if ProficientOrAbove_count == "1-1"
+
 gen ParticipationRate = "--"
 
 replace State = "Virginia" if DataLevel == 1
@@ -274,6 +280,7 @@ replace CountyName = proper(CountyName)
 replace DistName = proper(DistName)
 replace DistName = subinstr(DistName, " Of ", " of ", 1) //fixing from proper case for standardization
 replace DistName = subinstr(DistName, " And ", " and ", 1) //fixing from proper case for standardization
+replace DistName = subinstr(DistName, "Cty Public Schools", "City Public Schools", 1) //for standardization across years
 replace DistName = subinstr(DistName, "Co Pblc Schs", "County Public Schools", 1) //for standardization across years
 replace DistName = subinstr(DistName, "Pblc Schs", "Public Schools", 1) //for standardization across years
 replace DistName = subinstr(DistName, "King Geo ", "King George ", 1) //for standardization across years

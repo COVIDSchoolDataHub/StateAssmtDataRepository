@@ -356,6 +356,12 @@ replace ProficientOrAbove_percent = "0-0.5" if ProficientOrAbove_percent == "11.
 replace ProficientOrAbove_count = "0-" + string(round(0.5 * real(StudentSubGroup_TotalTested))) if ProficientOrAbove_percent == "0-0.5" & real(StudentSubGroup_TotalTested) != . & inlist(ProficientOrAbove_count, "*", "--")
 replace ProficientOrAbove_count = string(round(0.5 * real(StudentSubGroup_TotalTested))) + "-" + StudentSubGroup_TotalTested if ProficientOrAbove_percent == "0.5-1" & real(StudentSubGroup_TotalTested) != . & inlist(ProficientOrAbove_count, "*", "--")
 
+forvalues n = 1/3{
+	replace Lev`n'_count = "1" if Lev`n'_count == "1-1"
+}
+
+replace ProficientOrAbove_count = "1" if ProficientOrAbove_count == "1-1"
+
 gen ParticipationRate = "--"
 
 replace State = "Virginia" if DataLevel == 1
