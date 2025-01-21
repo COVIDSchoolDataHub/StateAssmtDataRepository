@@ -4,8 +4,12 @@ cd "/Users/miramehta/Documents/"
 global GAdata "/Users/miramehta/Documents/GA State Testing Data"
 global NCES "/Users/miramehta/Documents/NCES District and School Demographics"
 
-//2018-2019
-import delimited "$GAdata/GA_OriginalData_2019_all.csv", clear
+//2016-2017
+import delimited "$GAdata/GA_OriginalData_2017_all.csv", clear
+tostring acdmc_lvl, replace
+save "$GAdata/GA_OriginalData_2017.dta", replace
+import delimited "$GAdata/GA_OriginalData_2017_G38_all.csv", clear
+append using "$GAdata/GA_OriginalData_2017.dta"
 
 //Rename Variables
 rename long_school_year SchYear
@@ -78,9 +82,8 @@ replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD" | Student
 replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant" | StudentSubGroup == "Non-Migrant"
 
 //StudentGroup_TotalTested
-gen StudentSubGroup_TotalTested = num_tested_cnt
-replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "TFS"
-replace StudentSubGroup_TotalTested = "--" if inlist(StudentSubGroup_TotalTested, "", ".")
+gen StudentSubGroup_TotalTested = string(num_tested_cnt)
+replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "1"
 replace DistName = stritrim(DistName)
 replace SchName = stritrim(SchName)
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
@@ -90,18 +93,16 @@ gen StudentGroup_TotalTested = AllStudents_Tested
 drop AllStudents_Tested
 
 //Reformatting & Deriving Additional Information
-destring num_tested_cnt, replace force
 forvalues n = 1/4{
-	replace Lev`n'_count = "*" if Lev`n'_count == "TFS"
-	replace Lev`n'_count = "--" if Lev`n'_count == ""
 	replace Lev`n'_percent = Lev`n'_percent/100
 	gen Lev`n' = Lev`n'_p * num_tested_cnt
 	replace Lev`n' = . if Lev`n' < 0
 	replace Lev`n' = round(Lev`n')
-	tostring Lev`n', replace
-	replace Lev`n'_count = Lev`n' if inlist(Lev`n'_count, "*", "--") & Lev`n' != "."
+	replace Lev`n'_count = Lev`n' if Lev`n'_count == . & Lev`n' != .
 	tostring Lev`n'_percent, replace format("%9.3g") force
 	replace Lev`n'_percent = "--" if Lev`n'_percent == "."
+	tostring Lev`n'_count, replace
+	replace Lev`n'_count = "--" if Lev`n'_count == "."
 	drop Lev`n'
 }
 
@@ -119,9 +120,7 @@ gen ProficientOrAbove_percent = ProficientOrAbove_count/num_tested_cnt
 
 //Missing Data
 tostring ProficientOrAbove_count, replace
-replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "." & Lev3_count == "*"
 replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == "." & Lev3_count == "--"
-replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "." & Lev4_count == "*"
 replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == "." & Lev4_count == "--"
 tostring ProficientOrAbove_percent, replace format("%9.3g") force
 replace Lev1_percent = "--" if Lev1_percent == "."
@@ -129,11 +128,10 @@ replace Lev2_percent = "--" if Lev2_percent == "."
 replace Lev3_percent = "--" if Lev3_percent == "."
 replace Lev4_percent = "--" if Lev4_percent == "."
 replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == "."
-replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "--" & ProficientOrAbove_count == "*"
 
 //Grade Levels
-tostring GradeLevel, replace
-replace GradeLevel = "G0" + GradeLevel
+replace GradeLevel = "G38" if GradeLevel == ""
+replace GradeLevel = "G0" + GradeLevel if GradeLevel != "G38"
 
 //Subject Areas
 replace Subject = "ela" if Subject == "English Language Arts"
@@ -146,10 +144,10 @@ drop if Subject == "sci" & GradeLevel == "G06"
 drop if Subject == "sci" & GradeLevel == "G07"
 drop if Subject == "soc" & GradeLevel != "G08"
 
-save "$GAdata/GA_AssmtData_2019.dta", replace
+save "$GAdata/GA_AssmtData_2017.dta", replace
 
 //Clean NCES Data
-import excel "$NCES/NCES School Files, Fall 1997-Fall 2022/NCES_2018_School.xlsx", firstrow clear
+import excel "$NCES/NCES School Files, Fall 1997-Fall 2022/NCES_2016_School.xlsx", firstrow clear
 drop if state_location != "GA"
 rename lea_name DistName
 gen str StateAssignedDistID = substr(state_leaid, 4, 7)
@@ -160,25 +158,25 @@ destring StateAssignedDistID, replace force
 drop if StateAssignedDistID==.
 destring StateAssignedSchID, replace force
 drop if StateAssignedSchID==.
-save "$NCES/Cleaned NCES Data/NCES_2019_School_GA.dta", replace
+save "$NCES/Cleaned NCES Data/NCES_2017_School_GA.dta", replace
 
-import excel "$NCES/NCES District Files, Fall 1997-Fall 2022/NCES_2018_District.xlsx", firstrow clear
+import excel "$NCES/NCES District Files, Fall 1997-Fall 2022/NCES_2016_District.xlsx", firstrow clear
 drop if state_location != "GA"
 rename lea_name DistName
 gen str StateAssignedDistID = substr(state_leaid, 4, 7)
 drop state_leaid
 destring StateAssignedDistID, replace force
 drop if StateAssignedDistID==.
-save "$NCES/Cleaned NCES Data/NCES_2019_District_GA", replace
+save "$NCES/Cleaned NCES Data/NCES_2017_District_GA", replace
 
 //Merge Data
-use "$GAdata/GA_AssmtData_2019.dta", clear
+use "$GAdata/GA_AssmtData_2017.dta", clear
 destring StateAssignedSchID, replace force
 destring StateAssignedDistID, replace force
-merge m:1 StateAssignedDistID using "$NCES/Cleaned NCES Data/NCES_2019_District_GA.dta"
+merge m:1 StateAssignedDistID using "$NCES/Cleaned NCES Data/NCES_2017_District_GA.dta"
 drop if _merge == 2
 
-merge m:1 StateAssignedSchID StateAssignedDistID using "$NCES/Cleaned NCES Data/NCES_2019_School_GA.dta", gen(merge2)
+merge m:1 StateAssignedSchID StateAssignedDistID using "$NCES/Cleaned NCES Data/NCES_2017_School_GA.dta", gen(merge2)
 drop if merge2 == 2
 
 //Clean Merged Data
@@ -271,34 +269,6 @@ replace NCESSchoolID = "130023704193" if SchName == "Dubois Integrity Academy I"
 replace SchLevel = "Primary" if SchName == "Dubois Integrity Academy I"
 replace SchType = "Regular school" if SchName == "Dubois Integrity Academy I"
 replace SchVirtual = "No" if SchName == "Dubois Integrity Academy I"
-replace NCESSchoolID = "130024804288" if SchName == "Genesis Innovation Academy for Boys"
-replace SchLevel = "Primary" if SchName == "Genesis Innovation Academy for Boys"
-replace SchType = "Regular school" if SchName == "Genesis Innovation Academy for Boys"
-replace SchVirtual = "No" if SchName == "Genesis Innovation Academy for Boys"
-replace NCESSchoolID = "130024404272" if SchName == "Genesis Innovation Academy for Girls"
-replace SchLevel = "Primary" if SchName == "Genesis Innovation Academy for Girls"
-replace SchType = "Regular school" if SchName == "Genesis Innovation Academy for Girls"
-replace SchVirtual = "No" if SchName == "Genesis Innovation Academy for Girls"
-replace NCESSchoolID = "130024704283" if SchName == "Resurgence Hall Charter School"
-replace SchLevel = "Primary" if SchName == "Resurgence Hall Charter School"
-replace SchType = "Regular school" if SchName == "Resurgence Hall Charter School"
-replace SchVirtual = "No" if SchName == "Resurgence Hall Charter School"
-replace NCESSchoolID = "130024504293" if SchName == "SAIL Charter Academy - School for Arts-Infused Learning"
-replace SchLevel = "Primary" if SchName == "SAIL Charter Academy - School for Arts-Infused Learning"
-replace SchType = "Regular school" if SchName == "SAIL Charter Academy - School for Arts-Infused Learning"
-replace SchVirtual = "No" if SchName == "SAIL Charter Academy - School for Arts-Infused Learning"
-replace NCESSchoolID = "130024904273" if SchName == "International Academy of Smyrna"
-replace SchLevel = "Primary" if SchName == "International Academy of Smyrna"
-replace SchType = "Regular school" if SchName == "International Academy of Smyrna"
-replace SchVirtual = "No" if SchName == "International Academy of Smyrna"
-replace NCESSchoolID = "130025004325" if SchName == "International Charter Academy of Georgia"
-replace SchLevel = "Primary" if SchName == "International Charter Academy of Georgia"
-replace SchType = "Regular school" if SchName == "International Charter Academy of Georgia"
-replace SchVirtual = "No" if SchName == "International Charter Academy of Georgia"
-replace NCESSchoolID = "130025104306" if SchName == "SLAM Academy of Atlanta"
-replace SchLevel = "Primary" if SchName == "SLAM Academy of Atlanta"
-replace SchType = "Regular school" if SchName == "SLAM Academy of Atlanta"
-replace SchVirtual = "No" if SchName == "SLAM Academy of Atlanta"
 replace NCESSchoolID = "130022503061" if SchName == "Atlanta Area School for the Deaf"
 replace SchLevel = "Other" if SchName == "Atlanta Area School for the Deaf"
 replace SchType = "Special education school" if SchName == "Atlanta Area School for the Deaf"
@@ -308,13 +278,17 @@ replace SchLevel = "Other" if SchName == "Georgia Academy for the Blind"
 replace SchType = "Special education school" if SchName == "Georgia Academy for the Blind"
 replace SchVirtual = "No" if SchName == "Georgia Academy for the Blind"
 replace NCESSchoolID = "130022303063" if SchName == "Georgia School for the Deaf"
-replace SchType = "Special education school" if SchName == "Georgia School for the Deaf"
 replace SchLevel = "Other" if SchName == "Georgia School for the Deaf"
+replace SchType = "Special education school" if SchName == "Georgia School for the Deaf"
 replace SchVirtual = "No" if SchName == "Georgia School for the Deaf"
 replace NCESSchoolID = "130000502626" if SchName == "CCAT School"
 replace SchType = "Regular school" if SchName == "CCAT School"
 replace SchLevel = "Other" if SchName == "CCAT School"
 replace SchVirtual = "No" if SchName == "CCAT School"
+replace NCESSchoolID = "130021503748" if SchName == "Ivy Preparatory Academy School"
+replace SchType = "Regular school" if SchName == "Ivy Preparatory Academy School"
+replace SchLevel = "Other" if SchName == "Ivy Preparatory Academy School"
+replace SchVirtual = "No" if SchName == "Ivy Preparatory Academy School"
 
 //Label & Organize Variables
 label var State "State name"
@@ -374,5 +348,5 @@ order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistric
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "$GAdata/GA_AssmtData_2019", replace
-export delimited "$GAdata/GA_AssmtData_2019", replace
+save "$GAdata/GA_AssmtData_2017", replace
+export delimited "$GAdata/GA_AssmtData_2017", replace

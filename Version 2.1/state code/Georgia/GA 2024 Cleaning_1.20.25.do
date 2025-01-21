@@ -4,274 +4,31 @@ cd "/Users/miramehta/Documents/"
 global GAdata "/Users/miramehta/Documents/GA State Testing Data"
 global NCES "/Users/miramehta/Documents/NCES District and School Demographics"
 
-//Import Data & Rename Variables
-/*
-tempfile temp1
-save "`temp1'", replace emptyok
-forvalues n = 3/8{
-	import excel "$GAdata/GA_OriginalData_2024-EOG-School-Level-All-Grades_nosubgroups", clear sheet("School - Grade `n'") firstrow cellrange(A2)
+import delimited "$GAdata/GA_OriginalData_2024_all.csv", clear
+tostring acdmc_lvl, replace
+save "$GAdata/GA_OriginalData_2024.dta", replace
+import delimited "$GAdata/GA_OriginalData_2024_G38_all.csv", clear
+append using "$GAdata/GA_OriginalData_2024.dta"
 
-	//Rename Variables
-	rename SystemCode StateAssignedDistID
-	rename SchoolCode StateAssignedSchID
-	rename SystemName DistName
-	rename SchoolName SchName
-	rename EnglishLanguageArts StudentSubGroup_TotalTested1
-	rename I AvgScaleScore1
-	rename K Lev1_percent1
-	rename L Lev2_percent1
-	rename M Lev3_percent1
-	rename N Lev4_percent1
-	rename P ProficientOrAbove_percent1
-	if `n' == 3{
-		rename Mathematics StudentSubGroup_TotalTested2
-		rename R AvgScaleScore2
-		rename T Lev1_percent2
-		rename U Lev2_percent2
-		rename V Lev3_percent2
-		rename W Lev4_percent2
-		rename Y ProficientOrAbove_percent2
-	}
-	if `n' != 3{
-		rename Mathematics StudentSubGroup_TotalTested2
-		rename W AvgScaleScore2
-		rename Y Lev1_percent2
-		rename Z Lev2_percent2
-		rename AA Lev3_percent2
-		rename AB Lev4_percent2
-		rename AD ProficientOrAbove_percent2
-	}
-	if `n' == 5 | `n' == 8{
-		rename Science StudentSubGroup_TotalTested3
-		rename AK AvgScaleScore3
-		rename AM Lev1_percent3
-		rename AN Lev2_percent3
-		rename AO Lev3_percent3
-		rename AP Lev4_percent3
-		rename AR ProficientOrAbove_percent3
-	}
-	if `n' == 8{
-		rename SocialStudies StudentSubGroup_TotalTested4
-		rename BC AvgScaleScore4
-		rename BE Lev1_percent4
-		rename BF Lev2_percent4
-		rename BG Lev3_percent4
-		rename BH Lev4_percent4
-		rename BJ ProficientOrAbove_percent4
-	}
-	
-	if `n' != 5 & `n' != 8{
-		keep StateAssignedDistID StateAssignedSchID DistName SchName StudentSubGroup_TotalTested1 AvgScaleScore1  Lev1_percent1 Lev2_percent1 Lev3_percent1 Lev4_percent1 ProficientOrAbove_percent1 StudentSubGroup_TotalTested2 AvgScaleScore2 Lev1_percent2 Lev2_percent2 Lev3_percent2 Lev4_percent2 ProficientOrAbove_percent2
-	}
-	if `n' == 5{
-		keep StateAssignedDistID StateAssignedSchID DistName SchName StudentSubGroup_TotalTested1 AvgScaleScore1  Lev1_percent1 Lev2_percent1 Lev3_percent1 Lev4_percent1 ProficientOrAbove_percent1 StudentSubGroup_TotalTested2 AvgScaleScore2 Lev1_percent2 Lev2_percent2 Lev3_percent2 Lev4_percent2 ProficientOrAbove_percent2 StudentSubGroup_TotalTested3 AvgScaleScore3 Lev1_percent3 Lev2_percent3 Lev3_percent3 Lev4_percent3 ProficientOrAbove_percent3
-	}
-	if `n' == 8{
-	keep StateAssignedDistID StateAssignedSchID DistName SchName StudentSubGroup_TotalTested1 AvgScaleScore1  Lev1_percent1 Lev2_percent1 Lev3_percent1 Lev4_percent1 ProficientOrAbove_percent1 StudentSubGroup_TotalTested2 AvgScaleScore2 Lev1_percent2 Lev2_percent2 Lev3_percent2 Lev4_percent2 ProficientOrAbove_percent2 StudentSubGroup_TotalTested3 AvgScaleScore3 Lev1_percent3 Lev2_percent3 Lev3_percent3 Lev4_percent3 ProficientOrAbove_percent3 StudentSubGroup_TotalTested4 AvgScaleScore4 Lev1_percent4 Lev2_percent4 Lev3_percent4 Lev4_percent4 ProficientOrAbove_percent4
-	}
-	
-	drop if StateAssignedDistID == "" & StateAssignedSchID == ""
-	drop if StateAssignedDistID == "^To achieve a reading status designation of Grade Level or Above, a student must demonstrate reading skill at the beginning of the grade-level stretch band. "
-	
-	//Reshape Data
-	reshape long StudentSubGroup_TotalTested AvgScaleScore Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent, i(StateAssignedDistID DistName StateAssignedSchID SchName) j(Subject)
-	
-	//Clarify Identifying Information
-	tostring Subject, replace
-	replace Subject = "ela" if Subject == "1"
-	replace Subject = "math" if Subject == "2"
-	replace Subject = "sci" if Subject == "3"
-	replace Subject = "soc" if Subject == "4"
-	gen GradeLevel = "G0`n'"
-	gen DataLevel = "School"
-	gen StudentGroup = "All Students"
-	gen StudentSubGroup = "All Students"
-	append using "`temp1'"
-	if `n' != 8{
-		save "`temp1'", replace
-	}
-	
-	if `n' == 8{
-		save "$GAdata/GA_OriginalData_2024.dta", replace
-	}
-}
-
-tempfile temp2
-save "`temp2'", replace emptyok
-forvalues n = 3/8{
-	import excel "$GAdata/GA_OriginalData_2024-EOG-District-Level-All-Grades_nosubgroups", clear sheet("System - Grade `n'") firstrow cellrange(A2)
-
-	//Rename Variables
-	rename SystemCode StateAssignedDistID
-	rename SystemName DistName
-	rename EnglishLanguageArts StudentSubGroup_TotalTested1
-	rename G AvgScaleScore1
-	rename I Lev1_percent1
-	rename J Lev2_percent1
-	rename K Lev3_percent1
-	rename L Lev4_percent1
-	rename N ProficientOrAbove_percent1
-	if `n' == 3{
-		rename Mathematics StudentSubGroup_TotalTested2
-		rename P AvgScaleScore2
-		rename R Lev1_percent2
-		rename S Lev2_percent2
-		rename T Lev3_percent2
-		rename U Lev4_percent2
-		rename W ProficientOrAbove_percent2
-	}
-	if `n' != 3{
-		rename Mathematics StudentSubGroup_TotalTested2
-		rename U AvgScaleScore2
-		rename W Lev1_percent2
-		rename X Lev2_percent2
-		rename Y Lev3_percent2
-		rename Z Lev4_percent2
-		rename AB ProficientOrAbove_percent2
-	}
-		if `n' == 5 | `n' == 8{
-		rename Science StudentSubGroup_TotalTested3
-		rename AI AvgScaleScore3
-		rename AK Lev1_percent3
-		rename AL Lev2_percent3
-		rename AM Lev3_percent3
-		rename AN Lev4_percent3
-		rename AP ProficientOrAbove_percent3
-	}
-	if `n' == 8{
-		rename SocialStudies StudentSubGroup_TotalTested4
-		rename BA AvgScaleScore4
-		rename BC Lev1_percent4
-		rename BD Lev2_percent4
-		rename BE Lev3_percent4
-		rename BF Lev4_percent4
-		rename BH ProficientOrAbove_percent4
-	}
-	
-	if `n' != 5 & `n' != 8{
-		keep StateAssignedDistID DistName StudentSubGroup_TotalTested1 AvgScaleScore1  Lev1_percent1 Lev2_percent1 Lev3_percent1 Lev4_percent1 ProficientOrAbove_percent1 StudentSubGroup_TotalTested2 AvgScaleScore2 Lev1_percent2 Lev2_percent2 Lev3_percent2 Lev4_percent2 ProficientOrAbove_percent2
-	}
-	if `n' == 5{
-		keep StateAssignedDistID DistName StudentSubGroup_TotalTested1 AvgScaleScore1  Lev1_percent1 Lev2_percent1 Lev3_percent1 Lev4_percent1 ProficientOrAbove_percent1 StudentSubGroup_TotalTested2 AvgScaleScore2 Lev1_percent2 Lev2_percent2 Lev3_percent2 Lev4_percent2 ProficientOrAbove_percent2 StudentSubGroup_TotalTested3 AvgScaleScore3 Lev1_percent3 Lev2_percent3 Lev3_percent3 Lev4_percent3 ProficientOrAbove_percent3
-	}
-	if `n' == 8{
-	keep StateAssignedDistID DistName StudentSubGroup_TotalTested1 AvgScaleScore1  Lev1_percent1 Lev2_percent1 Lev3_percent1 Lev4_percent1 ProficientOrAbove_percent1 StudentSubGroup_TotalTested2 AvgScaleScore2 Lev1_percent2 Lev2_percent2 Lev3_percent2 Lev4_percent2 ProficientOrAbove_percent2 StudentSubGroup_TotalTested3 AvgScaleScore3 Lev1_percent3 Lev2_percent3 Lev3_percent3 Lev4_percent3 ProficientOrAbove_percent3 StudentSubGroup_TotalTested4 AvgScaleScore4 Lev1_percent4 Lev2_percent4 Lev3_percent4 Lev4_percent4 ProficientOrAbove_percent4
-	}
-	
-	drop if StateAssignedDistID == "" | StateAssignedDistID == "^To achieve a reading status designation of Grade Level or Above, a student must demonstrate reading skill at the beginning of the grade-level stretch band. "
-	
-	//Reshape Data
-	reshape long StudentSubGroup_TotalTested AvgScaleScore Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent, i(StateAssignedDistID DistName) j(Subject)
-	
-	//Clarify Identifying Information
-	tostring Subject, replace
-	replace Subject = "ela" if Subject == "1"
-	replace Subject = "math" if Subject == "2"
-	replace Subject = "sci" if Subject == "3"
-	replace Subject = "soc" if Subject == "4"
-	gen GradeLevel = "G0`n'"
-	gen DataLevel = "District"
-	gen StudentGroup = "All Students"
-	gen StudentSubGroup = "All Students"
-	append using "`temp2'"
-	save "`temp2'", replace
-	
-	if `n' == 8{
-		append using "$GAdata/GA_OriginalData_2024.dta"
-		save "$GAdata/GA_OriginalData_2024.dta", replace
-	}
-}
-
-tempfile temp3
-save "`temp3'", replace emptyok
-forvalues n = 3/8{
-	import excel "$GAdata/GA_OriginalData_2024-EOG-State-Level-All-Grades_nosubgroups", clear sheet("State - Grade `n'") firstrow cellrange(A2)
-
-	//Rename Variables
-	rename Grade GradeLevel
-	rename EnglishLanguageArts StudentSubGroup_TotalTested1
-	rename F AvgScaleScore1
-	rename H Lev1_percent1
-	rename I Lev2_percent1
-	rename J Lev3_percent1
-	rename K Lev4_percent1
-	rename M ProficientOrAbove_percent1
-	if `n' == 3{
-		rename Mathematics StudentSubGroup_TotalTested2
-		rename O AvgScaleScore2
-		rename Q Lev1_percent2
-		rename R Lev2_percent2
-		rename S Lev3_percent2
-		rename T Lev4_percent2
-		rename V ProficientOrAbove_percent2
-	}
-	if `n' != 3{
-		rename Mathematics StudentSubGroup_TotalTested2
-		rename T AvgScaleScore2
-		rename V Lev1_percent2
-		rename W Lev2_percent2
-		rename X Lev3_percent2
-		rename Y Lev4_percent2
-		rename AA ProficientOrAbove_percent2
-	}
-			if `n' == 5 | `n' == 8{
-		rename Science StudentSubGroup_TotalTested3
-		rename AH AvgScaleScore3
-		rename AJ Lev1_percent3
-		rename AK Lev2_percent3
-		rename AL Lev3_percent3
-		rename AM Lev4_percent3
-		rename AO ProficientOrAbove_percent3
-	}
-	if `n' == 8{
-		rename SocialStudies StudentSubGroup_TotalTested4
-		rename AZ AvgScaleScore4
-		rename BB Lev1_percent4
-		rename BC Lev2_percent4
-		rename BD Lev3_percent4
-		rename BE Lev4_percent4
-		rename BG ProficientOrAbove_percent4
-	}
-	
-	if `n' != 5 & `n' != 8{
-		keep  GradeLevel StudentSubGroup_TotalTested1 AvgScaleScore1  Lev1_percent1 Lev2_percent1 Lev3_percent1 Lev4_percent1 ProficientOrAbove_percent1 StudentSubGroup_TotalTested2 AvgScaleScore2 Lev1_percent2 Lev2_percent2 Lev3_percent2 Lev4_percent2 ProficientOrAbove_percent2
-	}
-	if `n' == 5{
-		keep GradeLevel StudentSubGroup_TotalTested1 AvgScaleScore1  Lev1_percent1 Lev2_percent1 Lev3_percent1 Lev4_percent1 ProficientOrAbove_percent1 StudentSubGroup_TotalTested2 AvgScaleScore2 Lev1_percent2 Lev2_percent2 Lev3_percent2 Lev4_percent2 ProficientOrAbove_percent2 StudentSubGroup_TotalTested3 AvgScaleScore3 Lev1_percent3 Lev2_percent3 Lev3_percent3 Lev4_percent3 ProficientOrAbove_percent3
-	}
-	if `n' == 8{
-	keep GradeLevel StudentSubGroup_TotalTested1 AvgScaleScore1  Lev1_percent1 Lev2_percent1 Lev3_percent1 Lev4_percent1 ProficientOrAbove_percent1 StudentSubGroup_TotalTested2 AvgScaleScore2 Lev1_percent2 Lev2_percent2 Lev3_percent2 Lev4_percent2 ProficientOrAbove_percent2 StudentSubGroup_TotalTested3 AvgScaleScore3 Lev1_percent3 Lev2_percent3 Lev3_percent3 Lev4_percent3 ProficientOrAbove_percent3 StudentSubGroup_TotalTested4 AvgScaleScore4 Lev1_percent4 Lev2_percent4 Lev3_percent4 Lev4_percent4 ProficientOrAbove_percent4
-	}
-	
-	drop if GradeLevel == "" | GradeLevel == "^To achieve a reading status designation of Grade Level or Above, a student must demonstrate reading skill at the beginning of the grade-level stretch band. "
-	
-	//Reshape Data
-	reshape long StudentSubGroup_TotalTested AvgScaleScore Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent, i(GradeLevel) j(Subject)
-	
-	//Clarify Identifying Information
-	tostring Subject, replace
-	replace Subject = "ela" if Subject == "1"
-	replace Subject = "math" if Subject == "2"
-	replace Subject = "sci" if Subject == "3"
-	replace Subject = "soc" if Subject == "4"
-	tostring GradeLevel, replace
-	replace GradeLevel = "G" + GradeLevel
-	gen DataLevel = "State"
-	gen StudentGroup = "All Students"
-	gen StudentSubGroup = "All Students"
-	append using "`temp3'"
-	save "`temp3'", replace
-	
-	if `n' == 8{
-		append using "$GAdata/GA_OriginalData_2024.dta"
-		save "$GAdata/GA_OriginalData_2024.dta", replace
-	}
-}
-*/
-use "$GAdata/GA_OriginalData_2024.dta", clear
+//Rename Variables
+rename long_school_year SchYear
+rename school_dstrct_nm DistName
+rename school_distrct_cd StateAssignedDistID
+rename instn_name SchName
+rename instn_number StateAssignedSchID
+rename test_cmpnt_typ_nm Subject
+rename acdmc_lvl GradeLevel
+rename subgroup_name StudentSubGroup
+rename begin_cnt Lev1_count
+rename begin_pct Lev1_percent
+rename developing_cnt Lev2_count
+rename developing_pct Lev2_percent
+rename proficient_cnt Lev3_count
+rename proficient_pct Lev3_percent
+rename distinguished_cnt Lev4_count
+rename distinguished_pct Lev4_percent
 
 //Generate Other Variables
-gen SchYear = "2023-24"
 gen AssmtName = "Georgia Milestones EOG"
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
@@ -279,51 +36,135 @@ gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_soc = "N"
 gen Flag_CutScoreChange_sci = "N"
 gen AssmtType = "Regular"
+gen AvgScaleScore = "--"
 gen Lev5_count = ""
 gen Lev5_percent = ""
-gen ProficiencyCriteria = "Levels 3-4"
 gen ParticipationRate = "--"
 
 //Data Levels
+gen DataLevel = "School"
+replace DataLevel = "District" if StateAssignedSchID == "ALL"
+replace DataLevel = "State" if StateAssignedDistID == "ALL"
+
 replace SchName = "All Schools" if DataLevel != "School"
 replace DistName = "All Districts" if DataLevel == "State"
-replace StateAssignedSchID = "" if DataLevel != "School"
-replace StateAssignedDistID = "" if DataLevel == "State"
-drop if DistName == ""
+
+//Groups & SubGroups
+replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "American Indian or Alaskan Native"
+replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
+replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "Native Hawaiian or Other Pacific Islander"
+replace StudentSubGroup = "Two or More" if StudentSubGroup == "Two or More Races"
+replace StudentSubGroup = "English Learner" if StudentSubGroup == "Limited English Proficient"
+replace StudentSubGroup = "English Proficient" if StudentSubGroup == "Not Limited English Proficient"
+replace StudentSubGroup = "SWD" if StudentSubGroup == "Students with Disabilities"
+replace StudentSubGroup = "Non-SWD" if StudentSubGroup == "Students without Disabilities"
+replace StudentSubGroup = "Military" if StudentSubGroup == "Military Connected"
+
+gen StudentGroup = ""
+replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
+replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD" | StudentSubGroup == "Non-SWD"
+replace StudentGroup = "EL Status" if StudentSubGroup == "English Learner" | StudentSubGroup == "English Proficient"
+replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged"
+replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Foster Care"
+replace StudentGroup = "Gender" if StudentSubGroup == "Male" | StudentSubGroup == "Female"
+replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless"
+replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant" | StudentSubGroup == "Non-Migrant"
+replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Military"
+replace StudentGroup = "RaceEth" if StudentSubGroup == "American Indian or Alaska Native"
+replace StudentGroup = "RaceEth" if StudentSubGroup == "Asian"
+replace StudentGroup = "RaceEth" if StudentSubGroup == "Black or African American"
+replace StudentGroup = "RaceEth" if StudentSubGroup == "Hispanic or Latino"
+replace StudentGroup = "RaceEth" if StudentSubGroup == "Native Hawaiian or Pacific Islander"
+replace StudentGroup = "RaceEth" if StudentSubGroup == "White"
+replace StudentGroup = "RaceEth" if StudentSubGroup == "Two or More"
 
 //StudentGroup_TotalTested
-replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == ""
+gen StudentSubGroup_TotalTested = num_tested_cnt
+replace StudentSubGroup_TotalTested = "*" if StudentSubGroup_TotalTested == "TFS"
+replace StudentSubGroup_TotalTested = "--" if inlist(StudentSubGroup_TotalTested, "", ".")
 replace DistName = stritrim(DistName)
 replace SchName = stritrim(SchName)
-sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
-replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
-gen StudentGroup_TotalTested = AllStudents_Tested
-drop AllStudents_Tested
 
-//Reformatting Level Percents
+replace StateAssignedDistID = "00000" if DataLevel == "State"
+replace StateAssignedSchID = "00000" if DataLevel != "School"
+egen uniquegrp = group(DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel)
+sort uniquegrp StudentGroup StudentSubGroup
+by uniquegrp: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+order Subject GradeLevel StudentGroup_TotalTested StudentGroup StudentSubGroup_TotalTested StudentSubGroup
+by uniquegrp: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+replace StudentGroup_TotalTested = "--" if missing(StudentGroup_TotalTested)
+drop if inlist(StudentSubGroup_TotalTested, "0", "*", "--") & StudentSubGroup != "All Students"
+replace StateAssignedDistID = "" if DataLevel == "State"
+replace StateAssignedSchID = "" if DataLevel != "School"
+
+//Reformatting & Deriving Additional Information
+destring num_tested_cnt, replace force
 forvalues n = 1/4{
-	replace Lev`n'_percent = "--" if Lev`n'_percent == ""
-	destring Lev`n'_percent, gen(nLev`n'_percent) force
-	replace nLev`n'_percent = nLev`n'_percent/100
-	replace Lev`n'_percent = string(nLev`n'_percent, "%9.4g") if Lev`n'_percent != "--"
+	replace Lev`n'_percent = Lev`n'_percent/100
+	replace Lev`n'_count = "*" if Lev`n'_count == "TFS"
+	replace Lev`n'_count = "--" if Lev`n'_count == ""
+	gen Lev`n' = Lev`n'_p * num_tested_cnt
+	replace Lev`n' = . if Lev`n' < 0
+	replace Lev`n' = round(Lev`n')
+	tostring Lev`n', replace
+	replace Lev`n'_count = Lev`n' if inlist(Lev`n'_count, "*", "--") & Lev`n' != "."
+	tostring Lev`n'_percent, replace format("%9.3g") force
+	drop Lev`n'
 }
 
-replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == ""
-destring ProficientOrAbove_percent, gen(nProf_percent) force
-replace nProf_percent = nProf_percent/100
-replace ProficientOrAbove_percent = string(nProf_percent, "%9.4g") if ProficientOrAbove_percent != "--"
+//ProficientOrAbove
+gen Proficient_Count = Lev3_count
+gen Distinguished_Count = Lev4_count
+destring Proficient_Count, replace force
+destring Distinguished_Count, replace force
 
-//Generating Counts
+gen ProficiencyCriteria = "Levels 3-4"
+gen ProficientOrAbove_count = Proficient_Count + Distinguished_Count if Proficient_Count !=. & Distinguished_Count !=.
+drop Proficient_Count Distinguished_Count
+
+gen ProficientOrAbove_percent = ProficientOrAbove_count/num_tested_cnt
+
+destring Lev3_percent, gen(Proficient_Percent)
+destring Lev4_percent, gen(Distinguished_Percent)
+replace ProficientOrAbove_percent = Proficient_Percent + Distinguished_Percent if ProficientOrAbove_percent == . & Proficient_Percent != . & Distinguished_Percent != .
+
+//Missing Data
+tostring ProficientOrAbove_count, replace
+replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "." & Lev3_count == "*"
+replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == "." & Lev3_count == "--"
+replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "." & Lev4_count == "*"
+replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == "." & Lev4_count == "--"
+tostring ProficientOrAbove_percent, replace format("%9.3g") force
+replace Lev1_percent = "--" if Lev1_percent == "."
+replace Lev2_percent = "--" if Lev2_percent == "."
+replace Lev3_percent = "--" if Lev3_percent == "."
+replace Lev4_percent = "--" if Lev4_percent == "."
+replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == "."
+replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "--" & ProficientOrAbove_count == "*"
+
+//Suppressing Level Counts for Cases where SGTT > SSGTT
+gen flag = 1 if real(StudentSubGroup_TotalTested) > real(StudentGroup_TotalTested) & real(StudentSubGroup_TotalTested) != . & real(StudentGroup_TotalTested) != .
 forvalues n = 1/4{
-	gen Lev`n'_count = string(round(nLev`n'_percent * real(StudentSubGroup_TotalTested))) if Lev`n'_percent != "--" & StudentSubGroup_TotalTested != "--"
-	replace Lev`n'_count = "--" if Lev`n'_percent == "--"
-	replace Lev`n'_count = "--" if StudentSubGroup_TotalTested == "--"
+	replace Lev`n'_count = "*" if flag == 1
 }
+replace ProficientOrAbove_count = "*" if flag == 1
+drop flag
 
-gen ProficientOrAbove_count = string(round(nProf_percent * real(StudentSubGroup_TotalTested))) if ProficientOrAbove_percent != "--" & StudentSubGroup_TotalTested != "--"
-replace ProficientOrAbove_count = "--" if ProficientOrAbove_percent == "--"
-replace ProficientOrAbove_count = "--" if StudentSubGroup_TotalTested == "--"
+//Grade Levels
+replace GradeLevel = "G38" if GradeLevel == "ALL GRADES"
+replace GradeLevel = "G0" + GradeLevel if GradeLevel != "G38"
+
+//Subject Areas
+replace Subject = "ela" if Subject == "English Language Arts"
+replace Subject = "math" if Subject == "Mathematics"
+replace Subject = "sci" if Subject == "Science"
+replace Subject = "soc" if Subject == "Social Studies"
+drop if Subject == "Physical Science"
+drop if Subject == "sci" & GradeLevel == "G03"
+drop if Subject == "sci" & GradeLevel == "G04"
+drop if Subject == "sci" & GradeLevel == "G06"
+drop if Subject == "sci" & GradeLevel == "G07"
+drop if Subject == "soc" & GradeLevel != "G08"
 
 save "$GAdata/GA_AssmtData_2024.dta", replace
 
@@ -400,45 +241,54 @@ replace DistName = "McDuffie County" if DistName ==  "Mcduffie County"
 replace DistName = "McIntosh County" if DistName == "Mcintosh County"
 replace DistName = "Department of Juvenile Justice" if DistName == "Department Of Juvenile Justice"
 replace DistName = "City Schools of Decatur" if DistName == "City Schools Of Decatur"
+replace DistName = subinstr(DistName, "State Charter Schools Ii", "State Charter Schools II", 1)
 
-replace SchName = "Utopian Academy for the Arts Charter School" if SchName == "Utopian Academy For The Arts Charte"
-replace DistName = "Utopian Academy for the Arts Charter School" if SchName == "Utopian Academy For The Arts Charte"
+replace SchName = subinstr(SchName, " (Virtual)", "", 1)
+
+replace SchName = "Utopian Academy for the Arts Charter School" if SchName == "Utopian Academy For The Arts Charter School"
+replace DistName = "Utopian Academy for the Arts Charter School" if DistName == "State Charter Schools- Utopian Academy For The Arts Charter School"
 replace SchName = "Ivy Preparatory Academy, Inc" if SchName == "Ivy Preparatory Academy Inc"
 replace DistName = "Ivy Preparatory Academy, Inc" if DistName == "Ivy Preparatory Academy Inc"
 replace SchName = "Southwest Georgia S.T.E.M. Charter Academy" if SchName == "Southwest Georgia Stem Charter Acad"
 replace DistName = "Southwest Georgia S.T.E.M. Charter Academy" if DistName == "Southwest Georgia Stem Charter Acad"
-replace SchName = "International Charter School of Atlanta" if SchName == "International Charter School Of Atl"
+replace SchName = "International Charter School of Atlanta" if SchName == "International Charter School Of Atlanta"
 replace DistName = "International Charter School of Atlanta" if DistName == "International Charter School Of Atl"
-replace SchName = "Georgia School for Innovation and the Classics" if SchName == "Georgia School For Innovation And T"
+replace SchName = "Georgia School for Innovation and the Classics" if SchName == "Georgia School For Innovation And The Classics"
 replace DistName = "Georgia School for Innovation and the Classics" if DistName == "Georgia School For Innovation And T"
 replace SchName = "Genesis Innovation Academy for Boys" if SchName == "Genesis Innovation Academy For Boys"
 replace DistName = "Genesis Innovation Academy for Boys" if DistName == "Genesis Innovation Academy For Boys"
-replace SchName = "Genesis Innovation Academy for Girls" if SchName == "Genesis Innovation Academy For Girl"
-replace DistName = "Genesis Innovation Academy for Girls" if DistName == "Genesis Innovation Academy For Girl"
-replace SchName = "SAIL Charter Academy - School for Arts-Infused Learning" if SchName == "Sail Charter Academy - School For A"
+replace SchName = "Genesis Innovation Academy for Girls" if SchName == "Genesis Innovation Academy For Girls"
+replace DistName = "Genesis Innovation Academy for Girls" if DistName == "Genesis Innovation Academy For Girls"
+replace SchName = "SAIL Charter Academy - School for Arts-Infused Learning" if SchName == "Sail Charter Academy - School For Arts-Infused Learning"
 replace DistName = "SAIL Charter Academy - School for Arts-Infused Learning" if DistName == "Sail Charter Academy - School For A"
 replace SchName = "International Academy of Smyrna" if SchName == "International Academy Of Smyrna"
 replace DistName = "International Academy of Smyrna" if DistName == "International Academy Of Smyrna"
-replace SchName = "International Charter Academy of Georgia" if SchName == "International Charter Academy Of Ge"
+replace SchName = "International Charter Academy of Georgia" if SchName == "International Charter Academy Of Georgia"
 replace DistName = "International Charter Academy of Georgia" if DistName == "International Charter Academy Of Ge"
 replace SchName = "SLAM Academy of Atlanta" if SchName == "Slam Academy Of Atlanta"
 replace DistName = "SLAM Academy of Atlanta" if DistName == "Slam Academy Of Atlanta"
 replace SchName = "Statesboro STEAM Academy" if SchName == "Statesboro Steam Academy"
 replace DistName = "Statesboro STEAM Academy" if DistName == "Statesboro Steam Academy"
-replace SchName = "Yi Hwang Academy of Language Excellence" if SchName == "Yi Hwang Academy Of Language Excell"
-replace DistName = "Yi Hwang Academy of Language Excellence" if DistName == "Yi Hwang Academy Of Language Excell"
-replace SchName = "D.E.L.T.A. STEAM Academy" if SchName == "Delta Steam Academy"
-replace DistName = "D.E.L.T.A. STEAM Academy" if DistName == "Delta Steam Academy"
+replace SchName = "Yi Hwang Academy of Language Excellence" if SchName == "Yi Hwang Academy Of Language Excellence"
+replace DistName = "Yi Hwang Academy of Language Excellence" if DistName == "Yi Hwang Academy Of Language Excellence"
+replace SchName = "D.E.L.T.A. STEAM Academy" if SchName == "D.E.L.T.A. Steam Academy"
+replace DistName = "D.E.L.T.A. STEAM Academy" if DistName == "D.E.L.T.A. Steam Academy"
 replace SchName = "Georgia Fugees Academy Charter School" if SchName == "Georgia Fugees Academy Charter Scho"
 replace DistName = "Georgia Fugees Academy Charter School" if DistName == "Georgia Fugees Academy Charter Scho"
 replace SchName = "Atlanta SMART Academy" if SchName == "Atlanta Smart Academy"
 replace DistName = "Atlanta SMART Academy" if DistName == "Atlanta Smart Academy"
-replace SchName = "Destinations Career Academy of Georgia" if SchName == "Destinations Career Academy Of Geor"
+replace SchName = "Destinations Career Academy of Georgia" if SchName == "Destinations Career Academy Of Georgia"
 replace DistName = "Destinations Career Academy of Georgia" if DistName == "Destinations Career Academy Of Geor"
-replace SchName = "Utopian Academy for the Arts Trilith" if SchName == "Utopian Academy For The Arts Trilit"
-replace DistName = "Utopian Academy for the Arts Trilith" if DistName == "Utopian Academy For The Arts Trilit"
+replace SchName = "Utopian Academy for the Arts Trilith" if SchName == "Utopian Academy For The Arts Trilith"
+replace DistName = "Utopian Academy for the Arts Trilith" if DistName == "State Charter Schools- Utopian Academy For The Arts Trilith"
 replace SchName = "DeKalb Brilliance Academy" if SchName == "Dekalb Brilliance Academy"
 replace SchName = "Muscogee Education Transition Center" if SchName == "Muscogee Education Transition Cente"
+replace DistName = "Liberation Academy" if DistName == "State Charter Schools II- Liberation Academy"
+replace DistName = "Miles Ahead Charter School" if DistName == "State Charter Schools II- Miles Ahead Charter School"
+replace DistName = "Peace Academy Charter School" if DistName == "State Charter Schools II- Peace Academy Charter School"
+replace DistName = "Rise Preparatory Charter School" if DistName == "State Charter Schools II- Rise Preparatory Charter School"
+replace DistName = "The Anchor School" if DistName == "State Charter Schools II- The Anchor School"
+replace DistName = "Zest Preparatory Academy School" if DistName == "State Charter Schools II- Zest Preparatory Academy School"
 
 //Unmerged Schools
 replace NCESSchoolID = "130002303482" if SchName == "Odyssey Charter School"
@@ -763,8 +613,6 @@ encode DataLevel, gen(DataLevel_n) label(DataLevel)
 sort DataLevel_n 
 drop DataLevel 
 rename DataLevel_n DataLevel
-
-duplicates drop
 
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode

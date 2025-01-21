@@ -41,4 +41,6 @@ Broadly, the initial file format (and therefore the cleaning code structure) are
 
 05/01/2024: Updated to pull in updated NCES fall 2022 data and correct an unmerged value in 2021.
 
-10/6/2024: Updated to include preliminary 2024 data (only ela & math; no subgroups), match new StudentGroup_TotalTested convention and derive ProficientOrAbove_percent values to avoid getting percentages greater than 1.
+10/06/2024: Updated to include preliminary 2024 data (only ela & math; no subgroups), match new StudentGroup_TotalTested convention and derive ProficientOrAbove_percent values to avoid getting percentages greater than 1.
+
+01/20/2025: Updated to include full 2024 data (with subgroups) and inlcude G38 data for 2015-2024.

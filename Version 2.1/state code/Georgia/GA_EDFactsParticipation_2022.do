@@ -1,17 +1,16 @@
 clear
 set more off
 
-global EDFacts "/Users/miramehta/Documents/EdFacts"
 global GAdata "/Users/miramehta/Documents/GA State Testing Data"
 
 
 foreach s in ela math sci {
-	import delimited "${EDFacts}/2022/GA_EFParticipation_2022_`s'.csv", case(preserve) clear
-	save "${EDFacts}/2022/GA_EFParticipation_2022_`s'.dta", replace
+	import delimited "$GAdata/GA_EFParticipation_2022_`s'.csv", case(preserve) clear
+	save "$GAdata/GA_EFParticipation_2022_`s'.dta", replace
 }
 
-use "${EDFacts}/2022/GA_EFParticipation_2022_ela.dta"
-append using "${EDFacts}/2022/GA_EFParticipation_2022_math.dta" "${EDFacts}/2022/GA_EFParticipation_2022_sci.dta"
+use "$GAdata/GA_EFParticipation_2022_ela.dta"
+append using "$GAdata/GA_EFParticipation_2022_math.dta" "$GAdata/GA_EFParticipation_2022_sci.dta"
 
 
 //Rename and Drop Vars
@@ -74,16 +73,10 @@ append using "`temp1'"
 replace GradeLevel = subinstr(GradeLevel, "Grade ", "G0",.)
 
 //Saving EDFacts Output
-save "${EDFacts}/GA_EFParticipation_2022", replace
+save "$GAdata/GA_EFParticipation_2022", replace
 
 //Merging with 2022
-use "${GAdata}/GA_AssmtData_2022", clear
-
-forvalues year = 2015/2022 {
-if `year' == 2020 continue
-import delimited "${GAdata}/GA_AssmtData_`year'", case(preserve) clear
-save "${GAdata}/GA_AssmtData_`year'", replace
-}
+import delimited "$GAdata/GA_AssmtData_2022", case(preserve) clear
 
 //DataLevel
 label def DataLevel 1 "State" 2 "District" 3 "School"
@@ -93,7 +86,7 @@ drop DataLevel
 rename DataLevel_n DataLevel
 
 //Merging
-merge 1:1 NCESDistrictID NCESSchoolID GradeLevel Subject StudentSubGroup using "${EDFacts}/GA_EFParticipation_2022"
+merge 1:1 NCESDistrictID NCESSchoolID GradeLevel Subject StudentSubGroup using "$GAdata/GA_EFParticipation_2022"
 drop if _merge ==2
 replace ParticipationRate = Participation
 replace ParticipationRate = "--" if missing(ParticipationRate)
@@ -106,5 +99,5 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${GAdata}/GA_AssmtData_2022", replace
-export delimited "${GAdata}/GA_AssmtData_2022", replace
+save "$GAdata/GA_AssmtData_2022", replace
+export delimited "$GAdata/GA_AssmtData_2022", replace

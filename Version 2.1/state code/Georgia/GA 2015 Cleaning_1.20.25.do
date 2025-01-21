@@ -6,6 +6,10 @@ global NCES "/Users/miramehta/Documents/NCES District and School Demographics"
 
 //2014-2015
 import delimited "$GAdata/GA_OriginalData_2015_all.csv", clear
+tostring acdmc_lvl, replace
+save "$GAdata/GA_OriginalData_2015.dta", replace
+import delimited "$GAdata/GA_OriginalData_2015_G38_all.csv", clear
+append using "$GAdata/GA_OriginalData_2015.dta"
 
 //Rename Variables
 rename long_school_year SchYear
@@ -132,8 +136,8 @@ replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == "."
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "--" & ProficientOrAbove_count == "*"
 
 //Grade Levels
-tostring GradeLevel, replace
-replace GradeLevel = "G0" + GradeLevel
+replace GradeLevel = "G38" if GradeLevel == ""
+replace GradeLevel = "G0" + GradeLevel if GradeLevel != "G38"
 
 //Subject Areas
 replace Subject = "ela" if Subject == "English Language Arts"

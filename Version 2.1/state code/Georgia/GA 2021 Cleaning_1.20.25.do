@@ -4,8 +4,13 @@ cd "/Users/miramehta/Documents/"
 global GAdata "/Users/miramehta/Documents/GA State Testing Data"
 global NCES "/Users/miramehta/Documents/NCES District and School Demographics"
 
-//2021-2022
-import delimited "$GAdata/GA_OriginalData_2022_all.csv", clear
+//2020-2021
+import delimited "$GAdata/GA_OriginalData_2021_all.csv", clear
+tostring acdmc_lvl, replace
+save "$GAdata/GA_OriginalData_2021.dta", replace
+import delimited "$GAdata/GA_OriginalData_2021_G38_all.csv", clear
+tostring num_tested_cnt, replace
+append using "$GAdata/GA_OriginalData_2021.dta"
 
 //Rename Variables
 rename long_school_year SchYear
@@ -43,7 +48,7 @@ gen DataLevel = "School"
 replace DataLevel = "District" if StateAssignedSchID == "ALL"
 replace DataLevel = "State" if StateAssignedDistID == "ALL"
 
-replace SchName =  "All Schools" if DataLevel != "School"
+replace SchName = "All Schools" if DataLevel != "School"
 replace DistName = "All Districts" if DataLevel == "State"
 
 replace StateAssignedSchID = "" if DataLevel != "School"
@@ -58,7 +63,7 @@ replace StudentSubGroup = "English Learner" if StudentSubGroup == "Limited Engli
 replace StudentSubGroup = "English Proficient" if StudentSubGroup == "Not Limited English Proficient"
 replace StudentSubGroup = "SWD" if StudentSubGroup == "Students with Disabilities"
 replace StudentSubGroup = "Non-SWD" if StudentSubGroup == "Students without Disabilities"
-replace StudentSubGroup = "Military" if StudentSubGroup == "Military Connected"
+replace StudentSubGroup = "Military" if StudentSubGroup == "Active Duty"
 
 gen StudentGroup = ""
 replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
@@ -79,7 +84,6 @@ replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD" | Student
 replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant" | StudentSubGroup == "Non-Migrant"
 replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Military"
 replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless"
-replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Foster Care"
 
 //StudentGroup_TotalTested
 gen StudentSubGroup_TotalTested = num_tested_cnt
@@ -138,25 +142,24 @@ replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == "."
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "--" & ProficientOrAbove_count == "*"
 
 //Grade Levels
-tostring GradeLevel, replace
-replace GradeLevel = "G0" + GradeLevel
+replace GradeLevel = "G38" if GradeLevel == ""
+replace GradeLevel = "G0" + GradeLevel if GradeLevel != "G38"
 
 //Subject Areas
 replace Subject = "ela" if Subject == "English Language Arts"
 replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "sci" if Subject == "Science"
 replace Subject = "soc" if Subject == "Social Studies"
-drop if Subject == "Physical Science"
 drop if Subject == "sci" & GradeLevel == "G03"
 drop if Subject == "sci" & GradeLevel == "G04"
 drop if Subject == "sci" & GradeLevel == "G06"
 drop if Subject == "sci" & GradeLevel == "G07"
 drop if Subject == "soc" & GradeLevel != "G08"
 
-save "$GAdata/GA_AssmtData_2022.dta", replace
+save "$GAdata/GA_AssmtData_2021.dta", replace
 
 //Clean NCES Data
-import excel "$NCES/NCES School Files, Fall 1997-Fall 2022/NCES_2021_School.xlsx", firstrow clear
+import excel "$NCES/NCES School Files, Fall 1997-Fall 2022/NCES_2020_School.xlsx", firstrow clear
 drop if state_location != "GA"
 rename lea_name DistName
 gen str StateAssignedDistID = substr(state_leaid, 4, 7)
@@ -167,25 +170,25 @@ destring StateAssignedDistID, replace force
 drop if StateAssignedDistID==.
 destring StateAssignedSchID, replace force
 drop if StateAssignedSchID==.
-save "$NCES/Cleaned NCES Data/NCES_2022_School_GA.dta", replace
+save "$NCES/Cleaned NCES Data/NCES_2021_School_GA.dta", replace
 
-import excel "$NCES/NCES District Files, Fall 1997-Fall 2022/NCES_2021_District.xlsx", firstrow clear
+import excel "$NCES/NCES District Files, Fall 1997-Fall 2022/NCES_2020_District.xlsx", firstrow clear
 drop if state_location != "GA"
 rename lea_name DistName
 gen str StateAssignedDistID = substr(state_leaid, 4, 7)
 drop state_leaid
 destring StateAssignedDistID, replace force
 drop if StateAssignedDistID==.
-save "$NCES/Cleaned NCES Data/NCES_2022_District_GA", replace
+save "$NCES/Cleaned NCES Data/NCES_2021_District_GA", replace
 
 //Merge Data
-use "$GAdata/GA_AssmtData_2022.dta", clear
+use "$GAdata/GA_AssmtData_2021.dta", clear
 destring StateAssignedSchID, replace force
 destring StateAssignedDistID, replace force
-merge m:1 StateAssignedDistID using "$NCES/Cleaned NCES Data/NCES_2022_District_GA.dta"
+merge m:1 StateAssignedDistID using "$NCES/Cleaned NCES Data/NCES_2021_District_GA.dta"
 drop if _merge == 2
 
-merge m:1 StateAssignedSchID StateAssignedDistID using "$NCES/Cleaned NCES Data/NCES_2022_School_GA.dta", gen(merge2)
+merge m:1 StateAssignedSchID StateAssignedDistID using "$NCES/Cleaned NCES Data/NCES_2021_School_GA.dta", gen(merge2)
 drop if merge2 == 2
 
 //Clean Merged Data
@@ -204,6 +207,8 @@ tostring StateAssignedSchID, replace
 tostring StateAssignedDistID, replace
 replace StateAssignedSchID = "" if DataLevel != "School"
 replace StateAssignedDistID = "" if DataLevel == "State"
+gen seasch = StateAssignedSchID
+gen State_leaid = StateAssignedDistID
 
 //Unmerged Schools
 replace NCESSchoolID = "130002303482" if SchName == "Odyssey Charter School"
@@ -346,14 +351,10 @@ replace NCESSchoolID = "130026304378" if SchName == "Georgia Fugees Academy Char
 replace SchLevel = "High" if SchName == "Georgia Fugees Academy Charter School"
 replace SchType = "Regular school" if SchName == "Georgia Fugees Academy Charter School"
 replace SchVirtual = "No" if SchName == "Georgia Fugees Academy Charter School"
-replace NCESSchoolID = "130025904374" if SchName == "Atlanta SMART Academy"
-replace SchLevel = "Middle" if SchName == "Atlanta SMART Academy"
-replace SchType = "Regular school" if SchName == "Atlanta SMART Academy"
-replace SchVirtual = "No" if SchName == "Atlanta SMART Academy"
-replace NCESSchoolID = "130026404424" if SchName == "Northwest Classical Academy"
-replace SchLevel = "Primary" if SchName == "Northwest Classical Academy"
-replace SchType = "Regular school" if SchName == "Northwest Classical Academy"
-replace SchVirtual = "No" if SchName == "Northwest Classical Academy"
+replace NCESSchoolID = "130026004375" if SchName == "Harriet Tubman School of Science & Technology"
+replace SchLevel = "Primary" if SchName == "Harriet Tubman School of Science & Technology"
+replace SchType = "Regular school" if SchName == "Harriet Tubman School of Science & Technology"
+replace SchVirtual = "No" if SchName == "Harriet Tubman School of Science & Technology"
 
 //Label & Organize Variables
 label var State "State name"
@@ -413,5 +414,5 @@ order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistric
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "$GAdata/GA_AssmtData_2022", replace
-export delimited "$GAdata/GA_AssmtData_2022", replace
+save "$GAdata/GA_AssmtData_2021", replace
+export delimited "$GAdata/GA_AssmtData_2021", replace

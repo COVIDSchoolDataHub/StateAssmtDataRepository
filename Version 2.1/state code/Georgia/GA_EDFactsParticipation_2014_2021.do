@@ -244,14 +244,8 @@ foreach year of local edyears2 {
 	}
 }
 */
-//Conversion to DTA
-forvalues year = 2014/2023 {
-if `year' == 2020 continue
-import delimited "${GAdata}/GA_AssmtData_`year'", case(preserve) clear
-save "${GAdata}/GA_AssmtData_`year'", replace
-}
 
-//Merging Example
+//Merging
 forvalues year = 2014/2021 {
 if `year' == 2020 continue
 import delimited "${GAdata}/GA_AssmtData_`year'.csv", case(preserve) clear
