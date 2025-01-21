@@ -2067,23 +2067,24 @@ foreach var of local sgtt {
 }
 
 ***********************************************************
-*StudentGroup_TotalTested 
+*StudentGroup_TotalTested
 
-** • Have low StudentGroup_TotalTested values across all years been reviewed for irregularities?
+** • Have low StudentGroup_TotalTested values across all years been reviewed for irregularities? (updated 1/21/25)
 {
-sort  FILE StudentGroup_TotalTested
+gen sgtt_n = real(StudentGroup_TotalTested)
+sort  FILE sgtt_n
 by FILE: gen  sg_tt_low = _n //Number observations by year from lowest StudentGroup_TotalTested value to highest
 tab  FILE StudentGroup_TotalTested if sg_tt_low < 11  //Look at lowest 10 values for each file
 tab FILE StudentGroup_TotalTested if StudentGroup_TotalTested < "1"  // additional check
 }
 
-** • Have high StudentGroup_TotalTested values across all years been reviewed for irregularities?
+** • Have high StudentGroup_TotalTested values across all years been reviewed for irregularities? (updated 1/21/25)
 {
-gsort  FILE -StudentGroup_TotalTested
+gsort  FILE -sgtt_n
 by FILE: gen  sg_tt_high = _n //Number observations by year from highest StudentGroup_TotalTested value to lowest
 tab  FILE StudentGroup_TotalTested if sg_tt_high < 11 //Look at highest 10 values for each file
 
-drop sg_tt_low sg_tt_high // drop vars no longer needed
+drop sgtt_n sg_tt_low sg_tt_high // drop vars no longer needed
 }
 ***********************************************************
 *StudentGroup_TotalTested 
@@ -2301,7 +2302,7 @@ drop allstudents_flag
 ***********************************************************	
 *StudentSubGroup_TotalTested
  
-** • Has it been verified that the sum of student subgroup counts do not exceed the All Students count? (updated 1/16/25)
+** • Has it been verified that the sum of student subgroup counts do not exceed the All Students count? (updated 1/21/25)
 {
 cap drop AllStudents
 replace StateAssignedDistID = "000000" if DataLevel == "State"
@@ -2339,7 +2340,7 @@ if r(N) > 0 {
 
     preserve
     keep if flag == 1 & StudentGroup != "RaceEth"
-	keep FILE	State	DataLevel	DistName	SchName	NCESDistrictID		NCESSchoolID	AssmtName	AssmtType	Subject	GradeLevel	StudentGroup	StudentGroup_TotalTested	StudentSubGroup	StudentSubGroup_TotalTested	Lev1_count	Lev1_percent	Lev2_count	Lev2_percent	Lev3_count	Lev3_percent	Lev4_count	Lev4_percent	Lev5_count	Lev5_percent uniquegrp_sg	uniquegrp	AllStudents	exclude	group_sum	flag
+	keep FILE	State	DataLevel	DistName	SchName	NCESDistrictID		NCESSchoolID	AssmtName	AssmtType	Subject	GradeLevel	StudentGroup	StudentGroup_TotalTested	StudentSubGroup	StudentSubGroup_TotalTested	Lev1_count	Lev1_percent	Lev2_count	Lev2_percent	Lev3_count	Lev3_percent	Lev4_count	Lev4_percent	Lev5_count	Lev5_percent uniquegrp_sg	uniquegrp	AllStudents	exclude	sg_sum	flag
 	sort FILE DistName SchName AssmtType Subject GradeLevel StudentGroup StudentSubGroup 
     cap export excel using "${Review}/${StateAbbrev}_ssgtt_sum_greater_than_sgtt_NotRace_${date}.xlsx", firstrow(variables) replace
     restore
@@ -2349,7 +2350,7 @@ if r(N) > 0 {
 		di as error "Correct."
 		}
 
-drop uniquegrp_sg uniquegrp flag exclude
+drop uniquegrp_sg uniquegrp flag exclude sg_sum
 }
 
 ***********************************************************	
@@ -2471,22 +2472,23 @@ cap drop testedcount dup
 
 ***********************************************************
 
-** • Have low StudentSubGroup_TotalTested values across all years been reviewed for irregularities?
+** • Have low StudentSubGroup_TotalTested values across all years been reviewed for irregularities? (updated 1/21/25)
 {
-sort  FILE StudentSubGroup_TotalTested
+gen ssgtt_n = real(StudentSubGroup_TotalTested)
+sort FILE ssgtt_n
 by FILE: gen  ssg_tt_low = _n //Number observations by year from lowest StudentSubGroup_TotalTested value to highest
 tab  FILE StudentSubGroup_TotalTested if ssg_tt_low < 11  //Look at lowest 10 values for each file
 tab FILE StudentSubGroup_TotalTested if StudentSubGroup_TotalTested < "1"  // additional check
 }
 
 
-** • Have high StudentSubGroup_TotalTested values across all years been reviewed for irregularities?
+** • Have high StudentSubGroup_TotalTested values across all years been reviewed for irregularities? (updated 1/21/25)
 {
-gsort  FILE -StudentSubGroup_TotalTested
+gsort  FILE -ssgtt_n
 by FILE: gen  ssg_tt_high = _n //Number observations by year from highest StudentSubGroup_TotalTested value to lowest
 tab  FILE StudentSubGroup_TotalTested if ssg_tt_high < 11 //Look at highest 10 values for each file
 
-drop ssg_tt_low ssg_tt_high
+drop ssgtt_n ssg_tt_low ssg_tt_high
 }
 
 ***********************************************************
@@ -3473,9 +3475,6 @@ count if tot_levpcts>1.03 & levcount_rng_flag !=1
 drop  Lev1_percent1 Lev1_percent2 Lev1_percent2_n Lev2_percent1 Lev2_percent2 Lev2_percent2_n Lev3_percent1 Lev3_percent2 Lev3_percent2_n Lev4_percent1 Lev4_percent2 Lev4_percent2_n Lev5_percent2 Lev5_percent2_n 
 }	
 
-
-*Drop after above is correct 
-drop levcount_rng_flag tot_levpcts
 ***********************************************************
 *Level percents 
 
@@ -3483,19 +3482,26 @@ drop levcount_rng_flag tot_levpcts
 
 {
 di as error "Below rows have percent total lower than 50%. NOTE: To dig into this, you may need to focus on specific years or subject errors."
-list n_all NCESSchoolID NCESDistrictID if tot_levelpercents<.50 & tot_levelpercents !=0
+list n_all NCESSchoolID NCESDistrictID if tot_levpcts<.50 & tot_levpcts !=0
 }
+
+*Drop after above is correct 
+drop levcount_rng_flag tot_levpcts
+
 ***********************************************************
 *Level percents 
 
-** • Are all percents presented as decimals? [or decimal ranges]
+** • Are all percents presented as decimals? [or decimal ranges] (updated 1/21/25)
 {
-tab Lev1_p if Lev1_p>1 | Lev1_p <0
-tab Lev2_p if Lev2_p>1 | Lev2_p <0
-tab Lev3_p if Lev3_p>1 | Lev3_p <0
-tab Lev4_p if Lev4_p>1 | Lev4_p <0
-tab Lev5_p if Lev5_p>1 | Lev5_p <0
+tab Lev1_percent_2_n if Lev1_percent_2_n>1 | Lev1_percent_2_n <0
+tab Lev2_percent_2_n if Lev2_percent_2_n>1 | Lev2_percent_2_n <0
+tab Lev3_percent_2_n if Lev3_percent_2_n>1 | Lev3_percent_2_n <0
+tab Lev4_percent_2_n if Lev4_percent_2_n>1 | Lev4_percent_2_n <0
+tab Lev5_percent_2_n if Lev5_percent_2_n>1 | Lev5_percent_2_n <0
 }
+
+drop Lev1_percent_2_n Lev2_percent_2_n Lev3_percent_2_n Lev4_percent_2_n Lev5_percent_2_n
+
 ***********************************************************
 * Level percents 
 
