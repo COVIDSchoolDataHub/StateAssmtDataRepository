@@ -6,7 +6,7 @@ global Output "/Users/kaitlynlucas/Desktop/maine/output"
 global NCES_School "/Users/kaitlynlucas/Desktop/maine/nces clean"
 global NCES_District "/Users/kaitlynlucas/Desktop/maine/nces clean"
 
-/*
+
 //Running Do files and Combining Original and Data Request Data
 local dofiles ME_Cleaning_2015.do ME_Cleaning_2016-2019.do ME_Cleaning_2021-2022.do ME_Cleaning_2023.do
 
@@ -242,3 +242,5 @@ export delimited "${Output}/ME_AssmtData_`year'", replace
 	
 clear	
 }
+
+do ME_2024_DataRequest_01.16.25.do
