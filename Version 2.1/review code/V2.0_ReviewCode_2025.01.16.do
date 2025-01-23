@@ -1,5 +1,5 @@
 *****************************************************************************
-**	Updated January 16, 2025
+**	Updated January 23, 2025
 
 
 ** 	ZELMA STATE ASSESSMENT DATA REPOSITORY 
@@ -12,14 +12,15 @@
 **	3. Create a folder called "review" in the state folder in case you need to export any subsets of the data.
 **	4. This do file should be saved in the state folder with the .csvs.
 clear 
-use "C:\Users\Clare\Desktop\Zelma V2.0\North Dakota - Version 2.0/ND_allyears.dta" 
+use "\Desktop\Zelma V2.0\North Dakota - Version 2.0/ND_allyears.dta" 
 ***************************************
 {
 clear all
-global Filepath "C:\Users\Clare\Desktop\Zelma V2.0\North Dakota - Version 2.0" //  Set path to csv files
+global Filepath "\Desktop\Zelma V2.0\North Dakota - Version 2.0" //  Set path to csv files
 global Review "${Filepath}/review" 
+global State "North Dakota" //Set State Name 
 global StateAbbrev "ND" //Set StateAbbrev
-global date "01.16.25" //Set today's date
+global date "01.23.25" //Set today's date
 global years 2024 2023  2022 2021 2019  2018 2017 2016 2015 //  2014 2013 2012 2011 2010 2009 2008 2007 2006 2005 2004 2003 2002 2001 2000 1999 1998
 
 clear
@@ -245,8 +246,25 @@ if `errorBlanks' == 0 {
 
 ** • Is the state name spelled correctly/capitalized?
 {
-tab  State SchYear  // should be only one value.
-di as error "State name spelling and spacing should be VERIFIED by cleaner and reviewer"
+// Define the list of valid state names
+local states "Alabama Alaska Arizona Arkansas California Colorado Connecticut Delaware Florida Georgia Hawaii Idaho Illinois Indiana Iowa Kansas Kentucky Louisiana Maine Maryland Massachusetts Michigan Minnesota Mississippi Missouri Montana Nebraska Nevada 'New Hampshire' 'New Jersey' 'New Mexico' 'New York' 'North Carolina' 'North Dakota' Ohio Oklahoma Oregon Pennsylvania 'Rhode Island' 'South Carolina' 'South Dakota' Tennessee Texas Utah Vermont Virginia Washington 'West Virginia' Wisconsin Wyoming"
+
+gen state_valid = 0
+
+foreach state in `states' {
+    replace state_valid = 1 if State == "`state'"
+	}
+
+// Summary
+count if !inlist(state_valid, 1)
+ if r(N)>0 {
+ 	di as error "State is spelled incorrectly in the following files."
+ 	tab FILE if !inlist(state_valid, 1)
+	 }
+	
+	else {
+		di as error "Correct"
+	}
 }
 
 ***********************************************************
