@@ -1,12 +1,12 @@
 clear
 set more off
 
-cd "/Volumes/T7/State Test Project/Illinois"
+cd "/Users/miramehta/Documents"
 
-global NCESSchool "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
-global NCESDistrict "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
-global NCES "/Volumes/T7/State Test Project/Illinois/NCES"
-global EDFacts "/Volumes/T7/State Test Project/EDFACTS"
+global NCESSchool "/Users/miramehta/Documents/NCES District and School Demographics/NCES School Files, Fall 1997-Fall 2022"
+global NCESDistrict "/Users/miramehta/Documents/NCES District and School Demographics/NCES District Files, Fall 1997-Fall 2022"
+global NCES "/Users/miramehta/Documents/Illinois/NCES"
+global EDFacts "/Users/miramehta/Documents/EDFacts"
 
 ** Converting EDFacts files to .dta Format, hide after first run
 /*
@@ -259,11 +259,11 @@ clear
 
 
 //Importing
-import delimited "${EDFacts}/2022/edfactscountpartelasci2022Illinois", case(preserve)
+import delimited "${raw}/edfactscountpartelasci2022Illinois", case(preserve) clear
 
-save "${EDFacts}/2022/edfactscountpartelasci2022Illinois", replace
+save "${raw}/edfactscountpartelasci2022Illinois", replace
 
-use "${EDFacts}/2022/edfactscountpartelasci2022Illinois", clear
+use "${raw}/edfactscountpartelasci2022Illinois", clear
 
 
 //Keep Relevant Data

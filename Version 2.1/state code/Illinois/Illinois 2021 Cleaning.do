@@ -7,7 +7,12 @@ global output "/Users/benjaminm/Documents/State_Repository_Research/Illinois/Out
 global NCES "/Users/benjaminm/Documents/State_Repository_Research/Illinois/NCES/cleaned"
 global EDFacts  "/Users/benjaminm/Documents/State_Repository_Research/EdFacts"
 
-cd "/Users/benjaminm/Documents/State_Repository_Research/Illinois"
+global raw "/Users/miramehta/Documents/Illinois/Original Data Files"
+global output "/Users/miramehta/Documents/Illinois/Original Data Files"
+global NCES "/Users/miramehta/Documents/Illinois/NCES"
+global EDFacts "/Users/miramehta/Documents/EDFacts"
+
+*cd "/Users/benjaminm/Documents/State_Repository_Research/Illinois"
 
 
 **** Sci
@@ -31,6 +36,13 @@ rename StateDistrictSchool DataLevel
 rename ALL AvgScaleScore
 gen StudentSubGroup = "All Students"
 drop if missing(StateAssignedSchID)
+
+//DataLevel
+replace DataLevel = "School" if DataLevel == "SCHL"
+replace DataLevel = "District" if DataLevel == "DIST"
+replace DataLevel = "State" if DataLevel == "STATE"
+replace StateAssignedSchID = "" if DataLevel == "State"
+
 //Saving
 tempfile avgscalescore
 save "`avgscalescore'", replace
@@ -69,8 +81,8 @@ rename Migrant ParticipationRateMig
 rename IEP ParticipationRateIEP
 rename NotIEP ParticipationRateNonIEP
 
-
 drop if DataLevel == "" & StateAssignedSchID == ""
+
 //Reshape
 reshape long ParticipationRate, i(StateAssignedSchID GradeLevel) j(StudentSubGroup, string)
 
@@ -102,6 +114,12 @@ replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD" | Student
 replace ParticipationRate = string((real(ParticipationRate)/100), "%9.3g") if !missing(ParticipationRate)
 replace ParticipationRate = "*" if ParticipationRate == "."
 
+//DataLevel
+replace DataLevel = "School" if DataLevel == "SCHL"
+replace DataLevel = "District" if DataLevel == "DIST"
+replace DataLevel = "State" if DataLevel == "STATE"
+replace StateAssignedSchID = "" if DataLevel == "State"
+
 //Saving
 tempfile participation
 save "`participation'", replace
@@ -109,96 +127,107 @@ clear
 
 **Sci performance
 
-//Importing
-use "$output/IL_AssmtData_2021_sci_5.dta"
-append using "$output/IL_AssmtData_2021_sci_8.dta"
+use "${output}/IL_AssmtData_2021_sci_performance.dta", clear
 
-drop County DIST City AverageScaleScore
-
-//Renaming
+//Renaming & Reshaping
 rename RCDTS StateAssignedSchID
-rename SchoolorDistrictName SchName
-rename StateDistrictSchool DataLevel
-rename Grade GradeLevel
-replace GradeLevel = "G" + GradeLevel
-rename All ProficientOrAbove_percentAll
-rename Male ProficientOrAbove_percentMale
-rename Female ProficientOrAbove_percentFemale
-rename White ProficientOrAbove_percentWhite
-rename Black ProficientOrAbove_percentBlack
-rename Hispanic ProficientOrAbove_percentHisp
-rename Asian ProficientOrAbove_percentAsian
-rename HawaiianPacificIslander ProficientOrAbove_percentHawaii
-rename NativeAmerican ProficientOrAbove_percentNative
-rename TwoorMoreRaces ProficientOrAbove_percentTwo
-rename EL ProficientOrAbove_percentLearner
-rename NotEL ProficientOrAbove_percentProf
-rename LowIncome ProficientOrAbove_percentDis
-rename NotLowIncome ProficientOrAbove_percentNotDis
-rename Migrant ProficientOrAbove_percentMig
-rename IEP ProficientOrAbove_percentIEP
-rename NotIEP ProficientOrAbove_percentNonIEP
+rename SchoolName SchName
+rename DistrictName DistName
+rename AggregationLevel DataLevel
 
-//Reshape
-reshape long ProficientOrAbove_percent, i(StateAssignedSchID GradeLevel) j(StudentSubGroup, string)
+rename *Emerging_Grade5 Lev1_Grade5*
+rename *Emerging_Grade8 Lev1_Grade8*
+rename *Developing_Grade5 Lev2_Grade5*
+rename *Developing_Grade8 Lev2_Grade8* 
+rename *Proficient_Grade5 Lev3_Grade5*
+rename *Proficient_Grade8 Lev3_Grade8*
+rename *Exemplary_Grade5 Lev4_Grade5*
+rename *Exemplary_Grade8 Lev4_Grade8*
 
-//StudentSubGroup
-replace StudentSubGroup = "All Students" if StudentSubGroup == "All"
-replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "Native"
+rename GenderNonBinary_Developing_Grade Lev2_Grade5GenderNonBinary
+rename GenderNonBinary_Proficient_Grade Lev3_Grade5GenderNonBinary
+rename CQ Lev2_Grade8GenderNonBinary
+rename CR Lev3_Grade8GenderNonBinary
+rename *GenderNonBinary_ *GenderNB_
+rename *GenderNonBinary *GenderNB_
+
+drop *_Grade11 *_Grade1 FO FP Year
+drop if StateAssignedSchID == ""
+
+reshape long Lev1_Grade5 Lev1_Grade8 Lev2_Grade5 Lev2_Grade8 Lev3_Grade5 Lev3_Grade8 Lev4_Grade5 Lev4_Grade8, i(DataLevel DistName SchName StateAssignedSchID) j(StudentSubGroup) string
+
+reshape long Lev1 Lev2 Lev3 Lev4, i(DataLevel DistName SchName StateAssignedSchID StudentSubGroup) j(GradeLevel) string
+
+rename Lev* Lev*_percent
+
+replace GradeLevel = subinstr(GradeLevel, "_Grade", "G0", 1)
+
+//StudentGroup & StudentSubGroup
+gen StudentGroup = "All Students"
+replace StudentGroup = "Disability Status" if strpos(StudentSubGroup, "IEP") != 0
+replace StudentGroup = "Economic Status" if strpos(StudentSubGroup, "LowIncome") != 0
+replace StudentGroup = "EL Status" if strpos(StudentSubGroup, "LEP") != 0
+replace StudentGroup = "Gender" if strpos(StudentSubGroup, "Gender") != 0
+replace StudentGroup = "Homeless Enrolled Status" if strpos(StudentSubGroup, "Homeless") != 0
+replace StudentGroup = "Military Connected Status" if strpos(StudentSubGroup, "Military") != 0
+replace StudentGroup = "RaceEth" if strpos(StudentSubGroup, "Race") != 0
+
+replace StudentSubGroup = "All Students" if StudentSubGroup == "All_Students_"
+replace StudentSubGroup = subinstr(StudentSubGroup, "_", "", 1)
+replace StudentSubGroup = subinstr(StudentSubGroup, "Gender", "", 1)
+replace StudentSubGroup = subinstr(StudentSubGroup, "Race", "", 1)
+drop if inlist(StudentSubGroup, "CWD", "YIC")
+
+replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "AmerIndian"
 replace StudentSubGroup = "Black or African American" if StudentSubGroup == "Black"
-replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "Hawaii"
-replace StudentSubGroup = "Two or More" if StudentSubGroup == "Two"
-replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hisp"
-replace StudentSubGroup = "English Learner" if StudentSubGroup == "Learner"
-replace StudentSubGroup = "English Proficient" if StudentSubGroup == "Prof"
-replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Dis"
-replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "NotDis"
+replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "LowIncome"
+replace StudentSubGroup = "English Learner" if StudentSubGroup == "LEP"
+replace StudentSubGroup = "Gender X" if StudentSubGroup == "NB"
+replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic"
+replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "PacIsland"
+replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "NonLowIncome"
 replace StudentSubGroup = "SWD" if StudentSubGroup == "IEP"
-replace StudentSubGroup = "Non-SWD" if StudentSubGroup == "NonIEP"
-replace StudentSubGroup = "Migrant" if StudentSubGroup == "Mig"
+replace StudentSubGroup = "Two or More" if StudentSubGroup == "2More"
 
-//StudentGroup
-gen StudentGroup = "RaceEth"
-replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
-replace StudentGroup = "EL Status" if StudentSubGroup == "English Learner" | StudentSubGroup == "English Proficient"
-replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged"
-replace StudentGroup = "Gender" if StudentSubGroup == "Male" | StudentSubGroup == "Female"
-replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant"
-replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD" | StudentSubGroup == "Non-SWD"
+//Level Percents
+forvalues n = 1/4{
+	replace Lev`n'_percent = "*" if Lev`n'_percent == "NULL"
+	replace Lev`n'_percent = string(real(Lev`n'_percent)/100, "%9.3g") if Lev`n'_percent != "*"
+}
+gen Lev5_percent = ""
 
 //ProficientOrAbove_percent
-replace ProficientOrAbove_percent = string(real(ProficientOrAbove_percent)/100, "%9.3g")
-replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
+gen ProficientOrAbove_percent = string(real(Lev3_percent) + real(Lev4_percent), "%9.3g") if !missing(real(Lev3_percent)) & !missing(real(Lev4_percent))
+replace ProficientOrAbove_percent = string(1 - real(Lev1_percent) - real(Lev2_percent), "%9.3g") if missing(real(ProficientOrAbove_percent)) & !missing(real(Lev1_percent)) & !missing(real(Lev2_percent))
+replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == ""
 
 //Merging with other files
-merge 1:1 StateAssignedSchID DataLevel StudentSubGroup GradeLevel using "`participation'"
-replace ProficientOrAbove_percent = "--" if _merge ==2
+replace StateAssignedSchID = "" if DataLevel == "State"
+merge 1:1 StateAssignedSchID DataLevel GradeLevel StudentSubGroup using "`participation'"
+replace ParticipationRate = "--" if _merge == 1
+drop if _merge == 2
 drop _merge
 merge 1:1 StateAssignedSchID DataLevel GradeLevel StudentSubGroup using "`avgscalescore'"
 tostring AvgScaleScore, replace
+drop if _merge == 2
 replace AvgScaleScore = "--" if _merge !=3
 drop _merge
 
 //DataLevel
-replace DataLevel = "School" if DataLevel == "SCHL"
-replace DataLevel = "District" if DataLevel == "DIST"
-replace DataLevel = "State" if DataLevel == "STATE"
 label def DataLevel 1 "State" 2 "District" 3 "School"
 encode DataLevel, gen(DataLevel_n) label(DataLevel)
 sort DataLevel_n 
 drop DataLevel 
 rename DataLevel_n DataLevel
 replace SchName = "All Schools" if DataLevel !=3
-replace SchName = "All Districts" if DataLevel == 1
+replace DistName = "All Districts" if DataLevel == 1
 
 //Other Variables
 forvalues n = 1/4 {
-	gen Lev`n'_percent = "--"
 	gen Lev`n'_count = "--"
 }
 
 gen Lev5_count = ""
-gen Lev5_percent = ""
 gen ProficientOrAbove_count = "--"
 
 gen ProficiencyCriteria = "Levels 3-4"

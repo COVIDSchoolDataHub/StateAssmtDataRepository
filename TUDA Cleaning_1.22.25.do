@@ -45,7 +45,7 @@ drop SchName NCESSchoolID StateAssignedSchID StudentSubGroup StudentSubGroup_Tot
 
 save "$Output/TUDA_intermediate.dta", replace
 
-//NY
+//NY Importing
 clear
 tempfile temp2
 save "`temp2'", empty
@@ -66,7 +66,7 @@ drop SchName NCESSchoolID StateAssignedSchID StudentSubGroup StudentSubGroup_Tot
 
 sort SchYear Subject GradeLevel DistName
 
-//Aggregation
+//NY Aggregation
 egen uniquegrp = group(SchYear Subject GradeLevel)
 local countvars "StudentGroup_TotalTested Lev1_count Lev2_count Lev3_count Lev4_count ProficientOrAbove_count"
 foreach var of local countvars {
@@ -99,14 +99,18 @@ tostring StudentGroup_TotalTested, replace
 
 replace DistName = "New York City - Aggregated Values"
 replace NCESDistrictID = .
+replace StateAssignedDistID = "N/A"
 replace AvgScaleScore = "--"
 
+//Final Cleaning & Export
 append using "$Output/TUDA_intermediate.dta"
 
 tostring NCESDistrictID, replace
-replace NCESDistrictID = "N/A" if NCESDistrictID == "."
+replace NCESDistrictID = "N/A" if NCESDistrictID == "." 
 
 order State StateAbbrev StateFips SchYear DataLevel DistName NCESDistrictID StateAssignedDistID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math  DistType DistLocale
+
+save "$Output/TUDA_StateAssmtData.dta", replace
 
 local years "2021-22 2022-23 2023-24"
 foreach year of local years {
