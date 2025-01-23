@@ -2728,6 +2728,7 @@ gen der_L1_ct_lev45 = .
 	// L1 summary
 	gen der_L1 = .
 	cap replace der_L1 = 1 if (der_L1_ct_lev23 == 1 | der_L1_ct_lev34 == 1 | der_L1_ct_lev35 == 1 | der_L1_ct_lev45 == 1)
+	replace der_L1 = . if StateAbbrev == "ME" & inlist(FILE, "2021", "2022") & Subject != "sci"
 	gsort -der_L1
 
 	drop der_L1_ct_lev23 der_L1_ct_lev34 der_L1_ct_lev35 der_L1_ct_lev45
@@ -2751,6 +2752,16 @@ gen der_L2_ct_lev34 = .
         (inlist(Lev2_count, "*", "--") & !inlist(Lev1_count, "*", "--") & ///
         !inlist(Lev3_count, "*", "--") & !inlist(Lev4_count, "*", "--") & ///
         !inlist(StudentSubGroup_TotalTested, "*", "--"))
+	if StateAbbrev == "ME" & inlist(FILE, "2021", "2022") & Subject != "sci" {
+		replace der_L2_ct_lev34 = .
+		replace der_L2_ct_lev34 = ProficiencyCriteria == "Levels 3-4" & ///
+        (inlist(Lev2_count, "*", "--") & !inlist(ProficientOrAbove_count, "*", "--") & ///
+		!inlist(StudentSubGroup_TotalTested, "*", "--"))
+		replace der_L2_ct_lev34 = ProficiencyCriteria == "Levels 3-4" & ///
+        (inlist(Lev2_count, "*", "--") & !inlist(Lev3_count, "*", "--") & ///
+        !inlist(Lev3_count, "*", "--") & !inlist(Lev4_count, "*", "--") & ///
+        !inlist(StudentSubGroup_TotalTested, "*", "--"))
+	}
 
 gen der_L2_ct_lev35 = .
     replace der_L2_ct_lev35 = ProficiencyCriteria == "Levels 3-5" & ///
@@ -2775,7 +2786,6 @@ gen der_L2_ct_lev45 = .
     gen der_L2 = .
     cap replace der_L2 = 1 if (der_L2_ct_lev23 == 1 | der_L2_ct_lev34 == 1 | der_L2_ct_lev35 == 1 | der_L2_ct_lev45 == 1)
     gsort -der_L2
-
     drop der_L2_ct_lev23 der_L2_ct_lev34 der_L2_ct_lev35 der_L2_ct_lev45
 }
 
@@ -3205,6 +3215,7 @@ gen der_L1_per_lev45 = .
 	// L1 summary 
 	gen der_L1 = .
 	cap replace der_L1 = 1 if (der_L1_per_lev23 == 1 | der_L1_per_lev34 == 1 | der_L1_per_lev35 == 1 | der_L1_per_lev45 == 1)
+	replace der_L1 = . if StateAbbrev == "ME" & inlist(FILE, "2021", "2022") & Subject != "sci"
 	gsort -der_L1
 
 	drop der_L1_per_lev23 der_L1_per_lev34 der_L1_per_lev35 der_L1_per_lev45
@@ -3224,6 +3235,16 @@ gen der_L2_per_lev34 = .
 		(inlist(Lev2_percent, "*", "--") & !inlist(Lev1_percent, "*", "--") & !inlist(ProficientOrAbove_percent, "*", "--")) 
 	replace der_L2_per_lev34 = 1 if ProficiencyCriteria == "Levels 3-4" & ///
 		(inlist(Lev2_percent, "*", "--") & !inlist(Lev1_percent, "*", "--") & !inlist(Lev3_percent, "*", "--") & !inlist(Lev4_percent, "*", "--"))
+	if StateAbbrev == "ME" & inlist(FILE, "2021", "2022") & Subject != "sci" {
+		replace der_L2_ct_lev34 = .
+		replace der_L2_ct_lev34 = ProficiencyCriteria == "Levels 3-4" & ///
+        (inlist(Lev2_count, "*", "--") & !inlist(ProficientOrAbove_count, "*", "--") & ///
+		!inlist(StudentSubGroup_TotalTested, "*", "--"))
+		replace der_L2_ct_lev34 = ProficiencyCriteria == "Levels 3-4" & ///
+        (inlist(Lev2_count, "*", "--") & !inlist(Lev3_count, "*", "--") & ///
+        !inlist(Lev3_count, "*", "--") & !inlist(Lev4_count, "*", "--") & ///
+        !inlist(StudentSubGroup_TotalTested, "*", "--"))
+	}
 
 
 gen der_L2_per_lev35 = .
@@ -3905,7 +3926,12 @@ foreach var of local vars {
 		(inlist(ProficientOrAbove_count, "*", "--", "") & !inlist(Lev3_count, "*", "--", "") & !inlist(Lev4_count, "*", "--", "")) ///  
 		| (inlist(ProficientOrAbove_count, "*", "--", "") & !inlist(Lev1_count, "*", "--", "") & !inlist(Lev2_count, "*", "--", "") & !inlist(StudentSubGroup_TotalTested, "*", "--", "")) ///  
 		| (inlist(ProficientOrAbove_count, "*", "--", "") & !inlist(ProficientOrAbove_percent, "*", "--", "") & !inlist(StudentSubGroup_TotalTested, "*", "--", "")) ///
-	)		
+	)
+	if StateAbbrev == "ME" & inlist(FILE, "2021", "2022") & Subject != "sci"{
+		replace derive_profabvcount_lev34 = 1 if ProficiencyCriteria == "Levels 3-4" & ( ///
+		(inlist(ProficientOrAbove_count, "*", "--", "") & !inlist(Lev2_count, "*", "--", "") & !inlist(StudentSubGroup_TotalTested, "*", "--", ""))
+	)
+	}
 
 // Levels 3-5	
 	gen derive_profabvcount_lev35 = .
@@ -4346,6 +4372,12 @@ gen der_profabvper_lev34 = .
 		| (inlist(ProficientOrAbove_percent, "*", "--") & !inlist(Lev1_percent, "*", "--") & !inlist(Lev2_percent, "*", "--") & !inlist(StudentSubGroup_TotalTested, "*", "--")) ///  
 		| (inlist(ProficientOrAbove_percent, "*", "--") & !inlist(ProficientOrAbove_count, "*", "--") & !inlist(StudentSubGroup_TotalTested, "*", "--")) ///
 	)
+	
+	if StateAbbrev == "ME" & inlist(FILE, "2021", "2022") & Subject != "sci"{
+		replace der_profabvper_lev34 = 1 if ProficiencyCriteria == "Levels 3-4" & ( ///
+		(inlist(ProficientOrAbove_percent, "*", "--", "") & !inlist(Lev2_percent, "*", "--", "")
+	)
+	}
 
 	count if der_profabvper_lev34 == 1
 	if r(N) > 0 {
