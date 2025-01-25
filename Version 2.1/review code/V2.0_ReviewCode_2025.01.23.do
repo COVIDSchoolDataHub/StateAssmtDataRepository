@@ -1,5 +1,5 @@
 *****************************************************************************
-**	Updated January 23, 2025
+**	Updated January 25, 2025
 
 
 ** 	ZELMA STATE ASSESSMENT DATA REPOSITORY 
@@ -12,15 +12,15 @@
 **	3. Create a folder called "review" in the state folder in case you need to export any subsets of the data.
 **	4. This do file should be saved in the state folder with the .csvs.
 clear 
-use "\Desktop\Zelma V2.0\North Dakota - Version 2.0/ND_allyears.dta" 
+use "/Desktop/Zelma V2.1/North Dakota - Version 2.0/ND_allyears.dta" 
 ***************************************
 {
 clear all
-global Filepath "\Desktop\Zelma V2.0\North Dakota - Version 2.0" //  Set path to csv files
+global Filepath "/Desktop/Zelma V2.0/North Dakota - Version 2.0" //  Set path to csv files
 global Review "${Filepath}/review" 
 global State "North Dakota" //Set State Name 
 global StateAbbrev "ND" //Set StateAbbrev
-global date "01.23.25" //Set today's date
+global date "01.25.25" //Set today's date
 global years 2024 2023  2022 2021 2019  2018 2017 2016 2015 //  2014 2013 2012 2011 2010 2009 2008 2007 2006 2005 2004 2003 2002 2001 2000 1999 1998
 
 clear
@@ -265,6 +265,8 @@ count if !inlist(state_valid, 1)
 	else {
 		di as error "Correct"
 	}
+
+drop state_valid
 }
 
 ***********************************************************
@@ -479,6 +481,10 @@ tab FILE StudentSubGroup if StudentGroup =="Foster Care Status"
 // Military Connected Status
 tab FILE StudentSubGroup if StudentGroup =="Military Connected Status"
 
+// Var cleanup
+{
+drop ELStatus
+}
 ***********************************************************
 ***********************************************************
 ** C. DISTRICT/SCHOOL - NAMES & TYPES 
