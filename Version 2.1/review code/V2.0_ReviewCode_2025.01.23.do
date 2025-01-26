@@ -1854,9 +1854,9 @@ else {
 ***********************************************************
 *Subject 
 	
-** • Are subjects listed as ela, math, sci, eng, read, wri, stem, soc? (eg not "science" etc) 
+** • Are subjects listed as ela, math, sci, eng, read, wri, stem, soc? (eg not "science" etc) (updated 1/26/25)
 {
-count if !inlist(Subject, "ela", "math", "sci", "eng", "wri", "stem", "soc")
+count if !inlist(Subject, "ela", "math", "sci", "eng", "wri", "stem", "soc", "read")
 	if r(N)>0 {
 		di as error "Subject values are not labelled appropriately."
 		tab Subject FILE if !inlist(Subject, "ela", "math", "sci", "eng", "wri", "stem", "soc", "read")
