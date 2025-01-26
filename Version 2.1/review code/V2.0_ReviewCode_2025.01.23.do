@@ -2972,14 +2972,14 @@ local lev5counts "Lev5_count"
 
 foreach var of local levcounts {
     gen `var'_blank = missing(`var')
-    tab FILE `var'_blank
+    *tab FILE `var'_blank
 }
 
 gen Lev4_count_blank = missing(Lev4_count) & ProficiencyCriteria != "Levels 2-3"
-tab FILE Lev4_count_blank
+*tab FILE Lev4_count_blank
 
 gen Lev5_count_blank = missing(Lev5_count) & inlist(ProficiencyCriteria, "Levels 3-5", "Levels 4-5")
-tab FILE Lev5_count_blank
+*tab FILE Lev5_count_blank
 
 local levcountsblank "Lev1_count_blank Lev2_count_blank Lev3_count_blank Lev4_count_blank Lev5_count_blank"
 
