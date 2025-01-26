@@ -3128,7 +3128,7 @@ foreach var of local levcounts {
 ** • Are there ranges in the level counts?
 ** • If YES: Has this been noted in the CW?
 ** • If YES: Do the values make sense? (e.g., "1-1" should just be 1, lower bound should not be higher than the upper bound)
- 
+{ 
 local levcounts "Lev1_count Lev2_count Lev3_count Lev4_count Lev5_count"
 
 foreach var of local levcounts {
@@ -3145,7 +3145,7 @@ foreach var of local levcounts {
 }
 
 drop Lev1_count_rngflag Lev2_count_rngflag Lev3_count_rngflag Lev4_count_rngflag Lev5_count_rngflag
-
+}
 ***********************************************************
 * Level counts 
 
