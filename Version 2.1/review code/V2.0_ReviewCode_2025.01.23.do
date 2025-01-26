@@ -3525,6 +3525,7 @@ drop  Lev1_percent1 Lev1_percent2 Lev1_percent2_n Lev2_percent1 Lev2_percent2 Le
 
 ** • If there are cases where the percent across levels is <50%, have these been reviewed to check possible areas of concern? (updated 1/26/25)
 
+{
 count if tot_levpcts <.50 & tot_levpcts !=0 & levcount_rng_flag !=1
 	if r(N) !=0 {
 		di as error "Obs have level percents that sum to less than 50%. Review output in review folder."
@@ -3532,19 +3533,17 @@ count if tot_levpcts <.50 & tot_levpcts !=0 & levcount_rng_flag !=1
 		tab FILE StudentSubGroup if tot_levpcts <.50 & tot_levpcts !=0 & levcount_rng_flag !=1
 	} 
 	
-	{
 	preserve
 	keep if tot_levpcts <.50 & tot_levpcts !=0 & levcount_rng_flag !=1
 	keep FILE	DataLevel	DistName	SchName	NCESDistrictID	NCESSchoolID	AssmtName	AssmtType	Subject	GradeLevel	StudentGroup	StudentGroup_TotalTested	StudentSubGroup	StudentSubGroup_TotalTested	Lev1_count	Lev1_percent	Lev2_count	Lev2_percent	Lev3_count	Lev3_percent	Lev4_count	Lev4_percent	Lev5_count	Lev5_percent	ProficiencyCriteria	ProficientOrAbove_count	ProficientOrAbove_percent tot_levpcts
 
 	cap export excel using "${Review}/${StateAbbrev}_lev pct less than 50_${date}.xlsx", firstrow(variables) replace
 	restore	
-	}
 	
 		else {
 		di as error "Correct."
 		}
-
+}
 *Drop after above is correct 
 drop levcount_rng_flag tot_levpcts levcount_supp_or_missing der_L1 der_L2 der_L3 der_L4 der_L5
 
