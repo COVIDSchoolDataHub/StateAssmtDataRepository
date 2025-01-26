@@ -3515,8 +3515,6 @@ count if tot_levpcts>1.03 & levcount_rng_flag !=1
 		else {
 		di as error "Correct."
 		}
-
-drop  Lev1_percent1 Lev1_percent2 Lev1_percent2_n Lev2_percent1 Lev2_percent2 Lev2_percent2_n Lev3_percent1 Lev3_percent2 Lev3_percent2_n Lev4_percent1 Lev4_percent2 Lev4_percent2_n Lev5_percent2 Lev5_percent2_n 
 }	
 
 ***********************************************************
@@ -3543,8 +3541,6 @@ count if tot_levpcts <.50 & tot_levpcts !=0 & levcount_rng_flag !=1
 		di as error "Correct."
 		}
 }
-*Drop after above is correct 
-drop levcount_rng_flag tot_levpcts levcount_supp_or_missing der_L1 der_L2 der_L3 der_L4 der_L5
 
 ***********************************************************
 *Level percents 
