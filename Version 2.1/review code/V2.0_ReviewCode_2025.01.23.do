@@ -1334,8 +1334,8 @@ set seed 98765
 	by NCESSchoolID: replace sch_random = sch_random[1]
 	egen sch_nces = group(sch_random NCESSchoolID)
 
-	tab StateAssignedSchID FILE if (sch_nces == 1 )
-		tab StateAssignedSchID FILE if (sch_nces == 2 )
+	tab FILE StateAssignedSchID if (sch_nces == 1 )
+		tab SFILE StateAssignedSchID if (sch_nces == 2 )
 	di as error "Compare StateAssignedSchIDs over time."
 
 drop sch_random sch_nces
