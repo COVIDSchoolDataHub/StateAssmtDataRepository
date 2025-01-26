@@ -3545,16 +3545,26 @@ count if tot_levpcts <.50 & tot_levpcts !=0 & levcount_rng_flag !=1
 ***********************************************************
 *Level percents 
 
-** • Are all percents presented as decimals? [or decimal ranges] (updated 1/21/25)
+** • Are all percents presented as decimals? [or decimal ranges] (updated 1/26/25)
 {
-tab Lev1_percent_2_n if Lev1_percent_2_n>1 | Lev1_percent_2_n <0
-tab Lev2_percent_2_n if Lev2_percent_2_n>1 | Lev2_percent_2_n <0
-tab Lev3_percent_2_n if Lev3_percent_2_n>1 | Lev3_percent_2_n <0
-tab Lev4_percent_2_n if Lev4_percent_2_n>1 | Lev4_percent_2_n <0
-tab Lev5_percent_2_n if Lev5_percent_2_n>1 | Lev5_percent_2_n <0
+local levpercents "Lev1_percent2_n Lev2_percent2_n Lev3_percent2_n Lev4_percent2_n Lev5_percent2_n"
+
+foreach var of local levpercents {
+    // Count observations where the variable is outside the range [0, 1]
+    count if (`var' > 1 | `var' < 0) & !missing(`var')
+    
+    if r(N) != 0 {
+        di as error "`var' has values greater than 1 or less than 0 in the files below."
+        tab `var' FILE if (`var' > 1 | `var' < 0) & !missing(`var')
+    } 
+    else {
+        di as error "`var' Correct."
+    }		
+}
 }
 
-drop Lev1_percent_2_n Lev2_percent_2_n Lev3_percent_2_n Lev4_percent_2_n Lev5_percent_2_n
+* Drop when no longer needed 
+drop Lev1_percent2_n Lev2_percent2_n Lev3_percent2_n Lev4_percent2_n Lev5_percent2_n
 
 ***********************************************************
 * Level percents 
