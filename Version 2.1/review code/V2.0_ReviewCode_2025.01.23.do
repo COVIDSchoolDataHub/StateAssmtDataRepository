@@ -2098,15 +2098,15 @@ foreach var of local sgtt {
 gen sgtt_n = real(StudentGroup_TotalTested)
 sort  FILE sgtt_n
 by FILE: gen  sg_tt_low = _n //Number observations by year from lowest StudentGroup_TotalTested value to highest
-tab  FILE StudentGroup_TotalTested if sg_tt_low < 11  //Look at lowest 10 values for each file
-tab FILE StudentGroup_TotalTested if StudentGroup_TotalTested < "1"  // additional check
+	tab  FILE StudentGroup_TotalTested if sg_tt_low < 11  //Look at lowest 10 values for each file
+	tab FILE StudentGroup_TotalTested if StudentGroup_TotalTested < "1"  // additional check
 }
 
 ** • Have high StudentGroup_TotalTested values across all years been reviewed for irregularities? (updated 1/21/25)
 {
 gsort  FILE -sgtt_n
 by FILE: gen  sg_tt_high = _n //Number observations by year from highest StudentGroup_TotalTested value to lowest
-tab  FILE StudentGroup_TotalTested if sg_tt_high < 11 //Look at highest 10 values for each file
+	tab  FILE StudentGroup_TotalTested if sg_tt_high <= 3 //Look at highest 3 values for each file
 
 drop sgtt_n sg_tt_low sg_tt_high // drop vars no longer needed
 }
