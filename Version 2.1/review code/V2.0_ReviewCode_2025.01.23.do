@@ -3508,8 +3508,7 @@ count if tot_levpcts>1.03 & levcount_rng_flag !=1
 	{
 	preserve
 	keep if tot_levpcts>1.03 & levcount_rng_flag !=1
-	drop StateAbbrev StateFips  StateAssignedDistID  StateAssignedSchID  AvgScaleScore  ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode n_all n_yr 
-	cap drop derive_L1	derive_L2	derive_L3	derive_L4	derive_L5	Lev1_count_blank	Lev2_count_blank	Lev3_count_blank	Lev4_count_blank	Lev5_count_blank dup
+	keep FILE	DataLevel	DistName	SchName	NCESDistrictID	NCESSchoolID	AssmtName	AssmtType	Subject	GradeLevel	StudentGroup	StudentGroup_TotalTested	StudentSubGroup	StudentSubGroup_TotalTested	Lev1_count	Lev1_percent	Lev2_count	Lev2_percent	Lev3_count	Lev3_percent	Lev4_count	Lev4_percent	Lev5_count	Lev5_percent	ProficiencyCriteria	ProficientOrAbove_count	ProficientOrAbove_percent tot_levpcts
 	cap export excel using "${Review}/${StateAbbrev}_lev pct over 103_${date}.xlsx", firstrow(variables) replace
 	restore	
 	}
