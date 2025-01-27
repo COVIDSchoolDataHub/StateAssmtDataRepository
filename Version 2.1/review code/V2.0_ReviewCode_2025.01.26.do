@@ -3950,7 +3950,7 @@ foreach var of local vars {
 ***********************************************************
 *ProficientOrAbove_count 
 
-//• Have counts been derived to the extent possible? (updated 1/8/25)
+//• Have counts been derived to the extent possible? (updated 1/26/25)
 
 {
 {	
@@ -4008,25 +4008,21 @@ gen derive_profavb_count = .
 
 	if r(N) > 0 {
 		di as error "ProficientOrAbove_count values can be derived. See output in review folder."
-		
 		tab FILE DataLevel if derive_profavb_count == 1  
-	}
 
-		{
 		preserve
 		keep if derive_profavb_count == 1
 		drop StateAbbrev StateFips  AssmtName AssmtType StateAssignedDistID  StateAssignedSchID  AvgScaleScore  ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode n_all n_yr 
 		cap export excel using "${Review}/${StateAbbrev}_derive_profabvcount_${date}.xlsx", firstrow(variables) replace
 		restore	
 		}
-		
-	}	
+			
 		
 	else {
 		di as error "No additional ProficientOrAbove_count values can be derived."
 		}
 	}
-
+}
 
 ***********************************************************
 
