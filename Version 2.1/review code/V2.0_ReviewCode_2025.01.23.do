@@ -3540,6 +3540,7 @@ count if tot_levpcts <.50 & tot_levpcts !=0 & levcount_rng_flag !=1
 		else {
 		di as error "Correct."
 		}
+drop levcount_rng_flag
 }
 
 ***********************************************************
