@@ -1,5 +1,5 @@
 *****************************************************************************
-**	Updated January 25, 2025
+**	Updated January 26, 2025
 
 
 ** 	ZELMA STATE ASSESSMENT DATA REPOSITORY 
@@ -20,7 +20,7 @@ global Filepath "/Desktop/Zelma V2.0/North Dakota - Version 2.0" //  Set path to
 global Review "${Filepath}/review" 
 global State "North Dakota" //Set State Name 
 global StateAbbrev "ND" //Set StateAbbrev
-global date "01.25.25" //Set today's date
+global date "01.26.25" //Set today's date
 global years 2024 2023  2022 2021 2019  2018 2017 2016 2015 //  2014 2013 2012 2011 2010 2009 2008 2007 2006 2005 2004 2003 2002 2001 2000 1999 1998
 
 clear
@@ -3533,7 +3533,6 @@ count if tot_levpcts <.50 & tot_levpcts !=0 & levcount_rng_flag !=1
 	preserve
 	keep if tot_levpcts <.50 & tot_levpcts !=0 & levcount_rng_flag !=1
 	keep FILE	DataLevel	DistName	SchName	NCESDistrictID	NCESSchoolID	AssmtName	AssmtType	Subject	GradeLevel	StudentGroup	StudentGroup_TotalTested	StudentSubGroup	StudentSubGroup_TotalTested	Lev1_count	Lev1_percent	Lev2_count	Lev2_percent	Lev3_count	Lev3_percent	Lev4_count	Lev4_percent	Lev5_count	Lev5_percent	ProficiencyCriteria	ProficientOrAbove_count	ProficientOrAbove_percent tot_levpcts
-
 	cap export excel using "${Review}/${StateAbbrev}_lev pct less than 50_${date}.xlsx", firstrow(variables) replace
 	restore	
 	
@@ -3542,6 +3541,7 @@ count if tot_levpcts <.50 & tot_levpcts !=0 & levcount_rng_flag !=1
 		}
 drop levcount_rng_flag
 }
+
 
 ***********************************************************
 *Level percents 
