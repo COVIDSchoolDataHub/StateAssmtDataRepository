@@ -1,5 +1,5 @@
 *****************************************************************************
-**	Updated January 26, 2025
+**	Updated January 27, 2025
 
 
 ** 	ZELMA STATE ASSESSMENT DATA REPOSITORY 
@@ -20,7 +20,7 @@ global Filepath "/Desktop/Zelma V2.0/North Dakota - Version 2.0" //  Set path to
 global Review "${Filepath}/review" 
 global State "North Dakota" //Set State Name 
 global StateAbbrev "ND" //Set StateAbbrev
-global date "01.26.25" //Set today's date
+global date "01.27.25" //Set today's date
 global years 2024 2023  2022 2021 2019  2018 2017 2016 2015 //  2014 2013 2012 2011 2010 2009 2008 2007 2006 2005 2004 2003 2002 2001 2000 1999 1998
 
 clear
@@ -4339,21 +4339,21 @@ replace percent_diff = . if abs(percent_diff) < .001
     gsort -percent_diff
     
 //Summary for data without ranges
-count if percent_diff !=. & levpercent_rng_flag !=1
+count if percent_diff > .1 & percent_diff !=. & levpercent_rng_flag !=1
 
 if r(N) != 0 {
         di as error "Review percent_diff."
         
         preserve
-        keep if percent_diff !=. & levpercent_rng_flag !=1
-        tab FILE if percent_diff !=. & levpercent_rng_flag !=1
-        drop StateAbbrev StateFips StateAssignedDistID StateAssignedSchID ///
-                 AvgScaleScore ParticipationRate Flag_AssmtNameChange ///
-                 Flag_CutScoreChange_ELA Flag_CutScoreChange_math ///
-                 Flag_CutScoreChange_sci Flag_CutScoreChange_soc ///
-                 DistType DistCharter DistLocale SchType SchLevel ///
-                 SchVirtual CountyName CountyCode n_all n_yr  AssmtName AssmtType
-        cap drop Lev1_percent1 Lev1_percent2 Lev1_percent2_n Lev2_percent1 Lev2_percent2 Lev2_percent2_n Lev3_percent1 Lev3_percent2 Lev3_percent2_n Lev4_percent1 Lev4_percent2 Lev4_percent2_n Lev5_percent2 Lev5_percent2_n ProficientOrAbove_percent1 ProficientOrAbove_percent2 ProficientOrAbove_percent2_n 
+        keep if percent_diff > .1 & percent_diff !=. & levpercent_rng_flag !=1
+        tab FILE if percent_diff > .1 & percent_diff !=. & levpercent_rng_flag !=1
+                keep FILE	State	DataLevel	DistName	SchName	NCESDistrictID	///
+		NCESSchoolID	Subject	GradeLevel	StudentGroup	StudentGroup_TotalTested ///	
+		StudentSubGroup	StudentSubGroup_TotalTested	Lev1_count	Lev1_percent	///
+		Lev2_count	Lev2_percent	Lev3_count	Lev3_percent	Lev4_count	///
+		Lev4_percent	Lev5_count	Lev5_percent	ProficiencyCriteria	ProficientOrAbove_count	///
+		ProficientOrAbove_percent ProficientOrAbove_percent2_n	sum_levpcts	percent_diff	///
+		prof_lv_pcts_supp_or_missing	levpercent_rng_flag
         cap export excel using "${Review}/${StateAbbrev}_percent_diff_check_${date}.xlsx", ///
              firstrow(variables) replace
         restore       
