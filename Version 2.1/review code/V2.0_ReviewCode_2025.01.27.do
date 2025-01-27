@@ -16,6 +16,7 @@ use "/Desktop/Zelma V2.1/North Dakota - Version 2.0/ND_allyears.dta"
 ***************************************
 {
 clear all
+cd "/Desktop/Zelma V2.0/North Dakota - Version 2.0" //  Set path to folder for do file with flag checks
 global Filepath "/Desktop/Zelma V2.0/North Dakota - Version 2.0" //  Set path to csv files
 global Review "${Filepath}/review" 
 global State "North Dakota" //Set State Name 
@@ -5066,27 +5067,13 @@ foreach var of local cutscorech_flags {
 }
 
 ***********************************************************
-** Flag_CutScoreChange_ELA	
-	
-** • Do flags across all years align with what is in the crosswalk?
+** • Do flags across all years align with what is in the crosswalk? (1/27/25)
+do "V2.1_FlagChecks_2025.01.25.do"
+
+// Subject-area flags, for reference
 tab  FILE Flag_CutScoreChange_ELA 
-
-***********************************************************
-** Flag_CutScoreChange_math	
-	
-** • Do flags across all years align with what is in the crosswalk?
 tab  FILE Flag_CutScoreChange_math 
-
-***********************************************************
-** Flag_CutScoreChange_sci
-	
-** • Do flags across all years align with what is in the crosswalk?
 tab  FILE Flag_CutScoreChange_sci 
-
-***********************************************************
-** Flag_CutScoreChange_soc
-	
-** • Do flags across all years align with what is in the crosswalk?
 tab  FILE Flag_CutScoreChange_soc 
 
 ***********************************************************
