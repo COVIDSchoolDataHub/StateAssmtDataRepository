@@ -2756,6 +2756,8 @@ gen der_L1_ct_lev45 = .
 	// L1 summary
 	gen der_L1 = .
 	cap replace der_L1 = 1 if (der_L1_ct_lev23 == 1 | der_L1_ct_lev34 == 1 | der_L1_ct_lev35 == 1 | der_L1_ct_lev45 == 1)
+
+	// caveat for Maine because ela/math for 2021 and 2022 do not use L1, so we are not deriving
 	replace der_L1 = . if StateAbbrev == "ME" & inlist(FILE, "2021", "2022") & Subject != "sci"
 	gsort -der_L1
 
@@ -2780,6 +2782,8 @@ gen der_L2_ct_lev34 = .
         (inlist(Lev2_count, "*", "--") & !inlist(Lev1_count, "*", "--") & ///
         !inlist(Lev3_count, "*", "--") & !inlist(Lev4_count, "*", "--") & ///
         !inlist(StudentSubGroup_TotalTested, "*", "--"))
+
+	//caveat for Maine, which does not use L1 for ela/math for 2021 or 2022
 	if StateAbbrev == "ME" & inlist(FILE, "2021", "2022") & Subject != "sci" {
 		replace der_L2_ct_lev34 = .
 		replace der_L2_ct_lev34 = ProficiencyCriteria == "Levels 3-4" & ///
@@ -2787,8 +2791,7 @@ gen der_L2_ct_lev34 = .
 		!inlist(StudentSubGroup_TotalTested, "*", "--"))
 		replace der_L2_ct_lev34 = ProficiencyCriteria == "Levels 3-4" & ///
         (inlist(Lev2_count, "*", "--") & !inlist(Lev3_count, "*", "--") & ///
-        !inlist(Lev3_count, "*", "--") & !inlist(Lev4_count, "*", "--") & ///
-        !inlist(StudentSubGroup_TotalTested, "*", "--"))
+        !inlist(Lev4_count, "*", "--") & !inlist(StudentSubGroup_TotalTested, "*", "--"))
 	}
 
 gen der_L2_ct_lev35 = .
@@ -4039,6 +4042,8 @@ gen derive_profavb_count = .
 		di as error "No additional ProficientOrAbove_count values can be derived."
 		}
 	}
+
+drop derive_profabvcount_lev23 derive_profabvcount_lev34 derive_profabvcount_lev35 derive_profabvcount_lev45 derive_profavb_count
 }
 
 ***********************************************************
