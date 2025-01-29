@@ -4731,6 +4731,13 @@ foreach var of local profabove_p {
 		}	
 	}
 }
+
+***********************************************************
+*ProficientOrAbove_percent 
+
+** • Have low values been reviewed for irregularities? (added 1/29/25)
+tab ProficientOrAbove_percent FILE if real(ProficientOrAbove_percent) < .001
+
 ***********************************************************
 
 * AvgScaleScore
