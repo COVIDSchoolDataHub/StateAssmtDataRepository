@@ -3551,12 +3551,12 @@ drop levcount_rng_flag
 *Level percents 
 
 
-** • Have low level count values been reviewed for irregularities? (added 1/29/25)
-tab Lev1_percent FILE if real(Lev1_percent) < .01
-tab Lev2_percent FILE if real(Lev2_percent) < .01
-tab Lev3_percent FILE if real(Lev3_percent) < .01
-tab Lev4_percent FILE if real(Lev4_percent) < .01
-tab Lev5_percent FILE if real(Lev5_percent) < .01
+** • Have low level percent values been reviewed for irregularities? (added 1/29/25)
+tab Lev1_percent FILE if real(Lev1_percent) < .001
+tab Lev2_percent FILE if real(Lev2_percent) < .001
+tab Lev3_percent FILE if real(Lev3_percent) < .001
+tab Lev4_percent FILE if real(Lev4_percent) < .001
+tab Lev5_percent FILE if real(Lev5_percent) < .001
 
 ***********************************************************
 *Level percents 
