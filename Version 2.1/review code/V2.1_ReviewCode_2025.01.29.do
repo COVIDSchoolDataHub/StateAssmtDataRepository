@@ -2510,11 +2510,11 @@ tab FILE StudentSubGroup_TotalTested if StudentSubGroup_TotalTested < "1"  // ad
 }
 
 
-** • Have high StudentSubGroup_TotalTested values across all years been reviewed for irregularities? (updated 1/21/25)
+** • Have high StudentSubGroup_TotalTested values across all years been reviewed for irregularities? (updated 1/29/25)
 {
 gsort  FILE -ssgtt_n
 by FILE: gen  ssg_tt_high = _n //Number observations by year from highest StudentSubGroup_TotalTested value to lowest
-tab  FILE StudentSubGroup_TotalTested if ssg_tt_high < 11 //Look at highest 10 values for each file
+tab  FILE StudentSubGroup_TotalTested if ssg_tt_high < 3 //Look at highest 3 values for each file
 
 drop ssgtt_n ssg_tt_low ssg_tt_high
 }
