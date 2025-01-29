@@ -1,5 +1,5 @@
 *****************************************************************************
-**	Updated January 25, 2025
+**	Updated January 27, 2025
 
 
 ** 	ZELMA STATE ASSESSMENT DATA REPOSITORY 
@@ -16,11 +16,12 @@ use "/Desktop/Zelma V2.1/North Dakota - Version 2.0/ND_allyears.dta"
 ***************************************
 {
 clear all
+cd "/Desktop/Zelma V2.0/North Dakota - Version 2.0" //  Set path to folder for do file with flag checks
 global Filepath "/Desktop/Zelma V2.0/North Dakota - Version 2.0" //  Set path to csv files
 global Review "${Filepath}/review" 
 global State "North Dakota" //Set State Name 
 global StateAbbrev "ND" //Set StateAbbrev
-global date "01.25.25" //Set today's date
+global date "01.27.25" //Set today's date
 global years 2024 2023  2022 2021 2019  2018 2017 2016 2015 //  2014 2013 2012 2011 2010 2009 2008 2007 2006 2005 2004 2003 2002 2001 2000 1999 1998
 
 clear
@@ -1854,9 +1855,9 @@ else {
 ***********************************************************
 *Subject 
 	
-** • Are subjects listed as ela, math, sci, eng, read, wri, stem, soc? (eg not "science" etc) 
+** • Are subjects listed as ela, math, sci, eng, read, wri, stem, soc? (eg not "science" etc) (updated 1/26/25)
 {
-count if !inlist(Subject, "ela", "math", "sci", "eng", "wri", "stem", "soc")
+count if !inlist(Subject, "ela", "math", "sci", "eng", "wri", "stem", "soc", "read")
 	if r(N)>0 {
 		di as error "Subject values are not labelled appropriately."
 		tab Subject FILE if !inlist(Subject, "ela", "math", "sci", "eng", "wri", "stem", "soc", "read")
@@ -2098,15 +2099,15 @@ foreach var of local sgtt {
 gen sgtt_n = real(StudentGroup_TotalTested)
 sort  FILE sgtt_n
 by FILE: gen  sg_tt_low = _n //Number observations by year from lowest StudentGroup_TotalTested value to highest
-tab  FILE StudentGroup_TotalTested if sg_tt_low < 11  //Look at lowest 10 values for each file
-tab FILE StudentGroup_TotalTested if StudentGroup_TotalTested < "1"  // additional check
+	tab  FILE StudentGroup_TotalTested if sg_tt_low < 11  //Look at lowest 10 values for each file
+	tab FILE StudentGroup_TotalTested if StudentGroup_TotalTested < "1"  // additional check
 }
 
 ** • Have high StudentGroup_TotalTested values across all years been reviewed for irregularities? (updated 1/21/25)
 {
 gsort  FILE -sgtt_n
 by FILE: gen  sg_tt_high = _n //Number observations by year from highest StudentGroup_TotalTested value to lowest
-tab  FILE StudentGroup_TotalTested if sg_tt_high < 11 //Look at highest 10 values for each file
+	tab  FILE StudentGroup_TotalTested if sg_tt_high <= 3 //Look at highest 3 values for each file
 
 drop sgtt_n sg_tt_low sg_tt_high // drop vars no longer needed
 }
@@ -2972,14 +2973,14 @@ local lev5counts "Lev5_count"
 
 foreach var of local levcounts {
     gen `var'_blank = missing(`var')
-    tab FILE `var'_blank
+    *tab FILE `var'_blank
 }
 
 gen Lev4_count_blank = missing(Lev4_count) & ProficiencyCriteria != "Levels 2-3"
-tab FILE Lev4_count_blank
+*tab FILE Lev4_count_blank
 
 gen Lev5_count_blank = missing(Lev5_count) & inlist(ProficiencyCriteria, "Levels 3-5", "Levels 4-5")
-tab FILE Lev5_count_blank
+*tab FILE Lev5_count_blank
 
 local levcountsblank "Lev1_count_blank Lev2_count_blank Lev3_count_blank Lev4_count_blank Lev5_count_blank"
 
@@ -3128,7 +3129,7 @@ foreach var of local levcounts {
 ** • Are there ranges in the level counts?
 ** • If YES: Has this been noted in the CW?
 ** • If YES: Do the values make sense? (e.g., "1-1" should just be 1, lower bound should not be higher than the upper bound)
- 
+{ 
 local levcounts "Lev1_count Lev2_count Lev3_count Lev4_count Lev5_count"
 
 foreach var of local levcounts {
@@ -3145,7 +3146,7 @@ foreach var of local levcounts {
 }
 
 drop Lev1_count_rngflag Lev2_count_rngflag Lev3_count_rngflag Lev4_count_rngflag Lev5_count_rngflag
-
+}
 ***********************************************************
 * Level counts 
 
@@ -3508,44 +3509,64 @@ count if tot_levpcts>1.03 & levcount_rng_flag !=1
 	{
 	preserve
 	keep if tot_levpcts>1.03 & levcount_rng_flag !=1
-	drop StateAbbrev StateFips  StateAssignedDistID  StateAssignedSchID  AvgScaleScore  ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode n_all n_yr 
-	cap drop derive_L1	derive_L2	derive_L3	derive_L4	derive_L5	Lev1_count_blank	Lev2_count_blank	Lev3_count_blank	Lev4_count_blank	Lev5_count_blank dup
+	keep FILE	DataLevel	DistName	SchName	NCESDistrictID	NCESSchoolID	AssmtName	AssmtType	Subject	GradeLevel	StudentGroup	StudentGroup_TotalTested	StudentSubGroup	StudentSubGroup_TotalTested	Lev1_count	Lev1_percent	Lev2_count	Lev2_percent	Lev3_count	Lev3_percent	Lev4_count	Lev4_percent	Lev5_count	Lev5_percent	ProficiencyCriteria	ProficientOrAbove_count	ProficientOrAbove_percent tot_levpcts
 	cap export excel using "${Review}/${StateAbbrev}_lev pct over 103_${date}.xlsx", firstrow(variables) replace
 	restore	
 	}
 		else {
 		di as error "Correct."
 		}
-
-drop  Lev1_percent1 Lev1_percent2 Lev1_percent2_n Lev2_percent1 Lev2_percent2 Lev2_percent2_n Lev3_percent1 Lev3_percent2 Lev3_percent2_n Lev4_percent1 Lev4_percent2 Lev4_percent2_n Lev5_percent2 Lev5_percent2_n 
 }	
 
 ***********************************************************
 *Level percents 
 
-** • If there are cases where the percent across levels is <50%, have these been reviewed to check possible areas of concern? Please note in the comments any areas to double check.
+** • If there are cases where the percent across levels is <50%, have these been reviewed to check possible areas of concern? (updated 1/26/25)
 
 {
-di as error "Below rows have percent total lower than 50%. NOTE: To dig into this, you may need to focus on specific years or subject errors."
-list n_all NCESSchoolID NCESDistrictID if tot_levpcts<.50 & tot_levpcts !=0
+count if tot_levpcts <.50 & tot_levpcts !=0 & levcount_rng_flag !=1
+	if r(N) !=0 {
+		di as error "Obs have level percents that sum to less than 50%. Review output in review folder."
+		tab DataLevel FILE if tot_levpcts <.50 & tot_levpcts !=0 & levcount_rng_flag !=1
+		tab FILE StudentSubGroup if tot_levpcts <.50 & tot_levpcts !=0 & levcount_rng_flag !=1
+	} 
+	
+	preserve
+	keep if tot_levpcts <.50 & tot_levpcts !=0 & levcount_rng_flag !=1
+	keep FILE	DataLevel	DistName	SchName	NCESDistrictID	NCESSchoolID	AssmtName	AssmtType	Subject	GradeLevel	StudentGroup	StudentGroup_TotalTested	StudentSubGroup	StudentSubGroup_TotalTested	Lev1_count	Lev1_percent	Lev2_count	Lev2_percent	Lev3_count	Lev3_percent	Lev4_count	Lev4_percent	Lev5_count	Lev5_percent	ProficiencyCriteria	ProficientOrAbove_count	ProficientOrAbove_percent tot_levpcts
+	cap export excel using "${Review}/${StateAbbrev}_lev pct less than 50_${date}.xlsx", firstrow(variables) replace
+	restore	
+	
+		else {
+		di as error "Correct."
+		}
+drop levcount_rng_flag
 }
 
-*Drop after above is correct 
-drop levcount_rng_flag tot_levpcts
 
 ***********************************************************
 *Level percents 
 
-** • Are all percents presented as decimals? [or decimal ranges] (updated 1/21/25)
+** • Are all percents presented as decimals? [or decimal ranges] (updated 1/26/25)
 {
-tab Lev1_percent_2_n if Lev1_percent_2_n>1 | Lev1_percent_2_n <0
-tab Lev2_percent_2_n if Lev2_percent_2_n>1 | Lev2_percent_2_n <0
-tab Lev3_percent_2_n if Lev3_percent_2_n>1 | Lev3_percent_2_n <0
-tab Lev4_percent_2_n if Lev4_percent_2_n>1 | Lev4_percent_2_n <0
-tab Lev5_percent_2_n if Lev5_percent_2_n>1 | Lev5_percent_2_n <0
+local levpercents "Lev1_percent2_n Lev2_percent2_n Lev3_percent2_n Lev4_percent2_n Lev5_percent2_n"
+
+foreach var of local levpercents {
+    // Count observations where the variable is outside the range [0, 1]
+    count if (`var' > 1 | `var' < 0) & !missing(`var')
+    
+    if r(N) != 0 {
+        di as error "`var' has values greater than 1 or less than 0 in the files below."
+        tab `var' FILE if (`var' > 1 | `var' < 0) & !missing(`var')
+    } 
+    else {
+        di as error "`var' Correct."
+    }		
+}
 }
 
-drop Lev1_percent_2_n Lev2_percent_2_n Lev3_percent_2_n Lev4_percent_2_n Lev5_percent_2_n
+* Drop when no longer needed 
+drop Lev1_percent2_n Lev2_percent2_n Lev3_percent2_n Lev4_percent2_n Lev5_percent2_n
 
 ***********************************************************
 * Level percents 
@@ -3930,7 +3951,7 @@ foreach var of local vars {
 ***********************************************************
 *ProficientOrAbove_count 
 
-//• Have counts been derived to the extent possible? (updated 1/8/25)
+//• Have counts been derived to the extent possible? (updated 1/26/25)
 
 {
 {	
@@ -3988,25 +4009,21 @@ gen derive_profavb_count = .
 
 	if r(N) > 0 {
 		di as error "ProficientOrAbove_count values can be derived. See output in review folder."
-		
 		tab FILE DataLevel if derive_profavb_count == 1  
-	}
 
-		{
 		preserve
 		keep if derive_profavb_count == 1
 		drop StateAbbrev StateFips  AssmtName AssmtType StateAssignedDistID  StateAssignedSchID  AvgScaleScore  ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode n_all n_yr 
 		cap export excel using "${Review}/${StateAbbrev}_derive_profabvcount_${date}.xlsx", firstrow(variables) replace
 		restore	
 		}
-		
-	}	
+			
 		
 	else {
 		di as error "No additional ProficientOrAbove_count values can be derived."
 		}
 	}
-
+}
 
 ***********************************************************
 
@@ -4323,21 +4340,21 @@ replace percent_diff = . if abs(percent_diff) < .001
     gsort -percent_diff
     
 //Summary for data without ranges
-count if percent_diff !=. & levpercent_rng_flag !=1
+count if percent_diff > .1 & percent_diff !=. & levpercent_rng_flag !=1
 
 if r(N) != 0 {
         di as error "Review percent_diff."
         
         preserve
-        keep if percent_diff !=. & levpercent_rng_flag !=1
-        tab FILE if percent_diff !=. & levpercent_rng_flag !=1
-        drop StateAbbrev StateFips StateAssignedDistID StateAssignedSchID ///
-                 AvgScaleScore ParticipationRate Flag_AssmtNameChange ///
-                 Flag_CutScoreChange_ELA Flag_CutScoreChange_math ///
-                 Flag_CutScoreChange_sci Flag_CutScoreChange_soc ///
-                 DistType DistCharter DistLocale SchType SchLevel ///
-                 SchVirtual CountyName CountyCode n_all n_yr  AssmtName AssmtType
-        cap drop Lev1_percent1 Lev1_percent2 Lev1_percent2_n Lev2_percent1 Lev2_percent2 Lev2_percent2_n Lev3_percent1 Lev3_percent2 Lev3_percent2_n Lev4_percent1 Lev4_percent2 Lev4_percent2_n Lev5_percent2 Lev5_percent2_n ProficientOrAbove_percent1 ProficientOrAbove_percent2 ProficientOrAbove_percent2_n 
+        keep if percent_diff > .1 & percent_diff !=. & levpercent_rng_flag !=1
+        tab FILE if percent_diff > .1 & percent_diff !=. & levpercent_rng_flag !=1
+                keep FILE	State	DataLevel	DistName	SchName	NCESDistrictID	///
+		NCESSchoolID	Subject	GradeLevel	StudentGroup	StudentGroup_TotalTested ///	
+		StudentSubGroup	StudentSubGroup_TotalTested	Lev1_count	Lev1_percent	///
+		Lev2_count	Lev2_percent	Lev3_count	Lev3_percent	Lev4_count	///
+		Lev4_percent	Lev5_count	Lev5_percent	ProficiencyCriteria	ProficientOrAbove_count	///
+		ProficientOrAbove_percent ProficientOrAbove_percent2_n	sum_levpcts	percent_diff	///
+		prof_lv_pcts_supp_or_missing	levpercent_rng_flag
         cap export excel using "${Review}/${StateAbbrev}_percent_diff_check_${date}.xlsx", ///
              firstrow(variables) replace
         restore       
@@ -5050,27 +5067,13 @@ foreach var of local cutscorech_flags {
 }
 
 ***********************************************************
-** Flag_CutScoreChange_ELA	
-	
-** • Do flags across all years align with what is in the crosswalk?
+** • Do flags across all years align with what is in the crosswalk? (1/27/25)
+do "V2.1_FlagChecks_2025.01.25.do"
+
+// Subject-area flags, for reference
 tab  FILE Flag_CutScoreChange_ELA 
-
-***********************************************************
-** Flag_CutScoreChange_math	
-	
-** • Do flags across all years align with what is in the crosswalk?
 tab  FILE Flag_CutScoreChange_math 
-
-***********************************************************
-** Flag_CutScoreChange_sci
-	
-** • Do flags across all years align with what is in the crosswalk?
 tab  FILE Flag_CutScoreChange_sci 
-
-***********************************************************
-** Flag_CutScoreChange_soc
-	
-** • Do flags across all years align with what is in the crosswalk?
 tab  FILE Flag_CutScoreChange_soc 
 
 ***********************************************************

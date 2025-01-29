@@ -43,13 +43,14 @@ rename NonFosterCare nFoster_count
 rename Military Military_count
 rename NonMilitary nMilitary_count
 
+/*
 //Deriving Non-EL learner
 destring Total_count, generate(Total_count_num) force
 destring EL_count, generate(EL_count_num) force
 gen nEL_count = Total_count_num - EL_count_num
 tostring nEL_count, replace
 drop EL_count_num Total_count_num
-
+*/
 
 rename *_count Count_*
 
@@ -82,7 +83,9 @@ replace StudentSubGroup = "All Students" if StudentSubGroup == "Total"
 *Female
 *Male
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "EL"
+/*
 replace StudentSubGroup = "English Proficient" if StudentSubGroup == "nEL"
+*/
 *Asian
 replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "AIAN"
 replace StudentSubGroup = "Black or African American" if StudentSubGroup == "Black"
