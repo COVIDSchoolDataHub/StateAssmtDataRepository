@@ -5043,36 +5043,6 @@ di as error "Review data file or documentation to verify assessment name for 202
 ***********************************************************
 ** Flag_AssmtNameChange	
 
-** • Does the ELA name flag align with the CW across years?
-{
-tab  FILE AssmtName if Subject == "ela" 
-tab  FILE Flag_AssmtNameChange if Subject == "ela" 
-}
-
-{
-tab  FILE AssmtName if Subject == "math"
-tab  FILE Flag_AssmtNameChange if Subject == "math"
-}
-***********************************************************
-** Flag_AssmtNameChange	
-
-** • Does the sci assessment name flag align with the CW across years?
-{
-tab  FILE AssmtName if Subject == "sci"
-tab  FILE Flag_AssmtNameChange if Subject == "sci"
-}
-
-***********************************************************
-** Flag_AssmtNameChange	
-
-** • Does the soc assessment name flag align with the CW across years?
-{
-tab  FILE AssmtName if Subject == "soc"
-tab  FILE Flag_AssmtNameChange if Subject == "soc"
-}
-***********************************************************
-** Flag_AssmtNameChange	
-
 ** • Are all values either "Y" or "N"?
 {
 count if !inlist(Flag_AssmtNameChange, "Y", "N")
@@ -5108,6 +5078,9 @@ foreach var of local cutscorech_flags {
 ***********************************************************
 ** • Do flags across all years align with what is in the crosswalk? (1/27/25)
 do "V2.1_FlagChecks_2025.01.25.do"
+
+// Name change flag, for reference
+tab  FILE Flag_AssmtNameChange 
 
 // Subject-area flags, for reference
 tab  FILE Flag_CutScoreChange_ELA 
