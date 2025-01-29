@@ -3991,9 +3991,15 @@ foreach var of local vars {
 		| (inlist(ProficientOrAbove_count, "*", "--", "") & !inlist(Lev1_count, "*", "--", "") & !inlist(Lev2_count, "*", "--", "") & !inlist(StudentSubGroup_TotalTested, "*", "--", "")) ///  
 		| (inlist(ProficientOrAbove_count, "*", "--", "") & !inlist(ProficientOrAbove_percent, "*", "--", "") & !inlist(StudentSubGroup_TotalTested, "*", "--", "")) ///
 	)
+
+	//caveat for Maine, ela/math for 2021 and 2022, which does not use Level 1
 	if StateAbbrev == "ME" & inlist(FILE, "2021", "2022") & Subject != "sci"{
+		replace derive_profabvcount_lev34 = .
+		
 		replace derive_profabvcount_lev34 = 1 if ProficiencyCriteria == "Levels 3-4" & ( ///
-		(inlist(ProficientOrAbove_count, "*", "--", "") & !inlist(Lev2_count, "*", "--", "") & !inlist(StudentSubGroup_TotalTested, "*", "--", ""))
+		(inlist(ProficientOrAbove_count, "*", "--", "") & !inlist(Lev3_count, "*", "--", "") & !inlist(Lev4_count, "*", "--", "")) ///  
+		| (inlist(ProficientOrAbove_count, "*", "--", "") & !inlist(Lev2_count, "*", "--", "") & !inlist(StudentSubGroup_TotalTested, "*", "--", "")) ///  
+		| (inlist(ProficientOrAbove_count, "*", "--", "") & !inlist(ProficientOrAbove_percent, "*", "--", "") & !inlist(StudentSubGroup_TotalTested, "*", "--", "")) ///
 	)
 	}
 
@@ -4435,9 +4441,14 @@ gen der_profabvper_lev34 = .
 		| (inlist(ProficientOrAbove_percent, "*", "--") & !inlist(ProficientOrAbove_count, "*", "--") & !inlist(StudentSubGroup_TotalTested, "*", "--")) ///
 	)
 	
+	//caveat for Maine, ela/math for 2021 and 2022, which does not use Level 1
 	if StateAbbrev == "ME" & inlist(FILE, "2021", "2022") & Subject != "sci"{
+		replace der_profabvper_lev34 = .
+		
 		replace der_profabvper_lev34 = 1 if ProficiencyCriteria == "Levels 3-4" & ( ///
-		(inlist(ProficientOrAbove_percent, "*", "--", "") & !inlist(Lev2_percent, "*", "--", "")
+		(inlist(ProficientOrAbove_percent, "*", "--") & !inlist(Lev3_percent, "*", "--") & !inlist(Lev4_percent, "*", "--")) ///  
+		| (inlist(ProficientOrAbove_percent, "*", "--") & !inlist(Lev2_percent, "*", "--") & !inlist(StudentSubGroup_TotalTested, "*", "--")) ///  
+		| (inlist(ProficientOrAbove_percent, "*", "--") & !inlist(ProficientOrAbove_count, "*", "--") & !inlist(StudentSubGroup_TotalTested, "*", "--")) ///
 	)
 	}
 
