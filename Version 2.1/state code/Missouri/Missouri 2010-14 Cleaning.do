@@ -1,9 +1,9 @@
 clear
 set more off
 
-global data "/Users/kaitlynlucas/Desktop/Missouri/MO State Testing Files"
-global output "/Users/kaitlynlucas/Desktop/Missouri/MO State Testing Files/Output"
-global NCES "/Users/kaitlynlucas/Desktop/Missouri/NCES School and District Demographics/Clean NCES"
+global data "/Users/miramehta/Documents/MO State Testing Data"
+global output "/Users/miramehta/Documents/MO State Testing Data/Output"
+global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
 
 set trace off
 
@@ -129,9 +129,13 @@ forvalues year = 2010/2014{
 	forvalues a = 1/4{
 		destring Lev`a'_percent, replace force
 		replace Lev`a'_percent = Lev`a'_percent/100
+		tostring Lev`a'_percent, replace format("%7.3f") force
+		tostring Lev`a'_count, replace
 	}
 
 	replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
+	tostring ProficientOrAbove_percent, replace format("%7.4f") force
+	tostring ProficientOrAbove_count, replace
 
 	gen Lev5_count = ""
 	gen Lev5_percent = ""
@@ -142,7 +146,44 @@ forvalues year = 2010/2014{
 	replace ParticipationRate = ParticipationRate/100
 	tostring ParticipationRate, replace format("%9.2g") force
 	replace ParticipationRate = "*" if ParticipationRate == "."
-	
+
+//deriving additional level counts and percents
+tostring StudentSubGroup_TotalTested, replace
+
+replace ProficientOrAbove_percent = string(1 - real(Lev1_percent) - real(Lev2_percent), "%9.8f") if ProficientOrAbove_percent == "*" & Lev1_percent != "*" & Lev2_percent != "*"
+replace Lev3_percent = string(real(ProficientOrAbove_percent) - real(Lev4_percent), "%9.8f") if Lev3_percent == "*" & ProficientOrAbove_percent != "*" & Lev4_percent != "*"
+replace Lev4_percent = string(real(ProficientOrAbove_percent) - real(Lev3_percent), "%9.8f") if Lev4_percent == "*" & ProficientOrAbove_percent != "*" & Lev3_percent != "*"
+replace Lev1_percent = string(1 - real(ProficientOrAbove_percent) - real(Lev2_percent), "%9.8f") if Lev1_percent == "*" & ProficientOrAbove_percent != "*" & Lev2_percent != "*"
+replace Lev2_percent = string(1 - real(ProficientOrAbove_percent) - real(Lev1_percent), "%9.8f") if Lev2_percent == "*" & ProficientOrAbove_percent != "*" & Lev1_percent != "*"
+
+
+replace ProficientOrAbove_count = string(real(StudentSubGroup_TotalTested) - real(Lev1_count) - real(Lev2_count)) if inlist(ProficientOrAbove_count, "*", "0-3") & !inlist(StudentSubGroup_TotalTested, "*", "0-3") & !inlist(Lev1_count, "*", "0-3") & !inlist(Lev2_count, "*", "0-3")
+replace Lev1_count = string(real(StudentSubGroup_TotalTested) - real(ProficientOrAbove_count) - real(Lev2_count)) if inlist(Lev1_count, "*", "0-3") & !inlist(StudentSubGroup_TotalTested, "*", "0-3") & !inlist(ProficientOrAbove_count, "*", "0-3") & !inlist(Lev2_count, "*", "0-3")
+replace Lev2_count = string(real(StudentSubGroup_TotalTested) - real(ProficientOrAbove_count) - real(Lev1_count)) if inlist(Lev2_count, "*", "0-3") & !inlist(StudentSubGroup_TotalTested, "*", "0-3") & !inlist(ProficientOrAbove_count, "*", "0-3") & !inlist(Lev1_count, "*", "0-3")
+replace Lev3_count = string(real(ProficientOrAbove_count) - real(Lev4_count)) if inlist(Lev3_count, "*", "0-3") & !inlist(ProficientOrAbove_count, "*", "0-3") & !inlist(Lev4_count, "*", "0-3")
+replace Lev4_count = string(real(ProficientOrAbove_count) - real(Lev3_count)) if inlist(Lev4_count, "*", "0-3") & !inlist(ProficientOrAbove_count, "*", "0-3") & !inlist(Lev3_count, "*", "0-3")
+
+tostring AvgScaleScore, replace format("%9.5f") force
+
+** Adding in observations of suppressed data for unique groups where "all students" included <10 people and was therefore excluded from the raw data
+append using "${data}/MO_AllStud_10_14.dta"
+drop if real(FILE) != `year' & FILE != ""
+drop FILE
+
+** Generating student group total counts (V2.0) 
+gen StateAssignedDistID1 = StateAssignedDistID
+replace StateAssignedDistID1 = "000000" if DataLevel == 1 //Remove quotations if DistIDs are numeric
+gen StateAssignedSchID1 = StateAssignedSchID
+replace StateAssignedSchID1 = "000000" if DataLevel !=3 //Remove quotations if SchIDs are numeric
+egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
+sort group_id StudentGroup StudentSubGroup
+by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+drop group_id StateAssignedDistID1 StateAssignedSchID1
+
+replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested == ""
+replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested =="."
+
 	** Merge NCES Data
 	
 	gen State_leaid = StateAssignedDistID
@@ -198,22 +239,6 @@ forvalues year = 2010/2014{
 	gen Flag_CutScoreChange_soc = "Not applicable"
 	gen Flag_CutScoreChange_sci = "N"
 	
-
-	//only way to make sure the values are stored as strings in the output .csv file
-	gen flag = 1 if NCESSchoolID == "290825000226" & StudentSubGroup == "White" & Subject == "sci" & GradeLevel == "G05"
-	
-	forvalues n = 1/4{
-		tostring Lev`n'_percent, replace format("%7.3f") force
-		tostring Lev`n'_count, replace
-		replace Lev`n'_percent = "*" if flag == 1
-		replace Lev`n'_count = "*" if flag == 1
-	}
-	
-	tostring ProficientOrAbove_percent, replace format("%7.4f") force
-	tostring ProficientOrAbove_count, replace
-	replace ProficientOrAbove_percent = "*" if flag == 1
-	replace ProficientOrAbove_count = "*" if flag == 1
-	
 	replace CountyName= "McDonald County" if CountyCode == "29119"
 	replace CountyName= "DeKalb County" if CountyCode == "29063"
 	
@@ -229,21 +254,11 @@ forvalues year = 2010/2014{
 	
 	replace SchName = strtrim(SchName)
 	replace SchName = stritrim(SchName)
+	replace StateAssignedDistID = "" if DataLevel == 1
+	replace StateAssignedSchID = "" if DataLevel != 3
 	
 	//dropped school name
 	replace SchName = "IA OF ACADEMIC SUCCESS" if NCESSchoolID == "290058103170"
-
-		** Generating student group total counts (V2.0) 
-//there are missing SG_TT values from 2010-2014 but these are missing in the raw data and likely due to data suppression <10
-gen StateAssignedDistID1 = StateAssignedDistID
-replace StateAssignedDistID1 = "000000" if DataLevel == 1 //Remove quotations if DistIDs are numeric
-gen StateAssignedSchID1 = StateAssignedSchID
-replace StateAssignedSchID1 = "000000" if DataLevel !=3 //Remove quotations if SchIDs are numeric
-egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
-sort group_id StudentGroup StudentSubGroup
-by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
-by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
-drop group_id StateAssignedDistID1 StateAssignedSchID1
 
 //remove leading zeros/standardizing for StateAssignedDistID
 replace StateAssignedDistID = substr(StateAssignedDistID, 2, .) if substr(StateAssignedDistID, 1, 1) == "0"
@@ -286,25 +301,6 @@ replace StateAssignedDistID = "9079" if DistName == "ZALMA R-V"
 //changing these districts' names because they are the exact same
 replace DistName = "MIAMI R-I (Bates County)" if NCESDistrictID == "2920820"
 replace DistName = "MIAMI R-I (Saline County)" if NCESDistrictID == "2920840"
-tostring StudentGroup_TotalTested, replace
-replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested == ""
-replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested =="."
-
-//deriving additional level counts and percents
-tostring StudentSubGroup_TotalTested, replace
-
-replace ProficientOrAbove_percent = string(1 - real(Lev1_percent) - real(Lev2_percent), "%9.8f") if ProficientOrAbove_percent == "*" & Lev1_percent != "*" & Lev2_percent != "*"
-replace Lev3_percent = string(real(ProficientOrAbove_percent) - real(Lev4_percent), "%9.8f") if Lev3_percent == "*" & ProficientOrAbove_percent != "*" & Lev4_percent != "*"
-replace Lev4_percent = string(real(ProficientOrAbove_percent) - real(Lev3_percent), "%9.8f") if Lev4_percent == "*" & ProficientOrAbove_percent != "*" & Lev3_percent != "*"
-replace Lev1_percent = string(1 - real(ProficientOrAbove_percent) - real(Lev2_percent), "%9.8f") if Lev1_percent == "*" & ProficientOrAbove_percent != "*" & Lev2_percent != "*"
-replace Lev2_percent = string(1 - real(ProficientOrAbove_percent) - real(Lev1_percent), "%9.8f") if Lev2_percent == "*" & ProficientOrAbove_percent != "*" & Lev1_percent != "*"
-
-
-replace ProficientOrAbove_count = string(real(StudentSubGroup_TotalTested) - real(Lev1_count) - real(Lev2_count)) if inlist(ProficientOrAbove_count, "*", "0-3") & !inlist(StudentSubGroup_TotalTested, "*", "0-3") & !inlist(Lev1_count, "*", "0-3") & !inlist(Lev2_count, "*", "0-3")
-replace Lev1_count = string(real(StudentSubGroup_TotalTested) - real(ProficientOrAbove_count) - real(Lev2_count)) if inlist(Lev1_count, "*", "0-3") & !inlist(StudentSubGroup_TotalTested, "*", "0-3") & !inlist(ProficientOrAbove_count, "*", "0-3") & !inlist(Lev2_count, "*", "0-3")
-replace Lev2_count = string(real(StudentSubGroup_TotalTested) - real(ProficientOrAbove_count) - real(Lev1_count)) if inlist(Lev2_count, "*", "0-3") & !inlist(StudentSubGroup_TotalTested, "*", "0-3") & !inlist(ProficientOrAbove_count, "*", "0-3") & !inlist(Lev1_count, "*", "0-3")
-replace Lev3_count = string(real(ProficientOrAbove_count) - real(Lev4_count)) if inlist(Lev3_count, "*", "0-3") & !inlist(ProficientOrAbove_count, "*", "0-3") & !inlist(Lev4_count, "*", "0-3")
-replace Lev4_count = string(real(ProficientOrAbove_count) - real(Lev3_count)) if inlist(Lev4_count, "*", "0-3") & !inlist(ProficientOrAbove_count, "*", "0-3") & !inlist(Lev3_count, "*", "0-3")
 
 	keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 	
