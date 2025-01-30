@@ -3931,7 +3931,7 @@ if r(N) != 0 {
 		
 		preserve
 		keep if count_diff !=. & levcount_rng_flag !=1
-		tab if count_diff !=. & levcount_rng_flag !=1
+		tab FILE if count_diff !=. & levcount_rng_flag !=1
 		cap drop StateAbbrev StateFips StateAssignedDistID StateAssignedSchID ///
 				 AvgScaleScore ParticipationRate Flag_AssmtNameChange ///
 				 Flag_CutScoreChange_ELA Flag_CutScoreChange_math ///

@@ -1,9 +1,9 @@
 clear
 set more off
 set trace off
-global Original "/Users/kaitlynlucas/Desktop/Hawaii/Original"
-global Cleaned "/Users/kaitlynlucas/Desktop/Hawaii/Output"
-global NCES "/Users/kaitlynlucas/Desktop/Hawaii/NCES"
+global Original "/Users/miramehta/Documents/Hawaii/Original"
+global Cleaned "/Users/miramehta/Documents/Hawaii/Output"
+global NCES "/Users/miramehta/Documents/NCES District and School Demographics"
 
 //Importing (Unhide on First Run)
 /*
@@ -138,7 +138,7 @@ keep if DataLevel == 2
 tempfile tempdist
 save "`tempdist'", replace
 clear
-use "$NCES/NCES_`prevyear'_District"
+use "$NCES/NCES District Files, Fall 1997-Fall 2022/NCES_`prevyear'_District"
 keep if state_name == "Hawaii"
 replace state_leaid = "HI-001"
 keep ncesdistrictid state_leaid lea_name district_agency_type DistCharter DistLocale county_code county_name
@@ -152,7 +152,7 @@ keep if DataLevel == 3
 gen seasch = string(StateAssignedSchID)
 tempfile tempsch
 save "`tempsch'", replace
-use "$NCES/NCES_`prevyear'_School"
+use "$NCES/NCES School Files, Fall 1997-Fall 2022/NCES_`prevyear'_School"
 keep if state_name == "Hawaii"
 replace state_leaid = "HI-001"
 if `year' != 2023 keep ncesdistrictid state_leaid lea_name district_agency_type DistCharter DistLocale county_code county_name ncesschoolid SchLevel SchVirtual SchType seasch
