@@ -7,7 +7,7 @@ global Output "/Users/miramehta/Documents/KY State Testing Data/Output"
 global NCES "/Users/miramehta/Documents/NCES District and School Demographics"
 
 //Importing (unhide on first run)
-/*
+
 
 forvalues year = 2012/2017 {
 	import excel "${Original}/KY_OriginalData_`year'_all", firstrow case(preserve) allstring
@@ -20,7 +20,7 @@ foreach year in 2018 2019 {
 	clear
 }
 foreach year in 2021 2022 2023 {
-	import delimited "${Original}/KY_OriginalData_`year'_all", case(preserve) stringcols(_all)
+	import delimited "${Original}/KY_OriginalData_`year'_all", case(preserve) stringcols(_all) clear
 	save "${Original}/KY_OriginalData_`year'", replace
 	clear
 }
@@ -97,7 +97,7 @@ rename SCHOOLNAME SchName
 rename GRADE GradeLevel
 rename SUBJECT Subject
 rename DEMOGRAPHIC StudentSubGroup
-if `year' == 2021 rename PARTICIPATIONPOPULATION StudentSubGroup_TotalTested
+if `year' == 2021 rename NAPDPOPULATION StudentSubGroup_TotalTested //updated 1/30/25 to map correct variable
 if `year' == 2021 rename PARTICIPATIONRATE ParticipationRate
 rename NOVICE Lev1_percent
 rename APPRENTICE Lev2_percent
