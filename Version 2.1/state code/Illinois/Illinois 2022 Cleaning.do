@@ -1,13 +1,11 @@
 clear
 set more off
 
+global raw "/Users/miramehta/Documents/Illinois/Original Data Files"
+global output "/Users/miramehta/Documents/Illinois/Original Data Files"
+global NCES "/Users/miramehta/Documents/Illinois/NCES"
+global EDFacts "/Users/miramehta/Documents/EDFacts"
 
-// UPDATED
-global output "/Users/benjaminm/Documents/State_Repository_Research/Illinois/Output" 
-global NCES "/Users/benjaminm/Documents/State_Repository_Research/Illinois/NCES/cleaned"
-global EDFacts  "/Users/benjaminm/Documents/State_Repository_Research/EdFacts"
-
-cd "/Users/benjaminm/Documents/State_Repository_Research/Illinois"
 *** Sci
 
 *** Sci Participation
@@ -86,6 +84,51 @@ replace StateAssignedSchID = "" if DataLevel == "State"
 
 save "${output}/IL_AssmtData_2022_sci_Participation.dta", replace
 
+**Sci performance Part 1
+//Importing
+use "$output/IL_AssmtData_2022_sci_5.dta"
+append using "$output/IL_AssmtData_2022_sci_8.dta"
+
+drop County DIST City AverageScaleScore
+
+//Renaming
+rename RCDTS StateAssignedSchID
+rename SchoolorDistrictName SchName
+rename StateDistrictSchool DataLevel
+rename Grade GradeLevel
+replace GradeLevel = "G" + GradeLevel
+rename NotEL ProficientOrAbove_percentProf
+rename NotIEP ProficientOrAbove_percentNonIEP
+
+drop All Male Female White Black Hispanic Asian HawaiianPacificIslander NativeAmerican TwoorMoreRaces EL LowIncome NotLowIncome Migrant IEP
+
+//Reshape
+reshape long ProficientOrAbove_percent, i(StateAssignedSchID GradeLevel) j(StudentSubGroup, string)
+
+//StudentSubGroup
+replace StudentSubGroup = "English Proficient" if StudentSubGroup == "Prof"
+replace StudentSubGroup = "Non-SWD" if StudentSubGroup == "NonIEP"
+
+//StudentGroup
+gen StudentGroup = "EL Status"
+replace StudentGroup = "Disability Status" if StudentSubGroup == "Non-SWD"
+
+//ProficientOrAbove_percent
+replace ProficientOrAbove_percent = string(real(ProficientOrAbove_percent)/100, "%9.3g")
+replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
+
+forvalues n = 1/4{
+	gen Lev`n'_percent = "--"
+}
+
+//Data Levels
+replace DataLevel = "School" if DataLevel == "SCHL"
+replace DataLevel = "District" if DataLevel == "DIST"
+replace DataLevel = "State" if DataLevel == "STATE"
+replace StateAssignedSchID = "" if DataLevel == "State"
+
+save "${output}/IL_AssmtData_2022_sci_lev_missing.dta", replace
+
 *** Sci Performance Levels
 use "${output}/IL_AssmtData_2022_sci_performance.dta", clear
 
@@ -106,12 +149,12 @@ rename *Exemplary_Grade8 Lev4_Grade8*
 
 rename GenderNonBinary_Developing_Grade Lev2_Grade5GenderNonBinary
 rename GenderNonBinary_Proficient_Grade Lev3_Grade5GenderNonBinary
-rename CQ Lev2_Grade8GenderNonBinary
-rename CR Lev3_Grade8GenderNonBinary
+rename CU Lev2_Grade8GenderNonBinary
+rename CV Lev3_Grade8GenderNonBinary
 rename *GenderNonBinary_ *GenderNB_
 rename *GenderNonBinary *GenderNB_
 
-drop *_Grade11 *_Grade1 FO FP Year
+drop *_Grade11 *_Grade1 FW FX Year
 drop if StateAssignedSchID == ""
 
 reshape long Lev1_Grade5 Lev1_Grade8 Lev2_Grade5 Lev2_Grade8 Lev3_Grade5 Lev3_Grade8 Lev4_Grade5 Lev4_Grade8, i(DataLevel DistName SchName StateAssignedSchID) j(StudentSubGroup) string
@@ -131,6 +174,7 @@ replace StudentGroup = "Gender" if strpos(StudentSubGroup, "Gender") != 0
 replace StudentGroup = "Homeless Enrolled Status" if strpos(StudentSubGroup, "Homeless") != 0
 replace StudentGroup = "Military Connected Status" if strpos(StudentSubGroup, "Military") != 0
 replace StudentGroup = "RaceEth" if strpos(StudentSubGroup, "Race") != 0
+replace StudentGroup = "Migrant Status" if strpos(StudentSubGroup, "Migrant") != 0
 
 replace StudentSubGroup = "All Students" if StudentSubGroup == "All_Students_"
 replace StudentSubGroup = subinstr(StudentSubGroup, "_", "", 1)
@@ -164,14 +208,20 @@ gen ProficientOrAbove_percent = string(real(Lev3_percent) + real(Lev4_percent), 
 replace ProficientOrAbove_percent = string(1 - real(Lev1_percent) - real(Lev2_percent), "%9.3g") if missing(real(ProficientOrAbove_percent)) & !missing(real(Lev1_percent)) & !missing(real(Lev2_percent))
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == ""
 
+append using "${output}/IL_AssmtData_2022_sci_lev_missing.dta"
+
 //Merging with participation
 replace StateAssignedSchID = "" if DataLevel == "State"
 merge 1:1 DataLevel StateAssignedSchID GradeLevel StudentSubGroup using "${output}/IL_AssmtData_2022_sci_Participation.dta"
 replace ParticipationRate = "--" if _merge == 1
-drop if _merge == 2
 drop _merge
 
 drop if ParticipationRate == "0" & StudentSubGroup != "All Students"
+
+local variables "Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent"
+foreach var of local variables {
+	replace `var' = "--" if `var' == ""
+}
 
 //DataLevel
 label def DataLevel 1 "State" 2 "District" 3 "School"
@@ -199,130 +249,6 @@ gen SchYear = "2021-22"
 gen AssmtName = "ISA 2.0"
 gen AssmtType = "Regular"
 
-
-/*
-use "${output}/IL_AssmtData_2022_sci_5.dta", clear
-append using "${output}/IL_AssmtData_2022_sci_8.dta"
-
-** Dropping extra variables
-
-
-
-drop County City DIST
-// drop County City Migrant IEP NotIEP DIST
-
-** Rename existing variables
-
-rename RCDTS StateAssignedSchID
-rename SchoolorDistrictName SchName
-rename Grade GradeLevel
-rename StateDistrictSchool DataLevel
-rename All ProficientOrAbove_percentAll
-rename Male ProficientOrAbove_percentMale
-rename Female ProficientOrAbove_percentFemale
-rename White ProficientOrAbove_percentWhite
-rename Black ProficientOrAbove_percentBlack
-rename Hispanic ProficientOrAbove_percentHisp
-rename Asian ProficientOrAbove_percentAsian
-rename HawaiianPacificIslander ProficientOrAbove_percentHawaii
-rename NativeAmerican ProficientOrAbove_percentNative
-rename TwoorMoreRaces ProficientOrAbove_percentTwo
-rename EL ProficientOrAbove_percentLearner
-rename NotEL ProficientOrAbove_percentProf
-rename LowIncome ProficientOrAbove_percentDis
-rename NotLowIncome ProficientOrAbove_percentNotDis
-rename AverageScaleScore AvgScaleScore
-rename Migrant ProficientOrAbove_percentMigrant
-rename IEP ProficientOrAbove_percentIEP
-rename NotIEP ProficientOrAbove_percentNonIEP
-
-** Dropping entries
-
-drop if StateAssignedSchID == ""
-
-** Generating new variables
-
-gen SchYear = "2021-22"
-
-gen AssmtName = "ISA 2.0"
-gen AssmtType = "Regular"
-
-local level 1 2 3 4
-
-foreach a of local level {
-	gen Lev`a'_count = "--"
-	gen Lev`a'_percent = "--"
-}
-
-gen Lev5_count = ""
-gen Lev5_percent = ""
-
-gen ProficientOrAbove_count = "--"
-
-gen ProficiencyCriteria = "Levels 3-4"
-
-gen Subject = "sci"
-
-tostring AvgScaleScore, replace
-replace AvgScaleScore = "--" if AvgScaleScore == " "
-
-** Reshaping
-
-reshape long ProficientOrAbove_percent, i(StateAssignedSchID GradeLevel) j(StudentSubGroup) string
-
-replace StudentSubGroup = "All Students" if StudentSubGroup == "All"
-replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "Native"
-replace StudentSubGroup = "Black or African American" if StudentSubGroup == "Black"
-replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "Hawaii"
-replace StudentSubGroup = "Two or More" if StudentSubGroup == "Two"
-replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hisp"
-replace StudentSubGroup = "English Learner" if StudentSubGroup == "Learner"
-replace StudentSubGroup = "English Proficient" if StudentSubGroup == "Prof"
-replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Dis"
-replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "NotDis"
-replace StudentSubGroup = "Migrant" if StudentSubGroup == "Migrant"
-replace StudentSubGroup = "SWD" if StudentSubGroup == "IEP"
-replace StudentSubGroup = "Non-SWD" if StudentSubGroup == "NonIEP"
-
-gen StudentGroup = "RaceEth"
-replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
-replace StudentGroup = "EL Status" if StudentSubGroup == "English Learner" | StudentSubGroup == "English Proficient"
-replace StudentGroup = "Economic Status" if StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "Not Economically Disadvantaged"
-replace StudentGroup = "Gender" if StudentSubGroup == "Male" | StudentSubGroup == "Female"
-replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant"
-replace StudentGroup = "Disability Status" if strpos(StudentSubGroup, "SWD") !=0
-
-
-gen StudentSubGroup_TotalTested = "--"
-gen StudentGroup_TotalTested = "--"
-
-replace GradeLevel = "G" + GradeLevel
-
-destring ProficientOrAbove_percent, replace
-replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
-tostring ProficientOrAbove_percent, replace force
-replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
-
-replace AvgScaleScore = "--" if StudentSubGroup != "All Students"
-
-merge 1:1 DataLevel StateAssignedSchID GradeLevel StudentSubGroup using "${output}/IL_AssmtData_2022_sci_Participation.dta"
-drop if _merge == 2
-drop _merge
-
-drop if ParticipationRate == "0"
-
-replace DataLevel = "School" if DataLevel == "SCHL"
-replace DataLevel = "District" if DataLevel == "DIST"
-replace DataLevel = "State" if DataLevel == "STATE"
-
-** Changing DataLevel
-
-label def DataLevel 1 "State" 2 "District" 3 "School"
-encode DataLevel, gen(DataLevel_n) label(DataLevel)
-sort DataLevel_n 
-drop DataLevel 
-rename DataLevel_n DataLevel
-*/
 ** Merging with NCES
 
 gen leadingzero = 0
@@ -342,7 +268,7 @@ replace seasch = subinstr(seasch,"IL-","",.)
 replace seasch = substr(seasch,1,9) + substr(seasch,12,4)
 replace seasch = "" if DataLevel != 3
 
-merge m:1 State_leaid using "${NCES}/NCES_2021_District.dta"
+merge m:1 State_leaid using "${NCES}/NCES_2021_District.dta", update
 drop if _merge == 2
 drop _merge
 
@@ -794,11 +720,14 @@ replace	SchName= "Sarah Atwater Denman Elementary School" if NCESSchoolID== "173
 replace	SchName= "Thomas S Baldwin Elementary School" if NCESSchoolID== "173300003359"			
 replace	SchName= "Waverly Junior/Senior High School" if NCESSchoolID== "174128004145"	
 
+replace DistName = subinstr(DistName, "Comm ", "Community ", 1)
 
 replace ProficientOrAbove_count = string(real(Lev4_count) + real(Lev5_count)) if ProficiencyCriteria == "Levels 4-5" & !missing(real(Lev4_count)) &!missing(real(Lev5_count)) 
 
-replace ProficientOrAbove_percent = string(round(real(Lev4_percent) + real(Lev5_percent), 0.001)) if ProficientOrAbove_percent != string(round(real(Lev4_percent) + real(Lev5_percent), 0.001)) & ProficiencyCriteria == "Levels 4-5" & !missing(real(Lev4_percent)) &!missing(real(Lev5_percent)) 
+replace ProficientOrAbove_percent = string(round(real(Lev4_percent) + real(Lev5_percent), 0.001)) if ProficientOrAbove_percent != string(round(real(Lev4_percent) + real(Lev5_percent), 0.001)) & ProficiencyCriteria == "Levels 4-5" & !missing(real(Lev4_percent)) &!missing(real(Lev5_percent))
 
+replace ProficientOrAbove_percent = "0" if real(ProficientOrAbove_percent) < 0
+replace ProficientOrAbove_percent = "1" if ProficientOrAbove_percent == "1.001"
 
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
  

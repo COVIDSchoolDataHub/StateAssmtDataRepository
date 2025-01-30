@@ -1,15 +1,10 @@
 clear
 set more off
 
-
-// UPDATED
-global output "/Users/benjaminm/Documents/State_Repository_Research/Illinois/Output" 
-global NCES "/Users/benjaminm/Documents/State_Repository_Research/Illinois/NCES/cleaned"
-// global NCES_School"/Users/benjaminm/Documents/State_Repository_Research/NCES/School"
-global EDFacts  "/Users/benjaminm/Documents/State_Repository_Research/EdFacts"
-
-cd "/Users/benjaminm/Documents/State_Repository_Research/Illinois"
-
+global raw "/Users/miramehta/Documents/Illinois/Original Data Files"
+global output "/Users/miramehta/Documents/Illinois/Original Data Files"
+global NCES "/Users/miramehta/Documents/Illinois/NCES"
+global EDFacts "/Users/miramehta/Documents/EDFacts"
 
 *** Sci
 
@@ -89,7 +84,52 @@ replace StateAssignedSchID = "" if DataLevel == "State"
 
 save "${output}/IL_AssmtData_2023_sci_Participation.dta", replace
 
-*** Sci Performance Levels
+**Sci performance Part 1
+//Importing
+use "$output/IL_AssmtData_2023_sci_5.dta"
+append using "$output/IL_AssmtData_2023_sci_8.dta"
+
+drop County DIST City AverageScaleScore
+
+//Renaming
+rename RCDTS StateAssignedSchID
+rename SchoolorDistrictName SchName
+rename StateDistrictSchool DataLevel
+rename Grade GradeLevel
+replace GradeLevel = "G" + GradeLevel
+rename NotEL ProficientOrAbove_percentProf
+rename NotIEP ProficientOrAbove_percentNonIEP
+
+drop All Male Female White Black Hispanic Asian HawaiianPacificIslander NativeAmerican TwoorMoreRaces EL LowIncome NotLowIncome Migrant IEP
+
+//Reshape
+reshape long ProficientOrAbove_percent, i(StateAssignedSchID GradeLevel) j(StudentSubGroup, string)
+
+//StudentSubGroup
+replace StudentSubGroup = "English Proficient" if StudentSubGroup == "Prof"
+replace StudentSubGroup = "Non-SWD" if StudentSubGroup == "NonIEP"
+
+//StudentGroup
+gen StudentGroup = "EL Status"
+replace StudentGroup = "Disability Status" if StudentSubGroup == "Non-SWD"
+
+//ProficientOrAbove_percent
+replace ProficientOrAbove_percent = string(real(ProficientOrAbove_percent)/100, "%9.3g")
+replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
+
+forvalues n = 1/4{
+	gen Lev`n'_percent = "--"
+}
+
+//Data Levels
+replace DataLevel = "School" if DataLevel == "SCHL"
+replace DataLevel = "District" if DataLevel == "DIST"
+replace DataLevel = "State" if DataLevel == "STATE"
+replace StateAssignedSchID = "" if DataLevel == "State"
+
+save "${output}/IL_AssmtData_2023_sci_lev_missing.dta", replace
+
+*** Sci Performance Levels - Part 2
 
 use "${output}/IL_AssmtData_2023_sci_performance.dta", clear
 
@@ -110,12 +150,12 @@ rename *Exemplary_Grade8 Lev4_Grade8*
 
 rename GenderNonBinary_Developing_Grade Lev2_Grade5GenderNonBinary
 rename GenderNonBinary_Proficient_Grade Lev3_Grade5GenderNonBinary
-rename CQ Lev2_Grade8GenderNonBinary
-rename CR Lev3_Grade8GenderNonBinary
+rename CU Lev2_Grade8GenderNonBinary
+rename CV Lev3_Grade8GenderNonBinary
 rename *GenderNonBinary_ *GenderNB_
 rename *GenderNonBinary *GenderNB_
 
-drop *_Grade11 *_Grade1 FO FP Year
+drop *_Grade11 *_Grade1 FW FX Year
 drop if StateAssignedSchID == ""
 
 reshape long Lev1_Grade5 Lev1_Grade8 Lev2_Grade5 Lev2_Grade8 Lev3_Grade5 Lev3_Grade8 Lev4_Grade5 Lev4_Grade8, i(DataLevel DistName SchName StateAssignedSchID) j(StudentSubGroup) string
@@ -135,6 +175,7 @@ replace StudentGroup = "Gender" if strpos(StudentSubGroup, "Gender") != 0
 replace StudentGroup = "Homeless Enrolled Status" if strpos(StudentSubGroup, "Homeless") != 0
 replace StudentGroup = "Military Connected Status" if strpos(StudentSubGroup, "Military") != 0
 replace StudentGroup = "RaceEth" if strpos(StudentSubGroup, "Race") != 0
+replace StudentGroup = "Migrant Status" if strpos(StudentSubGroup, "Migrant") != 0
 
 replace StudentSubGroup = "All Students" if StudentSubGroup == "All_Students_"
 replace StudentSubGroup = subinstr(StudentSubGroup, "_", "", 1)
@@ -161,6 +202,8 @@ forvalues n = 1/4{
 
 gen Lev5_percent = ""
 
+replace Lev1_percent = string(1 - real(Lev2_percent) - real(Lev3_percent) - real(Lev4_percent), "%9.3g") if missing(real(Lev1_percent)) & !missing(real(Lev2_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev4_percent))
+
 replace Lev4_percent = string(1 - real(Lev1_percent) - real(Lev2_percent) - real(Lev3_percent), "%9.3g") if missing(real(Lev4_percent)) & !missing(real(Lev1_percent)) & !missing(real(Lev2_percent)) & !missing(real(Lev3_percent))
 
 //ProficientOrAbove_percent
@@ -168,14 +211,20 @@ gen ProficientOrAbove_percent = string(real(Lev3_percent) + real(Lev4_percent), 
 replace ProficientOrAbove_percent = string(1 - real(Lev1_percent) - real(Lev2_percent), "%9.3g") if missing(real(ProficientOrAbove_percent)) & !missing(real(Lev1_percent)) & !missing(real(Lev2_percent))
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == ""
 
+append using "${output}/IL_AssmtData_2023_sci_lev_missing.dta"
+
 //Merging with participation
 replace StateAssignedSchID = "" if DataLevel == "State"
 merge 1:1 DataLevel StateAssignedSchID GradeLevel StudentSubGroup using "${output}/IL_AssmtData_2023_sci_Participation.dta"
 replace ParticipationRate = "--" if _merge == 1
-drop if _merge == 2
 drop _merge
 
 drop if ParticipationRate == "0" & StudentSubGroup != "All Students"
+
+local variables "Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent"
+foreach var of local variables {
+	replace `var' = "--" if `var' == ""
+}
 
 //DataLevel
 label def DataLevel 1 "State" 2 "District" 3 "School"
@@ -222,7 +271,7 @@ replace seasch = subinstr(seasch,"IL-","",.)
 replace seasch = substr(seasch,1,9) + substr(seasch,12,4)
 replace seasch = "" if DataLevel != 3
 
-merge m:1 State_leaid using "${NCES}/NCES_2022_District.dta"
+merge m:1 State_leaid using "${NCES}/NCES_2022_District.dta", update
 drop if _merge == 2
 drop _merge
 
@@ -231,24 +280,6 @@ tab seasch if _merge == 1
 drop if _merge == 2
 drop _merge
 
-
-/*
-** Updating 2023 schools
-
-replace SchType = 1 if SchName == "Big Timber Elementary School"
-replace NCESSchoolID = "170855006869" if SchName == "Big Timber Elementary School"
-
-replace SchType = 1 if seasch == "07016113A2005"
-replace NCESSchoolID = "170729006891" if seasch == "07016113A2005"
-
-replace SchType = 1 if SchName == "Stockton Middle School"
-replace NCESSchoolID = "173798006880" if SchName == "Stockton Middle School"
-
-replace SchLevel = -1 if SchName == "Big Timber Elementary School" | seasch == "07016113A2005" | SchName == "Stockton Middle School"
-replace SchVirtual = -1 if SchName == "Big Timber Elementary School" | seasch == "07016113A2005" | SchName == "Stockton Middle School"
-label def SchLevel -1 "Missing/not reported"
-label def SchVirtual -1 "Missing/not reported"
-*/
 save "${output}/IL_AssmtData_2023_sci.dta", replace
 
 **** ELA & Math
@@ -557,26 +588,6 @@ merge m:1 seasch using "${NCES}/NCES_2022_School.dta"
 drop if _merge == 2
 drop _merge
 
-/*
-** Updating 2023 schools
-
-replace SchType = 1 if SchName == "Big Timber Elementary School"
-replace NCESSchoolID = "170855006869" if SchName == "Big Timber Elementary School"
-
-replace SchType = 1 if seasch == "07016113A2005"
-replace NCESSchoolID = "170729006891" if seasch == "07016113A2005"
-
-replace SchType = 1 if SchName == "Stockton Middle School"
-replace NCESSchoolID = "173798006880" if SchName == "Stockton Middle School"
-
-replace SchLevel = -1 if SchName == "Big Timber Elementary School" | seasch == "07016113A2005" | SchName == "Stockton Middle School"
-replace SchVirtual = -1 if SchName == "Big Timber Elementary School" | seasch == "07016113A2005" | SchName == "Stockton Middle School"
-label def SchLevel -1 "Missing/not reported"
-label def SchVirtual -1 "Missing/not reported"
-*/
-
-
-
 **** Appending
 
 append using "${output}/IL_AssmtData_2023_sci.dta"
@@ -605,13 +616,6 @@ order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistric
  
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
-// gen Flag_AssmtNameChange = "N"
-// gen Flag_CutScoreChange_ELA = "N"
-// gen Flag_CutScoreChange_math = "N"
-// gen Flag_CutScoreChange_read = ""
-// gen Flag_CutScoreChange_oth = "N"
-// order State StateAbbrev StateFips SchYear DataLevel DistName DistType SchName SchType NCESDistrictID StateAssignedDistID State_leaid NCESSchoolID StateAssignedSchID seasch DistCharter SchLevel SchVirtual CountyName CountyCode AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_read Flag_CutScoreChange_oth
-
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${output}/IL_AssmtData_2023_1.dta", replace
@@ -636,6 +640,7 @@ replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
 
 //Deriving Counts where possible and Applying StudentGroup_TotalTested Convention
 gen AllStudents = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+sort DataLevel NCESDistrictID NCESSchoolID Subject GradeLevel StudentGroup StudentSubGroup
 replace AllStudents = AllStudents[_n-1] if missing(AllStudents)
 destring StudentSubGroup_TotalTested, gen(UnsuppressedSSG) force
 egen UnsuppressedSG = total(UnsuppressedSSG), by(DataLevel NCESDistrictID NCESSchoolID Subject GradeLevel StudentGroup)
@@ -658,7 +663,7 @@ local Lev_percents "Lev2_percent Lev3_percent Lev4_percent Lev5_percent Proficie
 foreach var of local Lev_percents {
 	
 	replace `var' = "--" if `var' == "." 
-	
+
 }
 
 
@@ -673,6 +678,8 @@ replace ProficientOrAbove_count = string(real(Lev4_count) + real(Lev5_count)) if
 
 replace ProficientOrAbove_percent = string(round(real(Lev4_percent) + real(Lev5_percent), 0.001)) if ProficientOrAbove_percent != string(round(real(Lev4_percent) + real(Lev5_percent), 0.001)) & ProficiencyCriteria == "Levels 4-5" & !missing(real(Lev4_percent)) &!missing(real(Lev5_percent)) 
 
+replace ProficientOrAbove_percent = "0" if real(ProficientOrAbove_percent) < 0
+replace ProficientOrAbove_percent = "1" if ProficientOrAbove_percent == "1.001"
 
 
 // fixing certain dist and sch names 
@@ -716,6 +723,8 @@ replace	SchName= "Thomas S Baldwin Elementary School" if NCESSchoolID== "1733000
 replace	SchName= "Waverly Junior/Senior High School" if NCESSchoolID== "174128004145"	
 replace DistName="Chicago Public Schools District 299" if NCESDistrictID=="1709930"
 
+replace DistName = subinstr(DistName, "Comm ", "Community ", 1)
+
 // fixing SG_TT
 drop StudentGroup_TotalTested
 gen StateAssignedDistID1 = StateAssignedDistID
@@ -743,7 +752,4 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 save "${output}/IL_AssmtData_2023.dta", replace
 
 export delimited using "${output}/IL_AssmtData_2023.csv", replace
-
-
-use "${output}/IL_AssmtData_2022.dta", clear
 
