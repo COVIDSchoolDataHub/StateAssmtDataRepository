@@ -1,5 +1,5 @@
 *****************************************************************************
-**	Updated January 27, 2025
+**	Updated January 29, 2025
 
 
 ** 	ZELMA STATE ASSESSMENT DATA REPOSITORY 
@@ -7,12 +7,11 @@
 
 **  SETUP
 
-**	1. In your project folder, create a state folder with the format: Florida - Version 2.0
+**	1. In your project folder, create a state folder with the format: Florida - Version 2.1
 **	2. Save all of the state's assessment data .csvs. Do not save any other .csvs in this folder.
 **	3. Create a folder called "review" in the state folder in case you need to export any subsets of the data.
 **	4. This do file should be saved in the state folder with the .csvs.
-clear 
-use "/Desktop/Zelma V2.1/North Dakota - Version 2.0/ND_allyears.dta" 
+
 ***************************************
 {
 clear all
@@ -21,7 +20,7 @@ global Filepath "/Desktop/Zelma V2.0/North Dakota - Version 2.0" //  Set path to
 global Review "${Filepath}/review" 
 global State "North Dakota" //Set State Name 
 global StateAbbrev "ND" //Set StateAbbrev
-global date "01.27.25" //Set today's date
+global date "01.29.25" //Set today's date
 global years 2024 2023  2022 2021 2019  2018 2017 2016 2015 //  2014 2013 2012 2011 2010 2009 2008 2007 2006 2005 2004 2003 2002 2001 2000 1999 1998
 
 clear
@@ -1282,6 +1281,10 @@ foreach var of local schid_flag2 {
 	}
 }
 
+{
+// Var cleanup 
+drop d_MultipleStateIDsPer_NCESid d_MultipleNCESIDsPer_StateID s_MultipleStateSchIDsPer_NCESid s_MultipleNCESIDsPer_StateSchID
+}
 ***********************************************************
 *StateAssignedSchID
 
@@ -1336,7 +1339,7 @@ set seed 98765
 	egen sch_nces = group(sch_random NCESSchoolID)
 
 	tab FILE StateAssignedSchID if (sch_nces == 1 )
-		tab SFILE StateAssignedSchID if (sch_nces == 2 )
+		tab FILE StateAssignedSchID if (sch_nces == 2 )
 	di as error "Compare StateAssignedSchIDs over time."
 
 drop sch_random sch_nces
@@ -2507,11 +2510,11 @@ tab FILE StudentSubGroup_TotalTested if StudentSubGroup_TotalTested < "1"  // ad
 }
 
 
-** • Have high StudentSubGroup_TotalTested values across all years been reviewed for irregularities? (updated 1/21/25)
+** • Have high StudentSubGroup_TotalTested values across all years been reviewed for irregularities? (updated 1/29/25)
 {
 gsort  FILE -ssgtt_n
 by FILE: gen  ssg_tt_high = _n //Number observations by year from highest StudentSubGroup_TotalTested value to lowest
-tab  FILE StudentSubGroup_TotalTested if ssg_tt_high < 11 //Look at highest 10 values for each file
+tab  FILE StudentSubGroup_TotalTested if ssg_tt_high < 3 //Look at highest 3 values for each file
 
 drop ssgtt_n ssg_tt_low ssg_tt_high
 }
@@ -2753,6 +2756,8 @@ gen der_L1_ct_lev45 = .
 	// L1 summary
 	gen der_L1 = .
 	cap replace der_L1 = 1 if (der_L1_ct_lev23 == 1 | der_L1_ct_lev34 == 1 | der_L1_ct_lev35 == 1 | der_L1_ct_lev45 == 1)
+
+	// caveat for Maine because ela/math for 2021 and 2022 do not use L1, so we are not deriving
 	replace der_L1 = . if StateAbbrev == "ME" & inlist(FILE, "2021", "2022") & Subject != "sci"
 	gsort -der_L1
 
@@ -2777,6 +2782,8 @@ gen der_L2_ct_lev34 = .
         (inlist(Lev2_count, "*", "--") & !inlist(Lev1_count, "*", "--") & ///
         !inlist(Lev3_count, "*", "--") & !inlist(Lev4_count, "*", "--") & ///
         !inlist(StudentSubGroup_TotalTested, "*", "--"))
+
+	//caveat for Maine, which does not use L1 for ela/math for 2021 or 2022
 	if StateAbbrev == "ME" & inlist(FILE, "2021", "2022") & Subject != "sci" {
 		replace der_L2_ct_lev34 = .
 		replace der_L2_ct_lev34 = ProficiencyCriteria == "Levels 3-4" & ///
@@ -2784,8 +2791,7 @@ gen der_L2_ct_lev34 = .
 		!inlist(StudentSubGroup_TotalTested, "*", "--"))
 		replace der_L2_ct_lev34 = ProficiencyCriteria == "Levels 3-4" & ///
         (inlist(Lev2_count, "*", "--") & !inlist(Lev3_count, "*", "--") & ///
-        !inlist(Lev3_count, "*", "--") & !inlist(Lev4_count, "*", "--") & ///
-        !inlist(StudentSubGroup_TotalTested, "*", "--"))
+        !inlist(Lev4_count, "*", "--") & !inlist(StudentSubGroup_TotalTested, "*", "--"))
 	}
 
 gen der_L2_ct_lev35 = .
@@ -3547,16 +3553,28 @@ drop levcount_rng_flag
 ***********************************************************
 *Level percents 
 
-** • Are all percents presented as decimals? [or decimal ranges] (updated 1/26/25)
+
+** • Have low level percent values been reviewed for irregularities? (added 1/29/25)
+tab Lev1_percent FILE if real(Lev1_percent) < .001
+tab Lev2_percent FILE if real(Lev2_percent) < .001
+tab Lev3_percent FILE if real(Lev3_percent) < .001
+tab Lev4_percent FILE if real(Lev4_percent) < .001
+tab Lev5_percent FILE if real(Lev5_percent) < .001
+
+***********************************************************
+*Level percents 
+
+** • Are all percents presented as decimals? [or decimal ranges] (updated 1/29/25)
 {
 local levpercents "Lev1_percent2_n Lev2_percent2_n Lev3_percent2_n Lev4_percent2_n Lev5_percent2_n"
 
 foreach var of local levpercents {
+	
     // Count observations where the variable is outside the range [0, 1]
     count if (`var' > 1 | `var' < 0) & !missing(`var')
     
     if r(N) != 0 {
-        di as error "`var' has values greater than 1 or less than 0 in the files below."
+        di as error "Check `var' values in the files below."
         tab `var' FILE if (`var' > 1 | `var' < 0) & !missing(`var')
     } 
     else {
@@ -3564,6 +3582,7 @@ foreach var of local levpercents {
     }		
 }
 }
+
 
 * Drop when no longer needed 
 drop Lev1_percent2_n Lev2_percent2_n Lev3_percent2_n Lev4_percent2_n Lev5_percent2_n
@@ -3972,9 +3991,15 @@ foreach var of local vars {
 		| (inlist(ProficientOrAbove_count, "*", "--", "") & !inlist(Lev1_count, "*", "--", "") & !inlist(Lev2_count, "*", "--", "") & !inlist(StudentSubGroup_TotalTested, "*", "--", "")) ///  
 		| (inlist(ProficientOrAbove_count, "*", "--", "") & !inlist(ProficientOrAbove_percent, "*", "--", "") & !inlist(StudentSubGroup_TotalTested, "*", "--", "")) ///
 	)
+
+	//caveat for Maine, ela/math for 2021 and 2022, which does not use Level 1
 	if StateAbbrev == "ME" & inlist(FILE, "2021", "2022") & Subject != "sci"{
+		replace derive_profabvcount_lev34 = .
+		
 		replace derive_profabvcount_lev34 = 1 if ProficiencyCriteria == "Levels 3-4" & ( ///
-		(inlist(ProficientOrAbove_count, "*", "--", "") & !inlist(Lev2_count, "*", "--", "") & !inlist(StudentSubGroup_TotalTested, "*", "--", ""))
+		(inlist(ProficientOrAbove_count, "*", "--", "") & !inlist(Lev3_count, "*", "--", "") & !inlist(Lev4_count, "*", "--", "")) ///  
+		| (inlist(ProficientOrAbove_count, "*", "--", "") & !inlist(Lev2_count, "*", "--", "") & !inlist(StudentSubGroup_TotalTested, "*", "--", "")) ///  
+		| (inlist(ProficientOrAbove_count, "*", "--", "") & !inlist(ProficientOrAbove_percent, "*", "--", "") & !inlist(StudentSubGroup_TotalTested, "*", "--", "")) ///
 	)
 	}
 
@@ -4023,6 +4048,8 @@ gen derive_profavb_count = .
 		di as error "No additional ProficientOrAbove_count values can be derived."
 		}
 	}
+
+drop derive_profabvcount_lev23 derive_profabvcount_lev34 derive_profabvcount_lev35 derive_profabvcount_lev45 derive_profavb_count
 }
 
 ***********************************************************
@@ -4414,9 +4441,14 @@ gen der_profabvper_lev34 = .
 		| (inlist(ProficientOrAbove_percent, "*", "--") & !inlist(ProficientOrAbove_count, "*", "--") & !inlist(StudentSubGroup_TotalTested, "*", "--")) ///
 	)
 	
+	//caveat for Maine, ela/math for 2021 and 2022, which does not use Level 1
 	if StateAbbrev == "ME" & inlist(FILE, "2021", "2022") & Subject != "sci"{
+		replace der_profabvper_lev34 = .
+		
 		replace der_profabvper_lev34 = 1 if ProficiencyCriteria == "Levels 3-4" & ( ///
-		(inlist(ProficientOrAbove_percent, "*", "--", "") & !inlist(Lev2_percent, "*", "--", "")
+		(inlist(ProficientOrAbove_percent, "*", "--") & !inlist(Lev3_percent, "*", "--") & !inlist(Lev4_percent, "*", "--")) ///  
+		| (inlist(ProficientOrAbove_percent, "*", "--") & !inlist(Lev2_percent, "*", "--") & !inlist(StudentSubGroup_TotalTested, "*", "--")) ///  
+		| (inlist(ProficientOrAbove_percent, "*", "--") & !inlist(ProficientOrAbove_count, "*", "--") & !inlist(StudentSubGroup_TotalTested, "*", "--")) ///
 	)
 	}
 
@@ -4699,6 +4731,13 @@ foreach var of local profabove_p {
 		}	
 	}
 }
+
+***********************************************************
+*ProficientOrAbove_percent 
+
+** • Have low values been reviewed for irregularities? (added 1/29/25)
+tab ProficientOrAbove_percent FILE if real(ProficientOrAbove_percent) < .001
+
 ***********************************************************
 
 * AvgScaleScore
@@ -5004,36 +5043,6 @@ di as error "Review data file or documentation to verify assessment name for 202
 ***********************************************************
 ** Flag_AssmtNameChange	
 
-** • Does the ELA name flag align with the CW across years?
-{
-tab  FILE AssmtName if Subject == "ela" 
-tab  FILE Flag_AssmtNameChange if Subject == "ela" 
-}
-
-{
-tab  FILE AssmtName if Subject == "math"
-tab  FILE Flag_AssmtNameChange if Subject == "math"
-}
-***********************************************************
-** Flag_AssmtNameChange	
-
-** • Does the sci assessment name flag align with the CW across years?
-{
-tab  FILE AssmtName if Subject == "sci"
-tab  FILE Flag_AssmtNameChange if Subject == "sci"
-}
-
-***********************************************************
-** Flag_AssmtNameChange	
-
-** • Does the soc assessment name flag align with the CW across years?
-{
-tab  FILE AssmtName if Subject == "soc"
-tab  FILE Flag_AssmtNameChange if Subject == "soc"
-}
-***********************************************************
-** Flag_AssmtNameChange	
-
 ** • Are all values either "Y" or "N"?
 {
 count if !inlist(Flag_AssmtNameChange, "Y", "N")
@@ -5069,6 +5078,9 @@ foreach var of local cutscorech_flags {
 ***********************************************************
 ** • Do flags across all years align with what is in the crosswalk? (1/27/25)
 do "V2.1_FlagChecks_2025.01.25.do"
+
+// Name change flag, for reference
+tab  FILE Flag_AssmtNameChange 
 
 // Subject-area flags, for reference
 tab  FILE Flag_CutScoreChange_ELA 
