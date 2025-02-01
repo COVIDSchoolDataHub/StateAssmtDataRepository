@@ -171,7 +171,7 @@ if `year' == 2023 drop if GradeLevel == "GZ" & DataLevel !=3
 //Converting StateAssignedSchID to StateAssignedDistID - StateAssignedSchID so that School ID's are unique
 replace StateAssignedSchID = StateAssignedDistID + "-" + StateAssignedSchID if DataLevel == 3
 
-//fixing odd Flag_cutscore thing
+//fixing cut scores 
 replace Flag_CutScoreChange_ELA = "Y" if `year' == 2016
 replace Flag_CutScoreChange_math = "Y" if `year' == 2016
 replace Flag_CutScoreChange_soc = "Not applicable"
