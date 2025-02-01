@@ -43,7 +43,7 @@ rename NonFosterCare nFoster_count
 rename Military Military_count
 rename NonMilitary nMilitary_count
 
-/*
+
 //Deriving Non-EL learner
 destring Total_count, generate(Total_count_num) force
 destring EL_count, generate(EL_count_num) force
@@ -83,7 +83,7 @@ replace StudentSubGroup = "All Students" if StudentSubGroup == "Total"
 *Female
 *Male
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "EL"
-/*
+
 replace StudentSubGroup = "English Proficient" if StudentSubGroup == "nEL"
 */
 *Asian
@@ -204,7 +204,7 @@ replace ProficientOrAbove_count = "--" if missing(ProficientOrAbove_count)
 
 foreach count of varlist *_count {
 	local percent = subinstr("`count'", "count", "percent",.)
-	gen `percent' = string(real(`count')/real(StudentSubGroup_TotalTested), "%9.3g") if !missing(real(`count')) & !missing(real(StudentSubGroup_TotalTested))
+	gen `percent' = string(real(`count')/real(StudentSubGroup_TotalTested), "%9.4g") if !missing(real(`count')) & !missing(real(StudentSubGroup_TotalTested))
 	replace `percent' = "--" if missing(`percent') | `percent' == "."
 }
 
@@ -254,6 +254,8 @@ replace CountyCode = "23023" if DistName == "Richmond Public Schools"
 
 
 replace Lev5_percent = ""
+
+drop if StudentSubGroup_TotalTested == "0"
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 

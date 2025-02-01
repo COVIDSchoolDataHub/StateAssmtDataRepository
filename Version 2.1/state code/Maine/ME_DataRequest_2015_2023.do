@@ -37,12 +37,24 @@ label values DataLevel DataLevel
 replace Subject = lower(Subject)
 replace Subject = "ela" if Subject == "reading"
 
+if Year <2023 {
 foreach percent of varlist *_percent {
 	tostring `percent', replace force format("%9.3g")
 	replace `percent' = string(real(`percent')/100, "%9.3g") if Year > 2015
 	replace `percent' = "--" if `percent' == "."
 	local count = subinstr("`percent'", "percent", "count",.)
 	gen `count' = "--"
+}
+}
+
+if Year == 2023{
+foreach percent of varlist *_percent {
+	tostring `percent', replace force format("%9.4g")
+	replace `percent' = string(real(`percent')/100, "%9.4g") if Year > 2015
+	replace `percent' = "--" if `percent' == "."
+	local count = subinstr("`percent'", "percent", "count",.)
+	gen `count' = "--"
+}
 }
 
 //Indicator & missing Variables
@@ -82,19 +94,42 @@ keep if Year == `year'
 
 //Flags
 
-if `year' >= 2016 & `year' <= 2019 {
-gen Flag_AssmtNameChange = "Y" if Subject != "sci" 
-replace Flag_AssmtNameChange = "N" if Subject == "sci"
-gen Flag_CutScoreChange_ELA = "Y"
-gen Flag_CutScoreChange_math = "Y"
-gen Flag_CutScoreChange_soc = "Not applicable"
-gen Flag_CutScoreChange_sci = "N"
-
-
-foreach var of varlist Flag* {
-	cap replace `var' = "N" if `year' !=20161
+if `year' == 2015 {
+	gen Flag_AssmtNameChange = "Y" if Subject != "sci"
+	gen Flag_CutScoreChange_ELA = "Y"
+	gen Flag_CutScoreChange_math = "Y"
+	gen Flag_CutScoreChange_soc = "Not applicable"
+	gen Flag_CutScoreChange_sci = "N"
 }
+if `year' == 2016 {
+	gen Flag_AssmtNameChange = "Y" if Subject != "sci"
+	gen Flag_CutScoreChange_ELA = "Y"
+	gen Flag_CutScoreChange_math = "Y"
+	gen Flag_CutScoreChange_soc = "Not applicable"
+	gen Flag_CutScoreChange_sci = "N"
 }
+if `year' == 2017 {
+	gen Flag_AssmtNameChange = "N"
+	gen Flag_CutScoreChange_ELA = "N"
+	gen Flag_CutScoreChange_math = "N"
+	gen Flag_CutScoreChange_soc = "Not applicable"
+	gen Flag_CutScoreChange_sci = "N"
+}
+if `year' == 2018 {
+	gen Flag_AssmtNameChange = "N"
+	gen Flag_CutScoreChange_ELA = "N"
+	gen Flag_CutScoreChange_math = "N"
+	gen Flag_CutScoreChange_soc = "Not applicable"
+	gen Flag_CutScoreChange_sci = "N"
+}
+if `year' == 2019 {
+	gen Flag_AssmtNameChange = "N"
+	gen Flag_CutScoreChange_ELA = "N"
+	gen Flag_CutScoreChange_math = "N"
+	gen Flag_CutScoreChange_soc = "Not applicable"
+	gen Flag_CutScoreChange_sci = "N"
+}
+
 
 if `year' == 2021 {
 gen Flag_AssmtNameChange = "Y" if Subject != "sci"
@@ -311,9 +346,15 @@ replace ProficientOrAbove_count = "--" if missing(ProficientOrAbove_count)
 
 foreach count of varlist *_count {
 	local percent = subinstr("`count'", "count", "percent",.)
-	gen `percent' = string(real(`count')/real(StudentSubGroup_TotalTested), "%9.3g") if !missing(real(`count')) & !missing(real(StudentSubGroup_TotalTested))
+	gen `percent' = string(real(`count')/real(StudentSubGroup_TotalTested), "%9.4g") if !missing(real(`count')) & !missing(real(StudentSubGroup_TotalTested))
 	replace `percent' = "--" if missing(`percent') | `percent' == "."
 }
+
+replace Lev1_percent = string(real(Lev1_percent), "%9.3g") if DataLevel == 3 & Lev1_percent != "*" & Lev1_percent != "--"
+replace Lev2_percent = string(real(Lev2_percent), "%9.3g") if DataLevel == 3 & Lev2_percent != "*" & Lev2_percent != "--"
+replace Lev3_percent = string(real(Lev3_percent), "%9.3g") if DataLevel == 3 & Lev3_percent != "*" & Lev3_percent != "--"
+replace Lev4_percent = string(real(Lev4_percent), "%9.3g") if DataLevel == 3 & Lev4_percent != "*" & Lev4_percent != "--"
+replace Lev4_percent = "0" if Lev4_count == "0"
 
 //StudentGroup_TotalTested
 gen StateAssignedDistID1 = StateAssignedDistID
