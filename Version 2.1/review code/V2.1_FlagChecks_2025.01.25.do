@@ -1,16 +1,17 @@
 *****************************************************************************
-**	Updated January 25, 2025
+**	Updated February 1, 2025
 
 ** 	ZELMA STATE ASSESSMENT DATA REPOSITORY 
 **	ASSESSMENT FLAGS - VERSION 2.1
 
 *****************************************************************************
-
 gen Flag_AssmtNameChange_Chk = "N"
 gen Flag_CutScoreChange_ELA_Chk = "N"
 gen Flag_CutScoreChange_math_Chk = "N"
 gen Flag_CutScoreChange_sci_Chk = "N"
 gen Flag_CutScoreChange_soc_Chk = "N"
+gen AssmtType_Chk = "Regular"
+
 	
 	
 //Alabama
@@ -77,6 +78,10 @@ if "$StateAbbrev" == "AZ" {
 
 	*Soc
 	replace Flag_CutScoreChange_soc_Chk = "Not applicable"
+	
+	*AssmtType
+	replace AssmtType_Chk = "Regular and alt" if real(FILE) <= 2019 & (Subject == "ela" | Subject == "math" | Subject == "sci")
+	
 }
 
 //Arkansas
@@ -99,7 +104,13 @@ if "$StateAbbrev" == "AR" {
 
 	*Soc
 	replace Flag_CutScoreChange_soc_Chk = "Not applicable"
-}
+	
+	*AssmtType
+	replace AssmtType_Chk = "Regular and alt" if real(FILE) >= 2016 & (Subject == "ela" | Subject == "math")
+	replace AssmtType_Chk = "Regular and alt" if real(FILE) >= 2016 & (Subject == "eng")
+	replace AssmtType_Chk = "Regular and alt" if real(FILE) >= 2016 & (Subject == "read")
+	replace AssmtType_Chk = "Regular and alt" if Subject == "sci"
+} 
 
 //California
 if "$StateAbbrev" == "CA" {
@@ -190,7 +201,7 @@ if "$StateAbbrev" == "DE" {
 	replace Flag_CutScoreChange_soc_Chk = "Not applicable" if FILE == "2017" | FILE == "2018"
 	replace Flag_CutScoreChange_soc_Chk = "Y" if FILE == "2019"
 	replace Flag_CutScoreChange_soc_Chk = "Y" if FILE == "2023" //no name change
-	replace Flag_CutScoreChange_soc_Chk = "Y" if FILE == "2024" & (GradeLevel == "G04" | GradeLevel == "G08")
+	replace Flag_CutScoreChange_soc_Chk = "Y" if FILE == "2024" & (GradeLevel == "G04" | GradeLevel == "G06") 
 }
 
 //District of Columbia
@@ -202,11 +213,9 @@ if "$StateAbbrev" == "DC" {
 	
 
 	*ELA
-	replace Flag_CutScoreChange_ELA_Chk = "Y" if FILE == "2015"
 	replace Flag_CutScoreChange_ELA_Chk = "Not applicable" if FILE == "2021"
 
 	*Math
-	replace Flag_CutScoreChange_math_Chk = "Y" if FILE == "2015"
 	replace Flag_CutScoreChange_math_Chk = "Not applicable" if FILE == "2021"
 
 	*Sci
@@ -379,6 +388,9 @@ if "$StateAbbrev" == "IA" {
 
 	*Soc
 	replace Flag_CutScoreChange_soc_Chk = "Not applicable"
+	
+	*AssmtType
+	replace AssmtType_Chk = "Regular and alt" if real(FILE) <= 2014 & (Subject == "ela" | Subject == "math")
 }
 
 //Kansas
@@ -579,12 +591,12 @@ if "$StateAbbrev" == "MI" {
 if "$StateAbbrev" == "MN" {
 	
 	*AssmtName
-	replace Flag_AssmtNameChange_Chk = "Y" if FILE == "1998" & (Subject == "ela" | Subject == "math")
+	replace Flag_AssmtNameChange_Chk = "Y" if FILE == "1998" & (Subject == "ela" | Subject == "math" | Subject == "wri")
 	replace Flag_AssmtNameChange_Chk = "Y" if FILE == "2006" & (Subject == "ela" | Subject == "math")
 	replace Flag_AssmtNameChange_Chk = "Y" if FILE == "2011" & (Subject == "math")
 	replace Flag_AssmtNameChange_Chk = "Y" if FILE == "2013" & (Subject == "ela")
 	replace Flag_AssmtNameChange_Chk = "Y" if FILE == "2012" & (Subject == "sci")
-	replace Flag_AssmtNameChange_Chk = "Y" if FILE == "2019"
+	replace Flag_AssmtNameChange_Chk = "Y" if FILE == "2019" & (Subject == "ela" | Subject == "math" | Subject == "sci")
 
 
 
@@ -607,6 +619,8 @@ if "$StateAbbrev" == "MN" {
 	*Soc
 	replace Flag_CutScoreChange_soc_Chk = "Not applicable"
 	
+	*AssmtType
+	replace AssmtType_Chk = "Regular and alt" if FILE == "2019" | FILE == "2021" | FILE == "2022" | FILE == "2023" | FILE == "2024" & (Subject == "ela" | Subject == "math" | Subject == "sci")
 	
 }
 
@@ -828,7 +842,16 @@ if "$StateAbbrev" == "NM" {
 	*Soc
 	replace Flag_CutScoreChange_soc_Chk = "Not applicable"	
 	
+	
+	*AssmtType	
+ replace AssmtType_Chk = "Regular and alt" if FILE == "2017" | FILE == "2018" & AssmtName == "PARCC & NMAPA"
+ replace AssmtType_Chk = "Regular and alt" if FILE == "2019" & AssmtName == "TAMELA & NMAPA"
+  replace AssmtType_Chk = "Regular and alt" if FILE == "2019" & AssmtName == "NM-ASR & Dynamic Learning Maps"
+   replace AssmtType_Chk = "Regular and alt" if FILE == "2022" | FILE == "2023"
+	
 }
+
+ 
 
 //New York
 
@@ -1096,6 +1119,10 @@ if "$StateAbbrev" == "SD" {
 	*Soc
 	replace Flag_CutScoreChange_soc_Chk = "Not applicable"
 	
+	*AssmtType
+	replace AssmtType_Chk = "Regular and alt" if FILE == "2015" | FILE == "2016" | FILE == "2017" & (Subject == "ela" | Subject == "math" | Subject == "sci")
+
+	
 }
 
 //Tennesse
@@ -1105,7 +1132,6 @@ if "$StateAbbrev" == "TN" {
 	*AssmtName
 	replace Flag_AssmtNameChange_Chk = "Y" if FILE == "2017" & (Subject == "ela" | Subject == "math")
 	replace Flag_AssmtNameChange_Chk = "Y" if FILE == "2017" & (Subject == "sci") //no cut change
-	replace Flag_AssmtNameChange_Chk = "Y" if FILE == "2021" & (Subject == "sci")
 	replace Flag_AssmtNameChange_Chk = "Y" if FILE == "2018" & (Subject == "soc")
 	
 
@@ -1368,7 +1394,7 @@ if "$StateAbbrev" == "WI" {
 if "$StateAbbrev" == "WY" {
 	
 	*AssmtName
-	replace Flag_AssmtNameChange_Chk = "Y" if FILE == "2018" & (Subject == "ela" | Subject == "math")
+	replace Flag_AssmtNameChange_Chk = "Y" if FILE == "2018" & (Subject == "ela" | Subject == "math" | Subject == "sci")
 	
 
 
@@ -1389,7 +1415,9 @@ if "$StateAbbrev" == "WY" {
 
 	*Soc
 	replace Flag_CutScoreChange_soc_Chk = "Not applicable"
-
+	
+	*AssmtType
+	replace AssmtType_Chk = "Regular and alt"
 	
 }
 
