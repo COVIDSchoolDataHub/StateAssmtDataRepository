@@ -4969,10 +4969,6 @@ sort ParticipationRate
 *AssmtType 
 
 ** • Are all values either "Regular" or "Regular and alt"?
-** • If there are other values, please indicate what needs to be dropped.
-	
-* Checking subgroup values for AssmtType
-
 {
 count if !inlist(AssmtType, "Regular", "Regular and alt")
 	if r(N)>0 {
@@ -4984,18 +4980,7 @@ count if !inlist(AssmtType, "Regular", "Regular and alt")
 		di as error "Correct."
 		}
 }
-**********************************************************
-*AssmtType 
 
-** • Does the AssmtType in the CW align with what is provided in the data files?
-{
-tab  FILE AssmtType if  Subject == "ela"
-tab  FILE AssmtType if Subject == "math"
-tab  FILE AssmtType if Subject == "sci"
-tab  FILE AssmtType if Subject == "soc"
-
-di as error "Review CW to ensure that data aligns."
-}
 **********************************************************
 *AssmtName 
 
@@ -5029,14 +5014,22 @@ tab SchYear DataLevel  if Subject =="sci"
 tab SchYear AssmtName if Subject =="soc"  
 tab DataLevel SchYear if Subject =="soc"  
 }
-**********************************************************
-*AssmtName 
 
-** • Has the 2024 assmt name been verified for ELA/math? 
-** • Has the 2024 assmt name been verified for sci? 
-** • Has the 2024 assmt name been verified for soc? 
-di as error "Review data file or documentation to verify assessment name for 2024."
+***********************************************************
+** • Do values align with the crosswalk? (AssmtType, Flags)
+do "V2.1_FlagChecks_2025.02.02.do"
 
+// Name change flag, for reference
+tab  FILE Flag_AssmtNameChange if Subject == "ela"
+tab  FILE Flag_AssmtNameChange if Subject == "math"
+tab  FILE Flag_AssmtNameChange if Subject == "sci"
+tab  FILE Flag_AssmtNameChange if Subject == "soc"
+
+// Subject-area flags, for reference
+tab  FILE Flag_CutScoreChange_ELA 
+tab  FILE Flag_CutScoreChange_math 
+tab  FILE Flag_CutScoreChange_sci 
+tab  FILE Flag_CutScoreChange_soc 
 ***********************************************************
 ** Flag_AssmtNameChange	
 
@@ -5071,19 +5064,6 @@ foreach var of local cutscorech_flags {
 		}
 	}
 }
-
-***********************************************************
-** • Do flags across all years align with what is in the crosswalk? (1/27/25)
-do "V2.1_FlagChecks_2025.02.01.do"
-
-// Name change flag, for reference
-tab  FILE Flag_AssmtNameChange 
-
-// Subject-area flags, for reference
-tab  FILE Flag_CutScoreChange_ELA 
-tab  FILE Flag_CutScoreChange_math 
-tab  FILE Flag_CutScoreChange_sci 
-tab  FILE Flag_CutScoreChange_soc 
 
 ***********************************************************
 ***********************************************************
