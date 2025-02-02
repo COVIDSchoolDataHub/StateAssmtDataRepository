@@ -204,7 +204,7 @@ replace ProficientOrAbove_count = "--" if missing(ProficientOrAbove_count)
 
 foreach count of varlist *_count {
 	local percent = subinstr("`count'", "count", "percent",.)
-	gen `percent' = string(real(`count')/real(StudentSubGroup_TotalTested), "%9.4g") if !missing(real(`count')) & !missing(real(StudentSubGroup_TotalTested))
+	gen `percent' = string(real(`count')/real(StudentSubGroup_TotalTested), "%9.4f") if !missing(real(`count')) & !missing(real(StudentSubGroup_TotalTested))
 	replace `percent' = "--" if missing(`percent') | `percent' == "."
 }
 
