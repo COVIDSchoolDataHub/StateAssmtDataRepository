@@ -1,5 +1,5 @@
 *****************************************************************************
-**	Updated February 1, 2025
+**	Updated February 2, 2025
 
 
 ** 	ZELMA STATE ASSESSMENT DATA REPOSITORY 
@@ -20,7 +20,7 @@ global Filepath "/Desktop/Zelma V2.0/North Dakota - Version 2.0" //  Set path to
 global Review "${Filepath}/review" 
 global State "North Dakota" //Set State Name 
 global StateAbbrev "ND" //Set StateAbbrev
-global date "02.01.25" //Set today's date
+global date "02.02.25" //Set today's date
 global years 2024 2023  2022 2021 2019  2018 2017 2016 2015 //  2014 2013 2012 2011 2010 2009 2008 2007 2006 2005 2004 2003 2002 2001 2000 1999 1998
 
 clear
