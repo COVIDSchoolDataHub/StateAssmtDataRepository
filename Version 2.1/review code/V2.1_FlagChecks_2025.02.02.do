@@ -1428,7 +1428,7 @@ foreach var of varlist *_Chk {
         local count_result = r(N)
 
         if `count_result' == 0 {
-            di "{result}`flag_var' Correct"
+            di "{error}`flag_var' Correct"
         }
         else {
             di "{error}`flag_var' Incorrect in the following years:"
