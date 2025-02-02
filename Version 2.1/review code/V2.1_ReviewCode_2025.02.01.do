@@ -3932,14 +3932,11 @@ if r(N) != 0 {
 		preserve
 		keep if count_diff !=. & levcount_rng_flag !=1
 		tab FILE if count_diff !=. & levcount_rng_flag !=1
-		cap drop StateAbbrev StateFips StateAssignedDistID StateAssignedSchID ///
-				 AvgScaleScore ParticipationRate Flag_AssmtNameChange ///
-				 Flag_CutScoreChange_ELA Flag_CutScoreChange_math ///
-				 Flag_CutScoreChange_sci Flag_CutScoreChange_soc ///
-				 DistType DistCharter DistLocale SchType SchLevel ///
-				 SchVirtual CountyName CountyCode n_all n_yr  
-		cap drop AssmtName AssmtType
-		cap drop Lev1_count1 Lev1_count2 Lev1_count2_n Lev2_count1 Lev2_count2 Lev2_count2_n Lev3_count1 Lev3_count2 Lev3_count2_n Lev4_count1 Lev4_count2 Lev4_count2_n Lev5_count2 Lev5_count2_n ProficientOrAbove_count1 ProficientOrAbove_count2 ProficientOrAbove_count2_n 
+		keep FILE State	DataLevel DistName SchName NCESDistrictID NCESSchoolID Subject	///
+			GradeLevel StudentGroup	StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested	///
+			Lev1_count Lev1_percent	Lev2_count Lev2_percent	Lev3_count Lev3_percent	Lev4_count Lev4_percent	///
+			Lev5_count Lev5_percent	ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent	///
+			sum_levcts count_diff prof_lv_cts_supp_or_missing evcount_rng_flag
 		cap export excel using "${Review}/${StateAbbrev}_count_diff_check_${date}.xlsx", ///
 			 firstrow(variables) replace
 		restore		
