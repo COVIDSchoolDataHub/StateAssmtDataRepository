@@ -1,5 +1,5 @@
 *****************************************************************************
-**	Updated February 1, 2025
+**	Updated February 2, 2025
 
 ** 	ZELMA STATE ASSESSMENT DATA REPOSITORY 
 **	ASSESSMENT FLAGS - VERSION 2.1
@@ -1421,7 +1421,7 @@ if "$StateAbbrev" == "WY" {
 }
 
 ** Summary 
-foreach var of varlist Flag_*_Chk {
+foreach var of varlist *_Chk {
         local flag_var = subinstr("`var'", "_Chk", "", .)
 
         qui count if `var' != `flag_var'
