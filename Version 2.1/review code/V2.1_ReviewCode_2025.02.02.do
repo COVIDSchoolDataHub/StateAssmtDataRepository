@@ -1,5 +1,5 @@
 *****************************************************************************
-**	Updated January 29, 2025
+**	Updated February 2, 2025
 
 
 ** 	ZELMA STATE ASSESSMENT DATA REPOSITORY 
@@ -20,7 +20,7 @@ global Filepath "/Desktop/Zelma V2.0/North Dakota - Version 2.0" //  Set path to
 global Review "${Filepath}/review" 
 global State "North Dakota" //Set State Name 
 global StateAbbrev "ND" //Set StateAbbrev
-global date "01.29.25" //Set today's date
+global date "02.02.25" //Set today's date
 global years 2024 2023  2022 2021 2019  2018 2017 2016 2015 //  2014 2013 2012 2011 2010 2009 2008 2007 2006 2005 2004 2003 2002 2001 2000 1999 1998
 
 clear
@@ -3932,14 +3932,11 @@ if r(N) != 0 {
 		preserve
 		keep if count_diff !=. & levcount_rng_flag !=1
 		tab FILE if count_diff !=. & levcount_rng_flag !=1
-		cap drop StateAbbrev StateFips StateAssignedDistID StateAssignedSchID ///
-				 AvgScaleScore ParticipationRate Flag_AssmtNameChange ///
-				 Flag_CutScoreChange_ELA Flag_CutScoreChange_math ///
-				 Flag_CutScoreChange_sci Flag_CutScoreChange_soc ///
-				 DistType DistCharter DistLocale SchType SchLevel ///
-				 SchVirtual CountyName CountyCode n_all n_yr  
-		cap drop AssmtName AssmtType
-		cap drop Lev1_count1 Lev1_count2 Lev1_count2_n Lev2_count1 Lev2_count2 Lev2_count2_n Lev3_count1 Lev3_count2 Lev3_count2_n Lev4_count1 Lev4_count2 Lev4_count2_n Lev5_count2 Lev5_count2_n ProficientOrAbove_count1 ProficientOrAbove_count2 ProficientOrAbove_count2_n 
+		keep FILE State	DataLevel DistName SchName NCESDistrictID NCESSchoolID Subject	///
+			GradeLevel StudentGroup	StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested	///
+			Lev1_count Lev1_percent	Lev2_count Lev2_percent	Lev3_count Lev3_percent	Lev4_count Lev4_percent	///
+			Lev5_count Lev5_percent	ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent	///
+			sum_levcts count_diff prof_lv_cts_supp_or_missing evcount_rng_flag
 		cap export excel using "${Review}/${StateAbbrev}_count_diff_check_${date}.xlsx", ///
 			 firstrow(variables) replace
 		restore		
@@ -4972,10 +4969,6 @@ sort ParticipationRate
 *AssmtType 
 
 ** • Are all values either "Regular" or "Regular and alt"?
-** • If there are other values, please indicate what needs to be dropped.
-	
-* Checking subgroup values for AssmtType
-
 {
 count if !inlist(AssmtType, "Regular", "Regular and alt")
 	if r(N)>0 {
@@ -4987,18 +4980,7 @@ count if !inlist(AssmtType, "Regular", "Regular and alt")
 		di as error "Correct."
 		}
 }
-**********************************************************
-*AssmtType 
 
-** • Does the AssmtType in the CW align with what is provided in the data files?
-{
-tab  FILE AssmtType if  Subject == "ela"
-tab  FILE AssmtType if Subject == "math"
-tab  FILE AssmtType if Subject == "sci"
-tab  FILE AssmtType if Subject == "soc"
-
-di as error "Review CW to ensure that data aligns."
-}
 **********************************************************
 *AssmtName 
 
@@ -5032,14 +5014,22 @@ tab SchYear DataLevel  if Subject =="sci"
 tab SchYear AssmtName if Subject =="soc"  
 tab DataLevel SchYear if Subject =="soc"  
 }
-**********************************************************
-*AssmtName 
 
-** • Has the 2024 assmt name been verified for ELA/math? 
-** • Has the 2024 assmt name been verified for sci? 
-** • Has the 2024 assmt name been verified for soc? 
-di as error "Review data file or documentation to verify assessment name for 2024."
+***********************************************************
+** • Do values align with the crosswalk? (AssmtType, Flags)
+do "V2.1_FlagChecks_2025.02.02.do"
 
+// Name change flag, for reference
+tab  FILE Flag_AssmtNameChange if Subject == "ela"
+tab  FILE Flag_AssmtNameChange if Subject == "math"
+tab  FILE Flag_AssmtNameChange if Subject == "sci"
+tab  FILE Flag_AssmtNameChange if Subject == "soc"
+
+// Subject-area flags, for reference
+tab  FILE Flag_CutScoreChange_ELA 
+tab  FILE Flag_CutScoreChange_math 
+tab  FILE Flag_CutScoreChange_sci 
+tab  FILE Flag_CutScoreChange_soc 
 ***********************************************************
 ** Flag_AssmtNameChange	
 
@@ -5074,19 +5064,6 @@ foreach var of local cutscorech_flags {
 		}
 	}
 }
-
-***********************************************************
-** • Do flags across all years align with what is in the crosswalk? (1/27/25)
-do "V2.1_FlagChecks_2025.01.25.do"
-
-// Name change flag, for reference
-tab  FILE Flag_AssmtNameChange 
-
-// Subject-area flags, for reference
-tab  FILE Flag_CutScoreChange_ELA 
-tab  FILE Flag_CutScoreChange_math 
-tab  FILE Flag_CutScoreChange_sci 
-tab  FILE Flag_CutScoreChange_soc 
 
 ***********************************************************
 ***********************************************************

@@ -1,20 +1,22 @@
 clear
 set more off
 set trace off
+
+global dofiles "/Users/kaitlynlucas/Desktop/do files"
 global Original "/Users/kaitlynlucas/Desktop/maine/original"
 global Output "/Users/kaitlynlucas/Desktop/maine/output"
 global NCES_School "/Users/kaitlynlucas/Desktop/maine/nces clean"
 global NCES_District "/Users/kaitlynlucas/Desktop/maine/nces clean"
 
-
-//Running Do files and Combining Original and Data Request Data
-local dofiles ME_Cleaning_2015.do ME_Cleaning_2016-2019.do ME_Cleaning_2021-2022.do ME_Cleaning_2023.do
+// Running Do files and Combining Original and Data Request Data
+local dofiles "ME_Cleaning_2015.do" "ME_Cleaning_2016-2019.do" "ME_Cleaning_2021-2022.do" "ME_Cleaning_2023.do"
 
 foreach file of local dofiles {
-	do `file'
+    do "${dofiles}/`file'"
 }
 
-do ME_DataRequest_2015_2023
+
+do "/Users/kaitlynlucas/Desktop/do files/ME_DataRequest_2015_2023.do"
 */
 forvalues year = 2016/2023 {
 	if 	`year' == 2020 continue
@@ -187,38 +189,73 @@ replace StudentSubGroup_TotalTested = string(real(StudentGroup_TotalTested)-Unsu
 drop Unsuppressed* missing_*
 replace Lev5_count = ""
 
-
+if `year' < 2023{
 //Level percent derivations if we have all other percents
-replace Lev1_percent = string(1-real(Lev4_percent)-real(Lev3_percent)-real(Lev2_percent), "%9.3g") if !missing(1) & !missing(real(Lev4_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev2_percent)) & missing(real(Lev1_percent))
+replace Lev1_percent = string(1-real(Lev4_percent)-real(Lev3_percent)-real(Lev2_percent), "%9.3f") if !missing(1) & !missing(real(Lev4_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev2_percent)) & missing(real(Lev1_percent))
 
-replace Lev2_percent = string(1-real(Lev4_percent)-real(Lev3_percent)-real(Lev1_percent), "%9.3g") if !missing(1) & !missing(real(Lev4_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev1_percent)) & missing(real(Lev2_percent))
+replace Lev2_percent = string(1-real(Lev4_percent)-real(Lev3_percent)-real(Lev1_percent), "%9.3f") if !missing(1) & !missing(real(Lev4_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev1_percent)) & missing(real(Lev2_percent))
 
-replace Lev3_percent = string(1-real(Lev4_percent)-real(Lev1_percent)-real(Lev2_percent), "%9.3g") if !missing(1) & !missing(real(Lev4_percent)) & !missing(real(Lev1_percent)) & !missing(real(Lev2_percent)) & missing(real(Lev3_percent))
+replace Lev3_percent = string(1-real(Lev4_percent)-real(Lev1_percent)-real(Lev2_percent), "%9.3f") if !missing(1) & !missing(real(Lev4_percent)) & !missing(real(Lev1_percent)) & !missing(real(Lev2_percent)) & missing(real(Lev3_percent))
 
-replace Lev4_percent = string(1-real(Lev1_percent)-real(Lev3_percent)-real(Lev2_percent), "%9.3g") if !missing(1) & !missing(real(Lev1_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev2_percent)) & missing(real(Lev4_percent))
+replace Lev4_percent = string(1-real(Lev1_percent)-real(Lev3_percent)-real(Lev2_percent), "%9.3f") if !missing(1) & !missing(real(Lev1_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev2_percent)) & missing(real(Lev4_percent))
 
-replace Lev1_count = string(real(StudentSubGroup_TotalTested) - real(Lev2_count) - real(Lev3_count) - real(Lev4_count), "%9.3g") if !missing(StudentSubGroup_TotalTested) & !missing(real(Lev4_count)) & !missing(real(Lev2_count)) & !missing(real(Lev3_count)) & missing(real(Lev1_count))
-replace Lev2_count = string(real(StudentSubGroup_TotalTested) - real(Lev1_count) - real(Lev3_count) - real(Lev4_count), "%9.3g") ///
+replace Lev1_count = string(real(StudentSubGroup_TotalTested) - real(Lev2_count) - real(Lev3_count) - real(Lev4_count), "%9.3f") if !missing(StudentSubGroup_TotalTested) & !missing(real(Lev4_count)) & !missing(real(Lev2_count)) & !missing(real(Lev3_count)) & missing(real(Lev1_count))
+replace Lev2_count = string(real(StudentSubGroup_TotalTested) - real(Lev1_count) - real(Lev3_count) - real(Lev4_count), "%9.3f") ///
     if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Lev1_count)) & !missing(real(Lev3_count)) & !missing(real(Lev4_count)) & missing(real(Lev2_count))
-replace Lev3_count = string(real(StudentSubGroup_TotalTested) - real(Lev1_count) - real(Lev2_count) - real(Lev4_count), "%9.3g") ///
+replace Lev3_count = string(real(StudentSubGroup_TotalTested) - real(Lev1_count) - real(Lev2_count) - real(Lev4_count), "%9.3f") ///
     if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Lev1_count)) & !missing(real(Lev2_count)) & !missing(real(Lev4_count)) & missing(real(Lev3_count))
-replace Lev4_count = string(real(StudentSubGroup_TotalTested) - real(Lev1_count) - real(Lev2_count) - real(Lev3_count), "%9.3g") ///
+replace Lev4_count = string(real(StudentSubGroup_TotalTested) - real(Lev1_count) - real(Lev2_count) - real(Lev3_count), "%9.3f") ///
     if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Lev1_count)) & !missing(real(Lev2_count)) & !missing(real(Lev3_count)) & missing(real(Lev4_count))
 	
 //fixing specifically 2022 and 2023 cases
-replace Lev4_count = string(real(ProficientOrAbove_count) - real(Lev3_count), "%9.3g") ///
+replace Lev4_count = string(real(ProficientOrAbove_count) - real(Lev3_count), "%9.3f") ///
     if !missing(real(ProficientOrAbove_count)) & !missing(real(Lev3_count)) & Lev4_count == "*"
 	
-replace Lev4_percent = string(real(ProficientOrAbove_percent) - real(Lev3_percent), "%9.3g") ///
+replace Lev4_percent = string(real(ProficientOrAbove_percent) - real(Lev3_percent), "%9.3f") ///
     if !missing(real(ProficientOrAbove_percent)) & !missing(real(Lev3_percent)) & Lev4_percent == "*"
 	
-replace Lev1_count = string(real(StudentSubGroup_TotalTested) - real(Lev2_count) - real(Lev3_count) - real(Lev4_count), "%9.3g") if !missing(StudentSubGroup_TotalTested) & !missing(real(Lev4_count)) & !missing(real(Lev2_count)) & !missing(real(Lev3_count)) & Lev1_count == "*"
+replace Lev1_count = string(real(StudentSubGroup_TotalTested) - real(Lev2_count) - real(Lev3_count) - real(Lev4_count), "%9.3f") if !missing(StudentSubGroup_TotalTested) & !missing(real(Lev4_count)) & !missing(real(Lev2_count)) & !missing(real(Lev3_count)) & Lev1_count == "*"
 
-replace Lev1_percent = string(1 - real(Lev2_percent) - real(Lev3_percent) - real(Lev4_percent), "%9.3g") if !missing(real(Lev4_percent)) & !missing(real(Lev2_percent)) & !missing(real(Lev3_percent)) & Lev1_percent == "*"
+replace Lev1_percent = string(1 - real(Lev2_percent) - real(Lev3_percent) - real(Lev4_percent), "%9.3f") if !missing(real(Lev4_percent)) & !missing(real(Lev2_percent)) & !missing(real(Lev3_percent)) & Lev1_percent == "*"
+}
 
 if `year' == 2023{
+	//Level percent derivations if we have all other percents
+replace Lev1_percent = string(1-real(Lev4_percent)-real(Lev3_percent)-real(Lev2_percent), "%9.4f") if !missing(1) & !missing(real(Lev4_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev2_percent)) & missing(real(Lev1_percent))
+
+replace Lev2_percent = string(1-real(Lev4_percent)-real(Lev3_percent)-real(Lev1_percent), "%9.4f") if !missing(1) & !missing(real(Lev4_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev1_percent)) & missing(real(Lev2_percent))
+
+replace Lev3_percent = string(1-real(Lev4_percent)-real(Lev1_percent)-real(Lev2_percent), "%9.4f") if !missing(1) & !missing(real(Lev4_percent)) & !missing(real(Lev1_percent)) & !missing(real(Lev2_percent)) & missing(real(Lev3_percent))
+
+replace Lev4_percent = string(1-real(Lev1_percent)-real(Lev3_percent)-real(Lev2_percent), "%9.4f") if !missing(1) & !missing(real(Lev1_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev2_percent)) & missing(real(Lev4_percent))
+
+replace Lev1_count = string(real(StudentSubGroup_TotalTested) - real(Lev2_count) - real(Lev3_count) - real(Lev4_count), "%9.4f") if !missing(StudentSubGroup_TotalTested) & !missing(real(Lev4_count)) & !missing(real(Lev2_count)) & !missing(real(Lev3_count)) & missing(real(Lev1_count))
+replace Lev2_count = string(real(StudentSubGroup_TotalTested) - real(Lev1_count) - real(Lev3_count) - real(Lev4_count), "%9.4f") ///
+    if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Lev1_count)) & !missing(real(Lev3_count)) & !missing(real(Lev4_count)) & missing(real(Lev2_count))
+replace Lev3_count = string(real(StudentSubGroup_TotalTested) - real(Lev1_count) - real(Lev2_count) - real(Lev4_count), "%9.4f") ///
+    if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Lev1_count)) & !missing(real(Lev2_count)) & !missing(real(Lev4_count)) & missing(real(Lev3_count))
+replace Lev4_count = string(real(StudentSubGroup_TotalTested) - real(Lev1_count) - real(Lev2_count) - real(Lev3_count), "%9.4f") ///
+    if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Lev1_count)) & !missing(real(Lev2_count)) & !missing(real(Lev3_count)) & missing(real(Lev4_count))
+	
+
+replace Lev4_count = string(real(ProficientOrAbove_count) - real(Lev3_count), "%9.4f") ///
+    if !missing(real(ProficientOrAbove_count)) & !missing(real(Lev3_count)) & Lev4_count == "*"
+	
+replace Lev4_percent = string(real(ProficientOrAbove_percent) - real(Lev3_percent), "%9.4f") ///
+    if !missing(real(ProficientOrAbove_percent)) & !missing(real(Lev3_percent)) & Lev4_percent == "*"
+	
+replace Lev1_count = string(real(StudentSubGroup_TotalTested) - real(Lev2_count) - real(Lev3_count) - real(Lev4_count), "%9.4f") if !missing(StudentSubGroup_TotalTested) & !missing(real(Lev4_count)) & !missing(real(Lev2_count)) & !missing(real(Lev3_count)) & Lev1_count == "*"
+
+replace Lev1_percent = string(1 - real(Lev2_percent) - real(Lev3_percent) - real(Lev4_percent), "%9.4f") if !missing(real(Lev4_percent)) & !missing(real(Lev2_percent)) & !missing(real(Lev3_percent)) & Lev1_percent == "*"
+
 	replace Lev1_count = "--" if Lev1_count == "."
+replace Lev1_percent = string(real(Lev1_percent), "%9.3f") if DataLevel == 3 & Lev1_percent != "*" & Lev1_percent != "--"
+replace Lev2_percent = string(real(Lev2_percent), "%9.3f") if DataLevel == 3 & Lev2_percent != "*" & Lev2_percent != "--"
+replace Lev3_percent = string(real(Lev3_percent), "%9.3f") if DataLevel == 3 & Lev3_percent != "*" & Lev3_percent != "--"
+replace Lev4_percent = string(real(Lev4_percent), "%9.3f") if DataLevel == 3 & Lev4_percent != "*" & Lev4_percent != "--"
+replace Lev4_percent = "0" if Lev4_count == "0"
 }
+
 
 //fixing "e" issue in level percents
 replace Lev1_percent = "0" if strpos(Lev1_percent, "e") > 0
@@ -239,6 +276,15 @@ drop flag
 if `year' == 2016{
 	replace Flag_AssmtNameChange = "Y" if Subject == "math"
 }
+//V2.1 additions
+drop if StudentSubGroup_TotalTested == "0"
+
+replace Lev1_percent = "--" if `year' == 2021 & Subject != "sci"
+replace Lev1_percent = "--" if `year' == 2022 & Subject != "sci"
+
+if `year' == 2023{
+	replace Lev4_percent = "0" if Lev4_count == "0"
+}
 
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
@@ -253,4 +299,4 @@ export delimited "${Output}/ME_AssmtData_`year'", replace
 clear	
 }
 
-do ME_2024_DataRequest_01.16.25.do
+do "/Users/kaitlynlucas/Desktop/do files/ME_2024_DataRequest_01.16.25.do"
