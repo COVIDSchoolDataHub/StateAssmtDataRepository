@@ -254,6 +254,10 @@ replace CountyCode = "23023" if DistName == "Richmond Public Schools"
 
 
 replace Lev5_percent = ""
+replace Lev1_percent = "0" if Lev1_percent == "0.0000"
+replace Lev2_percent = "0" if Lev2_percent == "0.0000"
+replace Lev3_percent = "0" if Lev3_percent == "0.0000"
+replace Lev4_percent = "0" if Lev4_percent == "0.0000"
 
 drop if StudentSubGroup_TotalTested == "0"
 //Final Cleaning
