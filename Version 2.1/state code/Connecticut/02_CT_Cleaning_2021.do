@@ -6,12 +6,6 @@ set trace off
 cap log close
 
 cd "C:/Zelma/2025-01-27"
-//
-// global Original "C:/Zelma/2025-01-27/Original Data Files"
-// global Output "C:/Zelma/2025-01-27/Output"
-// global NCES_School "C:/Zelma/2025-01-27/NCES/School"
-// global NCES_District "C:/Zelma/2025-01-27/NCES/District"
-// global Test "C:/Zelma/2025-01-27/Derivation Flags"
 
 **** Need to install labutil for labelling to work properly. Type search labutil into Stata terminal and install first result. 
 
