@@ -168,6 +168,33 @@ replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tes
 gen StudentGroup_TotalTested = AllStudents_Tested
 drop AllStudents_Tested
 
+//Deriving StudentSubGroup_TotalTested from Counterparts
+	gen max = real(StudentGroup_TotalTested)
+	replace max = 0 if max == .
+	
+	bysort uniquegrp: egen RaceEth = total(real(StudentSubGroup_TotalTested)) if StudentGroup == "RaceEth"
+	bysort uniquegrp: egen Gender = total(real(StudentSubGroup_TotalTested)) if StudentGroup == "Gender"
+	bysort uniquegrp: egen Disability = total(real(StudentSubGroup_TotalTested)) if StudentGroup == "Disability Status"
+	bysort uniquegrp: egen Econ = total(real(StudentSubGroup_TotalTested)) if StudentGroup == "Economic Status"
+	bysort uniquegrp: egen ELStatus = total(real(StudentSubGroup_TotalTested)) if StudentGroup == "EL Status"
+	bysort uniquegrp: egen Homeless = total(real(StudentSubGroup_TotalTested)) if StudentGroup == "Homeless Enrolled Status"
+	bysort uniquegrp: egen Foster = total(real(StudentSubGroup_TotalTested)) if StudentGroup == "Foster Care Status"
+	bysort uniquegrp: egen Military = total(real(StudentSubGroup_TotalTested)) if StudentGroup == "Military Connected Status"
+
+	gen x = 1 if missing(real(StudentSubGroup_TotalTested))
+	bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject StudentGroup: egen flag = total(x)
+
+	replace StudentSubGroup_TotalTested = string(max - RaceEth) if StudentGroup == "RaceEth" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & flag == 1
+	replace StudentSubGroup_TotalTested = string(max - Gender) if StudentGroup == "Gender" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & flag == 1
+		replace StudentSubGroup_TotalTested = string(max - Disability) if StudentGroup == "Disability Status" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & flag == 1
+		replace StudentSubGroup_TotalTested = string(max - Econ) if StudentGroup == "Economic Status" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & flag == 1
+		replace StudentSubGroup_TotalTested = string(max - ELStatus) if StudentGroup == "EL Status" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & flag == 1
+		replace StudentSubGroup_TotalTested = string(max - Homeless) if StudentGroup == "Homeless Enrolled Status" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & flag == 1
+		replace StudentSubGroup_TotalTested = string(max - Foster) if StudentGroup == "Foster Care Status" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & flag == 1
+		replace StudentSubGroup_TotalTested = string(max - Military) if StudentGroup == "Military Connected Status" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & flag == 1
+		drop uniquegrp x flag RaceEth Gender Disability Econ ELStatus Homeless Foster Military
+	
+
 //ParticipationRate
 destring ParticipationRate, gen(nParticipationRate) i(*~)
 replace ParticipationRate = string(nParticipationRate/100, "%9.4f")
