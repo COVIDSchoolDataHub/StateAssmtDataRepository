@@ -281,9 +281,13 @@ drop if StudentSubGroup_TotalTested == "0"
 
 replace Lev1_percent = "--" if `year' == 2021 & Subject != "sci"
 replace Lev1_percent = "--" if `year' == 2022 & Subject != "sci"
+replace Lev1_count = "--" if `year' == 2021 & Subject != "sci"
+replace Lev1_count = "--" if `year' == 2022 & Subject != "sci"
 
 if `year' == 2023{
 	replace Lev4_percent = "0" if Lev4_count == "0"
+	replace Lev1_percent = "0" if Lev1_percent == "0.000" | Lev1_percent == "-0.000"
+	replace Lev4_percent = "0" if Lev4_percent == "-0.001" | Lev4_percent == "0.000"
 }
 
 //Final Cleaning
