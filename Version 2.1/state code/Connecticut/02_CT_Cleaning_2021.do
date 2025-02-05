@@ -1,7 +1,7 @@
 *******************************************************
 * CONNECTICUT
 
-* File name: 01_CT_Cleaning
+* File name: 02_CT_Cleaning_2021
 * Last update: 2/5/2025
 
 *******************************************************
@@ -26,6 +26,10 @@ cap log close
 
 //Update working directory
 cd "C:/Zelma/2025-01-27"
+
+/////////////////////////////////////////
+*** Cleaning ***
+/////////////////////////////////////////
 
 **** Need to install labutil for labelling to work properly. Type search labutil into Stata terminal and install first result. 
 
@@ -125,6 +129,7 @@ gen SchYear = "2020-21"
 replace GradeLevel = "G" + GradeLevel
 keep if inlist(GradeLevel,"G03","G04","G05","G06","G07","G08")
 
+*Destringing percentages & Calculations*
 //Making percents look reasonable
 destring ParticipationRate, gen(nParticipationRate) i(*)
 replace ParticipationRate = string(nParticipationRate, "%9.4g") if ParticipationRate != "*"
@@ -295,7 +300,7 @@ replace `var' = strtrim(`var')
 replace `var' = stritrim(`var')
 }
 
-
+***Generating Empty Level Count Variables***
 foreach n in 1 2 3 4 {
 	gen Lev`n'_count = "--"
 }
@@ -312,8 +317,8 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 *Exporting Output for Stanford - without derivations*
-save "${Output_ND}/CT_AssmtData2021_ND", replace
-export delimited "${Output_ND}/CT_AssmtData2021_ND", replace
+*save "${Output_ND}/CT_AssmtData2021_NoDev", replace //If .dta format needed. 
+export delimited "${Output_ND}/CT_AssmtData2021_NoDev", replace
 
 *Continuing with derivations and EDFACTs as usual*
 save "${Output}/CT_AssmtData_2021", replace

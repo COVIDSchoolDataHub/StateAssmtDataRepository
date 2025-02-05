@@ -1233,8 +1233,8 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 *Exporting into a separate folder Output for Stanford - without derivations*
-save "${Output_ND}/CT_AssmtData`year'_ND", replace
-export delimited "${Output_ND}/CT_AssmtData`year'_ND", replace
+*save "${Output_ND}/CT_AssmtData`year'_NoDev", replace //If .dta format needed. 
+export delimited "${Output_ND}/CT_AssmtData`year'_NoDev", replace
 
 ***Derivations***
 // deriving ProficientOrAbove_count using ProficientOrAbove_percent and StudentSubGroup_TotalTested, r2
@@ -1245,7 +1245,7 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 *Exporting Output with derivations*
-save "${Output}/CT_AssmtData_`year'", replace
+*save "${Output}/CT_AssmtData_`year'", replace //If .dta format needed. 
 export delimited "${Output}/CT_AssmtData_`year'", replace
 clear
 }
