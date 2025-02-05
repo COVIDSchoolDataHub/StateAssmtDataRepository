@@ -1,18 +1,39 @@
+*******************************************************
+* CONNECTICUT
+
+* File name: 01_CT_Cleaning
+* Last update: 2/5/2025
+
+*******************************************************
+* Notes
+
+	* This do file cleans CT's yearly data and merges with NCES
+	* This file does NOT include 2021, which was formatted differently from other years.
+	* As of 2/5/25, the most recent NCES file available is NCES_2022. This will be used for 2023 and 2024 data files.
+	* This file will need to be updated when NCES_2023 becomes available
+	
+*******************************************************
+
+/////////////////////////////////////////
+*** Setup ***
+/////////////////////////////////////////
+
 clear
 //set more on
 set trace off
 cap log close
 
-*cd "/Users/benjaminm/Documents/State_Repository_Research/Connecticut"
+//Update file paths as needed
+cd "C:/Zelma/2025-01-27"
 
 *global Original "/Users/benjaminm/Documents/State_Repository_Research/Connecticut/Original Data Files"
 *global Output "/Users/benjaminm/Documents/State_Repository_Research/Connecticut/Output"
 *global NCES_School "/Users/benjaminm/Documents/State_Repository_Research/NCES/School"
 *global NCES_District "/Users/benjaminm/Documents/State_Repository_Research/NCES/District"
 
-*I replace the folder paths*
-cd "C:/Zelma/2025-01-27"
-
+/////////////////////////////////////////
+*** Cleaning ***
+/////////////////////////////////////////
 log using variablescheck.log, replace
 //Standardizing Varnames (and variables if necessary) before appending
 forvalues year = 2015/2024 {
@@ -760,7 +781,7 @@ use "`temp_`year''"
 
 
 // use "/Users/benjaminm/Documents/State_Repository_Research/Connecticut/Testing/`year'", clear
-//use "${Test}/2022", replace
+// use "${Test}/2022", replace
 
 
 *Strips unnecessary characters and leaves only numeric values*
