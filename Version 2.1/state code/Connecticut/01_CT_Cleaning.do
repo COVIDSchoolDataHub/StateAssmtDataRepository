@@ -23,13 +23,8 @@ clear
 set trace off
 cap log close
 
-//Update file paths as needed
+//Update working directory
 cd "C:/Zelma/2025-01-27"
-
-*global Original "/Users/benjaminm/Documents/State_Repository_Research/Connecticut/Original Data Files"
-*global Output "/Users/benjaminm/Documents/State_Repository_Research/Connecticut/Output"
-*global NCES_School "/Users/benjaminm/Documents/State_Repository_Research/NCES/School"
-*global NCES_District "/Users/benjaminm/Documents/State_Repository_Research/NCES/District"
 
 /////////////////////////////////////////
 *** Cleaning ***
@@ -769,20 +764,12 @@ replace v6 = v6[_n-1] if missing(v6)
 				save "${Original}/`dl'_`sg'_CT_OriginalData_`year'_`subject'.dta", replace
 				append using "`temp_`year''"
 				save "`temp_`year''", replace
-				//save "${Test}/`year'", replace
-				// save "/Users/benjaminm/Documents/State_Repository_Research/Connecticut/Testing/`year'", replace
 				clear
 			}
 		}
 	}
 *Temporarily stores data by year which would include subgroups. 	
 use "`temp_`year''"
-
-
-
-// use "/Users/benjaminm/Documents/State_Repository_Research/Connecticut/Testing/`year'", clear
-// use "${Test}/2022", replace
-
 
 *Strips unnecessary characters and leaves only numeric values*
 //StateAssignedDistID and StateAssignedSchID

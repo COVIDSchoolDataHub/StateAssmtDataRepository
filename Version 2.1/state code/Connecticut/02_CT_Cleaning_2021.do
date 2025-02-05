@@ -1,3 +1,22 @@
+*******************************************************
+* CONNECTICUT
+
+* File name: 01_CT_Cleaning
+* Last update: 2/5/2025
+
+*******************************************************
+* Notes
+
+	* This do file cleans CT's 2021 data and merges with NCES.
+	* The 2021 data file does not contain counts. 
+	* The non-derived output is exported before running 03_CT_2021_EDFACTS.
+
+*******************************************************
+
+/////////////////////////////////////////
+*** Setup ***
+/////////////////////////////////////////
+
 clear
 set more off
 clear
@@ -5,6 +24,7 @@ set more off
 set trace off
 cap log close
 
+//Update working directory
 cd "C:/Zelma/2025-01-27"
 
 **** Need to install labutil for labelling to work properly. Type search labutil into Stata terminal and install first result. 
@@ -105,7 +125,6 @@ gen SchYear = "2020-21"
 replace GradeLevel = "G" + GradeLevel
 keep if inlist(GradeLevel,"G03","G04","G05","G06","G07","G08")
 
-*DA - Error in code here - type mismatch*
 //Making percents look reasonable
 destring ParticipationRate, gen(nParticipationRate) i(*)
 replace ParticipationRate = string(nParticipationRate, "%9.4g") if ParticipationRate != "*"
@@ -301,4 +320,4 @@ save "${Output}/CT_AssmtData_2021", replace
 export delimited "${Output}/CT_AssmtData_2021", replace
 
 
-*do CT_2021_EDFACTS // The main do file will run this in order. 
+*do 03_CT_2021_EDFACTS // The main do file will run this in order. 

@@ -1,3 +1,23 @@
+*******************************************************
+* CONNECTICUT
+
+* File name: 01_CT_Cleaning
+* Last update: 2/5/2025
+
+*******************************************************
+* Notes
+
+	* This do file cleans EDFacts 2021 data and merges with the cleaned CT 2021 data.
+	* Since the CT 2021 data does not contain counts, the EDFacts counts are utilized to generate counts.
+		
+*******************************************************
+
+/////////////////////////////////////////
+*** Setup ***
+/////////////////////////////////////////
+
+clear
+
 foreach subject in ela math {
 foreach dl in district school {
 clear
@@ -109,10 +129,6 @@ merge 1:1 NCESDistrictID NCESSchoolID Subject GradeLevel StudentSubGroup using "
 drop if _merge == 2
 drop _merge
  
- 
- 
- 
- 
  **MERGING**
 use "${Output}/CT_AssmtData_2021", clear
 destring NCESDistrictID, replace force
@@ -125,9 +141,6 @@ duplicates tag NCESDistrictID NCESSchoolID Subject GradeLevel StudentSubGroup, g
 tab dup
 *drop dup *Check here for errors*
 merge 1:1 NCESDistrictID NCESSchoolID Subject GradeLevel StudentSubGroup using "${Temp}/_2021_count", update
-
-// destring NCESDistrictID, replace force 
-// destring NCESSchoolID, replace force 
 
 drop if _merge == 2
 drop _merge
