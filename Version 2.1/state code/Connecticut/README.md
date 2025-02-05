@@ -38,12 +38,12 @@ A. Create six folders and subfolders:
 
 B. Download the following .do files:
 
-    1. 01_CT_Cleaning.do; 
+    1. 01_CT_Cleaning.do 
     
-    2. 02_CT_Cleaning_2021.do; 
+    2. 02_CT_Cleaning_2021.do 
     
-    3. 03_CT_2021_EDFACTS.do.
+    3. 03_CT_2021_EDFACTS.do
     
-    4. CT_Main_File.do;
+    4. CT_Main_File.do
 
 After any updates needed to the .do files, run CT_Main_File.do, which will execute the do files in order.
