@@ -1,14 +1,23 @@
-clear all
-set maxvar 10000
-// Define file paths
+*******************************************************
+* TEXAS
 
-global original_files "/Users/miramehta/Documents/TX State Testing Data/Original"
-global NCES_files "/Users/miramehta/Documents/NCES District and School Demographics"
-global output_files "/Users/miramehta/Documents/TX State Testing Data/Output"
-global temp_files "/Users/miramehta/Documents/TX State Testing Data/Temp"
+* File name: TX_2022
+* Last update: 2/5/2025
+
+*******************************************************
+* Notes
+
+	* This do file cleans TX's 2022 data and merges with NCES_2021.
+
+*******************************************************
+
+/////////////////////////////////////////
+*** Setup ***
+/////////////////////////////////////////
+
+clear all
 
 *Unhide on first run to import .csv files
-/*
 foreach lev in "School" "District" "State"{
 	import delimited "$original_files/TX_OriginalData_2022_`lev'", clear
 	gen DataLevel = "`lev'"
@@ -24,7 +33,10 @@ drop DataLevel
 rename DataLevel_n DataLevel
 
 save "$temp_files/TX_OriginalData_2022", replace
-*/
+
+/////////////////////////////////////////
+*** Cleaning ***
+/////////////////////////////////////////
 use "$temp_files/TX_OriginalData_2022", clear
 keep if administration == "Spring 2022"
 duplicates drop
@@ -150,43 +162,6 @@ gen ProficiencyCriteria = "Levels 3-4"
 drop if Subject == "sci" & !inlist(GradeLevel, "G05", "G08")
 drop if Subject == "soc" & GradeLevel != "G08"
 
-//Deriving & Formatting Performance Information
-gen Lev2_count = Lev2_above_count - ProficientOrAbove_count
-gen Lev2_percent = Lev2_above_percent - ProficientOrAbove_percent
-gen Lev3_count = ProficientOrAbove_count - Lev4_count
-gen Lev3_percent = ProficientOrAbove_percent - Lev4_percent
-
-forvalues n = 1/4{
-	replace Lev`n'_percent = Lev`n'_percent/100
-	tostring Lev`n'_percent, replace format("%9.2g") force
-	replace Lev`n'_percent = "--" if Lev`n'_percent == "."
-	tostring Lev`n'_count, replace
-	replace Lev`n'_count = "--" if Lev`n'_count == "."
-}
-
-replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
-replace Lev2_above_percent = Lev2_above_percent/100
-tostring ProficientOrAbove_percent, replace format("%9.2g") force
-replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == "."
-tostring Lev2_above_percent, replace format("%9.2g") force
-replace Lev2_above_percent = "--" if Lev2_above_percent == "."
-tostring ProficientOrAbove_count, replace
-replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == "."
-tostring Lev2_above_count, replace
-replace Lev2_above_count = "--" if Lev2_above_count == "."
-rename Lev2_above_count ApproachingOrAbove_count
-rename Lev2_above_percent ApproachingOrAbove_percent
-
-gen Lev5_count = ""
-gen Lev5_percent = ""
-
-tostring StudentSubGroup_TotalTested, replace
-replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
-
-//AvgScaleScore
-tostring AvgScaleScore, replace
-replace AvgScaleScore = "--" if AvgScaleScore == "."
-
 //StudentSubGroup & StudentGroup
 replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic/Latino"
 replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "Native Hawaiian or Other Pacific Islander"
@@ -219,6 +194,48 @@ gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup ==
 order Subject GradeLevel StudentGroup_TotalTested StudentGroup StudentSubGroup_TotalTested StudentSubGroup
 replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested) & StudentSubGroup != "All Students"
 
+***Calculations***
+//Deriving & Formatting Level Count and Percent Information
+gen Lev2_count = Lev2_above_count - ProficientOrAbove_count
+gen Lev2_percent = Lev2_above_percent - ProficientOrAbove_percent
+gen Lev3_count = ProficientOrAbove_count - Lev4_count
+gen Lev3_percent = ProficientOrAbove_percent - Lev4_percent
+
+*Recalculating Level percents (/100), and converting them to strings. 
+forvalues n = 1/4{
+	replace Lev`n'_percent = Lev`n'_percent/100
+	tostring Lev`n'_percent, replace format("%9.2g") force
+	replace Lev`n'_percent = "--" if Lev`n'_percent == "."
+	tostring Lev`n'_count, replace
+	replace Lev`n'_count = "--" if Lev`n'_count == "."
+}
+
+*Recalculating Level and Proficiency percents (/100) and converting them to strings*
+replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
+replace Lev2_above_percent = Lev2_above_percent/100
+tostring ProficientOrAbove_percent, replace format("%9.2g") force
+replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == "."
+tostring Lev2_above_percent, replace format("%9.2g") force
+replace Lev2_above_percent = "--" if Lev2_above_percent == "."
+tostring ProficientOrAbove_count, replace
+replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == "."
+tostring Lev2_above_count, replace
+replace Lev2_above_count = "--" if Lev2_above_count == "."
+rename Lev2_above_count ApproachingOrAbove_count
+rename Lev2_above_percent ApproachingOrAbove_percent
+
+*Generating empty Level 5 counts and percentages - since TX has only 4 Levels. 
+gen Lev5_count = ""
+gen Lev5_percent = ""
+
+tostring StudentSubGroup_TotalTested, replace
+replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
+
+//AvgScaleScore
+tostring AvgScaleScore, replace
+replace AvgScaleScore = "--" if AvgScaleScore == "."
+
+
 //Remove Null Observations
 drop if StudentSubGroup_TotalTested == "0" & StudentSubGroup != "All Students"
 gen flag = 1
@@ -228,6 +245,7 @@ forvalues n = 1/4 {
 drop if flag == 1 & inlist(StudentSubGroup_TotalTested, "*", "--") & StudentSubGroup != "All Students"
 drop flag
 
+***Merging with NCES***
 //Prepare to Merge with NCES
 gen state_leaid = "TX-" + StateAssignedDistID
 gen seasch = state_leaid + "-" + StateAssignedSchID
@@ -283,10 +301,16 @@ order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistric
 
 sort DataLevel DistName SchName AssmtName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${output_files}/TX_AssmtData_2022 - HMH.dta", replace
+*Exporting into usual output folder for HMH. 
+*save "${output_files}/TX_AssmtData_2022 - HMH.dta", replace //If .dta format needed.
 export delimited "${output_files}/TX_AssmtData_2022 - HMH.csv", replace
 
 drop ApproachingOrAbove_count ApproachingOrAbove_percent
 
-save "${output_files}/TX_AssmtData_2022.dta", replace
+*Exporting into a separate folder Output for Stanford - without derivations* //This part of the code is commented out because we do not have any derivations in this data. 
+*save "${output_ND}/TX_AssmtData_2022_NoDev", replace //If .dta format needed. 
+*export delimited "${output_ND}/TX_AssmtData_2022_NoDev", replace
+
+*Exporting into the usual output file* 
+*save "${output_files}/TX_AssmtData_2022.dta", replace //If .dta format needed. 
 export delimited "${output_files}/TX_AssmtData_2022.csv", replace

@@ -1,170 +1,29 @@
+*******************************************************
+* TEXAS
+
+* File name: TX_2017
+* Last update: 2/6/2025
+
+*******************************************************
+* Notes
+
+	* This do file cleans TX's 2017 data and merges with NCES_2016.
+
+*******************************************************
+
+/////////////////////////////////////////
+*** Setup ***
+/////////////////////////////////////////
+
 clear all
-set maxvar 10000
-// Define file paths
 
-global original_files "/Users/miramehta/Documents/TX State Testing Data/Original"
-global NCES_files "/Users/miramehta/Documents/NCES District and School Demographics"
-global output_files "/Users/miramehta/Documents/TX State Testing Data/Output"
-global temp_files "/Users/miramehta/Documents/TX State Testing Data/Temp"
+/////////////////////////////////////////
+*** Cleaning ***
+/////////////////////////////////////////
 
-// 2016-2017
-
-/*
-// State Level
-
-forvalues i = 3/8 {
-	import delimited using "$original_files/TX_OriginalData_2017_G0`i'_State", clear
-	export delimited using "$original_files/TX_OriginalData_2017_G0`i'_State.csv", replace
-	cap rename grade GRADE
-	drop *cat*
-	drop *ti*
-	*drop *mig*
-	drop *bil*
-	*drop *spe*
-	drop *gif*
-	drop *atr*
-	drop *esl*
-	drop *esb*
-	
-	drop *eco1*
-	drop *eco2*
-	drop *ecov*
-	drop *eco9*
-	*drop *lepf*
-	drop *leps*
-	drop *lepv*
-	drop *migv*
-	drop *spev*
-	rename (*_docs_n *_abs_n *_oth_n *_d *_docs_r *_abs_r *_oth_r *_unsatgl_nm *_approgl_nm *_meetsgl_nm *_mastrgl_nm *_unsatgl_rm *_approgl_rm *_meetsgl_rm *_mastrgl_rm *_rs) (docs_n_* abs_n_* oth_n_* d_* docs_r_* abs_r_* oth_r_* unsatgl_nm_* approgl_nm_* meetsgl_nm_* mastrgl_nm_* unsatgl_rm_* approgl_rm_* meetsgl_rm_* mastrgl_rm_* rs_*)
-	
-	reshape long docs_n_ abs_n_ oth_n_ d_ docs_r_ abs_r_ oth_r_ unsatgl_nm_ approgl_nm_ meetsgl_nm_ mastrgl_nm_ unsatgl_rm_ approgl_rm_ meetsgl_rm_ mastrgl_rm_ rs_, i(GRADE) j(subject_group, string)
-	
-	save "$temp_files/TX_Temp_2017_G0`i'_State.dta", replace
-}
-
-clear
-append using "$temp_files/TX_Temp_2017_G03_State.dta" "$temp_files/TX_Temp_2017_G04_State.dta" "$temp_files/TX_Temp_2017_G05_State.dta" "$temp_files/TX_Temp_2017_G06_State.dta" "$temp_files/TX_Temp_2017_G07_State.dta" "$temp_files/TX_Temp_2017_G08_State.dta"
-
-generate CAMPUS = ""
-generate DISTRICT = ""
-generate DNAME = "All Districts"
-generate CNAME = "All Schools"
-generate DataLevel = "State"
-
-save "$temp_files/TX_Temp_2017_All_State.dta", replace
-
-// District Level
-
-forvalues i = 3/8 {
-	import delimited using "$original_files/TX_OriginalData_2017_G0`i'_District", clear
-	export delimited using "$original_files/TX_OriginalData_2017_G0`i'_District.csv", replace
-	cap rename grade GRADE
-	cap rename dname DNAME
-	cap rename district DISTRICT
-	tostring DISTRICT, replace
-	replace DISTRICT = "0" + DISTRICT if strlen(DISTRICT) == 5
-	replace DISTRICT = "00" + DISTRICT if strlen(DISTRICT) == 4
-	drop *cat*
-	drop *ti*
-	*drop *mig*
-	drop *bil*
-	*drop *spe*
-	drop *gif*
-	drop *atr*
-	drop *esl*
-	drop *esb*
-	
-	drop *eco1*
-	drop *eco2*
-	drop *ecov*
-	drop *eco9*
-	*drop *lepf*
-	drop *leps*
-	drop *lepv*
-	drop *migv*
-	drop *spev*
-	drop region
-	
-	rename (*_docs_n *_abs_n *_oth_n *_d *_docs_r *_abs_r *_oth_r *_unsatgl_nm *_approgl_nm *_meetsgl_nm *_mastrgl_nm *_unsatgl_rm *_approgl_rm *_meetsgl_rm *_mastrgl_rm *_rs) (docs_n_* abs_n_* oth_n_* d_* docs_r_* abs_r_* oth_r_* unsatgl_nm_* approgl_nm_* meetsgl_nm_* mastrgl_nm_* unsatgl_rm_* approgl_rm_* meetsgl_rm_* mastrgl_rm_* rs_*)
-	
-	reshape long docs_n_ abs_n_ oth_n_ d_ docs_r_ abs_r_ oth_r_ unsatgl_nm_ approgl_nm_ meetsgl_nm_ mastrgl_nm_ unsatgl_rm_ approgl_rm_ meetsgl_rm_ mastrgl_rm_ rs_, i(DISTRICT) j(subject_group, string)
-	
-	save "$temp_files/TX_Temp_2017_G0`i'_District.dta", replace
-}
-
-clear
-append using "$temp_files/TX_Temp_2017_G03_District.dta" "$temp_files/TX_Temp_2017_G04_District.dta" "$temp_files/TX_Temp_2017_G05_District.dta" "$temp_files/TX_Temp_2017_G06_District.dta" "$temp_files/TX_Temp_2017_G07_District.dta" "$temp_files/TX_Temp_2017_G08_District.dta"
-
-generate CAMPUS = ""
-generate CNAME = "All Schools"
-generate DataLevel = "District"
-
-save "$temp_files/TX_Temp_2017_All_District.dta", replace
-
-// School Level
-
-forvalues i = 3/8 {
-	import delimited using "$original_files/TX_OriginalData_2017_G0`i'_School", clear
-	export delimited using "$original_files/TX_OriginalData_2017_G0`i'_School.csv", replace
-	cap rename grade GRADE
-	cap rename dname DNAME
-	cap rename cname CNAME
-	cap rename campus CAMPUS
-	tostring CAMPUS, replace
-	replace CAMPUS = "0" + CAMPUS if strlen(CAMPUS) == 8
-	replace CAMPUS = "00" + CAMPUS if strlen(CAMPUS) == 7
-	cap rename district DISTRICT
-	tostring DISTRICT, replace
-	replace DISTRICT = "0" + DISTRICT if strlen(DISTRICT) == 5
-	replace DISTRICT = "00" + DISTRICT if strlen(DISTRICT) == 4
-	drop *cat*
-	drop *ti*
-	*drop *mig*
-	drop *bil*
-	*drop *spe*
-	drop *gif*
-	drop *atr*
-	drop *esl*
-	drop *esb*
-	
-	drop *eco1*
-	drop *eco2*
-	drop *ecov*
-	drop *eco9*
-	*drop *lepf*
-	drop *leps*
-	drop *lepv*
-	drop *migv*
-	drop *spev*
-	drop region
-	
-	rename (*_docs_n *_abs_n *_oth_n *_d *_docs_r *_abs_r *_oth_r *_unsatgl_nm *_approgl_nm *_meetsgl_nm *_mastrgl_nm *_unsatgl_rm *_approgl_rm *_meetsgl_rm *_mastrgl_rm *_rs) (docs_n_* abs_n_* oth_n_* d_* docs_r_* abs_r_* oth_r_* unsatgl_nm_* approgl_nm_* meetsgl_nm_* mastrgl_nm_* unsatgl_rm_* approgl_rm_* meetsgl_rm_* mastrgl_rm_* rs_*)
-	
-	reshape long docs_n_ abs_n_ oth_n_ d_ docs_r_ abs_r_ oth_r_ unsatgl_nm_ approgl_nm_ meetsgl_nm_ mastrgl_nm_ unsatgl_rm_ approgl_rm_ meetsgl_rm_ mastrgl_rm_ rs_, i(CAMPUS) j(subject_group, string)
-	
-	save "$temp_files/TX_Temp_2017_G0`i'_School.dta", replace
-}
-
-clear
-append using "$temp_files/TX_Temp_2017_G03_School.dta" "$temp_files/TX_Temp_2017_G04_School.dta" "$temp_files/TX_Temp_2017_G05_School.dta" "$temp_files/TX_Temp_2017_G06_School.dta" "$temp_files/TX_Temp_2017_G07_School.dta" "$temp_files/TX_Temp_2017_G08_School.dta"
-
-generate DataLevel = "School"
-
-save "$temp_files/TX_Temp_2017_All_School.dta", replace
-
-// Combine Data Levels
-
-clear 
-append using "$temp_files/TX_Temp_2017_All_State.dta" "$temp_files/TX_Temp_2017_All_District.dta" "$temp_files/TX_Temp_2017_All_School.dta"
-
-save "$temp_files/TX_Temp_2017_All_All.dta", replace
-
-*/
+use "${original_reduced}/TX_Temp_2017_All_All.dta", clear
 
 // Splitting Subject and Subgroups
-
-use "$temp_files/TX_Temp_2017_All_All.dta", clear
-
 generate Subject = substr(subject_group, 1, 1)
 generate StudentGroup = substr(subject_group, 3, 3)
 generate StudentSubGroup = substr(subject_group, 3, .)
@@ -178,6 +37,7 @@ replace Subject = "sci" if Subject == "s"
 replace Subject = "soc" if Subject == "h"
 replace Subject = "wri" if Subject == "w"
 
+//StudentSubGroup & StudentGroup
 replace StudentGroup = "All Students" if StudentGroup == "all"
 replace StudentGroup = "RaceEth" if StudentGroup == "eth"
 replace StudentGroup = "EL Status" if StudentGroup == "lep"
@@ -227,18 +87,6 @@ rename approgl_rm_ Lev2plus_percent
 rename meetsgl_rm_ Lev3plus_percent
 rename mastrgl_rm_ Lev4_percent
 
-generate Lev2_count = Lev2plus_count - Lev3plus_count
-generate Lev3_count = Lev3plus_count - Lev4_count
-generate Lev2_percent = Lev2plus_percent - Lev3plus_percent
-generate Lev3_percent = Lev3plus_percent - Lev4_percent
-generate ProficientOrAbove_count = Lev3plus_count
-generate ProficientOrAbove_percent = Lev3plus_percent
-drop Lev3plus_count
-drop Lev3plus_percent
-
-rename Lev2plus_count ApproachingOrAbove_count
-rename Lev2plus_percent ApproachingOrAbove_percent
-
 rename rs_ AvgScaleScore
 rename docs_n_ Submitted_count
 rename docs_r_ ParticipationRate
@@ -251,12 +99,6 @@ rename DISTRICT StateAssignedDistID
 rename DNAME DistName
 rename CNAME SchName
 
-drop Submitted_count
-drop Absent_count
-drop Absent_percent
-drop NoTestOth_count
-drop NoTestOth_percent
-
 // Relabeling Data Levels
 label def DataLevel 1 "State" 2 "District" 3 "School"
 encode DataLevel, gen(DataLevel_n) label(DataLevel)
@@ -264,7 +106,41 @@ sort DataLevel_n
 drop DataLevel 
 rename DataLevel_n DataLevel
 
-// Fixing Percents
+//Assessment Information
+gen AssmtName = "STAAR - English"
+gen Flag_AssmtNameChange = "N"
+gen Flag_CutScoreChange_ELA = "Y"
+gen Flag_CutScoreChange_math = "Y"
+gen Flag_CutScoreChange_soc = "Y"
+gen Flag_CutScoreChange_sci = "Y"
+gen AssmtType = "Regular"
+gen ProficiencyCriteria = "Levels 3-4"
+gen state_leaid = "TX-"+StateAssignedDistID
+replace state_leaid = "" if DataLevel == 1
+gen seasch = StateAssignedDistID+"-"+StateAssignedSchID
+replace seasch = "" if DataLevel != 3
+
+***Calculations***
+//Deriving & Formatting Level Count and Percent Information
+generate Lev2_count = Lev2plus_count - Lev3plus_count
+generate Lev3_count = Lev3plus_count - Lev4_count
+generate Lev2_percent = Lev2plus_percent - Lev3plus_percent
+generate Lev3_percent = Lev3plus_percent - Lev4_percent
+generate ProficientOrAbove_count = Lev3plus_count
+generate ProficientOrAbove_percent = Lev3plus_percent
+drop Lev3plus_count
+drop Lev3plus_percent
+
+rename Lev2plus_count ApproachingOrAbove_count
+rename Lev2plus_percent ApproachingOrAbove_percent
+
+drop Submitted_count
+drop Absent_count
+drop Absent_percent
+drop NoTestOth_count
+drop NoTestOth_percent
+
+*Recalculating Level percents (/100)
 foreach var of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_percent ParticipationRate ApproachingOrAbove_percent {
 	replace `var' = `var'/100
 }
@@ -279,38 +155,26 @@ foreach var of varlist Lev1_count Lev2_count Lev3_count Lev4_count Lev1_percent 
 tostring ParticipationRate, replace force
 replace ParticipationRate = "--" if ParticipationRate == "."
 
-// Generating missing variables
+*Generating empty Level 5 counts and percentages - since TX has only 4 Levels. 
 gen Lev5_count = ""
 gen Lev5_percent = ""
-gen AssmtName = "STAAR - English"
-gen Flag_AssmtNameChange = "N"
-gen Flag_CutScoreChange_ELA = "Y"
-gen Flag_CutScoreChange_math = "Y"
-gen Flag_CutScoreChange_soc = "Y"
-gen Flag_CutScoreChange_sci = "Y"
-gen AssmtType = "Regular"
-gen ProficiencyCriteria = "Levels 3-4"
-gen state_leaid = "TX-"+StateAssignedDistID
-replace state_leaid = "" if DataLevel == 1
-gen seasch = StateAssignedDistID+"-"+StateAssignedSchID
-replace seasch = "" if DataLevel != 3
 
 // Saving transformed data
-save "$output_files/TX_AssmtData_2017.dta", replace
+save "$temp_files/TX_AssmtData_2017.dta", replace
 
+***Merging with NCES***
 // Merging with NCES District Data
-
 use "$NCES_files/NCES District Files, Fall 1997-Fall 2022/NCES_2016_District.dta", clear
 
 keep state_location lea_name state_fips district_agency_type ncesdistrictid state_leaid DistCharter county_name county_code DistLocale
 
 keep if state_location == "TX"
 
-merge 1:m state_leaid using "${output_files}/TX_AssmtData_2017.dta", keep(match using) nogenerate
+merge 1:m state_leaid using "${temp_files}/TX_AssmtData_2017.dta", keep(match using) nogenerate
 replace DistName = lea_name if DataLevel != 1 & lea_name != ""
 drop lea_name
 
-save "$output_files/TX_AssmtData_2017.dta", replace
+save "$temp_files/TX_AssmtData_2017.dta", replace
 
 // Merging with NCES School Data
 
@@ -320,9 +184,9 @@ keep state_location state_fips district_agency_type SchType ncesdistrictid state
 
 keep if state_location == "TX"
 
-merge 1:m seasch using "${output_files}/TX_AssmtData_2017.dta", keep(match using) nogenerate
+merge 1:m seasch using "${temp_files}/TX_AssmtData_2017.dta", keep(match using) nogenerate
 
-save "$output_files/TX_AssmtData_2017.dta", replace
+save "$temp_files/TX_AssmtData_2017.dta", replace
 
 // Renaming NCES Variables
 rename district_agency_type DistType
@@ -385,11 +249,17 @@ order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistric
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 // Saving and exporting transformed data
-save "${output_files}/TX_AssmtData_2017 - HMH.dta", replace
+*Exporting into usual output folder for HMH. 
+*save "${output_files}/TX_AssmtData_2017 - HMH.dta", replace //If .dta format needed. 
 export delimited "${output_files}/TX_AssmtData_2017 - HMH.csv", replace
 
 drop ApproachingOrAbove_count ApproachingOrAbove_percent
 
-save "${output_files}/TX_AssmtData_2017.dta", replace
+*Exporting into a separate folder Output for Stanford - without derivations* //This part of the code is commented out because we do not have any derivations in this data. 
+*save "${output_ND}/TX_AssmtData_2017_NoDev", replace //If .dta format needed. 
+*export delimited "${output_ND}/TX_AssmtData_2017_NoDev", replace
+
+*Exporting into the usual output file* 
+*save "${output_files}/TX_AssmtData_2017.dta", replace //If .dta format needed. 
 export delimited using "${output_files}/TX_AssmtData_2017.csv", replace
 
