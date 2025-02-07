@@ -7,7 +7,7 @@
 *******************************************************
 * Notes
 
-* This file executes all ID files and exports to Output.
+  * This file executes all ID files and exports to Output.
 *******************************************************
 clear 
 
@@ -17,13 +17,13 @@ global output_files "C:\Users\Clare\Desktop\Zelma V2.1\Idaho\Output"
 global temp_files "C:\Users\Clare\Desktop\Zelma V2.1\Idaho\Temp"
 global DoFiles "C:\Users\Clare\Desktop\Zelma V2.1\Idaho"
 
-*Run in this order. Add newer years in order.*
-do "${DoFiles}/ID_2016_new.do" 
-do "${DoFiles}/ID_2017_new.do" 
-do "${DoFiles}/ID_2018_new.do" 
-do "${DoFiles}/ID_2019_new.do" 
-do "${DoFiles}/ID_2021_new.do" 
-do "${DoFiles}/ID_2022_new.do" 
-do "${DoFiles}/ID_2023_new.do" 
-do "${DoFiles}/ID_2024_new.do" 
+*Add newer years in order.*
+do "${DoFiles}/01_ID_DataRequest_2016.do" 
+do "${DoFiles}/02_ID_DataRequest_2017.do" 
+do "${DoFiles}/03_ID_DataRequest_2018.do" 
+do "${DoFiles}/04_ID_DataRequest_2019.do" 
+do "${DoFiles}/05_ID_DataRequest_2021.do" 
+do "${DoFiles}/06_ID_DataRequest_2022.do" 
+do "${DoFiles}/07_ID_DataRequest_2023.do" 
+do "${DoFiles}/08_ID_DataCleanPublic_2024.do" 
 ****************************************************
