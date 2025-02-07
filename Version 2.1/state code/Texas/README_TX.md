@@ -4,7 +4,7 @@ This is a ReadMe for Texas's data cleaning process, from 2012 to 2024.
 
 ## Setup
 
-Create a folder for TX. Create five folder and subfolders. 
+Create a folder for TX. Create five folders and subfolders. 
 
 1. Original_Files: Download the files from the 2022, 2023, and 2024 subfolders in the Original Data Folder on Google Drive.
   
@@ -39,9 +39,13 @@ Create a folder for TX. Create five folder and subfolders.
 12. TX_2023.do
 13. TX_2024.do
 
-Update the file path in the TX_Main_File.do. Run the TX_Main_File which execute the do files in order.
+Update the file path in the TX_Main_File.do. Run the TX_Main_File, which executes the do files in order.
 
 ## Recreate Cleaning/ Creating the reduced files
+A change from the previous version is the creation of "reduced files". These files are created from the "full files". 
+In the full files, several variables are dropped and data are reshaped from wide to long to create the reduced files.
+The variable list for the full files can be found in fy22_varlist.xlsx.
+This file is located on the Google Drive --> Texas --> Original Data Files --> TX varlist. 
 
 1. Download the full files from the "2012 to 2021, non-scraped, full files" folder. 
 2. Store them in the Original_Files folder created in the Setup section.
