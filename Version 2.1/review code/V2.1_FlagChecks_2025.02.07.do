@@ -26,7 +26,7 @@ if "$StateAbbrev" == "AL" {
 	replace Flag_CutScoreChange_ELA_Chk = "Y" if FILE == "2018" | FILE == "2021" | FILE == "2023"
 
 	*Math
-	replace Flag_CutScoreChange_math_Chk = "Y" if FILE == "2018" | FILE == "2021" | FILE == "2023" // no 2023 flag unlike ELA
+	replace Flag_CutScoreChange_math_Chk = "Y" if FILE == "2018" | FILE == "2021" // no 2023 flag unlike ELA
 
 	*Sci
 	replace Flag_CutScoreChange_sci_Chk = "Y" if FILE == "2018" | FILE == "2021"
@@ -43,10 +43,10 @@ if "$StateAbbrev" == "AK" {
 	replace Flag_AssmtNameChange_Chk = "Y" if FILE == "2022" & (Subject == "ela" | Subject == "math") // not sci
 
 	*ELA
-	replace Flag_CutScoreChange_ELA_Chk = "Y" if FILE == "2017" | FILE == "2022"
+	replace Flag_CutScoreChange_ELA_Chk = "Y" if FILE == "2017" | FILE == "2022" | FILE == "2023"
 
 	*Math
-	replace Flag_CutScoreChange_math_Chk = "Y" if FILE == "2017" | FILE == "2022"
+	replace Flag_CutScoreChange_math_Chk = "Y" if FILE == "2017" | FILE == "2022" | FILE == "2023"
 
 	*Sci
 	replace Flag_CutScoreChange_sci_Chk = "Not applicable" if FILE == "2021"
