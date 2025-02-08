@@ -1,27 +1,45 @@
+*******************************************************
+* IDAHO
+
+* File name: 08_ID_DataRequest_2024
+* Last update: 2/8/2025
+
+*******************************************************
+* Notes
+
+	* This do file first cleans ID's 2024 data.  
+	* Then this file merges ID's data with NCES_2022. This will need to be updated when NCES_2023 is available.
+	* The completed file is saved to the the Output folder.
+	
+*******************************************************
 clear all
-set more off
-cd "/Users/miramehta/Documents"
+
+///////////////////////////////
+// Setup
+///////////////////////////////
 
 // Define file paths
+global original_files "C:\Users\Clare\Desktop\Zelma V2.1\Idaho\Original Data"
+global orig_files_DR_112723 "C:\Users\Clare\Desktop\Zelma V2.1\Idaho\Original Data\Idaho data received from data request 11-27-23"
+global NCES_files "C:\Users\Clare\Desktop\Zelma V2.0\Iowa - Version 2.0\NCES_full"
+global output_files "C:\Users\Clare\Desktop\Zelma V2.1\Idaho\Output"
+global temp_files "C:\Users\Clare\Desktop\Zelma V2.1\Idaho\Temp"
 
-global original_files "/Users/miramehta/Documents/ID State Testing Data/Original Data"
-global NCES_files "/Users/miramehta/Documents/NCES District and School Demographics"
-global output_files "/Users/miramehta/Documents/ID State Testing Data/Output"
-global temp_files "/Users/miramehta/Documents/ID State Testing Data/Temp"
-
-// 2023-2024
+///////////////////////////////
+// Appending State, District, and School tabs into one file for editing
+///////////////////////////////
 
 import excel "${original_files}/ID_OriginalData_2024_ela_math_sci.xlsx", sheet("State of Idaho") firstrow clear
-gen DataLevel = "State"
-save "${temp_files}/ID_AssmtData_2024_state.dta", replace
+	gen DataLevel = "State"
+	save "${temp_files}/ID_AssmtData_2024_state.dta", replace
 
 import excel "$original_files/ID_OriginalData_2024_ela_math_sci.xlsx", sheet("Districts") firstrow clear
-gen DataLevel = "District"
-save "${temp_files}/ID_AssmtData_2024_district.dta", replace
+	gen DataLevel = "District"
+	save "${temp_files}/ID_AssmtData_2024_district.dta", replace
 
 import excel "$original_files/ID_OriginalData_2024_ela_math_sci.xlsx", sheet("Schools") firstrow clear
-gen DataLevel = "School"
-save "${temp_files}/ID_AssmtData_2024_school.dta", replace
+	gen DataLevel = "School"
+	save "${temp_files}/ID_AssmtData_2024_school.dta", replace
 
 clear
 
@@ -29,6 +47,9 @@ append using "${temp_files}/ID_AssmtData_2024_state.dta" "${temp_files}/ID_Assmt
 
 save "${temp_files}/ID_AssmtData_2024_all.dta", replace
 
+///////////////////////////////
+// Cleaning ID 2024 file
+///////////////////////////////
 
 // Renaming Variables
 
@@ -356,16 +377,9 @@ keep State SchYear DataLevel DistName DistType SchName SchType NCESDistrictID St
 // Fixing missing state data
 gen StateAbbrev = "ID"
 gen StateFips = 16
-replace DistName = "All Districts" if DataLevel == 1
-replace SchName = "All Schools" if DataLevel == 1
-replace SchName = "All Schools" if DataLevel == 2
-replace StateAssignedDistID = "" if DataLevel == 1
-replace StateAssignedSchID = "" if DataLevel != 3
 
 // Dropping not ID data
 drop if StateAbbrev != "ID"
-
-//Response to post-launch review
 
 //Deriving Percents if the count is not a range
 foreach percent of varlist Lev*_percent ProficientOrAbove_percent {
@@ -400,9 +414,6 @@ replace SchVirtual = "No" if NCESSchoolID == "160351401181"
 replace SchLevel = "Other" if NCESSchoolID == "160351501182"
 replace SchVirtual = "No" if NCESSchoolID == "160351501182"
 
-//Removing leading zeroes in District IDs
-replace StateAssignedDistID = subinstr(StateAssignedDistID, "0", "", 1) if strpos(StateAssignedDistID, "0") == 1 & strlen(StateAssignedDistID) == 4
-
 // Reordering variables and sorting data
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
@@ -410,7 +421,7 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 // Saving and exporting transformed data
 
-save "${output_files}/ID_AssmtData_2024.dta", replace
+*save "${output_files}/ID_AssmtData_2024.dta", replace
 export delimited using "${output_files}/ID_AssmtData_2024.csv", replace
 
 
