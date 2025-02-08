@@ -7,7 +7,7 @@
 *******************************************************
 * Notes
 
-	* This do file first cleans ID's 2023 data. isolates 
+	* This do file first cleans ID's 2023 data.  
 	* Then this file merges ID's data with NCES_2022
 	* The completed file is saved to the the Output folder.
 	
@@ -19,7 +19,7 @@ clear all
 ///////////////////////////////
 
 // Define file paths
-global original_files "C:\Users\Clare\Desktop\Zelma V2.1\Idaho\Original Data\Idaho data received from data request 11-27-23"
+global orig_files_DR_112723 "C:\Users\Clare\Desktop\Zelma V2.1\Idaho\Original Data\Idaho data received from data request 11-27-23"
 global NCES_files "C:\Users\Clare\Desktop\Zelma V2.0\Iowa - Version 2.0\NCES_full"
 global output_files "C:\Users\Clare\Desktop\Zelma V2.1\Idaho\Output"
 global temp_files "C:\Users\Clare\Desktop\Zelma V2.1\Idaho\Temp"
