@@ -36,5 +36,5 @@ global temp_files: Folder containing intermediate files saved in the middle of t
 
 
 ## Updates
-02/08/2025: Updated to add formatting across files. Header was added to 2024 but was not otherwise updated.
-09/07/2024: Updated to include 2024 data as well as to address new conventions and review standards in version 2.0 (including deriving additional counts based on percentages and StudentSubGroup_TotalTested).
+- 02/08/2025: Updated to add formatting across files. Header was added to 2024 but was not otherwise updated.
+- 09/07/2024: Updated to include 2024 data as well as to address new conventions and review standards in version 2.0 (including deriving additional counts based on percentages and StudentSubGroup_TotalTested).
