@@ -24,16 +24,11 @@ Download the NCES district and school files and place them in the appropriate fo
 
 The file path setup should be as follows: 
 
-global original_files: Original Data folder
-
-global orig_files_DR_112723: Data request folder from 11/27/23 within the Original Data folder
-
-global NCES_files: Folder containing NCES district and school subfolders
-
-global output_files: Folder containing cleaned + merged .dta and .csv files [this folder starts empty]
-
-global temp_files: Folder containing intermediate files saved in the middle of the cleaning process [this folder starts empty]
-
+- global original_files: Original Data folder
+- global orig_files_DR_112723: Data request folder from 11/27/23 within the Original Data folder
+- global NCES_files: Folder containing NCES district and school subfolders
+- global output_files: Folder containing cleaned + merged .dta and .csv files [this folder starts empty]
+- global temp_files: Folder containing intermediate files saved in the middle of the cleaning process [this folder starts empty]
 
 ## Updates
 - 02/08/2025: Updated to add formatting across files. Header was added to 2024 but was not otherwise updated.
