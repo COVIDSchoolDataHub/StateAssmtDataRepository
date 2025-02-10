@@ -15,9 +15,10 @@ ssc install labutil
 ## Setup
 
 A. Create six folders and subfolders: 
+
     1. Original Data Files 
-        a. Download the original files from the drive in all individual year folders and the "Additional Subgroup" folder. Place them in the "Original Data Files" folder. 
-      
+        a. Download the original files from the drive in all individual year folders and the "Additional Subgroup" folder. Place them in the "Original Data Files"             folder. 
+
     2. NCES
         a. District [subfolder]
         b. School [subfolder]
@@ -26,14 +27,12 @@ A. Create six folders and subfolders:
     
     4. Output_ND [this is a folder for the non-derivation output]
     
-    5. EDFacts. 
-    
-        a. Put the 4 2021 EDFacts files below into the EdFacts folder on your computer drive.
-        b. You can find these EdFacts files here: https://drive.google.com/drive/folders/1oZMYBDpy9SgKOx9X0IiB6QgaCNGFbu1r?usp=sharing
-            edfactspart2021eladistrict.dta
-            edfactspart2021mathdistrict.dta
-            edfactspart2021elaschool.dta
-            edfactspart2021mathschool.dta
+    5. EDFacts   
+        a. Download the files below from Google Drive-->_Data Cleaning Materials --> _EDFacts--> Datasets --> 2021. 
+            edfactspart2021eladistrict.csv
+            edfactspart2021mathdistrict.csv
+            edfactspart2021elaschool.csv
+            edfactspart2021mathschool.csv
     6. Temp 
 
 B. Download the following .do files:
