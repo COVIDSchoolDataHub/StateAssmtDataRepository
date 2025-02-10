@@ -264,8 +264,8 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 // Saving and exporting transformed data
 *Exporting into a separate folder Output for Stanford - without derivations* 
-save "${Output_ND}/TN_AssmtData_`year'_NoDev", replace //Do not comment! This file gets used in the 06_TN_StableNames do file.
-*export delimited "${Output_ND}/TN_AssmtData_`year'_NoDev", replace //Commented out, suggest using the output generated in Stable_Names_Output_ND.
+save "${Output_ND}/TN_AssmtData_`year'_NoDev", replace 
+export delimited "${Output_ND}/TN_AssmtData_`year'_NoDev", replace //Commented out, suggest using the output generated in Stable_Names_Output_ND.
 
 ***Derivations***
 //ProficientOrAbove_count
@@ -273,5 +273,5 @@ replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent) *
 
 *Exporting into the usual output file* 
 save "$Output/TN_AssmtData_`year'", replace //Do not comment! This file gets used in the 06_TN_StableNames do file.
-*export delimited "$Output/TN_AssmtData_`year'", replace  //Commented out because it's not a final version final.
+export delimited "$Output/TN_AssmtData_`year'", replace 
 }
