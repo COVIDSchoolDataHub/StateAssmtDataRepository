@@ -160,6 +160,35 @@ replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tes
 gen StudentGroup_TotalTested = AllStudents_Tested
 drop AllStudents_Tested
 
+//Deriving StudentSubGroup_TotalTested from Counterparts
+replace StateAssignedDistID = "00000" if DataLevel == 1
+replace StateAssignedSchID = "00000" if DataLevel != 3
+gen max = real(StudentGroup_TotalTested)
+replace max = 0 if max == .
+	
+replace StudentGroup = "Latino" if strpos(StudentSubGroup, "Latino") > 0
+	
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject StudentGroup: egen RaceEth = total(real(StudentSubGroup_TotalTested)) if StudentGroup == "RaceEth"
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject StudentGroup: egen Latino = total(real(StudentSubGroup_TotalTested)) if StudentGroup == "Latino"
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject StudentGroup: egen Gender = total(real(StudentSubGroup_TotalTested)) if StudentGroup == "Gender"
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject StudentGroup: egen Disability = total(real(StudentSubGroup_TotalTested)) if StudentGroup == "Disability Status"
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject StudentGroup: egen Econ = total(real(StudentSubGroup_TotalTested)) if StudentGroup == "Economic Status"
+
+gen x = 1 if missing(real(StudentSubGroup_TotalTested))
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject StudentGroup: egen flag = total(x)
+
+replace StudentSubGroup_TotalTested = string(max - RaceEth) if StudentGroup == "RaceEth" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & flag == 1
+replace StudentSubGroup_TotalTested = string(max - Latino) if StudentGroup == "Latino" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & flag == 1
+replace StudentSubGroup_TotalTested = string(max - Gender) if StudentGroup == "Gender" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & flag == 1
+replace StudentSubGroup_TotalTested = string(max - Disability) if StudentGroup == "Disability Status" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & flag == 1
+replace StudentSubGroup_TotalTested = string(max - Econ) if StudentGroup == "Economic Status" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & flag == 1
+drop x flag RaceEth Latino Gender Disability Econ
+
+replace StudentGroup = "RaceEth" if StudentGroup == "Latino"
+
+replace StateAssignedDistID = "" if DataLevel == 1
+replace StateAssignedSchID = "" if DataLevel != 3
+
 //ParticipationRate
 destring ParticipationRate, gen(nParticipationRate) i(*~)
 replace ParticipationRate = string(nParticipationRate/100, "%9.4f")

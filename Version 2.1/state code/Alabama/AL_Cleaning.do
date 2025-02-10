@@ -98,7 +98,7 @@ replace StudentSubGroup = Race if strpos(Race, "All") ==0
 replace StudentSubGroup = Ethnicity if strpos(Ethnicity, "All") ==0
 replace StudentSubGroup = SubPopulation if strpos(SubPopulation, "All") ==0
 replace StudentSubGroup = "All Students" if strpos(Gender, "All") !=0 & strpos(Race, "All") !=0 & strpos(Ethnicity, "All") !=0 & strpos(SubPopulation, "All") !=0
-*drop Race Gender Ethnicity SubPopulation
+drop Race Gender Ethnicity SubPopulation
 
 //Fixing StudentSubGroup
 replace StudentSubGroup = subinstr(StudentSubGroup, "/", " or ",.)
@@ -376,6 +376,7 @@ if `year' == 2016 replace CountyName = "Mobile County" if CountyCode == "1097"
 replace StudentSubGroup_TotalTested = string(real(Lev1_count) + real(Lev2_count) + real(Lev3_count) + real(Lev4_count)) if regexm(StudentSubGroup_TotalTested, "[0-9]") == 0 & regexm(Lev1_count, "[0-9]") !=0 & regexm(Lev2_count, "[0-9]") !=0 & regexm(Lev3_count, "[0-9]") !=0 & regexm(Lev4_count, "[0-9]") !=0
 
 //StudentGroup_TotalTested and StudentSubGroup_TotalTested
+replace StudentSubGroup_TotalTested = "48" if `year' == 2022 & NCESSchoolID == "10102000375" & Subject == "ela" & GradeLevel == "G04" & StudentSubGroup == "All Students" //ssgtt was derived to be 47 for this obs. due to a rounding error
 replace DistName = stritrim(DistName)
 replace SchName = stritrim(SchName)
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
@@ -383,6 +384,36 @@ gen AllStudents_Tested = StudentSubGroup_TotalTested if StudentSubGroup == "All 
 replace AllStudents_Tested = AllStudents_Tested[_n-1] if missing(AllStudents_Tested)
 gen StudentGroup_TotalTested = AllStudents_Tested
 drop AllStudents_Tested
+
+//Deriving StudentSubGroup_TotalTested from Counterparts
+replace StateAssignedDistID = "00000" if DataLevel == 1
+replace StateAssignedSchID = "00000" if DataLevel != 3
+gen max = real(StudentGroup_TotalTested)
+replace max = 0 if max == .
+	
+replace StudentGroup = "Latino" if strpos(StudentSubGroup, "Latino") > 0
+	
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject StudentGroup: egen RaceEth = total(real(StudentSubGroup_TotalTested)) if StudentGroup == "RaceEth"
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject StudentGroup: egen Latino = total(real(StudentSubGroup_TotalTested)) if StudentGroup == "Latino"
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject StudentGroup: egen Gender = total(real(StudentSubGroup_TotalTested)) if StudentGroup == "Gender"
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject StudentGroup: egen Disability = total(real(StudentSubGroup_TotalTested)) if StudentGroup == "Disability Status"
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject StudentGroup: egen Econ = total(real(StudentSubGroup_TotalTested)) if StudentGroup == "Economic Status"
+
+gen x = 1 if missing(real(StudentSubGroup_TotalTested))
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject StudentGroup: egen flag = total(x)
+
+replace StudentSubGroup_TotalTested = string(max - RaceEth) if StudentGroup == "RaceEth" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & flag == 1
+replace StudentSubGroup_TotalTested = string(max - Latino) if StudentGroup == "Latino" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & flag == 1
+replace StudentSubGroup_TotalTested = string(max - Gender) if StudentGroup == "Gender" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & flag == 1
+replace StudentSubGroup_TotalTested = string(max - Disability) if StudentGroup == "Disability Status" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & flag == 1
+replace StudentSubGroup_TotalTested = string(max - Econ) if StudentGroup == "Economic Status" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & flag == 1
+drop x flag RaceEth Latino Gender Disability Econ
+
+replace StudentGroup = "RaceEth" if StudentGroup == "Latino"
+replace StudentSubGroup_TotalTested = "*" if real(StudentSubGroup_TotalTested) < 0
+
+replace StateAssignedDistID = "" if DataLevel == 1
+replace StateAssignedSchID = "" if DataLevel != 3
 
 //Fixing ProficientOrAbove_count & percent
 replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
