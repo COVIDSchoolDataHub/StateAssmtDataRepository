@@ -2,18 +2,41 @@
 * CONNECTICUT
 
 * File name: 03_CT_2021_EDFACTS
-* Last update: 2/5/2025
+* Last update: 2/10/2025
 
 *******************************************************
 * Notes
 
 	* This do file cleans EDFacts 2021 data and merges with the cleaned CT 2021 data.
 	* Since the CT 2021 data does not contain counts, the EDFacts counts are utilized to generate counts.
-		
+	
+	* The input files for this code are:
+	* a) 2021 EDFacts *.csv files found in the Google Drive --> _Data Cleaning Materials --> _EDFacts--> Datasets
+	* b) Convert the *.csv files to *.dta using the commented out code.
+	
+/////////////////////////////////////////
+*** Conversion from EdFacts .csv to .dta format ***
+/////////////////////////////////////////
+
+	
+// clear
+// set more off
+// global EDFacts "C:/Zelma/EDFacts/Datasets" //EDFacts Datasets (wide version) downloaded from Google Drive.
+// forvalues year = 2014/2018 {
+//     foreach subject in ela math {
+//         foreach type in part count {
+//             foreach dl in district school {
+//                 import delimited "${EDFacts}/`year'/edfacts`type'`year'`subject'`dl'.csv", clear
+//                 save "${EDFacts}/`year'/edfacts`type'`year'`subject'`dl'.dta", replace
+//             }
+//         }
+//     }
+// }
+	
 *******************************************************
 
 /////////////////////////////////////////
-*** Cleaning ***
+*** Setup ***
 /////////////////////////////////////////
 
 clear
@@ -21,17 +44,18 @@ clear
 foreach subject in ela math {
 foreach dl in district school {
 clear
-use "${EDFacts}/2021/edfactspart2021`subject'`dl'.dta"
-keep if STNAM == "CONNECTICUT"
+
+import delimited "${EDFacts}/2021/edfactspart2021`subject'`dl'.csv", clear
+keep if stnam == "CONNECTICUT"
 
 //Renaming
-rename LEAID NCESDistrictID
-cap rename NCESSCH NCESSchoolID
-rename SUBJECT Subject
-rename GRADE GradeLevel
-rename CATEGORY StudentSubGroup
-drop PCTPART
-cap rename NUM* StudentSubGroup_TotalTested
+rename leaid NCESDistrictID
+cap rename ncessch NCESSchoolID
+rename subject Subject
+rename grade GradeLevel
+rename category StudentSubGroup
+drop pctpart
+cap rename num* StudentSubGroup_TotalTested
 
 //Subject
 replace Subject = "ela" if Subject == "RLA"
@@ -297,5 +321,5 @@ drop flag
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-*save "${Output}/CT_AssmtData_2021", replace //If .dta format needed. 
+save "${Output}/CT_AssmtData_2021", replace //If .dta format needed. 
 export delimited "${Output}/CT_AssmtData_2021", replace
