@@ -1534,12 +1534,15 @@ foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 2024 {
 	replace StudentSubGroup="Hispanic or Latino" if StudentSubGroup=="Hispanic"
 	replace StudentSubGroup="Native Hawaiian or Pacific Islander" if StudentSubGroup=="Pacific Islander"
 	replace StudentSubGroup="Gender X" if StudentSubGroup=="Non-Binary"
+	replace StudentSubGroup="SWD" if StudentSubGroup=="Spec Ed"
+	replace StudentSubGroup="Non-SWD" if StudentSubGroup=="Not Spec Ed"
 	
 	gen StudentGroup="All Students"
 		replace StudentGroup="RaceEth" if inlist(StudentSubGroup, "American Indian or Alaska Native", "Asian", "Black or African American", "Hispanic or Latino", "Native Hawaiian or Pacific Islander", "Two or More", "White")
 		replace StudentGroup="Gender" if inlist(StudentSubGroup, "Male", "Female", "Gender X")
 		replace StudentGroup="EL Status" if inlist(StudentSubGroup, "English Learner", "English Proficient")
 		replace StudentGroup="Economic Status" if inlist(StudentSubGroup, "Not Economically Disadvantaged", "Economically Disadvantaged")
+		replace StudentGroup="Disability Status" if inlist(StudentSubGroup, "SWD", "Non-SWD")
 	
 	//SchYear 
 	gen SchYear = "`prevyear'" + "-" + substr("`year'",-2,2)
