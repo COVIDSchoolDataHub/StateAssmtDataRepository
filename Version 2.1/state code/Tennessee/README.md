@@ -2,26 +2,33 @@
 
 This is a ReadMe for TN's cleaning process from 2012-2024 (excluding 2016).
 
-## Setup
-Create a folder for TN. Inside that folder, create the following subfolders:
-1. NCES: Download the folder from NCES District and School Demographics in the _Data Cleaning Materials folder in Google Drive.
+## NCES Setup
+
+NCES_Full: Download the folder from NCES District and School Demographics in the _Data Cleaning Materials folder in Google Drive.
     
    a. NCES District Files, Fall 1997-Fall 2022 [subfolder] 
 
    b. NCES School Files, Fall 1997-Fall 2022 [subfolder]
    
-2. EDFacts: Download the Datasets subfolder containing *.csv files. This is in the _EDFacts folder in _Data Cleaning Materials in Google Drive.
+## EDFacts Setup
+EDFacts: Download the Datasets subfolder containing *.csv files. This is in the _EDFacts folder in _Data Cleaning Materials in Google Drive.
 
-3. Original Data Files: Download the Original Data Files from the Tennessee folder in Google Drive.
+## Tennessee Setup
+Create a folder for TN. Inside that folder, create the following subfolders:
+
+1. Original Data Files: Download the Original Data Files from the Tennessee folder in Google Drive.
    
-4. Output_Files:
+2. NCES_TN [will start empty]
+   
+3. Output_Files:
 
    a. Stable_Names_Output [subfolder]: This is a folder for stable names output.
   
-6. Output_Files_ND: This is a folder for the non-derivation output.
+4. Output_Files_ND: This is a folder for the non-derivation output.
 
    a. Stable_Names_Output_ND: [subfolder] This is a folder for stable names non-derivation output.
 
+ 
 ## Other files to download in the main TN folder:
 1. TN_Unmerged_2024.xlsx [This file is located in the TN ID notes folder in the Tennessee folder in Google Drive.]
 
