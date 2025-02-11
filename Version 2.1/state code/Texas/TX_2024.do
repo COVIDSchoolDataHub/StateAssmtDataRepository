@@ -2,13 +2,13 @@
 * TEXAS
 
 * File name: TX_2024
-* Last update: 2/6/2025
+* Last update: 2/11/2025
 
 *******************************************************
 * Notes
 
 	* This do file cleans TX's 2024 data and merges with NCES_2022.
-	* As of 2/5/25, the most recent NCES file available is NCES_2022. This will be used for 2023 and 2024 data files.
+	* As of 2/11/25, the most recent NCES file available is NCES_2022. This will be used for 2023 and 2024 data files.
 	* This file will need to be updated when NCES_2023 becomes available
 	
 *******************************************************
@@ -256,28 +256,28 @@ gen seasch = state_leaid + "-" + StateAssignedSchID
 replace seasch = subinstr(seasch, "TX-", "", 1)
 save "$temp_files/TX_AssmtData_2024", replace
 
-use "$NCES_files/NCES District Files, Fall 1997-Fall 2022/NCES_2022_District.dta", clear
+use "$NCES_District/NCES_2022_District.dta", clear
 keep if state_location == "TX"
 rename district_agency_type DistType
 keep state_location state_fips lea_name DistType ncesdistrictid state_leaid DistCharter county_name county_code DistLocale
-save "$NCES_files/Cleaned NCES Data/NCES_2022_District_TX.dta", replace
+save "$NCES_State/NCES_2022_District_TX.dta", replace
 
-use "$NCES_files/NCES School Files, Fall 1997-Fall 2022/NCES_2022_School.dta", clear
+use "$NCES_School/NCES_2022_School.dta", clear
 keep if state_location == "TX"
 decode district_agency_type, gen(DistType)
 drop district_agency_type
 keep state_location state_fips lea_name ncesschoolid state_leaid seasch SchLevel SchVirtual school_type
-save "$NCES_files/Cleaned NCES Data/NCES_2022_School_TX.dta", replace
+save "$NCES_State/NCES_2022_School_TX.dta", replace
 
 //Merge with NCES Data
 use "$temp_files/TX_AssmtData_2024", clear
-merge m:1 state_leaid using "$NCES_files/Cleaned NCES Data/NCES_2022_District_TX.dta"
+merge m:1 state_leaid using "$NCES_State/NCES_2022_District_TX.dta"
 replace DistName = lea_name if DataLevel != 1 & lea_name != ""
 drop lea_name
 drop if _merge == 2
 drop _merge
 
-merge m:1 state_leaid seasch using "$NCES_files/Cleaned NCES Data/NCES_2022_School_TX.dta"
+merge m:1 state_leaid seasch using "$NCES_State/NCES_2022_School_TX.dta"
 drop if _merge == 2
 drop _merge
 
@@ -527,12 +527,22 @@ drop if inlist(NCESSchoolID, "481686007857", "481818007651", "481970011016", "48
 replace DistName = "HIGHLAND PARK ISD (DALLAS)" if NCESDistrictID == "4823250"
 replace DistName = "HIGHLAND PARK ISD (AMARILLO)" if NCESDistrictID == "4835560"
 
-//Final Cleaning
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode ApproachingOrAbove_count ApproachingOrAbove_percent
-
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode ApproachingOrAbove_count ApproachingOrAbove_percent
-
-sort DataLevel DistName SchName AssmtName Subject GradeLevel StudentGroup StudentSubGroup
+// Reordering variables and sorting data
+local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
+    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
+    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
+    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
+    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
+    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
+    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
+    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
+    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
+    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
+    Flag_CutScoreChange_sci Flag_CutScoreChange_soc							///
+	ApproachingOrAbove_count ApproachingOrAbove_percent
+	keep `vars'
+	order `vars'
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 *Exporting into usual output folder for HMH. 
 *save "${output_files}/TX_AssmtData_2024 - HMH.dta", replace //If .dta format needed. 
@@ -547,3 +557,5 @@ drop ApproachingOrAbove_count ApproachingOrAbove_percent
 *Exporting into the usual output file* 
 *save "${output_files}/TX_AssmtData_2024.dta", replace //If .dta format needed. 
 export delimited "${output_files}/TX_AssmtData_2024.csv", replace
+
+* END of TX_2024.do 

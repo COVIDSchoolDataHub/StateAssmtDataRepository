@@ -164,11 +164,13 @@ save "$temp_files/TX_AssmtData_2017.dta", replace
 
 ***Merging with NCES***
 // Merging with NCES District Data
-use "$NCES_files/NCES District Files, Fall 1997-Fall 2022/NCES_2016_District.dta", clear
+use "$NCES_District/NCES_2016_District.dta", clear
 
 keep state_location lea_name state_fips district_agency_type ncesdistrictid state_leaid DistCharter county_name county_code DistLocale
 
 keep if state_location == "TX"
+
+save "${NCES_State}/NCES_2016_District_TX", replace
 
 merge 1:m state_leaid using "${temp_files}/TX_AssmtData_2017.dta", keep(match using) nogenerate
 replace DistName = lea_name if DataLevel != 1 & lea_name != ""
@@ -178,11 +180,13 @@ save "$temp_files/TX_AssmtData_2017.dta", replace
 
 // Merging with NCES School Data
 
-use "$NCES_files/NCES School Files, Fall 1997-Fall 2022/NCES_2016_School.dta", clear
+use "$NCES_School/NCES_2016_School.dta", clear
 
 keep state_location state_fips district_agency_type SchType ncesdistrictid state_leaid ncesschoolid seasch DistCharter SchLevel SchVirtual county_name county_code DistLocale
 
 keep if state_location == "TX"
+
+save "${NCES_State}/NCES_2016_School_TX", replace
 
 merge 1:m seasch using "${temp_files}/TX_AssmtData_2017.dta", keep(match using) nogenerate
 
@@ -244,8 +248,20 @@ replace DistName = "HIGHLAND PARK ISD (DALLAS)" if NCESDistrictID == "4823250"
 replace DistName = "HIGHLAND PARK ISD (AMARILLO)" if NCESDistrictID == "4835560"
 
 // Reordering variables and sorting data
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode ApproachingOrAbove_count ApproachingOrAbove_percent
-
+local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
+    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
+    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
+    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
+    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
+    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
+    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
+    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
+    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
+    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
+    Flag_CutScoreChange_sci Flag_CutScoreChange_soc							///
+	ApproachingOrAbove_count ApproachingOrAbove_percent
+	keep `vars'
+	order `vars'
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 // Saving and exporting transformed data
@@ -263,3 +279,4 @@ drop ApproachingOrAbove_count ApproachingOrAbove_percent
 *save "${output_files}/TX_AssmtData_2017.dta", replace //If .dta format needed. 
 export delimited using "${output_files}/TX_AssmtData_2017.csv", replace
 
+* END of TX_2017.do 
