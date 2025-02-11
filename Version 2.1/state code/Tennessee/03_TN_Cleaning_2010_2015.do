@@ -2,7 +2,7 @@
 * TENNESSEE
 
 * File name: 03_TN_Cleaning_2010_2015
-* Last update: 2/6/2025
+* Last update: 2/11/2025
 
 *******************************************************
 * Notes
@@ -17,7 +17,7 @@
 
 clear
 
-cd "C:/Zelma/Tennessee"
+cd "C:\Users\Clare\Desktop\Zelma V2.1\Tennessee"
 
 /////////////////////////////////////////
 *** Cleaning ***
@@ -37,47 +37,48 @@ forvalues year = 2010/2015 {
 	
 //Renaming 
 if `year' < 2013 {
-rename DistrictName DistName
-rename SchoolName SchName
-rename DistrictID StateAssignedDistID
-rename SchoolID StateAssignedSchID
-rename Subject Subject
-rename Grade GradeLevel
-rename StudentGroup StudentSubGroup
-rename NumberEnrolled Enrolled
-rename NumberofValidTests StudentSubGroup_TotalTested
-rename NumberBelowBasic Lev1_count
-rename NumberBasic Lev2_count
-rename NumberProficient Lev3_count
-rename NumberAdvanced Lev4_count
-rename PercentBelowBasic Lev1_percent
-rename PercentBasic Lev2_percent
-rename PercentProficient Lev3_percent
-rename PercentAdvanced Lev4_percent
-rename PercentProficientorAdvanced ProficientOrAbove_percent
-drop PercentBelowBasicorBasic
-}
+	rename DistrictName DistName
+	rename SchoolName SchName
+	rename DistrictID StateAssignedDistID
+	rename SchoolID StateAssignedSchID
+	rename Subject Subject
+	rename Grade GradeLevel
+	rename StudentGroup StudentSubGroup
+	rename NumberEnrolled Enrolled
+	rename NumberofValidTests StudentSubGroup_TotalTested
+	rename NumberBelowBasic Lev1_count
+	rename NumberBasic Lev2_count
+	rename NumberProficient Lev3_count
+	rename NumberAdvanced Lev4_count
+	rename PercentBelowBasic Lev1_percent
+	rename PercentBasic Lev2_percent
+	rename PercentProficient Lev3_percent
+	rename PercentAdvanced Lev4_percent
+	rename PercentProficientorAdvanced ProficientOrAbove_percent
+	drop PercentBelowBasicorBasic
+	}
+
 if `year' > 2012 {
-drop year
-rename system StateAssignedDistID
-rename system_name DistName
-rename school StateAssignedSchID
-rename school_name SchName
-rename subject Subject
-rename grade GradeLevel
-rename subgroup StudentSubGroup
-rename valid_tests StudentSubGroup_TotalTested
-rename n_below_bsc Lev1_count
-rename n_bsc Lev2_count
-rename n_prof Lev3_count
-rename n_adv Lev4_count
-rename pct_below_bsc Lev1_percent
-rename pct_bsc Lev2_percent
-rename pct_prof Lev3_percent
-rename pct_adv Lev4_percent
-drop pct_bsc_and_below
-rename pct_prof_adv ProficientOrAbove_percent
-}
+	drop year
+	rename system StateAssignedDistID
+	rename system_name DistName
+	rename school StateAssignedSchID
+	rename school_name SchName
+	rename subject Subject
+	rename grade GradeLevel
+	rename subgroup StudentSubGroup
+	rename valid_tests StudentSubGroup_TotalTested
+	rename n_below_bsc Lev1_count
+	rename n_bsc Lev2_count
+	rename n_prof Lev3_count
+	rename n_adv Lev4_count
+	rename pct_below_bsc Lev1_percent
+	rename pct_bsc Lev2_percent
+	rename pct_prof Lev3_percent
+	rename pct_adv Lev4_percent
+	drop pct_bsc_and_below
+	rename pct_prof_adv ProficientOrAbove_percent
+	}
 
 //Subject
 replace Subject = "ela" if Subject == "Reading/Language" | Subject == "RLA"
@@ -138,24 +139,26 @@ replace StateAssignedDistID = . if DataLevel == 1
 replace StateAssignedSchID =. if DataLevel !=3
 
 ***Calculations***
+
 //Deriving & Formatting Level Count and Percent Information
 foreach percent of varlist Lev*_percent {
-local count = subinstr("`percent'", "percent", "count",.)
-replace `percent' = "--" if missing(`percent')
-replace `percent' = "*" if strpos(`percent',"*") !=0
-replace `count' = "*" if strpos(`count',"*") !=0
-replace `count' = "--" if missing(`count')
-replace `percent' = string(real(`percent')/100, "%9.3g") if !missing(real(`percent'))
-}
+	local count = subinstr("`percent'", "percent", "count",.)
+	replace `percent' = "--" if missing(`percent')
+	replace `percent' = "*" if strpos(`percent',"*") !=0
+	replace `count' = "*" if strpos(`count',"*") !=0
+	replace `count' = "--" if missing(`count')
+	replace `percent' = string(real(`percent')/100, "%9.3g") if !missing(real(`percent'))
+	}
 
-replace ProficientOrAbove_percent = string(real(ProficientOrAbove_percent)/100, "%9.3g") if !missing(real(ProficientOrAbove_percent))
-replace ProficientOrAbove_percent = "--" if missing(ProficientOrAbove_percent)
-replace ProficientOrAbove_percent = "*" if strpos(ProficientOrAbove_percent,"*") !=0
+	replace ProficientOrAbove_percent = string(real(ProficientOrAbove_percent)/100, "%9.3g") if !missing(real(ProficientOrAbove_percent))
+	replace ProficientOrAbove_percent = "--" if missing(ProficientOrAbove_percent)
+	replace ProficientOrAbove_percent = "*" if strpos(ProficientOrAbove_percent,"*") !=0
 
 if `year' < 2013 {
 	gen ParticipationRate = string(StudentSubGroup_TotalTested/Enrolled, "%9.3g")
 	drop Enrolled
-}
+	}
+	
 else {
 	gen ParticipationRate = "--"
 }
@@ -167,6 +170,7 @@ gen seasch = State_leaid + "-" + string(StateAssignedSchID, "%04.0f")
 
 merge m:1 State_leaid using "$NCES_TN/NCES_All_District", gen(DistMerge)
 merge m:1 seasch using "$NCES_TN/NCES_All_School", gen(SchMerge)
+
 drop if DistMerge == 2 | SchMerge == 2
 drop *Merge sch_lowest_grade_offered State_leaid seasch
 
@@ -215,24 +219,23 @@ if `year' >= 2013 & `year' != 2015 replace Flag_CutScoreChange_soc = "N"
 
 gen SchYear = string(`year'-1) + "-" + substr("`year'",-2,2)
 
-//Final Cleaning
+replace SchVirtual = "Missing/not reported" if missing(SchVirtual) & DataLevel == 3
+
+*Dist and Sch Name Cleaning
 foreach var of varlist DistName SchName {
 	replace `var' = stritrim(`var')
 	replace `var' = strtrim(`var')
-}
+	}
+	
+	//Weird SchName & DistName in 2012
+	if `year' == 2012 replace DistName = "Memphis" if NCESSchoolID == "470294001164" & DistName == "*"
+	if `year' == 2012 replace SchName = "Treadwell Elementary" if NCESSchoolID == "470294001164" & SchName == "*"
+	
+*County Name Updates
 replace CountyName = proper(CountyName)
 replace CountyName = "McMinn County" if CountyName == "Mcminn County"
 replace CountyName = "McNairy County" if CountyName == "Mcnairy County"
-
-//Self review
-replace SchVirtual = "Missing/not reported" if missing(SchVirtual) & DataLevel == 3
 replace CountyName = "DeKalb County" if CountyName == "Dekalb County"
-
-//Weird SchName & DistName in 2012
-if `year' == 2012 replace DistName = "Memphis" if NCESSchoolID == "470294001164" & DistName == "*"
-if `year' == 2012 replace SchName = "Treadwell Elementary" if NCESSchoolID == "470294001164" & SchName == "*"
-
-
 
 //Dropping All Suppressed Unmerged
 gen AllSuppressed = 0
@@ -244,8 +247,6 @@ drop if AllSuppressed ==0 & missing(NCESSchoolID) & DataLevel == 3
 
 if `year' == 2013 drop if SchName == "Martin Luther King Transition Center" & SchType == "High"
 
-//Response to R1
-
 ** Creating unique StateAssignedSchID
 tostring StateAssignedSchID, replace
 replace StateAssignedSchID = string(StateAssignedDistID) + "-" + StateAssignedSchID if DataLevel == 3
@@ -256,22 +257,35 @@ if `year' == 2010 replace SchName = proper("WEST CARROLL PRIMARY") if NCESSchool
 //Additional Dropping
 drop if SchLevel ==  "Prekindergarten"
 
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
+// Reordering variables and sorting data
+local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
+    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
+    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
+    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
+    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
+    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
+    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
+    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
+    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
+    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
+    Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+	keep `vars'
+	order `vars'
+	
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 // Saving and exporting transformed data
 *Exporting into a separate folder Output for Stanford - without derivations* 
-save "${Output_ND}/TN_AssmtData_`year'_NoDev", replace 
-export delimited "${Output_ND}/TN_AssmtData_`year'_NoDev", replace //Commented out, suggest using the output generated in Stable_Names_Output_ND.
+save "${Output_ND}/Temp/TN_AssmtData_`year'_NoDev", replace 
+export delimited "${Output_ND}/Temp/TN_AssmtData_`year'_NoDev", replace //Commented out, suggest using the output generated in Stable_Names_Output_ND.
 
 ***Derivations***
 //ProficientOrAbove_count
 replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent) * real(StudentSubGroup_TotalTested))) if missing(real(ProficientOrAbove_count)) & !missing(real(ProficientOrAbove_percent)) & !missing(real(StudentSubGroup_TotalTested))
 
 *Exporting into the usual output file* 
-save "$Output/TN_AssmtData_`year'", replace //Do not comment! This file gets used in the 06_TN_StableNames do file.
-export delimited "$Output/TN_AssmtData_`year'", replace 
+save "$Output/Temp/TN_AssmtData_`year'", replace //Do not comment! This file gets used in the 06_TN_StableNames do file.
+export delimited "$Output/Temp/TN_AssmtData_`year'", replace 
 }
+
+* End of 03_TN_Cleaning_2010_2015
