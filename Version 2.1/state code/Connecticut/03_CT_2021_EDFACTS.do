@@ -2,7 +2,7 @@
 * CONNECTICUT
 
 * File name: 03_CT_2021_EDFACTS
-* Last update: 2/10/2025
+* Last update: 2/11/2025
 
 *******************************************************
 * Notes
@@ -163,7 +163,6 @@ format NCESSchoolID %012.0f
 drop StudentSubGroup_TotalTested StudentGroup_TotalTested
 duplicates tag NCESDistrictID NCESSchoolID Subject GradeLevel StudentSubGroup, gen(dup)
 tab dup
-*drop dup *Check here for errors*
 merge 1:1 NCESDistrictID NCESSchoolID Subject GradeLevel StudentSubGroup using "${Temp}/_2021_count", update
 
 drop if _merge == 2
@@ -235,8 +234,6 @@ recast str80 SchName
 
 //StudentGroup_TotalTested
 replace StudentSubGroup_TotalTested = string(real(Lev1_count) + real(Lev2_count) + real(Lev3_count) + real(Lev4_count)) if StudentSubGroup_TotalTested == "*" & !missing(real(Lev1_count)) & !missing(real(Lev2_count)) & !missing(real(Lev3_count)) & !missing(real(Lev4_count))
-
-
 
 gen StateAssignedDistID1 = StateAssignedDistID
 replace StudentGroup_TotalTested = ""
@@ -317,9 +314,24 @@ replace ProficientOrAbove_count = string(real(StudentSubGroup_TotalTested) - rea
 replace ProficientOrAbove_percent = string(round(real(ProficientOrAbove_count)/real(StudentSubGroup_TotalTested),0.0001)) if flag == 1
 drop flag
  
-
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+// Reordering variables and sorting data
+local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
+    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
+    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
+    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
+    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
+    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
+    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
+    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
+    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
+    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
+    Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+	keep `vars'
+	order `vars'
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
 save "${Output}/CT_AssmtData_2021", replace //If .dta format needed. 
 export delimited "${Output}/CT_AssmtData_2021", replace
+
+* END of 03_CT_2021_EDFACTS.do 
+
