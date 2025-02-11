@@ -321,8 +321,5 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 export delimited "${Output_ND}/CT_AssmtData2021_NoDev", replace
 
 *Continuing with derivations and EDFACTs as usual*
-save "${Output}/CT_AssmtData_2021", replace
+save "${Output}/CT_AssmtData_2021", replace //Do not comment out. Used in the 03_CT_2021_EDFACTS.do
 export delimited "${Output}/CT_AssmtData_2021", replace
-
-
-*do 03_CT_2021_EDFACTS // The main do file will run this in order. 

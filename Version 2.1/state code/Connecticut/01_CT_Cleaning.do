@@ -2,7 +2,7 @@
 * CONNECTICUT
 
 * File name: 01_CT_Cleaning
-* Last update: 2/5/2025
+* Last update: 2/10/2025
 
 *******************************************************
 * Notes
@@ -1245,7 +1245,7 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 *Exporting Output with derivations*
-*save "${Output}/CT_AssmtData_`year'", replace //If .dta format needed. 
+save "${Output}/CT_AssmtData_`year'", replace //If .dta format needed. 
 export delimited "${Output}/CT_AssmtData_`year'", replace
 clear
 }
