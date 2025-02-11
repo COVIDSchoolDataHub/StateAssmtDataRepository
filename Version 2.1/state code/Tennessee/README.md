@@ -16,18 +16,20 @@ EDFacts: Download the Datasets subfolder containing *.csv files. This is in the 
 ## Tennessee Setup
 Create a folder for TN. Inside that folder, create the following subfolders:
 
-1. Original Data Files.
+1. Original Data Files
+   
    a. Download the Original Data Files from the Tennessee folder in Google Drive. There are no subfolders.
+   
    b. Also save TN_Unmerged_2024.xlsx in this folder [This file is located in the TN ID notes folder in the Tennessee folder in Google Drive.]
    
-3. NCES_TN [will start empty]
+2. NCES_TN [will start empty]
    
-4. Output_Files
+3. Output_Files
 
    a. Temp [subfolder]
    b. Final [subfolder]
   
-5. Output_Files_ND. This is a folder for the non-derivation output.
+4. Output_Files_ND. This is a folder for the non-derivation output.
 
    a. Temp [subfolder]
    b. Final_ND [subfolder]. This is a folder for the final non-derivation output.
