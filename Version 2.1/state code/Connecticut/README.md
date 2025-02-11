@@ -3,39 +3,42 @@
 
 This is a ReadMe for Connecticut's data cleaning process, from 2015 to 2024.
 
+## NCES Setup
 
-### NOTE: Install the "labutil" package for the code to run (necessary for "labmask" command):
-
-Type the following code into the command module:
-```
-ssc install labutil
-```
-
-
-## Setup
-
-A. Create six folders and subfolders: 
-
-    1. Original Data Files 
-        a. Download the original files from the drive in all individual year folders and the "Additional Subgroup" folder. Place them in the "Original Data Files"             folder. 
-
-    2. NCES
-        a. District [subfolder]
-        b. School [subfolder]
-        
-    3. Output 
+NCES_Full: Download the folder from Google Drive-->_Data Cleaning Materials --> NCES District and School Demographics.
     
-    4. Output_ND [this is a folder for the non-derivation output]
-    
-    5. EDFacts   
-        a. Download the files below from Google Drive-->_Data Cleaning Materials --> _EDFacts--> Datasets --> 2021. 
+       a. NCES District Files [subfolder] 
+
+       b. NCES School Files [subfolder]
+
+As of 2/11/2025, the most recent files are from NCES 2022. 
+
+## EDFacts Setup
+EDFacts: Download the files below from Google Drive-->_Data Cleaning Materials --> _EDFacts--> Datasets --> 2021. 
+
             edfactspart2021eladistrict.csv
+            
             edfactspart2021mathdistrict.csv
+            
             edfactspart2021elaschool.csv
+            
             edfactspart2021mathschool.csv
-    6. Temp 
 
-B. Download the following .do files:
+## Connecticut Setup
+Create a folder for CT. Inside that folder, create the following subfolders:
+
+    1. Original Data Files: Download the Original Data Files from the Connecticut folder in Google Drive.
+    
+    2. NCES_CT [will start empty]
+            
+    3. Output 
+        
+    4. Output_ND: This is a folder for the non-derivation output
+        
+    5. Temp 
+
+## Process
+The do files need to be executed in the following order.
 
     1. 01_CT_Cleaning.do 
     
@@ -43,6 +46,11 @@ B. Download the following .do files:
     
     3. 03_CT_2021_EDFACTS.do
     
-    4. CT_Main_File.do
+You can run CT_Main_File.do after setting the appropriate file paths. 
 
-After any updates needed to the .do files, run CT_Main_File.do, which will execute the do files in order.
+### Note: Install the "labutil" package for the code to run (necessary for "labmask" command):
+
+Type the following code into the command module:
+```
+ssc install labutil
+```
