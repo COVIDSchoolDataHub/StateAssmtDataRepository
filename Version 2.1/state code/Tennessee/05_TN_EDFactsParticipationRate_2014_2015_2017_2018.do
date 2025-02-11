@@ -9,34 +9,12 @@
 
 	* This do file uses EDFacts participation rates for 2014-2018 (excluding 2016).
 	* It merges with and REPLACES the output created in:
-	* a) 03_TN_Cleaning_2010_2015 (usual output replaced, non-derived output NOT replaced)
-	* b) 04_TN_Cleaning_2017_2024 (usual output replaced, non-derived output NOT replaced)
+		* a) 03_TN_Cleaning_2010_2015 (usual output replaced, non-derived output NOT replaced)
+		* b) 04_TN_Cleaning_2017_2024 (usual output replaced, non-derived output NOT replaced)
 	
-	* The input files for this code are:
-	* a) Wide format *.csv files found in the Google Drive --> _Data Cleaning Materials --> _EDFacts--> Datasets
-	* b) Convert the *.csv files to *.dta using the commented out code.
+	* The EDFacts input files for this code are:
+		* a) Wide format *.csv files found in the Google Drive --> _Data Cleaning Materials --> _EDFacts--> Datasets
 	
-/////////////////////////////////////////
-*** Conversion from EdFacts wide .csv to .dta format ***
-/////////////////////////////////////////
-
-	
-// clear
-// set more off
-// global EDFacts "C:/Zelma/EDFacts/Datasets" //EDFacts Datasets (wide version) downloaded from Google Drive.
-// forvalues year = 2014/2018 {
-//     foreach subject in ela math {
-//         foreach type in part count {
-//             foreach dl in district school {
-//                 import delimited "${EDFacts}/`year'/edfacts`type'`year'`subject'`dl'.csv", clear
-//                 save "${EDFacts}/`year'/edfacts`type'`year'`subject'`dl'.dta", replace
-//             }
-//         }
-//     }
-// }
-	
-*******************************************************
-
 /////////////////////////////////////////
 *** Setup ***
 /////////////////////////////////////////
@@ -53,13 +31,13 @@ local datalevel school district
 *** Cleaning ***
 /////////////////////////////////////////
 
-*This code runs on the wide format *.dta files found in the Google Drive --> _Data Cleaning Materials --> _EDFacts--> Datasets
+*This code runs on the wide format *.dta files found in the Google Drive --> _Data Cleaning Materials --> _EDFacts--> Datasets // we would want to update this note
 foreach year of local edyears1 {
     foreach sub of local subject {
         foreach type of local datatype {
             foreach lvl of local datalevel {
                 local prevyear = `year' - 1
-                use "${EDFacts}/20`year'/edfacts`type'20`year'`sub'`lvl'.dta", clear
+                import delimited "${EDFacts}/20`year'/edfacts`type'20`year'`sub'`lvl'", clear // Clare edited 2/11/25 to use the .csv files
                 keep if stnam == "TENNESSEE"
                 rename *_`prevyear'`year' *
                 if ("`sub'" == "math") {
@@ -94,7 +72,7 @@ foreach year of local edyears1 {
                     gen DataLevel = 2
                 }               
                 gen Subject = "`sub'"
-                save "${EDFacts}/20`year'/edfacts`type'20`year'`sub'`lvl'TN.dta", replace
+                save "${EDFacts}/20`year'/edfacts`type'20`year'`sub'`lvl'TN.dta", replace  
             }
         }
     }
@@ -166,62 +144,81 @@ foreach year of local edyears1 {
 
 //Merging 
 foreach year in 2014 2015 2017 2018 {
-import delimited "${Output}/TN_AssmtData_`year'.csv", case(preserve) clear
 	
-//DataLevel
-label def DataLevel 1 "State" 2 "District" 3 "School"
-encode DataLevel, gen(DataLevel_n) label(DataLevel)
-sort DataLevel_n 
-drop DataLevel 
-rename DataLevel_n DataLevel
+	import delimited "${Output}/Temp/TN_AssmtData_`year'.csv", case(preserve) clear
+	
+	//DataLevel
+	label def DataLevel 1 "State" 2 "District" 3 "School"
+	encode DataLevel, gen(DataLevel_n) label(DataLevel)
+	sort DataLevel_n 
+	drop DataLevel 
+	rename DataLevel_n DataLevel
 
-//Merging
-tempfile tempall
-save "`tempall'", replace
-keep if DataLevel == 2
-tempfile tempdist
-save "`tempdist'", replace
-clear
-use "`tempall'"
-keep if DataLevel == 3
-tempfile tempsch
-save "`tempsch'", replace
-clear
+	//Merging
+	tempfile tempall
+	save "`tempall'", replace
+		
+		*District temp
+		keep if DataLevel == 2
+		tempfile tempdist
+		save "`tempdist'", replace
 
-//District Merge
-use "`tempdist'"
-duplicates report NCESDistrictID StudentSubGroup GradeLevel Subject
-duplicates drop NCESDistrictID StudentSubGroup GradeLevel Subject, force
-merge 1:1 NCESDistrictID StudentSubGroup GradeLevel Subject using "${EDFacts}/`year'/edfactspart`year'districtTN.dta", gen(DistMerge)
-drop if DistMerge == 2
-save "`tempdist'", replace
-clear
+		*School temp
+		clear
+		use "`tempall'"
+		keep if DataLevel == 3
+		tempfile tempsch
+		save "`tempsch'", replace
+		
+	clear
 
-//School Merge
-use "`tempsch'"
-duplicates report NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject
-duplicates drop NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject, force
-merge 1:1 NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject using "${EDFacts}/`year'/edfactspart`year'schoolTN.dta", gen(SchMerge)
-drop if SchMerge == 2
-save "`tempsch'", replace
-clear
+	//District Merge
+	use "`tempdist'"
 
-//Combining DataLevels
-use "`tempall'"
-keep if DataLevel == 1
-append using "`tempdist'" "`tempsch'"
+	duplicates report NCESDistrictID StudentSubGroup GradeLevel Subject
+	duplicates drop NCESDistrictID StudentSubGroup GradeLevel Subject, force
+	merge 1:1 NCESDistrictID StudentSubGroup GradeLevel Subject using "${EDFacts}/`year'/edfactspart`year'districtTN.dta", gen(DistMerge)
+	drop if DistMerge == 2
+	save "`tempdist'", replace
+	clear
 
-//New Participation Data
-replace ParticipationRate = Participation if !missing(Participation)
+	//School Merge
+	use "`tempsch'"
 
-//Final Cleaning
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
- 
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+	duplicates report NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject
+	duplicates drop NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject, force
+	merge 1:1 NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject using "${EDFacts}/`year'/edfactspart`year'schoolTN.dta", gen(SchMerge)
+	drop if SchMerge == 2
+	save "`tempsch'", replace
+	clear
 
-sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+	//Combining DataLevels
+	use "`tempall'"
+	keep if DataLevel == 1
+	append using "`tempdist'" "`tempsch'"
 
-save "${Output}/TN_AssmtData_`year'", replace
-export delimited "${Output}/TN_AssmtData_`year'", replace
+	//New Participation Data
+	replace ParticipationRate = Participation if !missing(Participation)
+
+	// Reordering variables and sorting data
+	local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
+		SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
+		StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
+		CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
+		StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
+		StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
+		Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
+		Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
+		ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
+		Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
+		Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+		keep `vars'
+		order `vars'
+		
+	sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
+save "${Output}/Temp/TN_AssmtData_`year'", replace
+export delimited "${Output}/Temp/TN_AssmtData_`year'", replace
 }
 
+*End of 05_TN_EDFactsParticipationRate_2014_2015_2017_2018
