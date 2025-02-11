@@ -2,13 +2,13 @@
 * TENNESSEE
 
 * File name: 04_TN_Cleaning_2017_2024
-* Last update: 2/7/2025
+* Last update: 2/11/2025
 
 *******************************************************
 * Notes
 
 	* This do file cleans TN's yearly data from 2017 through 2024 and merges with NCES.
-	* As of 2/7/25, the most recent NCES file available is NCES_2022. This will be used for 2023 and 2024 data files.
+	* As of 2/11/25, the most recent NCES file available is NCES_2022. This will be used for 2023 and 2024 data files.
 	* This file will need to be updated when NCES_2023 becomes available.
 	* This code will need to be updated when newer TN data files are released. 
 
@@ -20,7 +20,7 @@
 
 clear
 
-cd "C:/Zelma/Tennessee"
+cd "C:\Users\Clare\Desktop\Zelma V2.1\Tennessee"
 
 /////////////////////////////////////////
 *** Cleaning ***
@@ -28,9 +28,13 @@ cd "C:/Zelma/Tennessee"
 
 //Combining DataLevels
 forvalues year = 2017/2024 {
+    
 	if `year' == 2020 continue
+	
 	clear
+	
 	save "$Original/TN_OriginalData_`year'", replace emptyok
+	
 	foreach dl in state dist sch {
 		use "$Original/TN_OriginalData_`year'_`dl'", clear
 		gen DataLevel = "`dl'"
@@ -138,17 +142,17 @@ sort DataLevel
 ***Calculations***
 //Deriving & Formatting Level Count and Percent Information
 foreach percent of varlist Lev*_percent {
-local count = subinstr("`percent'", "percent", "count",.)
-replace `percent' = "--" if missing(`percent')
-replace `percent' = "*" if strpos(`percent',"*") !=0
-replace `count' = "*" if strpos(`count',"*") !=0
-replace `count' = "--" if missing(`count')
-replace `percent' = string(real(`percent')/100, "%9.3g") if !missing(real(`percent'))
-}
+	local count = subinstr("`percent'", "percent", "count",.)
+	replace `percent' = "--" if missing(`percent')
+	replace `percent' = "*" if strpos(`percent',"*") !=0
+	replace `count' = "*" if strpos(`count',"*") !=0
+	replace `count' = "--" if missing(`count')
+	replace `percent' = string(real(`percent')/100, "%9.3g") if !missing(real(`percent'))
+	}
 
-replace ProficientOrAbove_percent = string(real(ProficientOrAbove_percent)/100, "%9.3g") if !missing(real(ProficientOrAbove_percent))
-replace ProficientOrAbove_percent = "--" if missing(ProficientOrAbove_percent)
-replace ProficientOrAbove_percent = "*" if strpos(ProficientOrAbove_percent,"*") !=0
+	replace ProficientOrAbove_percent = string(real(ProficientOrAbove_percent)/100, "%9.3g") if !missing(real(ProficientOrAbove_percent))
+	replace ProficientOrAbove_percent = "--" if missing(ProficientOrAbove_percent)
+	replace ProficientOrAbove_percent = "*" if strpos(ProficientOrAbove_percent,"*") !=0
 
 //ParticipationRate
 if `year' <= 2018 gen ParticipationRate = "--"
@@ -208,35 +212,39 @@ if `year' == 2017 {
 	replace Flag_CutScoreChange_ELA = "Y"
 	replace Flag_CutScoreChange_math = "Y"
 	replace Flag_CutScoreChange_soc = "Not applicable"
-}
+	}
 
 if `year' == 2018 {
 	replace Flag_CutScoreChange_soc = "Y"
 	replace Flag_AssmtNameChange = "Y" if Subject == "soc"
-} 
+	} 
+	
 if `year' == 2019 replace Flag_CutScoreChange_sci = "Not applicable"
 if `year' == 2021 replace Flag_CutScoreChange_sci = "Y"
 
 
 gen SchYear = string(`year'-1) + "-" + substr("`year'",-2,2)
 
-//Final Cleaning
+replace SchVirtual = "Missing/not reported" if missing(SchVirtual) & DataLevel == 3
+
+//Dist and Sch Name Cleaning
 foreach var of varlist DistName SchName {
 	replace `var' = stritrim(`var')
 	replace `var' = strtrim(`var')
 }
+
+*County Name Updates
 replace CountyName = proper(CountyName)
 replace CountyName = "McMinn County" if CountyName == "Mcminn County"
 replace CountyName = "McNairy County" if CountyName == "Mcnairy County"
-
-//Self review
-replace SchVirtual = "Missing/not reported" if missing(SchVirtual) & DataLevel == 3
 replace CountyName = "DeKalb County" if CountyName == "Dekalb County"
 
 //2024 Merging New Schools
+
 if `year' == 2024 {
-merge m:1 SchName using TN_Unmerged_2024.dta, update nogen
-}
+    
+	merge m:1 SchName using TN_Unmerged_2024.dta, update nogen
+	}
 
 //Dropping All Suppressed Unmerged
 gen AllSuppressed = 0
@@ -250,7 +258,6 @@ drop if AllSuppressed ==0 & missing(NCESSchoolID) & DataLevel == 3
 //Additional Dropping
 drop if SchLevel ==  "Prekindergarten"
 
-//Response to R1
 
 //StudentGroup_TotalTested
 gen StateAssignedDistID1 = StateAssignedDistID
@@ -271,22 +278,35 @@ tostring StateAssignedSchID, replace
 replace StateAssignedSchID = string(StateAssignedDistID) + "-" + StateAssignedSchID if DataLevel == 3
 replace StateAssignedSchID = "" if DataLevel !=3
 
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
+// Reordering variables and sorting data
+local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
+    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
+    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
+    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
+    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
+    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
+    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
+    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
+    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
+    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
+    Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+	keep `vars'
+	order `vars'
+	
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 // Saving and exporting transformed data
 *Exporting into a separate folder Output for Stanford - without derivations* 
-save "${Output_ND}/TN_AssmtData_`year'_NoDev", replace //Do not comment! This file gets used in the 06_TN_StableNames do file.
-export delimited "${Output_ND}/TN_AssmtData_`year'_NoDev", replace
+save "${Output_ND}/Temp/TN_AssmtData_`year'_NoDev", replace //Do not comment! This file gets used in the 06_TN_StableNames do file.
+export delimited "${Output_ND}/Temp/TN_AssmtData_`year'_NoDev", replace
 
 ***Derivations***
 //ProficientOrAbove_count
 replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent) * real(StudentSubGroup_TotalTested))) if missing(real(ProficientOrAbove_count)) & !missing(real(ProficientOrAbove_percent)) & !missing(real(StudentSubGroup_TotalTested))
 
 *Exporting into the usual output file* 
-save "$Output/TN_AssmtData_`year'", replace //Do not comment! This file gets used in the 06_TN_StableNames do file.
-export delimited "$Output/TN_AssmtData_`year'", replace 
+save "$Output/Temp/TN_AssmtData_`year'", replace //Do not comment! This file gets used in the 06_TN_StableNames do file.
+export delimited "$Output/Temp/TN_AssmtData_`year'", replace 
 }
+
+*End of 04_TN_Cleaning_2017_2024
