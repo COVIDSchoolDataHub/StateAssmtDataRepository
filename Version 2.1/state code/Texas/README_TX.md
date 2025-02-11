@@ -21,7 +21,7 @@ Create a folder for TX. Inside that folder, create the following subfolders:
     
     2. NCES_TX [will start empty]
      
-    3. Output_Files
+    3. Output_Files: This folder includes the usual and HMH output.
        
     4. Output_Files_ND: This is a folder for the non-derivation output.
       
