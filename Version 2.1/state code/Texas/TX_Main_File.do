@@ -23,7 +23,7 @@ global temp_files "C:/Zelma/Texas/Temp_Files"
 *NCES Folders*
 global NCES_School "C:/Zelma/NCES_Full/NCES School Files"
 global NCES_District "C:/Zelma/NCES_Full/NCES District Files"
-global NCES_State "C:/Zelma/Texas/NCES_TX" 
+global NCES_State "C:/Zelma/Texas/NCES_TX" //This will start empty and will hold the TX-specific NCES files. 
 
 *Input Folders*
 global original_files "C:/Zelma/Texas/Original_Files" // Save files from 2022, 2023 and 2024 subfolders into this folder.
