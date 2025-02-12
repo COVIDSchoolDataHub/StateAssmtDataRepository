@@ -15,7 +15,7 @@ As of 2/11/2025, the most recent files are from NCES 2022.
 ## Texas Setup
 Create a folder for TX. Inside that folder, create the following subfolders:
 
-    1. Original_Files: Download the files from the 2022, 2023, and 2024 subfolders in the Original Data Folder on Google Drive.
+    1. Original_Files: Download the files within the 2022, 2023, and 2024 subfolders and place them all in the Original_Files folder. These files are located in the Original Data Folder on Google Drive. 
     
       a. Reduced_Files [subfolder]: Download all reduced files from "2012 to 2021, non-scraped, REDUCED files" located in the Original Data Folder on Google Drive. 
     
