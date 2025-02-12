@@ -1,11 +1,20 @@
-*TEXAS
-*File name: TX_Main_File 
-*Last update: 2/11/2025
+*******************************************************
+* TEXAS
 
-*Note: The TX data has two versions of files for 2012 through 2021 - full files and REDUCED files. 
-*This code executes on the REDUCED 2012 through 2021 files.
-*The code to reduce the full files is on GitHub - TX Original File Importing & Reduction.do.  
+* File name: TX_Main_File
+* Last update: 2/11/2025
 
+*******************************************************
+* Notes
+
+  * The TX data has two versions of files for 2012 through 2021 - full files and REDUCED files. This code executes on the REDUCED 2012 through 2021 files.
+  * The code to reduce the full files is on GitHub - TX Original File Importing & Reduction.do.  
+	* Global macros can be updated in this do file.
+	* This will be the only .do file needed to run through all state files in the proper order.
+*******************************************************
+/////////////////////////////////////////
+*** Setup ***
+/////////////////////////////////////////
 clear 
 
 global DoFiles "C:/Zelma/Texas/" 
@@ -26,7 +35,10 @@ global output_files "C:/Zelma/Texas/Output_Files" //Usual output exported.
 *Non Derivation Output Folder*
 global output_ND "C:/Zelma/Texas/Output_Files_ND" //Non derivation output. As of last update, no non-derivation output needs to be created for TX.
 
-*Run in this order. Add newer years in order.*
+/////////////////////////////////////////
+*** Full State Data Cleaning ***
+/////////////////////////////////////////
+*Add newer years in order.*
 do "${DoFiles}/TX_2012.do"
 do "${DoFiles}/TX_2013.do" 
 do "${DoFiles}/TX_2014.do"
