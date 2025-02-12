@@ -5017,7 +5017,7 @@ tab DataLevel SchYear if Subject =="soc"
 
 ***********************************************************
 ** • Do values align with the crosswalk? (AssmtType, Flags)
-do "V2.1_FlagChecks_2025.02.02.do"
+do "V2.1_FlagChecks_2025.02.07.do"
 
 // Name change flag, for reference
 tab  FILE Flag_AssmtNameChange if Subject == "ela"
