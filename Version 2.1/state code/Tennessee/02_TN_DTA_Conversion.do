@@ -2,7 +2,7 @@
 * TENNESSEE
 
 * File name: 02_TN_DTA_Conversion
-* Last update: 2/6/2025
+* Last update: 2/11/2025
 
 *******************************************************
 * Notes
@@ -11,6 +11,8 @@
 	* It converts it to a STATA .dta file. 
 	* This code will need to be updated when newer TN data files are released. 
 
+	
+	
 *******************************************************
 
 /////////////////////////////////////////
@@ -20,7 +22,11 @@
 clear
 set more off
 
-cd "C:/Zelma/Tennessee"
+cd "C:\Users\Clare\Desktop\Zelma V2.1\Tennessee"
+
+/////////////////////////////////////////
+*** .DTA conversion ***
+/////////////////////////////////////////
 
 *Imports excel files from 2010 through 2015 and saves it into .dta format.
 forvalues year = 2010/2015 {
@@ -48,7 +54,10 @@ forvalues year = 2022/2024 {
 
 *Imports TN_Unmerged_2024 and saves it as a STATA .dta file.
 import excel TN_Unmerged_2024, firstrow case(preserve) clear
-format NCESSchoolID %18.0g
-tostring NCESSchoolID, replace usedisplayformat
-keep SchName NCESSchoolID SchType SchLevel SchVirtual
-save TN_Unmerged_2024, replace
+
+	format NCESSchoolID %18.0g
+	tostring NCESSchoolID, replace usedisplayformat
+	keep SchName NCESSchoolID SchType SchLevel SchVirtual
+	save TN_Unmerged_2024, replace
+
+*End of 02_TN_DTA_Conversion

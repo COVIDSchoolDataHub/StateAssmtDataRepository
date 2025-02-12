@@ -2,7 +2,7 @@
 * TENNESSEE
 
 * File name: 01_TN_NCES
-* Last update: 2/6/2025
+* Last update: 2/11/2025
 
 *******************************************************
 * Notes
@@ -10,7 +10,7 @@
 	* This do file reads NCES files from 2009 through 2022 one by one.
 	* It keeps only TN observations and appends it into two files - NCES_All_District and NCES_All_School.
 	* Duplicates in NCES_All_District and NCES_All_School are removed. 
-	* As of the last update 2/6/2025, the latest NCES file is for 2022.
+	* As of the last update 2/11/2025, the latest NCES file is for 2022.
 	* This code will need to be updated when newer NCES files are released. 
 
 *******************************************************
@@ -22,7 +22,11 @@
 clear
 set more off
 
-** Preparing NCES files
+cd "C:\Users\Clare\Desktop\Zelma V2.1\Tennessee"
+
+/////////////////////////////////////////
+*** Preparing NCES files ***
+/////////////////////////////////////////
 
 global years 2009 2010 2011 2012 2013 2014 2015 2016 2017 2018 2019 2020 2021 2022
 
@@ -92,15 +96,22 @@ foreach a in $years {
 
 clear
 save "$NCES_TN/NCES_All_District", emptyok replace
+
 clear
 save "$NCES_TN/NCES_All_School", emptyok replace
+
 forvalues year = 2009/2022 {
-use "$NCES_TN/NCES_`year'_District"
-append using "$NCES_TN/NCES_All_District"
-duplicates drop State_leaid, force
-save "$NCES_TN/NCES_All_District", replace
-use "$NCES_TN/NCES_`year'_School"
-append using "$NCES_TN/NCES_All_School"
-duplicates drop seasch, force
-save "$NCES_TN/NCES_All_School", replace
+    
+	use "$NCES_TN/NCES_`year'_District"
+	append using "$NCES_TN/NCES_All_District"
+	duplicates drop State_leaid, force
+	save "$NCES_TN/NCES_All_District", replace
+	
+	use "$NCES_TN/NCES_`year'_School"
+	append using "$NCES_TN/NCES_All_School"
+	duplicates drop seasch, force
+	
+	save "$NCES_TN/NCES_All_School", replace
 }
+
+* End of 01_TN_NCES

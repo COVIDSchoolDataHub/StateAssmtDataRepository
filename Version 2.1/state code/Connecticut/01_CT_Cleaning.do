@@ -2,7 +2,7 @@
 * CONNECTICUT
 
 * File name: 01_CT_Cleaning
-* Last update: 2/10/2025
+* Last update: 2/11/2025
 
 *******************************************************
 * Notes
@@ -19,12 +19,6 @@
 /////////////////////////////////////////
 
 clear
-//set more on
-set trace off
-cap log close
-
-//Update working directory
-cd "C:/Zelma/2025-01-27"
 
 /////////////////////////////////////////
 *** Cleaning ***
@@ -854,12 +848,15 @@ save "`tempdist'", replace
 
 if `year' < 2023 {
 use "${NCES_District}/NCES_`prevyear'_District"
+keep if state_name == "Connecticut" | state_location == "CT"
+save "${NCES_State}/NCES_`prevyear'_District_CT", replace
 }
 
 else if `year'>=2023{
 use "${NCES_District}/NCES_2022_District"
-}
 keep if state_name == "Connecticut" | state_location == "CT"
+save "${NCES_State}/NCES_2022_District_CT", replace
+}
 if `year' <2019 {
 gen StateAssignedDistID1 = subinstr(state_leaid,"CT-","",.)
 merge 1:m StateAssignedDistID1 using "`tempdist'"
@@ -880,11 +877,14 @@ tempfile tempschool
 save "`tempschool'", replace
 if `year' <2023 {
 use "${NCES_School}/NCES_`prevyear'_School"
+keep if state_name == "Connecticut" | state_location == "CT"
+save "${NCES_State}/NCES_`prevyear'_School_CT", replace
 }
 else if `year' >= 2023 {
 use "${NCES_School}/NCES_2022_School"
-}
 keep if state_name == "Connecticut" | state_location == "CT"
+save "${NCES_State}/NCES_2022_School_CT", replace
+}
 gen StateAssignedDistID1 = subinstr(state_leaid,"CT-","",.)
 if `year' <2019 {
 gen StateAssignedSchID1 = StateAssignedDistID1 + "-" + seasch if strpos(seasch,"-") ==0
@@ -1228,8 +1228,20 @@ replace Lev1_percent = string(n1_percent) if Lev4_percent != "*" & Lev2_percent 
 replace ProficientOrAbove_count = string(nprof_count) if ProficientOrAbove_count == "*" & nprof_count != .
 replace ProficientOrAbove_percent = string(nprof_percent) if ProficientOrAbove_percent == "*" & nprof_percent != .
 
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+// Reordering variables and sorting data
+local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
+    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
+    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
+    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
+    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
+    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
+    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
+    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
+    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
+    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
+    Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+	keep `vars'
+	order `vars'
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 *Exporting into a separate folder Output for Stanford - without derivations*
@@ -1240,12 +1252,9 @@ export delimited "${Output_ND}/CT_AssmtData`year'_NoDev", replace
 // deriving ProficientOrAbove_count using ProficientOrAbove_percent and StudentSubGroup_TotalTested, r2
 replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent) * real(StudentSubGroup_TotalTested),1)) if ProficientOrAbove_count == "*" & !missing(real(ProficientOrAbove_percent)) & !missing(real(StudentSubGroup_TotalTested))
 
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-
 *Exporting Output with derivations*
-save "${Output}/CT_AssmtData_`year'", replace //If .dta format needed. 
+*save "${Output}/CT_AssmtData_`year'", replace //If .dta format needed. 
 export delimited "${Output}/CT_AssmtData_`year'", replace
 clear
 }
+* END of 01_CT_Cleaning.do 

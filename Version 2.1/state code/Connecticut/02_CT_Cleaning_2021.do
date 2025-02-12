@@ -2,7 +2,7 @@
 * CONNECTICUT
 
 * File name: 02_CT_Cleaning_2021
-* Last update: 2/5/2025
+* Last update: 2/11/2025
 
 *******************************************************
 * Notes
@@ -17,15 +17,8 @@
 *** Setup ***
 /////////////////////////////////////////
 
-clear
-set more off
-clear
-set more off
-set trace off
-cap log close
 
-//Update working directory
-cd "C:/Zelma/2025-01-27"
+clear
 
 /////////////////////////////////////////
 *** Cleaning ***
@@ -47,9 +40,9 @@ cd "C:/Zelma/2025-01-27"
 // gen SUBJECT = "sci"
 // append using "`temp1'"
 // save "${Original}/CT_OriginalData_2021_all", replace
-//
-//
-//
+
+
+
 //Unhide above code on first run
 clear
 use "${Original}/CT_OriginalData_2021_all"
@@ -161,6 +154,7 @@ save "`tempdist'", replace
 clear
 use "${NCES_District}/NCES_2020_District"
 keep if state_name == "Connecticut" | state_location == "CT"
+save "${NCES_State}/NCES_2020_District_CT", replace
 gen StateAssignedDistID2 = subinstr(state_leaid,"CT-","",.)
 merge 1:m StateAssignedDistID2 using "`tempdist'"
 drop if _merge ==1
@@ -174,6 +168,7 @@ tempfile tempschool
 save "`tempschool'", replace
 use "${NCES_School}/NCES_2020_School"
 keep if state_name == "Connecticut" | state_location == "CT"
+save "${NCES_State}/NCES_2020_School_CT", replace
 gen StateAssignedSchID2 = seasch 
 merge 1:m StateAssignedSchID2 using "`tempschool'"
 drop if _merge ==1
@@ -312,8 +307,21 @@ gen StudentSubGroup_TotalTested = "--"
 
 //Final Cleaning
 recast str80 SchName
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+// Reordering variables and sorting data
+local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
+    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
+    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
+    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
+    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
+    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
+    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
+    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
+    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
+    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
+    Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+	keep `vars'
+	order `vars'
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 *Exporting Output for Stanford - without derivations*
@@ -323,3 +331,5 @@ export delimited "${Output_ND}/CT_AssmtData2021_NoDev", replace
 *Continuing with derivations and EDFACTs as usual*
 save "${Output}/CT_AssmtData_2021", replace //Do not comment out. Used in the 03_CT_2021_EDFACTS.do
 export delimited "${Output}/CT_AssmtData_2021", replace
+
+* END of 02_CT_Cleaning_2021.do 
