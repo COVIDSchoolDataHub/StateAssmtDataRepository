@@ -9,8 +9,8 @@
 
   * The TX data has two versions of files for 2012 through 2021 - full files and REDUCED files. This code executes on the REDUCED 2012 through 2021 files.
   * The code to reduce the full files is on GitHub - TX Original File Importing & Reduction.do.  
-	* Global macros can be updated in this do file.
-	* This will be the only .do file needed to run through all state files in the proper order.
+  * Global macros can be updated in this do file.
+  * This will be the only .do file needed to run through all state files in the proper order.
 *******************************************************
 /////////////////////////////////////////
 *** Setup ***
