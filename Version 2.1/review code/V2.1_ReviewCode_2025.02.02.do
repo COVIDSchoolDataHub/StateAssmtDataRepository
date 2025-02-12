@@ -2183,9 +2183,9 @@ count if StudentGroup=="All Students" & !inlist(StudentSubGroup, "All Students")
 		di as error "Correct."
 		}
 		
-* Checking subgroup values for StudentGroup == "RaceEth"	
+* Checking subgroup values for StudentGroup == "RaceEth" - Updated 2/12/25 to include MENA
 gen raceeth_chk = .
-replace raceeth_chk = 1 if StudentSubGroup == "American Indian or Alaska Native" | StudentSubGroup == "Asian" | StudentSubGroup == "Black or African American" | StudentSubGroup == "Native Hawaiian or Pacific Islander"| StudentSubGroup == "Two or More" | StudentSubGroup =="White"| StudentSubGroup == "Hispanic or Latino" | StudentSubGroup =="Unknown" | StudentSubGroup =="Not Hispanic or Latino" | StudentSubGroup =="Filipino"
+replace raceeth_chk = 1 if StudentSubGroup == "American Indian or Alaska Native" | StudentSubGroup == "Asian" | StudentSubGroup == "Black or African American" | StudentSubGroup == "Middle Eastern or North African" | StudentSubGroup == "Native Hawaiian or Pacific Islander"| StudentSubGroup == "Two or More" | StudentSubGroup =="White"| StudentSubGroup == "Hispanic or Latino" | StudentSubGroup =="Unknown" | StudentSubGroup =="Not Hispanic or Latino" | StudentSubGroup =="Filipino"
 
 
 count if StudentGroup=="RaceEth" & !inlist(raceeth_chk, 1)

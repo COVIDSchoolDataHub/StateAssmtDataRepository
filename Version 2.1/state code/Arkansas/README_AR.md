@@ -12,7 +12,7 @@ Create three main folders for Arkansas:
    
     c. Temp
    
-    d. EDFacts (contains the long .dta fomratted data)
+    d. EDFacts (contains the long .dta formatted data)
    
 2. NCES District and School Demographics, with the following subfolders:
    

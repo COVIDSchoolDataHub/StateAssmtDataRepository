@@ -3,7 +3,6 @@
 
 This is a ReadMe for Illinois's data cleaning process, from 2015 to 2024.
 
-
 ## Setup
 Create a folder for IL. Inside that folder, create two more folders: 
 "Original", and "NCES"
@@ -32,13 +31,7 @@ do Illinois `year' Cleaning
 }
 ```
 
+## Updates
 
-
-
-
-
-
-
-
-
+02/12/2025: Updated to include 2024 sci data from data request.
 
