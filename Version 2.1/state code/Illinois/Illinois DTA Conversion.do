@@ -176,3 +176,10 @@ save "${output}/IL_AssmtData_2023_sci_5.dta", replace
 
 import excel "${raw}/IL_OriginalData_2023_sci.xlsx", sheet("Grade 8") firstrow clear
 save "${output}/IL_AssmtData_2023_sci_8.dta", replace
+
+** 2024
+import excel "${raw}/IL_OriginalData_2024_ela_mat.xlsx", sheet("IAR") firstrow clear
+save "${output}/IL_AssmtData_2024_ela_mat.dta", replace
+
+import excel "${raw}/IL_DataRequest_2024_sci.xlsx", clear sheet("Data") firstrow case(preserve)
+save "${output}/IL_AssmtData_2024_sci.dta", replace
