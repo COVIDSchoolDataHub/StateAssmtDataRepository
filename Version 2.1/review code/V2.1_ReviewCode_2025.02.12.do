@@ -2721,12 +2721,13 @@ gen der_L1_ct_lev45 = .
 
 }
 
-** • LEV 2: Have counts been derived to the extent possible? (updated 1/16/25)
+** • LEV 2: Have counts been derived to the extent possible? (updated 2/13/25)
 {
 gen der_L2_ct_lev23 = .
-	replace der_L2_ct_lev23 = ProficiencyCriteria == "Levels 2-3" & ///
-        (inlist(Lev2_count, "*", "--") & !inlist(ProficientOrAbove_count, "*", "--", "")) 
-	replace der_L2_ct_lev23 = ProficiencyCriteria == "Levels 2-3" & ///
+    replace der_L2_ct_lev23 = ProficiencyCriteria == "Levels 2-3" & ///
+        (inlist(Lev2_count, "*", "--") & ///
+	!inlist(Lev3_count, "*", "--") & !inlist(ProficientOrAbove_count, "*", "--")) 
+    replace der_L2_ct_lev23 = ProficiencyCriteria == "Levels 2-3" & ///
         (inlist(Lev2_count, "*", "--") & !inlist(Lev1_count, "*", "--") & ///
         !inlist(Lev3_count, "*", "--") & !inlist(StudentSubGroup_TotalTested, "*", "--"))
 
