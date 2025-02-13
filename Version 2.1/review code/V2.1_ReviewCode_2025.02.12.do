@@ -3381,6 +3381,37 @@ foreach var of local der_alllev {
 }
 }
 ***********************************************************
+*Level percents 
+
+** • Have low level percent values been reviewed for irregularities? (added 1/29/25)
+tab Lev1_percent FILE if real(Lev1_percent) < .001
+tab Lev2_percent FILE if real(Lev2_percent) < .001
+tab Lev3_percent FILE if real(Lev3_percent) < .001
+tab Lev4_percent FILE if real(Lev4_percent) < .001
+tab Lev5_percent FILE if real(Lev5_percent) < .001
+
+***********************************************************
+*Level percents 
+
+** • Are all percents presented as decimals? [or decimal ranges] (updated 1/29/25)
+{
+local levpercents "Lev1_percent2_n Lev2_percent2_n Lev3_percent2_n Lev4_percent2_n Lev5_percent2_n"
+
+foreach var of local levpercents {
+	
+    // Count observations where the variable is outside the range [0, 1]
+    count if (`var' > 1 | `var' < 0) & !missing(`var')
+    
+    if r(N) != 0 {
+        di as error "Check `var' values in the files below."
+        tab `var' FILE if (`var' > 1 | `var' < 0) & !missing(`var')
+    } 
+    else {
+        di as error "`var' Correct."
+   	}		
+	}
+}
+***********************************************************
 * Level percents 
 
 ** • Are all applicable rows free from any blanks?
@@ -3508,38 +3539,6 @@ drop levcount_rng_flag
 
 
 ***********************************************************
-*Level percents 
-
-
-** • Have low level percent values been reviewed for irregularities? (added 1/29/25)
-tab Lev1_percent FILE if real(Lev1_percent) < .001
-tab Lev2_percent FILE if real(Lev2_percent) < .001
-tab Lev3_percent FILE if real(Lev3_percent) < .001
-tab Lev4_percent FILE if real(Lev4_percent) < .001
-tab Lev5_percent FILE if real(Lev5_percent) < .001
-
-***********************************************************
-*Level percents 
-
-** • Are all percents presented as decimals? [or decimal ranges] (updated 1/29/25)
-{
-local levpercents "Lev1_percent2_n Lev2_percent2_n Lev3_percent2_n Lev4_percent2_n Lev5_percent2_n"
-
-foreach var of local levpercents {
-	
-    // Count observations where the variable is outside the range [0, 1]
-    count if (`var' > 1 | `var' < 0) & !missing(`var')
-    
-    if r(N) != 0 {
-        di as error "Check `var' values in the files below."
-        tab `var' FILE if (`var' > 1 | `var' < 0) & !missing(`var')
-    } 
-    else {
-        di as error "`var' Correct."
-    }		
-}
-}
-
 
 * Drop when no longer needed 
 drop Lev1_percent2_n Lev2_percent2_n Lev3_percent2_n Lev4_percent2_n Lev5_percent2_n
