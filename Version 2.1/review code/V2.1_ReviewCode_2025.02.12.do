@@ -1239,7 +1239,7 @@ bysort StateAssignedSchID (NCESSchoolID) : gen s_MultipleNCESIDsPer_StateID = NC
 
 {
 // Var cleanup 
-drop d_MultipleStateIDsPer_NCESid d_MultipleNCESIDsPer_StateID s_MultipleStateSchIDsPer_NCESid s_MultipleNCESIDsPer_StateSchID
+drop d_MultipleStateIDsPer_NCESid d_MultipleNCESIDsPer_StateID s_MultipleStateIDsPer_NCESid s_MultipleNCESIDsPer_StateID
 }
 ***********************************************************
 *StateAssignedSchID
