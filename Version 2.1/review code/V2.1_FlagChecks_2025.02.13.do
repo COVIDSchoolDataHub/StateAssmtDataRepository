@@ -1290,6 +1290,7 @@ if "$StateAbbrev" == "VA" {
 	replace Flag_CutScoreChange_soc_Chk = "Y" if FILE == "1998"
 	replace Flag_CutScoreChange_soc_Chk = "Y" if FILE == "2004"
 	replace Flag_CutScoreChange_soc_Chk = "Y" if FILE == "2011"
+	replace Flag_CutScoreChange_soc_Chk = "Not applicable" if real(FILE) > 2014
 	
 }
 
