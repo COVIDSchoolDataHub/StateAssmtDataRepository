@@ -3212,7 +3212,7 @@ gen der_L1_per_lev45 = .
 {
 gen der_L2_per_lev23 = .
 	replace der_L2_per_lev23 = 1 if ProficiencyCriteria == "Levels 2-3" & ///
-		(inlist(Lev2_percent, "*", "--") & !inlist(ProficientOrAbove_percent, "*", "--")) 
+		(inlist(Lev2_percent, "*", "--") & !inlist(Lev3_percent, "*", "--") & !inlist(ProficientOrAbove_percent, "*", "--")) 
 	replace der_L2_per_lev23 = 1 if ProficiencyCriteria == "Levels 2-3" & ///
 		(inlist(Lev2_percent, "*", "--") & !inlist(Lev1_percent, "*", "--") & !inlist(Lev3_percent, "*", "--"))
 	
