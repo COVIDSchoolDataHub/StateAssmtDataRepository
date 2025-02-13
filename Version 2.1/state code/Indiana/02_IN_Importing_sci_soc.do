@@ -1,11 +1,29 @@
-clear
-set more off
-set trace off
+*******************************************************
+* INDIANA
 
-global Original "/Users/miramehta/Documents/IN State Testing Data/Original Data Files"
-global temp "/Users/miramehta/Documents/IN State Testing Data/Temp"
-global Output "/Users/miramehta/Documents/IN State Testing Data/Output"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+* File name: 02_IN_Importing_sci_soc
+* Last update: 2/12/2025
+
+*******************************************************
+* Notes
+
+	* This do file imports *.csv all student, subgroup SCI and SOC files from 2014 through 2024. 
+	* Some files are reshaped (from wide to long). 
+	* Variables are renamed/ duplicates dropped and files are saved in a .dta format. 
+	* All processed files are appended. 
+
+*******************************************************
+
+/////////////////////////////////////////
+*** Setup ***
+/////////////////////////////////////////
+
+clear
+
+/////////////////////////////////////////
+*** Cleaning ***
+/////////////////////////////////////////
+
 
 //Importing and Combining
 local SubGroups1 "Overall Ethnicity Gender FRL SPED ELL FOSTER HOMELESS"
@@ -46,16 +64,16 @@ if `year' == 2020 continue
 					}
 					drop in 1/2
 					duplicates drop
-					save "${temp}/`Subject'_`DataLevel'_`SG'", replace
+					save "${Temp}/`Subject'_`DataLevel'_`SG'", replace
 					clear
 				}
-				use "${temp}/`Subject'_`DataLevel'_GENDER"
+				use "${Temp}/`Subject'_`DataLevel'_GENDER"
 				//Flagging here that for 2018 *AND* 2019, LEA ELA "GENDER", there are duplicate values. Arbitarily dropping below for now.
 				if `year' == 2018 | `year' == 2019 duplicates drop grade idoe_corporation_id, force
 				
 				foreach SG in ETHNICITY FRL SPED ELL {
-				if "`DataLevel'" == "LEA" merge 1:1 grade idoe_corporation_id using "${temp}/`Subject'_`DataLevel'_`SG'", nogen
-				if "`DataLevel'" == "SCH" merge 1:1 grade idoe_corporation_id idoe_school_id using "${temp}/`Subject'_`DataLevel'_`SG'", nogen
+				if "`DataLevel'" == "LEA" merge 1:1 grade idoe_corporation_id using "${Temp}/`Subject'_`DataLevel'_`SG'", nogen
+				if "`DataLevel'" == "SCH" merge 1:1 grade idoe_corporation_id idoe_school_id using "${Temp}/`Subject'_`DataLevel'_`SG'", nogen
 				}
 				gen DataLevel = "`DataLevel'"
 				gen Subject = "`Subject'"
@@ -79,7 +97,7 @@ if `year' == 2020 continue
 		
 	}
 use "`tempdistschool'"
-save "${temp}/`year'_District_School_sci_soc", replace
+save "${Temp}/`year'_District_School_sci_soc", replace
 clear
 
 	
@@ -137,7 +155,7 @@ rename proficient ProficientOrAbove_count
 rename tested StudentSubGroup_TotalTested
 rename proficient_per ProficientOrAbove_percent
 rename grade GradeLevel
-save "${temp}/`year'_State_sci_soc", replace
+save "${Temp}/`year'_State_sci_soc", replace
 clear				
 }
 
@@ -203,15 +221,15 @@ forvalues year = 2014/2016{
 			gen DataLevel = "`DataLevel'"
 			gen StudentSubGroup = "All Students"
 			drop if _n < 3
-			save "$temp/IN_`year'_`Subject'_`DataLevel'", replace
+			save "$Temp/IN_`year'_`Subject'_`DataLevel'", replace
 		}
 	}
-	use "$temp/IN_`year'_SCIENCE_SCH", clear
-	append using "$temp/IN_`year'_SCIENCE_CORP" "$temp/IN_`year'_SS_SCH" "$temp/IN_`year'_SS_CORP"
+	use "$Temp/IN_`year'_SCIENCE_SCH", clear
+	append using "$Temp/IN_`year'_SCIENCE_CORP" "$Temp/IN_`year'_SS_SCH" "$Temp/IN_`year'_SS_CORP"
 	drop if corporation_name == "" & school_name == ""
 	reshape long ProficientOrAbove_count ProficientOrAbove_percent, i(idoe_corporation_id idoe_school_id Subject) j(GradeLevel) string
 	drop if ProficientOrAbove_count == "" & ProficientOrAbove_percent == ""
-	save "$temp/IN_`year'_sci_soc_DistSchool_allstud", replace
+	save "$Temp/IN_`year'_sci_soc_DistSchool_allstud", replace
 }
 
 //2017
@@ -266,15 +284,15 @@ foreach Subject in Science Social_Studies {
 			gen DataLevel = "`DataLevel'"
 			gen StudentSubGroup = "All Students"
 			drop if _n < 3
-			save "$temp/IN_2017_`Subject'_`DataLevel'", replace
+			save "$Temp/IN_2017_`Subject'_`DataLevel'", replace
 		}
 	}
-use "$temp/IN_2017_Science_School", clear
-append using "$temp/IN_2017_Science_Corp" "$temp/IN_2017_Social_Studies_School" "$temp/IN_2017_Social_Studies_Corp"
+use "$Temp/IN_2017_Science_School", clear
+append using "$Temp/IN_2017_Science_Corp" "$Temp/IN_2017_Social_Studies_School" "$Temp/IN_2017_Social_Studies_Corp"
 drop if corporation_name == "" & school_name == ""
 reshape long ProficientOrAbove_count ProficientOrAbove_percent, i(idoe_corporation_id idoe_school_id Subject) j(GradeLevel) string
 drop if ProficientOrAbove_count == "" & ProficientOrAbove_percent == ""
-save "$temp/IN_2017_sci_soc_DistSchool_allstud", replace
+save "$Temp/IN_2017_sci_soc_DistSchool_allstud", replace
 
 
 //2018
@@ -340,15 +358,15 @@ foreach Subject in Science Social_Studies {
 			gen DataLevel = "`DataLevel'"
 			gen StudentSubGroup = "All Students"
 			drop if _n < 3
-			save "$temp/IN_2018_`Subject'_`DataLevel'", replace
+			save "$Temp/IN_2018_`Subject'_`DataLevel'", replace
 		}
 	}
-use "$temp/IN_2018_Science_School", clear
-append using "$temp/IN_2018_Science_Corp" "$temp/IN_2018_Social_Studies_School" "$temp/IN_2018_Social_Studies_Corp"
+use "$Temp/IN_2018_Science_School", clear
+append using "$Temp/IN_2018_Science_Corp" "$Temp/IN_2018_Social_Studies_School" "$Temp/IN_2018_Social_Studies_Corp"
 drop if corporation_name == "" & school_name == ""
 reshape long ProficientOrAbove_count ProficientOrAbove_percent StudentSubGroup_TotalTested, i(idoe_corporation_id idoe_school_id Subject) j(GradeLevel) string
 drop if ProficientOrAbove_count == "" & ProficientOrAbove_percent == "" & StudentSubGroup_TotalTested == ""
-save "$temp/IN_2018_sci_soc_DistSchool_allstud", replace
+save "$Temp/IN_2018_sci_soc_DistSchool_allstud", replace
 
 //2019-2024
 forvalues year = 2019/2024{
@@ -442,23 +460,23 @@ forvalues year = 2019/2024{
 			gen DataLevel = "`DataLevel'"
 			gen StudentSubGroup = "All Students"
 			drop if _n < 5
-			save "$temp/IN_`year'_`Subject'_`DataLevel'", replace
+			save "$Temp/IN_`year'_`Subject'_`DataLevel'", replace
 		}
 	}
-	use "$temp/IN_`year'_Science_SCH", clear
-	append using "$temp/IN_`year'_Science_LEA" "$temp/IN_`year'_Social Studies_SCH" "$temp/IN_`year'_Social Studies_LEA"
+	use "$Temp/IN_`year'_Science_SCH", clear
+	append using "$Temp/IN_`year'_Science_LEA" "$Temp/IN_`year'_Social Studies_SCH" "$Temp/IN_`year'_Social Studies_LEA"
 	drop if corporation_name == "" & school_name == ""
 	drop if Lev1_count == "" & Lev2_count == "" & Lev3_count == "" & Lev4_count == "" & ProficientOrAbove_count == "" & StudentSubGroup_TotalTested == "" & ProficientOrAbove_percent == ""
-	save "$temp/IN_`year'_sci_soc_DistSchool_allstud", replace
+	save "$Temp/IN_`year'_sci_soc_DistSchool_allstud", replace
 }
 
 //Append Data
 forvalues year = 2014/2024{
 	if `year' == 2020 continue
-	use "${temp}/`year'_State_sci_soc", clear
-	append using "$temp/`year'_District_school_sci_soc"
-	append using "$temp/IN_`year'_sci_soc_DistSchool_allstud"
-	save "${temp}/IN_`year'_sci_soc", replace
+	use "${Temp}/`year'_State_sci_soc", clear
+	append using "$Temp/`year'_District_school_sci_soc"
+	append using "$Temp/IN_`year'_sci_soc_DistSchool_allstud"
+	save "${Temp}/IN_`year'_sci_soc", replace
 }
 
 // Finish Compiling 2024 Data
@@ -482,5 +500,8 @@ rename proficient ProficientOrAbove_count
 rename proficient_per ProficientOrAbove_percent
 gen DataLevel = "State"
 gen Subject = "Science"
-append using "${temp}/IN_2024_sci_soc"
-save "$temp/IN_2024_sci_soc", replace
+append using "${Temp}/IN_2024_sci_soc"
+save "$Temp/IN_2024_sci_soc", replace
+
+* END of 02_IN_Importing_sci_soc.do
+****************************************************

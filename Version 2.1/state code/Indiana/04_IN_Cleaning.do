@@ -1,15 +1,26 @@
-clear
-set more off
+*******************************************************
+* INDIANA
 
-global Original "/Users/miramehta/Documents/IN State Testing Data/Original Data Files"
-global temp "/Users/miramehta/Documents/IN State Testing Data/Temp"
-global Output "/Users/miramehta/Documents/IN State Testing Data/Output"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+* File name: 04_IN_Cleaning
+* Last update: 2/13/2025
+
+*******************************************************
+* Notes
+
+	* This do file imports combined yearly *.dta files created in:
+	* a) 02_IN_Importing_sci_soc.do 
+	* b) 03_IN_Importing.do 
+	
+	* The imported files from 2014-2024 (excluding 2020) are combined with NCES files.
+	* As of 2/13/25, the most recent NCES file available is NCES_2022. This will be used for 2023 and 2024 data files.
+	* This file will need to be updated when NCES_2023 becomes available.
+
+*******************************************************
 
 forvalues year = 2014/2024 {
 	if `year' == 2020 continue
 	
-	use "${temp}/IN_`year'", clear
+	use "${Temp}/IN_`year'", clear
 	local prevyear = `year' - 1
 	gen SchYear = "`prevyear'-" + substr("`year'",-2,2)
 	
@@ -113,7 +124,7 @@ forvalues year = 2014/2024 {
 	
 	//StudentSubGroup & StudentGroup
 	replace StudentSubGroup = proper(StudentSubGroup)
-	replace StudentSubGroup = subinstr(StudentSubGroup, "_", "", .)
+	replace StudentSubGroup = subinstr(StudentSubGroup, "_", "", .) 
 	replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "Ai" | StudentSubGroup == "American Indian"
 	replace StudentSubGroup = "Military" if inlist(StudentSubGroup, "Active Duty Parent", "Parent In Military")
 	replace StudentSubGroup = "Black or African American" if StudentSubGroup == "Black"
@@ -155,6 +166,7 @@ forvalues year = 2014/2024 {
 	drop flag flag2
 	drop if StateAssignedDistID == "-999" //private schools
 	
+	*Calculations*
 	//Deriving StudentSubGroup_TotalTested
 	if `year' < 2019 {
 		replace StudentSubGroup_TotalTested = string(real(Lev1_count) + real(Lev2_count) + real(Lev3_count)) if inlist(StudentSubGroup_TotalTested, "*", "--") & !missing(real(Lev1_count)) & !missing(real(Lev2_count)) & !missing(real(Lev3_count))
@@ -164,7 +176,6 @@ forvalues year = 2014/2024 {
 		replace StudentSubGroup_TotalTested = string(real(Lev1_count) + real(Lev2_count) + real(Lev3_count) + real(Lev4_count)) if inlist(StudentSubGroup_TotalTested, "*", "--") & !missing(real(Lev1_count)) & !missing(real(Lev2_count)) & !missing(real(Lev3_count)) & !missing(real(Lev4_count))
 		replace StudentSubGroup_TotalTested = string(real(Lev1_count) + real(Lev2_count) + real(ProficientOrAbove_count)) if inlist(StudentSubGroup_TotalTested, "*", "--") & !missing(real(Lev1_count)) & !missing(real(Lev2_count)) & !missing(real(ProficientOrAbove_count))
 	}
-	replace StudentSubGroup_TotalTested = string(round(real(ProficientOrAbove_count)/real(ProficientOrAbove_percent))) if !missing(real(ProficientOrAbove_count)) & !missing(real(ProficientOrAbove_percent)) & inlist(StudentSubGroup_TotalTested, "*", "--")
 	replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
 
 	//StudentGroup_TotalTested
@@ -198,14 +209,15 @@ forvalues year = 2014/2024 {
 
 	replace StudentSubGroup_TotalTested = string(max - RaceEth) if StudentGroup == "RaceEth" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & flag == 1
 	replace StudentSubGroup_TotalTested = string(max - Gender) if StudentGroup == "Gender" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & flag == 1
-		replace StudentSubGroup_TotalTested = string(max - Disability) if StudentGroup == "Disability Status" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & flag == 1
-		replace StudentSubGroup_TotalTested = string(max - Econ) if StudentGroup == "Economic Status" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & flag == 1
-		replace StudentSubGroup_TotalTested = string(max - ELStatus) if StudentGroup == "EL Status" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & flag == 1
-		replace StudentSubGroup_TotalTested = string(max - Homeless) if StudentGroup == "Homeless Enrolled Status" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & flag == 1
-		replace StudentSubGroup_TotalTested = string(max - Foster) if StudentGroup == "Foster Care Status" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & flag == 1
-		replace StudentSubGroup_TotalTested = string(max - Military) if StudentGroup == "Military Connected Status" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & flag == 1
-		drop uniquegrp x flag RaceEth Gender Disability Econ ELStatus Homeless Foster Military
+	replace StudentSubGroup_TotalTested = string(max - Disability) if StudentGroup == "Disability Status" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & flag == 1
+	replace StudentSubGroup_TotalTested = string(max - Econ) if StudentGroup == "Economic Status" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & flag == 1
+	replace StudentSubGroup_TotalTested = string(max - ELStatus) if StudentGroup == "EL Status" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & flag == 1
+	replace StudentSubGroup_TotalTested = string(max - Homeless) if StudentGroup == "Homeless Enrolled Status" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & flag == 1
+	replace StudentSubGroup_TotalTested = string(max - Foster) if StudentGroup == "Foster Care Status" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & flag == 1
+	replace StudentSubGroup_TotalTested = string(max - Military) if StudentGroup == "Military Connected Status" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & flag == 1
+	drop uniquegrp x flag RaceEth Gender Disability Econ ELStatus Homeless Foster Military
 	
+	*Calculations*
 	//Deriving Performance Information
 	if `year' < 2019{
 		replace Lev1_count = string(real(StudentSubGroup_TotalTested) - real(ProficientOrAbove_count)) if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(ProficientOrAbove_count)) & Lev1_count == "--"
@@ -275,28 +287,28 @@ forvalues year = 2014/2024 {
 	gen seasch = StateAssignedSchID
 	
 	if `year' != 2024{
-		merge m:1 State_leaid using "$NCES/NCES_`prevyear'_District_IN.dta", update replace //pulling in NCES district names because some names are listed differently in ela/math and sci/soc files
+		merge m:1 State_leaid using "$NCES_IN/NCES_`prevyear'_District_IN.dta", update replace //pulling in NCES district names because some names are listed differently in ela/math and sci/soc files
 		drop if _merge == 2
 		drop if _merge == 1 & DataLevel != 1 //These are private schools not in NCES and should be dropped for our purposes
 		drop _merge
 	
-		merge m:1 State_leaid seasch using "$NCES/NCES_`prevyear'_School_IN.dta", update replace //pulling in NCES school names because some names are listed differently in ela/math and sci/soc files
+		merge m:1 State_leaid seasch using "$NCES_IN/NCES_`prevyear'_School_IN.dta", update replace //pulling in NCES school names because some names are listed differently in ela/math and sci/soc files
 		drop if _merge == 2
 		*replace seasch = "0" + seasch if _merge == 1 & DataLevel == 3
 		*replace StateAssignedSchID = seasch if StateAssignedSchID != seasch //Update stae ID for consistency across years
 		drop _merge
-		*merge m:1 State_leaid seasch using "$NCES/NCES_`prevyear'_School_IN.dta", update replace
+		*merge m:1 State_leaid seasch using "$NCES_IN/NCES_`prevyear'_School_IN.dta", update replace
 		*drop if _merge == 2
 		*drop _merge
 	}
 	
 	if `year' == 2024{
-		merge m:1 State_leaid using "$NCES/NCES_2022_District_IN.dta", update replace //pulling in NCES district names because some names are listed differently in ela/math and sci/soc files
+		merge m:1 State_leaid using "$NCES_IN/NCES_2022_District_IN.dta", update replace //pulling in NCES district names because some names are listed differently in ela/math and sci/soc files
 		drop if _merge == 2
 		drop if _merge == 1 & DataLevel != 1 & !inlist(StateAssignedDistID, "9027", "9022", "9004", "9043") //These are private schools not in NCES and should be dropped for our purposes
 		drop _merge
 	
-		merge m:1 State_leaid seasch using "$NCES/NCES_2022_School_IN.dta", update replace //pulling in NCES school names because some names are listed differently in ela/math and sci/soc files
+		merge m:1 State_leaid seasch using "$NCES_IN/NCES_2022_School_IN.dta", update replace //pulling in NCES school names because some names are listed differently in ela/math and sci/soc files
 		drop if _merge == 2
 		drop _merge
 		
@@ -415,12 +427,92 @@ forvalues year = 2014/2024 {
 //Final Cleaning
 duplicates drop
 
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
- 
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
+// Reordering variables and sorting data
+local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
+    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
+    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
+    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
+    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
+    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
+    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
+    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
+    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
+    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
+    Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+	keep `vars'
+	order `vars'
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${Output}/IN_AssmtData_`year'", replace
+*Exporting into a separate folder Output for Stanford - without derivations*
+*save "${Output_ND}/IN_AssmtData`year'_NoDev", replace //If .dta format needed. 
+export delimited "${Output_ND}/IN_AssmtData`year'_NoDev", replace
+
+*******************************************************
+
+***Derivations and replacing some previous calculations since deriving StudentSubGroup_TotalTested.
+
+*******************************************************
+
+replace StudentSubGroup_TotalTested = string(round(real(ProficientOrAbove_count)/real(ProficientOrAbove_percent))) if !missing(real(ProficientOrAbove_count)) & !missing(real(ProficientOrAbove_percent)) & inlist(StudentSubGroup_TotalTested, "*", "--")
+
+egen uniquegrp = group(DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel)
+sort uniquegrp StudentGroup StudentSubGroup
+by uniquegrp: replace StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+order Subject GradeLevel StudentGroup_TotalTested StudentGroup StudentSubGroup_TotalTested StudentSubGroup
+by uniquegrp: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+replace StudentGroup_TotalTested = "--" if missing(StudentGroup_TotalTested)
+drop if inlist(StudentSubGroup_TotalTested, "0", "*", "--") & StudentSubGroup != "All Students"
+replace StateAssignedDistID = "" if DataLevel == 1
+replace StateAssignedSchID = "" if DataLevel != 3
+
+//Deriving StudentSubGroup_TotalTested from Counterparts
+gen max = real(StudentGroup_TotalTested)
+replace max = 0 if max == .
+
+bysort uniquegrp: egen RaceEth = total(real(StudentSubGroup_TotalTested)) if StudentGroup == "RaceEth"
+bysort uniquegrp: egen Gender = total(real(StudentSubGroup_TotalTested)) if StudentGroup == "Gender"
+bysort uniquegrp: egen Disability = total(real(StudentSubGroup_TotalTested)) if StudentGroup == "Disability Status"
+bysort uniquegrp: egen Econ = total(real(StudentSubGroup_TotalTested)) if StudentGroup == "Economic Status"
+bysort uniquegrp: egen ELStatus = total(real(StudentSubGroup_TotalTested)) if StudentGroup == "EL Status"
+bysort uniquegrp: egen Homeless = total(real(StudentSubGroup_TotalTested)) if StudentGroup == "Homeless Enrolled Status"
+bysort uniquegrp: egen Foster = total(real(StudentSubGroup_TotalTested)) if StudentGroup == "Foster Care Status"
+bysort uniquegrp: egen Military = total(real(StudentSubGroup_TotalTested)) if StudentGroup == "Military Connected Status"
+
+gen x = 1 if missing(real(StudentSubGroup_TotalTested))
+bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject StudentGroup: egen flag = total(x)
+
+replace StudentSubGroup_TotalTested = string(max - RaceEth) if StudentGroup == "RaceEth" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & flag == 1
+replace StudentSubGroup_TotalTested = string(max - Gender) if StudentGroup == "Gender" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & flag == 1
+replace StudentSubGroup_TotalTested = string(max - Disability) if StudentGroup == "Disability Status" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & flag == 1
+replace StudentSubGroup_TotalTested = string(max - Econ) if StudentGroup == "Economic Status" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & flag == 1
+replace StudentSubGroup_TotalTested = string(max - ELStatus) if StudentGroup == "EL Status" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & flag == 1
+replace StudentSubGroup_TotalTested = string(max - Homeless) if StudentGroup == "Homeless Enrolled Status" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & flag == 1
+replace StudentSubGroup_TotalTested = string(max - Foster) if StudentGroup == "Foster Care Status" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & flag == 1
+replace StudentSubGroup_TotalTested = string(max - Military) if StudentGroup == "Military Connected Status" & max != 0 & missing(real(StudentSubGroup_TotalTested)) & flag == 1
+drop uniquegrp x flag RaceEth Gender Disability Econ ELStatus Homeless Foster Military
+
+//Deriving Performance Information
+if `year' < 2019{
+	replace Lev1_count = string(real(StudentSubGroup_TotalTested) - real(ProficientOrAbove_count)) if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(ProficientOrAbove_count)) & Lev1_count == "--"
+}
+
+if `year' < 2019{
+	replace ProficientOrAbove_count = string(real(Lev2_count) + real(Lev3_count)) if inlist(ProficientOrAbove_count, "*", "--") & !inlist(Lev2_count, "*", "--") & !inlist(Lev3_count, "*", "--")	
+	replace ProficientOrAbove_percent = string(real(Lev2_percent) + real(Lev3_percent), "%9.8g") if inlist(ProficientOrAbove_percent, "*", "--") & Lev2_percent != "." & Lev3_percent != "."
+}
+if `year' > 2018{
+	replace ProficientOrAbove_count = string(real(Lev3_count) + real(Lev4_count)) if inlist(ProficientOrAbove_count, "*", "--") & !inlist(Lev3_count, "*", "--") & !inlist(Lev4_count, "*", "--")	
+	replace ProficientOrAbove_percent = string(real(Lev3_percent) + real(Lev4_percent), "%9.8g") if inlist(ProficientOrAbove_percent, "*", "--") & Lev3_percent != "." & Lev4_percent != "."
+}
+
+// Reordering variables and sorting data
+keep `vars'
+order `vars'
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
+*Exporting Output with derivations*
+save "${Output}/IN_AssmtData_`year'", replace  //Do not comment out, used in 05_IN_EDFactsParticipation_2014_2021.do and 06_IN_EDFactsParticipation_2022.do
 export delimited "${Output}/IN_AssmtData_`year'", replace
 }
+* END of 04_IN_Cleaning.do
+****************************************************

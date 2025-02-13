@@ -1,9 +1,26 @@
+*******************************************************
+* INDIANA
+
+* File name: 01_IN_NCES
+* Last update: 2/11/2025
+
+*******************************************************
+* Notes
+
+	* This do file reads NCES files from 2013 through 2022 one by one.
+	* It keeps only IN observations and appends it into two files - NCES_All_District_IN and NCES_All_School_IN.
+	* Duplicates in NCES_All_District and NCES_All_School are removed. 
+	* As of the last update 2/11/2025, the latest NCES file is for 2022.
+	* This code will need to be updated when newer NCES files are released. 
+
+*******************************************************
+
+/////////////////////////////////////////
+*** Setup ***
+/////////////////////////////////////////
+
 clear
 set more off
-
-global NCES_Original "/Users/miramehta/Documents/NCES District and School Demographics/"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
-
 
 ** Preparing NCES files
 
@@ -16,7 +33,7 @@ save "`tempncesd'", replace emptyok
 
 foreach a in $years {
 	
-	use "${NCES_Original}/NCES District Files, Fall 1997-Fall 2022/NCES_`a'_District.dta", clear 
+	use "${NCES_District}/NCES_`a'_District.dta", clear 
 	keep if state_location == "IN"
 	
 	rename state_name State
@@ -35,11 +52,11 @@ foreach a in $years {
 	replace DistName = subinstr(DistName, " Of ", " of ", .)
 	replace DistName = subinstr(DistName, "21ST", "21st", .)
 	
-	save "${NCES}/NCES_`a'_District_IN.dta", replace
+	save "${NCES_IN}/NCES_`a'_District_IN.dta", replace
 	append using "`tempncesd'"
 	save "`tempncesd'", replace
 	
-	use "${NCES_Original}/NCES School Files, Fall 1997-Fall 2022/NCES_`a'_School.dta", clear
+	use "${NCES_School}/NCES_`a'_School.dta", clear
 	keep if state_location == "IN"
 	
 	rename state_name State
@@ -81,15 +98,17 @@ foreach a in $years {
 	drop if seasch == ""
 
 	
-	save "${NCES}/NCES_`a'_School_IN.dta", replace
+	save "${NCES_IN}/NCES_`a'_School_IN.dta", replace
 	append using "`tempncess'"
 	save "`tempncess'", replace
 }
 
 use "`tempncesd'", clear
 duplicates drop NCESDistrictID, force
-save "${NCES}/NCES_All_District", replace
+save "${NCES_IN}/NCES_All_District_IN", replace
 use "`tempncess'", clear
 duplicates drop NCESSchool, force
-save "${NCES}/NCES_All_School", replace
+save "${NCES_IN}/NCES_All_School_IN", replace
 
+* END of 01_IN_NCES.do
+****************************************************
