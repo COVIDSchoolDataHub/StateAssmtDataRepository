@@ -4,7 +4,7 @@ set trace off
 
 //Importing (unhide after first run)
 
-/*
+
 forvalues year = 2012/2017 {
 	import excel "${Original}/KY_OriginalData_`year'_all", firstrow case(preserve) allstring
 	save "${Original}/KY_OriginalData_`year'", replace
@@ -16,7 +16,7 @@ foreach year in 2018 2019 {
 	clear
 }
 
-*/
+
 foreach year in 2021 {
 	import delimited "${Original}/KY_OriginalData_`year'_all", case(preserve) stringcols(_all) clear
 	save "${Original}/KY_OriginalData_`year'", replace
