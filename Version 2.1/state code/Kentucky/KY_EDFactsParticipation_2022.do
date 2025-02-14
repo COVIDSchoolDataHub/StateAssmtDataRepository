@@ -1,9 +1,7 @@
 clear
 set more off
 
-global Original "/Users/miramehta/Documents/KY State Testing Data/Original Data Files"
-global Output "/Users/miramehta/Documents/KY State Testing Data/Output"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics"
+
 
 
 foreach s in ela math sci {

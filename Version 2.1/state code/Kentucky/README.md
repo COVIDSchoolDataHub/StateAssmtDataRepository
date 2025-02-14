@@ -17,7 +17,6 @@ There are 4 .do files.
 Run them in the following order:
 
 1. KY_Cleaning_2012_2023.do
-2. KY_StudentCounts_2022.do
 3. KY_EDFactsParticipation_2022.do
 4. KY_Cleaning_2024.do
 

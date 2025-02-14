@@ -1,10 +1,6 @@
 clear
 set more off
 set trace off
-cd "/Users/miramehta/Documents/"
-global Original "/Users/miramehta/Documents/KY State Testing Data/Original Data Files"
-global Output "/Users/miramehta/Documents/KY State Testing Data/Output"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics"
 
 //Importing (unhide on first run)
 
@@ -282,7 +278,7 @@ keep if DataLevel == 2
 tempfile tempdist
 save "`tempdist'", replace
 clear
-use "${NCES}/NCES District Files, Fall 1997-Fall 2022/NCES_`prevyear'_District"
+use "${NCES_Original}/NCES_`prevyear'_District"
 keep if state_location == "KY" | state_fips_id == 21
 gen StateAssignedDistID = subinstr(state_leaid, "KY-","",.)
 replace StateAssignedDistID = substr(StateAssignedDistID, 4,3)
@@ -312,7 +308,7 @@ keep if DataLevel == 3
 tempfile tempsch
 save "`tempsch'", replace
 clear
-use "${NCES}/NCES School Files, Fall 1997-Fall 2022/NCES_`prevyear'_School"
+use "${NCES_Original}/NCES_`prevyear'_School"
 keep if state_location == "KY" | state_fips_id == 21
 gen StateAssignedSchID = substr(seasch, strpos(seasch, "-")+1,10)
 replace StateAssignedSchID = substr(StateAssignedSchID, 4,6)

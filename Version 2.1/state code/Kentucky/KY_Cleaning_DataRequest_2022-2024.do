@@ -2,14 +2,9 @@ clear
 set more off
 set trace off
 
-cd "/Volumes/T7/State Test Project/Kentucky"
-global Original "/Volumes/T7/State Test Project/Kentucky/Original Data Files"
-global Output "/Volumes/T7/State Test Project/Kentucky/Output"
-global NCES_KY "/Volumes/T7/State Test Project/Kentucky/NCES"
-
 //Importing (Unhide on first run)
 
-/*
+
 
 foreach year in 2022 2023 2024 {
 	import delimited "$Original/KY_DataRequest_COUNTS_Rec02.12.25_`year'.CSV", case(preserve) clear stringcols(1,5)
@@ -21,9 +16,9 @@ import excel "KY 2024 New Schools.xlsx", firstrow case(preserve) clear
 drop if missing(real(NCESDistrictID))
 tostring CountyCode, replace
 save "$NCES_KY/KY 2024 New Schools", replace
-*/
 
-foreach year in 2024 {
+
+foreach year in 2022 2023 2024 {
 	local prevyear = `year' -1
 	
 use "$Original/KY_DataRequest_COUNTS_Rec02.12.25_`year'.dta", clear
@@ -40,7 +35,7 @@ rename Novice Lev1_count
 rename Apprentice Lev2_count
 rename Proficient Lev3_count
 rename Distinguished Lev4_count
-rename ProficientDistinguished ProficientOrAbove_percent
+rename ProficientDistinguished ProficientOrAbove_count
 
 //DataLevel, District, School IDs
 gen DataLevel = 3 if strlen(Identifier) > 3
@@ -129,9 +124,6 @@ foreach count of varlist *_count {
 	gen `percent' = string(real(`count')/real(StudentSubGroup_TotalTested), "%9.6g") if !missing(real(`count')) & !missing(real(StudentSubGroup_TotalTested)) //Setting decimal places to 6 arbitrarily ("%9.6g")
 	replace `percent' = "*" if missing(`percent')
 }	
-
-gen ProficientOrAbove_count = string(real(Lev3_count) + real(Lev4_count)) if !missing(real(Lev3_count)) & !missing(real(Lev4_count))
-replace ProficientOrAbove_count = "*" if missing(ProficientOrAbove_count)
 	
 //NCES Merging
 gen State_leaid = StateAssignedDistID
@@ -148,12 +140,15 @@ if `year' == 2024 merge m:1 seasch using "$NCES_KY/NCES_2022_School", gen(SchMer
 drop if SchMerge == 2
 
 //2024 New Schools
-if `year' == 2024 merge m:1 StateAssignedSchID using "$NCES_KY/KY 2024 New Schools", update gen(NewSchMerge)
-drop if NewSchMerge == 2
+if `year' == 2024 {
+	merge m:1 StateAssignedSchID using "$NCES_KY/KY 2024 New Schools", update gen(NewSchMerge)
+	drop if NewSchMerge == 2
+}
 
 //Schools not in NCES
-//Model elementary: Dropping for now as was done for prior files. No NCES data available for any year.
-drop if NCESDistrictID == "2100291" & DataLevel == 3
+//Model elementary and high school: Dropping for now as was done for prior files. No NCES data available for any year.
+drop if SchName == "Model Elementary" | SchName == "Model High School"
+
 
 replace State = "Kentucky"
 replace StateFips = 21
