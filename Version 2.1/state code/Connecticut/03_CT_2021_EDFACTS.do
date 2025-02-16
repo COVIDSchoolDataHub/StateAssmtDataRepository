@@ -330,7 +330,7 @@ local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
 	order `vars'
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${Output}/CT_AssmtData_2021", replace //If .dta format needed. 
+*save "${Output}/CT_AssmtData_2021", replace //If .dta format needed. 
 export delimited "${Output}/CT_AssmtData_2021", replace
 
 * END of 03_CT_2021_EDFACTS.do 
