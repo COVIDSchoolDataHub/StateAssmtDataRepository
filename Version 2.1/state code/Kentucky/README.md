@@ -36,7 +36,7 @@ global Output "/Volumes/T7/State Test Project/Kentucky/Output"
 There are four do-files. Run them in the following order:
 
 1. KY_NCES
-2. KY_Cleaning_2012_2023.do
+2. KY_Cleaning_2012_2021.do
 3. KY_Cleaning_DataRequest_2022-2024.do
 4. KY_EDFactsParticipation_2022.do
 
