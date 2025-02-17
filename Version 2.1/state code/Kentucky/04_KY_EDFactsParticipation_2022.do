@@ -1,8 +1,20 @@
+*******************************************************
+* TENNESSEE
+
+* File name: 04_KY_EDFactsParticipationRate_2022
+* Last update: 2/17/2025
+
+*******************************************************
+* Notes
+
+	* This do file uses EDFacts participation rates for 2022
+	* It merges with and REPLACES the output created in:
+		* a) 03_KY_Cleaning_DataRequest_2022-2024 (for 2022 only)
+	
+	* The EDFacts input files for this code are found in the Original Data folder on the drive
+
 clear
 set more off
-
-
-
 
 foreach s in ela math sci {
 	import delimited "${Original}/KY_EFParticipation_2022_`s'.csv", case(preserve) clear
@@ -102,3 +114,9 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "${Output}/KY_AssmtData_2022", replace
 export delimited "${Output}/KY_AssmtData_2022", replace
+
+**********************
+
+* END of 04_KY_EDFactsParticipationRate_2022
+
+**********************

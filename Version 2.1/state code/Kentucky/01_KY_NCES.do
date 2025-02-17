@@ -1,10 +1,27 @@
 clear
 set more off
 
+***************************
+*KENTUCKY
 
-global Abbrev "KY" //Set State Abbreviation Here
-global NCES_Original "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
-global NCES_$Abbrev "/Volumes/T7/State Test Project/Kentucky/NCES" //Create a folder for state specific NCES files
+*File Name: 01_KY_NCES
+*Last update: 02/17/25
+
+***************************
+
+*NOTES:
+
+*This do-file loops through 2009-2022 NCES files and filters for Kentucky observations only. 
+*It then standardizes NCES variables to the same name and type across years. 
+*Finally, it edits State_leaid and seasch for merging. It then saves the cleaned nces files to the NCES_KY folder
+
+*As of last update, the latest NCES files are for 2022
+
+*Important: The cleaned NCES files are currently ONLY used for 2022-2024. Previous years clean raw NCES files before merging.
+
+
+***************************
+
 
 
 ** Preparing NCES files
@@ -74,3 +91,9 @@ foreach a in $years {
 	save "${NCES_$Abbrev}/NCES_`a'_School.dta", replace
 	
 }
+
+*****************
+
+* END of 01_KY_NCES
+
+*****************

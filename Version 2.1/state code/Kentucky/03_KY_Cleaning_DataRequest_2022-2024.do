@@ -1,3 +1,20 @@
+***************************
+*KENTUCKY
+
+*File Name: 03_KY_Cleaning_DataRequest_2022-2024
+*Last update: 02/17/25
+
+***************************
+
+*NOTES:
+
+*This do-file cleans all raw data from 2022 to 2024 and merges it with NCES (using cleaned NCES files from 01_KY_NCES.do)
+
+
+***************************
+
+
+
 clear
 set more off
 set trace off
@@ -73,7 +90,7 @@ drop if StudentSubGroup == "Alternate Assessment"
 *Asian
 *Economically Disadvantaged
 *English Learner
-replace StudentSubGroup = "EL and Monit or Recently Ex" if StudentSubGroup == "English Learner including Monitored"
+drop if StudentSubGroup == "English Learner including Monitored"
 *Female
 *Foster Care
 drop if StudentSubGroup == "Gifted and Talented"
@@ -212,3 +229,9 @@ export delimited "$Output/KY_AssmtData_`year'", replace
 
 
 }
+
+***********************
+
+*END of 03_KY_Cleaning_DataRequest_2022-2024
+
+**********************

@@ -1,6 +1,23 @@
+***************************
+*KENTUCKY
+
+*File Name: 02_KY_Cleaning_2012_2021
+*Last update: 02/17/25
+
+***************************
+
+*NOTES:
+
+*This do-file cleans all raw data from 2012 to 2021 and merges it with NCES (using raw NCES files available on the drive)
+
+
+***************************
+
 clear
 set more off
 set trace off
+
+
 
 //Importing (unhide after first run)
 
@@ -484,3 +501,11 @@ export delimited "${Output}/KY_AssmtData_`year'", replace
 clear	
 	
 }
+
+**********************
+
+* END of 02_KY_Cleaning_2012_2021
+
+**********************
+
+
