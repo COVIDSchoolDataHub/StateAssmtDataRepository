@@ -35,10 +35,10 @@ global Output "/Volumes/T7/State Test Project/Kentucky/Output"
 ## Recreate cleaning
 There are four do-files. Run them in the following order:
 
-1. KY_NCES
-2. KY_Cleaning_2012_2021.do
-3. KY_Cleaning_DataRequest_2022-2024.do
-4. KY_EDFactsParticipation_2022.do
+1. 01_KY_NCES
+2. 02_KY_Cleaning_2012_2021.do
+3. 03_KY_Cleaning_DataRequest_2022-2024.do
+4. 04_KY_EDFactsParticipation_2022.do
 
 After setting directories you may run the KY_Main_file.do to recreate the cleaning process as described above.
 

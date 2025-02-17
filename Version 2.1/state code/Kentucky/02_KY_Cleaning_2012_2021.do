@@ -425,8 +425,16 @@ replace Flag_CutScoreChange_soc = "Y"
 replace Flag_CutScoreChange_sci = "Y"
 }
 
+if `year' >= 2015 & `year' <= 2017 {
+	replace Flag_CutScoreChange_sci = "Not applicable"
+}
+
 if `year' == 2018 {
 replace Flag_CutScoreChange_sci = "Y"
+}
+
+if `year' == 2021 {
+	replace Flag_CutScoreChange_soc = "Not applicable"
 }
 
 if `year' == 2022 {

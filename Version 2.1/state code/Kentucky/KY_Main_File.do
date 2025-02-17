@@ -29,9 +29,9 @@ global Output "/Volumes/T7/State Test Project/Kentucky/Output"
 /////////////////////////////////////////
 *** Full State Data Cleaning ***
 /////////////////////////////////////////
-do "$DoFiles/KY_NCES.do"
-do "$DoFiles/KY_Cleaning_2012_2021.do"
-do "$DoFiles/KY_Cleaning_DataRequest_2022-2024.do"
-do "$DoFiles/KY_EDFactsParticipation_2022"
+do "$DoFiles/01_KY_NCES.do"
+do "$DoFiles/02_KY_Cleaning_2012_2021.do"
+do "$DoFiles/03_KY_Cleaning_DataRequest_2022-2024.do"
+do "$DoFiles/04_KY_EDFactsParticipation_2022"
 
 ** Note: All importing code is uncommented for the first run.
