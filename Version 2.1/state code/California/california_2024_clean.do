@@ -1,23 +1,34 @@
+*******************************************************
+* CALIFORNIA
+
+* File name: california_2024_clean
+* Last update: 2/18/2025
+
+*******************************************************
+* Notes
+
+	* This do file cleans CA's 2024 ELA and Math data and merges with NCES 2020, 2021 and 2022. 
+	* The output *.dta files will be merged with Science Data in california_Science_2019_2024.do
+	* As of 2/18/25, the most recent NCES file available is NCES_2022. 
+	* This file will need to be updated when NCES_2023 becomes available
+
+*******************************************************
+
+/////////////////////////////////////////
+*** Setup ***
+/////////////////////////////////////////
+
 clear
 set more off
 
-// IMPORTANT NOTE!
-// before running the code, make sure a copy of 
-// "California_Student_Group_Names.dta" exists in the Cleaned DTA folder
-
-global data "/Volumes/T7/State Test Project/California/Cleaned DTA"
-global nces "/Volumes/T7/State Test Project/California/NCES"
-global output "/Volumes/T7/State Test Project/California/Output"
-
-
 // 2023-24 School Year 
-use "$data/California_Original_2024", clear
+use "$Original_Cleaned/California_Original_2024", clear
 
 //Drop if StudentSubGroup_TotalTested == 0
 drop if TotalStudentsTested == "0"
 
 //Get School Names & NCES Info
-merge m:1 CountyCode DistrictCode SchoolCode TestYear using "$data/CA_DistSchInfo_2010_2024"
+merge m:1 CountyCode DistrictCode SchoolCode TestYear using "$Original_Cleaned/CA_DistSchInfo_2010_2024"
 drop if _merge == 2
 drop _merge
 
@@ -25,7 +36,7 @@ drop if Drop == "DROP"
 drop Drop CountyCode
 
 //Get StudentSubGroup info
-merge m:1 StudentGroupID using "$data/California_Student_Group_Names"
+merge m:1 StudentGroupID using "$Original_Cleaned/California_Student_Group_Names"
 drop if _merge ==2
 drop _merge
 
@@ -73,9 +84,7 @@ foreach var of varlist Lev* ProficientOrAbove* AvgScaleScore {
 	replace `var' = "--" if missing(`var')
 }
 
-
 ** StudentGroup & StudentSubGroup **
-
 drop if strpos(StudentGroup, "Ethnicity for") | StudentGroup == "Parent Education"
 
 // All Students Group
@@ -155,13 +164,13 @@ replace NCESDistrictID = string(real(NCESDistrictID), "%07.0f")
 replace NCESDistrictID = "" if DataLevel == "State"
 replace NCESSchoolID = string(real(NCESSchoolID), "%012.0f")
 replace NCESSchoolID = "" if DataLevel != "School"
-merge m:1 NCESDistrictID using "$nces/NCES_2022_District.dta", gen(DistMerge1)
-merge m:1 NCESDistrictID using "$nces/NCES_2021_District.dta", update gen(DistMerge2)
-merge m:1 NCESDistrictID using "$nces/NCES_2020_District.dta", update gen(DistMerge3)
+merge m:1 NCESDistrictID using "$NCES_CA/NCES_2022_District_CA.dta", gen(DistMerge1)
+merge m:1 NCESDistrictID using "$NCES_CA/NCES_2021_District_CA.dta", update gen(DistMerge2)
+merge m:1 NCESDistrictID using "$NCES_CA/NCES_2020_District_CA.dta", update gen(DistMerge3)
 
-merge m:1 NCESSchoolID using "${nces}/NCES_2022_School.dta", gen(SchMerge1)
-merge m:1 NCESSchoolID using "${nces}/NCES_2021_School.dta", update gen(SchMerge2)
-merge m:1 NCESSchoolID using "${nces}/NCES_2020_School.dta", update gen(SchMerge3)
+merge m:1 NCESSchoolID using "${NCES_CA}/NCES_2022_School_CA.dta", gen(SchMerge1)
+merge m:1 NCESSchoolID using "${NCES_CA}/NCES_2021_School_CA.dta", update gen(SchMerge2)
+merge m:1 NCESSchoolID using "${NCES_CA}/NCES_2020_School_CA.dta", update gen(SchMerge3)
 
 foreach var of varlist *Merge* {
 	drop if `var' == 2
@@ -194,12 +203,12 @@ gen StateAssignedDistID = subinstr(State_leaid, "CA-","",.)
 gen StateAssignedSchID = substr(seasch, strpos(seasch, "-") +1,.)
 
 //Unmerged Schools
-merge m:1 DistName SchName using "$data/CA_Unmerged_2024", update gen(Unmerged_1)
+merge m:1 DistName SchName using "$Original_Cleaned/CA_Unmerged_2024", update gen(Unmerged_1)
 drop if Unmerged_1 == 2
 drop Unmerged_1
 
 //2024 Updates
-merge m:1 DistName SchName using "$data/CA_2024_Updates", gen(Updates)
+merge m:1 DistName SchName using "$Original_Cleaned/CA_2024_Updates", gen(Updates)
 drop if Updates == 2
 drop Updates
 replace SchVirtual = SchVirtualNEW if !missing(SchVirtualNEW)
@@ -224,7 +233,6 @@ replace StateAssignedSchID = "" if DataLevel == 2
 replace CountyName = "" if DataLevel == 1
 replace CountyCode = ""  if DataLevel == 1
 
-
 //StudentGroup_TotalTested
 gen StateAssignedDistID1 = StateAssignedDistID
 replace StateAssignedDistID1 = "000000" if DataLevel == 1
@@ -235,7 +243,6 @@ sort group_id StudentGroup StudentSubGroup
 by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
 by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
 drop group_id StateAssignedDistID1 StateAssignedSchID1
-
 
 //Misc Cleaning in response to self review
 drop if StudentSubGroup_TotalTested == "."
@@ -260,18 +267,47 @@ foreach var of varlist DistName SchName {
 	replace `var' = strtrim(`var')
 }
 
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
+// Reordering variables and sorting data
+local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
+    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
+    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
+    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
+    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
+    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
+    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
+    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
+    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
+    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
+    Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+	keep `vars'
+	order `vars'
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "$output/CA_AssmtData_2024_ela_math", replace	
+*No Derivations - Exporting into a seperate Temp folder till Science data can be appended
+save "${Temp}/CA_AssmtData_2024_ela_math_ND", replace 
 
+*Derivations*
+//Deriving Counts where possible
+foreach count of varlist *_count {
+local percent = subinstr("`count'","count", "percent",.)
+replace `count' = string(round(real(`percent') * real(StudentSubGroup_TotalTested))) if !missing(real(`percent')) & !missing(real(StudentSubGroup_TotalTested)) & missing(real(`count'))
+}
 
+//Level Count Updates
+foreach var of varlist Lev*_count {
+	replace `var' = "--" if real(`var') < 0 & !missing(real(`var'))
+}
 
+//Replacing ProficientOrAbove_count updates based on V2.0 R1 (Universal code if we have two levels proficient)
+replace ProficientOrAbove_count = string(real(Lev`lowproflev'_count) + real(Lev`highproflev'_count)) if !missing(real(Lev`lowproflev'_count)) & !missing(real(Lev`highproflev'_count))
+replace ProficientOrAbove_count = string(real(StudentSubGroup_TotalTested)) if real(ProficientOrAbove_count) > real(StudentSubGroup_TotalTested) & !missing(real(StudentSubGroup_TotalTested)) & !missing(real(ProficientOrAbove_count))
 
+//Keeping, ordering and sorting variables
+keep `vars'
+order `vars'
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-
-
-
+*Exporting into a seperate Temp folder till Science data can be appended
+save "$Temp/CA_AssmtData_2024_ela_math", replace	
+* END of california_2024_clean.do
+****************************************************

@@ -1,9 +1,26 @@
+*******************************************************
+* CALIFORNIA
+
+* File name: 02_CA_NCES_NEW
+* Last update: 2/18/2025
+
+*******************************************************
+* Notes
+
+	* This do file reads NCES files from 2009 through 2022 one by one.
+	* It keeps only CA observations and saves it as *.dta file.
+	* Duplicates in NCES School diles are removed. 
+	* As of the last update 2/18/2025, the latest NCES file is for 2022.
+	* This code will need to be updated when newer NCES files are released. 
+
+*******************************************************
+
+/////////////////////////////////////////
+*** Setup ***
+/////////////////////////////////////////
+
 clear
 set more off
-
-global NCES_Original "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
-global NCES "/Volumes/T7/State Test Project/California/NCES"
-
 
 ** Preparing NCES files
 
@@ -11,7 +28,7 @@ global years 2009 2010 2011 2012 2013 2014 2015 2016 2017 2018 2019 2020 2021 20
 
 foreach a in $years {
 	
-	use "${NCES_Original}/NCES_`a'_District.dta", clear 
+	use "${NCES_District}/NCES_`a'_District.dta", clear 
 	keep if state_location == "CA"
 	
 	rename state_name State
@@ -25,9 +42,9 @@ foreach a in $years {
 	rename lea_name DistName
 	keep State StateAbbrev StateFips NCESDistrictID State_leaid DistType CountyName CountyCode DistLocale DistCharter DistName
 	
-	save "${NCES}/NCES_`a'_District.dta", replace
+	save "${NCES_CA}/NCES_`a'_District_CA.dta", replace
 	
-	use "${NCES_Original}/NCES_`a'_School.dta", clear
+	use "${NCES_School}/NCES_`a'_School.dta", clear
 	keep if state_location == "CA"
 	
 	rename state_name State
@@ -64,6 +81,7 @@ foreach a in $years {
 	drop if seasch == ""
 
 	
-	save "${NCES}/NCES_`a'_School.dta", replace
-	
+	save "${NCES_CA}/NCES_`a'_School_CA.dta", replace
 }
+* END of 02_CA_NCES_NEW.do
+****************************************************
