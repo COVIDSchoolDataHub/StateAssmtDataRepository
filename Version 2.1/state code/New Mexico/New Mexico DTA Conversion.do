@@ -1,6 +1,7 @@
 clear
 set more off
 
+global NM "/Volumes/T7/State Test Project/New Mexico"
 global raw "/Users/miramehta/Documents/New Mexico/Original Data Files"
 global output "/Users/miramehta/Documents/New Mexico/Output"
 global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
@@ -55,3 +56,11 @@ import excel "${raw}/NM_OriginalData_2015_2023_all_DataRequest.xlsx", sheet("202
 save "${raw}/NM_AssmtData_2023_`s'", replace
 }
 
+import excel "$raw/NM_OriginalData_2024_elamath_DataRequest", firstrow case(preserve) clear
+save "$raw/NM_AssmtData_2024_elamath_DataRequest", replace
+
+import excel "$raw/NM_OriginalData_2024_sci_DataRequest", firstrow case(preserve) clear
+save  "$raw/NM_AssmtData_2024_sci_DataRequest", replace
+
+import excel "$NM/NM_2024_Unmerged.xlsx", firstrow allstring clear
+save "$NM/NM_2024_Unmerged", replace
