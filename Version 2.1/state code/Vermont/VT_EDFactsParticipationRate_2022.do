@@ -2,18 +2,17 @@ clear
 set more off
 
 
-global EDFacts "/Users/benjaminm/Documents/State_Repository_Research/EdFacts" //Folder with downloaded state-specific 2022 participation data from EDFacts
-global State_Output "/Users/benjaminm/Documents/State_Repository_Research/Vermont/State_Output" // Folder with state-specific data
-global New_Output "/Users/benjaminm/Documents/State_Repository_Research/Vermont/New_Output"
-
+global EDFacts "/Users/miramehta/Documents/EDFacts"
+global Original "/Users/miramehta/Documents/Vermont/Original Data" 
+global Output "/Users/miramehta/Documents/Vermont/Output"
 
 foreach s in ela math sci {
-	import delimited "${EDFacts}/VT_EFParticipation_2022_`s'.csv", case(preserve) clear
-	save "${EDFacts}/VT_EFParticipation_2022_`s'.dta", replace
+	import delimited "${Original}/VT_EFParticipation_2022_`s'.csv", case(preserve) clear
+	save "${Original}/VT_EFParticipation_2022_`s'.dta", replace
 }
 
-use "${EDFacts}/VT_EFParticipation_2022_ela.dta"
-append using "${EDFacts}/VT_EFParticipation_2022_math.dta" "${EDFacts}/VT_EFParticipation_2022_sci.dta"
+use "${Original}/VT_EFParticipation_2022_ela.dta"
+append using "${Original}/VT_EFParticipation_2022_math.dta" "${Original}/VT_EFParticipation_2022_sci.dta"
 
 
 //Rename and Drop Vars
@@ -30,17 +29,17 @@ rename AcademicSubject Subject
 drop ProgramType Outcome Characteristics
 
 //Clean ParticipationRate
-foreach var of varlist Participation {
-replace `var' = "*" if `var' == "S"	
-gen range`var' = substr(`var',1,1) if regexm(`var',"[<>]") !=0
-replace `var' = subinstr(`var', "=","",.)
-destring `var', gen(n`var') i(*%<>-)
-replace `var' = range`var' + string(n`var'/100, "%9.3g") if `var' != "*" & `var' != "--"
-replace `var' = subinstr(`var',">","",.) + "-1" if strpos(`var', ">") !=0
-replace `var' = subinstr(`var', "<","0-",.) if strpos(`var', "<") !=0
-drop n`var'
-drop range`var'
-}
+replace Participation = "*" if Participation == "S"	
+gen rangeParticipation = substr(Participation,1,1) if regexm(Participation,"[<>]") !=0
+replace Participation = subinstr(Participation, "=","",.)
+split Participation, parse("-")
+destring Participation1, replace i(*%<>-)
+destring Participation2, replace i(*%<>-)
+replace Participation = rangeParticipation + string(Participation1/100, "%9.3g") if !inlist(Participation, "*",  "--") & Participation2 == .
+replace Participation = string(Participation1/100, "%9.3g") + "-" + string(Participation2/100, "%9.3g") if !inlist(Participation, "*",  "--") & Participation2 != .
+replace Participation = subinstr(Participation,">","",.) + "-1" if strpos(Participation, ">") !=0
+replace Participation = subinstr(Participation, "<","0-",.) if strpos(Participation, "<") !=0
+drop rangeParticipation Participation1 Participation2
 
 //StudentSubGroup
 replace StudentSubGroup = "All Students" if strpos(StudentSubGroup, "All Students") !=0
@@ -76,15 +75,15 @@ append using "`temp1'"
 replace GradeLevel = subinstr(GradeLevel, "Grade ", "G0",.)
 
 //Saving EDFacts Output
-save "${EDFacts}/VT_EFParticipation_2022", replace
+save "${Original}/VT_EFParticipation_2022", replace
 
 //Merging with 2022
-use "${State_Output}/VT_AssmtData_2022", clear
+use "${Output}/VT_AssmtData_2022", clear
 
 forvalues year = 2022/2022 {
 if `year' == 2020 continue
-import delimited "${State_Output}/VT_AssmtData_`year'", case(preserve) clear
-save "${State_Output}/VT_AssmtData_`year'", replace
+import delimited "${Output}/VT_AssmtData_`year'", case(preserve) clear
+save "${Output}/VT_AssmtData_`year'", replace
 }
 
 //DataLevel
@@ -95,20 +94,11 @@ drop DataLevel
 rename DataLevel_n DataLevel
 
 //Merging
-merge 1:1 NCESDistrictID NCESSchoolID GradeLevel Subject StudentSubGroup using "${EDFacts}/VT_EFParticipation_2022"
+merge 1:1 NCESDistrictID NCESSchoolID GradeLevel Subject StudentSubGroup using "${Original}/VT_EFParticipation_2022"
 drop if _merge ==2
 replace ParticipationRate = Participation
 replace ParticipationRate = "--" if missing(ParticipationRate)
 drop _merge Participation
-
-
-replace ParticipationRate = ".608" if ParticipationRate == "60.8"
-replace ParticipationRate = ".708" if ParticipationRate == "70.8"
-replace ParticipationRate = ".758" if ParticipationRate == "75.8"
-replace ParticipationRate = ".808" if ParticipationRate == "80.8"
-replace ParticipationRate = ".809" if ParticipationRate == "80.9"
-replace ParticipationRate = ".859" if ParticipationRate == "85.9"
-replace ParticipationRate = ".909" if ParticipationRate == "90.9"
 
 
 //Final Cleaning
@@ -118,5 +108,5 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${New_Output}/VT_AssmtData_2022", replace
-export delimited "${New_Output}/VT_AssmtData_2022", replace
+save "${Output}/VT_AssmtData_2022", replace
+export delimited "${Output}/VT_AssmtData_2022", replace

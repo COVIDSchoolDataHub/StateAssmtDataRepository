@@ -1,12 +1,17 @@
 
 # Vermont Data Cleaning
 
-This is a ReadMe for Vermont's data cleaning process, from 2016 to 2023.
+This is a ReadMe for Vermont's data cleaning process, from 2016 to 2024.
 
 
 ## Setup
-Create a folder for Vermont. Inside that folder, create four more folders: 
-"Original Data", "State_Output", "New_Output", and "EdFacts"
+Create three folders:
+1. Create a folder for Vermont. Inside that folder, create two subfolders: "Original Data" and "Output".
+    a. Original Data - includes all original data files, including the 2022 edfacts files, from Drive
+    b. Output - where cleaned files will be saved
+2. NCES District and School Demographics, with subfolders for school and district level data.
+3. EDFacts, with subfolders for each year from 2016 to 2021.
+
 
 1. Download do-files and place them in the VT folder.
 2. Download the "Datasets" folder in the EDFacts folder under _Data Cleaning Materials
@@ -19,9 +24,10 @@ The `cd` command should map to the Vermont folder
 
 ## Recreating Cleaning Process
 - Run the one yearly cleaning do file
-- Run the 2016-2017 and 2022 Edfacts files next 
+- Run the 2016-2017 and 2022 Edfacts files next
 
-
+## Updates
+02/12/2025: Updated to include 20224 data.
 
 
 

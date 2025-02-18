@@ -1,10 +1,6 @@
 clear
 set more off
 set trace off
-global Original "/Users/kaitlynlucas/Desktop/maine/original"
-global Output "/Users/kaitlynlucas/Desktop/maine/output"
-global NCES_School "/Users/kaitlynlucas/Desktop/maine/nces old"
-global NCES_District "/Users/kaitlynlucas/Desktop/maine/nces old"
 
 //Combining Subjects
 tempfile temp_combined

@@ -29,7 +29,7 @@ global NCES_District "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024" //NCES 
 
 - Download NCES District and School data from the folder on Drive (can combine both types and the do files clean the files for you).
   
-- After downloading and setting directories in all do-files in github, run the ME_Master.do file. It is necessary to run this file to fully recreate the cleaning process as there are additions to each year inside that do-file.
+- After downloading and setting directories in all do-files in github, run the ME_Main_File.do file.
 
 - To make changes, add them to the yearly do-files as opposed to the master do-file.
 
@@ -41,7 +41,7 @@ global NCES_District "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024" //NCES 
 
 1/21/25: Added 2024 data request file.
 
-
+2/18/25: Updated to include a "main" file that runs all other do files and make minor cleaning udpates.
 
 
 

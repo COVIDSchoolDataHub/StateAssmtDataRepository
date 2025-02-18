@@ -2,22 +2,8 @@ clear
 set more off
 set trace off
 
-global dofiles "/Users/kaitlynlucas/Desktop/do files"
-global Original "/Users/kaitlynlucas/Desktop/maine/original"
-global Output "/Users/kaitlynlucas/Desktop/maine/output"
-global NCES_School "/Users/kaitlynlucas/Desktop/maine/nces clean"
-global NCES_District "/Users/kaitlynlucas/Desktop/maine/nces clean"
+//Combining Public & Requested Data
 
-// Running Do files and Combining Original and Data Request Data
-local dofiles "ME_Cleaning_2015.do" "ME_Cleaning_2016-2019.do" "ME_Cleaning_2021-2022.do" "ME_Cleaning_2023.do"
-
-foreach file of local dofiles {
-    do "${dofiles}/`file'"
-}
-
-
-do "/Users/kaitlynlucas/Desktop/do files/ME_DataRequest_2015_2023.do"
-*/
 forvalues year = 2016/2023 {
 	if 	`year' == 2020 continue
 	use "$Output/ME_WebsiteData_`year'"
@@ -26,8 +12,7 @@ forvalues year = 2016/2023 {
 	save "$Output/ME_AssmtData_`year'", replace
 }
 
-
-
+//Final Cleaning
 forvalues year = 2015/2023 {
 	if `year' == 2020 continue
 //Getting rid of private schools
@@ -288,6 +273,8 @@ if `year' == 2023{
 	replace Lev4_percent = "0" if Lev4_count == "0"
 	replace Lev1_percent = "0" if Lev1_percent == "0.000" | Lev1_percent == "-0.000"
 	replace Lev4_percent = "0" if Lev4_percent == "-0.001" | Lev4_percent == "0.000"
+	replace Lev1_count = "0" if Lev1_count == "0.0000"
+	replace Lev4_count = "0" if Lev4_count == "0.0000"
 }
 
 //Final Cleaning
@@ -302,5 +289,3 @@ export delimited "${Output}/ME_AssmtData_`year'", replace
 	
 clear	
 }
-
-do "/Users/kaitlynlucas/Desktop/do files/ME_2024_DataRequest_01.16.25.do"

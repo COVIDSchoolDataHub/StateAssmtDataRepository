@@ -2,10 +2,8 @@ clear
 set more off
 
 
-global EDFacts "/Users/benjaminm/Documents/State_Repository_Research/EdFacts" //Folder with downloaded state-specific 2022 participation data from EDFacts
-global State_Output "/Users/benjaminm/Documents/State_Repository_Research/Vermont/State_Output" // Folder with state-specific data
-global New_Output "/Users/benjaminm/Documents/State_Repository_Research/Vermont/New_Output"
-
+global EDFacts "/Users/miramehta/Documents/EDFacts"
+global Output "/Users/miramehta/Documents/Vermont/Output"
 
 ** Preparing EDFacts files
 local edyears1 16 17 // 18
@@ -264,8 +262,8 @@ foreach year of local edyears1 {
 //Conversion to DTA
 forvalues year = 2016/2017 {
 if `year' == 2020 continue
-import delimited "${State_Output}/VT_AssmtData_`year'", case(preserve) clear
-save "${State_Output}/VT_AssmtData_`year'", replace
+import delimited "${Output}/VT_AssmtData_`year'", case(preserve) clear
+save "${Output}/VT_AssmtData_`year'", replace
 }
 
 
@@ -273,7 +271,7 @@ save "${State_Output}/VT_AssmtData_`year'", replace
 //Merging Example
 forvalues year = 2016/2017 {
 if `year' == 2020 continue
-import delimited "${State_Output}/VT_AssmtData_`year'.csv", case(preserve) clear
+import delimited "${Output}/VT_AssmtData_`year'.csv", case(preserve) clear
 
 	
 //DataLevel
@@ -328,16 +326,6 @@ append using "`tempsch'"
 //New Participation Data
 replace ParticipationRate = Participation if !missing(Participation)
 
-
-replace ParticipationRate = ".608" if ParticipationRate == "60.8"
-replace ParticipationRate = ".708" if ParticipationRate == "70.8"
-replace ParticipationRate = ".758" if ParticipationRate == "75.8"
-replace ParticipationRate = ".808" if ParticipationRate == "80.8"
-replace ParticipationRate = ".809" if ParticipationRate == "80.9"
-replace ParticipationRate = ".859" if ParticipationRate == "85.9"
-replace ParticipationRate = ".909" if ParticipationRate == "90.9"
-
-
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
  
@@ -345,8 +333,8 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${New_Output}/VT_AssmtData_`year'", replace
-export delimited "${New_Output}/VT_AssmtData_`year'", replace
+save "${Output}/VT_AssmtData_`year'", replace
+export delimited "${Output}/VT_AssmtData_`year'", replace
 }
 
 
