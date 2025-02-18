@@ -1,5 +1,5 @@
 *****************************************************************************
-**	Updated February 2, 2025
+**	Updated February 13, 2025
 
 
 ** 	ZELMA STATE ASSESSMENT DATA REPOSITORY 
@@ -15,12 +15,12 @@
 ***************************************
 {
 clear all
-cd "/Desktop/Zelma V2.0/North Dakota - Version 2.0" //  Set path to folder for do file with flag checks
-global Filepath "/Desktop/Zelma V2.0/North Dakota - Version 2.0" //  Set path to csv files
+cd "/Desktop/Zelma V2.1/North Dakota - Version 2.1" //  Set path to folder for do file with flag checks
+global Filepath "/Desktop/Zelma V2.1/North Dakota - Version 2.1" //  Set path to csv files
 global Review "${Filepath}/review" 
 global State "North Dakota" //Set State Name 
 global StateAbbrev "ND" //Set StateAbbrev
-global date "02.02.25" //Set today's date
+global date "02.13.25" //Set today's date
 global years 2024 2023  2022 2021 2019  2018 2017 2016 2015 //  2014 2013 2012 2011 2010 2009 2008 2007 2006 2005 2004 2003 2002 2001 2000 1999 1998
 
 clear
@@ -931,72 +931,48 @@ if `errorNonState' == 0 & `errorState' == 0 {
 }
 
 ***********************************************************
-
-*StateAssignedDistID 
+*StateAssignedDistID (updated 2/12/25)
 
 ** • Is there only 1 state district IDs per unique NCES District ID?
-{
-bysort NCESDistrictID (StateAssignedDistID) : gen d_MultipleStateIDsPer_NCESid = StateAssignedDistID[1] != StateAssignedDistID[_N]  
+** • Is there only 1 NCES District IDs per unique state district ID?
+
+** Mis-matched IDs should be exported to a Google doc on the drive ** 
+{	
+bysort NCESDistrictID (StateAssignedDistID) : gen d_MultipleStateIDsPer_NCESid = StateAssignedDistID[1] != StateAssignedDistID[_N] 
 bysort StateAssignedDistID (NCESDistrictID) : gen d_MultipleNCESIDsPer_StateID = NCESDistrictID[1] != NCESDistrictID[_N]
 
-local distid_flag1 "d_MultipleStateIDsPer_NCESid"
+local d_MultipleStateID 0    
+local d_MultipleNCESID 0    
 
-foreach var of local distid_flag1 {
-	
-	count if `var'==1
-    
-	if r(N) !=0 {
-		di as error "The observations below have multiple StateAssignedDistIDs per NCESDistrictID. Upload mis-matched IDs to the Google drive and review."
-		cap tab NCESDistrictID StateAssignedDistID if d_MultipleStateIDsPer_NCESid==1
-			}
-	{
-	preserve	
-	format NCESDistrictID %18.0g
-	keep if d_MultipleStateIDsPer_NCESid==1 | d_MultipleNCESIDsPer_StateID==1 
-	keep FILE State SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID d_MultipleStateIDsPer_NCESid  d_MultipleNCESIDsPer_StateID
-	sort NCESDistrictID SchYear 
-	cap duplicates drop 
-	cap export excel using "${Review}/${StateAbbrev}_mismatched dist IDs_${date}.xlsx", firstrow(variables) replace
-	restore
-	}
-
-	else {
-		di as error "Correct."
+	//Multiple state IDs per NCES ID
+	count if d_MultipleStateIDsPer_NCESid == 1
+		if r(N) > 0 {
+			di as error "There is more than 1 StateAssignedDistID per NCESDistrictID."
+			local d_MultipleStateID 1
 		}
-	}
-}
-
-***********************************************************
-*StateAssignedDistID
-
-** • Is there only 1 NCES District IDs per unique state district ID?
-** • Have mis-matched IDs all be exported to a Google doc on the drive?
-{
-local distid_flag2 "d_MultipleNCESIDsPer_StateID"
-foreach var of local distid_flag2 {
-	
-	count if `var'==1
-    
-	if r(N) !=0 {
-		di as error "The observations below have multiple NCESDistrictIDs per StateAssignedDistID. Upload mis-matched IDs to the Google drive and review."
-		cap tab NCESDistrictID StateAssignedDistID if d_MultipleNCESIDsPer_StateID==1
-	}	
-	
-	{
-	preserve	
-	format NCESDistrictID %18.0g
-	keep if d_MultipleStateIDsPer_NCESid==1 | d_MultipleNCESIDsPer_StateID==1 
-	keep FILE State SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID d_MultipleStateIDsPer_NCESid  d_MultipleNCESIDsPer_StateID
-	sort NCESDistrictID SchYear 
-	cap duplicates drop 
-	cap export excel using "${Review}/${StateAbbrev}_mismatched dist IDs_${date}.xlsx", firstrow(variables) replace
-	restore
-	}
-	
-	else {
-		di as error "Correct."
+		
+	//Multiple NCES IDs per state ID
+	count if d_MultipleNCESIDsPer_StateID == 1
+		if r(N) > 0 {
+			di as error "There is more than 1 NCESDistrictID per StateAssignedDistID."
+			local d_MultipleNCESID 1
 		}
-	}
+ 
+	// Output for review if either error exists
+	if `d_MultipleStateID' | `d_MultipleNCESID' {
+		
+		preserve
+		keep if d_MultipleStateIDsPer_NCESid == 1 | d_MultipleNCESIDsPer_StateID == 1
+		keep FILE State SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID d_MultipleStateIDsPer_NCESid  d_MultipleNCESIDsPer_StateID
+		cap duplicates drop 
+		cap export excel using "${Review}/${StateAbbrev}_mismatched dist IDs_${date}.xlsx", firstrow(variables) replace
+		restore
+	} 
+ 
+	// Summary
+	if `d_MultipleStateID' == 0 & `d_MultipleNCESID' == 0 {
+		di as error "Correct."
+		}	
 }
 
 ***********************************************************
@@ -1217,73 +1193,53 @@ if `errorSch' == 0 & `errorNonSch' == 0 {
 
 
 ***********************************************************
-*StateAssignedSchID 
+*StateAssignedSchID (updated 2/12/25)
 
-** • Is there only 1 state school ID per unique NCES school ID?
+** • Is there only 1 state sch IDs per unique NCES School ID?
+** • Is there only 1 NCES School IDs per unique state sch ID?
 
+** Mis-matched IDs should be exported to a Google doc on the drive ** 
 {
-bysort NCESSchoolID (StateAssignedSchID) : gen s_MultipleStateSchIDsPer_NCESid = StateAssignedSchID[1] != StateAssignedSchID[_N]  
-
-bysort StateAssignedSchID (NCESSchoolID) : gen s_MultipleNCESIDsPer_StateSchID = NCESSchoolID[1] != NCESSchoolID[_N]
-
-local schid_flag1 "s_MultipleStateSchIDsPer_NCESid"
-foreach var of local schid_flag1 {
-    
-	if r(N) !=0 {
-		di as error "There are observations with multiple state school IDs per unique NCES school ID. See output in review folder."
-		cap tab NCESSchoolID StateAssignedSchID if s_MultipleStateSchIDsPer_NCESid==1
-		}	
-
-		{
-		preserve
-		format NCESSchoolID %18.0g	
-		keep if s_MultipleStateSchIDsPer_NCESid==1 | s_MultipleNCESIDsPer_StateSchID==1 
-		keep FILE State SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID s_MultipleStateSchIDsPer_NCESid  s_MultipleNCESIDsPer_StateSchID
-		sort NCESDistrictID NCESSchoolID FILE 
-		cap duplicates drop 
-		cap export excel using "${Review}/${StateAbbrev}_mismatched sch ids_${date}.xlsx", firstrow(variables)
-		restore
-		}
-
-	else {
-		di as error "Correct."
-		}
-	}
-}
-***********************************************************
-*StateAssignedSchID
-
-** • Is there only 1 NCES school ID per unique state school ID?
-
-{
-local schid_flag2 "s_MultipleNCESIDsPer_StateSchID"
-foreach var of local schid_flag2 {
-    
-	if r(N) !=0 {
-		di as error "There are multiple NCES school IDs per unique state school ID. See output in review folder."
-		cap tab NCESSchoolID StateAssignedSchID if s_MultipleNCESIDsPer_StateSchID==1
-		}	
+local s_MultipleStateID 0    
+local s_MultipleNCESID 0    
 	
-		{
+bysort NCESSchoolID (StateAssignedSchID) : gen s_MultipleStateIDsPer_NCESid = StateAssignedSchID[1] != StateAssignedSchID[_N]  
+bysort StateAssignedSchID (NCESSchoolID) : gen s_MultipleNCESIDsPer_StateID = NCESSchoolID[1] != NCESSchoolID[_N]
+
+	//Multiple state IDs per NCES ID
+	count if s_MultipleStateIDsPer_NCESid == 1
+		if r(N) > 0 {
+			di as error "There is more than 1 StateAssignedSchID per NCESSchoolID."
+			local s_MultipleStateID 1
+		}
+		
+	//Multiple NCES IDs per state ID
+	count if s_MultipleNCESIDsPer_StateID == 1
+		if r(N) > 0 {
+			di as error "There is more than 1 NCESSchoolID per StateAssignedSchID."
+			local s_MultipleNCESID 1
+		}
+ 
+	// Output for review if either error exists
+	if `s_MultipleStateID' | `s_MultipleNCESID' {
+		
 		preserve
-		format NCESSchoolID %18.0g	
-		keep if s_MultipleStateSchIDsPer_NCESid==1 | s_MultipleNCESIDsPer_StateSchID==1 
-		keep FILE State SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID s_MultipleStateSchIDsPer_NCESid  s_MultipleNCESIDsPer_StateSchID
-		sort NCESDistrictID NCESSchoolID FILE 
+		keep if `s_MultipleStateID' == 1 | `s_MultipleNCESID' == 1
+		keep FILE State SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID s_MultipleStateIDsPer_NCESid  s_MultipleNCESIDsPer_StateID
 		cap duplicates drop 
-		cap export excel using "${Review}/${StateAbbrev}_mismatched sch ids_${date}.xlsx", firstrow(variables) replace
+		cap export excel using "${Review}/${StateAbbrev}_mismatched sch IDs_${date}.xlsx", firstrow(variables) replace
 		restore
-		}
-	
-	else {
+	} 
+ 
+	// Summary
+	if `s_MultipleStateID' == 0 & `s_MultipleNCESID' == 0 {
 		di as error "Correct."
-		}
-	}
+		}	
 }
 
 {
 // Var cleanup 
-drop d_MultipleStateIDsPer_NCESid d_MultipleNCESIDsPer_StateID s_MultipleStateSchIDsPer_NCESid s_MultipleNCESIDsPer_StateSchID
+drop d_MultipleStateIDsPer_NCESid d_MultipleNCESIDsPer_StateID s_MultipleStateIDsPer_NCESid s_MultipleNCESIDsPer_StateID
 }
 ***********************************************************
 *StateAssignedSchID
@@ -2765,12 +2721,13 @@ gen der_L1_ct_lev45 = .
 
 }
 
-** • LEV 2: Have counts been derived to the extent possible? (updated 1/16/25)
+** • LEV 2: Have counts been derived to the extent possible? (updated 2/13/25)
 {
 gen der_L2_ct_lev23 = .
-	replace der_L2_ct_lev23 = ProficiencyCriteria == "Levels 2-3" & ///
-        (inlist(Lev2_count, "*", "--") & !inlist(ProficientOrAbove_count, "*", "--", "")) 
-	replace der_L2_ct_lev23 = ProficiencyCriteria == "Levels 2-3" & ///
+    replace der_L2_ct_lev23 = ProficiencyCriteria == "Levels 2-3" & ///
+        (inlist(Lev2_count, "*", "--") & ///
+	!inlist(Lev3_count, "*", "--") & !inlist(ProficientOrAbove_count, "*", "--")) 
+    replace der_L2_ct_lev23 = ProficiencyCriteria == "Levels 2-3" & ///
         (inlist(Lev2_count, "*", "--") & !inlist(Lev1_count, "*", "--") & ///
         !inlist(Lev3_count, "*", "--") & !inlist(StudentSubGroup_TotalTested, "*", "--"))
 
@@ -3256,7 +3213,7 @@ gen der_L1_per_lev45 = .
 {
 gen der_L2_per_lev23 = .
 	replace der_L2_per_lev23 = 1 if ProficiencyCriteria == "Levels 2-3" & ///
-		(inlist(Lev2_percent, "*", "--") & !inlist(ProficientOrAbove_percent, "*", "--")) 
+		(inlist(Lev2_percent, "*", "--") & !inlist(Lev3_percent, "*", "--") & !inlist(ProficientOrAbove_percent, "*", "--")) 
 	replace der_L2_per_lev23 = 1 if ProficiencyCriteria == "Levels 2-3" & ///
 		(inlist(Lev2_percent, "*", "--") & !inlist(Lev1_percent, "*", "--") & !inlist(Lev3_percent, "*", "--"))
 	
@@ -3424,6 +3381,37 @@ foreach var of local der_alllev {
 }
 }
 ***********************************************************
+*Level percents 
+
+** • Have low level percent values been reviewed for irregularities? (added 1/29/25)
+tab Lev1_percent FILE if real(Lev1_percent) < .001
+tab Lev2_percent FILE if real(Lev2_percent) < .001
+tab Lev3_percent FILE if real(Lev3_percent) < .001
+tab Lev4_percent FILE if real(Lev4_percent) < .001
+tab Lev5_percent FILE if real(Lev5_percent) < .001
+
+***********************************************************
+*Level percents 
+
+** • Are all percents presented as decimals? [or decimal ranges] (updated 1/29/25)
+{
+local levpercents "Lev1_percent2_n Lev2_percent2_n Lev3_percent2_n Lev4_percent2_n Lev5_percent2_n"
+
+foreach var of local levpercents {
+	
+    // Count observations where the variable is outside the range [0, 1]
+    count if (`var' > 1 | `var' < 0) & !missing(`var')
+    
+    if r(N) != 0 {
+        di as error "Check `var' values in the files below."
+        tab `var' FILE if (`var' > 1 | `var' < 0) & !missing(`var')
+    } 
+    else {
+        di as error "`var' Correct."
+   	}		
+	}
+}
+***********************************************************
 * Level percents 
 
 ** • Are all applicable rows free from any blanks?
@@ -3551,38 +3539,6 @@ drop levcount_rng_flag
 
 
 ***********************************************************
-*Level percents 
-
-
-** • Have low level percent values been reviewed for irregularities? (added 1/29/25)
-tab Lev1_percent FILE if real(Lev1_percent) < .001
-tab Lev2_percent FILE if real(Lev2_percent) < .001
-tab Lev3_percent FILE if real(Lev3_percent) < .001
-tab Lev4_percent FILE if real(Lev4_percent) < .001
-tab Lev5_percent FILE if real(Lev5_percent) < .001
-
-***********************************************************
-*Level percents 
-
-** • Are all percents presented as decimals? [or decimal ranges] (updated 1/29/25)
-{
-local levpercents "Lev1_percent2_n Lev2_percent2_n Lev3_percent2_n Lev4_percent2_n Lev5_percent2_n"
-
-foreach var of local levpercents {
-	
-    // Count observations where the variable is outside the range [0, 1]
-    count if (`var' > 1 | `var' < 0) & !missing(`var')
-    
-    if r(N) != 0 {
-        di as error "Check `var' values in the files below."
-        tab `var' FILE if (`var' > 1 | `var' < 0) & !missing(`var')
-    } 
-    else {
-        di as error "`var' Correct."
-    }		
-}
-}
-
 
 * Drop when no longer needed 
 drop Lev1_percent2_n Lev2_percent2_n Lev3_percent2_n Lev4_percent2_n Lev5_percent2_n
@@ -5017,7 +4973,7 @@ tab DataLevel SchYear if Subject =="soc"
 
 ***********************************************************
 ** • Do values align with the crosswalk? (AssmtType, Flags)
-do "V2.1_FlagChecks_2025.02.02.do"
+do "V2.1_FlagChecks_2025.02.13.do"
 
 // Name change flag, for reference
 tab  FILE Flag_AssmtNameChange if Subject == "ela"

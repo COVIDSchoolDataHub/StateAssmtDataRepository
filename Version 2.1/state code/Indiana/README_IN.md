@@ -1,48 +1,57 @@
 
 # Indiana Data Cleaning
 
-This is a ReadMe for Indiana's data cleaning process, from 2014 to 2024.
+This is a ReadMe for Indiana's data cleaning process from 2014 to 2024.
 
-## Set Up
-There are three main folders you will need:
-1. IN State Testing Data, with the following subfolders:
+## NCES Setup
+
+NCES_Full: Download the folder from Google Drive-->_Data Cleaning Materials --> NCES District and School Demographics.
+    
+       a. NCES District Files [subfolder] 
+
+       b. NCES School Files [subfolder]
+
+As of 2/13/2025, the most recent files are from NCES 2022. 
+
+## EDFacts Setup
+EDFacts: Download the Datasets subfolder containing *.csv files. There will be individual folders for each year. This is located in Google Drive-->_Data Cleaning Materials --> _EDFacts--> Datasets.
+
+## Indiana Setup
+Create a folder for IN. Inside that folder, create the following subfolders:
+      
+      1. Original Data Files: Download the Original Data Files - Version 2.0+ (incl v1.1 + sci and soc data). There will be two subfolders - ELA + Math and Science + Social Studies. 
+         This is located in Google Drive --> Indiana. 
+         a. ELA + Math [subfolder]: This should contain all  ELA + Math files downloaded.
+         b. Science + Social Studies [subfolder]: This should contain all Science + Social Studies downloaded.   
+      
+      2. Temp
+         
+      3. NCES_IN [will start empty]
+      
+      4. EDFacts_IN [will start empty]
+      
+      5. Output_Files
+      
+      6. Output_Files_ND: This is a folder for the non-derivation output.
    
-    a. Original Data Files - Download the files from Original Data - Version 2.0 and place them here.
-   
-    b. Temp
-   
-    c. Output
-   
-3. NCES District and School Demographics, with subfolders for district and school files, as well as a subfolder for clean NCES files.
+## Process
+The do files need to be executed in the following order.
 
-    a. NCES District Files, Fall 1997-Fall 2022
+      1. 01_Indiana NCES Cleaning.do
+      
+      2. 02_IN_Importing_sci_soc.do
+      
+      3. 03_IN_Importing.do
+      
+      4. 04_IN_Cleaning.do
+      
+      5. 05_IN_EDFactsParticipation_2014_2021.do
+      
+      6. 06_IN_EDFactsParticipation_2022.do
 
-    b. NCES School Files, Fall 1997-Fall 2022
-
-5. EDFacts, with a subfolder for each year from 2014-2021.  Download the wide version of the datasets (from the "Long DTA Datasets" folder) and place them in the appropriate subfolders.
-
-There are 6. do files which must be run in the following order:
-1. Indiana NCES Cleaning.do
-2. IN_Importing_sci_soc.do
-3. IN_Importing.do
-4. IN_Cleaning.do
-5. IN_EDFactsParticipation_2014_2021.do
-6. IN_EDFactsParticipation_2022.do
-
-## File Path
-
-The file path setup should be as follows: 
-
-```bash
-global NCES_Original "/Users/miramehta/Documents/NCES District and School Demographics/"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
-
-global Original "/Users/miramehta/Documents/IN State Testing Data/Original Data Files"
-global temp "/Users/miramehta/Documents/IN State Testing Data/Temp"
-global Output "/Users/miramehta/Documents/IN State Testing Data/Output"
-
-global EDFacts "/Users/miramehta/Documents/EDFacts"
-```
+You can run IN_Main_File.do after setting the appropriate file paths. 
 
 ## Updates
 11/12/24: Updated to include 2024 data, as well as new sci/soc data received in data request, and incorporate "all students" data from public files.
+
+02/13/24: Modified code to export non-derivation output. Fixed case-sensitive issues in 03_IN_Importing. Added headers, footers, and notes in each do file. 

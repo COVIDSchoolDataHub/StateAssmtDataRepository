@@ -1,20 +1,42 @@
+*******************************************************
+* INDIANA
+
+* File name: 06_IN_EDFactsParticipation_2022
+* Last update: 2/13/2025
+
+*******************************************************
+* Notes
+
+	* This do file uses EDFacts participation rates for 2022. 
+	* a) IN_EFParticipation_2022_math.csv
+	* b) IN_EFParticipation_2022_ela.csv
+	
+	* These files are found in the Google Drive --> Indiana --> Original Data Files - Version 2.0 (incl v1.1 + sci and soc data) --> ELA + Math
+	
+	* It merges with and REPLACES the 2023 output created in:
+		* a) 04_IN_Cleaning (usual output replaced, non-derived output NOT replaced)
+		
+*******************************************************
+
+/////////////////////////////////////////
+*** Setup ***
+/////////////////////////////////////////
+
 clear
 set more off
 
-global Original "/Users/miramehta/Documents/IN State Testing Data/Original Data Files"
-global temp "/Users/miramehta/Documents/IN State Testing Data/Temp"
-global Output "/Users/miramehta/Documents/IN State Testing Data/Output"
+
 
 foreach s in ela math {
 	import delimited "$Original/ELA + Math/IN_EFParticipation_2022_`s'.csv", case(preserve) clear
-	save "$temp/IN_EFParticipation_2022_`s'.dta", replace
+	save "$Temp/IN_EFParticipation_2022_`s'.dta", replace
 }
 
 import delimited "$Original/Science + Social Studies/IN_EFParticipation_2022_sci.csv", case(preserve) clear
-save "$temp/IN_EFParticipation_2022_sci.dta", replace
+save "$Temp/IN_EFParticipation_2022_sci.dta", replace
 
-use "$temp/IN_EFParticipation_2022_ela.dta", clear
-append using "$temp/IN_EFParticipation_2022_math.dta" "$temp/IN_EFParticipation_2022_sci.dta"
+use "$Temp/IN_EFParticipation_2022_ela.dta", clear
+append using "$Temp/IN_EFParticipation_2022_math.dta" "$Temp/IN_EFParticipation_2022_sci.dta"
 
 
 //Rename and Drop Vars
@@ -79,7 +101,7 @@ append using "`temp1'"
 replace GradeLevel = subinstr(GradeLevel, "Grade ", "G0",.)
 
 //Saving EDFacts Output
-save "$temp/IN_EFParticipation_2022", replace
+save "$Temp/IN_EFParticipation_2022", replace
 
 //Merging with 2022
 use "$Output/IN_AssmtData_2022", clear
@@ -87,7 +109,7 @@ use "$Output/IN_AssmtData_2022", clear
 destring NCESDistrictID NCESSchoolID, replace
 
 //Merging
-merge 1:1 NCESDistrictID NCESSchoolID GradeLevel Subject StudentSubGroup using "$temp/IN_EFParticipation_2022"
+merge 1:1 NCESDistrictID NCESSchoolID GradeLevel Subject StudentSubGroup using "$Temp/IN_EFParticipation_2022"
 drop if _merge ==2
 replace ParticipationRate = Participation
 replace ParticipationRate = "--" if missing(ParticipationRate)
@@ -98,12 +120,24 @@ replace NCESDistrictID = "" if NCESDistrictID == "."
 tostring NCESSchoolID, replace format("%18.0f")
 replace NCESSchoolID = "" if NCESSchoolID == "."
 
-//Final Cleaning
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
- 
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
+// Reordering variables and sorting data
+local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
+    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
+    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
+    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
+    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
+    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
+    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
+    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
+    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
+    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
+    Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+	keep `vars'
+	order `vars'
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "$Output/IN_AssmtData_2022", replace
 export delimited "$Output/IN_AssmtData_2022", replace
+
+* END of 06_IN_EDFactsParticipation_2022.do
+****************************************************

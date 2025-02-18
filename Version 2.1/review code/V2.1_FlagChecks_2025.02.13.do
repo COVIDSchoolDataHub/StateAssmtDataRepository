@@ -1,5 +1,5 @@
 *****************************************************************************
-**	Updated February 7, 2025
+**	Updated February 13, 2025
 
 ** 	ZELMA STATE ASSESSMENT DATA REPOSITORY 
 **	ASSESSMENT FLAGS - VERSION 2.1
@@ -1263,11 +1263,7 @@ if "$StateAbbrev" == "VT" {
 if "$StateAbbrev" == "VA" {
 	
 	*AssmtName
-	replace Flag_AssmtNameChange_Chk = "Y" if FILE == "1998" & (Subject == "ela" | Subject == "math")
-	replace Flag_AssmtNameChange_Chk = "Y" if FILE == "1998" & (Subject == "sci")
-	replace Flag_AssmtNameChange_Chk = "Y" if FILE == "1998" & (Subject == "soc")
-	
-
+	replace Flag_AssmtNameChange_Chk = "Y" if FILE == "1998" 
 
 	*ELA
 	replace Flag_CutScoreChange_ELA_Chk = "Y" if FILE == "1998"
@@ -1294,6 +1290,7 @@ if "$StateAbbrev" == "VA" {
 	replace Flag_CutScoreChange_soc_Chk = "Y" if FILE == "1998"
 	replace Flag_CutScoreChange_soc_Chk = "Y" if FILE == "2004"
 	replace Flag_CutScoreChange_soc_Chk = "Y" if FILE == "2011"
+	replace Flag_CutScoreChange_soc_Chk = "Not applicable" if real(FILE) > 2014
 	
 }
 

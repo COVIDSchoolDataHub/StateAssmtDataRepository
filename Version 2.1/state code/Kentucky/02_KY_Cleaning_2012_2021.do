@@ -1,12 +1,25 @@
+***************************
+*KENTUCKY
+
+*File Name: 02_KY_Cleaning_2012_2021
+*Last update: 02/17/25
+
+***************************
+
+*NOTES:
+
+*This do-file cleans all raw data from 2012 to 2021 and merges it with NCES (using raw NCES files available on the drive)
+
+
+***************************
+
 clear
 set more off
 set trace off
-cd "/Users/miramehta/Documents/"
-global Original "/Users/miramehta/Documents/KY State Testing Data/Original Data Files"
-global Output "/Users/miramehta/Documents/KY State Testing Data/Output"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics"
 
-//Importing (unhide on first run)
+
+
+//Importing (unhide after first run)
 
 
 forvalues year = 2012/2017 {
@@ -19,17 +32,19 @@ foreach year in 2018 2019 {
 	save "${Original}/KY_OriginalData_`year'", replace
 	clear
 }
-foreach year in 2021 2022 2023 {
+
+
+foreach year in 2021 {
 	import delimited "${Original}/KY_OriginalData_`year'_all", case(preserve) stringcols(_all) clear
 	save "${Original}/KY_OriginalData_`year'", replace
 	clear
 }
 
-*/
+
 
 //Cleaning
 
-forvalues year = 2012/2023 {
+forvalues year = 2012/2021 {
 	if `year' == 2020 continue
 use "${Original}/KY_OriginalData_`year'", clear
 local prevyear =`=`year'-1'
@@ -282,7 +297,7 @@ keep if DataLevel == 2
 tempfile tempdist
 save "`tempdist'", replace
 clear
-use "${NCES}/NCES District Files, Fall 1997-Fall 2022/NCES_`prevyear'_District"
+use "${NCES_Original}/NCES_`prevyear'_District"
 keep if state_location == "KY" | state_fips_id == 21
 gen StateAssignedDistID = subinstr(state_leaid, "KY-","",.)
 replace StateAssignedDistID = substr(StateAssignedDistID, 4,3)
@@ -312,7 +327,7 @@ keep if DataLevel == 3
 tempfile tempsch
 save "`tempsch'", replace
 clear
-use "${NCES}/NCES School Files, Fall 1997-Fall 2022/NCES_`prevyear'_School"
+use "${NCES_Original}/NCES_`prevyear'_School"
 keep if state_location == "KY" | state_fips_id == 21
 gen StateAssignedSchID = substr(seasch, strpos(seasch, "-")+1,10)
 replace StateAssignedSchID = substr(StateAssignedSchID, 4,6)
@@ -410,8 +425,16 @@ replace Flag_CutScoreChange_soc = "Y"
 replace Flag_CutScoreChange_sci = "Y"
 }
 
+if `year' >= 2015 & `year' <= 2017 {
+	replace Flag_CutScoreChange_sci = "Not applicable"
+}
+
 if `year' == 2018 {
 replace Flag_CutScoreChange_sci = "Y"
+}
+
+if `year' == 2021 {
+	replace Flag_CutScoreChange_soc = "Not applicable"
 }
 
 if `year' == 2022 {
@@ -486,3 +509,11 @@ export delimited "${Output}/KY_AssmtData_`year'", replace
 clear	
 	
 }
+
+**********************
+
+* END of 02_KY_Cleaning_2012_2021
+
+**********************
+
+

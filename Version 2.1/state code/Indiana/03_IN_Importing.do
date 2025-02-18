@@ -1,24 +1,40 @@
-clear
-set more off
-set trace off
+*******************************************************
+* INDIANA
 
-global Original "/Users/miramehta/Documents/IN State Testing Data/Original Data Files"
-global temp "/Users/miramehta/Documents/IN State Testing Data/Temp"
-global Output "/Users/miramehta/Documents/IN State Testing Data/Output"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+* File name: 03_IN_Importing
+* Last update: 2/12/2025
+
+*******************************************************
+* Notes
+
+	* This do file imports *.csv all student, subgroup ELA and MATH files from 2014 through 2024. 
+	* Some files are reshaped (from wide to long). 
+	* Variables are renamed/ duplicates dropped and files are saved in a .dta format. 
+	* All processed files are appended. 
+
+*******************************************************
+
+/////////////////////////////////////////
+*** Setup ***
+/////////////////////////////////////////
+
+clear
+
+/////////////////////////////////////////
+*** Cleaning ***
+/////////////////////////////////////////
 
 //Importing and Combining
 local SubGroups1 "OVERALL ETHNICITY GENDER FRL SPED ELL FOSTER HOMELESS ACTIVE_DUTY"
 local SubGroups2 "ETHNICITY GENDER FRL SPED ELL"
 
 forvalues year = 2014/2024 {
-
 if `year' == 2020 continue
 
 	tempfile tempdistschool
 	save "`tempdistschool'", replace emptyok
 	clear
-	
+	*This part of the code does not work - Error: worksheet ela_OVERALL not found*
 	foreach Subject in ELA MATH {
 		foreach DataLevel in LEA SCH {
 				foreach SG of local SubGroups2 {
@@ -48,22 +64,19 @@ if `year' == 2020 continue
 						if `year' > 2018 local newvar = subinstr("`newvar'", "atproficiency", "Lev3_count_",.)
 						if `year' > 2018 local newvar = subinstr("`newvar'", "aboveproficiency", "Lev4_count_",.)
 						
-						
-						
-						
 						rename `var' `newvar'
 					}
 					drop in 1/2
-					save "${temp}/`Subject'_`DataLevel'_`SG'", replace
+					save "${Temp}/`Subject'_`DataLevel'_`SG'", replace
 					clear
 				}
-				use "${temp}/`Subject'_`DataLevel'_GENDER"
+				use "${Temp}/`Subject'_`DataLevel'_GENDER"
 				//Flagging here that for 2018 *AND* 2019, LEA ELA "GENDER", there are duplicate values. Arbitarily dropping below for now.
 				if `year' == 2018 | `year' == 2019 duplicates drop grade idoe_corporation_id, force
 				
 				foreach SG in ETHNICITY FRL SPED ELL {
-				if "`DataLevel'" == "LEA" merge 1:1 grade idoe_corporation_id using "${temp}/`Subject'_`DataLevel'_`SG'", nogen
-				if "`DataLevel'" == "SCH" merge 1:1 grade idoe_corporation_id idoe_school_id using "${temp}/`Subject'_`DataLevel'_`SG'", nogen
+				if "`DataLevel'" == "LEA" merge 1:1 grade idoe_corporation_id using "${Temp}/`Subject'_`DataLevel'_`SG'", nogen
+				if "`DataLevel'" == "SCH" merge 1:1 grade idoe_corporation_id idoe_school_id using "${Temp}/`Subject'_`DataLevel'_`SG'", nogen
 				}
 				gen DataLevel = "`DataLevel'"
 				gen Subject = "`Subject'"
@@ -89,18 +102,26 @@ if `year' == 2020 continue
 		}
 		
 	}
+
+
 use "`tempdistschool'"
-save "${temp}/`year'_District_School_ela_mat", replace
+save "${Temp}/`year'_District_School_ela_mat", replace
 clear
 
-	
+
 	tempfile tempstate
 	save "`tempstate'", emptyok replace
-	foreach Subject in ELA MATH {
+		foreach Subject in ELA MATH {
 			foreach SG of local SubGroups1 {
 				if `year' == 2024 & "`SG'" == "FOSTER" continue
 				local sg = strproper("`SG'")
-					if `year' < 2019 import excel using "${Original}/ELA + Math/IN_`year'_SEA_`Subject'_ISTEP.xlsx", sheet("`Subject'_`SG'") clear
+					if `year' == 2018 & "`Subject'" == "ELA" & inlist("`SG'", "OVERALL", "ETHNICITY", "GENDER") continue
+					local sg = strproper("`SG'")
+					if `year' == 2018 & "`Subject'" == "ELA" & inlist("`SG'", "OVERALL", "ETHNICITY", "GENDER") import excel using "${Original}/ELA + Math/IN_`year'_SEA_`Subject'_ISTEP.xlsx", sheet("`Subject'_`sg'") clear
+					else if `year' == 2018 & "`Subject'" == "ELA" & inlist("`SG'", "FRL", "SPED") import excel using "${Original}/ELA + Math/IN_`year'_SEA_`Subject'_ISTEP.xlsx", sheet("`Subject' `SG'") clear
+					else if `year' == 2018 & "`Subject'" == "ELA" & inlist("`SG'", "ELL", "FOSTER", "HOMELESS") import excel using "${Original}/ELA + Math/IN_`year'_SEA_`Subject'_ISTEP.xlsx", sheet("`Subject'_`SG'") clear
+					else if `year' == 2018 & "`Subject'" == "ELA" & "`SG'" == "ACTIVE_DUTY" import excel using "${Original}/ELA + Math/IN_`year'_SEA_`Subject'_ISTEP.xlsx", sheet("ELA_ACTIVE DUTY") clear
+					else if `year' < 2019 import excel using "${Original}/ELA + Math/IN_`year'_SEA_`Subject'_ISTEP.xlsx", sheet("`Subject'_`SG'") clear
 					else if `year' > 2018 & `year' != 2024 import excel using "${Original}/ELA + Math/IN_`year'_SEA_`Subject'_ILEARN.xlsx", sheet("`Subject'_`SG'") clear
 					else if `year' == 2024 & inlist("`SG'", "OVERALL", "ETHNICITY", "GENDER") import excel using "${Original}/ELA + Math/IN_`year'_SEA_`Subject'_ILEARN.xlsx", sheet("`Subject' `sg'") clear
 					else if `year' == 2024 & "`Subject'" == "ELA" & inlist("`SG'", "ELL", "HOMELESS") import excel using "${Original}/ELA + Math/IN_`year'_SEA_`Subject'_ILEARN.xlsx", sheet("`Subject'_`SG'") clear
@@ -155,10 +176,9 @@ rename proficient ProficientOrAbove_count
 rename tested StudentSubGroup_TotalTested
 rename proficient_per ProficientOrAbove_percent
 rename grade GradeLevel
-save "${temp}/`year'_State_ela_mat", replace
+save "${Temp}/`year'_State_ela_mat", replace
 clear				
 }
-
 
 /// All Students Data
 //2014-2016
@@ -245,13 +265,14 @@ forvalues year = 2014/2016{
 		}
 		gen DataLevel = "`DataLevel'"
 		gen StudentSubGroup = "All Students"
-		save "$temp/IN_`year'_ela_mat_`DataLevel'", replace
+		save "$Temp/IN_`year'_ela_mat_`DataLevel'", replace
 		}
-	use "$temp/IN_`year'_ela_mat_LEA", clear
-	append using "$temp/IN_`year'_ela_mat_SCH"
-	save "$temp/IN_`year'_ela_mat_allstud", replace
+	use "$Temp/IN_`year'_ela_mat_LEA", clear
+	append using "$Temp/IN_`year'_ela_mat_SCH"
+	save "$Temp/IN_`year'_ela_mat_allstud", replace
 }
 
+*This works*
 //2017-2018
 forvalues year = 2017/2018{
 	foreach DataLevel in LEA SCH {
@@ -366,15 +387,15 @@ forvalues year = 2017/2018{
 		}
 		gen DataLevel = "`DataLevel'"
 		gen StudentSubGroup = "All Students"
-		save "$temp/IN_`year'_ela_mat_`DataLevel'", replace
+		save "$Temp/IN_`year'_ela_mat_`DataLevel'", replace
 		}
-	use "$temp/IN_`year'_ela_mat_LEA", clear
-	append using "$temp/IN_`year'_ela_mat_SCH"
+	use "$Temp/IN_`year'_ela_mat_LEA", clear
+	append using "$Temp/IN_`year'_ela_mat_SCH"
 	replace idoe_corporation_id = "0" + idoe_corporation_id if strlen(idoe_corporation_id) == 3
 	replace idoe_corporation_id = "00" + idoe_corporation_id if strlen(idoe_corporation_id) == 2
 	replace idoe_school_id = "0" + idoe_school_id if strlen(idoe_school_id) == 3
 	replace idoe_school_id = "00" + idoe_school_id if strlen(idoe_school_id) == 2
-	save "$temp/IN_`year'_ela_mat_allstud", replace
+	save "$Temp/IN_`year'_ela_mat_allstud", replace
 }
 
 //2019-2024
@@ -505,20 +526,23 @@ forvalues year = 2019/2024{
 				gen Subject = "`Subject'"
 				gen DataLevel = "`DataLevel'"
 				gen StudentSubGroup = "All Students"
-				save "$temp/IN_`year'_`Subject'_`DataLevel'", replace
+				save "$Temp/IN_`year'_`Subject'_`DataLevel'", replace
 			}
 	}
-	use "$temp/IN_`year'_ELA_SCH", clear
-	append using "$temp/IN_`year'_ELA_LEA" "$temp/IN_`year'_Math_SCH" "$temp/IN_`year'_Math_LEA"
+	use "$Temp/IN_`year'_ELA_SCH", clear
+	append using "$Temp/IN_`year'_ELA_LEA" "$Temp/IN_`year'_Math_SCH" "$Temp/IN_`year'_Math_LEA"
 	drop if corporation_name == "" & school_name == ""
 	drop if Lev1_count == "" & Lev2_count == "" & Lev3_count == "" & Lev4_count == "" & ProficientOrAbove_count == "" & StudentSubGroup_TotalTested == "" & ProficientOrAbove_percent == ""
-	save "$temp/IN_`year'_ela_mat_allstud", replace
+	save "$Temp/IN_`year'_ela_mat_allstud", replace
 }
 
 //Append Data
 forvalues year = 2014/2024{
 	if `year' == 2020 continue
-	use "$temp/`year'_State_ela_mat", clear
-	append using "$temp/`year'_District_school_ela_mat" "$temp/IN_`year'_ela_mat_allstud" "$temp/IN_`year'_sci_soc"
-	save "$temp/IN_`year'", replace
+	use "$Temp/`year'_State_ela_mat", clear
+	append using "$Temp/`year'_District_school_ela_mat" "$Temp/IN_`year'_ela_mat_allstud" "$Temp/IN_`year'_sci_soc"
+	save "$Temp/IN_`year'", replace
 }
+
+* END of 03_IN_Importing.do
+****************************************************

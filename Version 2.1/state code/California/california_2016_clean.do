@@ -1,25 +1,35 @@
+*******************************************************
+* CALIFORNIA
+
+* File name: california_2016_clean
+* Last update: 2/18/2025
+
+*******************************************************
+* Notes
+
+	* This do file cleans CA's 2016 data and merges with NCES 2009, 2010 and 2022. 
+	* As of 2/18/25, the most recent NCES file available is NCES_2022. 
+	* This file will need to be updated when NCES_2023 becomes available
+
+*******************************************************
+
+/////////////////////////////////////////
+*** Setup ***
+/////////////////////////////////////////
+
 clear
 set more off
 
 cap log close
 log using california_cleaning.log, replace
 
-// IMPORTANT NOTE!
-// before running the code, make sure a copy of 
-// "California_Student_Group_Names.dta" exists in the Cleaned DTA folder
-
-global data "/Volumes/T7/State Test Project/California/Cleaned DTA"
-global nces "/Volumes/T7/State Test Project/California/NCES"
-global output "/Volumes/T7/State Test Project/California/Output"
-
 // 2015-16 School Year 
-use "$data/California_Original_2016", clear
+use "$Original_Cleaned/California_Original_2016", clear
 
 drop if StudentsTested == 0
 drop if Grade > 8
 
-
-merge m:1 CountyCode DistrictCode SchoolCode TestYear using "$data/CA_DistSchInfo_2010_2024"
+merge m:1 CountyCode DistrictCode SchoolCode TestYear using "$Original_Cleaned/CA_DistSchInfo_2010_2024"
 drop if _merge == 2
 drop _merge
 
@@ -30,8 +40,7 @@ drop if Drop == "DROP"
 drop Drop CountyCode
 rename SubgroupID StudentGroupID
 
-
-merge m:1 StudentGroupID using "$data/California_Student_Group_Names"
+merge m:1 StudentGroupID using "$Original_Cleaned/California_Student_Group_Names"
 drop if _merge ==2 
 drop _merge
 
@@ -75,13 +84,13 @@ replace NCESDistrictID = string(real(NCESDistrictID), "%07.0f")
 replace NCESDistrictID = "" if DataLevel == "State"
 replace NCESSchoolID = string(real(NCESSchoolID), "%012.0f")
 replace NCESSchoolID = "" if DataLevel != "School"
-merge m:1 NCESDistrictID using "$nces/NCES_2015_District.dta", gen(DistMerge1)
-merge m:1 NCESDistrictID using "$nces/NCES_2016_District.dta", update gen(DistMerge2)
-merge m:1 NCESDistrictID using "$nces/NCES_2022_District.dta", update gen(DistMerge3)
+merge m:1 NCESDistrictID using "$NCES_CA/NCES_2015_District_CA.dta", gen(DistMerge1)
+merge m:1 NCESDistrictID using "$NCES_CA/NCES_2016_District_CA.dta", update gen(DistMerge2)
+merge m:1 NCESDistrictID using "$NCES_CA/NCES_2022_District_CA.dta", update gen(DistMerge3)
 
-merge m:1 NCESSchoolID using "${nces}/NCES_2015_School.dta", gen(SchMerge1)
-merge m:1 NCESSchoolID using "${nces}/NCES_2016_School.dta", update gen(SchMerge2)
-merge m:1 NCESSchoolID using "${nces}/NCES_2022_School.dta", update gen(SchMerge3)
+merge m:1 NCESSchoolID using "${NCES_CA}/NCES_2015_School_CA.dta", gen(SchMerge1)
+merge m:1 NCESSchoolID using "${NCES_CA}/NCES_2016_School_CA.dta", update gen(SchMerge2)
+merge m:1 NCESSchoolID using "${NCES_CA}/NCES_2022_School_CA.dta", update gen(SchMerge3)
 
 foreach var of varlist *Merge* {
 	drop if `var' == 2
@@ -206,7 +215,6 @@ gen ParticipationRate = string(StudentSubGroup_TotalTested/CAASPPReportedEnrollm
 replace ParticipationRate = "--" if ParticipationRate == "." | missing(ParticipationRate)
 drop CAASPPReportedEnrollment
 
-
 //Converting Percents to Decimal
 foreach var of varlist *_percent {
 	replace `var' = string(real(`var')/100, "%9.4g") if !missing(real(`var'))
@@ -229,15 +237,11 @@ replace CountyCode = ""  if DataLevel == 1
 replace AvgScaleScore="*" if AvgScaleScore==""
 
 foreach v of varlist DistType DistLocale CountyName DistCharter {
-	
 	replace `v'="Missing/not reported" if DataLevel==2 & missing(`v')
-	
 }
 
 foreach v of varlist SchType SchLevel SchVirtual DistType DistLocale CountyName DistCharter {
-	
 	replace `v'="Missing/not reported" if DataLevel==3 & missing(`v')
-	
 }
 
 drop if DataLevel==.
@@ -247,7 +251,6 @@ replace SchVirtual = "Missing/not reported" if missing(SchVirtual) & DataLevel =
 
 replace NCESDistrictID="" if DataLevel==1
 replace NCESDistrictID="Missing/not reported" if DataLevel!=1 & NCESDistrictID=="00"
-
 
 local nomissing Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent ProficientOrAbove_percent
 
@@ -259,10 +262,6 @@ foreach var of local nomissing {
 tostring StudentSubGroup_TotalTested, replace
 replace StudentSubGroup_TotalTested = "--" if missing(StudentSubGroup_TotalTested)
 replace ProficientOrAbove_count = "--" if missing(ProficientOrAbove_count)
-foreach count of varlist *_count {
-local percent = subinstr("`count'","count", "percent",.)
-replace `count' = string(round(real(`percent') * real(StudentSubGroup_TotalTested))) if !missing(real(`percent')) & !missing(real(StudentSubGroup_TotalTested)) & missing(real(`count'))
-}
 
 //StudentGroup_TotalTested
 cap drop StudentGroup_TotalTested
@@ -283,17 +282,12 @@ replace AvgScaleScore="*" if AvgScaleScore==""
 
 replace ParticipationRate = "1" if !missing(real(ParticipationRate)) & real(ParticipationRate) > 1
 
-
 foreach v of varlist DistType DistLocale CountyName DistCharter {
-	
 	replace `v'="Missing/not reported" if DataLevel==2 & missing(`v')
-	
 }
 
 foreach v of varlist SchType SchLevel SchVirtual DistType DistLocale CountyName DistCharter {
-	
 	replace `v'="Missing/not reported" if DataLevel==3 & missing(`v')
-	
 }
 
 tostring StudentSubGroup_TotalTested, replace
@@ -302,7 +296,6 @@ drop if DataLevel==.
 drop if StudentSubGroup=="Never EL"
 
 replace NCESDistrictID="" if DataLevel==1
-
 
 local nomissing Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent ProficientOrAbove_percent
 
@@ -340,13 +333,50 @@ di `highproflev' - `lowproflev'
 replace ProficientOrAbove_count = string(real(Lev`lowproflev'_count) + real(Lev`highproflev'_count)) if !missing(real(Lev`lowproflev'_count)) & !missing(real(Lev`highproflev'_count))
 replace ProficientOrAbove_count = string(real(StudentSubGroup_TotalTested)) if real(ProficientOrAbove_count) > real(StudentSubGroup_TotalTested) & !missing(real(StudentSubGroup_TotalTested)) & !missing(real(ProficientOrAbove_count))
 
-//Final Cleaning
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-	
+// Reordering variables and sorting data
+local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
+    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
+    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
+    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
+    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
+    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
+    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
+    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
+    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
+    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
+    Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+	keep `vars'
+	order `vars'
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${output}/CA_AssmtData_2016_Stata", replace
-export delimited "${output}/CA_AssmtData_2016.csv", replace 
+*Exporting into a separate folder Output for Stanford - without derivations*
+save "${Output_ND}/CA_AssmtData2016_NoDev", replace //If .dta format needed.
+export delimited "${Output_ND}/CA_AssmtData2016_NoDev", replace 
 
+*Derivations*
+//Deriving Counts where possible
+foreach count of varlist *_count {
+local percent = subinstr("`count'","count", "percent",.)
+replace `count' = string(round(real(`percent') * real(StudentSubGroup_TotalTested))) if !missing(real(`percent')) & !missing(real(StudentSubGroup_TotalTested)) & missing(real(`count'))
+}
+
+//Level Count Updates
+foreach var of varlist Lev*_count {
+	replace `var' = "--" if real(`var') < 0 & !missing(real(`var'))
+}
+
+//Replacing ProficientOrAbove_count updates based on V2.0 R1 (Universal code if we have two levels proficient)
+replace ProficientOrAbove_count = string(real(Lev`lowproflev'_count) + real(Lev`highproflev'_count)) if !missing(real(Lev`lowproflev'_count)) & !missing(real(Lev`highproflev'_count))
+replace ProficientOrAbove_count = string(real(StudentSubGroup_TotalTested)) if real(ProficientOrAbove_count) > real(StudentSubGroup_TotalTested) & !missing(real(StudentSubGroup_TotalTested)) & !missing(real(ProficientOrAbove_count))
+
+//Keeping, ordering and sorting variables
+keep `vars'
+order `vars'
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
+*Exporting Output with derivations*
+save "${Output}/CA_AssmtData_2016", replace
+export delimited "${Output}/CA_AssmtData_2016.csv", replace 
+
+* END of california_2016_clean.do
+****************************************************

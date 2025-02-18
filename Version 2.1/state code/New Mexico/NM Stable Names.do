@@ -6,7 +6,7 @@ global output "/Users/miramehta/Documents/New Mexico/Output"
 global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
 
 global StateAbbrev "NM"
-global years 2017 2018 2019 2021 2022 2023
+global years 2017 2018 2019 2021 2022 2023 2024
 
 tempfile temp1
 save "`temp1'", emptyok
