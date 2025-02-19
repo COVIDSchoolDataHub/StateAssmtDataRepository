@@ -1,13 +1,6 @@
 clear
 set more off
 
-global raw "/Users/miramehta/Documents/Virginia/Original Data"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
-global output "/Users/miramehta/Documents/Virginia/Output"
-
-cd "/Users/miramehta/Documents"
-
-
 ////	Import aggregate data from 2006-2022
 
 import delimited "/${raw}/VA_OriginalData_2006-2022_all.csv", varnames(1) clear 
@@ -169,22 +162,19 @@ append using "${output}/VA_2015_disabled.dta"
 
 ////	Prepare for NCES merge
 
-destring divisionnumber, gen(StateAssignedDistID)
-replace divisionnumber = "00" + divisionnumber if StateAssignedDistID < 10
-replace divisionnumber = "0" + divisionnumber if StateAssignedDistID >= 10 & StateAssignedDistID < 100
-tostring StateAssignedDistID, replace
+replace divisionnumber = "00" + divisionnumber if real(divisionnumber) < 10
+replace divisionnumber = "0" + divisionnumber if real(divisionnumber) >= 10 & real(divisionnumber) < 100
+gen StateAssignedDistID = divisionnumber
 rename divisionnumber State_leaid
 
 replace StateAssignedDistID = "" if level == "State"
 replace State_leaid = "" if level == "State"
 
-tostring schoolnumber, replace
-destring schoolnumber, gen(StateAssignedSchID)
-replace schoolnumber = State_leaid + "000" + schoolnumber if StateAssignedSchID < 10
-replace schoolnumber = State_leaid + "00" + schoolnumber if StateAssignedSchID >= 10 & StateAssignedSchID < 100
-replace schoolnumber = State_leaid + "0" + schoolnumber if StateAssignedSchID >= 100 & StateAssignedSchID < 1000
-replace schoolnumber = State_leaid + schoolnumber if StateAssignedSchID >= 1000
-tostring StateAssignedSchID, replace
+replace schoolnumber = "000" + schoolnumber if real(schoolnumber) < 10
+replace schoolnumber = "00" + schoolnumber if real(schoolnumber) >= 10 & real(schoolnumber) < 100
+replace schoolnumber = "0" + schoolnumber if real(schoolnumber) >= 100 & real(schoolnumber) < 1000
+gen StateAssignedSchID = StateAssignedDistID + "-" + schoolnumber
+replace schoolnumber = State_leaid + schoolnumber
 rename schoolnumber seasch
 
 replace StateAssignedSchID = "" if level != "School"

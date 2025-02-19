@@ -1,12 +1,6 @@
 clear
 set more off
 
-global raw "/Users/miramehta/Documents/Virginia/Original Data"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
-global output "/Users/miramehta/Documents/Virginia/Output"
-
-cd "/Users/miramehta/Documents"
-
 ////	AGGREGATE DATA
 
 //Transform to long
@@ -222,19 +216,17 @@ append using "${output}/VA_2002_race58.dta"
 
 ////	PREPARE FOR NCES MERGE
 
-destring div, gen(StateAssignedDistID)
-replace div = "00" + div if StateAssignedDistID < 10
-replace div = "0" + div if StateAssignedDistID >= 10 & StateAssignedDistID < 100
-tostring StateAssignedDistID, replace
+replace div = "00" + div if real(div) < 10
+replace div = "0" + div if real(div) >= 10 & real(div) < 100
+gen StateAssignedDistID = div
 rename div State_leaid
 
 tostring sch, replace
-destring sch, gen(StateAssignedSchID)
-replace sch = State_leaid + "000" + sch if StateAssignedSchID < 10
-replace sch = State_leaid + "00" + sch if StateAssignedSchID >= 10 & StateAssignedSchID < 100
-replace sch = State_leaid + "0" + sch if StateAssignedSchID >= 100 & StateAssignedSchID < 1000
-replace sch = State_leaid + sch if StateAssignedSchID >= 1000
-tostring StateAssignedSchID, replace
+replace sch = "000" + sch if real(sch) < 10
+replace sch = "00" + sch if real(sch) >= 10 & real(sch) < 100
+replace sch = "0" + sch if real(sch) >= 100 & real(sch) < 1000
+gen StateAssignedSchID = StateAssignedDistID + "-" + sch
+replace sch = State_leaid + sch
 rename sch seasch
 drop if seasch == "9010901" | seasch == "2190219"
 

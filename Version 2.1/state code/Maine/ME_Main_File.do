@@ -32,13 +32,13 @@ global Output "/Users/miramehta/Documents/Maine/Output" //Usual output exported.
 *** Full State Data Cleaning ***
 /////////////////////////////////////////
 *Add newer years in order.*
-do "${DoFiles}/ME_Cleaning_2015.do" //Uncommented code to import csv files for the first time. 
-do "${DoFiles}/ME_Cleaning_2016-2019.do" //Uncommented code to import csv files for the first time. 
-do "${DoFiles}/ME_Cleaning_2021-2022.do" //Uncommented code to import csv files for the first time. 
-do "${DoFiles}/ME_Cleaning_2023.do" //Uncommented code to import csv files for the first time.
-do "${DoFiles}/ME_DataRequest_2015_2023.do"
-do "${DoFiles}/ME_Final Cleaning_2015_2023.do"
-do "${DoFiles}/ME_2024_DataRequest_01.16.25"
+do "${DoFiles}/01_ME_Cleaning_2015.do" //Uncommented code to import csv files for the first time. 
+do "${DoFiles}/02_ME_Cleaning_2016-2019.do" //Uncommented code to import csv files for the first time. 
+do "${DoFiles}/03_ME_Cleaning_2021-2022.do" //Uncommented code to import csv files for the first time. 
+do "${DoFiles}/04_ME_Cleaning_2023.do" //Uncommented code to import csv files for the first time.
+do "${DoFiles}/05_ME_DataRequest_2015_2023.do"
+do "${DoFiles}/06_ME_Final Cleaning_2015_2023.do"
+do "${DoFiles}/07_ME_2024_DataRequest_01.16.25"
 
 //Uncommented code to import csv files for the first time. 
 

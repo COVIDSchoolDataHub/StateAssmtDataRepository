@@ -1,8 +1,7 @@
 clear all
 set more off
 
-global participation "/Users/miramehta/Documents/Virginia/Original Data/VA Participation Rates Received via Data Request - 12-1-23"
-global output "/Users/miramehta/Documents/Virginia/Output"
+global participation "$raw/VA Participation Rates Received via Data Request - 12-1-23"
 
 // ELA
 forvalues year = 2016/2023{

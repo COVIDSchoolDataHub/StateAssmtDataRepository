@@ -1,58 +1,51 @@
 clear
 set more off
 
-global raw "/Users/miramehta/Documents/Virginia/Original Data"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
-global output "/Users/miramehta/Documents/Virginia/Output"
-
-cd "/Users/miramehta/Documents"
-
-
 ////	Import aggregate data from 2006-2022
 
 import delimited "/${raw}/VA_OriginalData_2006-2022_all.csv", varnames(1) clear 
 
-drop if schoolyear != "2006-2007"
+drop if schoolyear != "2007-2008"
 
 gen StudentGroup = "All Students"
 gen StudentSubGroup = "All Students"
 
-save "${output}/VA_2007_base.dta", replace
+save "${output}/VA_2008_base.dta", replace
 
 
 ////	Import disaggregate gender data
 
-import delimited "/${raw}/Disaggregate/VA_OriginalData_2007_all_gender.csv", varnames(1) clear 
+import delimited "/${raw}/Disaggregate/VA_OriginalData_2008_all_gender.csv", varnames(1) clear 
 
 rename gender StudentSubGroup
 gen StudentGroup = "Gender"
 
-save "${output}/VA_2007_gender.dta", replace
+save "${output}/VA_2008_gender.dta", replace
 
 
 ////	Import disaggregate language proficiency data
 
-import delimited "/${raw}/Disaggregate/VA_OriginalData_2007_all_language.csv", varnames(1) clear 
+import delimited "/${raw}/Disaggregate/VA_OriginalData_2008_all_language.csv", varnames(1) clear 
 
 rename englishlearners StudentSubGroup
 gen StudentGroup = "EL Status"
 
-save "${output}/VA_2007_language.dta", replace
+save "${output}/VA_2008_language.dta", replace
 
 
 ////	Import disaggregate race data
 
-import delimited "/${raw}/Disaggregate/VA_OriginalData_2007_all_race.csv", varnames(1) clear 
+import delimited "/${raw}/Disaggregate/VA_OriginalData_2008_all_race.csv", varnames(1) clear 
 
 rename race StudentSubGroup
 gen StudentGroup = "RaceEth"
 
-save "${output}/VA_2007_race.dta", replace
+save "${output}/VA_2008_race.dta", replace
 
 
 //// Import disaggregate economic status data
 
-import delimited "/${raw}/Disaggregate/VA_OriginalData_2007_all_econ.csv", varnames(1) clear
+import delimited "/${raw}/Disaggregate/VA_OriginalData_2008_all_econ.csv", varnames(1) clear
 
 rename disadvantaged StudentSubGroup
 gen StudentGroup = "Economic Status"
@@ -64,12 +57,12 @@ replace schoolnumber = "" if schoolnumber == "."
 tostring averagesolscaledscore, replace
 replace averagesolscaledscore = "" if averagesolscaledscore == "."
 
-save "${output}/VA_2007_econ.dta", replace
+save "${output}/VA_2008_econ.dta", replace
 
 
 //// Import disaggregate migrant status data
 
-import delimited "/${raw}/Disaggregate/VA_OriginalData_2007_all_migrant.csv", varnames(1) clear
+import delimited "/${raw}/Disaggregate/VA_OriginalData_2008_all_migrant.csv", varnames(1) clear
 
 rename migrant StudentSubGroup
 gen StudentGroup = "Migrant Status"
@@ -81,48 +74,45 @@ replace schoolnumber = "" if schoolnumber == "."
 tostring averagesolscaledscore, replace
 replace averagesolscaledscore = "" if averagesolscaledscore == "."
 
-save "${output}/VA_2007_migrant.dta", replace
+save "${output}/VA_2008_migrant.dta", replace
 
 
 ////	Append aggregate and disaggregate 
 
-use "${output}/VA_2007_base.dta", clear
+use "${output}/VA_2008_base.dta", clear
 
-append using "${output}/VA_2007_gender.dta"
-append using "${output}/VA_2007_language.dta"
-append using "${output}/VA_2007_race.dta"
-append using "${output}/VA_2007_econ.dta"
-append using "${output}/VA_2007_migrant.dta"
+append using "${output}/VA_2008_gender.dta"
+append using "${output}/VA_2008_language.dta"
+append using "${output}/VA_2008_race.dta"
+append using "${output}/VA_2008_econ.dta"
+append using "${output}/VA_2008_migrant.dta"
 
 
 ////	Prepare for NCES merge
 
-destring divisionnumber, gen(StateAssignedDistID)
-replace divisionnumber = "00" + divisionnumber if StateAssignedDistID < 10
-replace divisionnumber = "0" + divisionnumber if StateAssignedDistID >= 10 & StateAssignedDistID < 100
-tostring StateAssignedDistID, replace
+replace divisionnumber = "00" + divisionnumber if real(divisionnumber) < 10
+replace divisionnumber = "0" + divisionnumber if real(divisionnumber) >= 10 & real(divisionnumber) < 100
+gen StateAssignedDistID = divisionnumber
 rename divisionnumber State_leaid
 
 replace StateAssignedDistID = "" if level == "State"
 replace State_leaid = "" if level == "State"
 
-tostring schoolnumber, replace
-destring schoolnumber, gen(StateAssignedSchID)
-replace schoolnumber = State_leaid + "000" + schoolnumber if StateAssignedSchID < 10
-replace schoolnumber = State_leaid + "00" + schoolnumber if StateAssignedSchID >= 10 & StateAssignedSchID < 100
-replace schoolnumber = State_leaid + "0" + schoolnumber if StateAssignedSchID >= 100 & StateAssignedSchID < 1000
-replace schoolnumber = State_leaid + schoolnumber if StateAssignedSchID >= 1000
-tostring StateAssignedSchID, replace
+replace schoolnumber = "000" + schoolnumber if real(schoolnumber) < 10
+replace schoolnumber = "00" + schoolnumber if real(schoolnumber) >= 10 & real(schoolnumber) < 100
+replace schoolnumber = "0" + schoolnumber if real(schoolnumber) >= 100 & real(schoolnumber) < 1000
+gen StateAssignedSchID = StateAssignedDistID + "-" + schoolnumber
+replace schoolnumber = State_leaid + schoolnumber
 rename schoolnumber seasch
 
 replace StateAssignedSchID = "" if level != "School"
 replace seasch = "" if level != "School"
 
-merge m:1 State_leaid using "/${NCES}/NCES_2006_District.dta"
+merge m:1 State_leaid using "/${NCES}/NCES_2007_District.dta"
 drop if _merge == 2
 drop _merge
 
-merge m:1 seasch using "/${NCES}/NCES_2006_School.dta"
+merge m:1 seasch using "/${NCES}/NCES_2007_School.dta"
 drop if _merge == 2
 drop _merge
 
@@ -144,7 +134,7 @@ replace DistName = "All Districts" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel != 3
 
 rename schoolyear SchYear
-replace SchYear = "2006-07"
+replace SchYear = "2007-08"
 
 rename testsource AssmtName
 replace AssmtName = "Standards of Learning"
@@ -305,6 +295,6 @@ order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistric
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${output}/VA_AssmtData_2007.dta", replace
+save "${output}/VA_AssmtData_2008.dta", replace
 
-export delimited using "${output}/csv/VA_AssmtData_2007.csv", replace
+export delimited using "${output}/csv/VA_AssmtData_2008.csv", replace

@@ -1,14 +1,8 @@
 clear
 set more off
 
-global raw "/Users/miramehta/Documents/Virginia/Original Data"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
-global output "/Users/miramehta/Documents/Virginia/Output"
+////	Import original data - unhidden for first run
 
-cd "/Users/miramehta/Documents"
-
-////	Import original data - unhide on first run
-/*
 local levels "State District School"
 foreach lev of local levels {
 	import excel "$raw/2024/VA_OriginalData_2024_`lev'_Part1_New", firstrow clear
@@ -72,22 +66,20 @@ drop Disadvantaged Race Gender EnglishLearners EnglishLearnersincludeFormer Migr
 
 ////	Prepare for NCES merge
 
-destring DivisionNumber, gen(StateAssignedDistID)
-replace DivisionNumber = "00" + DivisionNumber if StateAssignedDistID < 10
-replace DivisionNumber = "0" + DivisionNumber if StateAssignedDistID >= 10 & StateAssignedDistID < 100
+replace DivisionNumber = "00" + DivisionNumber if real(DivisionNumber) < 10
+replace DivisionNumber = "0" + DivisionNumber if real(DivisionNumber) >= 10 & real(DivisionNumber) < 100
+gen StateAssignedDistID = DivisionNumber
 replace DivisionNumber = "VA-" + DivisionNumber
-tostring StateAssignedDistID, replace
 rename DivisionNumber State_leaid
 
 replace StateAssignedDistID = "" if DataLevel == "State"
 replace State_leaid = "" if DataLevel == "State"
 
-destring SchoolNumber, gen(StateAssignedSchID)
-replace SchoolNumber = State_leaid + "-" + State_leaid + "00" + SchoolNumber if StateAssignedSchID >= 10 & StateAssignedSchID < 100
-replace SchoolNumber = State_leaid + "-" + State_leaid + "0" + SchoolNumber if StateAssignedSchID >= 100 & StateAssignedSchID < 1000
-replace SchoolNumber = State_leaid + "-" + State_leaid + SchoolNumber if StateAssignedSchID >= 1000
+replace SchoolNumber = "00" + SchoolNumber if real(SchoolNumber) >= 10 & real(SchoolNumber) < 100
+replace SchoolNumber = "0" + SchoolNumber if real(SchoolNumber) >= 100 & real(SchoolNumber) < 1000
+gen StateAssignedSchID = StateAssignedDistID + "-" + SchoolNumber
+replace SchoolNumber = State_leaid + "-" + State_leaid + SchoolNumber
 replace SchoolNumber = subinstr(SchoolNumber, "VA-", "", .)
-tostring StateAssignedSchID, replace
 rename SchoolNumber seasch
 
 replace StateAssignedSchID = "" if DataLevel != "School"
@@ -241,6 +233,7 @@ replace ProficientOrAbove_percent = "0.5-1" if ProficientOrAbove_percent == "99.
 replace ProficientOrAbove_percent = "0-0.5" if ProficientOrAbove_percent == "11.11"
 replace ProficientOrAbove_count = "0-" + string(round(0.5 * real(StudentSubGroup_TotalTested))) if ProficientOrAbove_percent == "0-0.5" & real(StudentSubGroup_TotalTested) != . & inlist(ProficientOrAbove_count, "*", "--")
 replace ProficientOrAbove_count = string(round(0.5 * real(StudentSubGroup_TotalTested))) + "-" + StudentSubGroup_TotalTested if ProficientOrAbove_percent == "0.5-1" & real(StudentSubGroup_TotalTested) != . & inlist(ProficientOrAbove_count, "*", "--")
+replace ProficientOrAbove_percent = "0" if ProficientOrAbove_percent == "0.00"
 
 forvalues n = 1/3{
 	replace Lev`n'_count = "1" if Lev`n'_count == "1-1"

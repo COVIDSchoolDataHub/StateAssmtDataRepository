@@ -1,12 +1,6 @@
 clear
 set more off
 
-global raw "/Users/miramehta/Documents/Virginia/Original Data"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
-global output "/Users/miramehta/Documents/Virginia/Output"
-
-cd "/Users/miramehta/Documents"
-
 ////	AGGREGATE DATA
 
 import excel "/${raw}/VA_OriginalData_2003-2005_all.xls", sheet("spring_pass_rate_table_03_to_05") cellrange(A3:GX1973) firstrow
@@ -265,22 +259,20 @@ append using "/${output}/VA_2005_G08.dta"
 
 //	Prepare for NCES merge
 
-destring DivNo, gen(StateAssignedDistID)
-replace DivNo = "00" + DivNo if StateAssignedDistID < 10
-replace DivNo = "0" + DivNo if StateAssignedDistID >= 10 & StateAssignedDistID < 100
-tostring StateAssignedDistID, replace
+replace DivNo = "00" + DivNo if real(DivNo) < 10
+replace DivNo = "0" + DivNo if real(DivNo) >= 10 & real(DivNo) < 100
+gen StateAssignedDistID = DivNo
 rename DivNo State_leaid
 
 replace StateAssignedDistID = "" if DivisionName == "STATE SUMMARY" | DivisionName == ""
 replace State_leaid = "" if DivisionName == "STATE SUMMARY" | DivisionName == ""
 
 tostring SchNo, replace
-destring SchNo, gen(StateAssignedSchID)
-replace SchNo = State_leaid + "000" + SchNo if StateAssignedSchID < 10
-replace SchNo = State_leaid + "00" + SchNo if StateAssignedSchID >= 10 & StateAssignedSchID < 100
-replace SchNo = State_leaid + "0" + SchNo if StateAssignedSchID >= 100 & StateAssignedSchID < 1000
-replace SchNo = State_leaid + SchNo if StateAssignedSchID >= 1000
-tostring StateAssignedSchID, replace
+replace SchNo = "000" + SchNo if real(SchNo) < 10
+replace SchNo = State_leaid + "00" + SchNo if real(SchNo) >= 10 & real(SchNo) < 100
+replace SchNo = "0" + SchNo if real(SchNo) >= 100 & real(SchNo) < 1000
+gen StateAssignedSchID = StateAssignedDistID + "-" + SchNo
+replace SchNo = State_leaid + SchNo
 rename SchNo seasch
 
 replace StateAssignedSchID = "" if SchoolName == "DIVISION SUMMARY" | DivisionName == "STATE SUMMARY" | DivisionName == ""
@@ -321,7 +313,7 @@ replace Lev2_percent = Proficient if Proficient != ""
 replace Lev3_percent = Advanced if Advanced != ""
 
 replace Lev2_percent = string(real(ProficientOrAbove_percent) - real(Lev3_percent), "%9.4g") if real(ProficientOrAbove_percent) != . & real(Lev3_percent) != . & Lev2_percent == "--"
-replace Lev3_percent = string(real(ProficientOrAbove_percent) - real(Lev2_percent), "%9.4g") if real(ProficientOrAbove_percent) != . & real(Lev2_percent) != . & Lev3_percent == "--"
+replace Lev3_percent = string(real(ProficientOrAbove_percent) - real(Lev2_percent), "%9.4g") if real(ProficientOrAbove_percent) != . & real(Lev2_percent) != . & Lev3_percent == "--" & real(ProficientOrAbove_percent) - real(Lev2_percent) >= 0
 
 gen Lev4_count = ""
 gen Lev4_percent = ""

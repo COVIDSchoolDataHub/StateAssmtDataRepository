@@ -1,58 +1,51 @@
 clear
 set more off
 
-global raw "/Users/miramehta/Documents/Virginia/Original Data"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
-global output "/Users/miramehta/Documents/Virginia/Output"
-
-cd "/Users/miramehta/Documents"
-
-
 ////	Import aggregate data from 2006-2022
 
 import delimited "/${raw}/VA_OriginalData_2006-2022_all.csv", varnames(1) clear 
 
-drop if schoolyear != "2017-2018"
+drop if schoolyear != "2021-2022"
 
 gen StudentGroup = "All Students"
 gen StudentSubGroup = "All Students"
 
-save "${output}/VA_2018_base.dta", replace
+save "${output}/VA_2022_base.dta", replace
 
 
 ////	Import disaggregate gender data
 
-import delimited "/${raw}/Disaggregate/VA_OriginalData_2018_all_gender.csv", varnames(1) clear 
+import delimited "/${raw}/Disaggregate/VA_OriginalData_2022_all_gender.csv", varnames(1) clear 
 
 rename gender StudentSubGroup
 gen StudentGroup = "Gender"
 
-save "${output}/VA_2018_gender.dta", replace
+save "${output}/VA_2022_gender.dta", replace
 
 
 ////	Import disaggregate language proficiency data
 
-import delimited "/${raw}/Disaggregate/VA_OriginalData_2018_all_language.csv", varnames(1) clear 
+import delimited "/${raw}/Disaggregate/VA_OriginalData_2022_all_language.csv", varnames(1) clear 
 
 rename englishlearners StudentSubGroup
 gen StudentGroup = "EL Status"
 
-save "${output}/VA_2018_language.dta", replace
+save "${output}/VA_2022_language.dta", replace
 
 
 ////	Import disaggregate race data
 
-import delimited "/${raw}/Disaggregate/VA_OriginalData_2018_all_race.csv", varnames(1) clear 
+import delimited "/${raw}/Disaggregate/VA_OriginalData_2022_all_race.csv", varnames(1) clear 
 
 rename race StudentSubGroup
 gen StudentGroup = "RaceEth"
 
-save "${output}/VA_2018_race.dta", replace
+save "${output}/VA_2022_race.dta", replace
 
 
 //// Import disaggregate economic status data
 
-import delimited "/${raw}/Disaggregate/VA_OriginalData_2018_all_econ.csv", varnames(1) clear
+import delimited "/${raw}/Disaggregate/VA_OriginalData_2022_all_econ.csv", varnames(1) clear
 
 rename disadvantaged StudentSubGroup
 gen StudentGroup = "Economic Status"
@@ -64,12 +57,12 @@ replace schoolnumber = "" if schoolnumber == "."
 tostring averagesolscaledscore, replace
 replace averagesolscaledscore = "" if averagesolscaledscore == "."
 
-save "${output}/VA_2018_econ.dta", replace
+save "${output}/VA_2022_econ.dta", replace
 
 
 //// Import disaggregate migrant status data
 
-import delimited "/${raw}/Disaggregate/VA_OriginalData_2018_all_migrant.csv", varnames(1) clear
+import delimited "/${raw}/Disaggregate/VA_OriginalData_2022_all_migrant.csv", varnames(1) clear
 
 rename migrant StudentSubGroup
 gen StudentGroup = "Migrant Status"
@@ -81,12 +74,12 @@ replace schoolnumber = "" if schoolnumber == "."
 tostring averagesolscaledscore, replace
 replace averagesolscaledscore = "" if averagesolscaledscore == "."
 
-save "${output}/VA_2018_migrant.dta", replace
+save "${output}/VA_2022_migrant.dta", replace
 
 
 //// Import disaggregate homeless status data
 
-import delimited "/${raw}/Disaggregate/VA_OriginalData_2018_all_homeless.csv", varnames(1) clear
+import delimited "/${raw}/Disaggregate/VA_OriginalData_2022_all_homeless.csv", varnames(1) clear
 
 rename homeless StudentSubGroup
 gen StudentGroup = "Homeless Enrolled Status"
@@ -98,12 +91,12 @@ replace schoolnumber = "" if schoolnumber == "."
 tostring averagesolscaledscore, replace
 replace averagesolscaledscore = "" if averagesolscaledscore == "."
 
-save "${output}/VA_2018_homeless.dta", replace
+save "${output}/VA_2022_homeless.dta", replace
 
 
 //// Import disaggregate migrant status data
 
-import delimited "/${raw}/Disaggregate/VA_OriginalData_2018_all_military.csv", varnames(1) clear
+import delimited "/${raw}/Disaggregate/VA_OriginalData_2022_all_military.csv", varnames(1) clear
 
 rename military StudentSubGroup
 gen StudentGroup = "Military Connected Status"
@@ -115,12 +108,12 @@ replace schoolnumber = "" if schoolnumber == "."
 tostring averagesolscaledscore, replace
 replace averagesolscaledscore = "" if averagesolscaledscore == "."
 
-save "${output}/VA_2018_military.dta", replace
+save "${output}/VA_2022_military.dta", replace
 
 
 //// Import disaggregate migrant status data
 
-import delimited "/${raw}/Disaggregate/VA_OriginalData_2018_all_foster.csv", varnames(1) clear
+import delimited "/${raw}/Disaggregate/VA_OriginalData_2022_all_foster.csv", varnames(1) clear
 
 rename fostercare StudentSubGroup
 gen StudentGroup = "Foster Care Status"
@@ -132,12 +125,12 @@ replace schoolnumber = "" if schoolnumber == "."
 tostring averagesolscaledscore, replace
 replace averagesolscaledscore = "" if averagesolscaledscore == "."
 
-save "${output}/VA_2018_foster.dta", replace
+save "${output}/VA_2022_foster.dta", replace
 
 
 //// Import disaggregate migrant status data
 
-import delimited "/${raw}/Disaggregate/VA_OriginalData_2018_all_disabled.csv", varnames(1) clear
+import delimited "/${raw}/Disaggregate/VA_OriginalData_2022_all_disabled.csv", varnames(1) clear
 
 rename disabled StudentSubGroup
 gen StudentGroup = "Disability Status"
@@ -149,54 +142,52 @@ replace schoolnumber = "" if schoolnumber == "."
 tostring averagesolscaledscore, replace
 replace averagesolscaledscore = "" if averagesolscaledscore == "."
 
-save "${output}/VA_2018_disabled.dta", replace
+save "${output}/VA_2022_disabled.dta", replace
 
 
 ////	Append aggregate and disaggregate 
 
-use "${output}/VA_2018_base.dta", clear
+use "${output}/VA_2022_base.dta", clear
 
-append using "${output}/VA_2018_gender.dta"
-append using "${output}/VA_2018_language.dta"
-append using "${output}/VA_2018_race.dta"
-append using "${output}/VA_2018_econ.dta"
-append using "${output}/VA_2018_migrant.dta"
-append using "${output}/VA_2018_homeless.dta"
-append using "${output}/VA_2018_military.dta"
-append using "${output}/VA_2018_foster.dta"
-append using "${output}/VA_2018_disabled.dta"
+append using "${output}/VA_2022_gender.dta"
+append using "${output}/VA_2022_language.dta"
+append using "${output}/VA_2022_race.dta"
+append using "${output}/VA_2022_econ.dta"
+append using "${output}/VA_2022_migrant.dta"
+append using "${output}/VA_2022_homeless.dta"
+append using "${output}/VA_2022_military.dta"
+append using "${output}/VA_2022_foster.dta"
+append using "${output}/VA_2022_disabled.dta"
 
 
 ////	Prepare for NCES merge
 
-destring divisionnumber, gen(StateAssignedDistID)
-replace divisionnumber = "00" + divisionnumber if StateAssignedDistID < 10
-replace divisionnumber = "0" + divisionnumber if StateAssignedDistID >= 10 & StateAssignedDistID < 100
+replace divisionnumber = "00" + divisionnumber if real(divisionnumber) < 10
+replace divisionnumber = "0" + divisionnumber if real(divisionnumber) >= 10 & real(divisionnumber) < 100
+gen StateAssignedDistID = divisionnumber
 replace divisionnumber = "VA-" + divisionnumber
-tostring StateAssignedDistID, replace
 rename divisionnumber State_leaid
 
 replace StateAssignedDistID = "" if level == "State"
 replace State_leaid = "" if level == "State"
 
 tostring schoolnumber, replace
-destring schoolnumber, gen(StateAssignedSchID)
-replace schoolnumber = State_leaid + "-" + State_leaid + "000" + schoolnumber if StateAssignedSchID < 10
-replace schoolnumber = State_leaid + "-" + State_leaid + "00" + schoolnumber if StateAssignedSchID >= 10 & StateAssignedSchID < 100
-replace schoolnumber = State_leaid + "-" + State_leaid + "0" + schoolnumber if StateAssignedSchID >= 100 & StateAssignedSchID < 1000
-replace schoolnumber = State_leaid + "-" + State_leaid + schoolnumber if StateAssignedSchID >= 1000
+replace schoolnumber = "000" + schoolnumber if real(schoolnumber) < 10
+replace schoolnumber = "00" + schoolnumber if real(schoolnumber) >= 10 & real(schoolnumber) < 100
+replace schoolnumber = "0" + schoolnumber if real(schoolnumber) >= 100 & real(schoolnumber) < 1000
+gen StateAssignedSchID = StateAssignedDistID + "-" + schoolnumber
+replace schoolnumber = State_leaid + "-" + State_leaid + schoolnumber
 replace schoolnumber = subinstr(schoolnumber, "VA-", "", .)
-tostring StateAssignedSchID, replace
 rename schoolnumber seasch
 
 replace StateAssignedSchID = "" if level != "School"
 replace seasch = "" if level != "School"
 
-merge m:1 State_leaid using "/${NCES}/NCES_2017_District.dta"
+merge m:1 State_leaid using "/${NCES}/NCES_2021_District.dta"
 drop if _merge == 2
 drop _merge
 
-merge m:1 seasch using "/${NCES}/NCES_2017_School.dta"
+merge m:1 seasch using "/${NCES}/NCES_2021_School.dta"
 drop if _merge == 2
 drop _merge
 
@@ -218,7 +209,7 @@ replace DistName = "All Districts" if DataLevel == 1
 replace SchName = "All Schools" if DataLevel != 3
 
 rename schoolyear SchYear
-replace SchYear = "2017-18"
+replace SchYear = "2021-22"
 
 rename testsource AssmtName
 replace AssmtName = "Standards of Learning"
@@ -300,7 +291,7 @@ replace StudentSubGroup_TotalTested2 = max - Foster if StudentGroup == "Foster C
 replace StudentSubGroup_TotalTested2 = max - Disability if StudentGroup == "Disability Status" & max != 0 & StudentSubGroup_TotalTested == "*" & Disability != 0
 replace StudentSubGroup_TotalTested = string(StudentSubGroup_TotalTested2) if StudentSubGroup_TotalTested2 != 0 & StudentSubGroup_TotalTested == "*"
 drop RaceEth Econ Gender Migrant Homeless Military Foster Disability
-drop if inlist(StudentSubGroup_TotalTested, "*", "0") & StudentSubGroup != "All Students"
+drop if inlist(StudentSubGroup_TotalTested, "*", "0", "--") & StudentSubGroup != "All Students"
 
 rename failcount Lev1_count
 rename failrate Lev1_percent
@@ -394,6 +385,6 @@ order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistric
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${output}/VA_AssmtData_2018.dta", replace
+save "${output}/VA_AssmtData_2022.dta", replace
 
-export delimited using "${output}/csv/VA_AssmtData_2018.csv", replace
+export delimited using "${output}/csv/VA_AssmtData_2022.csv", replace
