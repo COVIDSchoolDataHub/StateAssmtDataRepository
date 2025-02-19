@@ -27,7 +27,7 @@ The `cd` command should map to the Vermont folder
 - Run the 2016-2017 and 2022 Edfacts files next
 
 ## Updates
-02/12/2025: Updated to include 20224 data.
+02/12/2025: Updated to include 2024 data.
 
 
 
