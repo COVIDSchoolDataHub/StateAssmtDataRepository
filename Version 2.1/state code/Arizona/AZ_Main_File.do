@@ -17,7 +17,7 @@ global NCES_School "C:/Zelma/NCES_Full/NCES School Files"
 global NCES_AZ "C:/Zelma/Arizona/NCES_AZ" //This will start empty and will hold the AZ-specific NCES files. 
 
 *EDFacts Folders*
-global EDFacts "C:/Zelma/EDFacts/Datasets" //EDFacts Datasets (wide version) downloaded from Google Drive. Code to convert .csv to .dta commented out. 
+global EDFacts "C:/Zelma/EDFacts/Datasets" //EDFacts Datasets (wide version) downloaded from Google Drive. 
 global EDFacts_AZ "C:/Zelma/Arizona/EDFacts_AZ" //This will start empty and will hold the AZ-specific EDFacts files. 
 
 *Input folders* //Original Data Files downloaded from Google Drive.
