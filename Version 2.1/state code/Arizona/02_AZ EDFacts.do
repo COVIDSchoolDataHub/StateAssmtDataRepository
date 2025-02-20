@@ -1,12 +1,23 @@
+*******************************************************
+* ARIZONA
+
+* File name: 02_AZ EDFacts
+* Last update: 2/19/2025
+
+*******************************************************
+* Notes
+
+	* This do file reads EDFacts files from 2010 through 2022 one by one.
+	* It keeps only AZ observations and saves it in the EDFacts_AZ folder. 
+	* This code will need to be updated when newer EDFacts files are released. 
+
+*******************************************************
+
+/////////////////////////////////////////
+*** Setup ***
+/////////////////////////////////////////
+
 clear
-set more off
-
-cd "/Users/miramehta/Documents/"
-
-global NCESSchool "/Users/miramehta/Documents/NCES District and School Demographics/NCES School Files, Fall 1997-Fall 2022"
-global NCESDistrict "/Users/miramehta/Documents/NCES District and School Demographics/NCES District Files, Fall 1997-Fall 2022"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
-global EDFacts "/Users/miramehta/Documents/EDFacts"
 
 ** Preparing EDFacts files
 
@@ -46,7 +57,7 @@ foreach year of local edyears1 {
 					gen DataLevel = 2
 				}			
 				gen Subject = "`sub'"
-				save "${EDFacts}/20`year'/edfactscount20`year'`sub'`lvl'arizona.dta", replace
+				save "${EDFacts_AZ}/edfactscount20`year'`sub'`lvl'AZ.dta", replace
 		}
 	}
 }
@@ -91,7 +102,7 @@ foreach year of local edyears2 {
 					gen DataLevel = 2
 				}				
 				gen Subject = "`sub'"
-				save "${EDFacts}/20`year'/edfacts`type'20`year'`sub'`lvl'arizona.dta", replace
+				save "${EDFacts_AZ}/edfacts`type'20`year'`sub'`lvl'AZ.dta", replace
 			}
 		}
 	}
@@ -99,8 +110,8 @@ foreach year of local edyears2 {
 
 foreach year of local edyears1 {
 	foreach lvl of local datalevel {
-		use "${EDFacts}/20`year'/edfactscount20`year'math`lvl'arizona.dta", clear
-		append using "${EDFacts}/20`year'/edfactscount20`year'ela`lvl'arizona.dta"
+		use "${EDFacts_AZ}/edfactscount20`year'math`lvl'AZ.dta", clear
+		append using "${EDFacts_AZ}/edfactscount20`year'ela`lvl'AZ.dta"
 		if ("`lvl'" == "school"){
 			rename ncessch NCESSchoolID
 			recast long NCESSchoolID
@@ -136,15 +147,15 @@ foreach year of local edyears1 {
 		replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD"
 		replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless"
 		replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant Status"
-		save "${EDFacts}/20`year'/edfactscount20`year'`lvl'arizona.dta", replace
+		save "${EDFacts_AZ}/edfactscount20`year'`lvl'AZ.dta", replace
 	}
 }
 
 foreach year of local edyears2 {
 	foreach type of local datatype {
 		foreach lvl of local datalevel {
-			use "${EDFacts}/20`year'/edfacts`type'20`year'math`lvl'arizona.dta", clear
-			append using "${EDFacts}/20`year'/edfacts`type'20`year'ela`lvl'arizona.dta"
+			use "${EDFacts_AZ}/edfacts`type'20`year'math`lvl'AZ.dta", clear
+			append using "${EDFacts_AZ}/edfacts`type'20`year'ela`lvl'AZ.dta"
 			if ("`lvl'" == "school"){
 				rename ncessch NCESSchoolID
 				recast long NCESSchoolID
@@ -205,7 +216,9 @@ foreach year of local edyears2 {
 			replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD"
 			replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless"
 			replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant Status"
-			save "${EDFacts}/20`year'/edfacts`type'20`year'`lvl'arizona.dta", replace
+			save "${EDFacts_AZ}/edfacts`type'20`year'`lvl'AZ.dta", replace
 		}
 	}
 }
+* END of 02_AZ EDFacts.do
+****************************************************

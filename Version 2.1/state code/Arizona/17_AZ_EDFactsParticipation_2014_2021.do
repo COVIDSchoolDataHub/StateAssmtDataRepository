@@ -1,8 +1,20 @@
-clear
-set more off
+*******************************************************
+* ARIZONA
 
-global EDFacts "/Users/miramehta/Documents/EDFacts"
-global output "/Users/miramehta/Documents/Arizona/Output"
+* File name: 17_AZ_EDFactsParticipation_2014_2021
+* Last update: 2/20/2025
+
+*******************************************************
+* Notes
+
+	* This do file merges AZ EDFacts data for 2014 to 2021 with the derived output for the same years. 
+	
+*******************************************************
+
+/////////////////////////////////////////
+*** Setup ***
+/////////////////////////////////////////
+clear
 
 ** Preparing EDFacts files
 local edyears1 14 15 16 17 18
@@ -51,7 +63,7 @@ foreach year of local edyears1 {
                     gen DataLevel = 2
                 }               
                 gen Subject = "`sub'"
-                save "${EDFacts}/20`year'/edfacts`type'20`year'`sub'`lvl'arizona.dta", replace
+                save "${EDFacts_AZ}/edfacts`type'20`year'`sub'`lvl'AZ.dta", replace
             }
         }
     }
@@ -60,8 +72,8 @@ foreach year of local edyears1 {
 foreach year of local edyears1 {
     foreach type of local datatype {
         foreach lvl of local datalevel {
-            use "${EDFacts}/20`year'/edfacts`type'20`year'math`lvl'arizona.dta", clear
-            append using "${EDFacts}/20`year'/edfacts`type'20`year'ela`lvl'arizona.dta"
+            use "${EDFacts_AZ}/edfacts`type'20`year'math`lvl'AZ.dta", clear
+            append using "${EDFacts_AZ}/edfacts`type'20`year'ela`lvl'AZ.dta"
 			if ("`lvl'" == "school") {
                 rename ncessch NCESSchoolID
 			}
@@ -113,7 +125,7 @@ foreach year of local edyears1 {
             replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD"
             replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless"
             replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant Status"
-            save "${EDFacts}/20`year'/edfacts`type'20`year'`lvl'arizona.dta", replace
+            save "${EDFacts_AZ}/edfacts`type'20`year'`lvl'AZ.dta", replace
         }
     }
 }
@@ -141,7 +153,7 @@ foreach year of local edyears2 {
 				if ("`lvl'" == "district") {
 					gen DataLevel = 2
 				}
-				save "${EDFacts}/`year'/edfacts`type'`year'`sub'`lvl'arizona.dta", replace
+				save "${EDFacts_AZ}/edfacts`type'`year'`sub'`lvl'AZ.dta", replace
 			}
 		}
 	}
@@ -150,8 +162,8 @@ foreach year of local edyears2 {
 foreach year of local edyears2 {
 	foreach type of local datatype {
 		foreach lvl of local datalevel {
-			use "${EDFacts}/`year'/edfacts`type'`year'math`lvl'arizona.dta", clear
-			append using "${EDFacts}/`year'/edfacts`type'`year'ela`lvl'arizona.dta"
+			use "${EDFacts_AZ}/edfacts`type'`year'math`lvl'az.dta", clear
+			append using "${EDFacts_AZ}/edfacts`type'`year'ela`lvl'AZ.dta"
 			if "`lvl'" == "school" {
 				rename ncessch NCESSchoolID
 			}
@@ -236,7 +248,7 @@ foreach year of local edyears2 {
 			replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless"
 			replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Military"
 			replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Foster Care"
-			save "${EDFacts}/`year'/edfacts`type'`year'`lvl'arizona.dta", replace
+			save "${EDFacts_AZ}/edfacts`type'`year'`lvl'AZ.dta", replace
 		}
 	}
 }
@@ -244,9 +256,9 @@ foreach year of local edyears2 {
 //Merging Example
 forvalues year = 2014/2021 {
 if `year' == 2020 continue
-use "${output}/AZ_AssmtData_`year'.dta", clear
-//Merging
+use "${Output}/AZ_AssmtData_`year'.dta", clear
 
+//Merging
 tempfile tempall
 save "`tempall'", replace
 keep if DataLevel == 2
@@ -265,7 +277,7 @@ duplicates report NCESDistrictID StudentSubGroup GradeLevel Subject
 duplicates drop NCESDistrictID StudentSubGroup GradeLevel Subject, force
 destring NCESDistrictID, replace
 destring NCESSchoolID, replace
-merge 1:1 NCESDistrictID StudentSubGroup GradeLevel Subject using "${EDFacts}/`year'/edfactspart`year'districtarizona.dta", gen(DistMerge)
+merge 1:1 NCESDistrictID StudentSubGroup GradeLevel Subject using "${EDFacts_AZ}/edfactspart`year'districtAZ.dta", gen(DistMerge)
 drop if DistMerge == 2
 save "`tempdist'", replace
 clear
@@ -276,7 +288,7 @@ duplicates report NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject
 duplicates drop NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject, force
 destring NCESDistrictID, replace
 destring NCESSchoolID, replace
-merge 1:1 NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject using "${EDFacts}/`year'/edfactspart`year'schoolarizona.dta", gen(SchMerge)
+merge 1:1 NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject using "${EDFacts_AZ}/edfactspart`year'schoolAZ.dta", gen(SchMerge)
 drop if SchMerge == 2
 save "`tempsch'", replace
 clear
@@ -291,13 +303,24 @@ append using "`tempdist'" "`tempsch'"
 //New Participation Data
 replace ParticipationRate = Participation if !missing(Participation)
 
-//Final Cleaning
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
- 
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
+// Reordering variables and sorting data
+local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
+    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
+    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
+    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
+    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
+    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
+    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
+    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
+    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
+    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
+    Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+	keep `vars'
+	order `vars'
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${output}/AZ_AssmtData_`year'.dta", replace
-export delimited "${output}/csv/AZ_AssmtData_`year'.csv", replace
+save "${Output}/AZ_AssmtData_`year'.dta", replace
+export delimited "${Output}/AZ_AssmtData_`year'.csv", replace
 }
+* END of 17_AZ_EDFactsParticipation_2014_2021.do
+****************************************************

@@ -1,8 +1,22 @@
-clear
-set more off
+*******************************************************
+* ARIZONA
 
-global Original "/Users/miramehta/Documents/Arizona/Original Data Files"
-global output "/Users/miramehta/Documents/Arizona/Output"
+* File name: 18_AZ_EDFactsParticipation_2022
+* Last update: 2/20/2025
+
+*******************************************************
+* Notes
+
+	* This do file merges AZ EDFacts data for 2022 with the derived output for the same year. 
+	
+*******************************************************
+
+/////////////////////////////////////////
+*** Setup ***
+/////////////////////////////////////////
+clear
+
+** Preparing EDFacts files
 
 foreach s in ela math sci {
 	import delimited "${Original}/AZ_EFParticipation_2022_`s'.csv", case(preserve) clear
@@ -11,7 +25,6 @@ foreach s in ela math sci {
 
 use "${Original}/AZ_EFParticipation_2022_ela.dta"
 append using "${Original}/AZ_EFParticipation_2022_math.dta" "${Original}/AZ_EFParticipation_2022_sci.dta"
-
 
 //Rename and Drop Vars
 drop SchoolYear State
@@ -26,7 +39,6 @@ rename AgeGrade GradeLevel
 rename AcademicSubject Subject
 drop ProgramType Outcome Characteristics
 
-//Clean ParticipationRate
 //Clean ParticipationRate
 replace Participation = "*" if Participation == "S"	
 gen rangeParticipation = substr(Participation,1,1) if regexm(Participation,"[<>]") !=0
@@ -54,7 +66,6 @@ replace StudentSubGroup = "Military" if StudentSubGroup == "Military connected"
 replace StudentSubGroup = "Foster Care" if StudentSubGroup == "Foster care students"
 replace StudentSubGroup = "Asian" if StudentSubGroup == "Asian/Pacific Islander"
 
-
 //Subject
 replace Subject = "ela" if Subject == "Reading/Language Arts"
 replace Subject = "math" if Subject == "Mathematics"
@@ -69,7 +80,7 @@ duplicates drop NCESDistrictID NCESSchoolID GradeLevel Subject StudentSubGroup, 
 save "${Original}/AZ_EFParticipation_2022", replace
 
 //Merging with 2022
-use "${output}/AZ_AssmtData_2022.dta", clear
+use "${Output}/AZ_AssmtData_2022.dta", clear
 
 destring NCESDistrictID NCESSchoolID, replace
 
@@ -80,12 +91,23 @@ replace ParticipationRate = Participation
 replace ParticipationRate = "--" if missing(ParticipationRate)
 drop _merge Participation
 
-//Final Cleaning
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
- 
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
+// Reordering variables and sorting data
+local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
+    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
+    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
+    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
+    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
+    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
+    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
+    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
+    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
+    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
+    Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+	keep `vars'
+	order `vars'
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${output}/AZ_AssmtData_2022.dta", replace
-export delimited "${output}/csv/AZ_AssmtData_2022.csv", replace
+save "${Output}/AZ_AssmtData_2022.dta", replace
+export delimited "${Output}/AZ_AssmtData_2022.csv", replace
+* END of 18_AZ_EDFactsParticipation_2022.do
+****************************************************
