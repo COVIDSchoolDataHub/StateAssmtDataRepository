@@ -416,7 +416,7 @@ order `vars'
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 *Exporting Output with derivations*
-save "${Output}/AZ_AssmtData_2021.dta", replace
-export delimited using "${Output}/AZ_AssmtData_2021.csv", replace
+save "${Output}/AZ_AssmtData_2021.dta", replace //Not final output, EDFacts participation rates added in at the end.
+export delimited using "${Output}/AZ_AssmtData_2021.csv", replace //Not final output, EDFacts participation rates added in at the end.
 * END of 13_AzM2_clean_2021.do
 ****************************************************
