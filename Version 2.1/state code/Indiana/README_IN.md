@@ -19,8 +19,11 @@ EDFacts: Download the Datasets subfolder containing *.csv files. There will be i
 ## Indiana Setup
 Create a folder for IN. Inside that folder, create the following subfolders:
       
-      1. Original Data Files: Download the Original Data Files - Version 2.0+ (incl v1.1 + sci and soc data). There will be two subfolders - ELA + Math and Science + Social Studies. 
-         This is located in Google Drive --> Indiana. 
+      1. Original Data Files: Download the **entire** folder called Original Data Files - Version 2.0+ (incl v1.1 + sci and soc data). 
+      
+      This is located in Google Drive --> Indiana. 
+      
+      The folder and files are structured exactly the way you need it on your local drive.
          a. ELA + Math [subfolder]: This should contain all  ELA + Math files downloaded.
          b. Science + Social Studies [subfolder]: This should contain all Science + Social Studies downloaded.   
       
