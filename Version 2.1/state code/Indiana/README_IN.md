@@ -24,8 +24,8 @@ Create a folder for IN. Inside that folder, create the following subfolders:
       This is located in Google Drive --> Indiana. 
       
       The folder and files are structured exactly the way you need it on your local drive.
-         a. ELA + Math [subfolder]: This should contain all  ELA + Math files downloaded.
-         b. Science + Social Studies [subfolder]: This should contain all Science + Social Studies downloaded.   
+         a. ELA + Math [subfolder]: 
+         b. Science + Social Studies [subfolder]:  
       
       2. Temp
          
