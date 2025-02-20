@@ -34,8 +34,8 @@ global Output "C:/Zelma/Arizona/Output_Files" // Version 2.1 Output directory he
 global Output_ND "C:/Zelma/Arizona/Output_Files_ND" //Non Derivation Output. 
 
 // Run in this order.*
-// do "${DoFiles}/01_NCES_clean copy.do"
-// do "${DoFiles}/02_AZ EDFacts.do"
+do "${DoFiles}/01_NCES_clean copy.do"
+do "${DoFiles}/02_AZ EDFacts.do"
 do "${DoFiles}/03_AIMS_all_clean_2010.do"
 do "${DoFiles}/04_AIMS_all_clean_2011.do"
 do "${DoFiles}/05_AIMS_all_clean_2012.do"
