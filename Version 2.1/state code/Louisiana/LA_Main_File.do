@@ -1,6 +1,12 @@
 * LOUISIANA
 *File name: LA_Main_File 
-*Last update: 2/19/2025
+*Last update: 2/21/2025
+
+*Place all do files in the LA folder.
+
+*Set the appropriate file paths in LA_Main_File.do
+
+*Running LA_Main_File.do will execute all the do files in order.
 
 clear 
 set excelxlsxlargefile on 
