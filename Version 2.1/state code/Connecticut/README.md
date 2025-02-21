@@ -38,15 +38,11 @@ Create a folder for CT. Inside that folder, create the following subfolders:
     5. Temp 
 
 ## Process
-The do files need to be executed in the following order.
-
-    1. 01_CT_Cleaning.do 
-    
-    2. 02_CT_Cleaning_2021.do 
-    
-    3. 03_CT_2021_EDFACTS.do
-    
-You can run CT_Main_File.do after setting the appropriate file paths. 
+    Place all do files in the CT folder.
+        
+    Set the appropriate file paths in CT_Main_File.do
+        
+    Running CT_Main_File.do will execute all the do files in order.
 
 ### Note: Install the "labutil" package for the code to run (necessary for "labmask" command):
 
