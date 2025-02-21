@@ -38,17 +38,11 @@ Create a folder for CA. Inside that folder, create the following subfolders:
       5. Output_Files_ND: This is a folder for the non-derivation output.
 
 ## Process
-The do files need to be executed in the following order.
-
-1. 01_california_dta_conversion.do;
-
-2. 02_CA_NCES_New.do;
-
-3. california_year_clean.do; [year = 2010/2024, excluding 2014 and 2020]
-
-4. california_Science_2019_2024.do;
-
-To run everything at once, you can run CA_Main_File.do
+    Place all do files in the CA folder.
+    
+    Set the appropriate file paths in CA_Main_File.do
+    
+    Running CA_Main_File.do will execute all the do files in order.
 
 ## Updates
 
