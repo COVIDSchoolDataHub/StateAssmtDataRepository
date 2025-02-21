@@ -844,10 +844,10 @@ if "$StateAbbrev" == "NM" {
 	
 	
 	*AssmtType	
- replace AssmtType_Chk = "Regular and alt" if FILE == "2017" | FILE == "2018" & AssmtName == "PARCC & NMAPA"
- replace AssmtType_Chk = "Regular and alt" if FILE == "2019" & AssmtName == "TAMELA & NMAPA"
-   replace AssmtType_Chk = "Regular and alt" if FILE == "2021" | FILE == "2022" | FILE == "2023"
-	
+ replace AssmtType_Chk = "Regular and alt" if (FILE == "2017" | FILE == "2018") & AssmtName == "PARCC & NMAPA"
+ replace AssmtType_Chk = "Regular and alt" if (FILE == "2019" & AssmtName == "TAMELA & NMAPA")
+ replace AssmtType_Chk = "Regular and alt" if FILE == "2021" | FILE == "2022" | FILE == "2023"
+		
 }
 
  

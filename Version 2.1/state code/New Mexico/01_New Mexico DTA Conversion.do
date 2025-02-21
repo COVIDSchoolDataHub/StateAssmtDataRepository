@@ -1,10 +1,17 @@
+*******************************************************
+* NEW MEXICO
+
+* File name: 01_New Mexico DTA Conversion
+* Last update: 2/20/2025
+
+*******************************************************
+* Description: This file converts csv and excel files into .dta format. 
+* All files are imported from and saved to the original data folder (except the 2024 unmerged schools)
+*******************************************************
+
+
 clear
 set more off
-
-global NM "/Volumes/T7/State Test Project/New Mexico"
-global raw "/Users/miramehta/Documents/New Mexico/Original Data Files"
-global output "/Users/miramehta/Documents/New Mexico/Output"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
 
 ** Converting to dta **
 
@@ -64,3 +71,5 @@ save  "$raw/NM_AssmtData_2024_sci_DataRequest", replace
 
 import excel "$NM/NM_2024_Unmerged.xlsx", firstrow allstring clear
 save "$NM/NM_2024_Unmerged", replace
+
+*End of 01_New Mexico DTA Conversion

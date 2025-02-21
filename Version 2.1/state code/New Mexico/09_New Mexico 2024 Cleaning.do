@@ -1,11 +1,16 @@
+*******************************************************
+* NEW MEXICO
+
+* File name: 09_New Mexico 2024 Cleaning
+* Last update: 2/20/2025
+
+*******************************************************
+* Description: This file cleans all New Mexico Original Data for 2024.
+
+*******************************************************
+
 clear
 set more off
-
-global NM "/Volumes/T7/State Test Project/New Mexico"
-global raw "/Volumes/T7/State Test Project/New Mexico/Original Data Files"
-global output "/Volumes/T7/State Test Project/New Mexico/Output"
-global NCES "/Volumes/T7/State Test Project/New Mexico/NCES"
-global EDFacts "/Volumes/T7/State Test Project/EDFACTS"
 
 //Combine ela/math and sci
 use "$raw/NM_AssmtData_2024_elamath_DataRequest", clear
@@ -171,6 +176,11 @@ replace CountyName = "Dona Ana County" if CountyCode == "35013"
 replace DistName = stritrim(DistName)
 replace SchName = stritrim(SchName)
 
+//Misc Changes in reponse to self review
+replace SchVirtual = "No" if NCESSchoolID == "350280330026"
+replace StudentSubGroup_TotalTested = StudentGroup_TotalTested if real(StudentSubGroup_TotalTested) > real(StudentGroup_TotalTested) & !missing(real(StudentSubGroup_TotalTested)) & !missing(real(StudentGroup_TotalTested))
+** For above: A couple districts/schools had Econ Disadvantaged ssg_tt as 1 higher than sg_tt. Manually changing ssg_tt to sg_tt, but retaining same ProficientOrAbove_count and percents.
+
 
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
@@ -182,6 +192,7 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 save "${output}/NM_AssmtData_2024", replace
 export delimited "${output}/NM_AssmtData_2024", replace
 
+*End of 09_New Mexico 2024 Cleaning
 
 
 
