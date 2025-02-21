@@ -1,6 +1,12 @@
 *CONNECTICUT
 *File name: CT_Main_File
-*Last update: 2/11/2025
+*Last update: 2/21/2025
+
+*Place all do files in the CT folder.
+    
+*Set the appropriate file paths in CT_Main_File.do
+    
+*Running CT_Main_File.do will execute all the do files in order.
 
 clear 
 set more off
