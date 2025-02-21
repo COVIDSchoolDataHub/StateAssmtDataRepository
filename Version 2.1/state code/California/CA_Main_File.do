@@ -1,6 +1,12 @@
 * CALIFORNIA
 *File name: CA_Main_File 
-*Last update: 2/18/2025
+*Last update: 2/21/2025
+
+*Place all do files in the CA folder.
+    
+*Set the appropriate file paths in CA_Main_File.do
+    
+*Running CA_Main_File.do will execute all the do files in order.
 
 clear 
 set excelxlsxlargefile on 
