@@ -1,6 +1,12 @@
 * ARIZONA
 *File name: AZ_Main_File 
-*Last update: 2/20/2025
+*Last update: 2/21/2025
+
+*Place all do files in the AZ folder.
+    
+*Set the appropriate file paths in AZ_Main_File.do
+    
+*Running AZ_Main_File.do will execute all the do files in order.
 
 clear 
 set excelxlsxlargefile on 
