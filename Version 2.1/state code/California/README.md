@@ -24,7 +24,7 @@ Create a folder for CA. Inside that folder, create the following subfolders:
       They are located in Google Drive --> California.
       
               i) CA_DistSchInfo_2010_2024.xlsx   
-              ii) Unmerged_2024.xlsx 
+              ii) CA_Unmerged_2024.xlsx 
               iii) CA_2024_Updates.xlsx
         
          a. Cleaned DTA [subfolder]
