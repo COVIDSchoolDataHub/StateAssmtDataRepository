@@ -2,11 +2,12 @@
 * TENNESSEE
 
 * File name: TN_Main_File
-* Last update: 2/11/2025
+* Last update: 2/21/2025
 
 *******************************************************
 * Notes
-
+    	* Place all do files in the TN folder.
+        * Set the appropriate file paths in TN_Main_File.do
 	* The cd path should be updated in the other TN do files prior to running this TN_Main_File.
 	* Global macros can be updated in this do file.
 	* This will be the only .do file needed to run through all state files in the proper order.
