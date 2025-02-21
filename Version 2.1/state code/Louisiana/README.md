@@ -33,24 +33,8 @@ Create a folder for LA. Inside that folder, create the following subfolders:
     5. Temp_Files 
 
 ## Process
-The do files can be executed in any order.
-
-    LA_2015_SepData.do
+    Place all do files in the LA folder.
     
-    LA_2016_SepData.do
+    Set the appropriate file paths in LA_Main_File.do
     
-    LA_2017_SepData.do
-    
-    LA_2018_SepData.do
-    
-    LA_2019_SepData.do
-    
-    LA_2021_SepData.do
-    
-    LA_2022_SepData.do
-    
-    LA_2023_SepData.do
-    
-    LA_2024_SepData.do
-
-You can run LA_Main_File.do after setting the appropriate file paths.
+    Running LA_Main_File.do will execute all the do files in order.
