@@ -38,7 +38,6 @@ save "$Original_Cleaned/CA_DistSchInfo_2010_2024", replace
 
 //Unmerged 2024
 import excel "$Original/CA_Unmerged_2024", firstrow case(preserve) allstring clear
-drop S-AA Notes *Merge
 save "$Original_Cleaned/CA_Unmerged_2024", replace
 
 //2024 Updates
