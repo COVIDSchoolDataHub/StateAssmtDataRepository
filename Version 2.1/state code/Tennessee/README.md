@@ -38,5 +38,7 @@ Create a folder for TN. Inside that folder, create the following subfolders:
     Place all do files in the TN folder.
         
     Set the appropriate file paths in TN_Main_File.do
+
+    The cd path should be updated in the other TN do files prior to running the TN_Main_File.
         
     Running TN_Main_File.do will execute all the do files in order.
