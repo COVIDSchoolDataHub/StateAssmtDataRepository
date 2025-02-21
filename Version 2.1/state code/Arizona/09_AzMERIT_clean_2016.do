@@ -450,7 +450,7 @@ replace StudentSubGroup_TotalTested = Count if Count != "."
 drop if _merge == 2
 drop stnam-_merge
 
-destring NCESDistrictID, replace
+*destring NCESDistrictID, replace
 merge m:1 DataLevel NCESDistrictID StudentGroup StudentSubGroup GradeLevel Subject using "${EDFacts_AZ}/edfactspart2015districtAZ.dta"
 replace ParticipationRate = Participation if Participation != ""
 drop if _merge == 2
@@ -463,8 +463,8 @@ replace StudentSubGroup_TotalTested = Count if Count != "."
 drop if _merge == 2
 drop stnam-_merge
 
-destring NCESDistrictID, replace
-destring NCESSchoolID, replace
+*destring NCESDistrictID, replace
+*destring NCESSchoolID, replace
 merge m:1 DataLevel NCESSchoolID StudentGroup StudentSubGroup GradeLevel Subject using "${EDFacts_AZ}/edfactspart2015schoolAZ.dta"
 replace ParticipationRate = Participation if Participation != ""
 drop if _merge == 2
