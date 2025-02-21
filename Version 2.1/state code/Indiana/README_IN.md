@@ -38,21 +38,11 @@ Create a folder for IN. Inside that folder, create the following subfolders:
       6. Output_Files_ND: This is a folder for the non-derivation output.
    
 ## Process
-The do files need to be executed in the following order.
-
-      1. 01_Indiana NCES Cleaning.do
-      
-      2. 02_IN_Importing_sci_soc.do
-      
-      3. 03_IN_Importing.do
-      
-      4. 04_IN_Cleaning.do
-      
-      5. 05_IN_EDFactsParticipation_2014_2021.do
-      
-      6. 06_IN_EDFactsParticipation_2022.do
-
-You can run IN_Main_File.do after setting the appropriate file paths. 
+    Place all do files in the IN folder.
+        
+    Set the appropriate file paths in IN_Main_File.do
+        
+    Running IN_Main_File.do will execute all the do files in order.
 
 ## Updates
 11/12/24: Updated to include 2024 data, as well as new sci/soc data received in data request, and incorporate "all students" data from public files.
