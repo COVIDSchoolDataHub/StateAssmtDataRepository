@@ -3,17 +3,35 @@
 This is a ReadMe for West Virginia's data cleaning process, from 2015 to 2024.
 
 ## Setup
+You will need three main folders:
+1. EDFacts, with subfolders for each year from 2015-2021. They should contain the wide .csv versions of the files.
+2. NCES District and School Demographics, with subfolders for school and district data.
+3. West Virginia, with the following subfolders:
+    - Original Data Files: This will contain all original files downloaded form Drive.
+    - Counts: This will begin empty, but will contain the versions of files with student counts that can be merged with performance data.
+    - NCES_Clean: This will begin empty, but will contian the WV-specific NCES files.
+    - Output: This will begin empty, and cleaned files will be saved here.
 
-Create a folder for WV. Within that folder, create five more folders corresponding to the following directories at the top of the relevant do-files (WV Cleaning_7.22.23, WV Student Counts 15-21_12.2.23, and WV_22-24_edfactscounts). `counts` should be a folder containing ONLY the WV_2022_counts.csv file (located in the "Original Data" folder on the drive). `data` should contain the original data files downloaded from the drive. `NCES` should contain updated NCES files. `NCES_clean` should be empty for now. `edfacts` should contain the long .dta edfacts files found on the drive.
-
+Macros can be set as follows:
 ```
-cd "/Volumes/T7/State Test Project/West Virginia"
-global data "/Volumes/T7/State Test Project/West Virginia/Original Data Files"
-global NCES "/Volumes/T7/State Test Project/NCES/"
-global NCES_clean "/Volumes/T7/State Test Project/West Virginia/NCES_Clean"
-global edfacts "/Volumes/T7/State Test Project/EDFACTS"
-global counts "/Volumes/T7/State Test Project/West Virginia/Counts"
+global DoFiles "/Users/miramehta/Documents/GitHub/StateAssmtDataRepository/Version 2.1/state code/West Virginia" 
+cd "/Users/miramehta/Documents/West Virginia"
+global NCES_School "/Users/miramehta/Documents/NCES District and School Demographics/NCES School Files, Fall 1997-Fall 2022"
+global NCES_Dist "/Users/miramehta/Documents/NCES District and School Demographics/NCES District Files, Fall 1997-Fall 2022"
+global NCES_clean "/Users/miramehta/Documents/West Virginia/NCES_Clean"
+global edfacts "/Users/miramehta/Documents/EDFacts"
+global counts "/Users/miramehta/Documents/West Virginia/Counts"
+global data "/Users/miramehta/Documents/West Virginia/Original Data Files"
+global output "/Users/miramehta/Documents/West Virginia/Output" //Usual output exported. 
 ```
 
 ## Recreating Cleaning
-There are 3 do-files you must run, and 13 total do-files to download (all the files in this repository). The 3 do files to run manually and change directories for are WV Cleaning_7.22.23, WV Student Counts 15-21_12.2.23, and WV_22-24_edfactscounts. Run the Student Counts do-files first. Then run the the Cleaning do-file. This cleaning do-file will run the remaining do-files which clean each year. It will also run a do file to merge in participation rates for 2015-2021 (WV_edfacts_participation_2015_2021) You do not need to set directories in these files. You can run the yearly do-files individually after setting directories in the 3 manual do-files (but make sure to run the participation do-file before uploading since it runs after all files have been cleaned).
+You can complete the entire cleaning process by running "WV_Main_File.do."
+Alternatively, you can set the macros defined in "WV_Main_File.do." and run each of the other 12 .do files individually in the following order:
+1. Run 01_WV_Student_Counts.do
+2. Run 02_WV_EDFacts_22_24.do
+3. Run 03_WV_ParticipationRate_18_24.do
+4. Run the do files for each year in any order you'd like.
+
+## Updates
+02/22/2024: Updated to include particiaption rates & state level counts received via data request & match new file naming convention.

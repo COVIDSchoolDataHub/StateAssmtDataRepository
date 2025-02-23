@@ -1,5 +1,5 @@
-//2023-2024
-import excel "$data/WV_OriginalData_2024_ela,math,sci.xlsx, sheet("SY24 Schl & Dist Comp. Results") clear 
+//2022-2023
+import excel "$data/WV_OriginalData_2023_ela,math,sci.xlsx", sheet("SY23 Schl & Dist Comp. Results") clear
 
 //Variable Names
 rename A StateAssignedDistID
@@ -82,7 +82,7 @@ rename CO Lev2_percent_G08_sci
 rename CP Lev3_percent_G08_sci
 rename CQ Lev4_percent_G08_sci
 rename CR ProficientOrAbove_pct_G08_sci
-drop CS CT CU CV CW CX CY CZ DA DB
+drop CS CT CU CV CW CX CY CZ DA DB DC
 
 drop if StateAssignedDistID == ""
 drop if StateAssignedDistID == "Dist"
@@ -91,32 +91,11 @@ drop if StateAssignedDistID == "Data suppression is applied to comply with WVDE 
 drop if StateAssignedDistID == "Please Note"
 
 //Reshape Data
-reshape long Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_pct, i (StateAssignedDistID StateAssignedSchID StudentGroup StudentSubGroup) j(GradeLevel) string
+reshape long Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_pct, i(StateAssignedDistID StateAssignedSchID StudentGroup StudentSubGroup) j(GradeLevel) string
 
-gen Subject = "math"
-replace Subject = "ela" if GradeLevel == "_G03_ela"
-replace Subject = "ela" if GradeLevel == "_G04_ela"
-replace Subject = "ela" if GradeLevel == "_G05_ela"
-replace Subject = "ela" if GradeLevel == "_G06_ela"
-replace Subject = "ela" if GradeLevel == "_G07_ela"
-replace Subject = "ela" if GradeLevel == "_G08_ela"
-replace Subject = "sci" if GradeLevel == "_G05_sci"
-replace Subject = "sci" if GradeLevel == "_G08_sci"
-
-replace GradeLevel = "G03" if GradeLevel == "_G03_math"
-replace GradeLevel = "G03" if GradeLevel == "_G03_ela"
-replace GradeLevel = "G04" if GradeLevel == "_G04_math"
-replace GradeLevel = "G04" if GradeLevel == "_G04_ela"
-replace GradeLevel = "G05" if GradeLevel == "_G05_math"
-replace GradeLevel = "G05" if GradeLevel == "_G05_ela"
-replace GradeLevel = "G05" if GradeLevel == "_G05_sci"
-replace GradeLevel = "G06" if GradeLevel == "_G06_math"
-replace GradeLevel = "G06" if GradeLevel == "_G06_ela"
-replace GradeLevel = "G07" if GradeLevel == "_G07_math"
-replace GradeLevel = "G07" if GradeLevel == "_G07_ela"
-replace GradeLevel = "G08" if GradeLevel == "_G08_math"
-replace GradeLevel = "G08" if GradeLevel == "_G08_ela"
-replace GradeLevel = "G08" if GradeLevel == "_G08_sci"
+gen Subject = substr(GradeLevel, 6, 4)
+replace GradeLevel = subinstr(GradeLevel, "_" + Subject, "", 1)
+replace GradeLevel = subinstr(GradeLevel, "_", "", 1)
 
 rename ProficientOrAbove_pct ProficientOrAbove_percent
 
@@ -132,13 +111,12 @@ replace StateAssignedSchID = "" if DataLevel != "School"
 
 //Generate New Variables
 gen State = "West Virginia"
-gen SchYear = "2023-24"
+gen SchYear = "2022-23"
 gen AssmtName = "West Virginia General Summative Assessment"
 gen AssmtType = "Regular"
 gen Lev5_count = ""
 gen Lev5_percent = ""
 gen ProficiencyCriteria = "Levels 3-4"
-gen ParticipationRate = "--"
 gen AvgScaleScore = "--"
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
@@ -172,10 +150,10 @@ replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Foster Care"
 replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Military-Connected"
 replace StudentSubGroup = "Military" if StudentSubGroup == "Military-Connected"
 
-save "$data/WV_AssmtData_2024", replace
+save "$data/WV_AssmtData_2023", replace
 
 //Clean NCES Data
-use "$data/NCES_2022_School.dta", clear
+use "$NCES_School/NCES_2022_School.dta", clear
 drop if state_location != "WV"
 gen StateAssignedSchID = substr(seasch, 11, 13)
 gen StateAssignedDistID = substr(state_leaid, 4, 6)
@@ -189,9 +167,9 @@ foreach var of varlist school_type SchLevel SchVirtual district_agency_type {
 }
 keep state_location state_fips ncesdistrictid district_agency_type county_name county_code state_leaid school_type ncesschoolid StateAssignedDistID StateAssignedSchID DistCharter SchVirtual SchLevel DistLocale
 
-save "$data/NCES_2024_School_WV", replace
+save "$NCES_clean/NCES_2023_School_WV", replace
 
-use "$data/NCES_2022_District.dta", clear
+use "$NCES_Dist/NCES_2022_District.dta", clear
 drop if state_location != "WV"
 gen StateAssignedDistID = substr(state_leaid, 4, 6)
 replace StateAssignedDistID = substr(StateAssignedDistID, 1,2)
@@ -200,33 +178,37 @@ replace StateAssignedDistID = substr(state_leaid, strpos(state_leaid, "-") +1,3)
 drop if lea_name == "WIN Academy at BVCTC"
 replace StateAssignedDistID = "101" if lea_name == "West Virginia Academy"
 keep state_location state_fips ncesdistrictid district_agency_type county_name county_code state_leaid StateAssignedDistID DistCharter DistLocale
-save "$data/NCES_2024_District_WV.dta", replace
+save "$NCES_clean/NCES_2023_District_WV", replace
 
-use "$data/WV_AssmtData_2024", clear
-merge m:1 StateAssignedDistID using "$data/NCES_2024_District_WV.dta"
-drop if _merge ==2
+//Merge Data
+use "$data/WV_AssmtData_2023"
+merge m:1 StateAssignedDistID using "$NCES_clean/NCES_2023_District_WV.dta"
+drop if _merge == 2
 
-merge m:1 StateAssignedSchID StateAssignedDistID using "$data/NCES_2024_School_WV.dta", gen (merge2)
+merge m:1 StateAssignedSchID StateAssignedDistID  using "$NCES_clean/NCES_2023_School_WV.dta", gen (merge2)
 drop if merge2 == 2
 
-drop _merge merge2
-
 //Clean Merged Data
-rename county_code CountyCode
-rename county_name CountyName
-rename district_agency_type DistType
+rename state_location StateAbbrev
+rename state_fips StateFips
 rename ncesdistrictid NCESDistrictID
+rename district_agency_type DistType
+rename county_name CountyName
+rename county_code CountyCode
 rename ncesschoolid NCESSchoolID
 rename school_type SchType
-rename state_fips_id StateFips
 rename state_leaid State_leaid
-rename state_location StateAbbrev
+
+drop  _merge merge2
+
+replace StateAbbrev = "WV"
+replace StateFips = 54
 
 //Unmerged Schools
 replace NCESSchoolID = "540006201604" if SchName == "Eastern Panhandle Preparatory Academy"
-replace SchVirtual = "No" if SchName == "Eastern Panhandle Preparatory Academy"
 replace SchType = "Regular school" if SchName == "Eastern Panhandle Preparatory Academy"
 replace SchLevel = "Other" if SchName == "Eastern Panhandle Preparatory Academy"
+replace SchVirtual = "Supplemental virtual" if SchName == "Eastern Panhandle Preparatory Academy"
 
 replace NCESSchoolID = "540006301605" if SchName == "Virtual Preparatory Academy of West Virginia"
 replace SchVirtual = "Supplemental virtual" if SchName == "Virtual Preparatory Academy of West Virginia"
@@ -240,12 +222,9 @@ replace SchType = "Regular school" if SchName == "West Virginia Virtual Academy"
 replace SchLevel = "Other" if SchName == "West Virginia Virtual Academy"
 
 replace NCESSchoolID = "540165201611" if SchName == "West Virginia Academy"
-replace SchVirtual = "No" if SchName == "West Virginia Academy"
 replace SchType = "Regular school" if SchName == "West Virginia Academy"
 replace SchLevel = "Other" if SchName == "West Virginia Academy"
-
-replace SchType = "Regular school" if SchName == "Victory Elementary School"
-replace SchVirtual = "Supplemental virtual" if SchName == "Victory Elementary School"
+replace SchVirtual = "Supplemental virtual" if SchName == "West Virginia Academy"
 
 replace SchType = "Regular school" if SchName == "Victory Elementary School"
 replace SchVirtual = "Supplemental virtual" if SchName == "Victory Elementary School"
@@ -257,28 +236,33 @@ sort DataLevel_n
 drop DataLevel 
 rename DataLevel_n DataLevel
 
-//Student Counts and ParticipationRate
-merge 1:1 NCESDistrictID NCESSchoolID GradeLevel Subject DataLevel StudentSubGroup using "$data/counts/WV_2022_counts"
-
-drop if _merge == 2 
-
-replace StateAbbrev = "WV" if StateAbbrev == ""
-replace StateFips = 54 if missing(StateFips)
-
-replace SchName = stritrim(SchName) // returns SchName with all consecutive, internal blanks collapsed to one blank.2
-
-replace SchName = "Mason Dixon Elementary" if NCESSchoolID == "540093000750"
-
+//Student Counts
+merge 1:1 NCESDistrictID NCESSchoolID GradeLevel Subject StudentSubGroup using "$counts/WV_2022_counts", keep(match master)
+gen Count = StudentSubGroup_TotalTested
 tostring StudentSubGroup_TotalTested StudentGroup_TotalTested, replace 
 replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
-replace StudentGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
-replace ParticipationRate = ParticipationRate1
-replace ParticipationRate = "--" 
-replace ParticipationRate = "--" if ParticipationRate == ""
+drop _merge ParticipationRate
+
+*Merge in State Level Counts
+merge 1:1 DataLevel NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject using "$counts/WV_StateCounts_2023"
+drop if _merge == 2
+gen base = Students if _merge == 3
+replace Students = subinstr(Students, "0-", "", 1)
+replace Count = real(Students) if _merge == 3 
+drop _merge
+
+//ParticipationRate
+merge 1:1 StateAssignedDistID StateAssignedSchID Subject GradeLevel StudentSubGroup using "$data/WV_Participation_2023"
+drop _merge
+replace Count = round(Count * ParticipationRate) if DataLevel == 1
+replace StudentSubGroup_TotalTested = string(Count) if DataLevel == 1
+replace StudentSubGroup_TotalTested = "0-" + StudentSubGroup_TotalTested if strpos(base, "0-") != 0
+
+tostring ParticipationRate, replace format("%9.4f")
 replace ParticipationRate = "--" if ParticipationRate == "."
 
 //Missing & Suppressed Data
-replace Lev1_percent = "--" if Lev1_percent == "" 
+replace Lev1_percent = "--" if Lev1_percent == ""
 replace Lev2_percent = "--" if Lev2_percent == ""
 replace Lev3_percent = "--" if Lev3_percent == ""
 replace Lev4_percent = "--" if Lev4_percent == ""
@@ -291,11 +275,10 @@ replace Lev4_percent = "*" if Lev4_percent == "***"
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "***"
 
 //Proficiency Levels
-destring StudentSubGroup_TotalTested, gen(num) force
 forvalues n = 1/4 {
 	gen Lev`n'_pct = Lev`n'_percent
 	destring Lev`n'_pct, replace force
-	gen Lev`n'_count = Lev`n'_pct * num
+	gen Lev`n'_count = Lev`n'_pct * Count
 	replace Lev`n'_count = round(Lev`n'_count)
 	replace Lev`n'_percent = "--" if Lev`n'_percent == ""
 	replace Lev`n'_percent = "*" if Lev`n'_percent == "***"
@@ -304,11 +287,12 @@ forvalues n = 1/4 {
 	replace Lev`n'_count = "--" if Lev`n'_percent == "--"
 	replace Lev`n'_count = "--" if StudentSubGroup_TotalTested == "--" & Lev`n'_count != "*"
 	replace Lev`n'_percent = "--" if Lev`n'_percent == "."
+	replace Lev`n'_count = "0-" + Lev`n'_count if strpos(StudentSubGroup_TotalTested, "0-") != 0 & Lev`n'_count != "*"
 }
 
 gen Prof_pct = ProficientOrAbove_percent
 destring Prof_pct, replace force
-gen ProficientOrAbove_count = Prof_pct * num
+gen ProficientOrAbove_count = Prof_pct * Count
 replace ProficientOrAbove_count = round(ProficientOrAbove_count)
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "***"
 replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == ""
@@ -318,8 +302,9 @@ replace ProficientOrAbove_count = "--" if ProficientOrAbove_percent == "--"
 replace ProficientOrAbove_count = "--" if StudentSubGroup_TotalTested == "--" & ProficientOrAbove_count != "*"
 replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "." & ProficientOrAbove_percent == "*"
 replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == "."
+replace ProficientOrAbove_count = "0-" + ProficientOrAbove_count if strpos(StudentSubGroup_TotalTested, "0-") != 0 & ProficientOrAbove_count != "*"
 
-drop Lev1_pct Lev2_pct Lev3_pct Lev4_pct Prof_pct num _merge
+drop Lev1_pct Lev2_pct Lev3_pct Lev4_pct Prof_pct Count Students base
 
 //StudentGroup_TotalTested Convention
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
@@ -332,14 +317,21 @@ foreach var of varlist *_percent {
 	replace `var' = string(real(`var'), "%9.3g") if regexm(`var', "[0-9]") !=0
 }
 
-//Removing extra spaces
+//Remove Observations with All Information Missing
+drop if Lev1_percent == "--" & Lev2_percent == "--" & Lev3_percent == "--" & Lev4_percent == "--" & ProficientOrAbove_percent == "--" //cases where grade/school combos don't exist
+drop if Lev1_percent == "*" & Lev2_percent == "*" & Lev3_percent == "*" & Lev4_percent == "*" & ProficientOrAbove_percent == "*" & StudentSubGroup != "All Students"
+
+//Formatting IDs + School & Dist Names
+replace StateAssignedSchID = StateAssignedDistID + "-" + StateAssignedSchID if DataLevel == 3 //creates unique school IDs
+
 foreach var of varlist DistName SchName {
 	replace `var' = stritrim(`var') // collapses all consecutive, internal blanks to one blank.
 	replace `var' = strtrim(`var') // removes leading and trailing blanks
 }
 
-//Getting rid of empty observations
-drop if StudentSubGroup_TotalTested == "--" & Lev1_percent == "--" & Lev2_percent == "--" & Lev3_percent == "--" & Lev4_percent == "--" & ProficientOrAbove_percent == "--"
+replace DistName = "McDowell" if NCESDistrictID == "5400810"
+replace DistName = "Virtual Preparatory Academy of West Virginia" if DistName == "Virt Prep Academy"
+replace SchName = "Mason Dixon Elementary" if NCESSchoolID == "540093000750"
 
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
@@ -348,6 +340,5 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save  "$data/WV_AssmtData_2024", replace
-export delimited "/Users/mikaeloberlin/Desktop/West Virginia/WV_AssmtData_2024", replace
-clear
+save "$output/WV_AssmtData_2023", replace
+export delimited "$output/WV_AssmtData_2023", replace

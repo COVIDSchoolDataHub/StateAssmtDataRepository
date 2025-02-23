@@ -1,12 +1,7 @@
 clear
 set more off
-cd "/Volumes/T7/State Test Project/West Virginia"
-global data "/Volumes/T7/State Test Project/West Virginia/Original Data Files"
-global NCES "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
-global NCES_clean "/Volumes/T7/State Test Project/West Virginia/NCES_Clean"
-global counts "/Volumes/T7/State Test Project/West Virginia/Counts"
 
-import delimited "$counts/WV_2022_counts", case(preserve)
+import delimited "$data/WV_2022_counts", case(preserve) clear
 
 //Rename and Drop Variables
 drop SchoolYear State
@@ -28,7 +23,7 @@ drop ProgramType Outcome
 //Variable Types
 tostring NCESDistrictID, replace
 replace NCESDistrictID = "" if NCESDistrictID == "."
-tostring NCESSchoolID, replace force format("%15.6g")
+tostring NCESSchoolID, replace format("%18.0f")
 replace NCESSchoolID = "" if NCESSchoolID == "."
 
 //StudentSubGroup
@@ -105,8 +100,4 @@ replace SchName = "All Schools" if DataLevel !=3
 order DataLevel DistName NCESDistrictID SchName NCESSchoolID Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested ParticipationRate
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 save "$counts/WV_2022_counts", replace
-clear
-
-
-
 
