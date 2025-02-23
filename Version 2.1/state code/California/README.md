@@ -24,7 +24,7 @@ Create a folder for CA. Inside that folder, create the following subfolders:
       They are located in Google Drive --> California.
       
               i) CA_DistSchInfo_2010_2024.xlsx   
-              ii) Unmerged_2024.xlsx 
+              ii) CA_Unmerged_2024.xlsx 
               iii) CA_2024_Updates.xlsx
         
          a. Cleaned DTA [subfolder]
@@ -38,20 +38,16 @@ Create a folder for CA. Inside that folder, create the following subfolders:
       5. Output_Files_ND: This is a folder for the non-derivation output.
 
 ## Process
-The do files need to be executed in the following order.
-
-1. 01_california_dta_conversion.do;
-
-2. 02_CA_NCES_New.do;
-
-3. california_year_clean.do; [year = 2010/2024, excluding 2014 and 2020]
-
-4. california_Science_2019_2024.do;
+    Place all do files in the CA folder.
+    
+    Set the appropriate file paths in CA_Main_File.do
+    
+    Running CA_Main_File.do will execute all the do files in order.
 
 ## Updates
 
-- 03/10/2024: Responded to first round of 2024 data update review comments.
-- 06/11/2024: Moved to new NCES files for all years and updated unmerged observations. Added new code to deal with additional unmerged observations.
+- 03/10/24: Responded to first round of 2024 data update review comments.
+- 06/11/24: Moved to new NCES files for all years and updated unmerged observations. Added new code to deal with additional unmerged observations.
 - 6/15/24: Fixed mismatched ID's for all years.
 - 6/27/24 Incorporated science data for 2019-2023.
 - 11/10/24: Incorporated 2024, streamlined all do-files, redid nces merging by using crosswalk/dealt with mismatched dist and sch ids, brought state up to V2.0 conventions

@@ -2,15 +2,15 @@
 * TEXAS
 
 * File name: TX_Main_File
-* Last update: 2/11/2025
+* Last update: 2/21/2025
 
 *******************************************************
 * Notes
-
+  * Place all do files in the TX folder.
+  * Set the appropriate file paths in TX_Main_File.do
+  * Running TX_Main_File.do will execute all the do files in order.
   * The TX data has two versions of files for 2012 through 2021 - full files and REDUCED files. This code executes on the REDUCED 2012 through 2021 files.
   * The code to reduce the full files is on GitHub - TX Original File Importing & Reduction.do.  
-  * Global macros can be updated in this do file.
-  * This will be the only .do file needed to run through all state files in the proper order.
 *******************************************************
 /////////////////////////////////////////
 *** Setup ***

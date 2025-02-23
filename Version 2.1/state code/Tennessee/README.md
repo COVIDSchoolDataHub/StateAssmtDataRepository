@@ -35,16 +35,10 @@ Create a folder for TN. Inside that folder, create the following subfolders:
    b. Final_ND [subfolder]. This is a folder for the final non-derivation output.
 
 ## Process
-The TN_Main_File will execute the following TN .do files. Before running TN_Main_File, you will need to update the cd file path in each .do file, and all of the paths in TN_Main_File.
+    Place all do files in the TN folder.
+        
+    Set the appropriate file paths in TN_Main_File.do
 
-01_TN_NCES.do
-
-02_TN_DTA_Conversion.do
-
-03_TN_Cleaning_2010_2014.do
-
-04_TN_Cleaning_2017_2024.do
-
-05_TN_EDFactsParticipationRate.do
-
-06_TN_StableNames.do
+    The cd path should be updated in the other TN do files prior to running the TN_Main_File.
+        
+    Running TN_Main_File.do will execute all the do files in order.

@@ -1,10 +1,16 @@
+*******************************************************
+* NEW MEXICO
+
+* File name: 08_New Mexico 2023 Cleaning
+* Last update: 2/20/2025
+
+*******************************************************
+* Description: This file cleans all New Mexico Original Data for 2023.
+
+*******************************************************
+
 clear
 set more off
-
-global raw "/Users/miramehta/Documents/New Mexico/Original Data Files"
-global output "/Users/miramehta/Documents/New Mexico/Output"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
-global EDFacts "/Users/miramehta/Documents/EDFacts"
 
 //Importing, appending, reshaping
 tempfile temp1
@@ -209,5 +215,5 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 save "${output}/NM_AssmtData_2023", replace
 export delimited "${output}/NM_AssmtData_2023", replace
 
-
+* End of 08_New Mexico 2023 Cleaning
 

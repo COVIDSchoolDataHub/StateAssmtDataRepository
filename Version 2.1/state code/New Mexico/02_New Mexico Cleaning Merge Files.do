@@ -1,10 +1,16 @@
+*******************************************************
+* NEW MEXICO
+
+* File name: 02_New Mexico Cleaning Merge Files
+* Last update: 2/20/2025
+
+*******************************************************
+* Description: This file imports and cleans EDFacts data, and cleans NCES data.
+
+*******************************************************
+
 clear
 set more off
-
-global NCESSchool "/Users/miramehta/Documents/NCES District and School Demographics/NCES School Files, Fall 1997-Fall 2022"
-global NCESDistrict "/Users/miramehta/Documents/NCES District and School Demographics/NCES District Files, Fall 1997-Fall 2022"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
-global EDFacts "/Users/miramehta/Documents/EDFacts"
 
 ** Preparing EDFacts files
 
@@ -168,7 +174,7 @@ foreach year of local edyears2 {
 foreach year of local edyears2 {
 	foreach type of local datatype {
 		foreach lvl of local datalevel {
-			import delimited "${EDFacts}/`year'/edfacts`type'`year'math`lvl'newmexico.dta", case(preserve) clear
+			use "${EDFacts}/`year'/edfacts`type'`year'math`lvl'newmexico.dta", clear
 			append using "${EDFacts}/`year'/edfacts`type'`year'ela`lvl'newmexico.dta"
 			if ("`lvl'" == "school"){
 				rename NCESSCH NCESSchoolID
@@ -282,3 +288,4 @@ foreach a in $years {
 	save "${NCES}/NCES_`a'_School_NM.dta", replace
 	
 }
+* End of 02_New Mexico Cleaning Merge Files

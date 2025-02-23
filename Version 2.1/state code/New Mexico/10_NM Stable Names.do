@@ -1,9 +1,16 @@
+*******************************************************
+* NEW MEXICO
+
+* File name: 10_NM Stable Names
+* Last update: 2/20/2025
+
+*******************************************************
+* Description: This file standardizes District Names to the most recent year of data available (currently 2024)
+
+*******************************************************
+
 clear
 set more off
-
-global raw "/Users/miramehta/Documents/New Mexico/Original Data Files"
-global output "/Users/miramehta/Documents/New Mexico/Output"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
 
 global StateAbbrev "NM"
 global years 2017 2018 2019 2021 2022 2023 2024
@@ -40,3 +47,5 @@ save "$output/${StateAbbrev}_AssmtData_`year'", replace
 export delimited "$output/${StateAbbrev}_AssmtData_`year'", replace
 	
 }
+
+* End of 10_NM Stable Names

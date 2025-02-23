@@ -28,35 +28,11 @@ Create a folder for TX. Inside that folder, create the following subfolders:
     5. Temp_Files 
 
 ## Process
-The do files need to be executed in the following order.
-
-    1. TX_Main_File.do
+    Place all do files in the TX folder.
     
-    2. TX_2012.do
+    Set the appropriate file paths in TX_Main_File.do
     
-    3. TX_2013.do
-    
-    4. TX_2014.do
-    
-    5. TX_2015.do
-    
-    6. TX_2016.do
-    
-    7. TX_2017.do
-    
-    8. TX_2018.do
-    
-    9. TX_2019.do
-    
-    10. TX_2021.do
-    
-    11. TX_2022.do
-    
-    12. TX_2023.do
-    
-    13. TX_2024.do
-
-You can run TX_Main_File.do after setting the appropriate file paths. 
+    Running TX_Main_File.do will execute all the do files in order.
 
 ## Recreate Cleaning/ Creating the reduced files
 A change from the previous version is the creation of "reduced files". These files are created from the "full files". 

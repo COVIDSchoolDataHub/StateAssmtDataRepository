@@ -19,10 +19,13 @@ EDFacts: Download the Datasets subfolder containing *.csv files. There will be i
 ## Indiana Setup
 Create a folder for IN. Inside that folder, create the following subfolders:
       
-      1. Original Data Files: Download the Original Data Files - Version 2.0+ (incl v1.1 + sci and soc data). There will be two subfolders - ELA + Math and Science + Social Studies. 
-         This is located in Google Drive --> Indiana. 
-         a. ELA + Math [subfolder]: This should contain all  ELA + Math files downloaded.
-         b. Science + Social Studies [subfolder]: This should contain all Science + Social Studies downloaded.   
+      1. Original Data Files: Download the **entire** folder called Original Data Files - Version 2.0+ (incl v1.1 + sci and soc data). 
+      
+      This is located in Google Drive --> Indiana. 
+      
+      The folder and files are structured exactly the way you need it on your local drive.
+         a. ELA + Math [subfolder]: 
+         b. Science + Social Studies [subfolder]:  
       
       2. Temp
          
@@ -35,21 +38,11 @@ Create a folder for IN. Inside that folder, create the following subfolders:
       6. Output_Files_ND: This is a folder for the non-derivation output.
    
 ## Process
-The do files need to be executed in the following order.
-
-      1. 01_Indiana NCES Cleaning.do
-      
-      2. 02_IN_Importing_sci_soc.do
-      
-      3. 03_IN_Importing.do
-      
-      4. 04_IN_Cleaning.do
-      
-      5. 05_IN_EDFactsParticipation_2014_2021.do
-      
-      6. 06_IN_EDFactsParticipation_2022.do
-
-You can run IN_Main_File.do after setting the appropriate file paths. 
+    Place all do files in the IN folder.
+        
+    Set the appropriate file paths in IN_Main_File.do
+        
+    Running IN_Main_File.do will execute all the do files in order.
 
 ## Updates
 11/12/24: Updated to include 2024 data, as well as new sci/soc data received in data request, and incorporate "all students" data from public files.

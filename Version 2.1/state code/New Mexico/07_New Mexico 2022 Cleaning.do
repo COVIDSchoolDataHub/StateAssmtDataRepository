@@ -1,10 +1,16 @@
+*******************************************************
+* NEW MEXICO
+
+* File name: 07_New Mexico 2022 Cleaning
+* Last update: 2/20/2025
+
+*******************************************************
+* Description: This file cleans all New Mexico Original Data for 2022.
+
+*******************************************************
+
 clear
 set more off
-
-global raw "/Users/miramehta/Documents/New Mexico/Original Data Files"
-global output "/Users/miramehta/Documents/New Mexico/Output"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
-global EDFacts "/Users/miramehta/Documents/EDFacts"
 
 use "${raw}/NM_AssmtData_2022_all.dta", clear
 
@@ -219,6 +225,9 @@ drop RaceEth max missing_ssgtt missing_multiple nStudentSubGroup_TotalTested
 
 drop if StudentSubGroup_TotalTested == "0" & StudentSubGroup != "All Students"
 
+//Derive ProficientOrAbove_percent given new derived ssg_tt
+replace ProficientOrAbove_percent = string(real(ProficientOrAbove_count)/real(StudentSubGroup_TotalTested), "%9.3g") if !missing(real(ProficientOrAbove_count)) & !missing(real(StudentSubGroup_TotalTested)) & missing(real(ProficientOrAbove_percent))
+
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
  
@@ -229,7 +238,7 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 save "${output}/NM_AssmtData_2022", replace
 export delimited "${output}/NM_AssmtData_2022", replace
 
-
+* End of 07_New Mexico 2022 Cleaning
 
 
 

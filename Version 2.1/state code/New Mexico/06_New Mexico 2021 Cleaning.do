@@ -1,10 +1,16 @@
+*******************************************************
+* NEW MEXICO
+
+* File name: 06_New Mexico 2021 Cleaning
+* Last update: 2/20/2025
+
+*******************************************************
+* Description: This file cleans all New Mexico Original Data for 2021.
+
+*******************************************************
+
 clear
 set more off
-
-global raw "/Users/miramehta/Documents/New Mexico/Original Data Files"
-global output "/Users/miramehta/Documents/New Mexico/Output"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
-global EDFacts "/Users/miramehta/Documents/EDFacts"
 
 use "${raw}/NM_AssmtData_2021_MSSA.dta", clear
 
@@ -340,5 +346,5 @@ save "${output}/NM_AssmtData_2021.dta", replace
 export delimited "${output}/NM_AssmtData_2021.csv", replace
 
 
-
+* End of 06_New Mexico 2021 Cleaning
 

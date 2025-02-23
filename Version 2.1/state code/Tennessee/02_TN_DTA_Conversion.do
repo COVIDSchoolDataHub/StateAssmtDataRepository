@@ -53,7 +53,7 @@ forvalues year = 2022/2024 {
 }
 
 *Imports TN_Unmerged_2024 and saves it as a STATA .dta file.
-import excel TN_Unmerged_2024, firstrow case(preserve) clear
+import excel "$Original/TN_Unmerged_2024.xlsx", firstrow case(preserve) clear 
 
 	format NCESSchoolID %18.0g
 	tostring NCESSchoolID, replace usedisplayformat

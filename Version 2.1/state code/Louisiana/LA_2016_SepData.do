@@ -1,16 +1,27 @@
+*******************************************************
+* LOUISIANA
+
+* File name: LA_2016_SepData
+* Last update: 2/18/2025
+
+*******************************************************
+* Notes
+
+	* This do file 
+	* a) imports LA's 2016 data (soc, sci, ela and math), reshapes it and saves as *.dta.  
+	* b) cleans LA's 2016 data and 
+	* c) merges with NCES School (2014, 2015, 2017, 2020), NCES District (2015, 2017, 2020) and LA_unmerged. 
+	
+*******************************************************
+
+/////////////////////////////////////////
+*** Setup ***
+/////////////////////////////////////////
 clear
 
-// Define file paths
-
-global original_files "/Volumes/T7/State Test Project/Louisiana Post Launch/Original"
-global NCES_files "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
-global output_files "/Volumes/T7/State Test Project/Louisiana Post Launch/Output"
-global temp_files "/Volumes/T7/State Test Project/Louisiana Post Launch/Temp"
-
-/*
-** 2015-16 Proficiency Data
-
-import excel "${original_files}/LA_OriginalData_2016.xlsx", sheet("2016 LEAP SUPPRESSED SCI") cellrange(A2) firstrow allstring clear
+////Uncomment only for first run.
+// ** 2015-16 Proficiency Data
+import excel "${Original}/LA_OriginalData_2016.xlsx", sheet("2016 LEAP SUPPRESSED SCI") cellrange(A2) firstrow allstring clear
 rename NumberofStudents StudentSubGroup_TotalTestedsci
 rename Average*ScaledScore AvgScaleScoresci
 rename Advanced Lev5_countsci
@@ -27,9 +38,9 @@ drop Subject
 rename Subgroup StudentSubGroup
 rename Summary DataLevel
 replace DistrictCode = "" if DistrictCode == "≤"
-save "${temp_files}/2016_sci.dta", replace
+save "${Temp}/2016_sci.dta", replace
 
-import excel "${original_files}/LA_OriginalData_2016.xlsx", sheet("Sci Totals") cellrange(A2) firstrow allstring clear
+import excel "${Original}/LA_OriginalData_2016.xlsx", sheet("Sci Totals") cellrange(A2) firstrow allstring clear
 rename NumberofStudents StudentSubGroup_TotalTestedsci
 rename Average*ScaledScore AvgScaleScoresci
 rename NumberADVANCED Lev5_countsci
@@ -48,11 +59,10 @@ rename Summary DataLevel
 replace DistrictCode = "" if DistrictCode == "≤"
 drop Percent*
 drop Year
-replace StudentSubGroup_TotalTestedsci
-append using "${temp_files}/2016_sci.dta"
-save "${temp_files}/2016_sci.dta", replace
+append using "${Temp}/2016_sci.dta"
+save "${Temp}/2016_sci.dta", replace
 
-import excel "${original_files}/LA_OriginalData_2016.xlsx", sheet("2016 LEAP SUPPRESSED ELA_MATH") cellrange(A3) firstrow allstring clear
+import excel "${Original}/LA_OriginalData_2016.xlsx", sheet("2016 LEAP SUPPRESSED ELA_MATH") cellrange(A3) firstrow allstring clear
 
 rename AverageELAScaleScore AvgScaleScoreela
 rename AverageMathScaleScore AvgScaleScoremath
@@ -87,7 +97,7 @@ gen DataLevel = "District" if SchoolCode == ""
 replace DataLevel = "School" if DataLevel == ""
 replace DataLevel = "State" if DistrictCode == ""
 
-append using "${temp_files}/2016_sci.dta"
+append using "${Temp}/2016_sci.dta"
 
 ** Reshape Wide to Long
 
@@ -97,15 +107,14 @@ drop id
 drop if StudentSubGroup_TotalTested == ""
 drop if DistrictCode == "" & DataLevel != "State"
 
-save "${temp_files}/2016_all_subjects.dta", replace
-*/
+save "${Temp}/2016_all_subjects.dta", replace
 
-
-
-use "${temp_files}/2016_all_subjects.dta", clear
+********************************
+*Cleaning
+********************************
+use "${Temp}/2016_all_subjects.dta", clear
 
 ** Rename Variables
-
 rename DistrictCode StateAssignedDistID
 rename DistrictName DistName
 rename SchoolCode StateAssignedSchID
@@ -114,20 +123,19 @@ rename Grade GradeLevel
 rename Group StudentGroup
 
 // Fix GradeLevel values
-
 replace GradeLevel = "0" + GradeLevel if (Subject == "ela" | Subject == "math") & DataLevel == "State" 
 replace GradeLevel = "G" + GradeLevel
 
 
 // Generating Student Group Counts
-save "$temp_files/LA_2016_nogroup.dta", replace
+save "$Temp/LA_2016_nogroup.dta", replace
 keep if Order=="1"
 keep DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel StudentSubGroup_TotalTested
 rename StudentSubGroup_TotalTested StudentGroup_TotalTested
-save "$temp_files/LA_2016_group.dta", replace
+save "$Temp/LA_2016_group.dta", replace
 clear
-use "$temp_files/LA_2016_nogroup.dta"
-merge m:1 DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel using "$temp_files/LA_2016_group.dta"
+use "$Temp/LA_2016_nogroup.dta"
+merge m:1 DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel using "$Temp/LA_2016_group.dta"
 drop _merge
 
 
@@ -151,7 +159,6 @@ drop *max *min
 */
 
 ** Generate Flags
-
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
@@ -164,12 +171,10 @@ gen ProficiencyCriteria = "Levels 4-5"
 gen State = "Louisiana"
 
 ** Generate Empty Variables
-
 gen ParticipationRate = "--"
 replace AvgScaleScore = "*" if AvgScaleScore == ""
 
 ** Fix Variable Types
-
 replace Lev1_percent = subinstr(Lev1_percent, " ", "", .)
 replace Lev2_percent = subinstr(Lev2_percent, " ", "", .)
 replace Lev3_percent = subinstr(Lev3_percent, " ", "", .)
@@ -182,7 +187,6 @@ replace Lev4_percent = subinstr(Lev4_percent, "%", "", .)
 replace Lev5_percent = subinstr(Lev5_percent, "%", "", .)
 
 // Renaming student groups and subgroups
-
 replace StudentGroup = "Economic Status" if StudentGroup == "Economically Disadvantaged"
 replace StudentGroup = "Disability Status" if StudentGroup == "Education Classification"
 replace StudentGroup = "RaceEth" if StudentGroup == "Ethnicity"
@@ -207,7 +211,6 @@ replace StudentSubGroup = "Non-Migrant" if StudentSubGroup == "No" & StudentGrou
 drop if StudentSubGroup == "Invalid"
 
 ** Convert Proficiency Data into Percentages
-
 foreach v of varlist Lev*_percent {
 	destring `v', g(n`v') i(* -) force
 	replace n`v' = n`v' / 100 if n`v' != .
@@ -221,7 +224,6 @@ foreach v of varlist Lev*_percent {
 
 
 ** Generate Proficient or Above Percent
-
 gen Lev4max = Lev4_percent
 replace Lev4max = ".05" if Lev4_percent== "0-.05"
 replace Lev4max = "1" if Lev4_percent== ".95-1"
@@ -249,7 +251,6 @@ drop Lev4max Lev4maxnumber Lev4min Lev4minnumber Lev5max Lev5maxnumber Lev5min L
 
 
 ** Generate Proficient or Above Count
-
 gen Lev4max = Lev4_count
 replace Lev4max = "9" if Lev4_count== "<10"
 destring Lev4max, generate(Lev4maxnumber) force
@@ -286,17 +287,15 @@ foreach v of varlist Lev*_count {
 }
 
 ** Generating NCES Variables
-
 gen State_leaid = StateAssignedDistID if DataLevel != "State"
 replace StateAssignedSchID = StateAssignedDistID + StateAssignedSchID
 gen seasch = StateAssignedSchID if DataLevel == "School"
 
-save "$temp_files/2016_preNCES.dta", replace
+save "$Temp/2016_preNCES.dta", replace
 
 // Merging with list of ids for unmerged schools
 
-import excel "$original_files/LA_unmerged.xlsx", sheet("Sheet1") firstrow clear
-
+import excel "$Original/LA_unmerged.xlsx", sheet("Sheet1") firstrow clear
 keep if strpos(KeepDrop, "Keep") != 0
 keep if SchYear == "2015-16"
 tostring NCESDistrictIDOLD, replace format(%12.0f) force
@@ -310,24 +309,24 @@ tostring NCESDistrictID, replace format(%12.0f)
 replace NCESDistrictID = "" if NCESDistrictID == "."
 rename DistNameCurrent DistName
 
-merge 1:m State_leaid DataLevel seasch StateAssignedDistID DistName StateAssignedSchID SchName SchYear using "${temp_files}/2016_preNCES.dta", nogenerate
+merge 1:m State_leaid DataLevel seasch StateAssignedDistID DistName StateAssignedSchID SchName SchYear using "${Temp}/2016_preNCES.dta", nogenerate
 
 drop DistName
 
-save "$temp_files/2016_preNCES.dta", replace
+save "$Temp/2016_preNCES.dta", replace
 
 // NCES school merging for originally unmerged obs
 
-use "$NCES_files/NCES_2020_School.dta",clear 
+use "$NCES_School/NCES_2020_School.dta",clear 
 keep if ncesschoolid == "220032302496"
 
-append using "$NCES_files/NCES_2014_School.dta"
+append using "$NCES_School/NCES_2014_School.dta"
 keep if ncesschoolid == "220032302496" | ncesschoolid == "220015401800" | ncesschoolid == "220015502018"
 
-append using "$NCES_files/NCES_2017_School.dta"
+append using "$NCES_School/NCES_2017_School.dta"
 keep if ncesschoolid == "220028400944" | ncesschoolid == "220032302496" | ncesschoolid == "220015502018" | ncesschoolid == "220015401800"
 
-append using "$NCES_files/NCES_2015_School.dta"
+append using "$NCES_School/NCES_2015_School.dta"
 
 keep state_location state_fips_id district_agency_type SchType_str ncesdistrictid state_leaid ncesschoolid seasch DistCharter SchLevel_str SchVirtual_str DistLocale county_name county_code lea_name
 
@@ -341,41 +340,31 @@ rename SchVirtual_str SchVirtual
 rename ncesschoolid NCESSchoolID
 rename ncesdistrictid NCESDistrictID
 
-merge 1:m NCESSchoolID using "${temp_files}/2016_preNCES.dta", keep(match using) nogenerate
-save "$temp_files/2016_preNCES.dta", replace
+save "$NCES_LA/NCES_2015_School_LA", replace
+
+merge 1:m NCESSchoolID using "${Temp}/2016_preNCES.dta", keep(match using) nogenerate
+save "$Temp/2016_preNCES.dta", replace
 
 // NCES school merging for other obs
 
-use "$NCES_files/NCES_2015_School.dta", clear 
+use "$NCES_LA/NCES_2015_School_LA", clear 
 
-keep state_location state_fips_id district_agency_type SchType_str ncesdistrictid state_leaid ncesschoolid seasch DistCharter SchLevel_str SchVirtual_str DistLocale county_name county_code lea_name
-
-keep if state_fips_id == 22
-
-rename lea_name DistName
-rename state_leaid State_leaid
-rename SchType_str SchType
-rename SchLevel_str SchLevel
-rename SchVirtual_str SchVirtual
-rename ncesschoolid NCESSchoolID
-rename ncesdistrictid NCESDistrictID
-
-merge 1:m seasch using "${temp_files}/2016_preNCES.dta"
+merge 1:m seasch using "${Temp}/2016_preNCES.dta"
 
 keep if _merge == 3 | DataLevel == "District" | DataLevel == "State" | NCESSchoolID == "220028400944" | NCESSchoolID == "220032302496" | NCESSchoolID == "220015502018" | NCESSchoolID == "220015401800"
 
 drop _merge
 
-save "$temp_files/2016_preNCES.dta", replace
+save "$Temp/2016_preNCES.dta", replace
 
 // NCES district merging for originally unmerged obs
-use "$NCES_files/NCES_2020_District.dta",clear 
+use "$NCES_District/NCES_2020_District.dta",clear 
 keep if ncesdistrictid == "2200323"
 
-append using "$NCES_files/NCES_2017_District.dta"
+append using "$NCES_District/NCES_2017_District.dta"
 keep if ncesdistrictid == "2200284" | ncesdistrictid == "2200323" 
 
-append using "$NCES_files/NCES_2015_District.dta"
+append using "$NCES_District/NCES_2015_District.dta"
 
 keep state_location state_fips_id district_agency_type ncesdistrictid state_leaid DistCharter DistLocale county_name county_code lea_name
 
@@ -387,22 +376,14 @@ rename ncesdistrictid NCESDistrictID
 rename state_leaid State_leaid
 drop if State_leaid == ""
 
-merge 1:m NCESDistrictID using "$temp_files/2016_preNCES.dta", keep(match using) nogenerate
-save "$temp_files/2016_preNCES.dta", replace
+save "$NCES_LA/NCES_2015_District_LA", replace
+
+merge 1:m NCESDistrictID using "$Temp/2016_preNCES.dta", keep(match using) nogenerate
+save "$Temp/2016_preNCES.dta", replace
 
 // NCES district merging for other obs
-use "$NCES_files/NCES_2015_District.dta", clear
-
-keep state_location state_fips_id district_agency_type ncesdistrictid state_leaid DistCharter DistLocale county_name county_code lea_name
-
-keep if state_fips_id == 22
-
-rename lea_name DistName
-rename ncesdistrictid NCESDistrictID
-rename state_leaid State_leaid
-drop if State_leaid == ""
-
-merge 1:m State_leaid using "$temp_files/2016_preNCES.dta"
+use "$NCES_LA/NCES_2015_District_LA", clear
+merge 1:m State_leaid using "$Temp/2016_preNCES.dta"
 
 keep if _merge == 3 | DataLevel == "State"
 
@@ -466,6 +447,48 @@ drop Unsuppressed* missing_*
 replace ProficientOrAbove_count = string(real(StudentSubGroup_TotalTested) - real(Lev1_count) - real(Lev2_count) - real(Lev3_count)) if strpos(StudentSubGroup_TotalTested, "-") ==0 & regexm(Lev1_count, "[*-]") == 0 & regexm(Lev2_count, "[*-]") == 0 & regexm(Lev3_count, "[*-]") == 0
 replace ProficientOrAbove_percent = string(1 - real(Lev1_percent) - real(Lev2_percent) - real(Lev3_percent), "%9.3g") if regexm(Lev1_percent, "[*-]") == 0 & regexm(Lev2_percent, "[*-]") == 0 & regexm(Lev3_percent, "[*-]") == 0
 
+** Fixing & Standardizing ranges (Updated 8/18/24)
+foreach var of varlist StudentGroup_TotalTested StudentSubGroup_TotalTested {
+	replace `var' = "0-9" if `var' == "<10"
+}
+foreach count of varlist ProficientOrAbove_count {
+	local percent = subinstr("`count'", "count", "percent",.)
+	replace `count' = subinstr(`count', substr(`count',strpos(`count',"-")+1,10), substr(StudentSubGroup_TotalTested,strpos(StudentSubGroup_TotalTested,"-")+1,10),.) if real(substr(`count',strpos(`count',"-")+1,10)) > real(substr(StudentSubGroup_TotalTested, strpos(StudentSubGroup_TotalTested,"-")+1,10))
+	
+	replace `percent' = subinstr(`percent', substr(`percent', strpos(`percent',"-")+1,10),"1",.) if real(substr(`percent', strpos(`percent',"-")+1,10)) > 1
+}
+
+
+**Misc
+replace AvgScaleScore = "*" if AvgScaleScore == "NA" | AvgScaleScore == " "
+
+replace ProficientOrAbove_percent = "0" if real(ProficientOrAbove_percent) < 0 | strpos(ProficientOrAbove_percent, "e") !=0
+
+replace StudentSubGroup_TotalTested = "0-9" if StudentSubGroup_TotalTested == "."
+
+replace ProficientOrAbove_count = "0" if ProficientOrAbove_count == "-1"
+
+// Reordering variables and sorting data
+local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
+    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
+    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
+    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
+    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
+    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
+    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
+    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
+    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
+    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
+    Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+	keep `vars'
+	order `vars'
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
+// *Exporting into a separate folder Output for Stanford - without derivations*
+save "${Output_ND}/LA_AssmtData2016_NoDev", replace //If .dta format needed.
+export delimited "${Output_ND}/LA_AssmtData2016_NoDev", replace 
+
+*Derivation*
 **Deriving Exact Counts & Percents Where Possible
 foreach percent of varlist Lev*_percent ProficientOrAbove_percent {
 	local count = subinstr("`percent'","percent","count",.)
@@ -495,11 +518,13 @@ replace StudentSubGroup_TotalTested = "0-9" if StudentSubGroup_TotalTested == ".
 
 replace ProficientOrAbove_count = "0" if ProficientOrAbove_count == "-1"
 
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+//Keeping, ordering and sorting variables
+keep `vars'
+order `vars'
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-** Export 2015-16 Assessment Data
-
-save "$output_files/LA_AssmtData_2016.dta", replace
-export delimited using "$output_files/LA_AssmtData_2016.csv", replace
+*Exporting Output with derivations*
+save "$Output/LA_AssmtData_2016.dta", replace
+export delimited using "$Output/LA_AssmtData_2016.csv", replace
+* END of LA_2016_SepData.do
+****************************************************
