@@ -1,5 +1,5 @@
 *****************************************************************************
-**	Updated February 13, 2025
+**	Updated February 24, 2025
 
 ** 	ZELMA STATE ASSESSMENT DATA REPOSITORY 
 **	ASSESSMENT FLAGS - VERSION 2.1
@@ -844,9 +844,12 @@ if "$StateAbbrev" == "NM" {
 	
 	
 	*AssmtType	
- replace AssmtType_Chk = "Regular and alt" if (FILE == "2017" | FILE == "2018") & AssmtName == "PARCC & NMAPA"
- replace AssmtType_Chk = "Regular and alt" if (FILE == "2019" & AssmtName == "TAMELA & NMAPA")
- replace AssmtType_Chk = "Regular and alt" if FILE == "2021" | FILE == "2022" | FILE == "2023"
+	replace AssmtType_Chk = "Reg and Alt" if FILE == "2017" & StudentSubGroup != "All Students"
+	replace AssmtType_Chk = "Reg and Alt" if FILE == "2018" & StudentSubGroup != "All Students"
+	replace AssmtType_Chk = "Reg and Alt" if FILE == "2019" & StudentSubGroup != "All Students"
+	replace AssmtType_Chk = "Reg and Alt" if FILE == "2021" & Subjet == "sci"
+	replace AssmtType_Chk = "Reg and Alt" if FILE == "2022"
+	replace AssmtType_Chk = "Reg and Alt" if FILE == "2023"
 		
 }
 
