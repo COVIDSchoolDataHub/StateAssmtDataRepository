@@ -1,60 +1,50 @@
-## Setup
-Create six folders: 
-  1. NCES_MN
-     - Access NCES files from the Drive and put them into NCES_MN. Add both district and school files into the same folder.
-  3. Original Files
-     - Download all of the original data files and put them in the Original Files Folder.
-     - Download the file called "mn_full-dist-sch-stable-list_through2024" and put it in the Original Files Folder.
-  5. Temp [initially empty]
-  6. Output [initially empty]
-  7. MN_2022
-     - Download the files in the MN_2022_EDFactsParticipation folder on the Google drive (https://drive.google.com/drive/u/0/folders/1h2DrMQB0t91SSPdujEDHJvCN-lRXXo5y)
-  9. do files
-     - Download each of the do files for each year (1998-2024) and place them into the "do files" folder.
+# Minnesota Data Cleaning
 
-## Directory Paths Setup
+This is a ReadMe for Minnesota's data cleaning process, from 1998 to 2024.
 
-cd "/Users/kaitlynlucas/Desktop/do files"
+## NCES Setup
 
-global original_files "/Users/kaitlynlucas/Desktop/Minnesota State Task"
+NCES_Full: Download the folder from Google Drive-->_Data Cleaning Materials --> NCES District and School Demographics.
+    
+       a. NCES District Files [subfolder] 
 
-global NCES_files "/Users/kaitlynlucas/Desktop/Minnesota State Task/NCES New"
+       b. NCES School Files [subfolder]
 
-global output_files "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN Output"
+As of 2/24/2025, the most recent files are from NCES 2022. 
 
-global temp_files "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN_Temp"
+## EDFacts Setup
+EDFacts: Download the Datasets subfolder containing *.csv files. There will be individual folders for each year. 
 
+This is located in Google Drive-->_Data Cleaning Materials --> _EDFacts--> Datasets.
 
+## Minnesota Setup
+Create a folder for MN. Inside that folder, create the following subfolders:
 
-*Participation Rate 2014-2021:*
-
-global Original "/Users/kaitlynlucas/Desktop/EDFacts Drive Data" //Folder with Output .dta
-
-global EDFacts "/Users/kaitlynlucas/Desktop/EDFacts Drive Data" //Folder with downloaded state-specific 2022 participation data from EDFacts
-
-global State_Output "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN Output" //Folder with state-specific data
-
-global New_Output "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN Output" //Folder for Output 2.0
-
-
-*Participation Rate 2022:*
-
-
-global Original "/Users/kaitlynlucas/Desktop/EDFacts Drive Data" //Folder with Output .dta
-
-global EDFacts "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN_2022" //Folder with downloaded state-specific 2022 participation data from EDFacts
-
-global State_Output "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN Output" //Folder with state-specific data
-
-global Output_20 "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN Output" //Folder for Output 2.0
+ 1. Original Data Files: Download the **entire** folder (and subfolders) from Google Drive --> Minnesota:
+    
+        i. MN Original Data Files
+    
+        ii. MN_2022_EDFactsParticipation
+   
+        Place these files in the Original Data Files folder on your local drive.
+  
+         a. Cleaned DTA [subfolder]: Will start empty.
+         b. MN Stable Dist and Sch Names [subfolder]: Will contain files from MN Stable Dist and Sch Names subfolder of MN Original Data Files. 
+     
+3. Temp 
+         
+4. NCES_MN [will start empty] : Currently not in use. 
+      
+5. EDFacts_MN [will start empty]
+      
+6. Output_Files
+      
+7. Output_Files_ND: This is a folder for the non-derivation output.
 
 
-## Do File Order
-Run the do files in the following order:  
-
-1. MN_Master.do with the directory to the "do files" folder
-2. MN_EDFactsParticipationRate_2014_2021.do
-3. MN_EDFactsParticipationRate_2022.do
-
-
-
+## Process
+    Place all do files in the MN folder.
+        
+    Set the appropriate file paths in MN_Main_File.do
+        
+    Running MN_Main_File.do will execute all the do files in order.
