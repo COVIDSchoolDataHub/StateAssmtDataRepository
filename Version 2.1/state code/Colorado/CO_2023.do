@@ -1,16 +1,25 @@
+*******************************************************
+* COLORADO
+
+* File name: CO_2023
+* Last update: 2/25/2025
+
+*******************************************************
+* Notes
+
+	* This do file imports *.dta CO 2023 files created in Colorado DTA Conversion.do
+	* It appends, renames, cleans it and merges with NCES 2022 data. 
+	* The usual output is created.
+*******************************************************
+/////////////////////////////////////////
+*** Setup ***
+
 clear
-set more off
-
-cd "/Users/miramehta/Documents"
-
-global path "/Users/miramehta/Documents/CO State Testing Data"
-global nces "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
-global output "/Users/miramehta/Documents/CO State Testing Data/Output"
-
-
+*******************************************************
 ** Appending ela & math
+*******************************************************
 
-use "${path}/CO_AssmtData_2023_ela_mat_allstudents.dta", clear
+use "${Temp}/CO_AssmtData_2023_ela_mat_allstudents.dta", clear
 drop NumberofTotalRecords NumberofNoScores ParticipationRate2022 ParticipationRate2019 StandardDeviation AB AC Change20232022 AE
 gen StudentGroup = "All Students"
 gen StudentSubGroup = "All Students"
@@ -18,36 +27,36 @@ rename Content Subject
 rename AA PercentMetorExceededExpectat
 rename ParticipationRate2023 ParticipationRate
 
-append using "${path}/CO_AssmtData_2023_ELA_Gender.dta"
-append using "${path}/CO_AssmtData_2023_Math_Gender.dta"
+append using "${Temp}/CO_AssmtData_2023_ELA_Gender.dta"
+append using "${Temp}/CO_AssmtData_2023_Math_Gender.dta"
 replace StudentSubGroup = Gender if StudentGroup == "Gender"
 drop Gender
 
-append using "${path}/CO_AssmtData_2023_ELA_Race Ethnicity.dta"
-append using "${path}/CO_AssmtData_2023_Math_Race Ethnicity.dta"
+append using "${Temp}/CO_AssmtData_2023_ELA_Race Ethnicity.dta"
+append using "${Temp}/CO_AssmtData_2023_Math_Race Ethnicity.dta"
 replace StudentGroup = "RaceEth" if StudentGroup == "Race Ethnicity"
 replace StudentSubGroup = RaceEthnicity if StudentGroup == "RaceEth"
 drop RaceEthnicity
 
-append using "${path}/CO_AssmtData_2023_ELA_Free Reduced Lunch.dta"
-append using "${path}/CO_AssmtData_2023_Math_Free Reduced Lunch.dta"
+append using "${Temp}/CO_AssmtData_2023_ELA_Free Reduced Lunch.dta"
+append using "${Temp}/CO_AssmtData_2023_Math_Free Reduced Lunch.dta"
 replace StudentSubGroup = FreeReducedLunchStatus if StudentGroup == "Economic Status"
 drop FreeReducedLunchStatus
 
-append using "${path}/CO_AssmtData_2023_ELA_Language Proficiency.dta"
-append using "${path}/CO_AssmtData_2023_Math_Language Proficiency.dta"
+append using "${Temp}/CO_AssmtData_2023_ELA_Language Proficiency.dta"
+append using "${Temp}/CO_AssmtData_2023_Math_Language Proficiency.dta"
 replace StudentGroup = "EL Status" if StudentGroup == "Language Proficiency"
 replace StudentSubGroup = LanguageProficiency if StudentGroup == "EL Status"
 drop LanguageProficiency
 
-append using "${path}/CO_AssmtData_2023_ELA_Migrant.dta"
-append using "${path}/CO_AssmtData_2023_Math_Migrant.dta"
+append using "${Temp}/CO_AssmtData_2023_ELA_Migrant.dta"
+append using "${Temp}/CO_AssmtData_2023_Math_Migrant.dta"
 replace StudentGroup = "Migrant Status" if StudentGroup == "Migrant"
 replace StudentSubGroup = Migrant if StudentGroup == "Migrant Status"
 drop Migrant
 
-append using "${path}/CO_AssmtData_2023_ELA_IEP.dta"
-append using "${path}/CO_AssmtData_2023_Math_IEP.dta"
+append using "${Temp}/CO_AssmtData_2023_ELA_IEP.dta"
+append using "${Temp}/CO_AssmtData_2023_Math_IEP.dta"
 replace StudentGroup = "Disability Status" if StudentGroup == "IEP"
 replace StudentSubGroup = IEPStatus if StudentGroup == "Disability Status"
 drop IEPStatus
@@ -69,41 +78,43 @@ rename PercentExceededExpectations Lev5_percent
 
 gen ProficiencyCriteria = "Levels 4-5"
 
-save "${path}/CO_AssmtData_2023_ela_math.dta", replace
+save "${Temp}/CO_AssmtData_2023_ela_math.dta", replace
 
+*******************************************************
 ** Appending science
+*******************************************************
 
-use "${path}/CO_AssmtData_2023_sci_allstudents.dta", replace
+use "${Temp}/CO_AssmtData_2023_sci_allstudents.dta", replace
 drop NumberofTotalRecords NumberofNoScores StandardDeviation W
 gen StudentGroup = "All Students"
 gen StudentSubGroup = "All Students"
 gen Subject = "sci"
 rename ParticpationRate ParticipationRate
 
-append using "${path}/CO_AssmtData_2023_Science_Gender.dta"
+append using "${Temp}/CO_AssmtData_2023_Science_Gender.dta"
 replace StudentSubGroup = Gender if StudentGroup == "Gender"
 drop Gender
 
-append using "${path}/CO_AssmtData_2023_Science_Race Ethnicity.dta"
+append using "${Temp}/CO_AssmtData_2023_Science_Race Ethnicity.dta"
 replace StudentGroup = "RaceEth" if StudentGroup == "Race Ethnicity"
 replace StudentSubGroup = RaceEthnicity if StudentGroup == "RaceEth"
 drop RaceEthnicity
 
-append using "${path}/CO_AssmtData_2023_Science_Free Reduced Lunch.dta"
+append using "${Temp}/CO_AssmtData_2023_Science_Free Reduced Lunch.dta"
 replace StudentSubGroup = FreeReducedLunchStatus if StudentGroup == "Economic Status"
 drop FreeReducedLunchStatus
 
-append using "${path}/CO_AssmtData_2023_Science_Language Proficiency.dta"
+append using "${Temp}/CO_AssmtData_2023_Science_Language Proficiency.dta"
 replace StudentGroup = "EL Status" if StudentGroup == "Language Proficiency"
 replace StudentSubGroup = LanguageProficiency if StudentGroup == "EL Status"
 drop LanguageProficiency
 
-append using "${path}/CO_AssmtData_2023_Science_Migrant.dta"
+append using "${Temp}/CO_AssmtData_2023_Science_Migrant.dta"
 replace StudentGroup = "Migrant Status" if StudentGroup == "Migrant"
 replace StudentSubGroup = Migrant if StudentGroup == "Migrant Status"
 drop Migrant
 
-append using "${path}/CO_AssmtData_2023_Science_IEP.dta"
+append using "${Temp}/CO_AssmtData_2023_Science_IEP.dta"
 replace StudentGroup = "Disability Status" if StudentGroup == "IEP"
 replace StudentSubGroup = IEPStatus if StudentGroup == "Disability Status"
 drop IEPStatus
@@ -121,14 +132,14 @@ rename PercentExceededExpectations Lev4_percent
 
 gen ProficiencyCriteria = "Levels 3-4"
 
-save "${path}/CO_AssmtData_2023_sci.dta", replace
+save "${Temp}/CO_AssmtData_2023_sci.dta", replace
 
+*******************************************************
 ** Appending all subjects
-
-append using "${path}/CO_AssmtData_2023_ela_math.dta"
+*******************************************************
+append using "${Temp}/CO_AssmtData_2023_ela_math.dta"
 
 ** Rename existing variables
-
 rename Level DataLevel
 rename DistrictCode StateAssignedDistID
 rename DistrictName DistName
@@ -141,13 +152,11 @@ rename NumberMetorExceededExpectati ProficientOrAbove_count
 rename PercentMetorExceededExpectat ProficientOrAbove_percent
 
 ** Dropping entries
-
 drop if DataLevel == ""
 drop if GradeLevel == "11"
 drop if StudentSubGroup == "NEP (Not English Proficient)" | StudentSubGroup == "LEP (Limited English Proficient)" | StudentSubGroup == "PHLOTE, NA, Not Reported"
 
 ** Changing DataLevel
-
 replace DataLevel = proper(DataLevel)
 
 label def DataLevel 1 "State" 2 "District" 3 "School"
@@ -157,7 +166,6 @@ drop DataLevel
 rename DataLevel_n DataLevel
 
 ** Replacing variables
-
 replace StateAssignedDistID = "" if DataLevel == 1
 replace StateAssignedSchID = "" if DataLevel != 3
 replace SchName = "All Districts" if DataLevel == 1
@@ -220,7 +228,6 @@ egen UnsuppressedSG = total(UnsuppressedSSG), by(StudentGroup GradeLevel Subject
 replace StudentSubGroup_TotalTested = string(real(StudentGroup_TotalTested)-UnsuppressedSG) if missing(real(StudentSubGroup_TotalTested)) & !missing(real(StudentGroup_TotalTested)) & real(StudentGroup_TotalTested) - UnsuppressedSG >=0 & UnsuppressedSG > 0 & StudentGroup != "RaceEth" & StudentSubGroup != "EL Exited"
 drop Unsuppressed*
 
-
 //Other Cleaning
 replace Lev5_percent = "" if Subject == "sci"
 replace Lev5_count = "" if Subject == "sci"
@@ -251,33 +258,37 @@ replace seasch = StateAssignedDistID + "-" + seasch if DataLevel == 3
 gen AssmtName = "Colorado Measures of Academic Success"
 gen AssmtType = "Regular"
 
-** Merging with NCES
+save "${Original_Cleaned}/CO_OriginalData_2023.dta", replace
 
-merge m:1 State_leaid using "${nces}/NCES_2022_District_CO.dta"
+*******************************************************
+**Merging NCES Variables
+*******************************************************
+merge m:1 State_leaid using "${NCES_CO}/NCES_2022_District_CO.dta"
 
 drop if _merge == 2
 drop _merge 
 drop supervisory_union_number boundary_change_indicator lowest_grade_offered highest_grade_offered number_of_schools enrollment teachers_total_fte staff_total_fte FLAG state_mailing urban_centric_locale
 
-merge m:1 State_leaid seasch using "${nces}/NCES_2022_School_CO"
+merge m:1 State_leaid seasch using "${NCES_CO}/NCES_2022_School_CO"
 
 drop if _merge == 2
 drop _merge
 
 **
-
 replace StateAbbrev = "CO"
 replace State = "Colorado"
 replace StateFips = 8
 
 ** Generating new variables
-
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_soc = "Not applicable"
 gen Flag_CutScoreChange_sci = "Y"
 
+*******************************************************
+*Derivations [0 real changes made]
+*******************************************************
 replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent)* real(StudentSubGroup_TotalTested))) if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(ProficientOrAbove_percent)) & missing(real(ProficientOrAbove_count))
 
 ** Standardize Names
@@ -291,14 +302,30 @@ foreach var of varlist DistName SchName {
 	replace `var' = stritrim(`var')
 	replace `var' = strtrim(`var')
 }
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
 foreach var of varlist StudentGroup_TotalTested StudentSubGroup_TotalTested *_count *_percent {
 	replace `var' = subinstr(`var', ",","",.)
 	replace `var' = subinstr(`var', " ", "",.)
 }
+
+// Reordering variables and sorting data
+local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
+    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
+    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
+    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
+    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
+    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
+    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
+    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
+    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
+    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
+    Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+	keep `vars'
+	order `vars'
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${output}/CO_AssmtData_2023.dta", replace
-
-export delimited using "${output}/CO_AssmtData_2023.csv", replace
+*Exporting Output*
+save "${Output}/CO_AssmtData_2023", replace
+export delimited "${Output}/CO_AssmtData_2023", replace
+* END of CO_2023.do
+****************************************************
