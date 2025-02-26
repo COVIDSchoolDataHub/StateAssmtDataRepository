@@ -20,7 +20,7 @@ clear
 * Importing data and renaming variables
 // 2000-2001
 
-import excel "C:\Zelma\Minnesota\Original Data Files\MN_OriginalData_2001_all.xlsx", sheet("MN_OriginalData_2001_all.TAB") firstrow case(lower) clear
+import excel "${Original}/MN_OriginalData_2001_all.xlsx", sheet("MN_OriginalData_2001_all.TAB") firstrow case(lower) clear
 
 // Reformatting IDs to standard length strings
 // District Code

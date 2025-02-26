@@ -285,12 +285,6 @@ foreach year of local edyears2 {
 	}
 }
 
-//Conversion to DTA
-forvalues year = 2014/2023 {
-if `year' == 2020 continue
-import delimited "${State_Output}/MN_AssmtData_`year'", case(preserve) clear
-save "${State_Output}/MN_AssmtData_`year'", replace
-}
 
 //Merging Example
 forvalues year = 2014/2021 {

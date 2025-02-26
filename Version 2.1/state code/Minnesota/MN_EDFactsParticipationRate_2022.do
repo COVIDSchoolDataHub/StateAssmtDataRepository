@@ -20,7 +20,7 @@ clear
 
 
 foreach s in ela math sci {
-	import delimited "${Original}/MN_EFParticipation_2022_`s'.csv", case(preserve) clear
+	import delimited "${Original}/MN_2022_EDFactsParticipation/MN_EFParticipation_2022_`s'.csv", case(preserve) clear
 	save "${EDFacts_MN}/MN_EFParticipation_2022_`s'.dta", replace
 }
 
