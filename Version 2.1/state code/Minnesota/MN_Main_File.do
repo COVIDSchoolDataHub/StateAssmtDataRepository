@@ -50,6 +50,6 @@ forval year = 1998/2024 {
 }
 do "${DoFiles}/MN_StableNames.do"
 do "${DoFiles}/MN_EDFactsParticipationRate_2014_2021.do"
-do "${DoFiles}/MN_EDFactsParticipationRate_2022.do.do"
+do "${DoFiles}/MN_EDFactsParticipationRate_2022.do"
 * END of MN_Main_File.do 
 ****************************************************
