@@ -1,15 +1,29 @@
+*******************************************************
+* DELAWARE
+
+* File name: DE_sci_soc_2015-17
+* Last update: 2/26/2025
+
+*******************************************************
+* Notes
+
+	* This do file imports DE 2015-2017 sci and soc data, renames variables, cleans and saves it as a temp file.
+	* NCES data for the previous year is merged.
+	* The resulting files are combined (and saved as a dta).
+	* Next they are appended to the output created for 2015-2017 in
+	* a) DE Cleaning 2015
+	* b) DE Cleaning 2016
+	* c) DE Cleaning 2017
+
+*******************************************************
+/////////////////////////////////////////
+*** Setup ***
+/////////////////////////////////////////
 clear
-set more off
-cap log close
-set trace off
 
-global Original "/Users/miramehta/Documents/DE State Testing Data/Original Data Files"
-global Output "/Users/miramehta/Documents/DE State Testing Data/Output"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
-global NCESSchool "/Users/miramehta/Documents/NCES District and School Demographics/NCES School Files, Fall 1997-Fall 2022"
-
-//Do NOT Run this file until you have run the 2015, 2016, and 2017 files.
-
+*******************************************************
+//Import Relevant Data - Unhide on first run
+*******************************************************
 foreach year in 2015 2016 2017 {
 	di as error "`year'"
 //State
@@ -188,33 +202,24 @@ foreach year in 2015 2016 2017 {
 	}
 	if `year' == 2015 {
 	append using "`State_`year''" "`District_`year''" "`School_`year''"
-	save "${Output}/Combined_`year'", replace
+	save "${Temp}/Combined_`year'", replace
 	}
 	else {
 	append using "`State_`year''" "`District_`year''"  "`School_`year''" "`Charter_`year''"
-	save "${Output}/Combined_`year'", replace
+	save "${Temp}/Combined_`year'", replace
 	}
 	
 	clear
-	
-	
 	}
-	
-	
-	
-	
-
 //Additional Cleaning- SET ADDITIONAL FILE DIRECTORIES
 
 	foreach year in 2015 2016 2017{
-		use "${Output}/Combined_`year'", clear
+		use "${Temp}/Combined_`year'", clear
 		
 		//getting rid of extra grades
 		keep if Grade == "G04" | Grade == "G05" | Grade == "G07" | Grade == "G08"
 		replace Subject = "sci" if Grade== "G05" | Grade == "G08"
 		replace Subject = "soc" if Grade== "G04" | Grade == "G07"
-		
-		
 		
 		//renaming vars
 		rename Group StudentSubGroup
@@ -234,7 +239,6 @@ foreach year in 2015 2016 2017 {
 		capture replace SchName = School if missing(SchName)
 		replace DataLevel = "School" if !missing(SchoolName)
 		replace SchoolName = "All Schools" if DataLevel == "State" | DataLevel == "District"
-		
 		
 		//fixing school
 		rename SchoolName SchName
@@ -303,9 +307,9 @@ foreach year in 2015 2016 2017 {
 		tempfile idk
 		save "`idk'"
 		
-//Change Directory for NCES School data below
+		//Change Directory for NCES School data below
 		local prevyear =`=`year'-1'
-		use "${NCESSchool}/NCES_`prevyear'_School.dta", clear
+		use "${NCES_School}/NCES_`prevyear'_School.dta", clear
 		drop if state_fips != 10
 		rename ncesschoolid NCESSchoolID
 		rename ncesdistrictid NCESDistrictID
@@ -325,8 +329,6 @@ foreach year in 2015 2016 2017 {
 		rename _merge _merge3
 		drop if _merge3 ==1
 
-		
-		
 		//Leftover Schools still not merged: Kent Elementary Intensive Learning Center and The Wallace Wallin School, neither of which were found in correct NCES data but can be found online
 		
 		//Kent Instensive:
@@ -475,11 +477,9 @@ foreach year in 2015 2016 2017 {
 		use "${Output}/DE_AssmtData_`year'.dta"
 		drop if Subject == "sci" | Subject == "soc"
 		
-		
 
-	
 		//Finally Appending
-		append using "`final_`year''"
+append using "`final_`year''"
 		
 //Misc stuff partially in reponse to R1
 replace StateAssignedSchID = "" if DataLevel !=3
@@ -489,22 +489,32 @@ replace ParticipationRate = "0.95-1" if ParticipationRate == ">0.95"
 replace ParticipationRate = "0.99-1" if ParticipationRate == ">0.99"
 
 		
-		//Cleaning and Sorting:
-		duplicates drop
-		
-		drop if NCESSchoolID == "" & DataLevel == 3 //Checked manually & confirmed no meaningful data in these observations + no NCES info available
-		
-		keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-	
-	order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+//Cleaning and Sorting:
+duplicates drop
 
-	sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-		save "$Output/DE_AssmtData_`year'.dta", replace
-		export delimited using "$Output/DE_AssmtData_`year'.csv", replace
+drop if NCESSchoolID == "" & DataLevel == 3 //Checked manually & confirmed no meaningful data in these observations + no NCES info available
 		
-		
-		clear
+// Reordering variables and sorting data
+local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
+    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
+    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
+    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
+    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
+    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
+    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
+    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
+    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
+    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
+    Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+	keep `vars'
+	order `vars'
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-		
+*Exporting Output*
+save "$Output/DE_AssmtData_`year'.dta", replace
+export delimited using "$Output/DE_AssmtData_`year'.csv", replace
+clear
 	}
+* END of DE_sci_soc_2015-17.do
+****************************************************
 	

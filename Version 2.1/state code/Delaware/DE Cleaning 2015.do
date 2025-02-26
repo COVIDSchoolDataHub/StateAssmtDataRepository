@@ -1,19 +1,33 @@
-clear all
+*******************************************************
+* DELAWARE
 
-global Original "/Users/miramehta/Documents/DE State Testing Data/Original Data Files"
-global Output "/Users/miramehta/Documents/DE State Testing Data/Output"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+* File name: DE Cleaning 2015
+* Last update: 2/26/2025
 
+*******************************************************
+* Notes
+
+	* This do file imports DE 2015 data, renames variables, cleans and saves it as a dta file.
+	* NCES 2014 is merged with DE 2015 data. 
+	* Only the usual output is created.
+*******************************************************
+/////////////////////////////////////////
+*** Setup ***
+/////////////////////////////////////////
+clear
+
+*******************************************************
 //Import Relevant Data - Unhide on first run
-/*
-import excel "$Original/DE_OriginalData_2021_2022.xlsx", firstrow case(preserve) clear
+*******************************************************
 
-keep if SchoolYear == 2022
+import excel "$Original/FOIA_Assessment_2015-2018.xlsx", firstrow case(preserve) clear
+
+keep if SchoolYear == 2015
 drop SchoolYear
 
-save "$Original/DE_OriginalData_2022.dta", replace
-*/
-use "$Original/DE_OriginalData_2022.dta", clear
+save "$Original_Cleaned/DE_OriginalData_ela_mat_2015.dta", replace
+
+use "$Original_Cleaned/DE_OriginalData_ela_mat_2015.dta", clear
 
 //Rename Variables
 rename DistrictCode StateAssignedDistID
@@ -53,7 +67,6 @@ replace GradeLevel = "G0" + GradeLevel
 gen StudentSubGroup = Race if Gender == "All Students" & SpecialDemo == "All Students"
 replace StudentSubGroup = Gender if Race == "All Students" & SpecialDemo == "All Students"
 replace StudentSubGroup = SpecialDemo if Race == "All Students" & Gender == "All Students"
-drop if StudentSubGroup == ""
 
 gen StudentGroup = "RaceEth" if StudentSubGroup == Race
 replace StudentGroup = "Gender" if StudentSubGroup == Gender
@@ -70,14 +83,11 @@ replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup ==
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "Active EL Students"
 replace StudentSubGroup = "English Proficient" if StudentSubGroup == "Non-EL Students"
 replace StudentSubGroup = "SWD" if StudentSubGroup == "Students with Disabilities"
-replace StudentSubGroup = "Military" if StudentSubGroup == "Military Connected Youth"
 
 replace StudentGroup = "Economic Status" if inlist(StudentSubGroup, "Economically Disadvantaged", "Not Economically Disadvantaged")
 replace StudentGroup = "EL Status"  if inlist(StudentSubGroup, "English Learner", "English Proficient")
 replace StudentGroup = "Disability Status" if inlist(StudentSubGroup, "SWD", "Non-SWD")
-replace StudentGroup = "Homeless Enrolled Status" if inlist(StudentSubGroup, "Homeless", "Non-Homeless")
-replace StudentGroup = "Foster Care Status" if inlist(StudentSubGroup, "Foster Care", "Non-Foster Care")
-replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Military"
+replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless"
 
 sort DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel StudentGroup StudentSubGroup
 gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
@@ -91,17 +101,13 @@ bysort DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel: egen
 bysort DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel: egen Disability = total(StudentSubGroup_TotalTested) if StudentGroup == "Disability Status"
 bysort DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel: egen Econ = total(StudentSubGroup_TotalTested) if StudentGroup == "Economic Status"
 bysort DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel: egen ELStatus = total(StudentSubGroup_TotalTested) if StudentGroup == "EL Status"
-bysort DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel: egen Homeless = total(StudentSubGroup_TotalTested) if StudentGroup == "Homeless Enrolled Status"
-bysort DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel: egen Foster = total(StudentSubGroup_TotalTested) if StudentGroup == "Foster Care Status"
 
 replace StudentSubGroup_TotalTested = StudentGroup_TotalTested - RaceEth if StudentSubGroup_TotalTested == . & group_missing == 1 & StudentGroup == "RaceEth"
 replace StudentSubGroup_TotalTested = StudentGroup_TotalTested - Gender if StudentSubGroup_TotalTested == . & group_missing == 1 & StudentGroup == "Gender"
 replace StudentSubGroup_TotalTested = StudentGroup_TotalTested - Disability if StudentSubGroup_TotalTested == . & group_missing == 1 & StudentGroup == "Disability Status"
 replace StudentSubGroup_TotalTested = StudentGroup_TotalTested - Econ if StudentSubGroup_TotalTested == . & group_missing == 1 & StudentGroup == "Economic Status"
 replace StudentSubGroup_TotalTested = StudentGroup_TotalTested - ELStatus if StudentSubGroup_TotalTested == . & group_missing == 1 & StudentGroup == "EL Status"
-replace StudentSubGroup_TotalTested = StudentGroup_TotalTested - Homeless if StudentSubGroup_TotalTested == . & group_missing == 1 & StudentGroup == "Homeless Enrolled Status"
-replace StudentSubGroup_TotalTested = StudentGroup_TotalTested - Foster if StudentSubGroup_TotalTested == . & group_missing == 1 & StudentGroup == "Foster Care Status"
-drop flag group_missing RaceEth Gender Disability Econ ELStatus Homeless Foster
+drop flag group_missing RaceEth Gender Disability Econ ELStatus
 
 //Performance Information
 foreach var of varlist *_percent ParticipationRate{
@@ -137,28 +143,35 @@ gen Lev5_count = ""
 gen Lev5_percent = ""
 
 //Additional Variables
-gen SchYear = "2021-22"
+gen SchYear = "2014-15"
 gen AssmtType = "Regular"
 gen ProficiencyCriteria = "Levels 3-4"
-gen Flag_AssmtNameChange = "N"
-gen Flag_CutScoreChange_ELA = "N"
-gen Flag_CutScoreChange_math = "N"
+gen Flag_AssmtNameChange = "Y"
+gen Flag_CutScoreChange_ELA = "Y"
+gen Flag_CutScoreChange_math = "Y"
 gen Flag_CutScoreChange_sci = "N"
 gen Flag_CutScoreChange_soc = "N"
 
+save "$Original_Cleaned/DE_OriginalData_ela_mat_2015.dta", replace
+
+*******************************************************
 //Merge with NCES
+*******************************************************
 tostring StateAssignedDistID, replace
 tostring StateAssignedSchID, replace
 replace StateAssignedDistID = "" if DataLevel == 1
 replace StateAssignedSchID = "" if DataLevel != 3
 
-merge m:1 StateAssignedDistID using "$NCES/NCES_2021_District_DE"
-drop if _merge == 2
-drop _merge
+replace StateAssignedDistID = "" if SchName == "Delaware College Preparatory Academy" //pulling in NCES assigned State ID, which is not the same as the value in the raw data
+replace DistName = "" if SchName == "Delaware College Preparatory Academy" //pulling in NCES assigned district, which is not the same as the value in the raw data
 
-merge m:1 StateAssignedSchID using "$NCES/NCES_2021_School_DE"
+merge m:1 StateAssignedSchID using "$NCES_DE/NCES_2014_School_DE", update
 drop if _merge == 2
 drop if _merge == 1 & DataLevel == 3 //all data for these schools are suppressed
+drop _merge
+
+merge m:1 StateAssignedDistID using "$NCES_DE/NCES_2014_District_DE", update
+drop if _merge == 2
 drop _merge
 
 //Cleaning up from NCES
@@ -166,17 +179,31 @@ replace State = "Delaware"
 replace StateAbbrev = "DE"
 replace StateFips = 10
 
+//Standardizing DistName & SchName
 replace DistName = strtrim(DistName)
 replace DistName = stritrim(DistName)
 replace SchName = strtrim(SchName)
 replace SchName = stritrim(SchName)
+replace DistName = "Campus Community School" if NCESDistrictID == "1000007"
 
-//Final Cleaning
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
- 
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
+// Reordering variables and sorting data
+local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
+    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
+    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
+    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
+    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
+    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
+    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
+    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
+    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
+    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
+    Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+	keep `vars'
+	order `vars'
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "$Output/DE_AssmtData_2022.dta", replace
-export delimited "$Output/DE_AssmtData_2022.csv", replace
+*Exporting Output*
+save "$Output/DE_AssmtData_2015.dta", replace
+export delimited "$Output/DE_AssmtData_2015.csv", replace
+* END of DE Cleaning 2015.do
+****************************************************
