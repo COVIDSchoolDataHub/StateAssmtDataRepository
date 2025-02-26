@@ -1,22 +1,43 @@
-*******************************************************
 * IDAHO
-
-* File name: ID_Main_File
-* Last update: 2/7/2025
+*File name: ID_Main_File 
+*Last update: 2/26/2025
 
 *******************************************************
 * Notes
 
-  * This file executes all ID files and exports to Output.
+* Place all do files in the ID folder.
+    
+* Set the appropriate file paths in ID_Main_File.do
+    
+* Running ID_Main_File.do will execute all the do files in order.
+
+* The non-derivation output is created for 2016 - 2023
 *******************************************************
 clear 
+set excelxlsxlargefile on 
+set more off
+set trace off
+cap log close
 
-global original_files "C:\Users\Clare\Desktop\Zelma V2.1\Idaho\Original Data\Idaho data received from data request 11-27-23"
-global NCES_files "C:\Users\Clare\Desktop\Zelma V2.0\Iowa - Version 2.0\NCES_full"
-global output_files "C:\Users\Clare\Desktop\Zelma V2.1\Idaho\Output"
-global temp_files "C:\Users\Clare\Desktop\Zelma V2.1\Idaho\Temp"
-global DoFiles "C:\Users\Clare\Desktop\Zelma V2.1\Idaho"
+global DoFiles "C:/Zelma/Idaho/" 
+global Temp "C:/Zelma/Idaho/Temp" //This will start empty. 
 
+*NCES Folders*
+global NCES_District "C:/Zelma/NCES_Full/NCES District Files"
+global NCES_School "C:/Zelma/NCES_Full/NCES School Files"
+global NCES_ID "C:/Zelma/Idaho/NCES_ID" //This will start empty and will hold the ID-specific NCES files. As of 2/26/25, folder not in use. 
+
+*Input folders* //Original Data Files downloaded from Google Drive.
+global Original "C:/Zelma/Idaho/Original Data Files" 
+global Original_Cleaned "C:/Zelma/Idaho/Original Data Files/Cleaned DTA" 
+
+*Output folders*
+global Output "C:/Zelma/Idaho/Output_Files" // Version 2.1 Output directory here.
+
+*Non Derivation Output Folders*
+global Output_ND "C:/Zelma/Idaho/Output_Files_ND" //Non Derivation Output. Created for 2016 - 2023.
+
+// Run in this order. 
 *Add newer years in order.*
 do "${DoFiles}/01_ID_DataRequest_2016.do" 
 do "${DoFiles}/02_ID_DataRequest_2017.do" 

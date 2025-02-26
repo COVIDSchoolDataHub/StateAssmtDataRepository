@@ -2,49 +2,41 @@
 * IDAHO
 
 * File name: 03_ID_DataRequest_2018
-* Last update: 2/7/2025
+* Last update: 2/26/2025
 
 *******************************************************
 * Notes
 
-	* This do file first cleans ID's 2018 data. isolates 
+	* This do file first imports and cleans ID's 2018 data. 
 	* Then this file merges ID's data with NCES_2017
-	* The completed file is saved to the the Output folder.
-	
+	* Both the non-derivation and usual output are created. 
 *******************************************************
-clear all
-
 ///////////////////////////////
 // Setup
 ///////////////////////////////
-
-// Define file paths
-global orig_files_DR_112723 "C:\Users\Clare\Desktop\Zelma V2.1\Idaho\Original Data\Idaho data received from data request 11-27-23"
-global NCES_files "C:\Users\Clare\Desktop\Zelma V2.0\Iowa - Version 2.0\NCES_full"
-global output_files "C:\Users\Clare\Desktop\Zelma V2.1\Idaho\Output"
-global temp_files "C:\Users\Clare\Desktop\Zelma V2.1\Idaho\Temp"
+clear
 
 ///////////////////////////////
 // Appending State, District, and School tabs into one file for editing
 ///////////////////////////////
 
-import excel "$orig_files_DR_112723/2017-2018 Assessment Aggregates (Redacted).xlsx", sheet("State Of Idaho") firstrow clear
+import excel "$Original/2017-2018 Assessment Aggregates (Redacted).xlsx", sheet("State Of Idaho") firstrow clear
 	gen DataLevel = "State"
-	save "${temp_files}/ID_AssmtData_2018_state.dta", replace
+	save "${Temp}/ID_AssmtData_2018_state.dta", replace
 
-import excel "$orig_files_DR_112723/2017-2018 Assessment Aggregates (Redacted).xlsx", sheet("Districts") firstrow clear
+import excel "$Original/2017-2018 Assessment Aggregates (Redacted).xlsx", sheet("Districts") firstrow clear
 	gen DataLevel = "District"
-	save "${temp_files}/ID_AssmtData_2018_district.dta", replace
+	save "${Temp}/ID_AssmtData_2018_district.dta", replace
 
-import excel "$orig_files_DR_112723/2017-2018 Assessment Aggregates (Redacted).xlsx", sheet("Schools") firstrow clear
+import excel "$Original/2017-2018 Assessment Aggregates (Redacted).xlsx", sheet("Schools") firstrow clear
 	gen DataLevel = "School"
-	save "${temp_files}/ID_AssmtData_2018_school.dta", replace
+	save "${Temp}/ID_AssmtData_2018_school.dta", replace
 
 clear
 
-append using "${temp_files}/ID_AssmtData_2018_state.dta" "${temp_files}/ID_AssmtData_2018_district.dta" "${temp_files}/ID_AssmtData_2018_school.dta"
+append using "${Temp}/ID_AssmtData_2018_state.dta" "${Temp}/ID_AssmtData_2018_district.dta" "${Temp}/ID_AssmtData_2018_school.dta"
 
-save "${temp_files}/ID_AssmtData_2018_all.dta", replace
+save "${Temp}/ID_AssmtData_2018_all.dta", replace
 
 ///////////////////////////////
 // Cleaning ID 2018 file
@@ -210,6 +202,12 @@ replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == "." & Lev3_
 replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == "." & Lev4_percent == "--"
 drop Part
 
+// Saving transformed data, will restore this file for non-derivation output. 
+save "${Temp}/ID_AssmtData_2018_Breakpoint.dta", replace
+
+*******************************************************
+**Derivations***
+*******************************************************
 foreach i in Lev1 Lev2 Lev3 Lev4 ProficientOrAbove {	
 	split `i'_percent, parse("-")
 	replace `i'_percent1 = "" if `i'_percent == `i'_percent1
@@ -246,20 +244,24 @@ replace DistName = "All Districts" if DataLevel ==1
 replace SchName = "All Schools" if DataLevel !=3
 
 // Order 
-local vars State SchYear DataLevel StateAssignedDistID state_leaid DistName StateAssignedSchID seasch SchName AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent ProficiencyCriteria ParticipationRate AvgScaleScore ProficientOrAbove_count ProficientOrAbove_percent Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_soc Flag_CutScoreChange_sci
-
-	keep `vars'
-	order `vars'
+local varstemp State SchYear DataLevel StateAssignedDistID state_leaid DistName ///
+	StateAssignedSchID seasch SchName AssmtName AssmtType Subject GradeLevel ///
+	StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested ///
+	Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count ///
+	Lev4_percent Lev5_count Lev5_percent ProficiencyCriteria ParticipationRate AvgScaleScore ///
+	ProficientOrAbove_count ProficientOrAbove_percent Flag_AssmtNameChange ///
+	Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_soc Flag_CutScoreChange_sci
+	keep `varstemp'
+	order `varstemp'
 
 // Saving transformed data
-save "${output_files}/ID_AssmtData_2018.dta", replace
-
+save "${Original_Cleaned}/ID_AssmtData_2018.dta", replace
 
 //////////////////////////////////////////////////////////
 // Merging with NCES School Data
 //////////////////////////////////////////////////////////
 
-use "$NCES_files/NCES School Files, Fall 1997-Fall 2022/NCES_2017_School.dta", clear 
+use "$NCES_School/NCES_2017_School.dta", clear 
 
 keep state_location state_fips district_agency_type SchType ncesdistrictid state_leaid ncesschoolid seasch DistCharter SchLevel SchVirtual county_name county_code
 drop if seasch == ""
@@ -267,21 +269,21 @@ drop if seasch == ""
 *Retain NCESSchoolIDs that start with "16". This includes all schools in ID except for 2 BIE schools that start with "59"
 keep if substr(ncesschoolid, 1, 2) == "16"
 
-merge 1:m seasch using "${output_files}/ID_AssmtData_2018.dta", keep(match using) nogenerate
-save "${output_files}/ID_AssmtData_2018.dta", replace
+merge 1:m seasch using "${Original_Cleaned}/ID_AssmtData_2018.dta", keep(match using) nogenerate
+save "${Temp}/ID_AssmtData_2018.dta", replace
 
 //////////////////////////////////////////////////////////
 // Merging with NCES District Data
 //////////////////////////////////////////////////////////
 
-use "$NCES_files/NCES District Files, Fall 1997-Fall 2022/NCES_2017_District.dta", clear 
+use "$NCES_District/NCES_2017_District.dta", clear 
 
 keep state_location state_fips district_agency_type ncesdistrictid state_leaid DistCharter DistLocale county_name county_code
 
 *Retain NCESSchoolIDs that start with "16". This includes all schools in ID except for 2 BIE schools that start with "59"
 keep if substr(ncesdistrictid, 1, 2) == "16"
 
-merge 1:m state_leaid using "${output_files}/ID_AssmtData_2018.dta", keep(match using) nogenerate
+merge 1:m state_leaid using "${Temp}/ID_AssmtData_2018.dta", keep(match using) nogenerate
 
 // Removing extra variables and renaming NCES variables
 rename district_agency_type DistType
@@ -330,25 +332,142 @@ replace DistName = "EMMETT INDEPENDENT DISTRICT" if NCESDistrictID == "1601020"
 replace DistName = "SWAN VALLEY ELEMENTARY DISTRICT" if NCESDistrictID == "1603120"
 
 // Reordering variables and sorting data
-local vars 	State StateAbbrev StateFips SchYear DataLevel DistName SchName 		/// 
-		NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID 	///
-		AssmtName AssmtType Subject GradeLevel StudentGroup 			///
-		StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested	///
-		Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count 		///
-		Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent 		///
-		AvgScaleScore ProficiencyCriteria ProficientOrAbove_count 		///
-		ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange 	///
-		Flag_CutScoreChange_ELA Flag_CutScoreChange_math 			///
-		Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType 		///
-		DistCharter DistLocale SchType SchLevel SchVirtual CountyName 		///
-		CountyCode
-
+local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
+    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
+    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
+    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
+    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
+    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
+    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
+    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
+    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
+    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
+    Flag_CutScoreChange_sci Flag_CutScoreChange_soc
 	keep `vars'
 	order `vars'
-
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-// Saving and exporting transformed data
+*Exporting Output*
+save "${Output}/ID_AssmtData_2018", replace
+export delimited "${Output}/ID_AssmtData_2018", replace
 
-*save "${output_files}/ID_AssmtData_2018.dta", replace
-export delimited using "$output_files/ID_AssmtData_2018.csv", replace
+///////////////////////////////////////////////////////
+*******************************************************
+** Creating the non-derivation file
+*******************************************************
+///////////////////////////////////////////////////////
+// Restoring the break-point 
+use "${Temp}/ID_AssmtData_2018_Breakpoint.dta", clear
+
+//Deriving ProficientOrAbove_percent if the new ProficientOrAbove_count is not a range
+gen ProfAbove_count_num = real(ProficientOrAbove_count)  // Convert to numeric
+gen ProfAbove_count_rngflag =1 if strpos(ProficientOrAbove_count, "-") & (ProficientOrAbove_count != "--") & (ProficientOrAbove_count > "0")
+gen ProfAbove_per_rngflag =1 if strpos(ProficientOrAbove_percent, "-") & (ProficientOrAbove_percent != "--") & (ProficientOrAbove_percent > "0")
+gen OG_ProficientOrAbove_percent = ProficientOrAbove_percent // use for reference only 
+
+	* Where ProficientOrAbove_p is currently a range but ProficientOrAbove_c is not
+	replace ProficientOrAbove_percent = string(ProfAbove_count_num/StudentSubGroup_TotalTested, "%9.3f") if ProfAbove_count_rngflag != 1 & ProfAbove_per_rngflag == 1 & StudentSubGroup_TotalTested !=.
+
+	* Where ProficientOrAbove_p is currently SUPPRESSED but ProficientOrAbove_c is not missing or suppressed
+	replace ProficientOrAbove_percent = string(ProfAbove_count_num/StudentSubGroup_TotalTested, "%9.3f") if ProfAbove_count_rngflag != 1 & ProficientOrAbove_percent =="*" & StudentSubGroup_TotalTested !=.
+
+// DataLevel
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+sort DataLevel_n 
+drop DataLevel 
+rename DataLevel_n DataLevel
+replace DistName = "All Districts" if DataLevel ==1
+replace SchName = "All Schools" if DataLevel !=3
+
+// Order 
+keep `varstemp'
+order `varstemp'
+
+// Saving transformed data
+save "${Original_Cleaned}/ID_AssmtData_2018_ND.dta", replace
+
+//////////////////////////////////////////////////////////
+// Merging with NCES School Data
+//////////////////////////////////////////////////////////
+
+use "$NCES_School/NCES_2017_School.dta", clear 
+
+keep state_location state_fips district_agency_type SchType ncesdistrictid state_leaid ncesschoolid seasch DistCharter SchLevel SchVirtual county_name county_code
+drop if seasch == ""
+
+*Retain NCESSchoolIDs that start with "16". This includes all schools in ID except for 2 BIE schools that start with "59"
+keep if substr(ncesschoolid, 1, 2) == "16"
+
+merge 1:m seasch using "${Original_Cleaned}/ID_AssmtData_2018_ND.dta", keep(match using) nogenerate
+save "${Temp}/ID_AssmtData_2018_ND.dta", replace
+
+//////////////////////////////////////////////////////////
+// Merging with NCES District Data
+//////////////////////////////////////////////////////////
+
+use "$NCES_District/NCES_2017_District.dta", clear 
+
+keep state_location state_fips district_agency_type ncesdistrictid state_leaid DistCharter DistLocale county_name county_code
+
+*Retain NCESSchoolIDs that start with "16". This includes all schools in ID except for 2 BIE schools that start with "59"
+keep if substr(ncesdistrictid, 1, 2) == "16"
+
+merge 1:m state_leaid using "${Temp}/ID_AssmtData_2018_ND.dta", keep(match using) nogenerate
+
+// Removing extra variables and renaming NCES variables
+rename district_agency_type DistType
+rename ncesschoolid NCESSchoolID
+rename ncesdistrictid NCESDistrictID
+rename state_location StateAbbrev
+rename county_code CountyCode
+rename state_fips StateFips
+rename county_name CountyName
+
+// Adding StateAbbrev and StateFips to state data
+replace StateAbbrev = "ID" if DataLevel == 1
+replace StateFips = 16 if DataLevel == 1
+
+// Dropping non-ID data. This district ("PLEASANT VALLEY ELEM DIST") is in Oregon and the data are all suppressed.
+*tab DistName if StateAbbrev != "ID"
+drop if StateAbbrev != "ID"
+
+//SchVirtual, SchLevel, SchType
+decode SchVirtual, gen(SchVirtual_s)
+drop SchVirtual
+rename SchVirtual_s SchVirtual
+
+decode SchLevel, gen(SchLevel_s)
+drop SchLevel
+rename SchLevel_s SchLevel
+
+decode SchType, gen (SchType_s)
+drop SchType
+rename SchType_s SchType
+
+//Standardizing District & School Names
+replace DistName =stritrim(DistName)
+replace DistName =strtrim(DistName)
+replace SchName=stritrim(SchName)
+replace SchName=strtrim(SchName)
+replace DistName = subinstr(DistName, " INC.", ", INC.", 1) if strpos(DistName, ", INC.") <= 0 & strpos(DistName, "INC.") > 0
+replace SchName = subinstr(SchName, " INC.", ", INC.", 1) if strpos(SchName, ", INC.") <= 0 & strpos(SchName, "INC.") > 0
+replace DistName = "IDAHO SCIENCE AND TECHNOLOGY CHARTER SCHOOL INC." if NCESDistrictID == "1600145" 
+replace DistName = "JEFFERSON COUNTY JOINT DISTRICT" if NCESDistrictID== "1601570" 
+replace DistName = "MCCALL-DONNELLY JOINT SCHOOL DISTRICT" if NCESDistrictID== "1602030" 
+replace DistName = "SALMON RIVER JOINT SCHOOL DISTRICT" if NCESDistrictID== "1600138" 
+replace DistName = "THREE CREEK JOINT ELEMENTARY DISTRICT" if NCESDistrictID == "1603210" 
+replace DistName = "WHITEPINE JOINT SCHOOL DISTRICT" if NCESDistrictID== "1600010" 
+replace DistName = "EMMETT INDEPENDENT DISTRICT" if NCESDistrictID == "1601020"
+replace DistName = "SWAN VALLEY ELEMENTARY DISTRICT" if NCESDistrictID == "1603120"
+
+// Reordering variables and sorting data
+keep `vars'
+order `vars'
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
+*Exporting Non-Derivation Output*
+save "${Output_ND}/ID_AssmtData_2018_ND", replace
+export delimited "${Output_ND}/ID_AssmtData_2018_ND", replace
+* END of 03_ID_DataRequest_2018.do
+****************************************************
