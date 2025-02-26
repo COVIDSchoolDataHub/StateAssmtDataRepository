@@ -3,29 +3,41 @@
 
 This is a ReadMe for Delaware's data cleaning process, from Spring 2015 to Spring 2024 
 
+## NCES Setup
+
+NCES_Full: Download the folder from Google Drive-->_Data Cleaning Materials --> NCES District and School Demographics.
+    
+       a. NCES District Files [subfolder] 
+
+       b. NCES School Files [subfolder]
+
+As of 2/26/2025, the most recent files are from NCES 2022. 
+
 ## Setup
-1. Create a folder called DE State Testing Data.
-    -  Create two subfolders: Original Data Files and Output.
-    -  Download the original excel files (anything that is not in a subfolder on Drive) and place them in the Original Data Files folder.
-    -  Place the files in the data request subfolder on Drive ("DE Data Request - Received 11/6/24") into the general Original Data Files folder.
-2. Create a folder called NCES District and School Demographics.
-    - Create three subfolders: NCES District Files, Fall 1997-Fall 2022; NCES School Files, Fall 1997-Fall 2022; Cleaned NCES Data.
-    - Place the original NCES files into the appropriate folder (district or school), starting with NCES_2014 onward.
+Create a folder for DE. Inside that folder, create the following subfolders:
+      
+      1. Original Data Files: 
+      From Google Drive --> Delaware --> DE Original Data Files, download and place **all files** in the Original Data Files folder:
+          i) DE Data Request - Received 11/6/24 (File names start with FOIA)
+          ii) DE Original Data Files (File names start with DE_Original_Data_*)
+      
+               a. Cleaned DTA [subfolder]
+         
+      2. Temp
+         
+      3. NCES_DE [will start empty]
+           
+      4. Output_Files
+      
+      5. Output_Files_ND: This is a folder for the non-derivation output. As of 2/26/25, there is no non-derivation output. 
 
-There are 11 .do files. First run NCES_Clean_11.8.24.do.  Then you can run the files for each year in any order you want, as long as you run DE_sci_soc_2015-17_11.17.24 last.
+## Process
+    Place all do files in the DE folder.
+    
+    Set the appropriate file paths in DE_Main_File.do
+    
+    Running DE_Main_File.do will execute all the do files in order.
 
-## File Path
-
-The file path setup should be as follows: 
-
-```bash
-global NCESSchool "/Users/miramehta/Documents/NCES District and School Demographics/NCES School Files, Fall 1997-Fall 2022"
-global NCESDistrict "/Users/miramehta/Documents/NCES District and School Demographics/NCES District Files, Fall 1997-Fall 2022"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
-
-global Original "/Users/miramehta/Documents/DE State Testing Data/Original Data Files"
-global Output "/Users/miramehta/Documents/DE State Testing Data/Output"
-```
 ## Updates
 
     - 03/29/2024: Made 2024 updates.
@@ -34,3 +46,4 @@ global Output "/Users/miramehta/Documents/DE State Testing Data/Output"
     - 08/30/2024: Added code for 2024 data.
     - 11/08/2024: Recleaned data based on files received from data request.
     - 11/17/2024: Incorporated 2015 sci/soc data that was not available by data request.
+    - 02/26/2025: Standardized code to add headers, footers, and other code. Fixed code that imports files. 
