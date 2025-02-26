@@ -1,19 +1,33 @@
-clear all
+*******************************************************
+* DELAWARE
 
-global Original "/Users/miramehta/Documents/DE State Testing Data/Original Data Files"
-global Output "/Users/miramehta/Documents/DE State Testing Data/Output"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+* File name: DE Cleaning 2017
+* Last update: 2/26/2025
 
+*******************************************************
+* Notes
+
+	* This do file imports DE 2017 data, renames variables, cleans and saves it as a dta file.
+	* NCES 2016 is merged with DE 2017 data. 
+	* Only the usual output is created.
+*******************************************************
+/////////////////////////////////////////
+*** Setup ***
+/////////////////////////////////////////
+clear
+
+*******************************************************
 //Import Relevant Data - Unhide on first run
-/*
-import excel "$Original/DE_OriginalData_ela_mat_2015-2018.xlsx", firstrow case(preserve) clear
+*******************************************************
 
-keep if SchoolYear == 2015
+import excel "$Original/FOIA_Assessment_2015-2018.xlsx", firstrow case(preserve) clear
+
+keep if SchoolYear == 2017
 drop SchoolYear
 
-save "$Original/DE_OriginalData_ela_mat_2015.dta", replace
-*/
-use "$Original/DE_OriginalData_ela_mat_2015.dta", clear
+save "$Original_Cleaned/DE_OriginalData_ela_mat_2017.dta", replace
+
+use "$Original_Cleaned/DE_OriginalData_ela_mat_2017.dta", clear
 
 //Rename Variables
 rename DistrictCode StateAssignedDistID
@@ -129,31 +143,32 @@ gen Lev5_count = ""
 gen Lev5_percent = ""
 
 //Additional Variables
-gen SchYear = "2014-15"
+gen SchYear = "2016-17"
 gen AssmtType = "Regular"
 gen ProficiencyCriteria = "Levels 3-4"
-gen Flag_AssmtNameChange = "Y"
-gen Flag_CutScoreChange_ELA = "Y"
-gen Flag_CutScoreChange_math = "Y"
+gen Flag_AssmtNameChange = "N"
+gen Flag_CutScoreChange_ELA = "N"
+gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_sci = "N"
-gen Flag_CutScoreChange_soc = "N"
+gen Flag_CutScoreChange_soc = "Not applicable"
 
+save "$Original_Cleaned/DE_OriginalData_ela_mat_2017.dta", replace
+
+*******************************************************
 //Merge with NCES
+*******************************************************
 tostring StateAssignedDistID, replace
 tostring StateAssignedSchID, replace
 replace StateAssignedDistID = "" if DataLevel == 1
 replace StateAssignedSchID = "" if DataLevel != 3
 
-replace StateAssignedDistID = "" if SchName == "Delaware College Preparatory Academy" //pulling in NCES assigned State ID, which is not the same as the value in the raw data
-replace DistName = "" if SchName == "Delaware College Preparatory Academy" //pulling in NCES assigned district, which is not the same as the value in the raw data
-
-merge m:1 StateAssignedSchID using "$NCES/NCES_2014_School_DE", update
+merge m:1 StateAssignedDistID using "$NCES_DE/NCES_2016_District_DE"
 drop if _merge == 2
-drop if _merge == 1 & DataLevel == 3 //all data for these schools are suppressed
 drop _merge
 
-merge m:1 StateAssignedDistID using "$NCES/NCES_2014_District_DE", update
+merge m:1 StateAssignedSchID using "$NCES_DE/NCES_2016_School_DE"
 drop if _merge == 2
+drop if _merge == 1 & DataLevel == 3 //all data for these schools are suppressed
 drop _merge
 
 //Cleaning up from NCES
@@ -168,12 +183,24 @@ replace SchName = strtrim(SchName)
 replace SchName = stritrim(SchName)
 replace DistName = "Campus Community School" if NCESDistrictID == "1000007"
 
-//Final Cleaning
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
- 
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
+// Reordering variables and sorting data
+local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
+    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
+    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
+    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
+    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
+    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
+    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
+    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
+    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
+    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
+    Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+	keep `vars'
+	order `vars'
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "$Output/DE_AssmtData_2015.dta", replace
-export delimited "$Output/DE_AssmtData_2015.csv", replace
+*Exporting Output*
+save "$Output/DE_AssmtData_2017.dta", replace
+export delimited "$Output/DE_AssmtData_2017.csv", replace
+* END of DE Cleaning 2017.do
+****************************************************

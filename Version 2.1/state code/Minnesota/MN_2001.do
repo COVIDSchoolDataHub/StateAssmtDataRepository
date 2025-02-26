@@ -1,22 +1,28 @@
+*******************************************************
+* MINNESOTA
+
+* File name: MN_2001
+* Last update: 2/21/2025
+
+*******************************************************
+* Notes
+
+	* This do file cleans MN's 2001 data and merges with NCES 2000. 
+	* Only one temp output created.
+*******************************************************
+
+/////////////////////////////////////////
+*** Setup ***
+/////////////////////////////////////////
 clear
 
-// Define file paths
-
-
-global original_files "/Users/kaitlynlucas/Desktop/Minnesota State Task"
-global NCES_files "/Users/kaitlynlucas/Desktop/Minnesota State Task/NCES_MN"
-global output_files "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN Output"
-global temp_files "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN_Temp"
-
-
+************************************************************************************
+* Importing data and renaming variables
 // 2000-2001
 
-import delimited "$original_files/MN_OriginalData_2001_all.TAB", clear
-
-save "${output_files}/MN_AssmtData_2001.dta", replace
+import excel "${Original}/MN_OriginalData_2001_all.xlsx", sheet("MN_OriginalData_2001_all.TAB") firstrow case(lower) clear
 
 // Reformatting IDs to standard length strings
-
 // District Code
 gen districtcodebig = .
 replace districtcodebig=0 if districtnumber<10
@@ -38,7 +44,6 @@ drop districtnumber
 gen districttypebig = .
 replace districttypebig=0 if districttype<10
 replace districttypebig=1 if districttype>=10
-
 
 gen newdistricttype = string(districttype)
 
@@ -65,7 +70,6 @@ drop schoolnumber
 
 
 // Relabeling variables
-
 rename newdistricttype DistrictTypeCode
 rename datayear SchYear
 rename districtname DistName
@@ -90,7 +94,6 @@ rename reportcategory StudentGroup
 rename reportdescription StudentSubGroup
 
 // Dropping extra variables
-
 drop testname
 drop testdate
 drop reportorder
@@ -150,7 +153,6 @@ foreach var of varlist Lev1_count Lev2_count Lev3_count Lev4_count Lev5_count Le
 replace AvgScaleScore = "--" if AvgScaleScore == "."
 drop filtered
 
-
 // Generating missing variables
 gen AssmtName = "Minnesota Comprehensive Assessment"
 gen Flag_AssmtNameChange = "N"
@@ -180,31 +182,30 @@ gen state_leaid = DistrictTypeCode + StateAssignedDistID
 
 // Saving transformed data
 replace seasch = "" if DataLevel !=3
-save "${output_files}/MN_AssmtData_2001.dta", replace
+save "${Original_Cleaned}/MN_AssmtData_2001.dta", replace
 
 // Merging with NCES School Data
 
-use "$NCES_files/NCES_2000_School.dta", clear 
+use "$NCES_School/NCES_2000_School.dta", clear 
 
 keep state_location state_fips district_agency_type SchType ncesdistrictid state_leaid ncesschoolid seasch DistCharter SchLevel SchVirtual county_name county_code DistLocale
-
 keep if substr(ncesschoolid, 1, 2) == "27"
 
+merge 1:m seasch using "${Original_Cleaned}/MN_AssmtData_2001.dta", keep(match using) nogenerate
 
-merge 1:m seasch using "${output_files}/MN_AssmtData_2001.dta", keep(match using) nogenerate
-
-save "${temp_files}/MN_AssmtData_2001_SchMerged.dta", replace
-save "${output_files}/MN_AssmtData_2001.dta", replace
+// save "${temp_files}/MN_AssmtData_2001_SchMerged.dta", replace
+save "${Temp}/MN_AssmtData_2001.dta", replace
 
 // Merging with NCES District Data
 
-use "$NCES_files/NCES_2000_District.dta", clear 
+use "$NCES_District/NCES_2000_District.dta", clear 
 
 keep state_location state_fips district_agency_type ncesdistrictid state_leaid DistCharter county_name county_code DistLocale
-
 keep if substr(ncesdistrictid, 1, 2) == "27"
 
-merge 1:m state_leaid using "${output_files}/MN_AssmtData_2001.dta", keep(match using) nogenerate
+merge 1:m state_leaid using "${Temp}/MN_AssmtData_2001.dta", keep(match using) nogenerate
+
+save "${Temp}/MN_AssmtData_2001.dta", replace
 
 // Reformatting IDs
 replace StateAssignedDistID = StateAssignedDistID+"-"+DistrictTypeCode
@@ -246,12 +247,25 @@ by uniquegrp: replace AllStudents = AllStudents[_n-1] if missing(AllStudents)
 rename AllStudents StudentGroup_TotalTested
 }
 
+replace StateFips = 27 if StateFips ==. 
+
 // Reordering variables and sorting data
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-drop State_leaid seasch
+local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
+    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
+    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
+    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
+    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
+    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
+    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
+    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
+    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
+    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
+    Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+	keep `vars'
+	order `vars'
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-// Saving and exporting transformed data
-
-save "${output_files}/MN_AssmtData_2001.dta", replace
-export delimited using "$output_files/MN_AssmtData_2001.csv", replace
+*Exporting Temp Output*
+save "${Temp}/MN_AssmtData_2001.dta", replace
+* END of MN_2001.do
+****************************************************

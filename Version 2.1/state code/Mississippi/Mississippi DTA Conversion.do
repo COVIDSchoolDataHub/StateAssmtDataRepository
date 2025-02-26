@@ -2,7 +2,7 @@ clear
 set more off
 
 global MS "/Users/miramehta/Documents/Mississippi"
-global raw "/Users/miramehta/Documents/Mississippi/Original Data Files"
+global raw "/Volumes/T7/State Test Project/Mississippi/Original Data Files"
 global output "/Users/miramehta/Documents/Mississippi/Output"
 global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
 global Request "/Users/miramehta/Documents/Mississippi/Original Data Files/Data Request"
@@ -340,6 +340,22 @@ foreach n in 5 8 {
 }
 import excel "${raw}/MS_OriginalData_2024_sci_WITH IDs ADDED", sheet("State Summary") firstrow clear
 save "${raw}/MS_OriginalData_2024_sci_state", replace
+
+
+// ** 2024 Data request
+// foreach subject in ela math sci {
+// 	foreach dl in state dist sch {
+// 		foreach datatype in part perf {
+// 			import excel "$raw/MS_OriginalData_2024_`subject'_`dl'_`datatype'", cellrange(A2) firstrow case(preserve) allstring clear
+// 			if "`datatype'" == "part" keep DIST SCH TABLE GRADE RACE SEX LEP ECODIS ASSESSMENT CNT
+// 			if "`datatype'" == "perf" keep DIST SCH TABLE GRADE RACE SEX LEP ECODIS ASSESSMENT CNT PROFICIENCY
+// 			gen Subject = "`subject'"
+// 			gen DataLevel = "`dl'"
+// 			gen datatype = "`datatype'"
+// 			save "$raw/MS_OriginalData_2024_`subject'_`dl'_`datatype'", replace
+// 		}
+// 	}
+// }
 
 //Stable Names and Unmerged Spreadsheets
 import excel "$MS/ms_full-dist-sch-stable-list_through2024", firstrow clear allstring

@@ -1,16 +1,24 @@
+*******************************************************
+* COLORADO
+
+* File name: CO_2015
+* Last update: 2/25/2025
+
+*******************************************************
+* Notes
+
+	* This do file imports CO 2015 data, renames variables, cleans and saves it as a dta file.
+	* NCES 2014 is merged with CO 2015 data. 
+	* Non-derivation and the usual output are created.
+*******************************************************
+/////////////////////////////////////////
+*** Setup ***
+/////////////////////////////////////////
 clear
-set more off
-
-cd "/Users/miramehta/Documents"
-
-global path "/Users/miramehta/Documents/CO State Testing Data"
-global nces "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
-global output "/Users/miramehta/Documents/CO State Testing Data/Output"
 
 //Importing & Renaming
-/*
 ** All Students Data
-import excel "${path}/Original Data/2015/CO_OriginalData_2015_ela&mat.xlsx", cellrange(A3) allstring sheet("Achievement Results") firstrow case(lower) clear
+import excel "$Original/2015/CO_OriginalData_2015_ela&mat.xlsx", cellrange(A3) allstring sheet("Achievement Results") firstrow case(lower) clear
 drop if missing(districtcode)
 rename level DataLevel
 rename districtcode StateAssignedDistID
@@ -38,10 +46,10 @@ rename numbermetorexceededexpectati ProficientOrAbove_count
 rename percentmetorexceededexpectat ProficientOrAbove_percent
 
 
-save "${path}/CO_OriginalData_2015_ela&mat", replace
+save "${Temp}/CO_OriginalData_2015_ela&mat", replace
 
 **Science Data
-import excel "${path}/Original Data/2015/CO_OriginalData_2015_sci.xlsx", cellrange(A5) allstring clear
+import excel "$Original/2015/CO_OriginalData_2015_sci.xlsx", cellrange(A5) allstring clear
 rename A Subject
 rename B StateAssignedDistID
 rename C DistName
@@ -75,12 +83,12 @@ foreach var of varlist *_percent {
 }
 
 
-append using "${path}/CO_OriginalData_2015_ela&mat"
-save "${path}/CO_OriginalData_2015_allstudents", replace
+append using "${Temp}/CO_OriginalData_2015_ela&mat"
+save "${Temp}/CO_OriginalData_2015_allstudents", replace
 clear
 
 **Soc Data
-import excel "${path}/Original Data/2015/CO_OriginalData_2015_soc.xlsx", cellrange(A5) allstring clear
+import excel "$Original/2015/CO_OriginalData_2015_soc.xlsx", cellrange(A5) allstring clear
 rename A Subject
 rename B StateAssignedDistID
 rename C DistName
@@ -112,8 +120,8 @@ replace DataLevel = "School" if SchName != "STATE" & SchName != "DISTRICT"
 foreach var of varlist *_percent {
 	replace `var' = string(real(`var')/100, "%9.3g") if !missing(real(`var'))
 }
-append using "${path}/CO_OriginalData_2015_allstudents"
-save "${path}/CO_OriginalData_2015_allstudents", replace
+append using "${Temp}/CO_OriginalData_2015_allstudents"
+save "${Temp}/CO_OriginalData_2015_allstudents", replace
 
 ** SubGroup Data
 clear
@@ -121,7 +129,7 @@ tempfile temp1
 save "`temp1'", replace emptyok
 foreach s in ela mat {
 	foreach sg in FreeReducedLunch raceEthnicity gender individualEd language migrant {
-		import excel "$path/Original Data/2015/CO_2015_`s'_`sg'.xlsx", cellrange(A4) allstring clear
+		import excel "$Original/2015/CO_2015_`s'_`sg'.xlsx", cellrange(A4) allstring clear
 		foreach var of varlist _all {
 		replace `var' = trim(`var')
 		replace `var' = stritrim(`var')
@@ -150,16 +158,13 @@ foreach s in ela mat {
 }
 		
 use "`temp1'"
-save "${path}/CO_OriginalData_2015_subgroups", replace
-append using "${path}/CO_OriginalData_2015_allstudents"
+save "${Temp}/CO_OriginalData_2015_subgroups", replace
+append using "${Temp}/CO_OriginalData_2015_allstudents"
 drop if strlen(StateAssignedDistID) > 10
 recast str5 StateAssignedDistID
-save "${path}/CO_OriginalData_2015", replace
-*/
+save "${Temp}/CO_OriginalData_2015", replace
 
-
-use "${path}/CO_OriginalData_2015", clear
-order SchYear DataLevel StateAssignedDistID DistName StateAssignedSchID SchName Subject GradeLevel StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate AvgScaleScore
+use "${Temp}/CO_OriginalData_2015", clear
 
 //SchYear
 replace SchYear = "2014-15"
@@ -263,7 +268,12 @@ replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant" | Studen
 replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless" | StudentSubGroup == "Non-Homeless"
 replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Foster Care" | StudentSubGroup == "Non-Foster Care"
 replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Military" | StudentSubGroup == "Non-Military"
-order DataLevel DistName StateAssignedDistID SchName StateAssignedSchID Subject GradeLevel StudentGroup StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate
+
+save "${Original_Cleaned}/CO_OriginalData_2015", replace
+
+************************************************************************************
+*Merging with NCES data
+************************************************************************************
 
 //NCES Merging
 foreach var of varlist StateAssigned* {
@@ -274,8 +284,8 @@ replace StateAssignedDistID = "0980" if SchName == "SPRING CREEK YOUTH SERVICES 
 gen State_leaid = StateAssignedDistID
 gen seasch = StateAssignedSchID
 
-merge m:1 State_leaid using "$nces/NCES_2014_District_CO", gen(DistMerge)
-merge m:1 seasch using "$nces/NCES_2014_School_CO", gen(SchMerge)
+merge m:1 State_leaid using "$NCES_CO/NCES_2014_District_CO", gen(DistMerge)
+merge m:1 seasch using "$NCES_CO/NCES_2014_School_CO", gen(SchMerge)
 drop if DistMerge == 2 | SchMerge == 2
 drop if SchName == "PIKES PEAK BOCES" | DistName  == "PIKES PEAK BOCES"
 
@@ -310,8 +320,6 @@ replace ProficiencyCriteria = "Levels 3-4" if Subject == "sci" | Subject == "soc
 drop if SchName=="FAMILY EDUCATION NETWORK OF WELD CO" & StateAssignedSchID=="6169"
 replace DistName = "BYERS 32J" if NCESDistrictID == "0802700"
 replace DistName = "HARRISON 2" if NCESDistrictID == "0804530"
-
-replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent)* real(StudentSubGroup_TotalTested))) if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(ProficientOrAbove_percent)) & missing(real(ProficientOrAbove_count))
 
 ** Standardize Names
 replace DistName = strproper(DistName)
@@ -384,22 +392,55 @@ foreach var of varlist DistName SchName {
 }
 
 replace CountyName = proper(CountyName)
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
 foreach var of varlist StudentGroup_TotalTested StudentSubGroup_TotalTested *_count *_percent {
 	replace `var' = subinstr(`var', ",","",.)
 	replace `var' = subinstr(`var', " ", "",.)
 }
 
+
+// Reordering variables and sorting data
+local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
+    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
+    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
+    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
+    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
+    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
+    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
+    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
+    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
+    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
+    Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+	keep `vars'
+	order `vars'
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${output}/CO_AssmtData_2015", replace
-export delimited "${output}/CO_AssmtData_2015", replace
+*Exporting Non-Derivation Output*
+save "${Output_ND}/CO_AssmtData_2015_ND", replace
+export delimited "${Output_ND}/CO_AssmtData_2015_ND", replace
 
+*******************************************************
+*Derivations 
+*******************************************************
+replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent)* real(StudentSubGroup_TotalTested))) if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(ProficientOrAbove_percent)) & missing(real(ProficientOrAbove_count))
 
+//Final Cleaning
+foreach var of varlist DistName SchName {
+	replace `var' = stritrim(`var')
+	replace `var' = strtrim(`var')
+}
 
+foreach var of varlist StudentGroup_TotalTested StudentSubGroup_TotalTested *_count *_percent {
+	replace `var' = subinstr(`var', ",","",.)
+	replace `var' = subinstr(`var', " ", "",.)
+}
 
+keep `vars'
+order `vars'
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-
-
-
+*Exporting Output*
+save "${Output}/CO_AssmtData_2015", replace
+export delimited "${Output}/CO_AssmtData_2015", replace
+* END of CO_2015.do
+****************************************************

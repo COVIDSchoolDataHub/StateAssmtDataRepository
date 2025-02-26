@@ -1,19 +1,27 @@
+* MINNESOTA
+
+* File name: MN_2009
+* Last update: 2/21/2025
+
+*******************************************************
+* Notes
+
+	* This do file cleans MN's 2009 data and merges with NCES 2008. 
+	* Only one temp output created.
+*******************************************************
+
+/////////////////////////////////////////
+*** Setup ***
+/////////////////////////////////////////
 clear
-
-// Define file paths
-
-
-global original_files "/Users/kaitlynlucas/Desktop/Minnesota State Task"
-global NCES_files "/Users/kaitlynlucas/Desktop/Minnesota State Task/NCES_MN"
-global output_files "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN Output"
-global temp_files "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN_Temp"
-
-
 // 2008-2009
-
 // Converting subject tab files to dta and appending
+import excel "$Original/MN_OriginalData_2009_mat_rea.xlsx", sheet("Sheet2") firstrow case(lower) clear
 
-import delimited "$original_files/MN_OriginalData_2009_mat_rea.tab", clear
+//Correcting the datayear variable because of issues importing - STATA reads it as a date.
+gen datayear2 = "08-09" if datayear ==  23597 // Stata reads this as 8/9/24. No other values in datayear.
+drop datayear
+rename datayear2 datayear
 
 tostring grade, replace
 replace grade = "0" + grade
@@ -24,9 +32,9 @@ drop ecodevrgn
 drop testdate
 drop reportorder
 
-save "${temp_files}/MN_AssmtData_2009_mat_rea.dta", replace
+save "${Temp}/MN_AssmtData_2009_mat_rea.dta", replace
 
-import delimited "$original_files/MN_OriginalData_2009_sci.txt", clear
+import delimited "$Original/MN_OriginalData_2009_sci.txt", clear
 
 drop schoolcountynumber
 drop districtcountynumber
@@ -35,9 +43,9 @@ drop ecodevrgn
 drop testdate
 drop reportorder
 
-save "${temp_files}/MN_AssmtData_2009_sci.dta", replace
+save "${Temp}/MN_AssmtData_2009_sci.dta", replace
 
-import excel "$original_files/MN_OriginalData_2009_sci_state.xlsx", sheet("Public School Districts") firstrow cellrange(A1:AB3) case(lower) clear
+import excel "$Original/MN_OriginalData_2009_sci_state.xlsx", sheet("Public School Districts") firstrow cellrange(A1:AB3) case(lower) clear
 
 drop districtcountynumber
 destring districtnumber, replace
@@ -67,11 +75,11 @@ rename percentlevelp percentlevel2
 rename percentlevelm percentlevel3
 rename percentlevele percentlevel4
 
-save "${temp_files}/MN_AssmtData_2009_sci_state.dta", replace
+save "${Temp}/MN_AssmtData_2009_sci_state.dta", replace
 
 clear
 
-append using "${temp_files}/MN_AssmtData_2009_sci_state.dta" "${temp_files}/MN_AssmtData_2009_sci.dta" "${temp_files}/MN_AssmtData_2009_mat_rea.dta"
+append using "${Temp}/MN_AssmtData_2009_sci_state.dta" "${Temp}/MN_AssmtData_2009_sci.dta" "${Temp}/MN_AssmtData_2009_mat_rea.dta"
 
 // Dropping extra variables
 
@@ -106,7 +114,6 @@ drop publicschool
 drop schoolcountyname
 
 // Reformatting IDs to standard length strings
-
 // District Code
 gen districtcodebig = .
 replace districtcodebig=0 if districtnumber<10
@@ -128,7 +135,6 @@ drop districtnumber
 gen districttypebig = .
 replace districttypebig=0 if districttype<10
 replace districttypebig=1 if districttype>=10
-
 
 gen newdistricttype = string(districttype)
 
@@ -182,7 +188,6 @@ drop if StudentGroup == "Mobility"
 *drop if StudentGroup == "MigrantStatus"
 
 // Transforming Variable Values
-
 replace SchYear = "2008-09" if SchYear == "08-09"
 replace Subject = "math" if Subject == "M"
 replace Subject = "ela" if Subject == "R"
@@ -226,6 +231,7 @@ foreach var of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent {
 gen ProficientOrAbove_percent = Lev3_percent+Lev4_percent
 replace ProficientOrAbove_percent = round(ProficientOrAbove_percent, 0.001)
 replace ProficientOrAbove_count = round(ProficientOrAbove_count)
+
 foreach var of varlist Lev1_count Lev2_count Lev3_count Lev4_count Lev1_percent Lev2_percent Lev3_percent Lev4_percent AvgScaleScore ProficientOrAbove_count ProficientOrAbove_percent {
 	tostring `var', replace force format("%9.3g")
 	replace `var' = "*" if filtered == "Y"
@@ -266,33 +272,37 @@ gen seasch = DistrictTypeCode + StateAssignedDistID + StateAssignedSchID
 gen state_leaid = DistrictTypeCode + StateAssignedDistID 
 
 // Saving transformed data
-save "${output_files}/MN_AssmtData_2009.dta", replace
+save "${Original_Cleaned}/MN_AssmtData_2009.dta", replace
 
+************************************************************************************
+*Merging with NCES data
+************************************************************************************
 // Merging with NCES School Data
-
-use "$NCES_files/NCES_2009_School.dta", clear 
+use "$NCES_School/NCES_2009_School.dta", clear 
 
 keep if ncesschoolid == "273384004275" | ncesschoolid == "270318004269" | ncesschoolid == "273175004277" | ncesschoolid == "273333004284" | ncesschoolid == "270444004315"
 
-append using "$NCES_files/NCES_2008_School.dta"
+append using "$NCES_School/NCES_2008_School.dta"
 
 keep state_location state_fips district_agency_type SchType ncesdistrictid state_leaid ncesschoolid seasch DistCharter SchLevel SchVirtual county_name county_code DistLocale
 
 keep if substr(ncesschoolid, 1, 2) == "27"
 
-merge 1:m seasch using "${output_files}/MN_AssmtData_2009.dta", keep(match using) nogenerate
+merge 1:m seasch using "${Original_Cleaned}/MN_AssmtData_2009.dta", keep(match using) nogenerate
 
-save "${output_files}/MN_AssmtData_2009.dta", replace
+save "${Temp}/MN_AssmtData_2009.dta", replace
 
 // Merging with NCES District Data
 
-use "$NCES_files/NCES_2008_District.dta", clear 
+use "$NCES_District/NCES_2008_District.dta", clear 
 
 keep state_location state_fips district_agency_type ncesdistrictid state_leaid DistCharter county_name county_code DistLocale
 
 keep if substr(ncesdistrictid, 1, 2) == "27"
 
-merge 1:m state_leaid using "${output_files}/MN_AssmtData_2009.dta", keep(match using) nogenerate
+merge 1:m state_leaid using "${Temp}/MN_AssmtData_2009.dta", keep(match using) nogenerate
+
+save "${Temp}/MN_AssmtData_2009.dta", replace
 
 // Reformatting IDs
 replace StateAssignedDistID = StateAssignedDistID+"-"+DistrictTypeCode
@@ -341,7 +351,6 @@ merge 1:m NCESDistrictID using "${output_files}/MN_AssmtData_2009.dta", nogenera
 
 replace StateFips = 27 if StateFips ==. 
 
-
 // The following districts have no district-level raw data (the districts are not included in the raw data) and so we're dropping from the output.
 //Mid-State Education District
 cap drop if StateAssignedDistID=="6979-61" & DataLevel==2
@@ -362,13 +371,25 @@ by uniquegrp: replace AllStudents = AllStudents[_n-1] if missing(AllStudents)
 rename AllStudents StudentGroup_TotalTested
 }
 
+
 // Reordering variables and sorting data
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-drop State_leaid seasch
+local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
+    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
+    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
+    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
+    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
+    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
+    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
+    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
+    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
+    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
+    Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+	keep `vars'
+	order `vars'
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-// Saving and exporting transformed data
-
-save "${output_files}/MN_AssmtData_2009.dta", replace
-export delimited using "$output_files/MN_AssmtData_2009.csv", replace
+*Exporting Temp Output*
+save "${Temp}/MN_AssmtData_2009.dta", replace
+* END of MN_2009.do
+****************************************************
 

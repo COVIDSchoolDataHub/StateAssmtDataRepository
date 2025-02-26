@@ -1,26 +1,27 @@
-clear all
-set more off
+*******************************************************
+* COLORADO
 
-cd "/Users/miramehta/Documents"
+* File name: CO_2019
+* Last update: 2/25/2025
 
-global path "/Users/miramehta/Documents/CO State Testing Data"
-global nces "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
-global output "/Users/miramehta/Documents/CO State Testing Data/Output"
+*******************************************************
+* Notes
 
-
-///////// Section 1: Appending Aggregate Data
-
-
-	////Combines math/ela data with science data
-
-
-	//Imports and saves math/ela
-
-
-import excel "${path}/Original Data/2019/CO_OriginalData_2019_ela&mat.xlsx", sheet("CMAS ELA and Math") cellrange(A12:AC15883) firstrow case(lower) clear
-
-	//drops unneccesary variables from 2018 records used for comparison.  
-
+	* This do file imports CO 2019 data, renames variables, cleans and saves it as a dta file.
+	* NCES 2018 is merged with CO 2019 data. 
+	* Only the usual output is created.
+*******************************************************
+/////////////////////////////////////////
+*** Setup ***
+clear
+/////////////////////////////////////////
+*******************************************************
+// Section 1: Appending Aggregate Data
+*******************************************************
+//Combines math/ela data with science data
+//Imports and saves math/ela
+import excel "$Original/2019/CO_OriginalData_2019_ela&mat.xlsx", sheet("CMAS ELA and Math") cellrange(A12:AC15883) firstrow case(lower) clear
+//drops unneccesary variables from 2018 records used for comparison.
 rename subject Subject
 rename grade GradeLevel
 rename numberdidnotyetmeetexpectat Lev1_count
@@ -32,18 +33,12 @@ rename percentapproachedexpectations Lev3_percent
 rename numbermetexpectations Lev4_count
 rename percentmetexpectations Lev4_percent
 rename numberexceededexpectations Lev5_count
-rename percentexceededexpectations Lev5_percent
-
-	
+rename percentexceededexpectations Lev5_percent	
 drop n aa ab ac
+save "${Temp}/CO_OriginalData_2019_ela&mat.dta", replace
 
-save "${output}/CO_OriginalData_2019_ela&mat.dta", replace
-
-
-	//imports and saves sci
-	
-import excel "${path}/Original Data/2019/CO_OriginalData_2019_sci.xlsx", sheet("CMAS Science") cellrange(A12:Z4717) firstrow case(lower) clear
-
+//imports and saves sci
+import excel "$Original/2019/CO_OriginalData_2019_sci.xlsx", sheet("CMAS Science") cellrange(A12:Z4717) firstrow case(lower) clear
 rename grade GradeLevel
 rename numberpartiallymetexpectation Lev1_count
 rename percentpartiallymetexpectatio Lev1_percent
@@ -53,26 +48,17 @@ rename numbermetexpectations Lev3_count
 rename percentmetexpectations Lev3_percent
 rename numberexceededexpectations Lev4_count
 rename percentexceededexpectations Lev4_percent
-
-
 drop m x y z
 gen Subject="sci"
+save "${Temp}/CO_OriginalData_2019_sci.dta", replace
 
-
-save "${output}/CO_OriginalData_2019_sci.dta", replace
-
-
-
-	////Combines math/ela with science scores
-	
-use "${output}/CO_OriginalData_2019_ela&mat.dta", clear
-append using "${output}/CO_OriginalData_2019_sci.dta"
+//Combines math/ela with science scores
+use "${Temp}/CO_OriginalData_2019_ela&mat.dta", clear
+append using "${Temp}/CO_OriginalData_2019_sci.dta"
 
 gen StudentGroup = "All Students"
 gen StudentSubGroup = "All Students"
-
 drop numberoftotalrecords numberofnoscores standarddeviation
-
 rename level DataLevel
 rename districtcode StateAssignedDistID
 rename districtname DistName
@@ -83,18 +69,14 @@ rename participationrate ParticipationRate
 rename meanscalescore AvgScaleScore
 rename numbermetorexceededexpectati ProficientOrAbove_count
 rename percentmetorexceededexpectat ProficientOrAbove_percent
+save "${Temp}/CO_OriginalData_2019_all.dta", replace
 
-save "${output}/CO_OriginalData_2019_all.dta", replace
+*******************************************************
+// Section 2: Preparing Disaggregate Data
+*******************************************************
+// ENGLISH/LANGUAGE ARTS
 
-
-
-///////// Section 2: Preparing Disaggregate Data
-
-
-	//// ENGLISH/LANGUAGE ARTS
-	
-import excel "${path}/Original Data/2019/2019 CMAS ELA Disaggregated District and School Achievement Results.xlsx", sheet("Gender") cellrange(A11:Y15742) firstrow case(lower) clear
-
+import excel "$Original/2019/2019 CMAS ELA Disaggregated District and School Achievement Results.xlsx", sheet("Gender") cellrange(A11:Y15742) firstrow case(lower) clear
 rename numberdidnotyetmeetexpect Lev1_count
 rename percentdidnotyetmeetexpec Lev1_percent
 rename numberpartiallymetexpectati Lev2_count
@@ -110,14 +92,9 @@ rename percentmetorexceededexpect ProficientOrAbove_percent
 rename gender StudentSubGroup
 gen StudentGroup = "Gender"
 gen Subject="ela"
+save "${Temp}/CO_2019_ELA_gender.dta", replace
 
-save "${output}/CO_2019_ELA_gender.dta", replace
-
-
-
-import excel "${path}/Original Data/2019/2019 CMAS ELA Disaggregated District and School Achievement Results.xlsx", sheet("Language Proficiency") cellrange(A11:Y36861) firstrow case(lower) clear
-
-
+import excel "$Original/2019/2019 CMAS ELA Disaggregated District and School Achievement Results.xlsx", sheet("Language Proficiency") cellrange(A11:Y36861) firstrow case(lower) clear
 rename numberdidnotyetmeetexpect Lev1_count
 rename percentdidnotyetmeetexpec Lev1_percent
 rename numberpartiallymetexpectati Lev2_count
@@ -133,12 +110,9 @@ rename percentmetorexceededexpect ProficientOrAbove_percent
 rename languageproficiency StudentSubGroup
 gen StudentGroup = "EL Status"
 gen Subject="ela"
+save "${Temp}/CO_2019_ELA_language.dta", replace
 
-save "${output}/CO_2019_ELA_language.dta", replace
-
-
-import excel "${path}/Original Data/2019/2019 CMAS ELA Disaggregated District and School Achievement Results.xlsx", sheet("Race Ethnicity") cellrange(A11:Y34835) firstrow case(lower) clear
-
+import excel "$Original/2019/2019 CMAS ELA Disaggregated District and School Achievement Results.xlsx", sheet("Race Ethnicity") cellrange(A11:Y34835) firstrow case(lower) clear
 rename numberdidnotyetmeetexpect Lev1_count
 rename percentdidnotyetmeetexpec Lev1_percent
 rename numberpartiallymetexpectati Lev2_count
@@ -154,12 +128,9 @@ rename percentmetorexceededexpect ProficientOrAbove_percent
 rename raceethnicity StudentSubGroup
 gen StudentGroup = "RaceEth"
 gen Subject="ela"
+save "${Temp}/CO_2019_ELA_raceEthnicity.dta", replace
 
-save "${output}/CO_2019_ELA_raceEthnicity.dta", replace
-
-
-import excel "${path}/Original Data/2019/2019 CMAS ELA Disaggregated District and School Achievement Results.xlsx", sheet("Free Reduced Lunch") cellrange(A11:Y15622) firstrow case(lower) clear
-
+import excel "$Original/2019/2019 CMAS ELA Disaggregated District and School Achievement Results.xlsx", sheet("Free Reduced Lunch") cellrange(A11:Y15622) firstrow case(lower) clear
 rename numberdidnotyetmeetexpect Lev1_count
 rename percentdidnotyetmeetexpec Lev1_percent
 rename numberpartiallymetexpectati Lev2_count
@@ -175,11 +146,9 @@ rename percentmetorexceededexpect ProficientOrAbove_percent
 rename freereducedlunchstatus StudentSubGroup
 gen StudentGroup = "Economic Status"
 gen Subject="ela"
+save "${Temp}/CO_2019_ELA_econstatus.dta", replace
 
-save "${output}/CO_2019_ELA_econstatus.dta", replace
-
-import excel "${path}/Original Data/2019/2019 CMAS ELA Disaggregated District and School Achievement Results.xlsx", sheet("Migrant") cellrange(A11:Y9272) firstrow case(lower) clear
-
+import excel "$Original/2019/2019 CMAS ELA Disaggregated District and School Achievement Results.xlsx", sheet("Migrant") cellrange(A11:Y9272) firstrow case(lower) clear
 rename numberdidnotyetmeetexpect Lev1_count
 rename percentdidnotyetmeetexpec Lev1_percent
 rename numberpartiallymetexpectati Lev2_count
@@ -195,11 +164,9 @@ rename percentmetorexceededexpect ProficientOrAbove_percent
 rename migrant StudentSubGroup
 gen StudentGroup = "Migrant Status"
 gen Subject="ela"
+save "${Temp}/CO_2019_ELA_migrantstatus.dta", replace
 
-save "${output}/CO_2019_ELA_migrantstatus.dta", replace
-
-import excel "${path}/Original Data/2019/2019 CMAS ELA Disaggregated District and School Achievement Results.xlsx", sheet("IEP") cellrange(A11:Y15422) firstrow case(lower) clear
-
+import excel "$Original/2019/2019 CMAS ELA Disaggregated District and School Achievement Results.xlsx", sheet("IEP") cellrange(A11:Y15422) firstrow case(lower) clear
 rename numberdidnotyetmeetexpect Lev1_count
 rename percentdidnotyetmeetexpec Lev1_percent
 rename numberpartiallymetexpectati Lev2_count
@@ -215,14 +182,10 @@ rename percentmetorexceededexpect ProficientOrAbove_percent
 rename iepstatus StudentSubGroup
 gen StudentGroup = "Disability Status"
 gen Subject="ela"
+save "${Temp}/CO_2019_ELA_disabilitystatus.dta", replace
 
-save "${output}/CO_2019_ELA_disabilitystatus.dta", replace
-
-	//// MATH
-
-
-import excel "${path}/Original Data/2019/2019 CMAS Math Disaggregated District and School Achievement Results.xlsx", sheet("Gender") cellrange(A11:Y15741) firstrow case(lower) clear
-
+// MATH
+import excel "$Original/2019/2019 CMAS Math Disaggregated District and School Achievement Results.xlsx", sheet("Gender") cellrange(A11:Y15741) firstrow case(lower) clear
 rename numberdidnotyetmeetexpect Lev1_count
 rename percentdidnotyetmeetexpec Lev1_percent
 rename numberpartiallymetexpectati Lev2_count
@@ -238,13 +201,9 @@ rename percentmetorexceededexpect ProficientOrAbove_percent
 rename gender StudentSubGroup
 gen StudentGroup = "Gender"
 gen Subject="math"
+save "${Temp}/CO_2019_mat_gender.dta", replace
 
-save "${output}/CO_2019_mat_gender.dta", replace
-
-
-
-import excel "${path}/Original Data/2019/2019 CMAS Math Disaggregated District and School Achievement Results.xlsx", sheet("Language Proficiency") cellrange(A11:Y36922) firstrow case(lower) clear
-
+import excel "$Original/2019/2019 CMAS Math Disaggregated District and School Achievement Results.xlsx", sheet("Language Proficiency") cellrange(A11:Y36922) firstrow case(lower) clear
 rename numberdidnotyetmeetexpect Lev1_count
 rename percentdidnotyetmeetexpec Lev1_percent
 rename numberpartiallymetexpectati Lev2_count
@@ -260,13 +219,9 @@ rename percentmetorexceededexpect ProficientOrAbove_percent
 rename languageproficiency StudentSubGroup
 gen StudentGroup = "EL Status"
 gen Subject="math"
+save "${Temp}/CO_2019_mat_language.dta", replace
 
-save "${output}/CO_2019_mat_language.dta", replace
-
-
-
-import excel "${path}/Original Data/2019/2019 CMAS Math Disaggregated District and School Achievement Results.xlsx", sheet("Race Ethnicity") cellrange(A11:Y34833) firstrow case(lower) clear
-
+import excel "$Original/2019/2019 CMAS Math Disaggregated District and School Achievement Results.xlsx", sheet("Race Ethnicity") cellrange(A11:Y34833) firstrow case(lower) clear
 rename numberdidnotyetmeetexpect Lev1_count
 rename percentdidnotyetmeetexpec Lev1_percent
 rename numberpartiallymetexpectati Lev2_count
@@ -282,13 +237,9 @@ rename percentmetorexceededexpect ProficientOrAbove_percent
 rename raceethnicity StudentSubGroup
 gen StudentGroup = "RaceEth"
 gen Subject="math"
+save "${Temp}/CO_2019_mat_raceEthnicity.dta", replace
 
-save "${output}/CO_2019_mat_raceEthnicity.dta", replace
-
-
-
-import excel "${path}/Original Data/2019/2019 CMAS Math Disaggregated District and School Achievement Results.xlsx", sheet("Free Reduced Lunch") cellrange(A11:Y15622) firstrow case(lower) clear
-
+import excel "$Original/2019/2019 CMAS Math Disaggregated District and School Achievement Results.xlsx", sheet("Free Reduced Lunch") cellrange(A11:Y15622) firstrow case(lower) clear
 rename numberdidnotyetmeetexpect Lev1_count
 rename percentdidnotyetmeetexpec Lev1_percent
 rename numberpartiallymetexpectati Lev2_count
@@ -304,11 +255,9 @@ rename percentmetorexceededexpect ProficientOrAbove_percent
 rename freereducedlunchstatus StudentSubGroup
 gen StudentGroup = "Economic Status"
 gen Subject="math"
+save "${Temp}/CO_2019_mat_econstatus.dta", replace
 
-save "${output}/CO_2019_mat_econstatus.dta", replace
-
-import excel "${path}/Original Data/2019/2019 CMAS Math Disaggregated District and School Achievement Results.xlsx", sheet("Migrant") cellrange(A11:Y9299) firstrow case(lower) clear
-
+import excel "$Original/2019/2019 CMAS Math Disaggregated District and School Achievement Results.xlsx", sheet("Migrant") cellrange(A11:Y9299) firstrow case(lower) clear
 rename numberdidnotyetmeetexpect Lev1_count
 rename percentdidnotyetmeetexpec Lev1_percent
 rename numberpartiallymetexpectati Lev2_count
@@ -324,11 +273,9 @@ rename percentmetorexceededexpect ProficientOrAbove_percent
 rename migrant StudentSubGroup
 gen StudentGroup = "Migrant Status"
 gen Subject="math"
+save "${Temp}/CO_2019_mat_migrantstatus.dta", replace
 
-save "${output}/CO_2019_mat_migrantstatus.dta", replace
-
-import excel "${path}/Original Data/2019/2019 CMAS Math Disaggregated District and School Achievement Results.xlsx", sheet("IEP") cellrange(A11:Y15424) firstrow case(lower) clear
-
+import excel "$Original/2019/2019 CMAS Math Disaggregated District and School Achievement Results.xlsx", sheet("IEP") cellrange(A11:Y15424) firstrow case(lower) clear
 rename numberdidnotyetmeetexpect Lev1_count
 rename percentdidnotyetmeetexpec Lev1_percent
 rename numberpartiallymetexpectati Lev2_count
@@ -344,16 +291,10 @@ rename percentmetorexceededexpect ProficientOrAbove_percent
 rename iepstatus StudentSubGroup
 gen StudentGroup = "Disability Status"
 gen Subject="math"
+save "${Temp}/CO_2019_mat_disabilitystatus.dta", replace
 
-save "${output}/CO_2019_mat_disabilitystatus.dta", replace
-
-
-	//// SCIENCE
-	
-	
-import excel "${path}/Original Data/2019/2019 CMAS Science Disaggregated District and School Achievement Results.xlsx", sheet("Gender") cellrange(A11:W9343) firstrow case(lower) clear
-	
-
+// SCIENCE
+import excel "$Original/2019/2019 CMAS Science Disaggregated District and School Achievement Results.xlsx", sheet("Gender") cellrange(A11:W9343) firstrow case(lower) clear
 rename numberpartiallymetexpectation Lev1_count
 rename percentpartiallymetexpectatio Lev1_percent
 rename numberapproachedexpectations Lev2_count
@@ -367,14 +308,9 @@ rename percentmetorexceededexpectat ProficientOrAbove_percent
 rename gender StudentSubGroup
 gen StudentGroup = "Gender"
 gen Subject="sci"
+save "${Temp}/CO_2019_sci_gender.dta", replace
 
-save "${output}/CO_2019_sci_gender.dta", replace
-
-
-
-import excel "${path}/Original Data/2019/2019 CMAS Science Disaggregated District and School Achievement Results.xlsx", sheet("Language Proficiency") cellrange(A11:W21613) firstrow case(lower) clear
-
-
+import excel "$Original/2019/2019 CMAS Science Disaggregated District and School Achievement Results.xlsx", sheet("Language Proficiency") cellrange(A11:W21613) firstrow case(lower) clear
 rename numberpartiallymetexpectation Lev1_count
 rename percentpartiallymetexpectatio Lev1_percent
 rename numberapproachedexpectations Lev2_count
@@ -388,14 +324,9 @@ rename percentmetorexceededexpectat ProficientOrAbove_percent
 rename languageproficiency StudentSubGroup
 gen StudentGroup = "EL Status"
 gen Subject="sci"
+save "${Temp}/CO_2019_sci_language.dta", replace
 
-save "${output}/CO_2019_sci_language.dta", replace
-
-
-
-import excel "${path}/Original Data/2019/2019 CMAS Science Disaggregated District and School Achievement Results.xlsx", sheet("Race Ethnicity") cellrange(A11:W20325) firstrow case(lower) clear
-
-
+import excel "$Original/2019/2019 CMAS Science Disaggregated District and School Achievement Results.xlsx", sheet("Race Ethnicity") cellrange(A11:W20325) firstrow case(lower) clear
 rename numberpartiallymetexpectation Lev1_count
 rename percentpartiallymetexpectatio Lev1_percent
 rename numberapproachedexpectations Lev2_count
@@ -409,12 +340,9 @@ rename percentmetorexceededexpectat ProficientOrAbove_percent
 rename raceethnicity StudentSubGroup
 gen StudentGroup = "RaceEth"
 gen Subject="sci"
+save "${Temp}/CO_2019_sci_raceEthnicity.dta", replace
 
-save "${output}/CO_2019_sci_raceEthnicity.dta", replace
-
-
-import excel "${path}/Original Data/2019/2019 CMAS Science Disaggregated District and School Achievement Results.xlsx", sheet("Free Reduced Lunch") cellrange(A11:W9266) firstrow case(lower) clear
-
+import excel "$Original/2019/2019 CMAS Science Disaggregated District and School Achievement Results.xlsx", sheet("Free Reduced Lunch") cellrange(A11:W9266) firstrow case(lower) clear
 rename numberpartiallymetexpectation Lev1_count
 rename percentpartiallymetexpectatio Lev1_percent
 rename numberapproachedexpectations Lev2_count
@@ -428,11 +356,9 @@ rename percentmetorexceededexpectat ProficientOrAbove_percent
 rename freereducedlunchstatus StudentSubGroup
 gen StudentGroup = "Economic Status"
 gen Subject="sci"
+save "${Temp}/CO_2019_sci_econstatus.dta", replace
 
-save "${output}/CO_2019_sci_econstatus.dta", replace
-
-import excel "${path}/Original Data/2019/2019 CMAS Science Disaggregated District and School Achievement Results.xlsx", sheet("Migrant") cellrange(A11:W5430) firstrow case(lower) clear
-
+import excel "$Original/2019/2019 CMAS Science Disaggregated District and School Achievement Results.xlsx", sheet("Migrant") cellrange(A11:W5430) firstrow case(lower) clear
 rename numberpartiallymetexpectation Lev1_count
 rename percentpartiallymetexpectatio Lev1_percent
 rename numberapproachedexpectations Lev2_count
@@ -446,11 +372,9 @@ rename percentmetorexceededexpectat ProficientOrAbove_percent
 rename migrant StudentSubGroup
 gen StudentGroup = "Migrant Status"
 gen Subject="sci"
+save "${Temp}/CO_2019_sci_migrantstatus.dta", replace
 
-save "${output}/CO_2019_sci_migrantstatus.dta", replace
-
-import excel "${path}/Original Data/2019/2019 CMAS Science Disaggregated District and School Achievement Results.xlsx", sheet("IEP") cellrange(A11:W9135) firstrow case(lower) clear
-
+import excel "$Original/2019/2019 CMAS Science Disaggregated District and School Achievement Results.xlsx", sheet("IEP") cellrange(A11:W9135) firstrow case(lower) clear
 rename numberpartiallymetexpectation Lev1_count
 rename percentpartiallymetexpectatio Lev1_percent
 rename numberapproachedexpectations Lev2_count
@@ -464,31 +388,29 @@ rename percentmetorexceededexpectat ProficientOrAbove_percent
 rename iepstatus StudentSubGroup
 gen StudentGroup = "Disability Status"
 gen Subject="sci"
+save "${Temp}/CO_2019_sci_disabilitystatus.dta", replace
 
-save "${output}/CO_2019_sci_disabilitystatus.dta", replace
-
-
-///////// Section 3: Appending Disaggregate Data
-
-	//Appends subgroups
-	
-append using "${output}/CO_2019_ELA_gender.dta"
-append using "${output}/CO_2019_mat_gender.dta"
-append using "${output}/CO_2019_sci_gender.dta"
-append using "${output}/CO_2019_ELA_language.dta"
-append using "${output}/CO_2019_mat_language.dta"
-append using "${output}/CO_2019_sci_language.dta"
-append using "${output}/CO_2019_ELA_raceEthnicity.dta"
-append using "${output}/CO_2019_mat_raceEthnicity.dta"
-append using "${output}/CO_2019_sci_raceEthnicity.dta"
-append using "${output}/CO_2019_ELA_econstatus.dta"
-append using "${output}/CO_2019_mat_econstatus.dta"
-append using "${output}/CO_2019_sci_econstatus.dta"
-append using "${output}/CO_2019_ELA_migrantstatus.dta"
-append using "${output}/CO_2019_mat_migrantstatus.dta"
-append using "${output}/CO_2019_sci_migrantstatus.dta"
-append using "${output}/CO_2019_ELA_disabilitystatus.dta"
-append using "${output}/CO_2019_mat_disabilitystatus.dta"
+*******************************************************
+// Section 3: Appending Disaggregate Data
+*******************************************************
+//Appends subgroups
+append using "${Temp}/CO_2019_ELA_gender.dta"
+append using "${Temp}/CO_2019_mat_gender.dta"
+append using "${Temp}/CO_2019_sci_gender.dta"
+append using "${Temp}/CO_2019_ELA_language.dta"
+append using "${Temp}/CO_2019_mat_language.dta"
+append using "${Temp}/CO_2019_sci_language.dta"
+append using "${Temp}/CO_2019_ELA_raceEthnicity.dta"
+append using "${Temp}/CO_2019_mat_raceEthnicity.dta"
+append using "${Temp}/CO_2019_sci_raceEthnicity.dta"
+append using "${Temp}/CO_2019_ELA_econstatus.dta"
+append using "${Temp}/CO_2019_mat_econstatus.dta"
+append using "${Temp}/CO_2019_sci_econstatus.dta"
+append using "${Temp}/CO_2019_ELA_migrantstatus.dta"
+append using "${Temp}/CO_2019_mat_migrantstatus.dta"
+append using "${Temp}/CO_2019_sci_migrantstatus.dta"
+append using "${Temp}/CO_2019_ELA_disabilitystatus.dta"
+append using "${Temp}/CO_2019_mat_disabilitystatus.dta"
 
 drop numberoftotalrecords numberofnoscores standarddeviation
 
@@ -502,16 +424,17 @@ rename numberofvalidscores StudentSubGroup_TotalTested
 rename participationrate ParticipationRate
 rename meanscalescore AvgScaleScore
 
-append using "${output}/CO_OriginalData_2019_all.dta"
+append using "${Temp}/CO_OriginalData_2019_all.dta"
 
+save "${Original_Cleaned}/CO_OriginalData_2019.dta", replace
 
-///////// Section 4: Merging NCES Variables
+*******************************************************
+// Section 4: Merging NCES Variables
+*******************************************************
 
+use "${Original_Cleaned}/CO_OriginalData_2019.dta", clear
 
-save "${output}/CO_OriginalData_2019_all.dta", replace
-
-	// Merges district variables from NCES
-
+// Merges district variables from NCES
 replace DataLevel = strtrim(DataLevel)
 replace DataLevel = strproper(DataLevel)
 replace DistName = strtrim(DistName)
@@ -522,7 +445,7 @@ replace SchName = strproper(SchName)
 replace StateAssignedDistID = "" if DataLevel == "State"
 gen State_leaid = "CO-" + StateAssignedDistID if DataLevel != "State"
 	
-merge m:1 State_leaid using "${nces}/NCES_2018_District_CO.dta"
+merge m:1 State_leaid using "${NCES_CO}/NCES_2018_District_CO.dta"
 
 drop if _merge == 2
 drop _merge	
@@ -530,16 +453,16 @@ drop _merge
 replace StateAssignedSchID = "" if DataLevel != "School"
 gen seasch = StateAssignedDistID + "-" + StateAssignedSchID if DataLevel == "School"
 	
-merge m:1 seasch using "${nces}/NCES_2018_School_CO.dta"
+merge m:1 seasch using "${NCES_CO}/NCES_2018_School_CO.dta"
 
 drop if _merge == 2
 drop _merge
 
-
-///////// Section 5: Reformatting
+*******************************************************
+// Section 5: Reformatting
+*******************************************************
 
 // Removing spaces
-
 local level 1 2 3 4 5
 
 foreach a of local level {
@@ -567,7 +490,6 @@ replace StudentSubGroup_TotalTested = subinstr(StudentSubGroup_TotalTested, ",",
 
 replace DistName = strtrim(DistName)
 replace SchName = strtrim(SchName)
-
 
 //Converting to decimal
 
@@ -610,7 +532,6 @@ replace Lev1_count = string(studcount - prof_c - Lev2_c) if Subject == "sci" & i
 drop Lev2 prof_p prof_c Lev2_c studcount
 
 //	Create new variables
-
 gen AssmtName="Colorado Measures of Academic Success"
 gen Flag_AssmtNameChange="N"
 gen Flag_CutScoreChange_ELA="N"
@@ -620,9 +541,7 @@ gen Flag_CutScoreChange_sci="N"
 gen AssmtType = "Regular"
 gen SchYear="2018-19"
 
-
 // Relabel variable values
-
 replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "ela" if Subject == "English Language Arts"
 
@@ -658,13 +577,11 @@ replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup ==
 replace StudentSubGroup_TotalTested = "0-15" if strpos(StudentSubGroup_TotalTested, "<16") !=0 | strpos(StudentSubGroup_TotalTested, "< 16") !=0
 replace StudentSubGroup_TotalTested = "--" if missing(StudentSubGroup_TotalTested)
 
-
 ////
 replace Lev5_percent = "" if Subject == "sci"
 replace Lev5_count = "" if Subject == "sci"
 
 ////
-
 label def DataLevel 1 "State" 2 "District" 3 "School"
 encode DataLevel, gen(DataLevel_n) label(DataLevel)
 sort DataLevel_n 
@@ -687,10 +604,12 @@ egen UnsuppressedSG = total(UnsuppressedSSG), by(StudentGroup GradeLevel Subject
 replace StudentSubGroup_TotalTested = string(real(StudentGroup_TotalTested)-UnsuppressedSG) if missing(real(StudentSubGroup_TotalTested)) & !missing(real(StudentGroup_TotalTested)) & real(StudentGroup_TotalTested) - UnsuppressedSG >=0 & UnsuppressedSG > 0 & StudentGroup != "RaceEth" & StudentSubGroup != "EL Exited"
 drop Unsuppressed*
 
-
 tostring NCESDistrictID, replace force
 tostring NCESSchoolID, replace force
 
+*******************************************************
+*Derivations [0 real changes made]
+*******************************************************
 replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent)* real(StudentSubGroup_TotalTested))) if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(ProficientOrAbove_percent)) & missing(real(ProficientOrAbove_count))
 
 //Removing "Empty" Observations for Subgroups
@@ -711,14 +630,25 @@ foreach var of varlist DistName SchName {
 	replace `var' = stritrim(`var')
 	replace `var' = strtrim(`var')
 }
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-foreach var of varlist StudentGroup_TotalTested StudentSubGroup_TotalTested *_count *_percent {
-	replace `var' = subinstr(`var', ",","",.)
-	replace `var' = subinstr(`var', " ", "",.)
-}
+
+// Reordering variables and sorting data
+local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
+    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
+    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
+    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
+    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
+    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
+    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
+    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
+    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
+    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
+    Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+	keep `vars'
+	order `vars'
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${output}/CO_AssmtData_2019.dta", replace
-
-export delimited using "${output}/CO_AssmtData_2019.csv", replace
+*Exporting Output*
+save "${Output}/CO_AssmtData_2019", replace
+export delimited "${Output}/CO_AssmtData_2019", replace
+* END of CO_2019.do
+****************************************************

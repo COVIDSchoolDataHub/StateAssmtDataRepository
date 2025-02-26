@@ -1,18 +1,25 @@
+* MINNESOTA
+
+* File name: MN_2023
+* Last update: 2/24/2025
+
+*******************************************************
+* Notes
+
+	* This do file cleans MN's 2023 data and merges with NCES 2022 (School) and 2021 (District).
+	* Only one temp output created.
+*******************************************************
+
+/////////////////////////////////////////
+*** Setup ***
+/////////////////////////////////////////
 clear
 
-// Define file paths
-global original_files "/Users/kaitlynlucas/Desktop/Minnesota State Task"
-global NCES_files "/Users/kaitlynlucas/Desktop/Minnesota State Task/NCES_MN"
-global output_files "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN Output"
-global temp_files "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN_Temp"
-
-/*
 // 2022-23
-
 // Separating large subject files by datalevel sheets and combining
 // Math
 
-import excel "$original_files/MN_OriginalData_2023_mat.xlsx", sheet("State") firstrow cellrange(A1:AF201) clear
+import excel "$Original/MN_OriginalData_2023_mat.xlsx", sheet("State") firstrow cellrange(A1:AF201) clear
 drop CountyNumber
 drop CountyName
 drop ECSUNumber
@@ -25,9 +32,9 @@ tostring SchoolNumber, replace
 replace SchoolNumber = "" if SchoolNumber == "no data"
 replace SchoolName = "" if SchoolName == "no data"
 gen DataLevel = "State"
-save "${temp_files}/MN_AssmtData_2023_mat_state.dta", replace
+save "${Temp}/MN_AssmtData_2023_mat_state.dta", replace
 
-import excel "$original_files/MN_OriginalData_2023_mat.xlsx", sheet("District") firstrow cellrange(A1:AF66849) clear
+import excel "$Original/MN_OriginalData_2023_mat.xlsx", sheet("District") firstrow cellrange(A1:AF66849) clear
 drop CountyNumber
 drop CountyName
 drop ECSUNumber
@@ -44,9 +51,9 @@ foreach var of varlist CountLevelD CountLevelE CountLevelM CountLevelP PercentLe
 	destring `var', replace
 }
 gen DataLevel = "District"
-save "${temp_files}/MN_AssmtData_2023_mat_district.dta", replace
+save "${Temp}/MN_AssmtData_2023_mat_district.dta", replace
 
-import excel "$original_files/MN_OriginalData_2023_mat.xlsx", sheet("School") firstrow cellrange(A1:AF136741) clear
+import excel "$Original/MN_OriginalData_2023_mat.xlsx", sheet("School") firstrow cellrange(A1:AF136741) clear
 drop CountyNumber
 drop CountyName
 drop ECSUNumber
@@ -63,20 +70,18 @@ foreach var of varlist CountLevelD CountLevelE CountLevelM CountLevelP PercentLe
 	destring `var', replace
 }
 gen DataLevel = "School"
-save "${temp_files}/MN_AssmtData_2023_mat_school.dta", replace
+save "${Temp}/MN_AssmtData_2023_mat_school.dta", replace
 
 clear
 
-
-append using "${temp_files}/MN_AssmtData_2023_mat_state.dta" "${temp_files}/MN_AssmtData_2023_mat_district.dta" "${temp_files}/MN_AssmtData_2023_mat_school.dta"
+append using "${Temp}/MN_AssmtData_2023_mat_state.dta" "${Temp}/MN_AssmtData_2023_mat_district.dta" "${Temp}/MN_AssmtData_2023_mat_school.dta"
 tostring Grade, replace
 replace MCAAverageScore = "" if MCAAverageScore == "no data"
 destring MCAAverageScore, replace
-save "${temp_files}/MN_AssmtData_2023_mat_all.dta", replace
+save "${Temp}/MN_AssmtData_2023_mat_all.dta", replace
 
 // Reading
-
-import excel "$original_files/MN_OriginalData_2023_rea.xlsx", sheet("State") firstrow cellrange(A1:AF201) clear
+import excel "$Original/MN_OriginalData_2023_rea.xlsx", sheet("State") firstrow cellrange(A1:AF201) clear
 tostring Grade, replace
 drop CountyNumber
 drop CountyName
@@ -93,9 +98,9 @@ replace SchoolName = "" if SchoolName == "no data"
 replace MCAAverageScore = "" if MCAAverageScore == "no data"
 destring MCAAverageScore, replace
 gen DataLevel = "State"
-save "${temp_files}/MN_AssmtData_2023_rea_state.dta", replace
+save "${Temp}/MN_AssmtData_2023_rea_state.dta", replace
 
-import excel "$original_files/MN_OriginalData_2023_rea.xlsx", sheet("District") firstrow cellrange(A1:AF66907) clear
+import excel "$Original/MN_OriginalData_2023_rea.xlsx", sheet("District") firstrow cellrange(A1:AF66907) clear
 tostring Grade, replace
 drop CountyNumber
 drop CountyName
@@ -116,9 +121,9 @@ foreach var of varlist CountLevelD CountLevelE CountLevelM CountLevelP PercentLe
 	destring `var', replace
 }
 gen DataLevel = "District"
-save "${temp_files}/MN_AssmtData_2023_rea_district.dta", replace
+save "${Temp}/MN_AssmtData_2023_rea_district.dta", replace
 
-import excel "$original_files/MN_OriginalData_2023_rea.xlsx", sheet("School") firstrow cellrange(A1:AF135887) clear
+import excel "$Original/MN_OriginalData_2023_rea.xlsx", sheet("School") firstrow cellrange(A1:AF135887) clear
 tostring Grade, replace
 drop CountyNumber
 drop CountyName
@@ -139,16 +144,15 @@ foreach var of varlist CountLevelD CountLevelE CountLevelM CountLevelP PercentLe
 	destring `var', replace
 }
 gen DataLevel = "School"
-save "${temp_files}/MN_AssmtData_2023_rea_school.dta", replace
+save "${Temp}/MN_AssmtData_2023_rea_school.dta", replace
 
 clear
 
-append using "${temp_files}/MN_AssmtData_2023_rea_state.dta" "${temp_files}/MN_AssmtData_2023_rea_district.dta" "${temp_files}/MN_AssmtData_2023_rea_school.dta"
-save "${temp_files}/MN_AssmtData_2023_rea_all.dta", replace
+append using "${Temp}/MN_AssmtData_2023_rea_state.dta" "${Temp}/MN_AssmtData_2023_rea_district.dta" "${Temp}/MN_AssmtData_2023_rea_school.dta"
+save "${Temp}/MN_AssmtData_2023_rea_all.dta", replace
 
 // Science
-
-import excel "$original_files/MN_OriginalData_2023_sci.xlsx", sheet("State") firstrow cellrange(A1:AF101) clear
+import excel "$Original/MN_OriginalData_2023_sci.xlsx", sheet("State") firstrow cellrange(A1:AF101) clear
 drop CountyNumber
 drop CountyName
 drop ECSUNumber
@@ -162,9 +166,9 @@ replace SchoolName = "" if SchoolName == "no data"
 replace MCAAverageScore = "" if MCAAverageScore == "no data"
 destring MCAAverageScore, replace
 gen DataLevel = "State"
-save "${temp_files}/MN_AssmtData_2023_sci_state.dta", replace
+save "${Temp}/MN_AssmtData_2023_sci_state.dta", replace
 
-import excel "$original_files/MN_OriginalData_2023_sci.xlsx", sheet("District") firstrow cellrange(A1:AF33013) clear
+import excel "$Original/MN_OriginalData_2023_sci.xlsx", sheet("District") firstrow cellrange(A1:AF33013) clear
 drop CountyNumber
 drop CountyName
 drop ECSUNumber
@@ -182,9 +186,9 @@ foreach var of varlist CountLevelD CountLevelE CountLevelM CountLevelP PercentLe
 	destring `var', replace
 }
 gen DataLevel = "District"
-save "${temp_files}/MN_AssmtData_2023_sci_district.dta", replace
+save "${Temp}/MN_AssmtData_2023_sci_district.dta", replace
 
-import excel "$original_files/MN_OriginalData_2023_sci.xlsx", sheet("School") firstrow cellrange(A1:AF71634) clear
+import excel "$Original/MN_OriginalData_2023_sci.xlsx", sheet("School") firstrow cellrange(A1:AF71634) clear
 drop CountyNumber
 drop CountyName
 drop ECSUNumber
@@ -201,27 +205,24 @@ foreach var of varlist CountLevelD CountLevelE CountLevelM CountLevelP PercentLe
 	destring `var', replace
 }
 gen DataLevel = "School"
-save "${temp_files}/MN_AssmtData_2023_sci_school.dta", replace
+save "${Temp}/MN_AssmtData_2023_sci_school.dta", replace
 
 clear
 
-append using "${temp_files}/MN_AssmtData_2023_sci_state.dta" "${temp_files}/MN_AssmtData_2023_sci_district.dta" "${temp_files}/MN_AssmtData_2023_sci_school.dta"
-save "${temp_files}/MN_AssmtData_2023_sci_all.dta", replace
+append using "${Temp}/MN_AssmtData_2023_sci_state.dta" "${Temp}/MN_AssmtData_2023_sci_district.dta" "${Temp}/MN_AssmtData_2023_sci_school.dta"
+save "${Temp}/MN_AssmtData_2023_sci_all.dta", replace
 
 clear
 
 // Combining all subjects
 
-append using "${temp_files}/MN_AssmtData_2023_mat_all.dta" "${temp_files}/MN_AssmtData_2023_rea_all.dta" "${temp_files}/MN_AssmtData_2023_sci_all.dta"
-save "${temp_files}/MN_AssmtData_2023_all_imported.dta", replace
-*/
+append using "${Temp}/MN_AssmtData_2023_mat_all.dta" "${Temp}/MN_AssmtData_2023_rea_all.dta" "${Temp}/MN_AssmtData_2023_sci_all.dta"
+save "${Original_Cleaned}/MN_AssmtData_2023.dta", replace
 
-use "${temp_files}/MN_AssmtData_2023_all_imported.dta", clear
+use "${Original_Cleaned}/MN_AssmtData_2023.dta", clear
 
 // Reformatting IDs to standard length strings
-
 // District Code
-
 gen districtcodebig = .
 replace districtcodebig=0 if DistrictNumber<10
 replace districtcodebig=1 if DistrictNumber>=10
@@ -239,12 +240,10 @@ drop districtcodebig
 drop DistrictNumber
 
 // District Type
-
 recast int DistrictType
 gen districttypebig = .
 replace districttypebig=0 if DistrictType<10
 replace districttypebig=1 if DistrictType>=10
-
 
 tostring DistrictType, replace
 
@@ -255,7 +254,6 @@ drop districttypebig
 rename DistrictType DistrictTypeCode
 
 // School ID
-
 gen schoolcodebig = .
 destring SchoolNumber, replace 
 replace schoolcodebig=0 if SchoolNumber<10
@@ -270,9 +268,7 @@ replace SchoolNumber = SchoolNumber if schoolcodebig==2
 
 drop schoolcodebig
 
-
 // Renaming variables and removing labels
-
 rename DataYear SchYear
 rename DistrictName DistName
 rename SchoolNumber StateAssignedSchID
@@ -307,7 +303,6 @@ drop DataLevel
 rename DataLevel_n DataLevel 
 
 // Dropping extra categories of analysis
-
 *drop if StudentGroup == "Homeless Status"
 *drop if StudentGroup == "Migrant Status"
 *drop if StudentGroup == "Military Family Status"
@@ -397,10 +392,14 @@ gen ParticipationRate = "--"
 gen seasch = DistrictTypeCode + StateAssignedDistID + "-" + DistrictTypeCode + StateAssignedDistID + StateAssignedSchID
 gen state_leaid = "MN-" + DistrictTypeCode + StateAssignedDistID 
 
+// Saving transformed data
+save "${Original_Cleaned}/MN_AssmtData_2023.dta", replace
+
+************************************************************************************
+*Merging with NCES data
+************************************************************************************
 // Merging with NCES School Data
-save "${temp_files}/MN_AssmtData_2023", replace
-clear
-use "${NCES_files}/NCES_2022_School.dta", clear
+use "${NCES_School}/NCES_2022_School.dta", clear
 
 keep state_location state_fips district_agency_type school_type ncesdistrictid state_leaid ncesschoolid seasch DistCharter SchLevel SchVirtual county_name county_code DistLocale
 
@@ -410,24 +409,22 @@ foreach var of varlist district_agency_type SchLevel SchVirtual school_type {
 	drop `var'
 	rename `var'_x `var'
 }
-merge 1:m seasch using "${temp_files}/MN_AssmtData_2023.dta", keep(match using)
+merge 1:m seasch using "${Original_Cleaned}/MN_AssmtData_2023.dta", keep(match using)
 
 replace ncesschoolid = "Missing" if _merge == 2 & DataLevel == 3
 drop _merge
 
-
-save "${temp_files}/MN_AssmtData_2023.dta", replace
+save "${Temp}/MN_AssmtData_2023.dta", replace
 
 // Merging with NCES District Data
-
-use "${NCES_files}/NCES_2021_District.dta", clear 
+use "${NCES_District}/NCES_2021_District.dta", clear 
 tostring _all, replace force
 destring state_fips, replace
 keep state_location state_fips district_agency_type ncesdistrictid state_leaid DistCharter county_name county_code DistLocale
 
 keep if substr(ncesdistrictid, 1, 2) == "27"
 
-merge 1:m state_leaid using "${temp_files}/MN_AssmtData_2023.dta", keep(match using) nogenerate
+merge 1:m state_leaid using "${Temp}/MN_AssmtData_2023.dta", keep(match using) nogenerate
 
 // Reformatting IDs
 replace StateAssignedDistID = StateAssignedDistID+"-"+DistrictTypeCode
@@ -484,12 +481,22 @@ rename AllStudents StudentGroup_TotalTested
 }
 
 // Reordering variables and sorting data
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-drop State_leaid seasch DistrictTypeCode
+local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
+    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
+    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
+    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
+    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
+    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
+    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
+    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
+    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
+    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
+    Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+	keep `vars'
+	order `vars'
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-// Saving and exporting transformed data
-
-save "${output_files}/MN_AssmtData_2023.dta", replace
-export delimited using "${output_files}/MN_AssmtData_2023.csv", replace
-
+*Exporting Temp Output*
+save "${Temp}/MN_AssmtData_2023.dta", replace
+* END of MN_2023.do
+****************************************************

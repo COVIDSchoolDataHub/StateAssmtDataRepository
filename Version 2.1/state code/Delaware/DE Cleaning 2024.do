@@ -1,18 +1,34 @@
-clear all
+*******************************************************
+* DELAWARE
 
-global Original "/Users/miramehta/Documents/DE State Testing Data/Original Data Files"
-global Output "/Users/miramehta/Documents/DE State Testing Data/Output"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+* File name: DE Cleaning 2024
+* Last update: 2/26/2025
 
+*******************************************************
+* Notes
+
+	* This do file imports DE 2024 data, renames variables, cleans and saves it as a dta file.
+	* NCES 2022 is merged with DE 2024 data. 
+	* As of 2/26/25, the latest NCES data is from 2022.
+	* This file will need to be updated as newer data is available.
+	* Only the usual output is created.
+*******************************************************
+/////////////////////////////////////////
+*** Setup ***
+/////////////////////////////////////////
+clear
+
+*******************************************************
 //Import Relevant Data - Unhide on first run
-/*
-import excel "$Original/DE_OriginalData_2019.xlsx", firstrow case(preserve) clear
+*******************************************************
+import excel "$Original/FOIA_Assessment_2023_2024.xlsx", firstrow case(preserve) clear
 
+keep if SchoolYear == 2024
 drop SchoolYear
 
-save "$Original/DE_OriginalData_2019.dta", replace
-*/
-use "$Original/DE_OriginalData_2019.dta", clear
+save "$Original_Cleaned/DE_OriginalData_2024.dta", replace
+
+use "$Original_Cleaned/DE_OriginalData_2024.dta", clear
 
 //Rename Variables
 rename DistrictCode StateAssignedDistID
@@ -136,49 +152,72 @@ gen Lev5_count = ""
 gen Lev5_percent = ""
 
 //Additional Variables
-gen SchYear = "2018-19"
+gen SchYear = "2023-24"
 gen AssmtType = "Regular"
 gen ProficiencyCriteria = "Levels 3-4"
 gen Flag_AssmtNameChange = "N"
-replace Flag_AssmtNameChange = "Y" if inlist(Subject, "sci", "soc")
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
-gen Flag_CutScoreChange_sci = "Y"
-gen Flag_CutScoreChange_soc = "Y"
+gen Flag_CutScoreChange_sci = "N"
+gen Flag_CutScoreChange_soc = "N"
+replace Flag_CutScoreChange_soc = "Y" if inlist(GradeLevel, "G04", "G06")
 
+save "$Original_Cleaned/DE_OriginalData_2024.dta", replace
+*******************************************************
 //Merge with NCES
+*******************************************************
 tostring StateAssignedDistID, replace
 tostring StateAssignedSchID, replace
 replace StateAssignedDistID = "" if DataLevel == 1
 replace StateAssignedSchID = "" if DataLevel != 3
 
-merge m:1 StateAssignedDistID using "$NCES/NCES_2018_District_DE"
+merge m:1 StateAssignedDistID using "$NCES_DE/NCES_2022_District_DE"
 drop if _merge == 2
 drop _merge
 
-merge m:1 StateAssignedSchID using "$NCES/NCES_2018_School_DE"
+merge m:1 StateAssignedSchID using "$NCES_DE/NCES_2022_School_DE"
 drop if _merge == 2
 drop if _merge == 1 & DataLevel == 3 //all data for these schools are suppressed
 drop _merge
+
+//2024 New Schools
+replace SchLevel = 1 if NCESSchoolID == "100008000394"
+replace SchVirtual = 0 if NCESSchoolID == "100008000394"
+
+replace SchLevel = 2 if NCESSchoolID == "100019000399"
+replace SchVirtual = 0 if NCESSchoolID == "100019000399"
+
+replace SchLevel = 2 if NCESSchoolID == "100019000400"
+replace SchVirtual = 0 if NCESSchoolID == "100019000400"
 
 //Cleaning up from NCES
 replace State = "Delaware"
 replace StateAbbrev = "DE"
 replace StateFips = 10
 
-drop if SchLevel == 0
-
 replace DistName = strtrim(DistName)
 replace DistName = stritrim(DistName)
 replace SchName = strtrim(SchName)
 replace SchName = stritrim(SchName)
 
-//Final Cleaning
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
- 
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
+// Reordering variables and sorting data
+local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
+    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
+    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
+    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
+    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
+    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
+    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
+    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
+    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
+    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
+    Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+	keep `vars'
+	order `vars'
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "$Output/DE_AssmtData_2019.dta", replace
-export delimited "$Output/DE_AssmtData_2019.csv", replace
+*Exporting Output*
+save "$Output/DE_AssmtData_2024.dta", replace
+export delimited "$Output/DE_AssmtData_2024.csv", replace
+* END of DE Cleaning 2024.do
+****************************************************

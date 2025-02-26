@@ -1,20 +1,25 @@
+* MINNESOTA
+
+* File name: MN_2019
+* Last update: 2/24/2025
+
+*******************************************************
+* Notes
+
+	* This do file cleans MN's 2019 data and merges with NCES 2018.
+	* Only one temp output created.
+*******************************************************
+
+/////////////////////////////////////////
+*** Setup ***
+/////////////////////////////////////////
 clear
-
-// Define file paths
-
-
-global original_files "/Users/kaitlynlucas/Desktop/Minnesota State Task"
-global NCES_files "/Users/kaitlynlucas/Desktop/Minnesota State Task/NCES_MN"
-global output_files "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN Output"
-global temp_files "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN_Temp"
-
 
 // 2018-2019
 
 // Separating large subject files by datalevel sheets and combining
 // Math
-/*
-import excel "$original_files/MN_OriginalData_2019_mat.xlsx", sheet("State") firstrow cellrange(A1:AG189) clear
+import excel "$Original/MN_OriginalData_2019_mat.xlsx", sheet("State") firstrow cellrange(A1:AG189) clear
 drop CountyNumber
 drop CountyName
 drop ECSUNumber
@@ -26,9 +31,9 @@ drop CountValidScoresMTAS
 drop FilterMTAS
 tostring SchoolName, replace
 gen DataLevel = "State"
-save "${temp_files}/MN_AssmtData_2019_mat_state.dta", replace
+save "${Temp}/MN_AssmtData_2019_mat_state.dta", replace
 
-import excel "$original_files/MN_OriginalData_2019_mat.xlsx", sheet("District") firstrow cellrange(A1:AG63515) clear
+import excel "$Original/MN_OriginalData_2019_mat.xlsx", sheet("District") firstrow cellrange(A1:AG63515) clear
 drop CountyNumber
 drop CountyName
 drop ECSUNumber
@@ -40,9 +45,9 @@ drop CountValidScoresMTAS
 drop FilterMTAS
 tostring SchoolName, replace
 gen DataLevel = "District"
-save "${temp_files}/MN_AssmtData_2019_mat_district.dta", replace
+save "${Temp}/MN_AssmtData_2019_mat_district.dta", replace
 
-import excel "$original_files/MN_OriginalData_2019_mat.xlsx", sheet("School") firstrow cellrange(A1:AG132085) clear
+import excel "$Original/MN_OriginalData_2019_mat.xlsx", sheet("School") firstrow cellrange(A1:AG132085) clear
 drop CountyNumber
 drop CountyName
 drop ECSUNumber
@@ -53,17 +58,17 @@ drop CountValidScoresMCAwithAcco
 drop CountValidScoresMTAS
 drop FilterMTAS
 gen DataLevel = "School"
-save "${temp_files}/MN_AssmtData_2019_mat_school.dta", replace
+save "${Temp}/MN_AssmtData_2019_mat_school.dta", replace
 
 clear
 
-append using "${temp_files}/MN_AssmtData_2019_mat_state.dta" "${temp_files}/MN_AssmtData_2019_mat_district.dta" "${temp_files}/MN_AssmtData_2019_mat_school.dta"
+append using "${Temp}/MN_AssmtData_2019_mat_state.dta" "${Temp}/MN_AssmtData_2019_mat_district.dta" "${Temp}/MN_AssmtData_2019_mat_school.dta"
 tostring Grade, replace
-save "${temp_files}/MN_AssmtData_2019_mat_all.dta", replace
+save "${Temp}/MN_AssmtData_2019_mat_all.dta", replace
 
 // Reading
 
-import excel "$original_files/MN_OriginalData_2019_rea.xlsx", sheet("State") firstrow cellrange(A1:AG189) clear
+import excel "$Original/MN_OriginalData_2019_rea.xlsx", sheet("State") firstrow cellrange(A1:AG189) clear
 tostring Grade, replace
 drop CountyNumber
 drop CountyName
@@ -76,9 +81,9 @@ drop CountValidScoresMTAS
 drop FilterMTAS
 tostring SchoolName, replace
 gen DataLevel = "State"
-save "${temp_files}/MN_AssmtData_2019_rea_state.dta", replace
+save "${Temp}/MN_AssmtData_2019_rea_state.dta", replace
 
-import excel "$original_files/MN_OriginalData_2019_rea.xlsx", sheet("District") firstrow cellrange(A1:AG63543) clear
+import excel "$Original/MN_OriginalData_2019_rea.xlsx", sheet("District") firstrow cellrange(A1:AG63543) clear
 tostring Grade, replace
 drop CountyNumber
 drop CountyName
@@ -91,9 +96,9 @@ drop CountValidScoresMTAS
 drop FilterMTAS
 tostring SchoolName, replace
 gen DataLevel = "District"
-save "${temp_files}/MN_AssmtData_2019_rea_district.dta", replace
+save "${Temp}/MN_AssmtData_2019_rea_district.dta", replace
 
-import excel "$original_files/MN_OriginalData_2019_rea.xlsx", sheet("School") firstrow cellrange(A1:AG130938) clear
+import excel "$Original/MN_OriginalData_2019_rea.xlsx", sheet("School") firstrow cellrange(A1:AG130938) clear
 tostring Grade, replace
 drop CountyNumber
 drop CountyName
@@ -105,16 +110,16 @@ drop CountValidScoresMCAwithAcco
 drop CountValidScoresMTAS
 drop FilterMTAS
 gen DataLevel = "School"
-save "${temp_files}/MN_AssmtData_2019_rea_school.dta", replace
+save "${Temp}/MN_AssmtData_2019_rea_school.dta", replace
 
 clear
 
-append using "${temp_files}/MN_AssmtData_2019_rea_state.dta" "${temp_files}/MN_AssmtData_2019_rea_district.dta" "${temp_files}/MN_AssmtData_2019_rea_school.dta"
-save "${temp_files}/MN_AssmtData_2019_rea_all.dta", replace
+append using "${Temp}/MN_AssmtData_2019_rea_state.dta" "${Temp}/MN_AssmtData_2019_rea_district.dta" "${Temp}/MN_AssmtData_2019_rea_school.dta"
+save "${Temp}/MN_AssmtData_2019_rea_all.dta", replace
 
 // Science
 
-import excel "$original_files/MN_OriginalData_2019_sci.xlsx", sheet("State") firstrow cellrange(A1:AG96) clear
+import excel "$Original/MN_OriginalData_2019_sci.xlsx", sheet("State") firstrow cellrange(A1:AG96) clear
 drop CountyNumber
 drop CountyName
 drop ECSUNumber
@@ -126,9 +131,9 @@ drop CountValidScoresMTAS
 drop FilterMTAS
 tostring SchoolName, replace
 gen DataLevel = "State"
-save "${temp_files}/MN_AssmtData_2019_sci_state.dta", replace
+save "${Temp}/MN_AssmtData_2019_sci_state.dta", replace
 
-import excel "$original_files/MN_OriginalData_2019_sci.xlsx", sheet("District") firstrow cellrange(A1:AG31577) clear
+import excel "$Original/MN_OriginalData_2019_sci.xlsx", sheet("District") firstrow cellrange(A1:AG31577) clear
 drop CountyNumber
 drop CountyName
 drop ECSUNumber
@@ -140,9 +145,9 @@ drop CountValidScoresMTAS
 drop FilterMTAS
 tostring SchoolName, replace
 gen DataLevel = "District"
-save "${temp_files}/MN_AssmtData_2019_sci_district.dta", replace
+save "${Temp}/MN_AssmtData_2019_sci_district.dta", replace
 
-import excel "$original_files/MN_OriginalData_2019_sci.xlsx", sheet("School") firstrow cellrange(A1:AG69360) clear
+import excel "$Original/MN_OriginalData_2019_sci.xlsx", sheet("School") firstrow cellrange(A1:AG69360) clear
 drop CountyNumber
 drop CountyName
 drop ECSUNumber
@@ -153,28 +158,23 @@ drop CountValidScoresMCAwithAcco
 drop CountValidScoresMTAS
 drop FilterMTAS
 gen DataLevel = "School"
-save "${temp_files}/MN_AssmtData_2019_sci_school.dta", replace
+save "${Temp}/MN_AssmtData_2019_sci_school.dta", replace
 
 clear
 
-append using "${temp_files}/MN_AssmtData_2019_sci_state.dta" "${temp_files}/MN_AssmtData_2019_sci_district.dta" "${temp_files}/MN_AssmtData_2019_sci_school.dta"
-save "${temp_files}/MN_AssmtData_2019_sci_all.dta", replace
+append using "${Temp}/MN_AssmtData_2019_sci_state.dta" "${Temp}/MN_AssmtData_2019_sci_district.dta" "${Temp}/MN_AssmtData_2019_sci_school.dta"
+save "${Temp}/MN_AssmtData_2019_sci_all.dta", replace
 
 clear
-
 
 // Combining all subjects
+append using "${Temp}/MN_AssmtData_2019_mat_all.dta" "${Temp}/MN_AssmtData_2019_rea_all.dta" "${Temp}/MN_AssmtData_2019_sci_all.dta"
+save "${Original_Cleaned}/MN_AssmtData_2019.dta", replace
 
-append using "${temp_files}/MN_AssmtData_2019_mat_all.dta" "${temp_files}/MN_AssmtData_2019_rea_all.dta" "${temp_files}/MN_AssmtData_2019_sci_all.dta"
-save "${temp_files}/MN_AssmtData_2019.dta_all_imported", replace
-*/
-
-use "${temp_files}/MN_AssmtData_2019.dta_all_imported", clear
+use "${Original_Cleaned}/MN_AssmtData_2019.dta", clear
 
 // Reformatting IDs to standard length strings
-
 // District Code
-
 gen districtcodebig = .
 replace districtcodebig=0 if DistrictNumber<10
 replace districtcodebig=1 if DistrictNumber>=10
@@ -192,12 +192,10 @@ drop districtcodebig
 drop DistrictNumber
 
 // District Type
-
 recast int DistrictType
 gen districttypebig = .
 replace districttypebig=0 if DistrictType<10
 replace districttypebig=1 if DistrictType>=10
-
 
 tostring DistrictType, replace
 
@@ -208,7 +206,6 @@ drop districttypebig
 rename DistrictType DistrictTypeCode
 
 // School ID
-
 gen schoolcodebig = .
 replace schoolcodebig=0 if SchoolNumber<10
 replace schoolcodebig=1 if SchoolNumber>=10
@@ -222,9 +219,7 @@ replace SchoolNumber = SchoolNumber if schoolcodebig==2
 
 drop schoolcodebig
 
-
 // Renaming variables and removing labels
-
 rename DataYear SchYear
 rename DistrictName DistName
 rename SchoolNumber StateAssignedSchID
@@ -354,29 +349,33 @@ gen state_leaid = "MN-" + DistrictTypeCode + StateAssignedDistID
 drop if seasch == "074199-074199030"
 
 // Saving transformed data
-save "${output_files}/MN_AssmtData_2019.dta", replace
+save "${Original_Cleaned}/MN_AssmtData_2019.dta", replace
 
+************************************************************************************
+*Merging with NCES data
+************************************************************************************
 // Merging with NCES School Data
-
-use "$NCES_files/NCES_2018_School.dta", clear 
+use "$NCES_School/NCES_2018_School.dta", clear 
 
 keep state_location state_fips district_agency_type SchType ncesdistrictid state_leaid ncesschoolid seasch DistCharter SchLevel SchVirtual county_name county_code DistLocale
 
 keep if substr(ncesschoolid, 1, 2) == "27"
 
-merge 1:m seasch using "${output_files}/MN_AssmtData_2019.dta", keep(match using) nogenerate
+merge 1:m seasch using "${Original_Cleaned}/MN_AssmtData_2019.dta", keep(match using) nogenerate
 
-save "${output_files}/MN_AssmtData_2019.dta", replace
+save "${Temp}/MN_AssmtData_2019.dta", replace
 
 // Merging with NCES District Data
 
-use "$NCES_files/NCES_2018_District.dta", clear 
+use "$NCES_District/NCES_2018_District.dta", clear 
 
 keep state_location state_fips district_agency_type ncesdistrictid state_leaid DistCharter county_name county_code DistLocale
 
 keep if substr(ncesdistrictid, 1, 2) == "27"
 
-merge 1:m state_leaid using "${output_files}/MN_AssmtData_2019.dta", keep(match using) nogenerate
+merge 1:m state_leaid using "${Temp}/MN_AssmtData_2019.dta", keep(match using) nogenerate
+
+save "${Temp}/MN_AssmtData_2019.dta", replace
 
 // Reformatting IDs
 replace StateAssignedDistID = StateAssignedDistID+"-"+DistrictTypeCode
@@ -428,12 +427,22 @@ rename AllStudents StudentGroup_TotalTested
 }
 
 // Reordering variables and sorting data
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-drop State_leaid seasch
+local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
+    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
+    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
+    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
+    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
+    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
+    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
+    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
+    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
+    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
+    Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+	keep `vars'
+	order `vars'
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-// Saving and exporting transformed data
-
-save "${output_files}/MN_AssmtData_2019.dta", replace
-export delimited using "$output_files/MN_AssmtData_2019.csv", replace
-
+*Exporting Temp Output*
+save "${Temp}/MN_AssmtData_2019.dta", replace
+* END of MN_2019.do
+****************************************************

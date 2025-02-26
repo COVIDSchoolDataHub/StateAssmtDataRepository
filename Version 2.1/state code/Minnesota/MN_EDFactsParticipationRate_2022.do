@@ -1,19 +1,31 @@
-clear
-set more off
+* MINNESOTA
 
-global Original "/Users/kaitlynlucas/Desktop/EDFacts Drive Data" //Folder with Output .dta
-global EDFacts "/Users/kaitlynlucas/Desktop/Minnesota State Task" //Folder with downloaded state-specific 2022 participation data from EDFacts
-global State_Output "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN Output" //Folder with state-specific data
-global Output_20 "/Users/kaitlynlucas/Desktop/Minnesota State Task/MN Output" //Folder for Output 2.0
+* File name: MN_EDFactsParticipationRate_2022
+* Last update: 2/24/2025
+
+*******************************************************
+* Notes
+
+	* This do file imports *.csv 2022 MN-specific EDFacts Datasets.
+	* It cleans and saves it as *.dta.
+	* It loops through the 2022 non-derivation output files created in MN_StableNames.do
+	* and merges EDFacts participation rates. 
+	* The resulting output is saved in the usual output folder.
+*******************************************************
+
+/////////////////////////////////////////
+*** Setup ***
+/////////////////////////////////////////
+clear
 
 
 foreach s in ela math sci {
-	import delimited "${EDFacts}/MN_EFParticipation_2022_`s'.csv", case(preserve) clear
-	save "${EDFacts}/MN_EFParticipation_2022_`s'.dta", replace
+	import delimited "${Original}/MN_2022_EDFactsParticipation/MN_EFParticipation_2022_`s'.csv", case(preserve) clear
+	save "${EDFacts_MN}/MN_EFParticipation_2022_`s'.dta", replace
 }
 
-use "${EDFacts}/MN_EFParticipation_2022_ela.dta"
-append using "${EDFacts}/MN_EFParticipation_2022_math.dta" "${EDFacts}/MN_EFParticipation_2022_sci.dta"
+use "${EDFacts_MN}/MN_EFParticipation_2022_ela.dta"
+append using "${EDFacts_MN}/MN_EFParticipation_2022_math.dta" "${EDFacts_MN}/MN_EFParticipation_2022_sci.dta"
 
 
 //Rename and Drop Vars
@@ -76,26 +88,22 @@ append using "`temp1'"
 replace GradeLevel = subinstr(GradeLevel, "Grade ", "G0",.)
 
 //Saving EDFacts Output
-save "${EDFacts}/MN_EFParticipation_2022", replace
+save "${EDFacts_MN}/MN_EFParticipation_2022", replace
 
 //Merging with 2022
-use "${State_Output}/MN_AssmtData_2022", clear
+use "${Output_ND}/MN_AssmtData_2022", clear
 
-forvalues year = 2014/2022 {
-if `year' == 2020 continue
-import delimited "${State_Output}/MN_AssmtData_`year'", case(preserve) clear
-save "${State_Output}/MN_AssmtData_`year'", replace
-}
-
-//DataLevel
-label def DataLevel 1 "State" 2 "District" 3 "School"
-encode DataLevel, gen(DataLevel_n) label(DataLevel)
-sort DataLevel_n 
-drop DataLevel 
-rename DataLevel_n DataLevel
+// //DataLevel
+// label def DataLevel 1 "State" 2 "District" 3 "School"
+// encode DataLevel, gen(DataLevel_n) label(DataLevel)
+// sort DataLevel_n 
+// drop DataLevel 
+// rename DataLevel_n DataLevel
 
 //Merging
-merge 1:1 NCESDistrictID NCESSchoolID GradeLevel Subject StudentSubGroup using "${EDFacts}/MN_EFParticipation_2022"
+destring NCESDistrictID, replace
+destring NCESSchoolID, replace
+merge 1:1 NCESDistrictID NCESSchoolID GradeLevel Subject StudentSubGroup using "${EDFacts_MN}/MN_EFParticipation_2022"
 drop if _merge ==2
 replace ParticipationRate = Participation
 replace ParticipationRate = "--" if missing(ParticipationRate)
@@ -106,13 +114,25 @@ replace NCESSchoolID = "" if DataLevel != 3
 
 replace ParticipationRate = string(real(ParticipationRate)/100, "%9.3g") if !missing(real(ParticipationRate)) & real(ParticipationRate) > 1.01
 
-
-//Final Cleaning
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
- 
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
+// Reordering variables and sorting data
+local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
+    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
+    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
+    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
+    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
+    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
+    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
+    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
+    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
+    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
+    Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+	keep `vars'
+	order `vars'
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${Output_20}/MN_AssmtData_2022", replace
-export delimited "${Output_20}/MN_AssmtData_2022", replace
+*Exporting Usual Output*
+save "${Output}/MN_AssmtData_2022", replace
+export delimited "${Output}/MN_AssmtData_2022", replace
+
+* END of MN_EDFactsParticipationRate_2022.do
+****************************************************
