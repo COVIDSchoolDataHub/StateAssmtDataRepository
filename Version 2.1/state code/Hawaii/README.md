@@ -10,10 +10,10 @@ Create a folder for HI. Inside that folder, create three more folders:
 ### Files to Download
 - From the drive, download the Original Data - Version 1.1+ Folder
 - From the drive, download NCES district and school files (2014-2022, or newest NCES year) and place them into the "NCES" folder. The do file cleans the NCES files so no need to clean them with another do file. 
-- From github, download the files named "HI_OriginalData_DataRequest_2015to2023.do" and "HI_2024_1.30.25.do"
+- From github, download the files named "01_HI_OriginalData_DataRequest_2015to2023.do," "02_HI_OriginalData_DataRequest_2024.do," and "HI_Main_File.do."
 
 ### Directories
-Set directories at the top of the do file:
+Set directories in the main do-file.
 ```
 global Original "/Users/kaitlynlucas/Desktop/Hawaii/Original"
 global Cleaned "/Users/kaitlynlucas/Desktop/Hawaii/Output"
@@ -25,9 +25,12 @@ global NCES "/Users/kaitlynlucas/Desktop/Hawaii/NCES"
 
 ## Recreate Cleaning
 1. Unhide the Importing Code
-2. Run HI_OriginalData_DataRequest_2015to2023.do
-3. Run HI_2024_1.30.25.do
+2. Run 01_HI_OriginalData_DataRequest_2015to2023.do
+3. Run 02_HI_OriginalData_DataRequest_2024.do
 4. On future runs you'll want to hide the importing code
 
 ## Notes
 The 2015-2023 file in the Original Data - Version 1.1+ folder is the same as "HalloranDataRequest20240409". Removed 2013 and 2014 files from the Original Data V1.1+ folder.
+
+## Updates
+- 2/26/25: Incorporated 2024 data via data request.
