@@ -1,9 +1,4 @@
 clear
-global Original "/Users/kaitlynlucas/Desktop/Wyoming/Original"
-global Output "/Users/kaitlynlucas/Desktop/Wyoming/Output"
-global NCES "/Users/kaitlynlucas/Desktop/Wyoming/NCES"
-global EDFacts "/Users/kaitlynlucas/Desktop/EDFacts Drive Data"
-global New_Output "/Users/kaitlynlucas/Desktop/Wyoming/V2.0+"
 
 ** Preparing EDFacts files
 local edyears1 14 15 16 17 18
@@ -12,6 +7,7 @@ local subject math ela
 local datatype part count
 local datalevel school district
 
+//Import & Clean EDFacts Files - Hide After First Run
 foreach year of local edyears1 {
     foreach sub of local subject {
         foreach type of local datatype {
@@ -268,30 +264,13 @@ foreach year of local edyears2 {
 	}
 }
 
-//Change AssmtType label
-forvalues year = 2014/2024 {
-	if `year' == 2020 continue
-	
-	import delimited "${Output}/WY_AssmtData_`year'", case(preserve) clear
-	replace AssmtType = "Regular and alt"
-	export delimited "WY_AssmtData_`year'", replace
-	
-
-
-}
 
 //Conversion to DTA
 forvalues year = 2014/2021 {
 if `year' == 2020 continue
-import delimited "WY_AssmtData_`year'", case(preserve) clear
 
-	
-//DataLevel
-label def DataLevel 1 "State" 2 "District" 3 "School"
-encode DataLevel, gen(DataLevel_n) label(DataLevel)
-sort DataLevel_n 
-drop DataLevel 
-rename DataLevel_n DataLevel
+use "${Output}/WY_AssmtData_`year'", clear
+destring NCESDistrictID NCESSchoolID, replace
 
 //Merging
 
@@ -309,17 +288,14 @@ clear
 
 //District Merge
 use "`tempdist'"
-duplicates report NCESDistrictID StudentSubGroup GradeLevel Subject
-merge 1:1 NCESDistrictID StudentSubGroup GradeLevel Subject using "${EDFacts}/`year'/edfactspart`year'districtwyoming.dta", gen(DistMerge)
+merge m:1 NCESDistrictID StudentSubGroup GradeLevel Subject using "${EDFacts}/`year'/edfactspart`year'districtwyoming.dta", gen(DistMerge)
 drop if DistMerge == 2
 save "`tempdist'", replace
 clear
 
 //School Merge
 use "`tempsch'"
-duplicates report NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject
-duplicates drop NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject, force
-merge 1:1 NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject using "${EDFacts}/`year'/edfactspart`year'schoolwyoming.dta", gen(SchMerge)
+merge m:1 NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject using "${EDFacts}/`year'/edfactspart`year'schoolwyoming.dta", gen(SchMerge)
 drop if SchMerge == 2
 save "`tempsch'", replace
 clear
@@ -340,30 +316,38 @@ drop Unsuppressed* AllStudentsTested
 
 
 //New Participation Data
-replace ParticipationRate = Participation if !missing(Participation)
+replace ParticipationRate = Participation if !missing(Participation) & ParticipationRate == "--"
 
 {
-replace StateAssignedDistID = "000000" if DataLevel== 1 // State
-replace StateAssignedSchID = "000000" if DataLevel== 1 // State
-replace StateAssignedSchID = "000000" if DataLevel== 2 // District
-egen uniquegrp = group(SchYear DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel)
+replace StateAssignedDistID = "000000" if DataLevel== 1
+replace StateAssignedSchID = "000000" if DataLevel != 3
+egen uniquegrp = group(SchYear DataLevel StateAssignedDistID StateAssignedSchID AssmtType Subject GradeLevel)
 sort uniquegrp StudentGroup StudentSubGroup 
 by uniquegrp: gen AllStudents = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
 by uniquegrp: replace AllStudents = AllStudents[_n-1] if missing(AllStudents)
 drop StudentGroup_TotalTested
 rename AllStudents StudentGroup_TotalTested
-replace StateAssignedDistID = "" if DataLevel ==1
+replace StateAssignedDistID = "" if DataLevel == 1
 replace StateAssignedSchID = "" if DataLevel != 3
 }
+
+tostring Lev5_count Lev5_percent, replace
+replace Lev5_count = ""
+replace Lev5_percent = ""
+
+tostring NCESDistrictID, replace
+tostring NCESSchoolID, replace format("%18.0f")
+replace NCESDistrictID = "" if NCESDistrictID == "."
+replace NCESSchoolID = "" if NCESSchoolID == "."
 
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
  
 keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
-sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+sort DataLevel DistName SchName AssmtType Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${New_Output}/WY_AssmtData_`year'", replace
-export delimited "${New_Output}/WY_AssmtData_`year'", replace
+save "${Output}/WY_AssmtData_`year'", replace
+export delimited "${Output}/WY_AssmtData_`year'", replace
 }
 

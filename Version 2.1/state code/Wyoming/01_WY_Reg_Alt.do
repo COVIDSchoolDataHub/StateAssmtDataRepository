@@ -1,16 +1,13 @@
-clear
+clear all
 set more off
 set trace off
-global NCESOld "/Users/kaitlynlucas/Desktop/Wyoming State Task/NCESOld1"
-global Original "/Users/kaitlynlucas/Desktop/Wyoming/Original"
-global Output "/Users/kaitlynlucas/Desktop/Wyoming/Output"
-global NCES "/Users/kaitlynlucas/Desktop/Wyoming/NCES"
-/*
-//Cleaning NCES files and putting it into a new folder
-forvalues year = 2014/2022 {
+
+//Cleaning NCES Files - Hide After First Run
+forvalues year = 2014/2023 {
 local prevyear =`=`year'-1'
-	foreach dl in District School {
-use "`NCESOld'/NCES_`prevyear'_`dl'.dta"
+foreach dl in District School {
+
+use "${NCES`dl'}/NCES_`prevyear'_`dl'.dta", clear
 keep if state_location == "WY" | state_name == "Wyoming"
 
 //Fixing NCES Variables
@@ -18,12 +15,23 @@ rename state_location StateAbbrev
 rename state_fips StateFips
 rename district_agency_type DistType
 
-if "`dl'" == "School" drop SchType 
-if "`dl'" == "School" rename SchType_str SchType 
-if "`dl'" == "School" drop SchVirtual
-if "`dl'" == "School" rename SchVirtual_str SchVirtual
-if "`dl'" == "School" drop SchLevel 
-if "`dl'" == "School" rename SchLevel_str SchLevel
+if "`dl'" == "School" {
+	if `year' == 2023 {
+		decode DistType, gen(DistType_str)
+		drop DistType
+		rename DistType_str DistType
+		decode school_type, gen(SchType_str)
+		drop school_type
+		decode SchVirtual, gen(SchVirtual_str)
+		decode SchLevel, gen(SchLevel_str)
+		drop year fips boundary_change_indicator number_of_schools
+	}
+	if `year' != 2023 drop SchType
+	drop SchVirtual SchLevel
+	cap rename SchType_str SchType
+	rename SchVirtual_str SchVirtual
+	rename SchLevel_str SchLevel
+}
 
 rename ncesdistrictid NCESDistrictID
 rename state_leaid State_leaid
@@ -40,13 +48,11 @@ if "`dl'" == "School" replace school_name = lower(school_name)
 if "`dl'" == "School" replace school_name = subinstr(school_name, " ", "",.)
 if "`dl'" == "School" replace school_name = lea_name + "-" + school_name
 cap duplicates drop school_name, force 
-save "`NCES'/NCESnew_`prevyear'_`dl'.dta", replace
+save "${NCES}/NCES_`prevyear'_`dl'_WY.dta", replace
 	}	
 }
-*/
 
-//Unhide below code on first run
-/*
+//Import Raw Data - Hide After First Run
 clear
 import delimited using "${Original}/WY_OriginalData_All_District.csv", case(preserve)
 gen DataLevel = "District"
@@ -64,13 +70,10 @@ append using "${Original}/WY_OriginalData_All_District.dta" "${Original}/WY_Orig
 save "${Original}/WY_OriginalData_All", replace
 clear
 
-*/
-
-//Unhide Above code on first run
 
 //Seperating By Year
 forvalues year = 2014/2024 {
-use "${Original}/WY_OriginalData_All"
+use "${Original}/WY_OriginalData_All", clear
 local prevyear =`=`year'-1'
 if `year' == 2020 continue
 keep if SchoolYear == "`prevyear'" + "-" + substr("`year'",-2,2)
@@ -114,9 +117,6 @@ tostring GradeLevel, replace
 replace GradeLevel = "G0" + GradeLevel
 *save "`Original'/WY_OriginalData_`year'", replace
 
-// Drop no student subgroups
-drop if StudentSubGroup_TotalTested == "             0" & Subgroup != "All Students"
-
 //StudentSubGroup 
 replace Subgroup = "All Students: All Students" if Subgroup == "All Students"
 gen StudentGroup = substr(Subgroup, 1, strpos(Subgroup, ":") - 1)
@@ -159,17 +159,12 @@ tempfile tempdistrict
 save "`tempdistrict'"
 clear
 if inlist("`year'", "2023", "2024") {
-    use "${NCES}/NCESnew_2022_District"
+    use "${NCES}/NCES_2022_District_WY"
 } 
 	else {
-    use "${NCES}/NCESnew_`prevyear'_District"
+    use "${NCES}/NCES_`prevyear'_District_WY"
 }
 
-/*if "`year'" != "2023" use "${NCES}/NCESnew_`prevyear'_District"
-if "`year'" != "2024" use "${NCES}/NCESnew_`prevyear'_District"
-if "`year'" == "2023" use "${NCES}/NCESnew_2022_District"
-if "`year'" == "2024" use "${NCES}/NCESnew_2022_District"
-*/
 merge 1:m lea_name using "`tempdistrict'"
 drop if _merge==1
 save "`tempdistrict'", replace
@@ -264,10 +259,10 @@ replace school_name = "laramie#1-poderacademysecondaryschool" if school_name == 
 save "`tempschool'", replace
 clear
 if inlist("`year'", "2023", "2024") {
-    use "${NCES}/NCESnew_2022_School"
+    use "${NCES}/NCES_2022_School_WY"
 } 
 	else {
-    use "${NCES}/NCESnew_`prevyear'_School"
+    use "${NCES}/NCES_`prevyear'_School_WY"
 }
 duplicates report school_name
 duplicates drop school_name, force
@@ -278,14 +273,15 @@ replace SchVirtual = "Missing/not reported"
 }
 
 if !inlist("`year'", "2022", "2023", "2024"){
-	merge m:1 school_name using"${NCES}/NCESnew_`year'_School", update
+	merge m:1 school_name using"${NCES}/NCES_`year'_School_WY", update
 	rename _merge _merge2
 }
 if `year' == 2021{
 	drop _merge1
 }
 //code below may need to be reviewed after V2.0
-merge m:1 school_name using "${NCES}/NCESnew_2020_School", update
+if `year' >= 2023 drop DistEnrollment dist_teachers_total_fte dist_staff_total_fte dist_urban_centric_locale
+merge m:1 school_name using "${NCES}/NCES_2020_School_WY", update
 rename _merge _merge3
 drop _merge3
 save "`tempschool'", replace
@@ -296,8 +292,6 @@ use "`temp1'"
 keep if DataLevel== "State"
 append using "`tempdistrict'" "`tempschool'"
 duplicates drop
-*save "/Volumes/T7/State Test Project/Wyoming/Testing/`year'", replace
-
 
 //2014: No Data for unmerged Kemmerer Alternative School
 if `year' == 2014 drop if SchName == "Lincoln #1 - Kemmerer Alternative School"
@@ -325,22 +319,21 @@ replace Subject = "wri" if Subject == "Writing"
 
 
 //StateAssignedSchID and StateAssignedDistID
-gen StateAssignedDistID = State_leaid
-gen StateAssignedSchID = seasch
+gen StateAssignedDistID = subinstr(State_leaid, "WY-", "", 1)
+gen StateAssignedSchID = subinstr(seasch, StateAssignedDistID, "", 1)
+replace StateAssignedSchID = subinstr(StateAssignedSchID, "-", "", 1)
 
-//StudentGroup_TotalTested
+//StudentSubGroup_TotalTested
+replace StudentSubGroup_TotalTested = strtrim(StudentSubGroup_TotalTested)
+drop if StudentSubGroup_TotalTested == "0"
+replace StudentSubGroup_TotalTested = subinstr(StudentSubGroup_TotalTested, " ", "", 2)
+
 gen low_end_subgroup = real(substr(StudentSubGroup_TotalTested, 1, strpos(StudentSubGroup_TotalTested, "-")-2))
 gen high_end_subgroup = real(substr(StudentSubGroup_TotalTested, strpos(StudentSubGroup_TotalTested, "-") +2,10))
-sort StudentGroup
-egen low_end_group = total(low_end_subgroup), by(StudentGroup GradeLevel Subject DataLevel SchName DistName)
-egen high_end_group =  total(high_end_subgroup), by(StudentGroup GradeLevel Subject DataLevel SchName DistName)
-gen StudentGroup_TotalTested = string(low_end_group) + "-" + string(high_end_group)
-replace StudentGroup_TotalTested = "0" if missing(StudentGroup_TotalTested)
 replace StudentSubGroup_TotalTested = subinstr(StudentSubGroup_TotalTested, " ", "",.)
 
 // Dropping observations with no students tested
 drop if StudentSubGroup_TotalTested == "0" & StudentGroup != "All Students"
-replace StudentGroup_TotalTested = "0" if StudentGroup_TotalTested == "0-0"
 
 //Level counts and percents
 foreach n in 1 2 3 4 {
@@ -371,7 +364,7 @@ gen ProficiencyCriteria = "Levels 3-4"
 if `year' <2018 gen AssmtName = "PAWS"
 if `year' > 2017 gen AssmtName = "WY-TOPP"
 replace AssmtName = "SAWS" if `year' == 2014 & Subject == "wri"
-gen AssmtType = "Regular"
+gen AssmtType = "Regular and alt"
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
@@ -393,41 +386,9 @@ gen Lev5_percent = ""
 gen ProficientOrAbove_count = "--"
 
 // Reset vars before generating counts
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
-
-// Ranges for level counts for 2022 & 2023
-
-*if `year' == 2022 | `year' == 2023 | `year' == 2024{
-gen low_end_subgroup = real(substr(StudentSubGroup_TotalTested, 1, strpos(StudentSubGroup_TotalTested, "-") - 1))
-destring StudentGroup_TotalTested, gen(xStudentGroup_TotalTested) force
-gen high_end_subgroup = real(substr(StudentSubGroup_TotalTested, strpos(StudentSubGroup_TotalTested, "-") + 1, 4))
-replace high_end_subgroup = xStudentGroup_TotalTested if (xStudentGroup_TotalTested < high_end_subgroup)
-replace StudentSubGroup_TotalTested = string(low_end_subgroup)+"-"+string(high_end_subgroup) if strpos(StudentSubGroup_TotalTested, "-")>0
-replace StudentSubGroup_TotalTested = string(high_end_subgroup) if high_end_subgroup == low_end_subgroup
-forvalues n = 1/4 {
-	destring Lev`n'_percent, gen(nLev`n'_percent) force
-	gen lowLev`n'_count = round(nLev`n'_percent*low_end_subgroup)
-	gen highLev`n'_count = round(nLev`n'_percent*high_end_subgroup)
-	gen rangeLev`n'_count = string(lowLev`n'_count)+"-"+string(highLev`n'_count)
-	replace rangeLev`n'_count = string(lowLev`n'_count) if lowLev`n'_count == highLev`n'_count
-	replace Lev`n'_count = rangeLev`n'_count if Lev`n'_count == "--"
-	replace Lev`n'_count = "*" if Lev`n'_percent == "*"
-}
-
-gen lowProfCount = string(round(lowLev3_count + lowLev4_count))
-gen highProfCount = string(round(highLev3_count + highLev4_count))
-replace ProficientOrAbove_count = lowProfCount+"-"+highProfCount if ProficientOrAbove_count == "--"
-
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 // Standardizing state ids across years
-if `year' == 2014 | `year' == 2015 | `year' == 2016 {
-	replace StateAssignedSchID = StateAssignedDistID +"-"+ StateAssignedSchID
-	replace StateAssignedDistID = "WY-"+StateAssignedDistID
-	replace StateAssignedDistID = "" if DataLevel == 1
-	replace StateAssignedSchID = "" if DataLevel != 3
-}
-
 if `year' == 2021{
 	replace DistType = "Regular local school district" if DistName == "Converse #2"
 	replace DistCharter = "No" if DistName == "Converse #2"
@@ -463,8 +424,8 @@ if `year' ==2024{
 	replace SchLevel = "Primary" if SchName == "Laramie Montessori"
 	replace SchVirtual = "No" if SchName == "Laramie Montessori"
 	replace CountyName = "Albany County" if SchName == "Laramie Montessori"
-	replace StateAssignedDistID = "WY-0101000" if SchName == "Laramie Montessori"
-	replace StateAssignedSchID = "0101000-0101031" if SchName == "Laramie Montessori"
+	replace StateAssignedDistID = "0101000" if SchName == "Laramie Montessori"
+	replace StateAssignedSchID = "0101031" if SchName == "Laramie Montessori"
 	replace NCESDistrictID = "5600730" if DistName == "Albany #1"
 	replace CountyCode = "56001" if SchName == "Laramie Montessori"
 	replace DistType = "Regular local school district" if SchName == "PODER"
@@ -474,14 +435,14 @@ if `year' ==2024{
 	replace SchLevel = "Primary" if SchName == "PODER"
 	replace SchVirtual = "No" if SchName == "PODER"
 	replace CountyName = "Laramie County" if SchName == "PODER"
-	replace StateAssignedDistID = "WY-1101000" if SchName == "PODER"
-	replace StateAssignedSchID = "1101000-1101040" if SchName == "PODER"
+	replace StateAssignedDistID = "1101000" if SchName == "PODER"
+	replace StateAssignedSchID = "1101040" if SchName == "PODER"
 	replace NCESDistrictID = "5601980" if DistName == "Laramie #1"
 	replace CountyCode = "56021" if SchName == "PODER"
 	replace NCESSchoolID = "560073000542" if SchName == "Laramie Montessori"
 	replace NCESSchoolID = "560198000547" if SchName == "PODER"
 	//new school/district 2024
-	replace StateAssignedDistID = "WY-5003000" if DistName == "Prairie View Community School"
+	replace StateAssignedDistID = "5003000" if DistName == "Prairie View Community School"
 	replace DistType = "Charter agency" if DistName == "Prairie View Community School"
 	replace DistCharter = "Yes" if DistName == "Prairie View Community School"
 	replace DistLocale = "Missing/not reported" if DistName == "Prairie View Community School"
@@ -489,7 +450,7 @@ if `year' ==2024{
 	replace SchType = "Regular school" if SchName == "Prairie View Community School"
 	replace SchLevel = "Other" if SchName == "Prairie View Community School"
 	replace SchVirtual = "No" if SchName == "Prairie View Community School"
-	replace StateAssignedSchID = "5003000-5003001" if SchName == "Prairie View Community School"
+	replace StateAssignedSchID = "5003001" if SchName == "Prairie View Community School"
 	replace NCESDistrictID = "5680259" if DistName == "Prairie View Community School"
 	replace CountyName = "Platte County" if DistName == "Prairie View Community School"
 	replace CountyCode = "56031" if DistName == "Prairie View Community School"
@@ -497,13 +458,13 @@ if `year' ==2024{
 	replace DistType = "Charter agency" if DistName == "Wyoming Classical Academy"
 	replace DistCharter = "Yes" if DistName == "Wyoming Classical Academy"
 	replace DistLocale = "Missing/not reported" if DistName == "Wyoming Classical Academy"
-	replace StateAssignedDistID = "WY-5002000" if DistName == "Wyoming Classical Academy"
+	replace StateAssignedDistID = "5002000" if DistName == "Wyoming Classical Academy"
 	replace CountyName = "Natrona County" if DistName == "Wyoming Classical Academy"
 	replace CountyCode = "56025" if DistName == "Wyoming Classical Academy"
 	replace SchType = "Regular school" if SchName == "Wyoming Classical Academy"
 	replace SchLevel = "Primary" if SchName == "Wyoming Classical Academy"
 	replace SchVirtual = "No" if SchName == "Wyoming Classical Academy"
-	replace StateAssignedSchID = "5002000-5002001" if SchName == "Wyoming Classical Academy"
+	replace StateAssignedSchID = "5002001" if SchName == "Wyoming Classical Academy"
 	replace NCESDistrictID = "5680258" if DistName == "Wyoming Classical Academy"
 	replace NCESSchoolID = "568025800598" if SchName == "Wyoming Classical Academy"
 }
@@ -512,21 +473,48 @@ if `year' ==2024{
 replace SchName = "Albany #1 - Indian Paintbrush Elementary" if SchName == "Albany #1 - Indian Paintbrush  Elementary"
 replace SchName = "Indian Paintbrush Elementary" if SchName == "Indian Paintbrush  Elementary"
 
-
-//adding update StudentGroup_TotalTested code V2.0
-{
-replace StateAssignedDistID = "000000" if DataLevel== 1 // State
-replace StateAssignedSchID = "000000" if DataLevel== 1 // State
-replace StateAssignedSchID = "000000" if DataLevel== 2 // District
+//StudentGroup_TotalTested
+replace StateAssignedDistID = "000000" if DataLevel== 1
+replace StateAssignedSchID = "000000" if DataLevel != 3
 egen uniquegrp = group(SchYear DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel)
 sort uniquegrp StudentGroup StudentSubGroup 
-by uniquegrp: gen AllStudents = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
-by uniquegrp: replace AllStudents = AllStudents[_n-1] if missing(AllStudents)
-drop StudentGroup_TotalTested
-rename AllStudents StudentGroup_TotalTested
+by uniquegrp: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by uniquegrp: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
 replace StateAssignedDistID = "" if DataLevel ==1
 replace StateAssignedSchID = "" if DataLevel != 3
+
+// Ranges for level counts
+
+*if `year' == 2022 | `year' == 2023 | `year' == 2024{
+gen low_end_subgroup = real(substr(StudentSubGroup_TotalTested, 1, strpos(StudentSubGroup_TotalTested, "-") - 1))
+destring StudentGroup_TotalTested, gen(xStudentGroup_TotalTested) force
+gen high_end_subgroup = real(substr(StudentSubGroup_TotalTested, strpos(StudentSubGroup_TotalTested, "-") + 1, 4))
+replace high_end_subgroup = xStudentGroup_TotalTested if (xStudentGroup_TotalTested < high_end_subgroup)
+replace StudentSubGroup_TotalTested = string(low_end_subgroup)+"-"+string(high_end_subgroup) if strpos(StudentSubGroup_TotalTested, "-")>0
+replace StudentSubGroup_TotalTested = string(high_end_subgroup) if high_end_subgroup == low_end_subgroup
+forvalues n = 1/4 {
+	destring Lev`n'_percent, gen(nLev`n'_percent) force
+	gen lowLev`n'_count = round(nLev`n'_percent*low_end_subgroup)
+	gen highLev`n'_count = round(nLev`n'_percent*high_end_subgroup)
+	gen rangeLev`n'_count = string(lowLev`n'_count)+"-"+string(highLev`n'_count)
+	replace rangeLev`n'_count = string(lowLev`n'_count) if lowLev`n'_count == highLev`n'_count
+	replace Lev`n'_count = rangeLev`n'_count if Lev`n'_count == "--"
+	replace Lev`n'_count = "*" if Lev`n'_percent == "*"
 }
+
+gen lowProfCount = string(round(lowLev3_count + lowLev4_count))
+gen highProfCount = string(round(highLev3_count + highLev4_count))
+replace ProficientOrAbove_count = lowProfCount+"-"+highProfCount if ProficientOrAbove_count == "--"
+
+split ProficientOrAbove_percent, parse("-")
+destring ProficientOrAbove_percent1 ProficientOrAbove_percent2, replace force
+gen lowProficientOrAbove_count = round(ProficientOrAbove_percent1*low_end_subgroup)
+gen highProficientOrAbove_count = round(ProficientOrAbove_percent2*high_end_subgroup)
+replace highProficientOrAbove_count = round(ProficientOrAbove_percent1*high_end_subgroup) if ProficientOrAbove_percent2 == .
+gen rangeProficientOrAbove_count = string(lowProficientOrAbove_count)+"-"+string(highProficientOrAbove_count)
+replace rangeProficientOrAbove_count = string(lowProficientOrAbove_count) if lowProficientOrAbove_count == highProficientOrAbove_count
+replace ProficientOrAbove_count = rangeProficientOrAbove_count if inlist(ProficientOrAbove_count, "--", ".-.")
+replace ProficientOrAbove_count = "*" if ProficientOrAbove_percent == "*"
 
 //Period issues in 2014, 2017, 2018 for 7 observations
 forvalues n = 1/4 {
@@ -534,8 +522,6 @@ forvalues n = 1/4 {
 }
 replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == ".-."
 
-//June 2024 State Task
-replace AssmtType = "Regular and alt"
 
 //Replacing Assessment name after 2018
 if `year'>2017 {
@@ -544,9 +530,7 @@ if `year'>2017 {
 
 //Fixing one school
 replace NCESSchoolID = "560198000574" if SchName == "PODER Academy Secondary School"
-replace StateAssignedSchID = "1101000-1101045" if SchName == "PODER Academy Secondary School"
-
-
+replace StateAssignedSchID = "1101045" if SchName == "PODER Academy Secondary School"
 
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
