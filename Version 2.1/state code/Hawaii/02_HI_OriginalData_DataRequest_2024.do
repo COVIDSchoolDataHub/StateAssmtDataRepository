@@ -1,54 +1,47 @@
+*******************************************************
+* HAWAII
+
+* File name: 02_HI_OriginalData_DataRequest_2024
+* Last update: 2/26/2025
+
+*******************************************************
+* Description: This file cleans all Hawaii Original Data and merges with NCES for 2024.
+
+*******************************************************
 clear
 set more off
-set trace off
-global Original "/Users/miramehta/Documents/Hawaii/Original"
-global Cleaned "/Users/miramehta/Documents/Hawaii/Output"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics"
+
 
 //Importing (Unhide on First Run)
-/*
-import excel "$Original/HI_OriginalData_DataRequest_2015to2023", firstrow sheet("SBAData")
-save "$Original/HI_OriginalData_DataRequest_2015to2023", replace
 
-
-//Separating by Year
-forvalues year = 2015/2023 {
-	if `year' == 2020 continue
-	use "$Original/HI_OriginalData_DataRequest_2015to2023", clear
-	keep if Column4 == `year'
-	save "$Original/HI_OriginalData_DataRequest_`year'", replace
-}
+import excel "$Original/HI_DataRequest02.24.25_ela_math_sci", firstrow sheet("SBAData")
+save "$Original/HI_DataRequest_OriginalData_2024", replace
 clear
-*/
 
+use "$Original/HI_DataRequest_OriginalData_2024", clear
 
-forvalues year = 2015/2023 {
-if `year' == 2020 continue
-use "$Original/HI_OriginalData_DataRequest_`year'", clear
-local prevyear = `year' - 1
+//Rename Variables
+rename Test AssmtName
+rename SchCode StateAssignedSchID
+rename CommonName SchName
+rename Year SchYear
+drop SubgroupCode
+rename SubgroupDesc StudentSubGroup
+rename GradeCode GradeLevel
+rename SubjectCode Subject
+rename TestedCount StudentSubGroup_TotalTested
+rename PercentTested ParticipationRate
+rename WellBelowProfCount Lev1_count
+rename WellBelowProf Lev1_percent
+rename ApproachingProfCount Lev2_count
+rename ApproachingProf Lev2_percent
+rename MeetsProfCount Lev3_count
+rename MeetsProf Lev3_percent
+rename ExceedsProfCount Lev4_count
+rename ExceedsProf Lev4_percent
+rename ProficientCount ProficientOrAbove_count
+rename Proficient ProficientOrAbove_percent
 
-	
-//Renaming
-rename Column1 AssmtName
-rename Column2 StateAssignedSchID
-rename Column3 SchName
-rename Column4 SchYear
-drop Column5
-rename Column6 StudentSubGroup
-rename Column7 GradeLevel
-rename Column8 Subject
-rename Column9 StudentSubGroup_TotalTested
-rename Column10 ParticipationRate
-rename Column11 Lev1_count
-rename Column12 Lev1_percent
-rename Column13 Lev2_count
-rename Column14 Lev2_percent
-rename Column15 Lev3_count
-rename Column16 Lev3_percent
-rename Column17 Lev4_count
-rename Column18 Lev4_percent
-rename Column19 ProficientOrAbove_count
-rename Column20 ProficientOrAbove_percent
 
 //StudentSubGroup
 replace StudentSubGroup = "Asian" if StudentSubGroup == "Asian/Pacific Islander"
@@ -95,7 +88,6 @@ foreach var of varlist StudentSubGroup_TotalTested-ProficientOrAbove_percent {
 replace `var' = "--" if `var' == "n/a"
 }
 
-
 foreach percent of varlist *_percent {
 	replace `percent' = string(real(`percent')/100, "%9.3g") if regexm(`percent', "[0-9]") !=0
 	local count = subinstr("`percent'", "percent", "count",.)
@@ -138,7 +130,7 @@ keep if DataLevel == 2
 tempfile tempdist
 save "`tempdist'", replace
 clear
-use "$NCES/NCES_`prevyear'_District"
+use "$NCES/NCES_2022_District"
 keep if state_name == "Hawaii"
 replace state_leaid = "HI-001"
 keep ncesdistrictid state_leaid lea_name district_agency_type DistCharter DistLocale county_code county_name
@@ -152,11 +144,9 @@ keep if DataLevel == 3
 gen seasch = string(StateAssignedSchID)
 tempfile tempsch
 save "`tempsch'", replace
-use "$NCES/NCES_`prevyear'_School"
+use "$NCES/NCES_2022_School"
 keep if state_name == "Hawaii"
 replace state_leaid = "HI-001"
-if `year' != 2023 keep ncesdistrictid state_leaid lea_name district_agency_type DistCharter DistLocale county_code county_name ncesschoolid SchLevel SchVirtual SchType seasch
-if `year' == 2023 {
 keep ncesdistrictid state_leaid lea_name district_agency_type DistCharter DistLocale county_code county_name ncesschoolid SchLevel SchVirtual school_type seasch 
 rename school_type SchType
 foreach var of varlist district_agency_type SchType SchVirtual SchLevel {
@@ -164,7 +154,7 @@ foreach var of varlist district_agency_type SchType SchVirtual SchLevel {
 	drop `var'
 	rename temp `var'
 }
-}
+
 replace seasch = substr(seasch,3,4)
 merge 1:m seasch using "`tempsch'", keep(match using) nogen
 save "`tempsch'", replace
@@ -210,33 +200,15 @@ gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_sci = "N"
 gen Flag_CutScoreChange_soc = "Not applicable"
 
-if `year' == 2015 {
-	replace Flag_AssmtNameChange = "Y"
-	replace Flag_CutScoreChange_ELA = "Y"
-	replace Flag_CutScoreChange_math = "Y"
-	replace Flag_CutScoreChange_sci = "Y"
-	
-}
-
-if `year' == 2021 {
-	replace Flag_AssmtNameChange = "Y" if Subject == "sci"
-	replace Flag_CutScoreChange_sci = "Y"
-}
-
-
-
 //Empty Variables
 gen AvgScaleScore = "--"
 gen Lev5_count = ""
 gen Lev5_percent = ""
 
-//CountyName
-if `year' == 2015 replace CountyName = proper(CountyName)
 
 //AssmtName
 replace AssmtName = "Smarter Balanced Assessment" if Subject != "sci"
-if `year' <2021 replace AssmtName = "Hawaii Science Assessment - HCPS III" if Subject == "sci"
-if `year' >=2021 replace AssmtName = "Hawaii Science Assessment - NGSS" if Subject == "sci"
+replace AssmtName = "Hawaii Science Assessment - NGSS" if Subject == "sci"
 
 //Deriving ProficientOrAbove_count and ProficientOrAbove_percent if we have Levels 1 & 2
 replace ProficientOrAbove_count = string(real(StudentSubGroup_TotalTested) - real(Lev1_count) - real(Lev2_count)) if regexm(StudentSubGroup_TotalTested, "[0-9]") !=0 & regexm(Lev1_count, "[0-9]") !=0 & regexm(Lev2_count, "[0-9]") !=0 & regexm(ProficientOrAbove_count, "[0-9]") == 0 
@@ -261,7 +233,7 @@ foreach var of varlist Lev*_count {
 	replace `var' = "0" if real(`var') < 0 & !missing(real(`var'))
 }
 
-//deriving additional counts & percents
+//Deriving additional counts & percents
 replace ProficientOrAbove_percent = string(1 - real(Lev1_percent) - real(Lev2_percent), "%9.8f") if ProficientOrAbove_percent == "*" & Lev1_percent != "*" & Lev2_percent != "*"
 replace Lev3_percent = string(real(ProficientOrAbove_percent) - real(Lev4_percent), "%9.8f") if Lev3_percent == "*" & ProficientOrAbove_percent != "*" & Lev4_percent != "*"
 replace Lev4_percent = string(real(ProficientOrAbove_percent) - real(Lev3_percent), "%9.8f") if Lev4_percent == "*" & ProficientOrAbove_percent != "*" & Lev3_percent != "*"
@@ -311,7 +283,7 @@ replace StudentSubGroup_TotalTested = string(real(StudentGroup_TotalTested)-Unsu
 
 drop Unsuppressed* missing_*
 
-//deriving more ssg_tt V2.0
+//Deriving more ssg_tt
 gen flag = "Yes" if StudentSubGroup_TotalTested == "*"
 gen temp_sum = real(Lev1_count) + real(Lev2_count) + real(Lev3_count) + real(Lev4_count) if Lev1_count != "--" & Lev1_count != "*" & Lev2_count != "--" & Lev2_count != "*" & Lev3_count != "--" & Lev3_count != "*" & Lev4_count != "--" & Lev4_count != "*"
 replace flag = string(temp_sum)
@@ -332,9 +304,6 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${Cleaned}/HI_AssmtData_`year'", replace
-export delimited "${Cleaned}/HI_AssmtData_`year'", replace
-clear
-}
-
+save "${Cleaned}/HI_AssmtData_2024", replace
+export delimited "${Cleaned}/HI_AssmtData_2024", replace
 
