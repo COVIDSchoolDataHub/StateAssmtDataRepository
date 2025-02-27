@@ -19,7 +19,7 @@ set trace off
 
 
 
-//Importing (unhide after first run)
+//Importing (unhide on first run)
 
 
 forvalues year = 2012/2017 {
@@ -38,7 +38,7 @@ foreach year in 2021 {
 	import delimited "${Original}/KY_OriginalData_`year'_all", case(preserve) stringcols(_all) clear
 	save "${Original}/KY_OriginalData_`year'", replace
 	clear
-}
+// }
 
 
 
@@ -408,7 +408,8 @@ forvalues n = 1/4{
 	replace Lev`n'_count = string(round(real(Lev`n'_percent) * real(StudentSubGroup_TotalTested))) if missing(real(Lev`n'_count)) & !missing(real(Lev`n'_percent)) & !missing(real(StudentSubGroup_TotalTested))
 }
 
-replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent) * real(StudentSubGroup_TotalTested))) if missing(real(ProficientOrAbove_count)) & !missing(real(ProficientOrAbove_percent)) & !missing(real(StudentSubGroup_TotalTested))
+replace ProficientOrAbove_count = string(real(Lev3_count) + real(Lev4_count)) if missing(real(ProficientOrAbove_count)) & !missing(real(Lev3_count)) & !missing(real(Lev4_count))
+replace ProficientOrAbove_count = string(round(real(ProficientOrAbove_percent)*real(StudentSubGroup_TotalTested)), "%9.3g") if missing(real(ProficientOrAbove_count)) & !missing(real(ProficientOrAbove_percent)) & !missing(real(StudentSubGroup_TotalTested))
 
 //Flags
 gen Flag_AssmtNameChange = "N"

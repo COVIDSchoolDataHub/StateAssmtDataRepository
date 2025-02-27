@@ -218,8 +218,16 @@ replace StudentSubGroup_TotalTested = string(real(StudentGroup_TotalTested)-Unsu
 
 drop Unsuppressed* missing_*
 
-//Misc Changes in response to Self-review
+//Misc Changes in response to Self-review and review
 replace CountyName = "LaRue County" if CountyName == "Larue County"
+replace DistName = subinstr(DistName, "Larue", "LaRue",.)
+replace DistName = subinstr(DistName, "Mccracken", "McCracken",.)
+replace DistName = subinstr(DistName, "Mccreary", "McCreary",.)
+replace DistName = subinstr(DistName, "Mclean", "McLean",.)
+replace DistName =  "Raceland-Worthington Independent" if DistName == "Raceland-Worthington Independe"
+replace DistName = "Model Laboratory Schools at EKU" if DistName == "Model Laboratory Schools At Ek"
+replace DistName = "KY School for the Blind" if DistName == "KY School for Blind"
+replace DistName = "KY School for the Deaf" if DistName == "KY School for Deaf"
 
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
