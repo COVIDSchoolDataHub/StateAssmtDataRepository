@@ -1,13 +1,23 @@
+*******************************************************
+* MASSACHUSETTS
+
+* File name: MA_2015_2016
+* Last update: 2/27/2025
+
+*******************************************************
+* Notes
+
+	* This do file first cleans MA's 2015 and 2016 data.
+	* Then this file merges with NCES 2014 and 2015.
+	* Only the usual (temp) output for 2015 and 2016 are created.
+*******************************************************
+///////////////////////////////
+// Setup
+///////////////////////////////
 clear
-set more off
-cd "/Volumes/T7/State Test Project/Massachusetts"
-global Original "/Volumes/T7/State Test Project/Massachusetts/Original"
-global Output "/Volumes/T7/State Test Project/Massachusetts/Output"
-global NCES "/Volumes/T7/State Test Project/Massachusetts/NCES"
-global Temp "/Volumes/T7/State Test Project/Massachusetts/Temp"
 
 //Combining Data
-use "$Original/MA_OriginalData_Dist_all_2015_2018_Legacy_MCAS", clear
+use "$Original_DTA/MA_OriginalData_Dist_all_2015_2018_Legacy_MCAS", clear
 rename A DataLevel	
 rename B SchYear 	
 rename C GradeLevel
@@ -31,7 +41,7 @@ drop S T U
 gen AssmtName = "Legacy MCAS"
 save "$Temp/MA_Dist_2015_2016_MCAS", replace
 
-use "$Original/MA_OriginalData_Sch_all_2015_2018_Legacy_MCAS", clear
+use "$Original_DTA/MA_OriginalData_Sch_all_2015_2018_Legacy_MCAS", clear
 rename A DataLevel
 rename B SchYear 	
 rename C GradeLevel
@@ -55,7 +65,7 @@ drop S T U
 gen AssmtName = "Legacy MCAS"
 save "$Temp/MA_Sch_2015_2016_MCAS", replace 
 
-use "$Original/MA_OriginalData_Dist_ela_math_2015_2016_PARCC", clear
+use "$Original_DTA/MA_OriginalData_Dist_ela_math_2015_2016_PARCC", clear
 rename A DataLevel	
 rename B SchYear
 rename C GradeLevel_Subject	
@@ -82,7 +92,7 @@ drop V-Y
 gen AssmtName = "PARCC"
 save "$Temp/MA_Dist_2015_2016_PARCC", replace
 
-use "$Original/MA_OriginalData_Sch_ela_math_2015_2016_PARCC", clear
+use "$Original_DTA/MA_OriginalData_Sch_ela_math_2015_2016_PARCC", clear
 rename A DataLevel	
 rename B SchYear
 rename C GradeLevel_Subject	
@@ -123,7 +133,7 @@ foreach file of local files {
 use "`temp1'"
 keep if real(SchYear) < 2017
 duplicates drop
-save "$Temp/MA_OriginalData_2015_2016", replace
+save "$Original_DTA/MA_OriginalData_2015_2016", replace
 
 //GradeLevel_Subject
 replace GradeLevel = "0" + substr(GradeLevel_Subject,7,1) if !missing(GradeLevel_Subject)
@@ -218,8 +228,8 @@ use "$Temp/MA_AssmtData_`year'", clear
 gen State_leaid = subinstr(StateAssignedDistID, "0000","",.)
 gen seasch = StateAssignedSchID
 
-merge m:1 State_leaid using "$NCES/NCES_`prevyear'_District", gen(DistMerge) keep(match master)
-merge m:1 seasch using "$NCES/NCES_`prevyear'_School", gen(SchMerge) keep(match master)
+merge m:1 State_leaid using "$NCES_MA/NCES_`prevyear'_District", gen(DistMerge) keep(match master)
+merge m:1 seasch using "$NCES_MA/NCES_`prevyear'_School", gen(SchMerge) keep(match master)
 duplicates drop
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
@@ -231,6 +241,7 @@ replace StateFips = 25
 if `year' == 2016 {
 tempfile temp5
 save "`temp5'", replace
+
 foreach var of varlist StudentSubGroup_TotalTested *count {
 	destring `var', replace
 }
@@ -258,7 +269,6 @@ tempfile tempstate
 save "`tempstate'", replace
 use "`temp5'"
 append using "`tempstate'"
-	
 }
 
 //StudentGroup_TotalTested
@@ -292,7 +302,7 @@ gen ParticipationRate = "--"
 replace AvgScaleScore = "--" if missing(real(AvgScaleScore))
 
 //Incorporating Stable Dist/SchNames
-merge m:1 SchYear NCESDistrictID NCESSchoolID using "MA_StableNames", keep(match master) nogen
+merge m:1 SchYear NCESDistrictID NCESSchoolID using "$Original_DTA/MA_StableNames", keep(match master) nogen
 replace DistName = newdistname if !missing(newdistname)
 replace SchName = newschname if !missing(newschname)
 
@@ -304,13 +314,24 @@ foreach var of varlist DistName SchName {
 }
 if `year' == 2015 replace CountyName = proper(CountyName)
 
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+// Reordering variables and sorting data
+local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
+    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
+    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
+    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
+    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
+    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
+    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
+    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
+    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
+    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
+    Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+	keep `vars'
+	order `vars'
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
-sort DataLevel DistName SchName AssmtName Subject GradeLevel StudentGroup StudentSubGroup
-
-save "$Output/MA_AssmtData_`year'", replace	
+*Exporting Temp Output *
+save "${Temp}/MA_AssmtData_`year'", replace
 }
-
-
+* END of MA_2015_2016.do
+****************************************************

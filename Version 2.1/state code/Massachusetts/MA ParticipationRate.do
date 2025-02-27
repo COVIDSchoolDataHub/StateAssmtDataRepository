@@ -1,17 +1,30 @@
-clear
-set more off
-set trace off
+*******************************************************
+* MASSACHUSETTS
 
-global Original "/Volumes/T7/State Test Project/Massachusetts/Original"
-global Output "/Volumes/T7/State Test Project/Massachusetts/Output"
-global NCES "/Volumes/T7/State Test Project/Massachusetts/NCES"
-global Temp "/Volumes/T7/State Test Project/Massachusetts/Temp"
+* File name: MA ParticipationRate
+* Last update: 2/27/2025
+
+*******************************************************
+* Notes
+
+	* This do file first cleans Participation Rates for 2010-2022.
+	* This file is merged with the temp output created in
+	* a) MA_2010_2014.do
+	* b) MA_2015_2016.do
+	* c) MA_2017_2024.do
+	* The usual output for 2010 to 2022 is created.
+	* This file will need to be updated when newer participation rates are available.
+	
+*******************************************************
+///////////////////////////////
+// Setup
+///////////////////////////////
+clear
 
 *****************************
 // ** ParticipationRate ** //
 *****************************
-
-use "$Original/MA_ParticipationRate_Dist", clear
+use "$Original_DTA/MA_ParticipationRate_Dist", clear
 rename A DataLevel
 rename B SchYear
 rename C GradeLevel
@@ -23,11 +36,10 @@ replace I = H if real(SchYear) < 2017
 drop H
 rename I ParticipationRate
 
-
 tempfile dist_part
 save "`dist_part'", replace
 
-use "$Original/MA_ParticipationRate_Sch", clear
+use "$Original_DTA/MA_ParticipationRate_Sch", clear
 rename A DataLevel
 rename B SchYear
 rename C GradeLevel
@@ -99,20 +111,32 @@ save "$Temp/MA_Participation", replace
 
 forvalues year = 2010/2022 {
 if `year' == 2020 continue
-use "$Output/MA_AssmtData_`year'", clear
+use "$Temp/MA_AssmtData_`year'", clear
 merge m:1 SchYear StateAssignedDistID StateAssignedSchID StudentSubGroup GradeLevel Subject using "$Temp/MA_Participation", gen(Merge)
 drop if Merge == 2
 
 replace ParticipationRate = ParticipationRate_1 if missing(real(ParticipationRate)) & !missing(real(ParticipationRate_1))
 drop *_1
 
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
+// Reordering variables and sorting data
+local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
+    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
+    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
+    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
+    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
+    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
+    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
+    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
+    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
+    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
+    Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+	keep `vars'
+	order `vars'
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-
+*Exporting Output*
 save "$Output/MA_AssmtData_`year'", replace
 export delimited "$Output/MA_AssmtData_`year'", replace
 }
+* END of MA ParticipationRate.do
+****************************************************

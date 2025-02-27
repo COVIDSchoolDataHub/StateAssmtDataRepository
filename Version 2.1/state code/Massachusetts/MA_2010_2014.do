@@ -1,13 +1,23 @@
+*******************************************************
+* MASSACHUSETTS
+
+* File name: MA_2010_2014
+* Last update: 2/27/2025
+
+*******************************************************
+* Notes
+
+	* This do file first cleans MA's 2010-2014 data.
+	* Then this file merges with NCES data for the previous year.
+	* Only the usual (temp) output for 2010-2014 is created.
+*******************************************************
+///////////////////////////////
+// Setup
+///////////////////////////////
 clear
-set more off
-cd "/Volumes/T7/State Test Project/Massachusetts"
-global Original "/Volumes/T7/State Test Project/Massachusetts/Original"
-global Output "/Volumes/T7/State Test Project/Massachusetts/Output"
-global NCES "/Volumes/T7/State Test Project/Massachusetts/NCES"
-global Temp "/Volumes/T7/State Test Project/Massachusetts/Temp"
 
 //Combining Data
-use "$Original/MA_OriginalData_Dist_all_2010_2014_Legacy_MCAS", clear
+use "$Original_DTA/MA_OriginalData_Dist_all_2010_2014_Legacy_MCAS", clear
 rename A DataLevel	
 rename B SchYear 	
 rename C GradeLevel
@@ -38,7 +48,7 @@ save "`temp1'", empty
 local schdata "MA_OriginalData_Sch_all_2010_2011_Legacy_MCAS MA_OriginalData_Sch_all_2010_Legacy_MCAS MA_OriginalData_Sch_all_2012_2014_Legacy_MCAS"
 foreach dataset of local schdata {
 use "`temp1'", clear
-append using "$Original/`dataset'"
+append using "$Original_DTA/`dataset'"
 save "`temp1'", replace
 }
 
@@ -88,7 +98,6 @@ replace SchName = "All Schools" if DataLevel !=3
 replace StateAssignedDistID = "" if DataLevel == 1
 replace StateAssignedSchID = "" if DataLevel !=3
 
-
 //SchYear
 replace SchYear = string(real(SchYear)-1) + "-" + substr(SchYear,-2,2)
 
@@ -102,7 +111,7 @@ replace StudentSubGroup = "Black or African American" if StudentSubGroup == "Afr
 replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "Amer. Ind. or Alaska Nat."
 *Asian
 replace StudentSubGroup = "English Learner" if StudentSubGroup == "EL"
-replace StudentSubGroup = "EL and Monit or Recently Ex" if StudentSubGroup == "EL and Former EL"
+replace StudentSubGroup = "EL and Moniot or Recently Ex" if StudentSubGroup == "EL and Former EL"
 replace StudentSubGroup = "EL Monit or Recently Ex" if StudentSubGroup == "Former EL"
 *Ever EL
 *Female
@@ -156,8 +165,9 @@ use "$Temp/MA_AssmtData_`year'", clear
 gen State_leaid = subinstr(StateAssignedDistID, "0000","",.)
 gen seasch = StateAssignedSchID
 
-merge m:1 State_leaid using "$NCES/NCES_`prevyear'_District", gen(DistMerge) keep(match master)
-merge m:1 seasch using "$NCES/NCES_`prevyear'_School", gen(SchMerge) keep(match master)
+merge m:1 State_leaid using "$NCES_MA/NCES_`prevyear'_District", gen(DistMerge) keep(match master)
+duplicates drop
+merge m:1 seasch using "$NCES_MA/NCES_`prevyear'_School", gen(SchMerge) keep(match master)
 duplicates drop
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
@@ -202,7 +212,7 @@ replace SchLevel = 2 if SchName == "Resiliency Middle School"
 replace SchType = 1 if SchName == "Resiliency Middle School" // NCESDistrictID = "2504830" 
 
 //Incorporating Stable Dist/SchNames
-merge m:1 SchYear NCESDistrictID NCESSchoolID using "MA_StableNames", keep(match master) nogen
+merge m:1 SchYear NCESDistrictID NCESSchoolID using "$Original_DTA/MA_StableNames", keep(match master) nogen
 replace DistName = newdistname if !missing(newdistname)
 replace SchName = newschname if !missing(newschname)
 
@@ -213,21 +223,24 @@ foreach var of varlist DistName SchName {
 }
 replace CountyName = proper(CountyName)
 
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
+// Reordering variables and sorting data
+local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
+    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
+    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
+    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
+    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
+    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
+    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
+    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
+    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
+    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
+    Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+	keep `vars'
+	order `vars'
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "$Output/MA_AssmtData_`year'", replace	
+*Exporting Temp Output*
+save "$Temp/MA_AssmtData_`year'", replace
 }
-
-
-
-
-
-
-
-
-
-
+* END of MA_2010_2014.do
+****************************************************

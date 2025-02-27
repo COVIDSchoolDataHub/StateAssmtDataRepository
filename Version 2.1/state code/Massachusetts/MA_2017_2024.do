@@ -1,27 +1,55 @@
+*******************************************************
+* MASSACHUSETTS
+
+* File name: MA_2017_2024
+* Last update: 2/27/2025
+
+*******************************************************
+* Notes
+
+	* This do file first cleans MA's 2017 - 2024 data, except 2020. 
+	* Then this file merges with NCES data for the previous year except for 2024.
+	* 2024 data is merged with NCES 2022. 
+	* As of 2/27/2025, the latest NCES data is for 2022.
+	* This file will need to be updated when newer NCES data is available.
+	* Temp output is created for 2017-2022.
+	* Final output is created for 2023 and 2024. 
+	
+*******************************************************
+///////////////////////////////
+// Setup
+///////////////////////////////
+
 clear
-set more off
-set trace off
 
-cd "/Volumes/T7/State Test Project/Massachusetts"
-
-global Original "/Volumes/T7/State Test Project/Massachusetts/Original"
-global Output "/Volumes/T7/State Test Project/Massachusetts/Output"
-global NCES "/Volumes/T7/State Test Project/Massachusetts/NCES"
-global Temp "/Volumes/T7/State Test Project/Massachusetts/Temp"
-
-
+local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
+    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
+    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
+    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
+    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
+    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
+    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
+    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
+    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
+    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
+    Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+	
+	
+local varstemp State StateAbbrev StateFips SchYear DataLevel DistName SchName ///
+	NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID ///
+	Subject GradeLevel StudentGroup StudentSubGroup StudentSubGroup_TotalTested ///
+	Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent ///
+	Lev4_count Lev4_percent AvgScaleScore ProficientOrAbove_count ///
+	ProficientOrAbove_percent ParticipationRate DistType DistCharter ///
+	DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
 **********************
 **// ELA AND MATH **//
 **********************
-
-
-
-
 forvalues year = 2017/2024 {
 	if `year' == 2020 continue
 	local prevyear = `year' -1 
-	use "$Original/MA_OriginalData_`year'", clear
+	use "$Original_DTA/MA_OriginalData_`year'", clear
 
 
 //Renaming
@@ -130,12 +158,12 @@ replace StateAssignedSchID = substr(StateAssignedSchID, -4,4)
 gen State_leaid = "MA-" + StateAssignedDistID if DataLevel !=1
 gen seasch = StateAssignedDistID + "-" + StateAssignedDistID + StateAssignedSchID if DataLevel == 3
 
-if `year' < 2024 merge m:1 State_leaid using "$NCES/NCES_`prevyear'_District", gen(DistMerge)
-if `year' < 2024 merge m:1 seasch using "$NCES/NCES_`prevyear'_School", gen(SchMerge)
+if `year' < 2024 merge m:1 State_leaid using "$NCES_MA/NCES_`prevyear'_District", gen(DistMerge)
+if `year' < 2024 merge m:1 seasch using "$NCES_MA/NCES_`prevyear'_School", gen(SchMerge)
 if `year' == 2024 {
-merge m:1 State_leaid using "$NCES/NCES_2022_District", gen(DistMerge)
-merge m:1 seasch using "$NCES/NCES_2022_School", gen(SchMerge)
-merge m:1 SchName using MA_Unmerged_2024, update nogen
+merge m:1 State_leaid using "$NCES_MA/NCES_2022_District", gen(DistMerge)
+merge m:1 seasch using "$NCES_MA/NCES_2022_School", gen(SchMerge)
+merge m:1 SchName using "$Original_DTA/MA_Unmerged_2024", update nogen
 }
 
 drop if DistMerge == 2
@@ -151,9 +179,8 @@ replace SchLevel = "Primary" if NCESSchoolID == "251158002946" | NCESSchoolID ==
 }
 replace StateAssignedSchID = StateAssignedDistID + StateAssignedSchID if DataLevel == 3
 
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID Subject GradeLevel StudentGroup StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent AvgScaleScore ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID Subject GradeLevel StudentGroup StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent AvgScaleScore ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+keep `varstemp'
+order `varstemp'
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
@@ -169,7 +196,6 @@ by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] i
 drop group_id StateAssignedDistID1 StateAssignedSchID1
 
 //Indicator Variables
-
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
@@ -181,7 +207,6 @@ if `year' == 2017 {
 	replace Flag_CutScoreChange_ELA = "Y"
 	replace Flag_CutScoreChange_math = "Y"
 	replace Flag_CutScoreChange_sci = "N"
-	
 }
 
 if `year' == 2018 replace Flag_CutScoreChange_sci = "N"
@@ -189,25 +214,20 @@ if `year' == 2018 replace Flag_CutScoreChange_sci = "N"
 if `year' == 2019 {
 	replace Flag_AssmtNameChange = "Y" if Subject == "sci"
 	replace Flag_CutScoreChange_sci = "Y"
-	
 }
 
 gen AssmtName = "NextGen MCAS"
 gen AssmtType = "Regular"
-
-
 gen ProficiencyCriteria = "Levels 3-4"
 
 //ID Update for StateAssignedSchID == "03360020"
 replace NCESSchoolID = "251284001840" if StateAssignedSchID == "03360020"
-
 
 //Empty Vars
 gen Lev5_count = ""
 gen Lev5_percent = ""
 
 //Converting Percents/Counts to String
-
 tostring *_count *_percent StudentGroup_TotalTested StudentSubGroup_TotalTested AvgScaleScore, replace force usedisplayformat
 
 //Converting ParticipationRate and Percents to decimal (added 9/25/24)
@@ -216,30 +236,26 @@ foreach var of varlist *_percent ParticipationRate {
 }
 
 //Final Cleaning
-
 foreach var of varlist DistName SchName {
 	replace `var' = stritrim(`var')
 	replace `var' = strtrim(`var')
 }
 
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
+// Reordering variables and sorting data
+keep `vars'
+order `vars'
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "$Temp/MA_AssmtData_`year'_E2C", replace
-
+*Exporting Output*
+save "${Temp}/MA_AssmtData_`year'_E2C", replace
 }
 
 *************
 //** SCI **//
 *************
-use "$Original/MA_OriginalData_Dist_all_2015_2018_Legacy_MCAS", clear
-
+use "$Original_DTA/MA_OriginalData_Dist_all_2015_2018_Legacy_MCAS", clear
 
 //Renaming & Appending
-
 rename A DataLevel	
 rename B SchYear 	
 rename C GradeLevel
@@ -268,7 +284,7 @@ drop CPI SGP SGP_
 tempfile sci_dist
 save "`sci_dist'", replace
 
-use "$Original/MA_OriginalData_Sch_all_2015_2018_Legacy_MCAS", clear
+use "$Original_DTA/MA_OriginalData_Sch_all_2015_2018_Legacy_MCAS", clear
 
 rename A DataLevel
 rename B SchYear 	
@@ -298,19 +314,16 @@ gen AvgScaleScore = "--"
 
 drop CPI SGP SGP_2
 
-
 append using "`sci_dist'"
 keep if SchYear == "2017" | SchYear == "2018"
 
-
-save "$Original/MA_OriginalData_2017_2018_sci", replace
+save "$Original_DTA/MA_OriginalData_2017_2018_sci", replace
 
 foreach year in 2017 2018 {
 	local prevyear = `year' -1
-	use "$Original/MA_OriginalData_2017_2018_sci", clear
+	use "$Original_DTA/MA_OriginalData_2017_2018_sci", clear
 	keep if SchYear == "`year'"
-	save "$Original/sci_`year'", replace
-
+	save "$Original_DTA/sci_`year'", replace
 
 //DataLevel
 replace DataLevel = "State" if DistName == "State Total"
@@ -378,8 +391,8 @@ replace StateAssignedDistID = substr(StateAssignedSchID,1,4) if DataLevel == 3
 gen State_leaid = "MA-" + StateAssignedDistID if DataLevel !=1
 gen seasch = StateAssignedDistID + "-" + StateAssignedSchID if DataLevel == 3
 
-merge m:1 State_leaid using "$NCES/NCES_`prevyear'_District", gen(DistMerge)
-merge m:1 seasch using "$NCES/NCES_`prevyear'_School", gen(SchMerge)
+merge m:1 State_leaid using "$NCES_MA/NCES_`prevyear'_District", gen(DistMerge)
+merge m:1 seasch using "$NCES_MA/NCES_`prevyear'_School", gen(SchMerge)
 
 drop if DistMerge == 2 | SchMerge == 2
 
@@ -388,10 +401,8 @@ replace StateFips = 25
 replace StateAbbrev = "MA"
 if `year' == 2023 replace SchVirtual = "Missing/not reported" if missing(SchVirtual) & DataLevel == 3 & !missing(NCESSchoolID)
 
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID Subject GradeLevel StudentGroup StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent AvgScaleScore ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID Subject GradeLevel StudentGroup StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent AvgScaleScore ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
+keep `varstemp'
+order `varstemp'
 
 //StudentGroup_TotalTested
 gen StateAssignedDistID1 = StateAssignedDistID
@@ -405,7 +416,6 @@ by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] i
 drop group_id StateAssignedDistID1 StateAssignedSchID1
 
 //Indicator Variables
-
 gen Flag_AssmtNameChange = "N"
 gen Flag_CutScoreChange_ELA = "N"
 gen Flag_CutScoreChange_math = "N"
@@ -417,7 +427,6 @@ if `year' == 2017 {
 	replace Flag_CutScoreChange_ELA = "Y"
 	replace Flag_CutScoreChange_math = "Y"
 	replace Flag_CutScoreChange_sci = "N"
-	
 }
 
 if `year' == 2018 replace Flag_CutScoreChange_sci = "N"
@@ -425,7 +434,6 @@ if `year' == 2018 replace Flag_CutScoreChange_sci = "N"
 if `year' == 2019 {
 	replace Flag_AssmtNameChange = "Y" if Subject == "sci"
 	replace Flag_CutScoreChange_sci = "Y"
-	
 }
 
 gen AssmtType = "Regular"
@@ -445,16 +453,13 @@ foreach var of varlist DistName SchName {
 	replace `var' = strtrim(`var')
 }
 
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
+// Reordering variables and sorting data
+keep `vars'
+order `vars'
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "$Temp/MA_AssmtData_`year'_sci", replace
-
 }
-
 
 //Combining ela/math and sci for 2017 and 2018
 forvalues year = 2017/2024 {
@@ -470,16 +475,22 @@ replace StateAssignedDistID = StateAssignedDistID + "0000" if DataLevel !=1
 replace AvgScaleScore = "--" if AvgScaleScore == "."
 
 //Incorporating Stable Dist/SchNames
-merge m:1 SchYear NCESDistrictID NCESSchoolID using "MA_StableNames", keep(match master) nogen
+merge m:1 SchYear NCESDistrictID NCESSchoolID using "$Original_DTA/MA_StableNames", keep(match master) nogen
 replace DistName = newdistname if !missing(newdistname)
 replace SchName = newschname if !missing(newschname)
 	
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
-sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+keep `vars'
+order `vars'
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
+*Exporting Temp Output*
+save "$Temp/MA_AssmtData_`year'", replace
+
+*Exporting Final Output for 2023 and 2024*
+if `year' > 2022 {
 save "$Output/MA_AssmtData_`year'", replace
+export delimited "$Output/MA_AssmtData_`year'", replace
 }
+}
+* END of MA_2017_2024.do
+****************************************************
