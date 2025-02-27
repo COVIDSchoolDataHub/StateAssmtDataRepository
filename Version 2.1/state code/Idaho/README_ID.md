@@ -39,6 +39,6 @@ Create a folder for ID. Inside that folder, create the following subfolders:
     Running ID_Main_File.do will execute all the do files in order.
 
 ## Updates
-- 02/08/2025: Updated to add formatting across files. Header was added to 2024 but was not otherwise updated.
 - 09/07/2024: Updated to include 2024 data as well as to address new conventions and review standards in version 2.0 (including deriving additional counts based on percentages and StudentSubGroup_TotalTested).
+- 02/08/2025: Updated to add formatting across files. Header was added to 2024 but was not otherwise updated.
 - 02/26/2025: Modified to create non-derivation output. 
