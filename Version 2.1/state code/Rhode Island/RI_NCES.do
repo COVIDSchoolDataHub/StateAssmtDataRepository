@@ -1,9 +1,23 @@
+*******************************************************
+* RHODE ISLAND
+
+* File name: RI_NCES
+* Last update: 2/27/2025
+
+*******************************************************
+* Notes
+
+	* This do file reads NCES files from 2017 through 2022 one by one.
+	* It keeps only RI observations. 
+	* As of the last update 2/27/2025, the latest NCES file is for 2022.
+	* This code will need to be updated when newer NCES files are released. 
+
+*******************************************************
+
+/////////////////////////////////////////
+*** Setup ***
+/////////////////////////////////////////
 clear
-set more off
-
-global NCES_Original "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
-global NCES "/Volumes/T7/State Test Project/Rhode Island/NCES"
-
 
 ** Preparing NCES files
 clear
@@ -16,7 +30,7 @@ global years 2017 2018 2020 2021 2022
 
 foreach a in $years {
 	
-	use "${NCES_Original}/NCES_`a'_District.dta", clear 
+	use "${NCES_District}/NCES_`a'_District.dta", clear 
 	keep if state_location == "RI"
 	
 	rename state_name State
@@ -37,7 +51,7 @@ foreach a in $years {
 	append using "`tempdist'"
 	save "`tempdist'", replace
 	
-	use "${NCES_Original}/NCES_`a'_School.dta", clear
+	use "${NCES_School}/NCES_`a'_School.dta", clear
 	keep if state_location == "RI"
 	
 	rename state_name State
@@ -80,6 +94,8 @@ foreach a in $years {
 	
 }
 use "`tempdist'", clear
-save "$NCES/NCES_District", replace
+save "$NCES_RI/NCES_District_RI", replace
 use "`tempsch'", clear
-save "$NCES/NCES_School", replace
+save "$NCES_RI/NCES_School_RI", replace
+* END of RI_NCES.do
+****************************************************

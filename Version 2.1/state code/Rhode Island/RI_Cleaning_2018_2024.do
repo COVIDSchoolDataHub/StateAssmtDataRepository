@@ -1,17 +1,25 @@
-clear
-set more off
+*******************************************************
+* RHODE ISLAND
+* File name: RI_Cleaning_2018_2024
+* Last update: 2/27/2025
 
-cd "/Volumes/T7/State Test Project/Rhode Island"
-global Original "/Volumes/T7/State Test Project/Rhode Island/Original"
-global Output "/Volumes/T7/State Test Project/Rhode Island/Output"
-global NCES "/Volumes/T7/State Test Project/Rhode Island/NCES"
+*******************************************************
+* Notes
+
+	* This do file first cleans RI's 2018 - 2024 data, except 2020. 
+	* The non-derivation and usual output are created for all years, except 2020.
+	
+*******************************************************
+///////////////////////////////
+// Setup
+///////////////////////////////
+clear
 
 //Combine Subjects
-clear
 tempfile temp1
 save "`temp1'", replace emptyok
 foreach subject in ela math sci {
-	use "$Original/RI_OriginalData_`subject'_2018_2024", clear
+	use "$Original_DTA/RI_OriginalData_`subject'_2018_2024", clear
 	gen Subject = "`subject'"
 	if "`subject'" == "sci" {
 		rename BeginningtoMeetExpectations Lev1_percent
@@ -25,12 +33,10 @@ foreach subject in ela math sci {
 	save "`temp1'", replace
 }
 use "`temp1'"
-save "$Original/RI_OriginalData_2018_2024", replace
+save "$Original_DTA/RI_OriginalData_2018_2024", replace
 
 //Drop duplicate obs
 duplicates drop
-
-
 
 //Rename and drop Vars
 drop Growth* AvgGrowthPercentile
@@ -47,7 +53,7 @@ rename MeetingorExceedingExpectation ProficientOrAbove_percent
 
 //Merging
 
-merge m:1 SchYear DistName SchName using "RI_NCES_CW1", gen(NCESMerge)
+merge m:1 SchYear DistName SchName using "$Original_DTA/RI_NCES_CW1", gen(NCESMerge)
 
 **Merge with NCES data from additional Crosswalk
 replace SchName = "The R.Y.S.E. School" if SchName == "The R.Y.S.E School"
@@ -60,7 +66,7 @@ replace SchName = "Warwick Veterans Jr. High School" if SchName == "Warwick Vete
 replace SchName = "John Wickes School" if SchName == "Wickes School"
 replace SchName = "RISE Prep Mayoral Academy Middle School" if SchName == "RISE Prep Mayoral Acad Middle"
 
-merge m:1 SchYear DistName SchName using "RI_NCES_CW2", update replace gen(NCESMerge2)
+merge m:1 SchYear DistName SchName using "$Original_DTA/RI_NCES_CW2", update replace gen(NCESMerge2)
 
 //DataLevel
 gen DataLevel = 1 if DistName == "Statewide"
@@ -145,9 +151,9 @@ foreach percent of varlist *_percent {
 }
 
 //NCES Merging
-merge m:1 SchYear NCESDistrictID using "$NCES/NCES_District", gen(DistMerge)
+merge m:1 SchYear NCESDistrictID using "$NCES_RI/NCES_District_RI", gen(DistMerge)
 drop if DistMerge == 2
-merge m:1 SchYear NCESSchoolID using "$NCES/NCES_School", gen(SchMerge)
+merge m:1 SchYear NCESSchoolID using "$NCES_RI/NCES_School_RI", gen(SchMerge)
 drop if SchMerge == 2
 
 //New Schools (Both are high schools already dropped)
@@ -213,13 +219,13 @@ gen Lev5_percent = ""
 **AssmtType
 gen AssmtType = "Regular"
 
-save "$Original/RI_AssmtData_All", replace
+save "$Original_DTA/RI_AssmtData_All", replace
 
 //Splitting By Year
 forvalues year = 2018/2024 {
 	if `year' == 2020 continue
 	local prevyear = `year'-1
-use "$Original/RI_AssmtData_All", clear
+use "$Original_DTA/RI_AssmtData_All", clear
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 keep if SchYear == "`prevyear'-" + substr("`year'",-2,2)
 	
@@ -247,8 +253,7 @@ replace StudentSubGroup_TotalTested = string(real(StudentGroup_TotalTested)-Unsu
 
 drop Unsuppressed* missing_*
 
-//Derivations
-
+//Calculations
 //Derive Level percent if we have ProficientOrAbove_percent
 replace Lev3_percent = string(real(ProficientOrAbove_percent)-real(Lev4_percent)) if !missing(real(ProficientOrAbove_percent)) & !missing(real(Lev4_percent)) & missing(real(Lev3_percent))
 replace Lev4_percent = string(real(ProficientOrAbove_percent)- real(Lev3_percent)) if !missing(real(ProficientOrAbove_percent)) & !missing(real(Lev3_percent)) & missing(real(Lev4_percent))
@@ -268,10 +273,17 @@ foreach percent of varlist Lev*_percent {
 
 replace ProficientOrAbove_percent = string(real(Lev3_percent) + real(Lev4_percent)) if !missing(real(Lev3_percent)) & !missing(real(Lev4_percent)) & missing(real(ProficientOrAbove_percent))
 
+// Saving transformed data, will restore this file for non-derivation output. 
+save "${Temp}/RI_AssmtData_`year'_Breakpoint", replace
+
+*******************************************************
+**Derivations***
+*******************************************************
 foreach count of varlist Lev*_count {
 	local percent = subinstr("`count'", "count", "percent",.)
 	replace `count' = string(round(real(`percent') * real(StudentSubGroup_TotalTested))) if !missing(real(`percent')) & !missing(real(StudentSubGroup_TotalTested)) & missing(real(`count'))
 }
+
 //Misc fixes
 foreach var of varlist Lev* Proficient* {
 	replace `var' = ustrregexra(`var', "\u00A0", "") //nonbreaking whitespace removal
@@ -283,20 +295,55 @@ foreach var of varlist DistName SchName {
 	replace `var' = stritrim(`var')
 	replace `var' = strtrim(`var')
 }
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-	
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-	
+
+// Reordering variables and sorting data
+local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
+    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
+    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
+    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
+    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
+    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
+    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
+    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
+    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
+    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
+    Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+	keep `vars'
+	order `vars'
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
+*Exporting Output*
 save "$Output/RI_AssmtData_`year'", replace
 export delimited "$Output/RI_AssmtData_`year'", replace
+
+///////////////////////////////////////////////////////
+*******************************************************
+** Creating the non-derivation file 
+*******************************************************
+///////////////////////////////////////////////////////
+// Restoring the break-point 
+use "${Temp}/RI_AssmtData_`year'_Breakpoint", clear
+
+//Misc fixes
+foreach var of varlist Lev* Proficient* {
+	replace `var' = ustrregexra(`var', "\u00A0", "") //nonbreaking whitespace removal
 }
 
+//Final Cleaning
 
+foreach var of varlist DistName SchName {
+	replace `var' = stritrim(`var')
+	replace `var' = strtrim(`var')
+}
 
+// Reordering variables and sorting data
+keep `vars'
+order `vars'
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-
-
-
-
-
+*Exporting Non-Derivation Output*
+save "${Output_ND}/RI_AssmtData_`year'_ND", replace
+export delimited "${Output_ND}/RI_AssmtData_`year'_ND", replace
+}
+* END of RI_Cleaning_2018_2024.do
+****************************************************
