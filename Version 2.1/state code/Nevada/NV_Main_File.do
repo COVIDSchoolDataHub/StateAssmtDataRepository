@@ -29,7 +29,6 @@ global NCES_NV "C:/Zelma/Nevada/NCES_NV" //This will start empty and will hold t
 
 *Input folders* //Original Data Files downloaded from Google Drive.
 global Original "C:/Zelma/Nevada/Original Data Files" 
-global Original_DTA "C:/Zelma/Nevada/Original Data Files/DTA" //Change here. 
 
 *Output folders*
 global Output "C:/Zelma/Nevada/Output_Files" // Version 2.1 Output directory here.
