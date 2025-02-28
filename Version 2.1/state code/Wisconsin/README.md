@@ -25,11 +25,11 @@ Create a folder for WI. Inside that folder, create the following subfolders:
          
       2. Temp
          
-      3. NCES_WI [will start empty]
+      3. NCES_WI [will start empty] 
            
       4. Output_Files
       
-      5. Output_Files_ND: This is a folder for the non-derivation output.
+      5. Output_Files_ND: This is a folder for the non-derivation output. [Unused as of 02/28/2025.]
 
 ## Process
     Place all do files in the WI folder.
