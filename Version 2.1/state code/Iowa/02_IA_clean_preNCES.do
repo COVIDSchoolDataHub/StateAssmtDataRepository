@@ -2,13 +2,13 @@
 * IOWA
 
 * File name: 02_IA_clean_preNCES
-* Last update: 12/15/2024
+* Last update: 02/28/2024
 
 *******************************************************
 * Notes: 2004 to 2014 
 
 	* This do files cleans 2004 to 2014 without merging in any NCES data.
-	* Completed files are saved to intermediate1
+	* Completed files are saved to a subfolder called DTA.
 	* These files only include district-level data, except for 2014, which includes state data.
 	* No subgroup data are available for these years.
 	* No proficiency level data are available for these years (Level 1, Level 2, etc.)
@@ -16,7 +16,7 @@
 * Notes: 2015 to 2023
 
 	* This do files cleans 2015 to 2023 without merging in any NCES data.
-	* Completed files are saved to intermediate1
+	* Completed files are saved to a subfolder called DTA.
 	* These files only include state, dist, and school data
 	* All files are from a data request. 
 	* Subgroup data ARE available.
@@ -24,21 +24,12 @@
 *******************************************************
 clear
 
-// Update with appropriate file paths
-global NCES "\Desktop\Zelma V2.0\Iowa - Version 2.0\NCES_full"
-global NCES_iowa "\Desktop\Zelma V2.0\Iowa - Version 2.0\NCES_iowa"
-global original "\Desktop\Zelma V2.0\Iowa - Version 2.0\Original Data Files"
-global raw "\Desktop\Zelma V2.0\Iowa - Version 2.0\Original Data Files\2014 and Previous Files"
-global dr "\Desktop\Zelma V2.0\Iowa - Version 2.0\Original Data Files\2015 and Post Files"
-global int "\Desktop\Zelma V2.0\Iowa - Version 2.0\Intermediate"
-global output "\Desktop\Zelma V2.0\Iowa - Version 2.0\Output"
 global years  2024 2023 2022 2021 2019 2018 2017 2016 2015 2014 2013 2012 2011 2010 2009 2008 2007 2006 2005 2004 //List all available years
-
 
 *******************************************************
 * 2004
 *******************************************************
-import excel "${raw}/IA_OriginalData_2004_district_ela,math.xls", sheet("AYP_ByDist_2004") cellrange(A6:AQ374) firstrow clear
+import excel "${Original_Pre}/IA_OriginalData_2004_district_ela,math.xls", sheet("AYP_ByDist_2004") cellrange(A6:AQ374) firstrow clear
 
 // Dropping vars for grades above Grade 8 
 drop AE AF AG AH AI AJ AK AL AM AN AO AP AQ
@@ -160,13 +151,12 @@ foreach var of varlist ProficientOrAbove_percent ParticipationRate  {
 
 //note: all vars are string; participationrate and proficientorabove_percent have been convereted to decimals 
 
-save "${int}/intermediate1/IA_AssmtData_2004.dta", replace
-
+save "${Original_DTA}/IA_AssmtData_2004.dta", replace
 
 *******************************************************
 * 2005
 *******************************************************
-import excel "${raw}/IA_OriginalData_2005_district_ela,math.xls", sheet("AYP_2005_ByDist_Summary") cellrange(A6:AQ373) firstrow clear
+import excel "${Original_Pre}/IA_OriginalData_2005_district_ela,math.xls", sheet("AYP_2005_ByDist_Summary") cellrange(A6:AQ373) firstrow clear
 
 // Dropping vars for grades above Grade 8 
 drop AE AF AG AH AI AJ AK AL AM AN AO AP AQ
@@ -286,12 +276,12 @@ foreach var of varlist StudentGroup_TotalTested ProficientOrAbove_count {
 	
 //note: all vars are string; participationrate and proficientorabove_percent have been convereted to decimals 
 
-save "${int}/intermediate1/IA_AssmtData_2005.dta", replace
+save "${Original_DTA}/IA_AssmtData_2005.dta", replace
 
 *******************************************************
 * 2006
 *******************************************************
-import excel "${raw}/IA_OriginalData_2006_district_ela,math.xls", sheet("Sheet1") cellrange(A6:CU372) firstrow clear
+import excel "${Original_Pre}/IA_OriginalData_2006_district_ela,math.xls", sheet("Sheet1") cellrange(A6:CU372) firstrow clear
 
 // Dropping vars for grades above Grade 8 
 drop CP CQ CR CS CT CU AS AT AU AV AW AX
@@ -503,12 +493,12 @@ foreach var of varlist StudentGroup_TotalTested ProficientOrAbove_count {
 	
 //note: all vars are string; participationrate and proficientorabove_percent have been convereted to decimals 
 
-save "${int}/intermediate1/IA_AssmtData_2006.dta", replace
+save "${Original_DTA}/IA_AssmtData_2006.dta", replace
 
 *******************************************************
 * 2007
 *******************************************************
-import excel "${raw}/IA_OriginalData_2007_district_ela,math.xls", sheet("Math & Reading") cellrange(A7:CH373) firstrow clear
+import excel "${Original_Pre}/IA_OriginalData_2007_district_ela,math.xls", sheet("Math & Reading") cellrange(A7:CH373) firstrow clear
 
 // Dropping vars for grades above Grade 8 
 drop AM AN AO AP AQ AR CC CD CE CF CG CH
@@ -709,18 +699,18 @@ foreach var of varlist StudentGroup_TotalTested ProficientOrAbove_count {
 
 //note: all vars are string; participationrate and proficientorabove_percent have been convereted to decimals 
 
-save "${int}/intermediate1/IA_AssmtData_2007.dta", replace
+save "${Original_DTA}/IA_AssmtData_2007.dta", replace
 
 *******************************************************
 * 2008 
 *******************************************************
  
-import excel "${raw}/IA_OriginalData_2008_district_ela,math.xls", sheet("Math results") cellrange(A10:M2462) firstrow clear
+import excel "${Original_Pre}/IA_OriginalData_2008_district_ela,math.xls", sheet("Math results") cellrange(A10:M2462) firstrow clear
 rename Gr Grade
-save "${int}/intermediate1/IA_AssmtData_2008.dta", replace
+save "${Original_DTA}/IA_AssmtData_2008.dta", replace
 
-import excel "${raw}/IA_OriginalData_2008_district_ela,math.xls", sheet("Reading results") cellrange(A10:M2462) firstrow clear
-append using "${int}/intermediate1/IA_AssmtData_2008.dta"
+import excel "${Original_Pre}/IA_OriginalData_2008_district_ela,math.xls", sheet("Reading results") cellrange(A10:M2462) firstrow clear
+append using "${Original_DTA}/IA_AssmtData_2008.dta"
 
 rename District StateAssignedDistID
 rename Agencyname DistName 
@@ -798,13 +788,13 @@ foreach var of varlist StudentGroup_TotalTested ProficientOrAbove_count {
 	
 //note: all vars are string; participationrate and proficientorabove_percent have been convereted to decimals 
 
-save "${int}/intermediate1/IA_AssmtData_2008.dta", replace
+save "${Original_DTA}/IA_AssmtData_2008.dta", replace
 
 
 *******************************************************
 * 2009
 *******************************************************
-import excel "${raw}/IA_OriginalData_2009_district_ela,math.xls", sheet(" for posting") cellrange(A6:M4840) firstrow clear
+import excel "${Original_Pre}/IA_OriginalData_2009_district_ela,math.xls", sheet(" for posting") cellrange(A6:M4840) firstrow clear
 
 rename District StateAssignedDistID
 rename Agencyname DistName 
@@ -878,12 +868,12 @@ foreach var of varlist StudentGroup_TotalTested ProficientOrAbove_count {
 
 //note: all vars are string; participationrate and proficientorabove_percent have been convereted to decimals 
 
-save "${int}/intermediate1/IA_AssmtData_2009.dta", replace
+save "${Original_DTA}/IA_AssmtData_2009.dta", replace
 
 *******************************************************
 * 2010
 *******************************************************
-import excel "${raw}/IA_OriginalData_2010_district_ela,math.xls", cellrange(A4:M4812) firstrow clear
+import excel "${Original_Pre}/IA_OriginalData_2010_district_ela,math.xls", cellrange(A4:M4812) firstrow clear
 
 rename District StateAssignedDistID
 rename Agencyname DistName 
@@ -953,14 +943,14 @@ foreach var of varlist StudentGroup_TotalTested ProficientOrAbove_count {
 	replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent=="2.000"
 //////////////////////////////////		
 	
-//note: all vars are string; participationrate and proficientorabove_percent have been convereted to decimals 
+//note: all vars are string; participationrate and proficientorabove_percent have been converted to decimals 
 
-save "${int}/intermediate1/IA_AssmtData_2010.dta", replace
+save "${Original_DTA}/IA_AssmtData_2010.dta", replace
 
 *******************************************************
 * 2011
 *******************************************************
-import excel "${raw}/IA_OriginalData_2011_district_ela,math.xlsx", cellrange(A4:M4808) firstrow clear
+import excel "${Original_Pre}/IA_OriginalData_2011_district_ela,math.xlsx", cellrange(A4:M4808) firstrow clear
 
 rename District StateAssignedDistID
 rename Agencyname DistName 
@@ -1031,14 +1021,14 @@ foreach var of varlist StudentGroup_TotalTested ProficientOrAbove_count {
 	replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent=="2.000"
 //////////////////////////////////		
 	
-//note: all vars are string; participationrate and proficientorabove_percent have been convereted to decimals 
+//note: all vars are string; participationrate and proficientorabove_percent have been converted to decimals 
 
-save "${int}/intermediate1/IA_AssmtData_2011.dta", replace
+save "${Original_DTA}/IA_AssmtData_2011.dta", replace
 
 *******************************************************
 * 2012
 *******************************************************
-import excel "${raw}/IA_OriginalData_2012_district_ela,math.xlsx", cellrange(A1:N4693) firstrow clear
+import excel "${Original_Pre}/IA_OriginalData_2012_district_ela,math.xlsx", cellrange(A1:N4693) firstrow clear
 
 rename Dist StateAssignedDistID
 rename SchName DistName 
@@ -1109,14 +1099,14 @@ foreach var of varlist StudentGroup_TotalTested ProficientOrAbove_count {
 	
 //note: all vars are string; participationrate and proficientorabove_percent have been convereted to decimals 
 
-save "${int}/intermediate1/IA_AssmtData_2012.dta", replace
+save "${Original_DTA}/IA_AssmtData_2012.dta", replace
 
 
 *******************************************************
-* 2013 - no participation rate data this year in raw data 
+* 2013 - no participation rate data this year in Original data 
 *******************************************************
 clear 
-import excel "${raw}/IA_OriginalData_2013_district_ela,math.xls", sheet("Districts") cellrange(A2:M4670) firstrow clear
+import excel "${Original_Pre}/IA_OriginalData_2013_district_ela,math.xls", sheet("Districts") cellrange(A2:M4670) firstrow clear
 
 rename district StateAssignedDistID
 rename DistrictName DistName 
@@ -1182,7 +1172,7 @@ tab ProficientOrAbove_percent
 
 //note: all are string 
 
-save "${int}/intermediate1/IA_AssmtData_2013.dta", replace
+save "${Original_DTA}/IA_AssmtData_2013.dta", replace
 
 
 
@@ -1192,17 +1182,17 @@ save "${int}/intermediate1/IA_AssmtData_2013.dta", replace
 
 // 2014 formatting changes. 
 clear
-import excel "${raw}/IA_OriginalData_2014_district_ela,math.xlsx",  cellrange(A3:AR349) firstrow sheet("reading") 
+import excel "${Original_Pre}/IA_OriginalData_2014_district_ela,math.xlsx",  cellrange(A3:AR349) firstrow sheet("reading") 
 gen Subject="ela"
 rename  District StateAssignedDistID
-save "${int}/intermediate1/IA_AssmtData_2014.dta", replace
+save "${Original_DTA}/IA_AssmtData_2014.dta", replace
 
 clear
-import excel "${raw}/IA_OriginalData_2014_district_ela,math.xlsx",  cellrange(A3:AR349) firstrow sheet("math") 
+import excel "${Original_Pre}/IA_OriginalData_2014_district_ela,math.xlsx",  cellrange(A3:AR349) firstrow sheet("math") 
 gen Subject="math"
 rename Dist StateAssignedDistID
-append using "${int}/intermediate1/IA_AssmtData_2014.dta"
-save "${int}/intermediate1/IA_AssmtData_2014.dta", replace
+append using "${Original_DTA}/IA_AssmtData_2014.dta"
+save "${Original_DTA}/IA_AssmtData_2014.dta", replace
 
 //Re-naming vars 
 	foreach i of varlist NotProficient Proficient TotalTested I {
@@ -1346,7 +1336,7 @@ foreach var of varlist StudentGroup_TotalTested ProficientOrAbove_count {
 sort ProficientOrAbove_percent
 replace ProficientOrAbove_count = "0" if ProficientOrAbove_percent=="0.000"
 
-save "${int}/intermediate1/IA_AssmtData_2014.dta", replace
+save "${Original_DTA}/IA_AssmtData_2014.dta", replace
 
 
 
@@ -1356,7 +1346,7 @@ save "${int}/intermediate1/IA_AssmtData_2014.dta", replace
 
 foreach year in 2004 2005 2006 2007 2008 2009 2010 2011 2012 2013 2014  {
 
-	use "${int}/intermediate1/IA_AssmtData_`year'.dta", clear
+	use "${Original_DTA}/IA_AssmtData_`year'.dta", clear
 	
 	// Directory Variables 
 	gen State="Iowa"
@@ -1453,8 +1443,8 @@ foreach year in 2004 2005 2006 2007 2008 2009 2010 2011 2012 2013 2014  {
 	keep State_leaid State StateAbbrev StateFips SchYear DataLevel DistName SchName StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc 	SchLevel SchType SchVirtual
 	
 	// Saving to intermediate1 
-	save "${int}/intermediate1/IA_AssmtData_`year'.dta", replace
-	export delimited "${int}/intermediate1/IA_AssmtData_`year'.csv", replace
+	save "${Original_DTA}/IA_AssmtData_`year'.dta", replace
+	//export delimited "${Original_DTA}/IA_AssmtData_`year'.csv", replace
 	}
 
 
@@ -1468,16 +1458,16 @@ foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 2024 {
 local prevyear =`=`year'-1'
 local Year = substr("`prevyear'",-2,2) + substr("`year'",-2,2)
 
-import excel "${dr}/IA_ProficiencyData_`Year'.xlsx", sheet("School") firstrow allstring clear
-save "${dr}/IA_ProficiencyData_`year'.dta", replace
+import excel "${Original_Post}/IA_ProficiencyData_`Year'.xlsx", sheet("School") firstrow allstring clear
+save "${Original_DTA}/IA_ProficiencyData_`year'.dta", replace
 
-import excel "${dr}/IA_ProficiencyData_`Year'.xlsx", sheet("District") firstrow allstring clear
-append using "${dr}/IA_ProficiencyData_`year'.dta"
-save "${dr}/IA_ProficiencyData_`year'.dta", replace
+import excel "${Original_Post}/IA_ProficiencyData_`Year'.xlsx", sheet("District") firstrow allstring clear
+append using "${Original_DTA}/IA_ProficiencyData_`year'.dta"
+save "${Original_DTA}/IA_ProficiencyData_`year'.dta", replace
 
-import excel "${dr}/IA_ProficiencyData_`Year'.xlsx", sheet("State") firstrow allstring clear
-append using "${dr}/IA_ProficiencyData_`year'.dta"
-save "${dr}/IA_ProficiencyData_`year'.dta", replace
+import excel "${Original_Post}/IA_ProficiencyData_`Year'.xlsx", sheet("State") firstrow allstring clear
+append using "${Original_DTA}/IA_ProficiencyData_`year'.dta"
+save "${Original_DTA}/IA_ProficiencyData_`year'.dta", replace
 }
 
 /////////////////////////////////////////
@@ -1487,7 +1477,7 @@ foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 2024 {
 	local prevyear =`=`year'-1'
 	local Year = "`prevyear'" + "-" + substr("`year'",-2,2)
 	
-	use "${dr}/IA_ProficiencyData_`year'.dta", clear
+	use "${Original_DTA}/IA_ProficiencyData_`year'.dta", clear
 	
 	rename district StateAssignedDistID
 	rename District_Name DistName 
@@ -1669,28 +1659,27 @@ foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 2024 {
 	sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup	
 
 	// Saving to intermediate1 to add to 2004-2014
-	save "${int}/intermediate1/IA_AssmtData_`year'.dta", replace
-	export delimited "${int}/intermediate1/IA_AssmtData_`year'.csv", replace
-	
+	save "${Original_DTA}/IA_AssmtData_`year'.dta", replace
+	//export delimited "${Original_DTA}/IA_AssmtData_`year'.csv", replace	
 }
 
 /////////////////////////////////////////
 // County Names
 /////////////////////////////////////////
 clear
-import excel "${original}/ia_county-list_through2023.xlsx", firstrow
-save "${original}/ia_county-list_through2023.dta", replace
+import excel "${Original}/ia_county-list_through2023.xlsx", firstrow
+save "${Original_DTA}/ia_county-list_through2023.dta", replace
 
 // for merging with 2024 
 clear 
-import excel "${original}/ia_county-list_through2023.xlsx", firstrow
+import excel "${Original}/ia_county-list_through2023.xlsx", firstrow
 	
 	keep if SchYear == "2022-23"
 	drop SchYear 
 	duplicates drop 
 	
-save "${original}/ia_county-list_noyear.dta", replace
+save "${Original_DTA}/ia_county-list_noyear.dta", replace
 
+*End of 02_IA_clean_preNCES.do
 ********************************************************
-*end of 02_IA_clean_preNCES
 

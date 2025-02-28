@@ -2,39 +2,29 @@
 * IOWA
 
 * File name: 01_IA_NCES_clean
-* Last update: 12/15/2024
+* Last update: 02/28/2025
 
 *******************************************************
 * Notes
 
 	* This do file isolates Iowa's NCES information from the larger NCES files. 
-	* Completed files are saved to the NCES_iowa folder
-	* As of 12/15/24, the most recent NCES file available is NCES_2022. This will be used for 2023 and 2024 data files.
+	* Completed files are saved to the NCES_IA folder
+	* As of 02/28/2025, the most recent NCES file available is NCES_2022. This will be used for 2023 and 2024 data files.
 	* This file will need to be updated when NCES_2023 becomes available
 	
 *******************************************************
 clear
-*set more off
-
-// Update with appropriate file paths
-global NCES "\Desktop\Zelma V2.0\Iowa - Version 2.0\NCES_full"
-global NCES_iowa "\Desktop\Zelma V2.0\Iowa - Version 2.0\NCES_iowa"
-global original "\Desktop\Zelma V2.0\Iowa - Version 2.0\Original Data Files"
-global raw "\Desktop\Zelma V2.0\Iowa - Version 2.0\Original Data Files\2014 and Previous Files"
-global dr "\Desktop\Zelma V2.0\Iowa - Version 2.0\Original Data Files\2015 and Post Files"
-global int "\Desktop\Zelma V2.0\Iowa - Version 2.0\Intermediate"
-global output "\Desktop\Zelma V2.0\Iowa - Version 2.0\Output"
 
 /////////////////////////////////////////
 *** NCES Cleaning for IA ***
 /////////////////////////////////////////
 
-global years  2003 2004 2005 2006 2007 2008 2009 2010 2011 2012 2013 2014 2015 2016 2017 2018 2019 2020 2021 2022 //update as years are added. No 2023 available as of 12/15/24.
+global years  2003 2004 2005 2006 2007 2008 2009 2010 2011 2012 2013 2014 2015 2016 2017 2018 2019 2020 2021 2022 //update as years are added. 
 
 
 foreach a in $years {
 	
-	use "${NCES}/NCES_`a'_School.dta", clear
+	use "${NCES_School}/NCES_`a'_School.dta", clear
 	
 		if `a' == 2003 {
 			keep if state_fips_id==19
@@ -100,9 +90,9 @@ foreach a in $years {
 		
 	}
 	
-	save "${NCES_iowa}/NCES_`a'_School.dta", replace
+	save "${NCES_IA}/NCES_`a'_School_IA.dta", replace
 	
-	use "${NCES}/NCES_`a'_District.dta", clear 
+	use "${NCES_District}/NCES_`a'_District.dta", clear 
 	
 		if `a' == 2003 {
 			keep if state_fips_id==19
@@ -141,24 +131,25 @@ foreach a in $years {
 	replace CountyName = strproper(CountyName) if `a' <= 2015
 	
 	// Save to NCES_iowa folder
-	save "${NCES_iowa}/NCES_`a'_District.dta", replace
+	save "${NCES_IA}/NCES_`a'_District_IA.dta", replace
 	
 }
 
 {
 // Extra edits to some NCES files in cases where the district is listed twice but one is "Closed"
 
-use "${NCES_iowa}/NCES_2004_District.dta", clear
+use "${NCES_IA}/NCES_2004_District_IA.dta", clear
 gsort -boundary_change_indicator
 duplicates tag State_leaid, gen(test)
 tab test
 duplicates drop State_leaid,force
-save "${NCES_iowa}/NCES_2004_District.dta", replace
+save "${NCES_IA}/NCES_2004_District_IA.dta", replace
 
 // 2021 Edit
-use "${NCES_iowa}/NCES_2021_School.dta", clear
+use "${NCES_IA}/NCES_2021_School_IA.dta", clear
 replace seasch = "0418" if seasch == "4860" & State_leaid == "4860" & SchName == "Odebolt Arthur Battle Creek Ida Grove Elementary-Ida Grove" 
-save "${NCES_iowa}/NCES_2021_School.dta", replace
+save "${NCES_IA}/NCES_2021_School_IA.dta", replace
 }
 
-*end of 01_Iowa_NCES_clean
+*End of 01_Iowa_NCES_clean
+****************************************************
