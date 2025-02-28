@@ -1,17 +1,25 @@
+*******************************************************
+* WISCONSIN
+
+* File name: WI_2021
+* Last update: 2/28/2025
+
+*******************************************************
+* Notes
+
+	* This do file import WI 2021 (csv) and saves it as dta. 
+	* The file is reshaped, cleaned and merged with NCES 2020.
+	* Only the usual output is created. 
+*******************************************************
+///////////////////////////////
+// Setup
+///////////////////////////////
 clear
-set more off
 
-global path "/Users/kaitlynlucas/Desktop/Wisconsin/Original Files"
-global nces "/Users/kaitlynlucas/Desktop/Wisconsin/nces"
-global output "/Users/kaitlynlucas/Desktop/Wisconsin/output"
-global temporary "/Users/kaitlynlucas/Desktop/Wisconsin/temp"
+import delimited "${Original}/WI_OriginalData_2021_all.csv", varnames(1) delimit(",") case(preserve)
+save "${Original_DTA}/WI_OriginalData_2021_all", replace
 
-/*
-import delimited "${path}/WI_OriginalData_2021_all.csv", varnames(1) delimit(",") case(preserve)
-save "${path}/WI_OriginalData_2021_all", replace
-*/
-
-use "${path}/WI_OriginalData_2021_all", replace
+use "${Original_DTA}/WI_OriginalData_2021_all", replace
 
 // dropping unused variables
 drop TEST_RESULT GRADE_GROUP CESA CHARTER_IND COUNTY AGENCY_TYPE
@@ -148,7 +156,7 @@ gen state_leaid = StateAssignedDistID
 destring state_leaid, replace force
 save temp, replace
 clear
-use "${nces}/NCES_2020_District"
+use "${NCES_District}/NCES_2020_District"
 
 keep if state_name == "Wisconsin"
 keep ncesdistrictid state_leaid DistCharter county_name county_code district_agency_type DistLocale
@@ -181,7 +189,7 @@ replace seasch = "8121" if SchName == "Seeds of Health Elementary Program"
 destring seasch, replace force
 save temp, replace
 clear
-use "${nces}/NCES_2020_School"
+use "${NCES_School}/NCES_2020_School"
 
 keep if state_name == "Wisconsin"
 keep ncesschoolid ncesdistrictid seasch SchType SchLevel SchVirtual DistLocale
@@ -249,13 +257,26 @@ foreach var of varlist Lev*_count Lev*_percent AvgScaleScore ProficientOrAbove_c
 gen Lev5_count = ""
 gen Lev5_percent = ""
 
+// // reordering
+// order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+//
 // reordering
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
+local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
+    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
+    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
+    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
+    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
+    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
+    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
+    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
+    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
+    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
+    Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+order `vars'
 preserve 
 
 drop if SuppressedSubGroup == "Y"
-save "$temporary/WI_2021_wo_suppressed.dta", replace
+save "$Temp/WI_2021_wo_suppressed.dta", replace
 
 restore
 
@@ -294,7 +315,6 @@ sort n1 DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGro
 by n1: gen copy_id = _n
 replace copy_id=. if StudentGroup != "EL Status"
 
-
 replace StudentSubGroup="English Learner" if copy_id==1
 replace StudentSubGroup="English Proficient" if copy_id==2
 replace StudentSubGroup="Other" if copy_id==3
@@ -309,7 +329,6 @@ sort n1 DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGro
 
 by n1: gen copy_id = _n
 replace copy_id=. if StudentGroup != "Gender"
-
 
 replace StudentSubGroup="Male" if copy_id==1
 replace StudentSubGroup="Female" if copy_id==2
@@ -375,13 +394,13 @@ replace Lev5_percent = ""
 
 // Save Suppressed file
 
-save "$temporary/WI_2021_only_suppressed.dta", replace
+save "$Temp/WI_2021_only_suppressed.dta", replace
 
 // Appending
 
 clear
 
-append using "$temporary/WI_2021_only_suppressed.dta" "$temporary/WI_2021_wo_suppressed.dta"
+append using "$Temp/WI_2021_only_suppressed.dta" "$Temp/WI_2021_wo_suppressed.dta"
 
 // Dealing with Multi-District Schools
 drop if SchName == "Between the Lakes Virtual Academy" & NCESDistrictID != "5507440"
@@ -418,12 +437,13 @@ drop if SchName == "JEDI Virtual K-12" & DistName != "Marshall"
 drop Suppressed
 drop SuppressedSubGroup
 
-
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
+// Reordering variables and sorting data
+keep `vars'
+order `vars'
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-export delimited using "${output}/WI_AssmtData_2021.csv", replace
-save "${output}/WI_AssmtData_2021", replace
+*Exporting Output*
+save "${Output}/WI_AssmtData_2021.dta", replace
+export delimited using "${Output}/WI_AssmtData_2021.csv", replace
+* END of WI_2021.do
+****************************************************
