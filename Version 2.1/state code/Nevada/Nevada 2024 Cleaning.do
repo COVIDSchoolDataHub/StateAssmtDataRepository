@@ -1,30 +1,42 @@
+*******************************************************
+* NEVADA
+
+* File name: Nevada 2024 Cleaning
+* Last update: 2/28/2025
+
+*******************************************************
+* Notes
+
+	* This do file first appends multiple NV 2024 dta files.
+	* The combined files are then cleaned and merged with NCES 2022.
+	* As of 2/28/25, the latest NCES data is 2022.
+	* This file will need to be updated when NCES 2023 is available.
+	* The non-derivation and usual output are created. 
+*******************************************************
+///////////////////////////////
+// Setup
+///////////////////////////////
 clear
 set more off
 
-global raw "/Users/miramehta/Documents/Nevada/Original Data Files"
-global output "/Users/miramehta/Documents/Nevada/Output"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
-
-cd "/Users/miramehta/Documents"
-
 local levels "state districts schools"
 foreach lev of local levels{
-	use "${raw}/ELA & Math/2024/`lev'/NV_OriginalData_2024_ela_math_G38.dta", clear
-	append using "${raw}/Sci/2024/`lev'/NV_OriginalData_2024_sci_G38.dta"
+	use "${Original}/ELA & Math/2024/`lev'/NV_OriginalData_2024_ela_math_G38.dta", clear
+	append using "${Original}/Sci/2024/`lev'/NV_OriginalData_2024_sci_G38.dta"
 	gen GradeLevel = "G38"
 	forvalues n = 3/8{
-		append using "${raw}/ELA & Math/2024/`lev'/NV_OriginalData_2024_ela_math_G0`n'.dta"
+		append using "${Original}/ELA & Math/2024/`lev'/NV_OriginalData_2024_ela_math_G0`n'.dta"
 		if `n' == 5 | `n' == 8{
-			append using "${raw}/Sci/2024/`lev'/NV_OriginalData_2024_sci_G0`n'.dta"
+			append using "${Original}/Sci/2024/`lev'/NV_OriginalData_2024_sci_G0`n'.dta"
 		}
 		replace GradeLevel = "G0`n'" if GradeLevel == ""
 	}
 	gen DataLevel = "`lev'"
-	save "${raw}/NV_OriginalData_2024_`lev'", replace
+	save "${Original}/NV_OriginalData_2024_`lev'", replace
 }
 
-use "${raw}/NV_OriginalData_2024_state", clear
-append using "${raw}/NV_OriginalData_2024_districts" "${raw}/NV_OriginalData_2024_schools"
+use "${Original}/NV_OriginalData_2024_state", clear
+append using "${Original}/NV_OriginalData_2024_districts" "${Original}/NV_OriginalData_2024_schools"
 
 drop *NotTested
 
@@ -52,7 +64,6 @@ rename MeetsStandard Lev3_percent
 rename ExceedsStandard Lev4_percent
 
 ** Replacing variables
-
 replace SchYear = "2023-24"
 
 ** Generating new variables
@@ -155,6 +166,11 @@ drop if inlist(StudentSubGroup_TotalTested, "", "0") & StudentSubGroup != "All S
 
 replace StudentGroup = "EL Status" if StudentSubGroup == "LTEL"
 
+// Saving transformed data, will restore this file for non-derivation output. 
+save "${Temp}/NV_AssmtData_2024_Breakpoint.dta", replace
+*******************************************************
+**Derivations***
+*******************************************************
 local level Lev1 Lev2 Lev3 Lev4 ProficientOrAbove 
 foreach a of local level {
 	gen `a'_percent2 = subinstr(`a'_percent, "<", "", .)
@@ -313,7 +329,7 @@ replace StateAssignedDistID = "19" if StateAssignedSchID == "84406"
 replace State_leaid = "NV-18" if StateAssignedSchID == "115100"
 replace StateAssignedDistID = "18" if StateAssignedSchID == "115100"
 
-merge m:1 State_leaid using "${NCES}/NCES_2022_District.dta"
+merge m:1 State_leaid using "${NCES_NV}/NCES_2022_District_NV.dta"
 
 replace State_leaid = "NV-18" if _merge == 1 & DataLevel != 1
 replace StateAssignedDistID = "18" if _merge == 1 & DataLevel != 1
@@ -321,7 +337,7 @@ replace StateAssignedDistID = "18" if _merge == 1 & DataLevel != 1
 drop if _merge == 2
 drop _merge
 
-merge m:1 State_leaid using "${NCES}/NCES_2022_District.dta", update
+merge m:1 State_leaid using "${NCES_NV}/NCES_2022_District_NV.dta", update
 
 drop if _merge == 2
 drop _merge
@@ -329,7 +345,7 @@ drop _merge
 gen seasch = StateAssignedDistID + "-" + StateAssignedSchID
 replace seasch = "" if DataLevel != 3
 
-merge m:1 seasch using "${NCES}/NCES_2022_School.dta"
+merge m:1 seasch using "${NCES_NV}/NCES_2022_School_NV.dta"
 drop if _merge == 2
 drop _merge
 
@@ -374,13 +390,242 @@ gen Flag_CutScoreChange_math = "N"
 gen Flag_CutScoreChange_sci = "N"
 gen Flag_CutScoreChange_soc = "Not applicable"
 
-** Final Cleaning
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
+// Reordering variables and sorting data
+local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
+    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
+    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
+    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
+    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
+    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
+    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
+    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
+    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
+    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
+    Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+	keep `vars'
+	order `vars'
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${output}/NV_AssmtData_2024.dta", replace
+*Exporting Output*
+save "${Output}/NV_AssmtData_2024.dta", replace
+export delimited using "${Output}/NV_AssmtData_2024.csv", replace
 
-export delimited using "${output}/csv/NV_AssmtData_2024.csv", replace
+///////////////////////////////////////////////////////
+*******************************************************
+** Creating the non-derivation file
+*******************************************************
+///////////////////////////////////////////////////////
+// Restoring the break-point 
+use "${Temp}/NV_AssmtData_2024_Breakpoint.dta", clear
+
+*******************************************************
+*No counts are generated since they're calculated as percentage * SSGT
+*******************************************************
+local level Lev1 Lev2 Lev3 Lev4 ProficientOrAbove 
+foreach a of local level {
+	gen `a'_percent2 = subinstr(`a'_percent, "<", "", .)
+	replace `a'_percent2 = subinstr(`a'_percent2, ">", "", .)
+	destring `a'_percent2, replace force
+	replace `a'_percent2 = `a'_percent2/100
+	tostring `a'_percent2, replace format("%9.3f") force
+	replace `a'_percent2 = "0-" + `a'_percent2 if strpos(`a'_percent, "<") > 0
+	replace `a'_percent2 = `a'_percent2 + "-1" if strpos(`a'_percent, ">") > 0
+	replace `a'_percent2 = "*" if `a'_percent2 == "."
+	drop `a'_percent
+	rename `a'_percent2 `a'_percent
+	split `a'_percent, parse("-")
+	destring `a'_percent1, replace force
+	destring `a'_percent2, replace force
+}
+
+replace ProficientOrAbove_percent1 = 1 - Lev1_percent1 - Lev2_percent1 if inlist(ProficientOrAbove_percent, "*", "--") & Lev1_percent1 != . & Lev2_percent1 != . & Lev1_percent2 == . & Lev2_percent2 == .
+replace ProficientOrAbove_percent1 = 1 - Lev1_percent2 - Lev2_percent1 if inlist(ProficientOrAbove_percent, "*", "--") & Lev1_percent2 != . & Lev2_percent1 != . & Lev2_percent2 == .
+replace ProficientOrAbove_percent1 = 1 - Lev1_percent1 - Lev2_percent2 if inlist(ProficientOrAbove_percent, "*", "--") & Lev1_percent1 != . & Lev2_percent2 != . & Lev1_percent2 == .
+replace ProficientOrAbove_percent1 = 1 - Lev1_percent2 - Lev2_percent2 if inlist(ProficientOrAbove_percent, "*", "--") & Lev1_percent2 != . & Lev2_percent2 != .
+replace ProficientOrAbove_percent1 = 0 if ProficientOrAbove_percent1 < 0
+
+replace ProficientOrAbove_percent2 = 1 - Lev1_percent1 - Lev2_percent1 if inlist(ProficientOrAbove_percent, "*", "--") & Lev1_percent1 != . & Lev2_percent1 != . & Lev1_percent2 != . & Lev2_percent2 != .
+replace ProficientOrAbove_percent2 = 1 - Lev1_percent1 - Lev2_percent1 if inlist(ProficientOrAbove_percent, "*", "--") & Lev1_percent1 != . & Lev2_percent1 != . & Lev1_percent2 != . & Lev2_percent2 == .
+replace ProficientOrAbove_percent2 = 1 - Lev1_percent1 - Lev2_percent1 if inlist(ProficientOrAbove_percent, "*", "--") & Lev1_percent1 != . & Lev2_percent1 != . & Lev1_percent2 == . & Lev2_percent2 != .
+replace ProficientOrAbove_percent2 = 0 if ProficientOrAbove_percent2 < 0
+
+replace ProficientOrAbove_percent = string(ProficientOrAbove_percent1, "%9.3f") if inlist(ProficientOrAbove_percent, "*", "--") & ProficientOrAbove_percent1 != . & ProficientOrAbove_percent2 == .
+replace ProficientOrAbove_percent = string(ProficientOrAbove_percent1, "%9.3f") if inlist(ProficientOrAbove_percent, "*", "--") & ProficientOrAbove_percent1 != . & ProficientOrAbove_percent1 == ProficientOrAbove_percent2
+replace ProficientOrAbove_percent = string(ProficientOrAbove_percent1, "%9.3f") + "-" + string(ProficientOrAbove_percent2, "%9.3f") if inlist(ProficientOrAbove_percent, "*", "--") & ProficientOrAbove_percent1 != . & ProficientOrAbove_percent2 != . & ProficientOrAbove_percent1 != ProficientOrAbove_percent2
+
+replace Lev3_percent1 = ProficientOrAbove_percent1 - Lev4_percent1 if Lev3_percent1 == . & ProficientOrAbove_percent1 != . & Lev4_percent1 != . & Lev4_percent2 == .
+replace Lev3_percent1 = ProficientOrAbove_percent1 - Lev4_percent2 if Lev3_percent1 == . & ProficientOrAbove_percent1 != . & Lev4_percent2 != . & ProficientOrAbove_percent2 == .
+replace Lev3_percent1 = ProficientOrAbove_percent2 - Lev4_percent2 if Lev3_percent1 == . & ProficientOrAbove_percent2 != . & Lev4_percent2 != .
+replace Lev3_percent1 = 0 if Lev3_percent1 < 0 & Lev3_percent1 != .
+
+replace Lev3_percent2 = ProficientOrAbove_percent2 - Lev4_percent1 if Lev3_percent2 == . & ProficientOrAbove_percent2 != . & Lev4_percent1 != .
+replace Lev3_percent2 = ProficientOrAbove_percent1 - Lev4_percent1 if Lev3_percent2 == . & ProficientOrAbove_percent1 != . & Lev4_percent1 != . & ProficientOrAbove_percent2 == . & Lev4_percent2 != .
+replace Lev3_percent2 = 0 if Lev3_percent2 < 0 & Lev3_percent2 != .
+
+replace Lev3_percent = string(Lev3_percent1, "%9.3f") if inlist(Lev3_percent, "*", "--") & Lev3_percent1 != . & Lev3_percent2 == .
+replace Lev3_percent = string(Lev3_percent1, "%9.3f") if inlist(Lev3_percent, "*", "--") & Lev3_percent1 != . & Lev3_percent1 == Lev3_percent2
+replace Lev3_percent = string(Lev3_percent1, "%9.3f") + "-" + string(Lev3_percent2, "%9.3f") if inlist(Lev3_percent, "*", "--") & Lev3_percent1 != . & Lev3_percent2 != . & Lev3_percent1 != Lev3_percent2
+
+replace Lev4_percent1 = ProficientOrAbove_percent1 - Lev3_percent1 if Lev4_percent1 == . & ProficientOrAbove_percent1 != . & Lev3_percent1 != . & Lev3_percent2 == .
+replace Lev4_percent1 = ProficientOrAbove_percent1 - Lev3_percent2 if Lev4_percent1 == . & ProficientOrAbove_percent1 != . & Lev3_percent2 != .
+replace Lev4_percent1 = ProficientOrAbove_percent2 - Lev3_percent2 if Lev4_percent1 == . & ProficientOrAbove_percent2 != . & Lev3_percent2 != .
+replace Lev4_percent1 = 0 if Lev4_percent1 < 0 & Lev4_percent1 != .
+
+replace Lev4_percent2 = ProficientOrAbove_percent2 - Lev3_percent1 if Lev4_percent2 == . & ProficientOrAbove_percent2 != . & Lev3_percent1 != .
+replace Lev4_percent2 = ProficientOrAbove_percent1 - Lev3_percent1 if Lev4_percent2 == . & ProficientOrAbove_percent1 != . & Lev3_percent1 != . & ProficientOrAbove_percent2 == . & Lev3_percent2 != .
+replace Lev4_percent2 = 0 if Lev4_percent2 < 0 & Lev4_percent2 != .
+
+replace Lev4_percent = string(Lev4_percent1, "%9.3f") if inlist(Lev4_percent, "*", "--") & Lev4_percent1 != . & Lev4_percent2 == .
+replace Lev4_percent = string(Lev4_percent1, "%9.3f") if inlist(Lev4_percent, "*", "--") & Lev4_percent1 != . & Lev4_percent1 == Lev4_percent2
+replace Lev4_percent = string(Lev4_percent1, "%9.3f") + "-" + string(Lev4_percent2, "%9.3f") if inlist(Lev4_percent, "*", "--") & Lev4_percent1 != . & Lev4_percent2 != . & Lev4_percent1 != Lev4_percent2
+
+replace Lev1_percent1 = 1 - ProficientOrAbove_percent1 - Lev2_percent1 if Lev1_percent1 == . & ProficientOrAbove_percent1 != . & Lev2_percent1 != . & Lev2_percent2 == .
+replace Lev1_percent1 = 1 - ProficientOrAbove_percent1 - Lev2_percent2 if Lev1_percent1 == . & ProficientOrAbove_percent1 != . & Lev2_percent2 != . & ProficientOrAbove_percent2 == .
+replace Lev1_percent1 = 1 - ProficientOrAbove_percent2 - Lev2_percent2 if Lev1_percent1 == . & ProficientOrAbove_percent2 != . & Lev2_percent2 != .
+replace Lev1_percent1 = 0 if Lev1_percent1 < 0 & Lev1_percent1 != .
+
+replace Lev1_percent2 = 1 - ProficientOrAbove_percent2 - Lev2_percent1 if Lev1_percent2 == . & ProficientOrAbove_percent2 != . & Lev2_percent1 != .
+replace Lev1_percent2 = 1 - ProficientOrAbove_percent1 - Lev2_percent1 if Lev1_percent2 == . & ProficientOrAbove_percent1 != . & Lev2_percent1 != . & ProficientOrAbove_percent2 == . & Lev2_percent2 != .
+replace Lev1_percent2 = 0 if Lev1_percent2 < 0 & Lev1_percent2 != .
+
+replace Lev1_percent = string(Lev1_percent1, "%9.3f") if inlist(Lev1_percent, "*", "--") & Lev1_percent1 != . & Lev1_percent2 == .
+replace Lev1_percent = string(Lev1_percent1, "%9.3f") if inlist(Lev1_percent, "*", "--") & Lev1_percent1 != . & Lev1_percent1 == Lev1_percent2
+replace Lev1_percent = string(Lev1_percent1, "%9.3f") + "-" + string(Lev1_percent2, "%9.3f") if inlist(Lev1_percent, "*", "--") & Lev1_percent1 != . & Lev1_percent2 != . & Lev1_percent1 != Lev1_percent2
+
+replace Lev2_percent1 = 1 - ProficientOrAbove_percent1 - Lev1_percent1 if Lev2_percent1 == . & ProficientOrAbove_percent1 != . & Lev1_percent1 != . & Lev1_percent2 == .
+replace Lev2_percent1 = 1 - ProficientOrAbove_percent1 - Lev1_percent2 if Lev2_percent1 == . & ProficientOrAbove_percent1 != . & Lev1_percent2 != . & ProficientOrAbove_percent1 == .
+replace Lev2_percent1 = 1 - ProficientOrAbove_percent2 - Lev1_percent2 if Lev2_percent1 == . & ProficientOrAbove_percent2 != . & Lev1_percent2 != .
+replace Lev2_percent1 = 0 if Lev2_percent1 < 0 & Lev2_percent1 != .
+
+replace Lev2_percent2 = 1 - ProficientOrAbove_percent2 - Lev1_percent1 if Lev2_percent2 == . & ProficientOrAbove_percent2 != . & Lev1_percent1 != .
+replace Lev2_percent2 = 1 - ProficientOrAbove_percent1 - Lev1_percent1 if Lev2_percent2 == . & ProficientOrAbove_percent1 != . & Lev1_percent1 != . & ProficientOrAbove_percent2 == . & Lev1_percent2 != .
+replace Lev2_percent2 = 0 if Lev2_percent2 < 0 & Lev2_percent2 != .
+
+replace Lev2_percent = string(Lev2_percent1, "%9.3f") if inlist(Lev2_percent, "*", "--") & Lev2_percent1 != . & Lev2_percent2 == .
+replace Lev2_percent = string(Lev2_percent1, "%9.3f") if inlist(Lev2_percent, "*", "--") & Lev2_percent1 != . & Lev2_percent1 == Lev2_percent2
+replace Lev2_percent = string(Lev2_percent1, "%9.3f") + "-" + string(Lev2_percent2, "%9.3f") if inlist(Lev2_percent, "*", "--") & Lev2_percent1 != . & Lev2_percent2 != . & Lev2_percent1 != Lev2_percent2
+
+local level Lev1 Lev2 Lev3 Lev4 ProficientOrAbove 
+foreach a of local level {
+	replace `a'_percent = "0-0.05" if inlist(`a'_percent, "0.000-0.050", "0.0000-0.05000", "0-0.050", "0-0.0500")
+	replace `a'_percent = "0.95-1" if inlist(`a'_percent, "0.950-1", "0.9500-1")
+}
+
+gen flag2 = 1 if Lev4_percent == "0-0.05" & strpos(ProficientOrAbove_percent, "-") == 0 & strpos(Lev3_percent, "-") == 0
+replace Lev4_percent = string(real(ProficientOrAbove_percent) - real(Lev3_percent), "%9.3f") if flag2 == 1 & !missing(real(ProficientOrAbove_percent)) & !missing(real(Lev3_percent))
+
+gen Lev1_count = "--"
+gen Lev2_count = "--"
+gen Lev3_count = "--"
+gen Lev4_count = "--"
+gen ProficientOrAbove_count = "--"
+gen Lev5_count = ""
+gen Lev5_percent = ""
+
+gen ProficiencyCriteria = "Levels 3-4"
+
+gen ParticipationRate2 = subinstr(ParticipationRate, "<", "", .)
+replace ParticipationRate2 = subinstr(ParticipationRate2, ">", "", .)
+destring ParticipationRate2, replace force
+replace ParticipationRate2 = ParticipationRate2/100
+tostring ParticipationRate2, replace force
+replace ParticipationRate2 = "0-" + ParticipationRate2 if strpos(ParticipationRate, "<") > 0
+replace ParticipationRate2 = ParticipationRate2 + "-1" if strpos(ParticipationRate, ">") > 0
+replace ParticipationRate2 = "*" if ParticipationRate2 == "."
+drop ParticipationRate max StudentSubGroup_TotalTested2
+rename ParticipationRate2 ParticipationRate
+
+gen AvgScaleScore = "--"
+
+** Changing DataLevel
+
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+sort DataLevel_n 
+drop DataLevel 
+rename DataLevel_n DataLevel
+
+** Merging with NCES
+
+gen State_leaid = "NV-" + StateAssignedDistID
+replace State_leaid = "" if DataLevel == 1
+
+replace State_leaid = "NV-18" if inlist(StateAssignedSchID, "101101", "102100", "105101", "106101", "107101", "108101") | inlist(StateAssignedSchID, "110100", "112100", "111100", "113100", "114100", "116100")
+replace StateAssignedDistID = "18" if inlist(StateAssignedSchID, "101101", "102100", "105101", "106101", "107101", "108101") | inlist(StateAssignedSchID, "110100", "112100", "111100", "113100", "114100", "116100")
+
+replace State_leaid = "NV-19" if StateAssignedSchID == "84406"
+replace StateAssignedDistID = "19" if StateAssignedSchID == "84406"
+replace State_leaid = "NV-18" if StateAssignedSchID == "115100"
+replace StateAssignedDistID = "18" if StateAssignedSchID == "115100"
+
+merge m:1 State_leaid using "${NCES_NV}/NCES_2022_District_NV.dta"
+
+replace State_leaid = "NV-18" if _merge == 1 & DataLevel != 1
+replace StateAssignedDistID = "18" if _merge == 1 & DataLevel != 1
+
+drop if _merge == 2
+drop _merge
+
+merge m:1 State_leaid using "${NCES_NV}/NCES_2022_District_NV.dta", update
+
+drop if _merge == 2
+drop _merge
+
+gen seasch = StateAssignedDistID + "-" + StateAssignedSchID
+replace seasch = "" if DataLevel != 3
+
+merge m:1 seasch using "${NCES_NV}/NCES_2022_School_NV.dta"
+drop if _merge == 2
+drop _merge
+
+** New Schools 2024
+replace NCESSchoolID = "320000100990" if StateAssignedSchID == "58430"
+replace SchName = "Pinecrest Academy of Nevada Springs" if NCESSchoolID == "320000100990"
+replace SchType = 1 if NCESSchoolID == "320000100990"
+replace SchLevel = 1 if NCESSchoolID == "320000100990"
+replace SchVirtual = 0 if NCESSchoolID == "320000100990"
+replace NCESSchoolID = "320000100991" if StateAssignedSchID == "88101"
+replace SchName = "Eagle Charter Schools of Nevada" if NCESSchoolID == "320000100991"
+replace SchType = 1 if NCESSchoolID == "320000100991"
+replace SchLevel = 1 if NCESSchoolID == "320000100991"
+replace SchVirtual = 0 if NCESSchoolID == "320000100991"
+
+replace SchLevel = 1 if NCESSchoolID == "320006000572"
+replace SchVirtual = 0 if NCESSchoolID == "320006000572"
+replace SchLevel = 4 if NCESSchoolID == "320006000923"
+replace SchVirtual = 0 if NCESSchoolID == "320006000923"
+replace SchLevel = 1 if NCESSchoolID == "320048000978"
+replace SchVirtual = 0 if NCESSchoolID == "320048000978"
+replace SchLevel = 1 if NCESSchoolID == "320048000979"
+replace SchVirtual = 0 if NCESSchoolID == "320048000979"
+
+** Cleaning up from NCES
+replace StateAbbrev = "NV" if DataLevel == 1
+replace State = "Nevada" if DataLevel == 1
+replace StateFips = 32 if DataLevel == 1
+replace CountyName = proper(CountyName)
+replace DistName = proper(DistName)
+replace DistName = "All Districts" if DataLevel == 1
+replace SchName = "All Schools" if DataLevel != 3
+replace DistName = stritrim(DistName)
+replace SchName = stritrim(SchName)
+
+replace StateAssignedSchID = subinstr(StateAssignedSchID, "0", "", 1) if strpos(StateAssignedSchID, "0") == 1
+
+** Generating new variables
+gen Flag_AssmtNameChange = "N"
+gen Flag_CutScoreChange_ELA = "N"
+gen Flag_CutScoreChange_math = "N"
+gen Flag_CutScoreChange_sci = "N"
+gen Flag_CutScoreChange_soc = "Not applicable"
+
+// Reordering variables and sorting data
+keep `vars'
+order `vars'
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
+*Exporting Non-Derivation Output*
+save "${Output_ND}/NV_AssmtData_2024_ND", replace
+export delimited "${Output_ND}/NV_AssmtData_2024_ND", replace
+* END of Nevada 2024 Cleaning.do
+****************************************************
