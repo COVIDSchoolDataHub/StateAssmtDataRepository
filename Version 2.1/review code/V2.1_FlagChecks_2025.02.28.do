@@ -1,5 +1,5 @@
 *****************************************************************************
-**	Updated February 24, 2025
+**	Updated February 28, 2025
 
 ** 	ZELMA STATE ASSESSMENT DATA REPOSITORY 
 **	ASSESSMENT FLAGS - VERSION 2.1
@@ -1430,9 +1430,7 @@ foreach var of varlist *_Chk {
         if `count_result' == 0 {
             di "{error}`flag_var' Correct"
         }
-		elseif `count_result' != 0 & "`var'" == "AssmtType_Chk" {
-            di "{error}`flag_var' Not Applicable"
-        }
+		
         else {
             di "{error}`flag_var' Incorrect in the following years:"
             cap noisily tab FILE `flag_var' if `var' != `flag_var'
