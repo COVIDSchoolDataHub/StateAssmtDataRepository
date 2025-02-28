@@ -1416,7 +1416,7 @@ if "$StateAbbrev" == "WY" {
 	replace Flag_CutScoreChange_soc_Chk = "Not applicable"
 	
 	*AssmtType
-	replace AssmtType_Chk = "Regular and alt"
+	replace AssmtType_Chk = "Regular" if real(FILE) >= 2019
 	
 }
 
