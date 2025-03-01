@@ -1,16 +1,3 @@
-*******************************************************
-* WYOMING
-
-* File name: 04_WY_EDFacts_2022
-* Last update: 03/01/2025
-
-*******************************************************
-* Notes
-
-	* This do file cleans WY edfacts data for 2022 and merges it with cleaned assessment data.
-
-*******************************************************
-
 clear
 
 import delimited "${Original}/EDFacts2022.csv", case(preserve) clear 
@@ -140,8 +127,12 @@ replace StudentSubGroup_TotalTested = EDStudentSubGroup_TotalTested if EDStudent
 
 drop nLev*_percent
 
-drop if StudentSubGroup_TotalTested == "0"
-
+// Setting part rate to 0 if tested count = 0
+foreach var of varlist Lev* ParticipationRate ProficientOrAbove* {
+	replace `var' = "0" if StudentSubGroup_TotalTested == "0"
+	replace Lev5_count = "" if StudentSubGroup_TotalTested == "0"
+	replace Lev5_percent = "" if StudentSubGroup_TotalTested == "0"
+}
 {
 replace StateAssignedDistID = "000000" if DataLevel== 1 // State
 replace StateAssignedSchID = "000000" if DataLevel== 1 // State

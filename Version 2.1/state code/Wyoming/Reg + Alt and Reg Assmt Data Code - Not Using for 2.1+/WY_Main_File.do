@@ -2,7 +2,7 @@
 * WYOMING
 
 * File name: WY_Main_File
-* Last update: 03/01/2025
+* Last update: 2/26/2025
 
 *******************************************************
 * Notes
@@ -36,8 +36,8 @@ global Output "/Users/miramehta/Documents/Wyoming/Output" //Usual output exporte
 *** Full State Data Cleaning ***
 /////////////////////////////////////////
 *Add newer years in order.*
-do "${DoFiles}/01_WY_Cleaning_14_18.do" //contains notes for code to be hidden after first run
-do "${DoFiles}/02_WY_Cleaning_19_24.do" //contains notes for code to be hidden after first run
+do "${DoFiles}/01_WY_Reg_Alt.do" //contains notes for code to be hidden after first run
+do "${DoFiles}/02_WY_Reg.do" //contains notes for code to be hidden after first run
 do "${DoFiles}/03_WY_EDFacts_14_21.do" //contains notes for code to be hidden after first run
 do "${DoFiles}/04_WY_EDFacts_2022.do" //contains notes for code to be hidden after first run
 

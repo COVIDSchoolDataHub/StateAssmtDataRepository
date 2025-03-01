@@ -1,16 +1,3 @@
-*******************************************************
-* WYOMING
-
-* File name: 03_WY_EDFacts_14_21
-* Last update: 03/01/2025
-
-*******************************************************
-* Notes
-
-	* This do file cleans WY edfacts data from 2014 to 2021 and merges it with cleaned assessment data.
-
-*******************************************************
-
 clear
 
 ** Preparing EDFacts files
