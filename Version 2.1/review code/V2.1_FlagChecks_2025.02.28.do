@@ -844,12 +844,12 @@ if "$StateAbbrev" == "NM" {
 	
 	
 	*AssmtType	
-	replace AssmtType_Chk = "Reg and Alt" if FILE == "2017" & StudentSubGroup != "All Students"
-	replace AssmtType_Chk = "Reg and Alt" if FILE == "2018" & StudentSubGroup != "All Students"
-	replace AssmtType_Chk = "Reg and Alt" if FILE == "2019" & StudentSubGroup != "All Students"
-	replace AssmtType_Chk = "Reg and Alt" if FILE == "2021" & Subjet == "sci"
-	replace AssmtType_Chk = "Reg and Alt" if FILE == "2022"
-	replace AssmtType_Chk = "Reg and Alt" if FILE == "2023"
+	replace AssmtType_Chk = "Regular and alt" if FILE == "2017" & StudentSubGroup != "All Students"
+	replace AssmtType_Chk = "Regular and alt" if FILE == "2018" & StudentSubGroup != "All Students"
+	replace AssmtType_Chk = "Regular and alt" if FILE == "2019" & StudentSubGroup != "All Students"
+	replace AssmtType_Chk = "Regular and alt" if FILE == "2021" & Subject == "sci"
+	replace AssmtType_Chk = "Regular and alt" if FILE == "2022"
+	replace AssmtType_Chk = "Regular and alt" if FILE == "2023"
 		
 }
 
@@ -1416,7 +1416,7 @@ if "$StateAbbrev" == "WY" {
 	replace Flag_CutScoreChange_soc_Chk = "Not applicable"
 	
 	*AssmtType
-	replace AssmtType_Chk = "Regular" if real(FILE) < 2019
+	replace AssmtType_Chk = "Regular" if real(FILE) <= 2019
 	
 }
 
