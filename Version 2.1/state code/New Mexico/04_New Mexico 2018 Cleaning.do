@@ -507,6 +507,12 @@ drop RaceEth Gender max nStudentSubGroup_TotalTested
 
 drop if StudentSubGroup_TotalTested == "0" & StudentSubGroup != "All Students"
 
+** Response to R1 3.2.25
+replace StateAssignedSchID = StateAssignedDistID + StateAssignedSchID if DataLevel == 3
+foreach var of varlist *_count {
+	replace `var' = "1" if `var' == "1-1"
+}
+
 //Final Cleaning
 replace CountyName = "Dona Ana County" if CountyName == "DoÃ±a Ana County"
 

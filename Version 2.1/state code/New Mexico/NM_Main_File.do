@@ -31,8 +31,8 @@ global raw "/Volumes/T7/State Test Project/New Mexico/Original Data Files" //Ori
 global output "/Volumes/T7/State Test Project/New Mexico/Output" //Output
 
 //Recreate Cleaning
-do "$DoFiles/01_New Mexico DTA Conversion.do" //Line may be hidden after first run for speed.
-do "$DoFiles/02_New Mexico Cleaning Merge Files.do" //Line may be hidden after first run for speed.
+// do "$DoFiles/01_New Mexico DTA Conversion.do" //Line may be hidden after first run for speed.
+// do "$DoFiles/02_New Mexico Cleaning Merge Files.do" //Line may be hidden after first run for speed.
 do "$DoFiles/03_New Mexico 2017 Cleaning.do"
 do "$DoFiles/04_New Mexico 2018 Cleaning.do"
 do "$DoFiles/05_New Mexico 2019 Cleaning.do"
