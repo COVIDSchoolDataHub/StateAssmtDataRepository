@@ -73,8 +73,7 @@ append using "${Original}/WY_OriginalData_All_District.dta" "${Original}/WY_Orig
 save "${Original}/WY_OriginalData_All", replace
 clear
 
-
-//Seperating By Year
+//Separating By Year
 forvalues year = 2014/2018 {
 use "${Original}/WY_OriginalData_All", clear
 local prevyear =`=`year'-1'

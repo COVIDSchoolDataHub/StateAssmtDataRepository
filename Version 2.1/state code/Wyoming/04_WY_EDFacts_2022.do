@@ -78,15 +78,7 @@ replace StudentSubGroup = "Non-Foster Care" if StudentSubGroup[_n-1] == "Foster 
 replace StudentSubGroup = "Non-Homeless" if StudentSubGroup[_n-1] == "Homeless"
 replace StudentSubGroup = "Non-Military" if StudentSubGroup[_n-1] == "Military"
 replace StudentSubGroup = "Non-Migrant" if StudentSubGroup[_n-1] == "Migrant"
-/*
-tempfile tempcalc
-save "`tempcalc'", replace
-clear
-use "`temp1'"
-drop if StudentSubGroup == "All Students" | StudentSubGroup == "Economically Disadvantaged" | StudentSubGroup == "English Learner" | StudentSubGroup == "SWD" | StudentSubGroup == "Foster Care" | StudentSubGroup == "Homeless" | StudentSubGroup == "Military" | StudentSubGroup == "Migrant"
-append using "`tempcalc'"
-sort NCESDistrictID NCESSchoolID Subject GradeLevel StudentSubGroup
-*/
+
 // Renaming variables to ease merging
 rename StudentSubGroup_TotalTested EDStudentSubGroup_TotalTested
 drop AllStudents
@@ -131,7 +123,8 @@ foreach n in 1 2 3 4 {
 }
 
 replace ProficientOrAbove_count = string(real(Lev3_count) + real(Lev4_count)) if strpos(Lev3_count, "-") == 0 & strpos(Lev4_count, "-") == 0 & Lev3_count != "*" & Lev4_count != "*"
-replace ProficientOrAbove_count = "0" if nStudentSubGroup_TotalTested == 1 & ProficientOrAbove_percent == "0-.2"
+replace ProficientOrAbove_count = "0" if nStudentSubGroup_TotalTested == 1 & ProficientOrAbove_percent == "0-.2" //only options are 0 & 1, so this will end up being 0
+replace ProficientOrAbove_percent = "0" if nStudentSubGroup_TotalTested == 1 & ProficientOrAbove_percent == "0-.2" //matches value derived above
 replace ProficientOrAbove_count = string(round(0.8 * nStudentSubGroup_TotalTested)) + "-" + EDStudentSubGroup_TotalTested if EDStudentSubGroup_TotalTested != "." & ProficientOrAbove_percent == ".8-1" & strpos(ProficientOrAbove_count, "-") != 0
 replace ProficientOrAbove_count = string(round(0.9 * nStudentSubGroup_TotalTested)) + "-" + EDStudentSubGroup_TotalTested if EDStudentSubGroup_TotalTested != "." & ProficientOrAbove_percent == ".9-1" & strpos(ProficientOrAbove_count, "-") != 0
 replace ProficientOrAbove_count = string(round(0.95 * nStudentSubGroup_TotalTested)) + "-" + EDStudentSubGroup_TotalTested if EDStudentSubGroup_TotalTested != "." & ProficientOrAbove_percent == ".95-1" & strpos(ProficientOrAbove_count, "-") != 0

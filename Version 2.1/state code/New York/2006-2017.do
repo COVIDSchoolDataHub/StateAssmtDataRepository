@@ -1,15 +1,25 @@
-clear
-set more off
-set trace off
+*******************************************************
+* NEW YORK
 
-global original "/Users/miramehta/Documents/New York/Original"
-global output "/Users/miramehta/Documents/New York/Output"
-global nces_school "/Users/miramehta/Documents/NCES District and School Demographics/NCES School Files, Fall 1997-Fall 2022"
-global nces_district "/Users/miramehta/Documents/NCES District and School Demographics/NCES District Files, Fall 1997-Fall 2022"
+* File name: 2006_2017
+* Last update: 03/03/2025
+
+*******************************************************
+* Notes
+
+	* This do file imports the combined NY DTA files for 2006-2017. 
+	* Variables are renamed and cleaned.
+	* The file is merged with NCES data for the previous year (NCES_2005-NCES_2016).
+	* This file creates:
+	* a) Usual output for 2006-2013
+	* b) Non-derivation output for 2014-2017.
+	
+*******************************************************
+clear
 
 forvalues year = 2006/2017 {
 local prevyear =`=`year'-1'
-use "${original}/Combined_`year'", clear
+use "${Original_DTA}/Combined_`year'", clear
 
 //Data contains test score data from prior year in each file
 drop if `year' != v3
@@ -31,7 +41,6 @@ rename v14 TOTAL_SCALE_SCORES
 rename v15 AvgScaleScore
 
 //Fixing ENTITY_CD
-
 gen ENTITY_CD = v1
 drop v1
 order ENTITY_CD
@@ -53,7 +62,10 @@ replace StateAssignedDistID = ENTITY_CD if strpos(ENTITY_NAME, "CHARTER") !=0 & 
 tempfile temp1
 save "`temp1'"
 clear
-use "${nces_school}/NCES_`prevyear'_School.dta"
+use "${NCES_School}/NCES_`prevyear'_School.dta"
+if `prevyear' == 2009{ //Because the original *.dta for NCES_2009_School has _merge variable. [3/3/25]
+drop _merge
+}  
 drop if state_location != "NY" & state_fips !=36
 drop if seasch == ""
 
@@ -74,14 +86,15 @@ replace StateAssignedSchID = "331700860841" if school_name == "EXPLORE CHARTER S
 replace StateAssignedSchID = "331300011527" if strpos(school_name, "URBAN ASSEMBLY INSTITUTE OF MATH") !=0 & `year' == 2009 //NCES cuts full name off
 replace StateAssignedSchID = "581004020001" if school_name == "FISHERS ISLAND SCHOOL" & `year' == 2010
 replace StateAssignedSchID = "331400860930" if school_name == "THE ETHICAL COMMUNITY CHARTER SCHOOL" & `year' == 2012
+
 merge 1:m StateAssignedSchID using "`temp1'"
 
 *drop if _merge !=3 & DataLevel == "School"
-rename _merge _merge1 
+rename _merge _merge1
 tempfile temp2
 save "`temp2'"
 clear
-use "${nces_district}/NCES_`prevyear'_District.dta"
+use "${NCES_District}/NCES_`prevyear'_District.dta"
 drop if state_location != "NY" & state_fips !=36
 if `year' == 2017 {
 gen StateAssignedDistID = substr(state_leaid, strpos(state_leaid, "-")+1, 12)
@@ -126,7 +139,6 @@ destring NCESDistrictID, gen(tempD)
 edit if tempS !=tempD
 */
 
-
 //DistName
 drop _merge
 gen DistName =""
@@ -144,7 +156,6 @@ drop _merge
 replace DistName = "All Districts" if DataLevel== "State"
 replace DistName = lea_name if DistCharter == "Yes"
 
-/*
 //DistType for 2011 (idk why it didn't work for only 2011 but this should fix it)
 if `year' == 2011 {
 	tempfile temp4
@@ -155,7 +166,6 @@ if `year' == 2011 {
 	merge 1:m NCESDistrictID using "`temp4'"
 	drop _merge
 }
-*/
 
 
 //DataLevel
@@ -199,7 +209,6 @@ replace StudentSubGroup = "Military" if StudentSubGroup == "Parent in Armed Forc
 drop if strpos(StudentSubGroup, "Small Group Total") !=0
 replace StudentSubGroup = "SWD" if StudentSubGroup == "Students with Disabilities"
 
-
 //StudentGroup
 gen StudentGroup = ""
 replace StudentGroup = "All Students" if StudentSubGroup == "All Students"
@@ -213,9 +222,7 @@ replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeles
 replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Foster Care" | StudentSubGroup == "Non-Foster Care"
 replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Military" | StudentSubGroup == "Non-Military"
 
-
 *tab StudentGroup, missing
-
 //StudentGroup_TotalTested
 sort DataLevel StateAssignedDistID StateAssignedSchID Subject GradeLevel StudentGroup StudentSubGroup
 gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
@@ -232,6 +239,7 @@ gen Flag_CutScoreChange_soc = "N"
 replace Flag_CutScoreChange_soc = "Not applicable" if `year' > 2010
 gen Flag_CutScoreChange_sci = "N"
 replace Flag_CutScoreChange_sci = "N" if `year' == 2013
+
 //Proficiency Counts and Percents
 gen ProficientOrAbove_count = ""
 gen ProficientOrAbove_percent = ""
@@ -333,13 +341,32 @@ if `year' == 2006 replace CountyCode = "36103" if CountyName == "Suffolk County"
 replace ParticipationRate = "--" if ParticipationRate == "." //Updated 7/23/24
 
 //Final Cleaning and dropping extra variables
-
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
+    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
+    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
+    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
+    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
+    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
+    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
+    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
+    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
+    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
+    Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+	keep `vars'
+	order `vars'
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${output}/NY_AssmtData_`year'", replace
-export delimited "${output}/NY_AssmtData_`year'", replace
-		
+*Exporting Output for 2006-2013. There is only one output for these years.
+if `year' < 2014 {
+save "${Output}/NY_AssmtData_`year'", replace
+export delimited "${Output}/NY_AssmtData_`year'", replace
 }
 
+*Exporting Non-Derivation Output for 2014-2017. The usual output is created in NY_EDFactsParticipation_2014_2019.do.
+if `year'>= 2014 {
+save "${Output_ND}/NY_AssmtData_`year'_ND", replace
+export delimited "${Output_ND}/NY_AssmtData_`year'_ND", replace
+}
+}
+*End of 2006-2017
+****************************************************

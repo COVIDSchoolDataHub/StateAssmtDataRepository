@@ -1,27 +1,36 @@
-clear
-set more off
+*******************************************************
+* NEW YORK
 
-global original "/Users/miramehta/Documents/New York/Original"
-global output "/Users/miramehta/Documents/New York/Output"
-global nces_school "/Users/miramehta/Documents/NCES District and School Demographics/NCES School Files, Fall 1997-Fall 2022"
-global nces_district "/Users/miramehta/Documents/NCES District and School Demographics/NCES District Files, Fall 1997-Fall 2022"
+* File name: 2018
+* Last update: 03/03/2025
+
+*******************************************************
+* Notes
+
+	* This do file imports NY 2018 *.txt files and combines it as a dta. 
+	* Variables are renamed and cleaned.
+	* The file is merged with NCES data for the previous year (NCES_2017).
+	* This file creates non-derivation output for 2018.
+	
+*******************************************************
+clear
 
 //Import Data
-import delimited "${original}/2006-2018/NY_OriginalData_ela_2018.txt", clear stringcols(1)
+import delimited "${Original_1}/NY_OriginalData_ela_2018.txt", clear stringcols(1)
 
 gen subject = "ELA"
 
 tempfile temp1
 save "`temp1'"
 
-import delimited "${original}/2006-2018/NY_OriginalData_mat_2018.txt", clear stringcols(1)
+import delimited "${Original_1}/NY_OriginalData_mat_2018.txt", clear stringcols(1)
 
 gen subject = "MATH"
 
 tempfile temp2
 save "`temp2'"
 
-import delimited "${original}/2006-2018/NY_OriginalData_sci_2018.txt", clear stringcols(1)
+import delimited "${Original_1}/NY_OriginalData_sci_2018.txt", clear stringcols(1)
 
 gen subject = "SCIENCE"
 
@@ -34,6 +43,8 @@ clear
 foreach n in 1 2 3 {
 	append using "`temp`n''", force
 }
+
+save "${Original_DTA}/Combined_2018.dta", replace
 
 //Data contains 2017 score data
 drop if v3 != 2018
@@ -87,7 +98,7 @@ drop if strpos(ASSESSMENT, "_") !=0 //Values dropped- they include data for Lev5
 tempfile temp1
 save "`temp1'"
 clear
-use "${nces_school}/NCES_2017_School.dta"
+use "${NCES_School}/NCES_2017_School.dta"
 drop if state_location != "NY"
 drop if seasch == ""
 gen StateAssignedSchID = substr(seasch, strpos(seasch, "-")+1, 12)
@@ -97,7 +108,7 @@ rename _merge _merge1
 tempfile temp2
 save "`temp2'"
 clear
-use "${nces_district}/NCES_2017_District.dta"
+use "${NCES_District}/NCES_2017_District.dta"
 drop if state_location != "NY"
 gen StateAssignedDistID = substr(state_leaid, strpos(state_leaid, "-")+1, 12)
 merge 1:m StateAssignedDistID using "`temp2'"
@@ -262,12 +273,24 @@ replace DistName = subinstr(DistName, "CITY SCHOOL DISTRICT", "CITY SD", 1)
 //Response to Post-launch review
 replace ParticipationRate = "." if ParticipationRate == "--" //explicitly asked for in review, done to merge more easily in future years
 
-//Final Cleaning and Dropping extra variables
-
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+//Final Cleaning and dropping extra variables
+local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
+    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
+    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
+    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
+    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
+    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
+    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
+    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
+    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
+    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
+    Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+	keep `vars'
+	order `vars'
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-
-save "${output}/NY_AssmtData_2018", replace
-export delimited "${output}/NY_AssmtData_2018", replace
+*Exporting Non-Derivation Output for 2018. The usual output is created in NY_EDFactsParticipation_2014_2019.do.
+save "${Output_ND}/NY_AssmtData_2018_ND", replace
+export delimited "${Output_ND}/NY_AssmtData_2018_ND", replace
+*End of 2018.do
+****************************************************

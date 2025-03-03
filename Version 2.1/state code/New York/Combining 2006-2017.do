@@ -1,8 +1,19 @@
-clear
-set more off
-set trace off
+*******************************************************
+* NEW YORK		
 
-cd "/Users/miramehta/Documents/New York/Original/2006-2018"
+* File name: Combining 2006-2017
+* Last update: 03/03/2025
+
+*******************************************************
+* Notes
+
+	* This do file imports and combines NY data from 2006-2017.
+	* The combined files are saved in the DTA subfolder
+	
+*******************************************************
+clear
+
+cd "$Original_1"
 
 local subjects ela mat sci soc
 local allgrades G03 G04 G05 G06 G07 G08
@@ -33,7 +44,7 @@ forvalues year = 2006/2017 {
             capture confirm file "`filename'"
             if _rc == 0 {
                 di "`filename' exists, opening file"
-                import delimited using "`filename'", clear stringcols(1)
+                import delimited using "$Original_1/`filename'", clear stringcols(1)
                 gen subject = "`subject'"
                 gen grade = "`grade'"
                 if `firstfile' == 1 {
@@ -52,5 +63,7 @@ forvalues year = 2006/2017 {
         }
     }
     use "`thisyear'", clear
-    save "${original}/Combined_`year'.dta", replace
+    save "${Original_DTA}/Combined_`year'.dta", replace
 }
+*End of Combining 2006-2017
+****************************************************
