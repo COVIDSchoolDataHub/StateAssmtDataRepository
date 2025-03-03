@@ -121,11 +121,7 @@ replace EDStudentGroup_TotalTested = AllStudents if EDStudentGroup_TotalTested =
 
 // Generating Level counts
 destring EDStudentSubGroup_TotalTested, gen(nStudentSubGroup_TotalTested) i(*)
-destring ProficientOrAbove_percent, gen(nProficientOrAbove_percent) i(*-)
-gen nProficientOrAbove_count = nProficientOrAbove_percent * nStudentSubGroup_TotalTested
-replace nProficientOrAbove_count = round(nProficientOrAbove_count,1)
-replace ProficientOrAbove_count = string(nProficientOrAbove_count,"%9.0g") if nProficientOrAbove_count != .
-replace ProficientOrAbove_count = "*" if (ProficientOrAbove_percent == "*" | StudentSubGroup_TotalTested == "*") & nProficientOrAbove_count == .
+
 foreach n in 1 2 3 4 {
 	destring Lev`n'_percent, gen(nLev`n'_percent) i(*-)
 	gen nLev`n'_count = nLev`n'_percent*nStudentSubGroup_TotalTested
@@ -133,6 +129,12 @@ foreach n in 1 2 3 4 {
 	replace Lev`n'_count = string(nLev`n'_count, "%9.0g") if nLev`n'_count != .
 	replace Lev`n'_count = "*" if Lev`n'_percent == "*" | StudentSubGroup_TotalTested == "*"
 }
+
+replace ProficientOrAbove_count = string(real(Lev3_count) + real(Lev4_count)) if strpos(Lev3_count, "-") == 0 & strpos(Lev4_count, "-") == 0 & Lev3_count != "*" & Lev4_count != "*"
+replace ProficientOrAbove_count = "0" if nStudentSubGroup_TotalTested == 1 & ProficientOrAbove_percent == "0-.2"
+replace ProficientOrAbove_count = string(round(0.8 * nStudentSubGroup_TotalTested)) + "-" + EDStudentSubGroup_TotalTested if EDStudentSubGroup_TotalTested != "." & ProficientOrAbove_percent == ".8-1" & strpos(ProficientOrAbove_count, "-") != 0
+replace ProficientOrAbove_count = string(round(0.9 * nStudentSubGroup_TotalTested)) + "-" + EDStudentSubGroup_TotalTested if EDStudentSubGroup_TotalTested != "." & ProficientOrAbove_percent == ".9-1" & strpos(ProficientOrAbove_count, "-") != 0
+replace ProficientOrAbove_count = string(round(0.95 * nStudentSubGroup_TotalTested)) + "-" + EDStudentSubGroup_TotalTested if EDStudentSubGroup_TotalTested != "." & ProficientOrAbove_percent == ".95-1" & strpos(ProficientOrAbove_count, "-") != 0
 
 // Replace with EDFacts when possible
 replace StudentGroup_TotalTested = EDStudentGroup_TotalTested if EDStudentSubGroup_TotalTested != "."

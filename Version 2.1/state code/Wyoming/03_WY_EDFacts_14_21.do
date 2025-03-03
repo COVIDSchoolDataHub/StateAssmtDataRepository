@@ -278,7 +278,7 @@ foreach year of local edyears2 {
 }
 
 
-//Conversion to DTA
+//Merging with Output
 forvalues year = 2014/2021 {
 if `year' == 2020 continue
 
