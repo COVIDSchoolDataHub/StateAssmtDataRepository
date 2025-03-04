@@ -51,7 +51,7 @@ Create a folder for NY. Inside that folder, create the following subfolders:
 ## Recreate Cleaning/ Creating the combined files
 A change from the previous version is usage of only "combined files". 
 
-These files are created from the following folders in Google Drive --> New York --> NY Original Data Files.
+These files are created from the following zipped folders in Google Drive --> New York --> NY Original Data Files.
 
     i) 2006-2018
 
