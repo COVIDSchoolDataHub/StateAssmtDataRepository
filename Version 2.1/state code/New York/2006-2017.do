@@ -2,7 +2,7 @@
 * NEW YORK
 
 * File name: 2006_2017
-* Last update: 03/03/2025
+* Last update: 03/04/2025
 
 *******************************************************
 * Notes
@@ -19,7 +19,7 @@ clear
 
 forvalues year = 2006/2017 {
 local prevyear =`=`year'-1'
-use "${Original_DTA}/Combined_`year'", clear
+use "${Combined}/Combined_`year'", clear
 
 //Data contains test score data from prior year in each file
 drop if `year' != v3

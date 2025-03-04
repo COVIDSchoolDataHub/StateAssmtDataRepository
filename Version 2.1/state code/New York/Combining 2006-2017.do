@@ -2,13 +2,13 @@
 * NEW YORK		
 
 * File name: Combining 2006-2017
-* Last update: 03/03/2025
+* Last update: 04/03/2025
 
 *******************************************************
 * Notes
 
 	* This do file imports and combines NY data from 2006-2017.
-	* The combined files are saved in the DTA subfolder
+	* The combined files are saved in the Combined subfolder
 	
 *******************************************************
 clear
@@ -63,7 +63,7 @@ forvalues year = 2006/2017 {
         }
     }
     use "`thisyear'", clear
-    save "${Original_DTA}/Combined_`year'.dta", replace
+    save "${Combined}/Combined_`year'.dta", replace
 }
 *End of Combining 2006-2017
 ****************************************************
