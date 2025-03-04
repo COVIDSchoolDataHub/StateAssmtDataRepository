@@ -55,8 +55,8 @@ These files are created from the following zipped folders in Google Drive --> Ne
 
     i) 2006-2018
 
-    ii) 2019-2024 (update folder name as newer files are added)
-
+    ii) 2019-2024
+    
 Instead of using numerous txt files, the combined files are used since they are faster to process.
 
     1. Download the txt files as noted above.
@@ -67,7 +67,7 @@ Instead of using numerous txt files, the combined files are used since they are 
 
         i) Original_1 refers to the 2006-2018 folder
 
-        ii) Original_2 refers to the 2019-2024 folder (update folder name as newer files are added)
+        ii) Original_2 refers to the 2019-2024 folder
     
     4. The do files that create the combined files are:
 
