@@ -1,4 +1,4 @@
-* NEW YORK
+* NORTH CAROLINA
 
 * File name: NC_EDFactsParticipation_2014_2021
 * Last update: 03/04/2025
