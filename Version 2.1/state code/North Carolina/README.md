@@ -1,40 +1,58 @@
 ## North Carolina Cleaning ReadMe
 This is a ReadMe for North Carolina's data cleaning process, from 2014 to 2024.
 
-## Setup
-Create three folders: NC State Testing Data, NCES District and School Demographics, and EDFacts.
-- Download files from the Original Data Files folder on Drive and put them in the NC State Testing Data folders.
-- Create district and school subfolders in the NCES folders; download NCES files and file them appropriately. 
-- Create a subfolder for every year prior to 2021 in the EDFacts folder and store the wide versions of the EDFacts datasets there.
+## NCES Setup
 
-## Files to Download
+NCES_Full: Download the folder from Google Drive-->_Data Cleaning Materials --> NCES District and School Demographics.
+    
+       a. NCES District Files [subfolder] 
 
-1. From the drive, download the Original Data files from 2014-2024 -  Version 2.0 folder. There are ten original csv files/text files. Save these files to the "Original" folder
-2. From the drive, download NCES District and School files from the "NCES District and School Demographics" folder, within the "Data Cleaning Materials" folder. There should be ten NCES_District files and ten NCES_School files. Save these files to the "NCES" folder
-3. From Github, download the following do-files:
-   a. "NC_nces.do"
-   b. "nc_do.do" 
-   c. "NC_2024.do"
-   d. "NC_EDFactsParticipation_2014_2021.do"
-   e. "NC_EDFactsParticipation_2022.do"
+       b. NCES School Files [subfolder]
 
-## Directories
-```
-Set directories at the top of the do file:
-global data "/Users/miramehta/Documents/NC State Testing Data"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics"
-global EDFacts "/Users/miramehta/Documents/EDFacts"
-```
-- "data" refers to the folder with original data files downloaded from Drive and is where the transformed output files will be saved
-- "NCES" should link to a folder containing downloaded NCES District and School files (till 2022) 
-- "EDFacts" should link to a folder containing downloaded EDFacts datasets (with subfolders for each year before 2022) 
+As of 03/05/2025, the most recent files are from NCES 2022. 
 
-## Recreate Cleaning
-1. Run the "nc_nces" do file this will create NCES files for the current year and the "NC_district_id" files to merge in for missing DistNames
-2. Run "nc_do" file. This will create the relevant output files from 2014-2023
-3. Run the "NC_EDFactsParticipation_2014_2021" do file, which should add in participation data for those years
-4. Run the "NC_EDFactsParticipation_2022" do file, which should add in participation data for those years
-5. Run the "NC_2024" file to generate the cleaned 2024 dataset
+## EDFacts Setup
+EDFacts: Download the Datasets subfolder containing *.csv files. There will be individual folders for each year. 
 
+This is located in Google Drive-->_Data Cleaning Materials --> _EDFacts--> Datasets.
+
+## North Carolina Setup
+Create a folder for NC. Inside that folder, create the following subfolders:
+
+1. Original Data Files: Download the following files from Google Drive --> North Carolina --> NC Original Data Files.
+
+   Place these files in the Original Data Files folder. 
+
+         i) Disag_*.txt files (10 files)
+   
+         ii) missing_nc.csv
+   
+         iii) NC_district_IDs_2024.dta
+   
+         iv) NC_EFParticipation_2022_*.xlsx (3 files)
+   
+         v) nc_full-dist-sch-stable-list_through2023.dta
+   
+   a) DTA [subfolder]
+             
+2. Temp:  
+         
+3. NCES_NC [subfolder]
+      
+4. EDFacts_NC [subfolder]
+      
+5. Output_Files
+      
+6. Output_Files_ND: This is a folder for the non-derivation output.
+
+# Process
+    Place all do files in the NC folder.
+        
+    Set the appropriate file paths in NC_Main_File.do
+        
+    Running NC_Main_File.do will execute all the do files in order.
+    
 ## Updates
 12/06/2024: Updated to derive additional values.
+
+03/05/2024: Updated to standardize code and to create non-derivation output. New do file created for 2014-2023 non-derivation output. Errors fixed in nc_do.do.
