@@ -37,9 +37,9 @@ Create a folder for NC. Inside that folder, create the following subfolders:
              
 2. Temp:  
          
-3. NCES_NC [subfolder]
+3. NCES_NC 
       
-4. EDFacts_NC [subfolder]
+4. EDFacts_NC 
       
 5. Output_Files
       
