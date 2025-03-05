@@ -7,103 +7,14 @@
 *******************************************************
 * Notes
 
-	* This do file imports NY 2019 *.txt files and combines it as a dta. 
-	* Variables are renamed and cleaned.
+	* This do file renames variables and cleans the combined 2019 DTA file.
 	* The file is merged with NCES data for the previous year (NCES_2018).
 	* This file creates non-derivation output for 2019.
 	
 *******************************************************
 clear
 
-//Standardizing varnames and combining
-
-//ELA *CROSSWALK IN README IS WRONG*
-import delimited "${Original_2}/NY_OriginalData_ela_2019.txt", clear stringcols(1)
-rename v2 ENTITY_NAME
-rename v3 YEAR
-rename v4 ASSESSMENT
-rename v5 StudentSubGroup
-rename v6 StudentSubGroup_TotalTested
-rename v7 NOT_TESTED
-rename v8 Lev1_count
-rename v9 Lev1_percent
-rename v10 Lev2_count
-rename v11 Lev2_percent
-rename v12 Lev3_count
-rename v13 Lev3_percent
-rename v14 Lev4_count
-rename v15 Lev4_percent
-rename v16 NUM_PROF
-rename v17 PER_PROF
-rename v18 TOTAL_SCALE_SCORES
-rename v19 AvgScaleScore
-gen subject= "ELA"
-
-tempfile temp1
-save "`temp1'"
-
-//MATH
-
-import delimited "${Original_2}/NY_OriginalData_mat_2019.txt", clear stringcols(1)
-rename v2 ENTITY_NAME
-rename v3 YEAR
-rename v4 ASSESSMENT
-rename v5 StudentSubGroup
-rename v6 StudentSubGroup_TotalTested
-rename v7 NOT_TESTED
-rename v8 Lev1_count
-rename v9 Lev1_percent
-rename v10 Lev2_count
-rename v11 Lev2_percent
-rename v12 Lev3_count
-rename v13 Lev3_percent
-rename v14 Lev4_count
-rename v15 Lev4_percent
-rename v16 Lev5_count
-rename v17 Lev5_percent
-rename v18 NUM_PROF
-rename v19 PER_PROF
-rename v20 TOTAL_SCALE_SCORES
-rename v21 AvgScaleScore
-gen subject = "MATH"
-
-tempfile temp2
-save "`temp2'"
-
-//SCI *CROSSWALK IN README IS WRONG*
-
-import delimited "${Original_2}/NY_OriginalData_sci_2019.txt", clear stringcols(1)
-
-rename v2 ENTITY_NAME
-rename v3 YEAR
-rename v4 ASSESSMENT
-rename v5 StudentSubGroup
-rename v6 StudentSubGroup_TotalTested
-rename v7 NOT_TESTED
-rename v8 Lev1_count
-rename v9 Lev1_percent
-rename v10 Lev2_count
-rename v11 Lev2_percent
-rename v12 Lev3_count
-rename v13 Lev3_percent
-rename v14 Lev4_count
-rename v15 Lev4_percent
-rename v16 NUM_PROF
-rename v17 PER_PROF
-rename v18 TOTAL_SCALE_SCORES
-rename v19 AvgScaleScore
-gen subject = "SCIENCE"
-tempfile temp3
-save "`temp3'"
-clear
-
-//Appending
-
-foreach n in 1 2 3 {
-	append using "`temp`n''", force
-}
-
-save "${Original_DTA}/Combined_2019.dta", replace
+use "${Combined}/Combined_2019.dta", clear
 
 drop if YEAR != 2019
 

@@ -7,44 +7,14 @@
 *******************************************************
 * Notes
 
-	* This do file imports NY 2018 *.txt files and combines it as a dta. 
-	* Variables are renamed and cleaned.
+	* This do file renames variables and cleans the combined 2018 DTA file.
 	* The file is merged with NCES data for the previous year (NCES_2017).
 	* This file creates non-derivation output for 2018.
 	
 *******************************************************
 clear
 
-//Import Data
-import delimited "${Original_1}/NY_OriginalData_ela_2018.txt", clear stringcols(1)
-
-gen subject = "ELA"
-
-tempfile temp1
-save "`temp1'"
-
-import delimited "${Original_1}/NY_OriginalData_mat_2018.txt", clear stringcols(1)
-
-gen subject = "MATH"
-
-tempfile temp2
-save "`temp2'"
-
-import delimited "${Original_1}/NY_OriginalData_sci_2018.txt", clear stringcols(1)
-
-gen subject = "SCIENCE"
-
-tempfile temp3
-save "`temp3'"
-clear
-
-//Appending
-
-foreach n in 1 2 3 {
-	append using "`temp`n''", force
-}
-
-save "${Original_DTA}/Combined_2018.dta", replace
+use "${Combined}/Combined_2018.dta", clear
 
 //Data contains 2017 score data
 drop if v3 != 2018

@@ -1,25 +1,6 @@
-*******************************************************
-* MASSACHUSETTS
-
-* File name: MA_NCES_New
-* Last update: 2/27/2025
-
-*******************************************************
-* Notes
-
-	* This do file reads NCES files from 2009 through 2022 one by one.
-	* It keeps only MA observations. 
-	* As of the last update 2/27/2025, the latest NCES file is for 2022.
-	* This code will need to be updated when newer NCES files are released. 
-
-*******************************************************
-
-/////////////////////////////////////////
-*** Setup ***
-/////////////////////////////////////////
 clear
 set more off
-
+global NCES "/Volumes/T7/State Test Project/Puerto Rico/NCES"
 ** Preparing NCES files
 
 global years 2009 2010 2011 2012 2013 2014 2015 2016 2017 2018 2020 2021 2022
@@ -27,7 +8,7 @@ global years 2009 2010 2011 2012 2013 2014 2015 2016 2017 2018 2020 2021 2022
 foreach a in $years {
 	
 	use "${NCES_District}/NCES_`a'_District.dta", clear 
-	keep if state_location == "MA"
+	keep if state_location == "PR"
 	
 	rename state_name State
 	rename state_location StateAbbrev
@@ -44,7 +25,7 @@ foreach a in $years {
 	save "${NCES_MA}/NCES_`a'_District.dta", replace
 	
 	use "${NCES_School}/NCES_`a'_School.dta", clear
-	keep if state_location == "MA"
+	keep if state_location == "PR"
 	
 	rename state_name State
 	rename state_location StateAbbrev
@@ -70,12 +51,3 @@ foreach a in $years {
 
 	save "${NCES_MA}/NCES_`a'_School.dta", replace
 }
-
-// Fix for NCES_2013_School which is causing issues in the merging.
-// Code from V1.1
-use "$NCES_MA/NCES_2013_School", clear
-duplicates drop seasch, force
-save "$NCES_MA/NCES_2013_School", replace
-
-* END of MA_NCES_New.do
-****************************************************

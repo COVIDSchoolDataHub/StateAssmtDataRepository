@@ -413,6 +413,7 @@ replace ParticipationRate = ".98" if ParticipationRate == "98"
 replace ParticipationRate = ".8-.89" if ParticipationRate == "80-89"
 replace ParticipationRate = ".85-.89" if ParticipationRate == "85-89"
 replace ParticipationRate = ".9-.94" if ParticipationRate == "90-94"
+replace ParticipationRate = ".6-.79" if ParticipationRate == "60-79"
 
 //Missing & Empty vars
 forvalues n = 1/5 {
@@ -501,6 +502,12 @@ drop RaceEth Gender max nStudentSubGroup_TotalTested
 replace StudentSubGroup_TotalTested = "--" if StudentSubGroup_TotalTested == "."
 replace StudentGroup_TotalTested = "--" if StudentGroup_TotalTested == "."
 drop if StudentSubGroup_TotalTested == "0" & StudentSubGroup != "All Students"
+
+** Response to R1 3.2.25
+replace StateAssignedSchID = StateAssignedDistID + StateAssignedSchID if DataLevel == 3
+foreach var of varlist *_count {
+	replace `var' = "1" if `var' == "1-1"
+}
 
 //Final Cleaning
 replace CountyName = "Dona Ana County" if CountyName == "DoÃ±a Ana County"

@@ -333,6 +333,12 @@ replace ProficientOrAbove_count = string(round(real(StudentSubGroup_TotalTested)
 replace ProficientOrAbove_count = string(round(real(StudentSubGroup_TotalTested) * ProficientOrAbove_percent1)) + "-" + string(round(real(StudentSubGroup_TotalTested) * ProficientOrAbove_percent2)) if inlist(ProficientOrAbove_count, "*", "--") & !inlist(StudentSubGroup_TotalTested, "*", "--") & ProficientOrAbove_percent1 != . & ProficientOrAbove_percent2 != .
 replace ProficientOrAbove_count = "0" if ProficientOrAbove_count == "0-0"
 replace ProficientOrAbove_percent = "0-.2" if ProficientOrAbove_percent == "0-0.20"
+replace ProficientOrAbove_percent = ".8-1" if ProficientOrAbove_percent == "0.80-1"
+
+** Response to R1 3.2.25
+replace StateAssignedSchID = StateAssignedDistID + StateAssignedSchID if DataLevel == 3
+replace ProficientOrAbove_count = "1" if ProficientOrAbove_count == "1-1"
+
 
 //Final cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
