@@ -1,15 +1,23 @@
+* NORTH DAKOTA
+
+* File name: ND Student Counts 22-24
+* Last update: 03/05/2025
+
+*******************************************************
+* Notes 
+
+	* This do file imports the ND_EDFacts_2022.csv file and saves it as a *.dta file.
+	* The *.dta file is cleaned and variables are renamed. 
+	* This *.dta file is used in ND Cleaning 2022, 2023 and 2024 do files. 
+	
+*******************************************************
+
 clear
-set more off
 
-cd "/Users/miramehta/Documents"
+import delimited "$ED_Express\ND_EDFacts_2022.csv", clear 
+save "$ED_Express/ND_EDFacts_2022.dta", replace
 
-global data "/Users/miramehta/Documents/ND State Testing Data/Original Data Files"
-global NCESSchool "/Users/miramehta/Documents/NCES District and School Demographics/NCES School Files, Fall 1997-Fall 2022"
-global NCESDistrict "/Users/miramehta/Documents/NCES District and School Demographics/NCES District Files, Fall 1997-Fall 2022"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
-global EDFacts "/Users/miramehta/Documents/EdFacts"
-
-use "$data/ND_EDFacts_2022.dta", clear
+use "$ED_Express/ND_EDFacts_2022.dta", clear
 
 rename ncesschid NCESSchoolID
 rename ncesleaid NCESDistrictID
@@ -88,4 +96,6 @@ format NCESSchoolID %18.0g
 tostring NCESSchoolID, replace usedisplayformat
 replace NCESSchoolID = "" if DataLevel != 3
 
-save "${data}/edfacts2022northdakota.dta", replace
+save "${ED_Express}/edfacts2022ND.dta", replace
+* END of ND Student Counts 22-24.do
+****************************************************
