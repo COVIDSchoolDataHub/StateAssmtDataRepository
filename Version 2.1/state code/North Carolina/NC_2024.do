@@ -1,25 +1,31 @@
+*******************************************************
+* NORTH CAROLINA 
 
-//Name: North Carolina 2024 State Assessment
-//purpose: Cleaning NC State Assessment Data
-//author: Mikael Oberlin
-//date created: 10/01/24
+* File name: NC_2024
+* Last update: 03/05/2025
 
+*******************************************************
+* Notes
 
-clear all 
-set more off
+	* This do file imports 2024 *.txt files and saves it as *.dta.
+	* Variables are renamed and the file is cleaned.
+	* The file is merged with NCES 2022. 
+	* As of 3/5/25, the latest NCES is 2022. 
+	* This file will need to be updated when NCES_2023 becomes available.
+	* The do file also replaces the names with Stable Names. 
+	* Both the derivation and non-derivation output are created. 
 
-global Abbrev "NC"
+*******************************************************
+clear 
 
-global data "/Users/miramehta/Documents/NC State Testing Data"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics"
-
+*******************************************************
+// Importing data, renaming variables and cleaning the file
+*******************************************************
 //2023-2024
-import delimited "$data/Disag_2023-24_Data.txt", clear
-save "$data/NC_OriginalData_2024.csv", replace
-export delimited "$data/NC_OriginalData_2024.csv", replace
-save "$data/NC_OriginalData_2024.dta", replace
-use "$data/NC_OriginalData_2024", clear 
+import delimited "$Original/Disag_2023-24_Data.txt", clear
+save "$Original_DTA/NC_OriginalData_2024.dta", replace
 
+use "$Original_DTA/NC_OriginalData_2024", clear 
 rename school_code StateAssignedSchID 
 rename name SchName
 rename subject Subject
@@ -78,7 +84,6 @@ drop Subject
 rename Subject2 Subject
 
 // keeping necessary subroups 
-
 gen StudentSubGroup2 = ""
 replace StudentSubGroup2 = "All Students" if StudentSubGroup == "ALL"
 replace StudentSubGroup2 = "American Indian or Alaska Native" if StudentSubGroup == "AMIN"
@@ -155,19 +160,19 @@ gen StateAssignedSchID_full = StateAssignedSchID
 //making state assigned school ID just 3 for match 
 replace StateAssignedSchID = substr(StateAssignedSchID, 4, .)
 
-merge m:1 State_leaid using "$NCES/1_NCES_2022_District_NC.dta"
+merge m:1 State_leaid using "$NCES_NC/NCES_2022_District_NC.dta"
 rename _merge DistMerge
 drop if DistMerge == 2
 
 drop DistMerge
 
 rename StateAssignedSchID seasch
-merge m:1 State_leaid seasch using "$NCES/1_NCES_2022_School_NC.dta"
+merge m:1 State_leaid seasch using "$NCES_NC/NCES_2022_School_NC.dta"
 rename _merge SchoolMerge
 drop if SchoolMerge == 2
 drop SchoolMerge 
 
-merge m:1 State_leaid using  "$data/1_NC_district_IDs_2022.dta" 
+merge m:1 State_leaid using  "$NCES_NC/NC_district_IDs_2022.dta" 
 drop if _merge == 2
 rename seasch StateAssignedSchID 
 rename State_leaid StateAssignedDistID 
@@ -243,6 +248,11 @@ replace StateAssignedSchID = StateAssignedDistID + StateAssignedSchID
 
 gen ParticipationRate = "--" 
 
+******************************
+// Creating a breakpoint file. This will be restored to create the non-derivation output.
+******************************
+save "$Temp/NC_AssmtData_2024_Breakpoint", replace
+
 ** Generating student group total counts
 tostring StudentSubGroup_TotalTested, replace
 destring StudentSubGroup_TotalTested, gen(num) force
@@ -254,6 +264,10 @@ gen Lev4_c = Lev4_percent
 
 destring Lev1_c Lev2_c Lev3_c Lev4_c, replace force 
 
+******************************
+//Derivations//
+******************************
+//Counts derived from using percentages * SSGT
 replace Lev1_c = Lev1_c * num
 replace Lev2_c = Lev2_c * num
 replace Lev3_c = Lev3_c * num
@@ -331,6 +345,7 @@ foreach var of varlist ProficientOrAbove_count {
 	replace `var' = string(`var'1, "%8.0g") if !inlist(`var', "*", "--") & `var'2 == .
 	replace `var' = string(`var'1, "%8.0g") + "-" + string(`var'2, "%8.0g") if !inlist(`var', "*", "--") & `var'2 != .
 }
+
 tostring AvgScaleScore, replace force
 replace AvgScaleScore = "--" if AvgScaleScore == "."
 
@@ -389,16 +404,16 @@ by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] i
 drop group_id StateAssignedDistID1 StateAssignedSchID1
 replace StateAssignedSchID = "" if (DataLevel == 1 | DataLevel == 2) & StateAssignedSchID != ""
 
-save "$data/NC_AssmtData_2024_Stata", replace
+save "$Temp/NC_AssmtData_2024_Stata", replace
 
-use "$data/NC_StableNames", clear
+use "$Original_DTA/NC_StableNames", clear
 tostring NCESDistrictID, replace
 replace NCESDistrictID = "" if NCESDistrictID == "."
 tostring NCESSchoolID, format("%18.0f") replace
 replace NCESSchoolID = "" if NCESSchoolID == "."
 keep if SchYear == "2022-23"
 drop SchYear
-merge 1:m DataLevel NCESDistrictID NCESSchoolID using "$data/NC_AssmtData_2024_Stata", gen(merge2)
+merge 1:m DataLevel NCESDistrictID NCESSchoolID using "$Temp/NC_AssmtData_2024_Stata", gen(merge2)
 drop if merge2 == 1
 replace DistName = newdistname if DataLevel !=1 & merge2 == 3
 replace SchName = newschname if DataLevel == 3 & merge2 == 3
@@ -407,11 +422,181 @@ replace SchName = "All Schools" if DataLevel ==1
 
 rename DistName1 DistName
 
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
+    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
+    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
+    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
+    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
+    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
+    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
+    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
+    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
+    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
+    Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+ 	keep `vars'
+	order `vars'
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+	
+//Exporting Output
+save "$Output/NC_AssmtData_2024", replace
+export delimited "$Output/NC_AssmtData_2024.csv", replace
 
-save "$data/NC_AssmtData_2024", replace
-export delimited "$data/NC_AssmtData_2024.csv", replace
+******************************
+// Creating the non-derivation output
+******************************
+*Restoring the breakpoint
+use "$Temp/NC_AssmtData_2024_Breakpoint", clear
+
+** Generating student group total counts
+tostring StudentSubGroup_TotalTested, replace
+destring StudentSubGroup_TotalTested, gen(num) force
+
+gen Lev1_c = Lev1_percent
+gen Lev2_c = Lev2_percent
+gen Lev3_c = Lev3_percent
+gen Lev4_c = Lev4_percent
+
+destring Lev1_c Lev2_c Lev3_c Lev4_c, replace force 
+
+replace Lev1_c = round(Lev1_c/100)
+replace Lev2_c = round(Lev2_c/100)
+replace Lev3_c = round(Lev3_c/100)
+replace Lev4_c = round(Lev4_c/100)
+
+tostring Lev1_c Lev2_c Lev3_c Lev4_c, replace
+
+gen Lev1_count = Lev1_percent
+gen Lev2_count = Lev2_percent 
+gen Lev3_count = Lev3_percent
+gen Lev4_count = Lev4_percent
+gen ProficientOrAbove_count = ProficientOrAbove_percent
+
+foreach var of varlist Lev1_count Lev2_count Lev3_count Lev4_count Lev1_percent Lev2_percent Lev3_percent Lev4_percent ProficientOrAbove_count ProficientOrAbove_percent {
+    // Replace ">" with a range (remove ">" and add "-1")
+    replace `var' = subinstr(`var', ">", "", .) + "-1" if strpos(`var', ">") != 0
+    
+    // Replace "<" with a range (replace "<" with "0-")
+    replace `var' = subinstr(`var', "<", "0-", .) if strpos(`var', "<") != 0
+}
+
+//Code to Convert to Decimals with Ranges
+foreach var of varlist Lev1_percent Lev2_percent Lev3_percent Lev4_percent {
+	split `var', parse("-")
+	destring `var'1, replace i(-)
+	destring `var'2, replace i(-)
+	replace `var'1 = `var'1/100
+	replace `var'2 = `var'2/100 if `var'2 != 1
+	replace `var' = string(`var'1, "%6.0g") if !inlist(`var', "*", "--") & `var'2 == .
+	replace `var' = string(`var'1, "%6.0g") + "-" + string(`var'2, "%6.0g") if !inlist(`var', "*", "--") & `var'2 != .
+}
+
+//Code to Convert to Decimals with Ranges
+foreach var of varlist ProficientOrAbove_percent {
+	split `var', parse("-")
+	destring `var'1, replace i(-)
+	destring `var'2, replace i(-)
+	replace `var'1 = `var'1/100
+	replace `var'2 = `var'2/100 if `var'2 != 1
+	replace `var' = string(`var'1, "%6.0g") if !inlist(`var', "*", "--") & `var'2 == .
+	replace `var' = string(`var'1, "%6.0g") + "-" + string(`var'2, "%6.0g") if !inlist(`var', "*", "--") & `var'2 != .
+}
+
+//Code to Convert to Decimals with Ranges
+foreach var of varlist Lev1_count Lev2_count Lev3_count Lev4_count  {
+	split `var', parse("-")
+	destring `var'1, replace i(-)
+	replace `var'1 = `var'1
+	destring `var'2, replace i(-)
+	replace `var'2 = `var'2
+	replace `var'1 = `var'1 * num
+	replace `var'2 = `var'2 * num
+	replace `var'1 = round(`var'1/100)
+	replace `var'2 = round(`var'2/100) if `var'2 != num
+	replace `var' = string(`var'1, "%8.0g") if !inlist(`var', "*", "--") & `var'2 == .
+	replace `var' = string(`var'1, "%8.0g") + "-" + string(`var'2, "%8.0g") if !inlist(`var', "*", "--") & `var'2 != .
+}
+
+//Code to Convert to Decimals with Ranges
+foreach var of varlist ProficientOrAbove_count {
+	split `var', parse("-")
+	destring `var'1, replace i(-)
+	replace `var'1 = `var'1
+	destring `var'2, replace i(-)
+	replace `var'2 = `var'2
+	replace `var'1 = `var'1 * num
+	replace `var'2 = `var'2 * num
+	replace `var'1 = round(`var'1/100)
+	replace `var'2 = round(`var'2/100) if `var'2 != num
+	replace `var' = string(`var'1, "%8.0g") if !inlist(`var', "*", "--") & `var'2 == .
+	replace `var' = string(`var'1, "%8.0g") + "-" + string(`var'2, "%8.0g") if !inlist(`var', "*", "--") & `var'2 != .
+}
+
+tostring AvgScaleScore, replace force
+replace AvgScaleScore = "--" if AvgScaleScore == "."
+
+//Deriving Additional Information
+replace ProficientOrAbove_percent = string(real(Lev2_percent) + real(Lev3_percent) + real(Lev4_percent)) if strpos(ProficientOrAbove_percent, "-") > 0 & strpos(Lev4_percent, "-") == 0 & strpos(Lev2_percent, "-") == 0 & strpos(Lev3_percent, "-") == 0 & Lev2_percent != "*" & Lev3_percent != "*" & Lev4_percent != "*" & ProficiencyCriteria == "Levels 2-4"
+
+replace Lev4_percent = string(real(ProficientOrAbove_percent) - real(Lev3_percent) - real(Lev2_percent)) if strpos(Lev4_percent, "-") > 0 & strpos(Lev2_percent, "-") == 0 & strpos(Lev3_percent, "-") == 0 & strpos(ProficientOrAbove_percent, "-") == 0 & Lev2_percent != "*" & Lev3_percent != "*" & ProficientOrAbove_percent != "*" & ProficiencyCriteria == "Levels 2-4" & real(ProficientOrAbove_percent) - real(Lev3_percent) - real(Lev2_percent) >= 0
+replace Lev4_percent = "0" if strpos(Lev4_percent, "-") > 0 & strpos(Lev2_percent, "-") == 0 & strpos(Lev3_percent, "-") == 0 & strpos(ProficientOrAbove_percent, "-") == 0 & Lev2_percent != "*" & Lev3_percent != "*" & ProficientOrAbove_percent != "*" & ProficiencyCriteria == "Levels 2-4" & real(ProficientOrAbove_percent) - real(Lev3_percent) - real(Lev2_percent) < 0
+replace Lev4_percent = "0" if strpos(Lev4_percent, "e") > 0
+
+replace Lev3_percent = string(real(ProficientOrAbove_percent) - real(Lev4_percent) - real(Lev2_percent)) if strpos(Lev3_percent, "-") > 0 & strpos(Lev2_percent, "-") == 0 & strpos(Lev4_percent, "-") == 0 & strpos(ProficientOrAbove_percent, "-") == 0 & Lev2_percent != "*" & Lev4_percent != "*" & ProficientOrAbove_percent != "*" & ProficiencyCriteria == "Levels 2-4" & real(ProficientOrAbove_percent) - real(Lev4_percent) - real(Lev2_percent) >= 0
+replace Lev3_percent = "0" if strpos(Lev3_percent, "-") > 0 & strpos(Lev2_percent, "-") == 0 & strpos(Lev4_percent, "-") == 0 & strpos(ProficientOrAbove_percent, "-") == 0 & Lev2_percent != "*" & Lev4_percent != "*" & ProficientOrAbove_percent != "*" & ProficiencyCriteria == "Levels 2-4" & real(ProficientOrAbove_percent) - real(Lev4_percent) - real(Lev2_percent) < 0
+replace Lev3_percent = "0" if strpos(Lev3_percent, "e") > 0
+
+replace Lev2_percent = string(real(ProficientOrAbove_percent) - real(Lev4_percent) - real(Lev3_percent)) if strpos(Lev2_percent, "-") > 0 & strpos(Lev3_percent, "-") == 0 & strpos(Lev4_percent, "-") == 0 & strpos(ProficientOrAbove_percent, "-") == 0 & Lev3_percent != "*" & Lev4_percent != "*" & ProficientOrAbove_percent != "*" & ProficiencyCriteria == "Levels 2-4" & & real(ProficientOrAbove_percent) - real(Lev4_percent) - real(Lev3_percent) >= 0
+replace Lev2_percent = "0" if strpos(Lev2_percent, "-") > 0 & strpos(Lev3_percent, "-") == 0 & strpos(Lev4_percent, "-") == 0 & strpos(ProficientOrAbove_percent, "-") == 0 & Lev3_percent != "*" & Lev4_percent != "*" & ProficientOrAbove_percent != "*" & ProficiencyCriteria == "Levels 2-4" & & real(ProficientOrAbove_percent) - real(Lev4_percent) - real(Lev3_percent) < 0
+replace Lev2_percent = "0" if strpos(Lev2_percent, "e") > 0
+
+replace Lev1_percent = string(1 - real(ProficientOrAbove_percent)) if strpos(Lev1_percent, "-") > 0 & strpos(ProficientOrAbove_percent, "-") == 0 & ProficientOrAbove_percent != "*" & ProficiencyCriteria == "Levels 2-4" & 1 - real(ProficientOrAbove_percent) >= 0
+replace Lev1_percent = "0" if strpos(Lev1_percent, "-") > 0 & strpos(ProficientOrAbove_percent, "-") == 0 & ProficientOrAbove_percent != "*" & ProficiencyCriteria == "Levels 2-4" & 1 - real(ProficientOrAbove_percent) < 0
+replace Lev1_percent = "0" if strpos(Lev1_percent, "e") > 0
+
+//Standardizing IDs & Names
+gen StateAssignedDistID1 = StateAssignedDistID
+replace StateAssignedDistID1 = "000000" if DataLevel == 1 //Remove quotations if DistIDs are numeric
+gen StateAssignedSchID1 = StateAssignedSchID
+replace StateAssignedSchID1 = "000000" if DataLevel !=3 //Remove quotations if SchIDs are numeric
+egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
+sort group_id StudentGroup StudentSubGroup
+by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+drop group_id StateAssignedDistID1 StateAssignedSchID1
+replace StateAssignedSchID = "" if (DataLevel == 1 | DataLevel == 2) & StateAssignedSchID != ""
+
+save "$Temp/NC_AssmtData_2024_Stata_ND", replace
+
+use "$Original_DTA/NC_StableNames", clear
+tostring NCESDistrictID, replace
+replace NCESDistrictID = "" if NCESDistrictID == "."
+tostring NCESSchoolID, format("%18.0f") replace
+replace NCESSchoolID = "" if NCESSchoolID == "."
+keep if SchYear == "2022-23"
+drop SchYear
+merge 1:m DataLevel NCESDistrictID NCESSchoolID using "$Temp/NC_AssmtData_2024_Stata_ND", gen(merge2)
+drop if merge2 == 1
+replace DistName = newdistname if DataLevel !=1 & merge2 == 3
+replace SchName = newschname if DataLevel == 3 & merge2 == 3
+replace DistName = "All Districts" if DataLevel == 1
+replace SchName = "All Schools" if DataLevel ==1
+
+rename DistName1 DistName
+
+replace Lev1_count = "--"
+replace Lev2_count = "--"
+replace Lev3_count = "--"
+replace Lev4_count = "--"
+replace ProficientOrAbove_count = "--"
+
+//Sorting, ordering and keeping select variables.
+keep `vars'
+order `vars'
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
+//Exporting Non-Derivation Output
+save "$Output_ND/NC_AssmtData_2024_ND", replace
+export delimited "$Output_ND/NC_AssmtData_2024_ND.csv", replace
+* END of NC_2024.do
+****************************************************

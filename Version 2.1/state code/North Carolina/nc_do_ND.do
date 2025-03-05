@@ -1,31 +1,25 @@
 *******************************************************
 * NORTH CAROLINA 
 
-* File name: nc_do
+* File name: nc_do_ND
 * Last update: 03/04/2025
 
 *******************************************************
 * Notes
 
-	* This do file imports NC's 2014 - 2023 *.csv files and converts it to *.dta files. 
-	* The *.dta files are saved to the DTA folder.
-	* The files from the DTA folder are then cleaned and processed.
+	* This do file uses original (pre-cleaning) *.dta files created in the DTA folder. 
+	* The files are processed for the Non-Derivation output.
+	* All temp output/ files created here has the ND suffix.
 	* The NCES files for the previous year are merged.
 	* The do file also replaces the names with Stable Names. 
 	
 *******************************************************
-cap log close
-log using north_carolina_cleaning.log, replace 
+clear 
 
-// COUNTY NAME CHECK IN EARLIER YEARS
-
-// imports all years and converts to dta files 
+*******************************************************
+// Using dta files to renaming variables 
+*******************************************************
 local years  "13-14 14-15 15-16 16-17 17-18 18-19 20-21 21-22 22-23"
-
-foreach a in `years' {
-import delimited "$Original/Disag_20`a'_Data.txt", clear
-save "$Original_DTA/NC_OriginalData_`a'", replace	
-}
 
 local years1  "13-14 14-15 15-16 16-17 17-18 18-19 20-21 21-22 22-23"
 foreach a in `years1' {
@@ -614,7 +608,7 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName ///
 	SchLevel SchVirtual CountyName CountyCode
 // 2024 update
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-save "$Temp/NC_AssmtData_`current'_Stata", replace
+save "$Temp/NC_AssmtData_`current'_Stata_ND", replace
 }
 
 *************************************************************************
@@ -625,226 +619,7 @@ save "$Temp/NC_AssmtData_`current'_Stata", replace
 
 local years2   "2014 2015 2016 2017 2018 2019 2021 2022 2023"
 foreach g in `years2' {
-use "$Temp/NC_AssmtData_`g'_Stata", clear
-******************************
-//Conditions when year == 2014 or 2015
-******************************
-if "`g'" == "2015" | "`g'" == "2014"  {
-local a  "1 2 3 4 5" 
-foreach b in `a' {
-split Lev`b'_percent, parse("-")
-}
-
-split ProficientOrAbove_percent, parse("-")
-
-destring Lev*_percent1 Lev*_percent2 ProficientOrAbove_percent1 ProficientOrAbove_percent2, replace ignore("*") // Modified 3/3/25
-
-******************************
-//Derivations//
-******************************
-//Counts derived from using percentages * SSGT
-gen Lev1_count1 = Lev1_percent1* StudentSubGroup_TotalTested
-gen Lev2_count1 = Lev2_percent1* StudentSubGroup_TotalTested
-gen Lev3_count1 = Lev3_percent1* StudentSubGroup_TotalTested
-gen Lev4_count1 = Lev4_percent1* StudentSubGroup_TotalTested
-gen Lev5_count1 = Lev5_percent1* StudentSubGroup_TotalTested
-gen ProficientOrAbove_count1 = ProficientOrAbove_percent1* StudentSubGroup_TotalTested
-
-gen Lev1_count2 = Lev1_percent2* StudentSubGroup_TotalTested
-gen Lev2_count2 = Lev2_percent2* StudentSubGroup_TotalTested
-gen Lev3_count2 = Lev3_percent2* StudentSubGroup_TotalTested
-gen Lev4_count2 = Lev4_percent2* StudentSubGroup_TotalTested
-gen Lev5_count2 = Lev5_percent2* StudentSubGroup_TotalTested
-gen ProficientOrAbove_count2 = ProficientOrAbove_percent2* StudentSubGroup_TotalTested
-
-local a  "1 2 3 4 5" 
-foreach b in `a' {
-replace Lev`b'_count1 = round(Lev`b'_count1, 1)
-}
-
-local a  "1 2 3 4 5" 
-foreach b in `a' {
-replace Lev`b'_count2 = round(Lev`b'_count2, 1)
-tostring Lev`b'_count1 Lev`b'_count2, replace force 
-egen Lev`b'_countX = concat(Lev`b'_count1 Lev`b'_count2) if Lev`b'_count2 != ".", punct("-") 
-replace Lev`b'_countX = Lev`b'_count1 if Lev`b'_count2 == "."
-drop Lev`b'_count1 Lev`b'_count2 Lev`b'_percent1 Lev`b'_percent2
-replace Lev`b'_count = Lev`b'_countX
-drop Lev`b'_count
-rename Lev`b'_countX Lev`b'_count
-
-replace Lev`b'_count = "*" if Lev`b'_percent == "*"
-
-// updated 4/30/24
-split Lev`b'_count, parse("-")
-replace Lev`b'_count = Lev`b'_count1 if Lev`b'_count1 == Lev`b'_count2
-drop Lev`b'_count1 Lev`b'_count2
-// updated 4/30/24
-}
-
-replace ProficientOrAbove_count1 = round(ProficientOrAbove_count1, 1)
-replace ProficientOrAbove_count2 = round(ProficientOrAbove_count2, 1)
-tostring ProficientOrAbove_count1 ProficientOrAbove_count2, replace force 
-egen ProficientOrAbove_countX = concat(ProficientOrAbove_count1 ProficientOrAbove_count2) if ProficientOrAbove_count2 != ".", punct("-") 
-replace ProficientOrAbove_countX  = ProficientOrAbove_count1 if ProficientOrAbove_count2 == "."
-drop ProficientOrAbove_count1 ProficientOrAbove_count2 ProficientOrAbove_percent1 ProficientOrAbove_percent2
-replace ProficientOrAbove_count = ProficientOrAbove_countX
-replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "*"
-drop ProficientOrAbove_count
-display "error"
-rename ProficientOrAbove_countX ProficientOrAbove_count
-
-// updated 4/30/24
-split ProficientOrAbove_count, parse("-")
-replace ProficientOrAbove_count = ProficientOrAbove_count1 if ProficientOrAbove_count1 == ProficientOrAbove_count2
-drop ProficientOrAbove_count1 ProficientOrAbove_count2
-// updated 4/30/24
-}
-
-******************************
-//Conditions when year == 2016 through 2021
-******************************
-if "`g'" == "2021" | "`g'" == "2019" |  "`g'" == "2018" | "`g'" == "2017" | "`g'" == "2016"  {
-local a  "1 2 3 4 5" 
-foreach b in `a' {
-split Lev`b'_percent, parse("-")
-}
-
-split ProficientOrAbove_percent, parse("-")
-destring Lev*_percent1 Lev*_percent2 ProficientOrAbove_percent1 ProficientOrAbove_percent2, replace // Modified 3/3/25
-
-******************************
-//Derivations//
-******************************
-//Counts derived from using percentages * SSGT
-gen Lev1_count1 = Lev1_percent1* StudentSubGroup_TotalTested
-gen Lev2_count1 = Lev2_percent1* StudentSubGroup_TotalTested
-gen Lev3_count1 = Lev3_percent1* StudentSubGroup_TotalTested
-gen Lev4_count1 = Lev4_percent1* StudentSubGroup_TotalTested
-gen Lev5_count1 = Lev5_percent1* StudentSubGroup_TotalTested
-gen ProficientOrAbove_count1 = ProficientOrAbove_percent1* StudentSubGroup_TotalTested
-
-gen Lev1_count2 = Lev1_percent2* StudentSubGroup_TotalTested
-gen Lev2_count2 = Lev2_percent2* StudentSubGroup_TotalTested
-gen Lev3_count2 = Lev3_percent2* StudentSubGroup_TotalTested
-gen Lev4_count2 = Lev4_percent2* StudentSubGroup_TotalTested
-gen Lev5_count2 = Lev5_percent2* StudentSubGroup_TotalTested
-gen ProficientOrAbove_count2 = ProficientOrAbove_percent2* StudentSubGroup_TotalTested
-
-local a  "1 2 3 4 5" 
-foreach b in `a' {
-replace Lev`b'_count1 = round(Lev`b'_count1, 1)
-}
-
-local a  "1 2 3 4 5" 
-foreach b in `a' {
-replace Lev`b'_count2 = round(Lev`b'_count2, 1)
-tostring Lev`b'_count1 Lev`b'_count2, replace force 
-egen Lev`b'_countX = concat(Lev`b'_count1 Lev`b'_count2) if Lev`b'_count2 != ".", punct("-") 
-replace Lev`b'_countX = Lev`b'_count1 if Lev`b'_count2 == "."
-drop Lev`b'_count1 Lev`b'_count2 Lev`b'_percent1 Lev`b'_percent2
-replace Lev`b'_count = Lev`b'_countX
-drop Lev`b'_count
-rename Lev`b'_countX Lev`b'_count
-
-// updated 4/30/24
-split Lev`b'_count, parse("-")
-replace Lev`b'_count = Lev`b'_count1 if Lev`b'_count1 == Lev`b'_count2
-drop Lev`b'_count1 Lev`b'_count2
-// updated 4/30/24
-}
-
-replace ProficientOrAbove_count1 = round(ProficientOrAbove_count1, 1)
-replace ProficientOrAbove_count2 = round(ProficientOrAbove_count2, 1)
-tostring ProficientOrAbove_count1 ProficientOrAbove_count2, replace force 
-egen ProficientOrAbove_countX = concat(ProficientOrAbove_count1 ProficientOrAbove_count2) if ProficientOrAbove_count2 != ".", punct("-") 
-replace ProficientOrAbove_countX  = ProficientOrAbove_count1 if ProficientOrAbove_count2 == "."
-drop ProficientOrAbove_count1 ProficientOrAbove_count2 ProficientOrAbove_percent1 ProficientOrAbove_percent2
-replace ProficientOrAbove_count = ProficientOrAbove_countX
-drop ProficientOrAbove_count
-rename ProficientOrAbove_countX ProficientOrAbove_count
-
-// updated 4/30/24
-split ProficientOrAbove_count, parse("-")
-replace ProficientOrAbove_count = ProficientOrAbove_count1 if ProficientOrAbove_count1 == ProficientOrAbove_count2
-drop ProficientOrAbove_count1 ProficientOrAbove_count2
-// updated 4/30/24
-}
-
-******************************
-//Conditions when year == 2022 or 2023
-******************************
-if "`g'" == "2023" | "`g'" == "2022"  {
-	
-local a  "2 3 4 5" 
-foreach b in `a' {
-split Lev`b'_percent, parse("-")
-}
-
-split ProficientOrAbove_percent, parse("-")
-
-// destring  Lev2_percent1 Lev3_percent1 Lev4_percent1 Lev5_percent1 ProficientOrAbove_percent1  Lev2_percent2 Lev3_percent2 Lev4_percent2 Lev5_percent2 ProficientOrAbove_percent2, replace 
-destring Lev*_percent1 Lev*_percent2 ProficientOrAbove_percent1 ProficientOrAbove_percent2, replace // Modified 3/3/25
-******************************
-//Derivations//
-******************************
-//Counts derived from using percentages * SSGT
-gen Lev2_count1 = Lev2_percent1* StudentSubGroup_TotalTested
-gen Lev3_count1 = Lev3_percent1* StudentSubGroup_TotalTested
-gen Lev4_count1 = Lev4_percent1* StudentSubGroup_TotalTested
-gen Lev5_count1 = Lev5_percent1* StudentSubGroup_TotalTested
-gen ProficientOrAbove_count1 = ProficientOrAbove_percent1* StudentSubGroup_TotalTested
-
-gen Lev2_count2 = Lev2_percent2* StudentSubGroup_TotalTested
-gen Lev3_count2 = Lev3_percent2* StudentSubGroup_TotalTested
-gen Lev4_count2 = Lev4_percent2* StudentSubGroup_TotalTested
-gen Lev5_count2 = Lev5_percent2* StudentSubGroup_TotalTested
-gen ProficientOrAbove_count2 = ProficientOrAbove_percent2* StudentSubGroup_TotalTested
-
-local a  "2 3 4 5" 
-foreach b in `a' {
-replace Lev`b'_count1 = round(Lev`b'_count1, 1)
-}
-
-local a  "2 3 4 5" 
-foreach b in `a' {
-replace Lev`b'_count2 = round(Lev`b'_count2, 1)
-tostring Lev`b'_count1 Lev`b'_count2, replace force 
-egen Lev`b'_countX = concat(Lev`b'_count1 Lev`b'_count2) if Lev`b'_count2 != ".", punct("-") 
-replace Lev`b'_countX = Lev`b'_count1 if Lev`b'_count2 == "."
-drop Lev`b'_count1 Lev`b'_count2 Lev`b'_percent1 Lev`b'_percent2
-replace Lev`b'_count = Lev`b'_countX
-drop Lev`b'_count
-rename Lev`b'_countX Lev`b'_count
-
-// updated 4/30/24
-split Lev`b'_count, parse("-")
-replace Lev`b'_count = Lev`b'_count1 if Lev`b'_count1 == Lev`b'_count2
-drop Lev`b'_count1 Lev`b'_count2
-// updated 4/30/24
-}
-
-replace ProficientOrAbove_count1 = round(ProficientOrAbove_count1, 1)
-replace ProficientOrAbove_count2 = round(ProficientOrAbove_count2, 1)
-tostring ProficientOrAbove_count1 ProficientOrAbove_count2, replace force 
-egen ProficientOrAbove_countX = concat(ProficientOrAbove_count1 ProficientOrAbove_count2) if ProficientOrAbove_count2 != ".", punct("-") 
-replace ProficientOrAbove_countX  = ProficientOrAbove_count1 if ProficientOrAbove_count2 == "."
-drop ProficientOrAbove_count1 ProficientOrAbove_count2 ProficientOrAbove_percent1 ProficientOrAbove_percent2
-replace ProficientOrAbove_count = ProficientOrAbove_countX
-drop ProficientOrAbove_count
-rename ProficientOrAbove_countX ProficientOrAbove_count
-
-
-// updated 4/30/24
-split ProficientOrAbove_count, parse("-")
-replace ProficientOrAbove_count = ProficientOrAbove_count1 if ProficientOrAbove_count1 == ProficientOrAbove_count2
-drop ProficientOrAbove_count1 ProficientOrAbove_count2
-// updated 4/30/24
-}
-
-// updated 4/30/24
-// for 2016
-
+use "$Temp/NC_AssmtData_`g'_Stata_ND", clear
 ******************************
 //Conditions when year == 2016 or 2021
 ******************************
@@ -877,7 +652,7 @@ local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
     Flag_CutScoreChange_sci Flag_CutScoreChange_soc
 	keep `vars'
 	order `vars'
-save "${Temp}/NC_AssmtData_`g'_Stata", replace
+save "${Temp}/NC_AssmtData_`g'_Stata_ND", replace
 }
 
 ******************************
@@ -914,7 +689,7 @@ tostring NCESDistrictID, replace
 replace NCESDistrictID = "" if NCESDistrictID == "."
 tostring NCESSchoolID, format("%18.0f") replace
 replace NCESSchoolID = "" if NCESSchoolID == "."
-merge 1:m DataLevel NCESDistrictID NCESSchoolID using "${Temp}/NC_AssmtData_`year'_Stata" 
+merge 1:m DataLevel NCESDistrictID NCESSchoolID using "${Temp}/NC_AssmtData_`year'_Stata_ND" 
 drop if _merge == 1
 replace DistName = newdistname if DataLevel !=1
 replace SchName = newschname if DataLevel == 3
@@ -942,7 +717,7 @@ replace DistName = "Guilford County Schools" if NCESSchoolID == "370192002988"
 //Final Cleaning and Saving
 keep `vars'
 order `vars'
-save "${Temp}/NC_AssmtData_`year'_Stata", replace
+save "${Temp}/NC_AssmtData_`year'_Stata_ND", replace
 }
 
 ******************************
@@ -953,7 +728,7 @@ save "${Temp}/NC_AssmtData_`year'_Stata", replace
 forvalues year = 2022/2023 { 
 // 	if `year' == 2020 continue [delete]
 	
-use "${Temp}/NC_AssmtData_`year'_Stata", clear
+use "${Temp}/NC_AssmtData_`year'_Stata_ND", clear
 forvalues b = 2/5 { 
 local prevyear = `b' - 1
 replace Lev`prevyear'_count = Lev`b'_count 
@@ -963,7 +738,7 @@ replace Lev`prevyear'_percent = Lev`b'_percent
 replace Lev5_count = ""
 replace Lev5_percent  = ""
 replace ProficiencyCriteria = "Levels 2-4"
-save "${Temp}/NC_AssmtData_`year'_Stata", replace
+save "${Temp}/NC_AssmtData_`year'_Stata_ND", replace
 }
 
 ******************************
@@ -972,7 +747,7 @@ save "${Temp}/NC_AssmtData_`year'_Stata", replace
 // updating from Lev 3-5 to Lev 2-4 for certain values in 2019 and 2021
 forvalues year = 2019/2021 { 
 	if `year' == 2020 continue
-use "${Temp}/NC_AssmtData_`year'_Stata", replace	
+use "${Temp}/NC_AssmtData_`year'_Stata_ND", clear	
 forvalues b = 2/5 { 
 local prevyear = `b' - 1
 replace ProficiencyCriteria = "Levels 2-4" if AssmtName == "End-of-Grade Tests - Edition 5"
@@ -981,7 +756,7 @@ replace Lev`prevyear'_percent = Lev`b'_percent if  AssmtName == "End-of-Grade Te
 }
 replace Lev5_count = ""  if AssmtName == "End-of-Grade Tests - Edition 5"
 replace Lev5_percent  = "" if  AssmtName == "End-of-Grade Tests - Edition 5"
-save "${Temp}/NC_AssmtData_`year'_Stata", replace
+save "${Temp}/NC_AssmtData_`year'_Stata_ND", replace
 }
 
 ******************************
@@ -990,7 +765,7 @@ save "${Temp}/NC_AssmtData_`year'_Stata", replace
 //Deriving Additional Information
 foreach year in 2014 2015 2016 2017 2018 2019 2021 2022 2023 {
 
-use "${Temp}/NC_AssmtData_`year'_Stata", clear
+use "${Temp}/NC_AssmtData_`year'_Stata_ND", clear
 
 tostring StudentSubGroup_TotalTested, replace
 	
@@ -1066,42 +841,42 @@ forvalues n = 1/5{
 
 replace Lev1_percent = string(1 - real(ProficientOrAbove_percent) - real(Lev2_percent2)) + string(1 - real(ProficientOrAbove_percent)) if Lev1_percent == "*" & strpos(Lev2_percent, "0-") == 1 & real(Lev2_percent2) != . & real(ProficientOrAbove_percent) != . & (1 - real(ProficientOrAbove_percent) - real(Lev2_percent2)) >= 0
 
-replace Lev1_count = string(real(StudentSubGroup_TotalTested) - real(ProficientOrAbove_count) - real(Lev2_count2)) + string(real(StudentSubGroup_TotalTested) - real(ProficientOrAbove_count)) if Lev1_count == "*" & strpos(Lev2_count, "0-") == 1 & real(Lev2_count2) != . & real(ProficientOrAbove_count) != . & real(StudentSubGroup_TotalTested) != . & (real(StudentSubGroup_TotalTested) - real(ProficientOrAbove_count) - real(Lev2_count2)) >= 0
+// replace Lev1_count = string(real(StudentSubGroup_TotalTested) - real(ProficientOrAbove_count) - real(Lev2_count2)) + string(real(StudentSubGroup_TotalTested) - real(ProficientOrAbove_count)) if Lev1_count == "*" & strpos(Lev2_count, "0-") == 1 & real(Lev2_count2) != . & real(ProficientOrAbove_count) != . & real(StudentSubGroup_TotalTested) != . & (real(StudentSubGroup_TotalTested) - real(ProficientOrAbove_count) - real(Lev2_count2)) >= 0
 
 replace Lev2_percent = string(1 - real(ProficientOrAbove_percent) - real(Lev1_percent2)) + string(1 - real(ProficientOrAbove_percent)) if Lev2_percent == "*" & strpos(Lev1_percent, "0-") == 1 & real(Lev1_percent2) != . & real(ProficientOrAbove_percent) != . & (1 - real(ProficientOrAbove_percent) - real(Lev1_percent2)) >= 0
 
-replace Lev2_count = string(real(StudentSubGroup_TotalTested) - real(ProficientOrAbove_count) - real(Lev1_count2)) + string(real(StudentSubGroup_TotalTested) - real(ProficientOrAbove_count)) if Lev2_count == "*" & strpos(Lev1_count, "0-") == 1 & real(Lev1_count2) != . & real(ProficientOrAbove_count) != . & real(StudentSubGroup_TotalTested) != . & (real(StudentSubGroup_TotalTested) - real(ProficientOrAbove_count) - real(Lev1_count2)) >= 0
+// replace Lev2_count = string(real(StudentSubGroup_TotalTested) - real(ProficientOrAbove_count) - real(Lev1_count2)) + string(real(StudentSubGroup_TotalTested) - real(ProficientOrAbove_count)) if Lev2_count == "*" & strpos(Lev1_count, "0-") == 1 & real(Lev1_count2) != . & real(ProficientOrAbove_count) != . & real(StudentSubGroup_TotalTested) != . & (real(StudentSubGroup_TotalTested) - real(ProficientOrAbove_count) - real(Lev1_count2)) >= 0
 
 gen flag = 1 if Lev3_percent == "*" & strpos(Lev4_percent, "0-") == 1 & strpos(Lev5_percent, "0-") == 1 & ProficientOrAbove_percent != "*"
 replace Lev3_percent = string(real(ProficientOrAbove_percent) - real(Lev4_percent2) - real(Lev5_percent2)) + "-" + ProficientOrAbove_percent if Lev3_percent == "*" & flag == 1 & real(Lev4_percent2) != . & real(Lev5_percent2) != . & real(ProficientOrAbove_percent) != . & (real(ProficientOrAbove_percent) - real(Lev4_percent2) - real(Lev5_percent2)) >= 0
 
-replace Lev3_count = string(real(ProficientOrAbove_count) - real(Lev4_count2) - real(Lev5_count2)) + "-" + ProficientOrAbove_count if Lev3_count == "*" & flag == 1 & real(Lev4_count2) != . & real(Lev5_count2) != . & real(ProficientOrAbove_count) != . & (real(ProficientOrAbove_count) - real(Lev4_count2) - real(Lev5_count2)) >= 0
+// replace Lev3_count = string(real(ProficientOrAbove_count) - real(Lev4_count2) - real(Lev5_count2)) + "-" + ProficientOrAbove_count if Lev3_count == "*" & flag == 1 & real(Lev4_count2) != . & real(Lev5_count2) != . & real(ProficientOrAbove_count) != . & (real(ProficientOrAbove_count) - real(Lev4_count2) - real(Lev5_count2)) >= 0
 drop flag
 
 gen flag = 1 if Lev4_percent == "*" & strpos(Lev3_percent, "0-") == 1 & strpos(Lev5_percent, "0-") == 1 & ProficientOrAbove_percent != "*"
 replace Lev4_percent = string(real(ProficientOrAbove_percent) - real(Lev3_percent2) - real(Lev5_percent2)) + "-" + ProficientOrAbove_percent if Lev4_percent == "*" & flag == 1 & real(Lev3_percent2) != . & real(Lev5_percent2) != . & real(ProficientOrAbove_percent) != . & (real(ProficientOrAbove_percent) - real(Lev3_percent2) - real(Lev5_percent2)) >= 0
 
-replace Lev4_count = string(real(ProficientOrAbove_count) - real(Lev3_count2) - real(Lev5_count2)) + "-" + ProficientOrAbove_count if Lev4_count == "*" & flag == 1 & real(Lev3_count2) != . & real(Lev5_count2) != . & real(ProficientOrAbove_count) != . & (real(ProficientOrAbove_count) - real(Lev3_count2) - real(Lev5_count2)) >= 0
+// replace Lev4_count = string(real(ProficientOrAbove_count) - real(Lev3_count2) - real(Lev5_count2)) + "-" + ProficientOrAbove_count if Lev4_count == "*" & flag == 1 & real(Lev3_count2) != . & real(Lev5_count2) != . & real(ProficientOrAbove_count) != . & (real(ProficientOrAbove_count) - real(Lev3_count2) - real(Lev5_count2)) >= 0
 drop flag
 
 gen flag = 1 if Lev5_percent == "*" & strpos(Lev3_percent, "0-") == 1 & strpos(Lev4_percent, "0-") == 1 & ProficientOrAbove_percent != "*"
 replace Lev5_percent = string(real(ProficientOrAbove_percent) - real(Lev4_percent2) - real(Lev3_percent2)) + "-" + ProficientOrAbove_percent if Lev5_percent == "*" & flag == 1 & real(Lev4_percent2) != . & real(Lev3_percent2) != . & real(ProficientOrAbove_percent) != . & (real(ProficientOrAbove_percent) - real(Lev4_percent2) - real(Lev3_percent2)) >= 0
 
-replace Lev5_count = string(real(ProficientOrAbove_count) - real(Lev4_count2) - real(Lev3_count2)) + "-" + ProficientOrAbove_count if Lev5_count == "*" & flag == 1 & real(Lev4_count2) != . & real(Lev3_count2) != . & real(ProficientOrAbove_count) != . & (real(ProficientOrAbove_count) - real(Lev4_count2) - real(Lev3_count2)) >= 0
+// replace Lev5_count = string(real(ProficientOrAbove_count) - real(Lev4_count2) - real(Lev3_count2)) + "-" + ProficientOrAbove_count if Lev5_count == "*" & flag == 1 & real(Lev4_count2) != . & real(Lev3_count2) != . & real(ProficientOrAbove_count) != . & (real(ProficientOrAbove_count) - real(Lev4_count2) - real(Lev3_count2)) >= 0
 drop flag
 
-replace Lev5_count = "0-" + string(round(real(StudentSubGroup_TotalTested) * 0.1)) if Lev5_percent == "0-.1" & Lev5_count == "*" & round(real(StudentSubGroup_TotalTested) * 0.1) != 0
+//replace Lev5_count = "0-" + string(round(real(StudentSubGroup_TotalTested) * 0.1)) if Lev5_percent == "0-.1" & Lev5_count == "*" & round(real(StudentSubGroup_TotalTested) * 0.1) != 0
 }
-save "${Temp}/NC_AssmtData_`year'_Stata", replace
+save "${Temp}/NC_AssmtData_`year'_Stata_ND", replace
 }
 
 ******************************
-// New StudentGroup_TotalTested for 2014 and 2023 only 
+// New StudentGroup_TotalTested for 2014 through 2023 
 ******************************
 ////New StudentGroup_TotalTested convention//// 10/30/24 update - MO
 foreach year in 2014 2015 2016 2017 2018 2019 2021 2022 2023 {
 	
-use "${Temp}/NC_AssmtData_`year'_Stata", clear
+use "${Temp}/NC_AssmtData_`year'_Stata_ND", clear
 drop StudentGroup_TotalTested
 gen StateAssignedDistID1 = StateAssignedDistID
 replace StateAssignedDistID1 = "000000" if DataLevel == 1 //Remove quotations if DistIDs are numeric
@@ -1114,22 +889,22 @@ by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] i
 drop group_id StateAssignedDistID1 StateAssignedSchID1
 replace StateAssignedSchID = "" if (DataLevel == 1 | DataLevel == 2) & StateAssignedSchID != ""
 
-save "$Temp/NC_AssmtData_`year'", replace 
+save "$Temp/NC_AssmtData_`year'_ND", replace 
 
 ******************************
 // Other fixes for 2014 and 2021
 ******************************
 ////Participation Rate fix//// 10/30/24 update - MO
 if `year' == 2014 {
-	use "$Temp/NC_AssmtData_`year'", clear
+	use "$Temp/NC_AssmtData_`year'_ND", clear
 	replace ParticipationRate = "--" if ParticipationRate == ""
-	save "$Temp/NC_AssmtData_`year'", replace
+	save "$Temp/NC_AssmtData_`year'_ND", replace
 }
 
 if `year' == 2021 {
-use "$Temp/NC_AssmtData_`year'"
+use "$Temp/NC_AssmtData_`year'_ND", clear
 replace Flag_AssmtNameChange = "N" if Subject == "math"	
-save "$Temp/NC_AssmtData_`year'", replace
+save "$Temp/NC_AssmtData_`year'_ND", replace
 }
 }
 
@@ -1137,19 +912,12 @@ save "$Temp/NC_AssmtData_`year'", replace
 // Exporting Temp Output for 2014 through 2023.
 ******************************
 foreach year in 2014 2015 2016 2017 2018 2019 2021 2022 2023 {
-
-use "${Temp}/NC_AssmtData_`year'.dta", clear
-sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+use "$Temp/NC_AssmtData_`year'_ND.dta", clear
 keep `vars'
 order `vars'
-save "${Temp}/NC_AssmtData_`year'.dta", replace
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+save "${Output_ND}/NC_AssmtData_`year'_ND.dta", replace
+export delimited "${Output_ND}/NC_AssmtData_`year'_ND", replace
 }
-
-******************************
-// Exporting Final Output for 2023. (Not using any EDFacts data. Remove this code if you use EDFacts data in the future.)
-****************************** 
-use "${Temp}/NC_AssmtData_2023.dta", clear
-save "${Output}/NC_AssmtData_2023.dta", replace
-export delimited "$Output/NC_AssmtData_2023", replace
-* END of nc_do.do
+* END of nc_do_ND.do
 ****************************************************
