@@ -1,9 +1,18 @@
+*******************************************************
+* MONTANA
+
+* File name: 01_MT_NCES
+* Last update: 03/05/2025
+
+*******************************************************
+* Notes
+
+	* This do file cleans MT NCES data.
+	
+*******************************************************
+
 clear
 set more off
-
-global NCES_Original "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
-global NCES_MT "/Volumes/T7/State Test Project/Montana/NCES"
-
 
 ** Preparing NCES files
 
@@ -11,7 +20,7 @@ global years 2014 2015 2016 2017 2018 2020 2021 2022
 
 foreach a in $years {
 	
-	use "${NCES_Original}/NCES_`a'_District.dta", clear 
+	use "${NCES_Dist}/NCES_`a'_District.dta", clear 
 	keep if state_location == "MT"
 	
 	rename state_name State
@@ -28,7 +37,7 @@ foreach a in $years {
 	
 	save "${NCES_MT}/NCES_`a'_District.dta", replace
 	
-	use "${NCES_Original}/NCES_`a'_School.dta", clear
+	use "${NCES_School}/NCES_`a'_School.dta", clear
 	keep if state_location == "MT"
 	
 	rename state_name State

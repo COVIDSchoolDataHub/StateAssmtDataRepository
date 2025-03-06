@@ -1,12 +1,23 @@
+* NORTH CAROLINA
+
+* File name: NC_EDFactsParticipation_2022
+* Last update: 03/04/2025
+
+*******************************************************
+* Notes
+
+	* This do file imports 2022 *.xlsx NC EDFacts Participation Data. 
+	* It loops through the temp 2022 output file and merges EDFacts participation rates. 
+	* The resulting output is saved in the usual output folder.
+*******************************************************
+
+/////////////////////////////////////////
+*** Setup ***
+/////////////////////////////////////////
 clear
-set more off
-
-global EDFacts "/Users/miramehta/Documents/EDFacts"
-global data "/Users/miramehta/Documents/NC State Testing Data"
-
 
 foreach s in ela math sci {
-	import excel "$data/NC_EFParticipation_2022_`s'.xlsx", case(preserve) clear
+	import excel "$Original/NC_EFParticipation_2022_`s'.xlsx", case(preserve) clear
 	rename C NCESDistrictID
 	rename F NCESSchoolID
 	rename I Participation
@@ -15,12 +26,12 @@ foreach s in ela math sci {
 	rename O GradeLevel
 	rename P Subject
 	keep NCESDistrictID NCESSchoolID Participation StudentSubGroup Characteristics GradeLevel Subject
-	save "$data/NC_EFParticipation_2022_`s'.dta", replace
+	save "$Original_DTA/NC_EFParticipation_2022_`s'.dta", replace
 }
 
 
-use "$data/NC_EFParticipation_2022_ela.dta"
-append using "$data/NC_EFParticipation_2022_math.dta" "$data/NC_EFParticipation_2022_sci.dta"
+use "$Original_DTA/NC_EFParticipation_2022_ela.dta"
+append using "$Original_DTA/NC_EFParticipation_2022_math.dta" "$Original_DTA/NC_EFParticipation_2022_sci.dta"
 
 
 //StudentSubGroup
@@ -66,17 +77,17 @@ replace GradeLevel = subinstr(GradeLevel, "Grade ", "G0",.)
 duplicates drop NCESDistrictID NCESSchoolID GradeLevel Subject StudentSubGroup, force
 
 //Saving EDFacts Output
-save "$data/NC_EFParticipation_2022", replace
+save "$Original_DTA/NC_EFParticipation_2022", replace
 
 //Merging with 2022
-use "$data/NC_AssmtData_2022", clear
+use "$Temp/NC_AssmtData_2022", clear
 
 //Convert to numeric if necessary
 destring NCESDistrictID NCESSchoolID, replace
 duplicates drop NCESDistrictID NCESSchoolID GradeLevel Subject StudentSubGroup, force
 
 //Merging
-merge 1:1 NCESDistrictID NCESSchoolID GradeLevel Subject StudentSubGroup using "$data/NC_EFParticipation_2022"
+merge 1:1 NCESDistrictID NCESSchoolID GradeLevel Subject StudentSubGroup using "$Original_DTA/NC_EFParticipation_2022"
 drop if _merge ==2
 replace ParticipationRate = Participation
 replace ParticipationRate = "--" if missing(ParticipationRate)
@@ -88,13 +99,24 @@ replace NCESDistrictID = "" if NCESDistrictID == "."
 replace NCESSchoolID = "" if NCESSchoolID == "."
 
 //Final Cleaning
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
- 
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 
+local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
+    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
+    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
+    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
+    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
+    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
+    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
+    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
+    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
+    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
+    Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+	keep `vars'
+	order `vars'
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "$data/NC_AssmtData_2022", replace
-export delimited "$data/NC_AssmtData_2022", replace
-
-
+*Exporting Final Output for 2022. 
+save "$Output/NC_AssmtData_2022", replace
+export delimited "$Output/NC_AssmtData_2022", replace
+*End of NC_EDFactsParticipation_2022.do
+****************************************************

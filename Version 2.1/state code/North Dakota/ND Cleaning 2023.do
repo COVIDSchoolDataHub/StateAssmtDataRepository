@@ -1,23 +1,27 @@
-clear all
-set more off
+* NORTH DAKOTA
 
-cd "/Users/miramehta/Documents"
+* File name: ND Cleaning 2023
+* Last update: 03/05/2025
 
-global data "/Users/miramehta/Documents/ND State Testing Data/Original Data Files"
-global NCESSchool "/Users/miramehta/Documents/NCES District and School Demographics/NCES School Files, Fall 1997-Fall 2022"
-global NCESDistrict "/Users/miramehta/Documents/NCES District and School Demographics/NCES District Files, Fall 1997-Fall 2022"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
-global EDFacts "/Users/miramehta/Documents/EdFacts"
-global output "/Users/miramehta/Documents/ND State Testing Data/Output"
+*******************************************************
+* Notes
+
+	* This do file imports 2023 Participation Data and the Original Data.
+	* It saves it as *.dta file, renames and cleans it. 
+	* NCES 2022 is merged.
+	* A breakpoint is created before EDFacts 2022 Counts file is merged.  
+	* The usual and non-derivation outputs are created. 
+
+*******************************************************
 
 //Import Data & Merge in Participation Data
-import excel "$data/ND_ParticipationData_2023.xlsx", clear firstrow
+import excel "$Original/ND_ParticipationData_2023.xlsx", clear firstrow
 duplicates drop
-save "$data/ND_ParticipationData_2023.dta", replace
+save "$Original_DTA/ND_ParticipationData_2023.dta", replace
 
-import excel "$data/ND_OriginalData_2023_all.xlsx", clear firstrow
+import excel "$Original/ND_OriginalData_2023_all.xlsx", clear firstrow
 duplicates drop
-merge 1:1 InstitutionName InstitutionID Grade Subject AssessmentType Accomodations Subgroup using "$data/ND_ParticipationData_2023.dta", gen (mergep)
+merge 1:1 InstitutionName InstitutionID Grade Subject AssessmentType Accomodations Subgroup using "$Original_DTA/ND_ParticipationData_2023.dta", gen (mergep)
 drop if mergep == 2
 
 //Rename Variables
@@ -97,11 +101,11 @@ gen Flag_CutScoreChange_soc = "Not applicable"
 
 gen State_leaid = "ND-" + StateAssignedDistID
 gen seasch = substr(StateAssignedSchID, 1, 5) + "-" + substr(StateAssignedSchID, 6, 5)
-merge m:1 State_leaid using "$NCES/NCES_2022_District_ND.dta"
+merge m:1 State_leaid using "$NCES_ND/NCES_2022_District_ND.dta"
 drop if _merge == 2
 drop _merge
 
-merge m:1 State_leaid seasch using "$NCES/NCES_2022_School_ND.dta", update
+merge m:1 State_leaid seasch using "$NCES_ND/NCES_2022_School_ND.dta", update
 drop if _merge == 2
 drop _merge
 
@@ -118,6 +122,11 @@ replace DistName = "McClusky 19" if DistName == "Mcclusky 19"
 replace DistName = "McKenzie Co 1" if DistName == "Mckenzie Co 1"
 replace DistName = "TGU 60" if DistName == "Tgu 60"
 
+*******************************************************
+// Creating a Breakpoint - to restore for non-derivation data processing
+*******************************************************
+save "$Temp/ND_2023_Breakpoint",replace
+
 //Merging with EDFacts Datasets
 label def DataLevel 1 "State" 2 "District" 3 "School"
 encode DataLevel, gen(DataLevel_n) label(DataLevel)
@@ -125,24 +134,36 @@ sort DataLevel_n
 drop DataLevel 
 rename DataLevel_n DataLevel
 
-merge m:1 DataLevel NCESDistrictID NCESSchoolID StudentGroup StudentSubGroup GradeLevel Subject using "$data/edfacts2022northdakota.dta"
+gen StudentSubGroup_TotalTested = "--"
+
+merge m:1 DataLevel NCESDistrictID NCESSchoolID StudentGroup StudentSubGroup GradeLevel Subject using "$ED_Express/edfacts2022ND.dta"
+replace StudentSubGroup_TotalTested = string(Count) if string(Count) != "." & string(Count) != ""
 drop if _merge == 2
 drop state schoolyear-_merge
 
+destring StudentSubGroup_TotalTested, gen(num) force
+gen dummy = num
+replace dummy = 0 if DataLevel != 2
+bys StudentSubGroup Subject GradeLevel: egen state = total(dummy)
+replace num = state if DataLevel == 1 & state != 0 & state != .
+tostring state, replace force
+replace StudentSubGroup_TotalTested = state if DataLevel == 1 & state != "." & state != "0"
+drop dummy
+
 ** Deriving More SubGroup Counts
-bysort SchName DistName Subject GradeLevel: egen All = max(StudentSubGroup_TotalTested)
-bysort SchName DistName Subject GradeLevel: egen Econ = sum(StudentSubGroup_TotalTested) if StudentGroup == "Economic Status"
-bysort SchName DistName Subject GradeLevel: egen Disability = sum(StudentSubGroup_TotalTested) if StudentGroup == "Disability Status"
-bysort SchName DistName Subject GradeLevel: egen Foster = sum(StudentSubGroup_TotalTested) if StudentGroup == "Foster Care Status"
-bysort SchName DistName Subject GradeLevel: egen Homeless = sum(StudentSubGroup_TotalTested) if StudentGroup == "Homeless Enrolled Status"
-bysort SchName DistName Subject GradeLevel: egen Military = sum(StudentSubGroup_TotalTested) if StudentGroup == "Military Connected Status"
-bysort SchName DistName Subject GradeLevel: egen Migrant = sum(StudentSubGroup_TotalTested) if StudentGroup == "Migrant Status"
-replace StudentSubGroup_TotalTested = All - Econ if StudentSubGroup == "Not Economically Disadvantaged" & Econ != 0
-replace StudentSubGroup_TotalTested = All - Disability if StudentSubGroup == "Non-SWD" & Disability != 0
-replace StudentSubGroup_TotalTested = All - Foster if StudentSubGroup == "Non-Foster Care" & Foster != 0
-replace StudentSubGroup_TotalTested = All - Homeless if StudentSubGroup == "Non-Homeless" & Homeless != 0
-replace StudentSubGroup_TotalTested = All - Military if StudentSubGroup == "Non-Military" & Military != 0
-replace StudentSubGroup_TotalTested = All - Migrant if StudentSubGroup == "Non-Migrant" & Military != 0
+bysort SchName DistName Subject GradeLevel: egen All = max(num)
+bysort SchName DistName Subject GradeLevel: egen Econ = sum(num) if StudentGroup == "Economic Status"
+bysort SchName DistName Subject GradeLevel: egen Disability = sum(num) if StudentGroup == "Disability Status"
+bysort SchName DistName Subject GradeLevel: egen Foster = sum(num) if StudentGroup == "Foster Care Status"
+bysort SchName DistName Subject GradeLevel: egen Homeless = sum(num) if StudentGroup == "Homeless Enrolled Status"
+bysort SchName DistName Subject GradeLevel: egen Military = sum(num) if StudentGroup == "Military Connected Status"
+bysort SchName DistName Subject GradeLevel: egen Migrant = sum(num) if StudentGroup == "Migrant Status"
+replace num = All - Econ if StudentSubGroup == "Not Economically Disadvantaged" & Econ != 0
+replace num = All - Disability if StudentSubGroup == "Non-SWD" & Disability != 0
+replace num = All - Foster if StudentSubGroup == "Non-Foster Care" & Foster != 0
+replace num = All - Homeless if StudentSubGroup == "Non-Homeless" & Homeless != 0
+replace num = All - Military if StudentSubGroup == "Non-Military" & Military != 0
+replace num = All - Migrant if StudentSubGroup == "Non-Migrant" & Military != 0
 
 //Proficiency Levels, Participation Rates, and Cleaning Student Counts
 gen ProfLow = ProficientRangeLow + AdvancedRangeLow
@@ -158,13 +179,16 @@ rename ProficientRangeHigh Lev3_pctHigh
 rename AdvancedRangeLow Lev4_pctLow
 rename AdvancedRangeHigh Lev4_pctHigh
 
+******************************
+//Derivations//
+******************************
 forvalues n = 1/4 {
-	gen Lev`n'_countLow = StudentSubGroup_TotalTested * Lev`n'_pctLow
+	gen Lev`n'_countLow = num * Lev`n'_pctLow
 	replace Lev`n'_countLow = round(Lev`n'_countLow)
-	gen Lev`n'_countHigh = StudentSubGroup_TotalTested * Lev`n'_pctHigh
+	gen Lev`n'_countHigh = num * Lev`n'_pctHigh
 	replace Lev`n'_countHigh = round(Lev`n'_countHigh)
-	replace Lev`n'_countLow = . if StudentSubGroup_TotalTested == .
-	replace Lev`n'_countHigh = . if StudentSubGroup_TotalTested == .
+	replace Lev`n'_countLow = . if num == .
+	replace Lev`n'_countHigh = . if num == .
 }
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
@@ -263,11 +287,176 @@ label var ProficientOrAbove_count "Count of students achieving proficiency or ab
 label var ProficientOrAbove_percent "Percent of students achieving proficiency or above on the state assessment"
 label var ParticipationRate "Participation rate"
 
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
+//Final Cleaning and dropping extra variables
+local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
+    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
+    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
+    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
+    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
+    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
+    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
+    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
+    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
+    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
+    Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+	keep `vars'
+	order `vars'
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "$output/ND_AssmtData_2023.dta", replace
-export delimited "$output/csv/ND_AssmtData_2023.csv", replace
+*Exporting Output.
+save "${Output}/ND_AssmtData_2023", replace
+export delimited "${Output}/ND_AssmtData_2023", replace
+
+******************************
+// Creating the non-derivation output
+******************************
+*Restoring the breakpoint
+use "$Temp/ND_2023_Breakpoint", clear
+
+label def DataLevel 1 "State" 2 "District" 3 "School"
+encode DataLevel, gen(DataLevel_n) label(DataLevel)
+sort DataLevel_n 
+drop DataLevel 
+rename DataLevel_n DataLevel
+
+gen StudentSubGroup_TotalTested = "--"
+
+//For the ND output, we do not merge with EDFacts counts files. 
+
+destring StudentSubGroup_TotalTested, gen(num) force
+gen dummy = num
+replace dummy = 0 if DataLevel != 2
+bys StudentSubGroup Subject GradeLevel: egen state = total(dummy)
+replace num = state if DataLevel == 1 & state != 0 & state != .
+tostring state, replace force
+replace StudentSubGroup_TotalTested = state if DataLevel == 1 & state != "." & state != "0"
+drop dummy
+
+** Deriving More SubGroup Counts
+bysort SchName DistName Subject GradeLevel: egen All = max(num)
+bysort SchName DistName Subject GradeLevel: egen Econ = sum(num) if StudentGroup == "Economic Status"
+bysort SchName DistName Subject GradeLevel: egen Disability = sum(num) if StudentGroup == "Disability Status"
+bysort SchName DistName Subject GradeLevel: egen Foster = sum(num) if StudentGroup == "Foster Care Status"
+bysort SchName DistName Subject GradeLevel: egen Homeless = sum(num) if StudentGroup == "Homeless Enrolled Status"
+bysort SchName DistName Subject GradeLevel: egen Military = sum(num) if StudentGroup == "Military Connected Status"
+bysort SchName DistName Subject GradeLevel: egen Migrant = sum(num) if StudentGroup == "Migrant Status"
+replace num = All - Econ if StudentSubGroup == "Not Economically Disadvantaged" & Econ != 0
+replace num = All - Disability if StudentSubGroup == "Non-SWD" & Disability != 0
+replace num = All - Foster if StudentSubGroup == "Non-Foster Care" & Foster != 0
+replace num = All - Homeless if StudentSubGroup == "Non-Homeless" & Homeless != 0
+replace num = All - Military if StudentSubGroup == "Non-Military" & Military != 0
+replace num = All - Migrant if StudentSubGroup == "Non-Migrant" & Military != 0
+
+//Proficiency Levels, Participation Rates, and Cleaning Student Counts
+gen ProfLow = ProficientRangeLow + AdvancedRangeLow
+gen ProfHigh = ProficientRangeHigh + AdvancedRangeHigh
+replace ProfHigh = 1 if ProfHigh > 1
+
+rename NoviceRangeLow Lev1_pctLow
+rename NoviceRangeHigh Lev1_pctHigh
+rename PartiallyRangeLow Lev2_pctLow
+rename PartiallyRangeHigh Lev2_pctHigh
+rename ProficientRangeLow Lev3_pctLow
+rename ProficientRangeHigh Lev3_pctHigh
+rename AdvancedRangeLow Lev4_pctLow
+rename AdvancedRangeHigh Lev4_pctHigh
+
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+order Subject GradeLevel StudentGroup_TotalTested StudentGroup StudentSubGroup_TotalTested StudentSubGroup
+replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested) & StudentSubGroup != "All Students"
+tostring StudentSubGroup_TotalTested, replace force
+replace StudentSubGroup_TotalTested = "--" if inlist(StudentSubGroup_TotalTested, "0", ".")
+tostring StudentGroup_TotalTested, replace force
+replace StudentGroup_TotalTested = "--" if inlist(StudentGroup_TotalTested, "0", ".")
+
+tostring PercentTestedRangeLow, replace force
+tostring PercentTestedRangeHigh, replace force
+
+gen ParticipationRate = PercentTestedRangeLow + "-" + PercentTestedRangeHigh
+replace ParticipationRate = PercentTestedRangeLow if PercentTestedRangeLow == PercentTestedRangeHigh
+replace ParticipationRate = "--" if mergep == 1
+
+drop PercentTestedRangeLow PercentTestedRangeHigh mergep
+
+forvalues n = 1/4 {
+	tostring Lev`n'_pctLow, replace
+	tostring Lev`n'_pctHigh, replace
+	gen Lev`n'_percent = Lev`n'_pctLow + "-" + Lev`n'_pctHigh
+	replace Lev`n'_percent = Lev`n'_pctLow if Lev`n'_pctLow == Lev`n'_pctHigh
+	drop Lev`n'_pctLow Lev`n'_pctHigh
+}
+
+tostring ProfLow, replace format("%6.0g") force
+tostring ProfHigh, replace format("%6.0g") force
+gen ProficientOrAbove_percent = ProfLow + "-" + ProfHigh
+replace ProficientOrAbove_percent = ProfLow if ProfLow == ProfHigh
+
+drop ProfLow ProfHigh
+
+//Generating the count variables
+gen Lev1_count = "--"
+gen Lev2_count = "--"
+gen Lev3_count = "--"
+gen Lev4_count = "--"
+gen ProficientOrAbove_count = "--"
+
+//Label & Organize Variables
+label var State "State name"
+label var StateAbbrev "State abbreviation"
+label var StateFips "State FIPS Id"
+label var NCESDistrictID "NCES district ID"
+label var State_leaid "State LEA ID"
+label var DistType "District type as defined by NCES"
+label var DistCharter "Charter indicator"
+label var CountyName "County in which the district or school is located"
+label var CountyCode "County code in which the district or school is located, also referred to as the county-level FIPS code"
+label var NCESSchoolID "NCES school ID"
+label var SchType "School type as defined by NCES"
+label var SchVirtual "Virtual school indicator"
+label var SchLevel "School level"
+label var SchYear "School year in which the data were reported"
+label var AssmtName "Name of state assessment"
+label var Flag_AssmtNameChange "Flag denoting a change in the assessment's name from the prior year only"
+label var Flag_CutScoreChange_ELA "Flag denoting a change in scoring determinations in ELA from the prior year only"
+label var Flag_CutScoreChange_math "Flag denoting a change in scoring determinations in math from the prior year only"
+label var Flag_CutScoreChange_sci "Flag denoting a change in scoring determinations in science from the prior year only"
+label var Flag_CutScoreChange_soc "Flag denoting a change in scoring determinations in social studies from the prior year only"
+label var AssmtType "Assessment type"
+label var DataLevel "Level at which the data are reported"
+label var DistName "District name"
+label var StateAssignedDistID "State-assigned district ID"
+label var SchName "School name"
+label var StateAssignedSchID "State-assigned school ID"
+label var Subject "Assessment subject area"
+label var GradeLevel "Grade tested"
+label var StudentGroup "Student demographic group"
+label var StudentGroup_TotalTested "Number of students in the designated StudentGroup who were tested"
+label var StudentSubGroup "Student demographic subgroup"
+label var StudentSubGroup_TotalTested "Number of students in the designated Student Sub-Group who were tested"
+label var Lev1_count "Count of students within subgroup performing at Level 1"
+label var Lev1_percent "Percent of students within subgroup performing at Level 1"
+label var Lev2_count "Count of students within subgroup performing at Level 2"
+label var Lev2_percent "Percent of students within subgroup performing at Level 2"
+label var Lev3_count "Count of students within subgroup performing at Level 3"
+label var Lev3_percent "Percent of students within subgroup performing at Level 3"
+label var Lev4_count "Count of students within subgroup performing at Level 4"
+label var Lev4_percent "Percent of students within subgroup performing at Level 4"
+label var Lev5_count "Count of students within subgroup performing at Level 5"
+label var Lev5_percent "Percent of students within subgroup performing at Level 5"
+label var AvgScaleScore "Avg scale score within subgroup"
+label var ProficiencyCriteria "Levels included in determining proficiency status"
+label var ProficientOrAbove_count "Count of students achieving proficiency or above on the state assessment"
+label var ProficientOrAbove_percent "Percent of students achieving proficiency or above on the state assessment"
+label var ParticipationRate "Participation rate"
+
+//Final Cleaning and dropping extra variables
+keep `vars'
+order `vars'
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
+*Exporting Non-Derivation Output.
+save "${Output_ND}/ND_AssmtData_2023_ND", replace
+export delimited "${Output_ND}/ND_AssmtData_2023_ND", replace
+*End of ND Cleaning 2023.do
+****************************************************
