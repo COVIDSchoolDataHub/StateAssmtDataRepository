@@ -1,5 +1,5 @@
 *****************************************************************************
-**	Updated February 28, 2025
+**	Updated March 6, 2025
 
 ** 	ZELMA STATE ASSESSMENT DATA REPOSITORY 
 **	ASSESSMENT FLAGS - VERSION 2.1
@@ -1417,6 +1417,29 @@ if "$StateAbbrev" == "WY" {
 	
 	*AssmtType
 	replace AssmtType_Chk = "Regular and alt" if real(FILE) < 2019
+	
+}
+
+//Puerto Rico
+
+if "$StateAbbrev" == "PR" {
+	*AssmtName
+	replace Flag_AssmtNameChange_Chk = "Y" if FILE == "2024"
+	
+	*ELA
+	replace Flag_CutScoreChange_ELA_Chk = "Y" if FILE == "2024"
+	
+	*Math
+	replace Flag_CutScoreChange_math_Chk = "Y" if FILE == "2024"
+	
+	*Sci
+	replace Flag_CutScoreChange_sci_Chk = "Y" if FILE == "2024"
+	
+	*Soc
+	replace Flag_CutScoreChange_soc_Chk = "Not applicable"
+	
+	* AssmtType
+	replace AssmtType_Chk = "Regular and alt"
 	
 }
 
