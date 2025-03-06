@@ -1,16 +1,59 @@
+* NORTH DAKOTA
+
+* File name: ND Student Counts 15-21
+* Last update: 03/05/2025
+
+*******************************************************
+* Notes
+
+	* This do file imports *.csv EDFacts Datasets (wide version) for 2015-2021.
+	* It keeps ND only observations, reshapes it and saves it as *.dta.
+	* The do file also uses the NCES files, keeps only ND observations and saves it as *.dta.
+	* NCES files for 2014-2022 are used.
+	* As of the last update, the latest file is NCES_2022.
+	* This file will need to be updated as newer NCES data is available. 
+*******************************************************
+
+/////////////////////////////////////////
+*** Setup ***
+/////////////////////////////////////////
 clear
-set more off
 
-cd "/Users/miramehta/Documents"
-
-global data "/Users/miramehta/Documents/ND State Testing Data/Original Data Files"
-global NCESSchool "/Users/miramehta/Documents/NCES District and School Demographics/NCES School Files, Fall 1997-Fall 2022"
-global NCESDistrict "/Users/miramehta/Documents/NCES District and School Demographics/NCES District Files, Fall 1997-Fall 2022"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
-global EDFacts "/Users/miramehta/Documents/EdFacts"
-
+**Uncomment if needed**
+// ***Code to convert EDFacts csv files to dta***
+// local edyears1 15 16 17 18
+// local edyears2 2019 2021
+// local subject math ela
+// local datatype count part
+// local datalevel school district
+//
+// ** Converting to dta **
+// foreach yr of local edyears2 {
+// 	foreach sub of local subject {
+// 		foreach type of local datatype {
+// 			foreach lvl of local datalevel {
+// 				if (`yr' != 2011) | ("`lvl'" != "school") {
+// 					import delimited "${EDFacts}/`yr'/edfacts`type'`yr'`sub'`lvl'.csv", case(lower) clear
+// 					save "${EDFacts}/`yr'/edfacts`type'`yr'`sub'`lvl'.dta", replace
+// 				}
+// 			}
+// 		}
+// 	}
+// }
+//
+// foreach yr of local edyears1 {
+// 	foreach sub of local subject {
+// 		foreach type of local datatype {
+// 			foreach lvl of local datalevel {
+// 				import delimited "${EDFacts}/20`yr'/edfacts`type'20`yr'`sub'`lvl'.csv", case(lower) clear
+// 				save "${EDFacts}/20`yr'/edfacts`type'20`yr'`sub'`lvl'.dta", replace
+// 			}
+// 		}
+// 	}
+// }
+//
+clear
 ** Preparing EDFacts files
-/*
 local edyears1 15 16 17 18
 local subject math ela
 local datatype count part
@@ -57,7 +100,7 @@ foreach year of local edyears1 {
 					gen DataLevel = 2
 				}				
 				gen Subject = "`sub'"
-				save "${EDFacts}/20`year'/edfacts`type'20`year'`sub'`lvl'northdakota.dta", replace
+				save "${EDFacts_ND}/edfacts`type'20`year'`sub'`lvl'ND.dta", replace
 			}
 		}
 	}
@@ -66,8 +109,8 @@ foreach year of local edyears1 {
 foreach year of local edyears1 {
 	foreach type of local datatype {
 		foreach lvl of local datalevel {
-			use "${EDFacts}/20`year'/edfacts`type'20`year'math`lvl'northdakota.dta", clear
-			append using "${EDFacts}/20`year'/edfacts`type'20`year'ela`lvl'northdakota.dta"
+			use "${EDFacts_ND}/edfacts`type'20`year'math`lvl'ND.dta", clear
+			append using "${EDFacts_ND}/edfacts`type'20`year'ela`lvl'ND.dta"
 			if ("`lvl'" == "school"){
 				rename ncessch NCESSchoolID
 				recast long NCESSchoolID
@@ -151,13 +194,13 @@ foreach year of local edyears1 {
 			replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless"
 			replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Military"
 			replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Foster Care"
-			save "${EDFacts}/20`year'/edfacts`type'20`year'`lvl'northdakota.dta", replace
+			save "${EDFacts_ND}/edfacts`type'20`year'`lvl'ND.dta", replace
 		}
 	}
 }
 
-local edyears2 2019 2021
 
+local edyears2 2019 2021
 foreach year of local edyears2 {
 	foreach sub of local subject {
 		foreach type of local datatype {
@@ -181,7 +224,7 @@ foreach year of local edyears2 {
 				if ("`lvl'" == "district") {
 					gen DataLevel = 2
 				}
-				save "${EDFacts}/`year'/edfacts`type'`year'`sub'`lvl'northdakota.dta", replace
+				save "${EDFacts_ND}/edfacts`type'`year'`sub'`lvl'ND.dta", replace
 			}
 		}
 	}
@@ -190,8 +233,8 @@ foreach year of local edyears2 {
 foreach year of local edyears2 {
 	foreach type of local datatype {
 		foreach lvl of local datalevel {
-			use "${EDFacts}/`year'/edfacts`type'`year'math`lvl'northdakota.dta", clear
-			append using "${EDFacts}/`year'/edfacts`type'`year'ela`lvl'northdakota.dta"
+			use "${EDFacts_ND}/edfacts`type'`year'math`lvl'ND.dta", clear
+			append using "${EDFacts_ND}/edfacts`type'`year'ela`lvl'ND.dta"
 			if ("`lvl'" == "school"){
 				rename ncessch NCESSchoolID
 				recast long NCESSchoolID
@@ -277,18 +320,18 @@ foreach year of local edyears2 {
 			replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless"
 			replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Military"
 			replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Foster Care"
-			save "${EDFacts}/`year'/edfacts`type'`year'`lvl'northdakota.dta", replace
+			save "${EDFacts_ND}/edfacts`type'`year'`lvl'ND.dta", replace
 		}
 	}
 }
-*/
-** Preparing NCES files
 
+** Preparing NCES files
+clear
 global years 2014 2015 2016 2017 2018 2020 2021 2022
 
 foreach a in $years {
 	
-	use "${NCESDistrict}/NCES_`a'_District.dta", clear 
+	use "${NCES_District}/NCES_`a'_District.dta", clear 
 	if(`a' != 2022){
 		keep if state_location == "ND"
 	}
@@ -315,9 +358,9 @@ foreach a in $years {
 	
 	keep State StateFips NCESDistrictID State_leaid DistName DistType DistCharter DistLocale CountyCode CountyName StateAbbrev
 	
-	save "${NCES}/NCES_`a'_District_ND.dta", replace
+	save "${NCES_ND}/NCES_`a'_District_ND.dta", replace
 	
-	use "${NCESSchool}/NCES_`a'_School.dta", clear
+	use "${NCES_School}/NCES_`a'_School.dta", clear
 	if(`a'!=2022){
 		keep if state_location == "ND"
 	}
@@ -345,6 +388,7 @@ foreach a in $years {
 	
 	keep State StateFips NCESDistrictID State_leaid StateAbbrev DistName DistType NCESSchoolID SchName seasch CountyName CountyCode DistCharter SchLevel SchVirtual SchType DistLocale
 	
-	save "${NCES}/NCES_`a'_School_ND.dta", replace
-	
+	save "${NCES_ND}/NCES_`a'_School_ND.dta", replace
 }
+* END of ND Student Counts 15-21.do
+****************************************************
