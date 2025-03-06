@@ -1,15 +1,27 @@
+* ILLINOIS
+
+* File name: Illinois Cleaning Merge Files
+* Last update: 03/06/2025
+
+*******************************************************
+* Notes
+
+	* This do file imports *.csv EDFacts Datasets (wide version) for 2015-2021.
+	* It keeps IL only observations, reshapes it and saves it as *.dta.
+	
+	* The do file also imports *.csv ED Data Express data for 2022.
+	* It cleans, renames variables and saves it as *.dta.
+	* This file will need to be updated as newer ED Data Express data is available. 
+	
+	* The do file also uses the NCES files, keeps only IL observations and saves it as *.dta.
+	* NCES files for 2014-2022 are used.
+	* As of the last update, the latest file is NCES_2022.
+	* This file will need to be updated as newer NCES data is available. 
+*******************************************************
 clear
-set more off
 
-cd "/Users/miramehta/Documents"
-
-global NCESSchool "/Users/miramehta/Documents/NCES District and School Demographics/NCES School Files, Fall 1997-Fall 2022"
-global NCESDistrict "/Users/miramehta/Documents/NCES District and School Demographics/NCES District Files, Fall 1997-Fall 2022"
-global NCES "/Users/miramehta/Documents/Illinois/NCES"
-global EDFacts "/Users/miramehta/Documents/EDFacts"
 
 ** Converting EDFacts files to .dta Format, hide after first run
-/*
 forvalues year = 2015/2021 {
 	if `year' == 2020 continue
 	foreach datatype in count part {
@@ -22,10 +34,9 @@ forvalues year = 2015/2021 {
 		}
 	}
 }
-*/
+
 
 ** Preparing EDFacts files
-
 local edyears1 15 16 17 18
 local subject math ela
 local datatype count part
@@ -72,7 +83,7 @@ foreach year of local edyears1 {
 					gen DataLevel = 2
 				}				
 				gen Subject = "`sub'"
-				save "${EDFacts}/20`year'/edfacts`type'20`year'`sub'`lvl'illinois.dta", replace
+				save "${EDFacts_IL}/edfacts`type'20`year'`sub'`lvl'IL.dta", replace
 			}
 		}
 	}
@@ -81,8 +92,8 @@ foreach year of local edyears1 {
 foreach year of local edyears1 {
 	foreach type of local datatype {
 		foreach lvl of local datalevel {
-			use "${EDFacts}/20`year'/edfacts`type'20`year'math`lvl'illinois.dta", clear
-			append using "${EDFacts}/20`year'/edfacts`type'20`year'ela`lvl'illinois.dta"
+			use "${EDFacts_IL}/edfacts`type'20`year'math`lvl'IL.dta", clear
+			append using "${EDFacts_IL}/edfacts`type'20`year'ela`lvl'IL.dta"
 			if ("`lvl'" == "school"){
 				rename NCESSCH NCESSchoolID
 				recast long NCESSchoolID
@@ -145,7 +156,7 @@ foreach year of local edyears1 {
 			replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Foster Care"
 			replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Military"
 			
-			save "${EDFacts}/20`year'/edfacts`type'20`year'`lvl'illinois.dta", replace
+			save "${EDFacts_IL}/edfacts`type'20`year'`lvl'IL.dta", replace
 		}
 	}
 }
@@ -175,7 +186,7 @@ foreach year of local edyears2 {
 				if ("`lvl'" == "district") {
 					gen DataLevel = 2
 				}
-				save "${EDFacts}/`year'/edfacts`type'`year'`sub'`lvl'illinois.dta", replace
+				save "${EDFacts_IL}/edfacts`type'`year'`sub'`lvl'IL.dta", replace
 			}
 		}
 	}
@@ -184,8 +195,8 @@ foreach year of local edyears2 {
 foreach year of local edyears2 {
 	foreach type of local datatype {
 		foreach lvl of local datalevel {
-			use "${EDFacts}/`year'/edfacts`type'`year'math`lvl'illinois.dta", clear
-			append using "${EDFacts}/`year'/edfacts`type'`year'ela`lvl'illinois.dta"
+			use "${EDFacts_IL}/edfacts`type'`year'math`lvl'IL.dta", clear
+			append using "${EDFacts_IL}/edfacts`type'`year'ela`lvl'IL.dta"
 			if ("`lvl'" == "school"){
 				rename NCESSCH NCESSchoolID
 				recast long NCESSchoolID
@@ -249,7 +260,7 @@ foreach year of local edyears2 {
 			replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant"
 			replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Foster Care"
 			replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Military"
-			save "${EDFacts}/`year'/edfacts`type'`year'`lvl'illinois.dta", replace
+			save "${EDFacts_IL}/edfacts`type'`year'`lvl'IL.dta", replace
 		}
 	}
 }
@@ -259,11 +270,11 @@ clear
 
 
 //Importing
-import delimited "${raw}/edfactscountpartelasci2022Illinois", case(preserve) clear
+import delimited "${ED_Express}/edfactscountpartelasci2022Illinois", case(preserve) clear
 
-save "${raw}/edfactscountpartelasci2022Illinois", replace
+save "${ED_Express}/edfactscountpartelasci2022Illinois", replace
 
-use "${raw}/edfactscountpartelasci2022Illinois", clear
+use "${ED_Express}/edfactscountpartelasci2022Illinois", clear
 
 
 //Keep Relevant Data
@@ -337,7 +348,7 @@ replace NCESDistrictID = "" if NCESDistrictID == "."
 replace NCESSchoolID = "" if NCESSchoolID == "."
 
 rename StudentSubGroup_TotalTested StudentSubGroup_TotalTested1
-save "$EDFacts/2022/IL_cleaned_EDFacts_2022_ela_sci", replace
+save "$ED_Express/IL_cleaned_EDFacts_2022_ela_sci", replace
 clear
 
 ** Preparing NCES files
@@ -346,7 +357,7 @@ global years 2014 2015 2016 2017 2018 2020 2021 2022
 
 foreach a in $years {
 	
-	use "${NCESDistrict}/NCES_`a'_District.dta", clear 
+	use "${NCES_District}/NCES_`a'_District.dta", clear 
 	keep if state_location == "IL"
 	
 	rename state_name State
@@ -361,9 +372,9 @@ foreach a in $years {
 	keep State StateAbbrev StateFips NCESDistrictID State_leaid DistType CountyName CountyCode DistLocale DistCharter DistName
 	
 	
-	save "${NCES}/NCES_`a'_District.dta", replace
+	save "${NCES_IL}/NCES_`a'_District_IL.dta", replace
 	
-	use "${NCESSchool}/NCES_`a'_School.dta", clear
+	use "${NCES_School}/NCES_`a'_School.dta", clear
 	keep if state_location == "IL"
 	
 	rename state_name State
@@ -387,8 +398,7 @@ foreach a in $years {
 	} 
 	keep State StateAbbrev StateFips NCESDistrictID NCESSchoolID State_leaid DistType CountyName CountyCode DistLocale DistCharter SchName SchType SchVirtual SchLevel seasch DistName
 	drop if seasch == ""
-	
-	
-	save "${NCES}/NCES_`a'_School.dta", replace
-	
+	save "${NCES_IL}/NCES_`a'_School_IL.dta", replace
 }
+* END of Illinois Cleaning Merge Files.do
+****************************************************
