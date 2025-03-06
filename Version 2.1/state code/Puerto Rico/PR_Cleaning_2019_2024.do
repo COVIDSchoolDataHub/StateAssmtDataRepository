@@ -89,7 +89,6 @@ forvalues n = 1/4{
 
 gen SSGTT = Lev1 + Lev2 + Lev3 + Lev4
 tostring SSGTT, gen(StudentSubGroup_TotalTested)
-gen StudentGroup_TotalTested = StudentSubGroup_TotalTested
 
 gen ProficientOrAbove = Lev3 + Lev4
 tostring ProficientOrAbove, gen(ProficientOrAbove_count)
@@ -115,6 +114,11 @@ foreach var of varlist StudentSubGroup_TotalTested *_percent *_count {
 foreach percent of varlist *_percent {
 	local count = subinstr("`percent'", "percent","count",.)
 	replace `percent' = "0" if `count' == "0"
+}
+
+** Non-Unicode Characters messing up export
+foreach var of varlist _all {
+    replace `var' = ustrregexrf(`var', "[^\u0020-\u007E]", "")
 }
 
 //Assessment Information
@@ -154,7 +158,7 @@ gen SchType = ""
 gen SchLevel = ""
 gen SchVirtual = ""
 gen CountyName = ""
-gen CountyCode = ""
+gen CountyCode = .
 
 //Data Levels
 gen DistName = "All Districts"
@@ -172,7 +176,7 @@ gen StateAssignedDistID1 = StateAssignedDistID
 replace StateAssignedDistID1 = "000000" if DataLevel == 1
 gen StateAssignedSchID1 = StateAssignedSchID
 replace StateAssignedSchID1 = "000000" if DataLevel !=3
-egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
+egen group_id = group(SchYear DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
 sort group_id StudentGroup StudentSubGroup
 by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
 by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
@@ -204,6 +208,6 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 save "$Output/PR_AssmtData_`year'", replace
-export delimited "$Output/PR_AssmtData_`year'", replace
+export delimited "$Output/PR_AssmtData_`year'", replace delimiter(",")
 }
 

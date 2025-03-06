@@ -511,7 +511,7 @@ foreach var of local nomissing {
 	if r(N) !=0 {
 		di as error "Check 1: `var' has missing values in the files below."
 		tab FILE DataLevel if DistName ==""
-		errorAllLevels 1
+		local errorAllLevels = 1
 	}
 
 	//State
@@ -519,7 +519,7 @@ foreach var of local nomissing {
 	if r(N)>0 {
 		di as error "Check 2: The following years need DistName='All Districts'"
 		tab FILE if DistName != "All Districts" & DataLevel=="State"
-		errorStateLev 1
+		local errorStateLev = 1
 	}
 }
 
@@ -4976,7 +4976,7 @@ tab DataLevel SchYear if Subject =="soc"
 
 ***********************************************************
 ** • Do values align with the crosswalk? (AssmtType, Flags)
-do "V2.1_FlagChecks_2025.02.28.do"
+do "V2.1_FlagChecks_2025.03.06.do"
 
 // Name change flag, for reference
 tab  FILE Flag_AssmtNameChange if Subject == "ela"
