@@ -31,7 +31,7 @@ global EDFacts "C:/Zelma/EDFacts/Datasets" //EDFacts Datasets (wide version) dow
 //global ED_Express  "C:/Zelma/New Hampshire/Original Data Files/ED Data Express" //2022 onwards files downloaded from ED Data Express
 global EDFacts_NH "C:/Zelma/New Hampshire/EDFacts_NH" //This will start empty and will hold the NH-specific EDFacts files. 
 
-*NHES Folders*
+*NCES Folders*
 global NCES_District "C:/Zelma/NCES_Full/NCES District Files"
 global NCES_School "C:/Zelma/NCES_Full/NCES School Files"
 global NCES_NH "C:/Zelma/New Hampshire/NCES_NH" //This will start empty and will hold the NH-specific NHES files. 
