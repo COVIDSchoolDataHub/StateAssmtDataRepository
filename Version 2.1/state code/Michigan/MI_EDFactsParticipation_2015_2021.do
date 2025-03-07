@@ -1,9 +1,32 @@
-clear
-set more off
+* MICHIGAN
 
-global EDFacts "/Volumes/T7/State Test Project/EDFACTS"
-global State_Output "/Volumes/T7/State Test Project/Michigan/Original Data/csv" // Version 1.1 Output directory here
-global New_Output "/Volumes/T7/State Test Project/Michigan/Original Data/csv" // Version 2.0 Output directory here
+* File name: MI_EDFactsParticipation_2015_2021
+* Last update: 03/07/2025
+
+*******************************************************
+* Notes 
+
+	* This do file imports *.csv EDFacts Datasets (wide version) for 2015-2021.
+	* It keeps MI only observations, reshapes it and saves it as *.dta.
+	* The MI specific EDFacts participation rate files are merged with the
+	* Temp output with derivations created in Michigan `year' Cleaning.do for 2015-2021.
+	
+*******************************************************
+clear
+
+** Converting EDFacts files to .dta Format
+forvalues year = 2015/2021 {
+	if `year' == 2020 continue
+	foreach datatype in part {
+		foreach sub in math ela {
+			foreach lvl in school district {
+				clear
+				import delimited "${EDFacts}/`year'/edfacts`datatype'`year'`sub'`lvl'", case(lower)
+				save "${EDFacts}/`year'/edfacts`datatype'`year'`sub'`lvl'", replace
+			}
+		}
+	}
+}
 
 ** Preparing EDFacts files
 local edyears1 15 16 17 18
@@ -52,7 +75,7 @@ foreach year of local edyears1 {
                     gen DataLevel = 2
                 }               
                 gen Subject = "`sub'"
-                save "${EDFacts}/20`year'/edfacts`type'20`year'`sub'`lvl'michigan.dta", replace
+                save "${EDFacts_MI}/edfacts`type'20`year'`sub'`lvl'MI.dta", replace
             }
         }
     }
@@ -61,8 +84,8 @@ foreach year of local edyears1 {
 foreach year of local edyears1 {
     foreach type of local datatype {
         foreach lvl of local datalevel {
-            use "${EDFacts}/20`year'/edfacts`type'20`year'math`lvl'michigan.dta", clear
-            append using "${EDFacts}/20`year'/edfacts`type'20`year'ela`lvl'michigan.dta"
+            use "${EDFacts_MI}/edfacts`type'20`year'math`lvl'MI.dta", clear
+            append using "${EDFacts_MI}/edfacts`type'20`year'ela`lvl'MI.dta"
             if ("`lvl'" == "school"){
                 rename ncessch NCESSchoolID
             }
@@ -117,7 +140,7 @@ foreach year of local edyears1 {
             replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD"
             replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless"
             replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant Status"
-            save "${EDFacts}/20`year'/edfacts`type'20`year'`lvl'michigan.dta", replace
+            save "${EDFacts_MI}/edfacts`type'20`year'`lvl'MI.dta", replace
         }
     }
 }
@@ -145,7 +168,7 @@ foreach year of local edyears2 {
 				if ("`lvl'" == "district") {
 					gen DataLevel = 2
 				}
-				save "${EDFacts}/`year'/edfacts`type'`year'`sub'`lvl'michigan.dta", replace
+				save "${EDFacts_MI}/edfacts`type'`year'`sub'`lvl'MI.dta", replace
 			}
 		}
 	}
@@ -154,8 +177,8 @@ foreach year of local edyears2 {
 foreach year of local edyears2 {
 	foreach type of local datatype {
 		foreach lvl of local datalevel {
-			use "${EDFacts}/`year'/edfacts`type'`year'math`lvl'michigan.dta", clear
-			append using "${EDFacts}/`year'/edfacts`type'`year'ela`lvl'michigan.dta"
+			use "${EDFacts_MI}/edfacts`type'`year'math`lvl'MI.dta", clear
+			append using "${EDFacts_MI}/edfacts`type'`year'ela`lvl'MI.dta"
 			if ("`lvl'" == "school"){
 				rename ncessch NCESSchoolID
 			}
@@ -240,32 +263,20 @@ foreach year of local edyears2 {
 			replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless"
 			replace StudentGroup = "Military Connected Status" if StudentSubGroup == "Military"
 			replace StudentGroup = "Foster Care Status" if StudentSubGroup == "Foster Care"
-			save "${EDFacts}/`year'/edfacts`type'`year'`lvl'michigan.dta", replace
+			save "${EDFacts_MI}/edfacts`type'`year'`lvl'MI.dta", replace
 		}
 	}
-}
-
-//Conversion to DTA
-forvalues year = 2015/2023 {
-if `year' == 2020 continue
-import delimited "${State_Output}/MI_AssmtData_`year'", case(preserve) clear
-save "${State_Output}/MI_AssmtData_`year'", replace
 }
 
 //Merging Example
 forvalues year = 2015/2021 {
 if `year' == 2020 continue
-import delimited "${State_Output}/MI_AssmtData_`year'.csv", case(preserve) clear
+use "${Temp}/MI_AssmtData_`year'", clear
+
+destring NCESDistrictID, replace
+destring NCESSchoolID, replace
 
 	
-//DataLevel
-label def DataLevel 1 "State" 2 "District" 3 "School"
-encode DataLevel, gen(DataLevel_n) label(DataLevel)
-sort DataLevel_n 
-drop DataLevel 
-rename DataLevel_n DataLevel
-
-
 //Merging
 
 tempfile tempall
@@ -284,7 +295,7 @@ clear
 use "`tempdist'"
 duplicates report NCESDistrictID StudentSubGroup GradeLevel Subject
 duplicates drop NCESDistrictID StudentSubGroup GradeLevel Subject, force
-merge 1:1 NCESDistrictID StudentSubGroup GradeLevel Subject using "${EDFacts}/`year'/edfactspart`year'districtmichigan.dta", gen(DistMerge)
+merge 1:1 NCESDistrictID StudentSubGroup GradeLevel Subject using "${EDFacts_MI}/edfactspart`year'districtMI.dta", gen(DistMerge) force
 drop if DistMerge == 2
 save "`tempdist'", replace
 clear
@@ -293,7 +304,7 @@ clear
 use "`tempsch'"
 duplicates report NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject
 duplicates drop NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject, force
-merge 1:1 NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject using "${EDFacts}/`year'/edfactspart`year'schoolmichigan.dta", gen(SchMerge)
+merge 1:1 NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject using "${EDFacts_MI}/edfactspart`year'schoolMI.dta", gen(SchMerge) force
 drop if SchMerge == 2
 save "`tempsch'", replace
 clear
@@ -307,13 +318,30 @@ append using "`tempdist'" "`tempsch'"
 replace ParticipationRate = Participation if !missing(Participation)
 replace ParticipationRate = "--" if missing(ParticipationRate) | ParticipationRate == "."
 
-//Final Cleaning
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
- 
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+tostring NCESDistrictID, replace
+tostring NCESSchoolID, replace
 
+//Cleaning and dropping extra variables
+local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
+    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
+    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
+    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
+    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
+    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
+    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
+    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
+    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
+    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
+    Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+	keep `vars'
+	order `vars'
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${New_Output}/MI_AssmtData_`year'", replace
-export delimited "${New_Output}/MI_AssmtData_`year'", replace
+******************************
+*Exporting Output
+******************************
+save "${Output}/MI_AssmtData_`year'", replace
+export delimited "${Output}/MI_AssmtData_`year'", replace
 }
+* END of MI_EDFactsParticipation_2015_2021.do
+****************************************************
