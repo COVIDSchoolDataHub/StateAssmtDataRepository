@@ -14,11 +14,14 @@ set more off
 
 //Importing (Unhide on First Run)
 
-import excel "$Original/HI_DataRequest02.24.25_ela_math_sci", firstrow sheet("SBAData")
+import excel "$Original/HI_DataRequest03.06.25_ela_math_sci", firstrow sheet("SBAData")
 save "$Original/HI_DataRequest_OriginalData_2024", replace
 clear
 
 use "$Original/HI_DataRequest_OriginalData_2024", clear
+
+//Remove Duplicates
+duplicates drop
 
 //Rename Variables
 rename Test AssmtName
@@ -44,7 +47,8 @@ rename Proficient ProficientOrAbove_percent
 
 
 //StudentSubGroup
-replace StudentSubGroup = "Asian" if StudentSubGroup == "Asian/Pacific Islander"
+drop if StudentSubGroup == "Asian/Pacific Islander" //Aggregates asian with pacific islander, we have disaggregated asian and pacific islander subgroups, so dropping.
+*Asian
 replace StudentSubGroup = "Black or African American" if StudentSubGroup == "Black"
 replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "Pacific Islander"
 replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Disadvantaged"
