@@ -14,7 +14,7 @@
 
 clear
 
-import delimited "$ED_Express\ND_EDFacts_2022.csv", clear 
+import delimited "$ED_Express/ND_EDFacts_2022.csv", clear 
 save "$ED_Express/ND_EDFacts_2022.dta", replace
 
 use "$ED_Express/ND_EDFacts_2022.dta", clear

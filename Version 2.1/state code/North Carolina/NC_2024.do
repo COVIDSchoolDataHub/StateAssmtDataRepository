@@ -2,7 +2,7 @@
 * NORTH CAROLINA 
 
 * File name: NC_2024
-* Last update: 03/05/2025
+* Last update: 03/06/2025
 
 *******************************************************
 * Notes
@@ -22,8 +22,9 @@ clear
 // Importing data, renaming variables and cleaning the file
 *******************************************************
 //2023-2024
-import delimited "$Original/Disag_2023-24_Data.txt", clear
-save "$Original_DTA/NC_OriginalData_2024.dta", replace
+// import delimited "$Original/Disag_2023-24_Data.txt", clear
+// save "$Original_DTA/NC_OriginalData_2024.dta", replace
+
 
 use "$Original_DTA/NC_OriginalData_2024", clear 
 rename school_code StateAssignedSchID 
@@ -594,6 +595,9 @@ replace ProficientOrAbove_count = "--"
 keep `vars'
 order `vars'
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
+// assmtname update 2024 for sci 
+replace AssmtName = "End-of-Grade Tests - Edition 2" if Subject == "sci"
 
 //Exporting Non-Derivation Output
 save "$Output_ND/NC_AssmtData_2024_ND", replace

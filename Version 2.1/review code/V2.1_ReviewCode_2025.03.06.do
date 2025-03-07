@@ -2,7 +2,7 @@
 // 2/6/25 - Flagging that the check that the sum of subgroup counts doesn't exceed the All Students count is not set up to handle ranges - from mm
 
 *****************************************************************************
-**	Updated February 28, 2025
+**	Updated March 6, 2025
 
 
 ** 	ZELMA STATE ASSESSMENT DATA REPOSITORY 
@@ -23,7 +23,7 @@ global Filepath "/Desktop/Zelma V2.1/North Dakota - Version 2.1" //  Set path to
 global Review "${Filepath}/review" 
 global State "North Dakota" //Set State Name 
 global StateAbbrev "ND" //Set StateAbbrev
-global date "02.28.25" //Set today's date
+global date "03.06.25" //Set today's date
 global years 2024 2023  2022 2021 2019  2018 2017 2016 2015 //  2014 2013 2012 2011 2010 2009 2008 2007 2006 2005 2004 2003 2002 2001 2000 1999 1998
 
 clear
@@ -275,12 +275,12 @@ drop state_valid
 ***********************************************************
 ** StateAbbrev
 
-** • Is the correct state abbrev. used? // updated 1/15/25
+** • Is the correct state abbrev. used? // updated 1/15/25, 3/6/25 with PR
 
 {
 gen state_abbrev_test = StateAbbrev
 
-	label def state_abbrev_test 1 "AL" 2 "AK" 4 "AZ" 5 "AR" 6 "CA" 8 "CO" 9 "CT" 10 "DE" 11 "DC" 12 "FL" 13 "GA" 15 "HI" 16 "ID" 17 "IL" 18 "IN" 19 "IA" 20 "KS" 21 "KY" 22 "LA" 23 "ME" 24 "MD" 25 "MA" 26 "MI" 27 "MN" 28 "MS" 29 "MO" 30 "MT" 31 "NE" 32 "NV" 33 "NH" 34 "NJ" 35 "NM" 36 "NY" 37 "NC" 38 "ND" 39 "OH" 40 "OK" 41 "OR" 42 "PA" 44 "RI" 45 "SC" 46 "SD" 47 "TN" 48 "TX" 49 "UT" 50 "VT" 51 "VA" 53 "WA" 54 "WV" 55 "WI" 56 "WY"
+	label def state_abbrev_test 1 "AL" 2 "AK" 4 "AZ" 5 "AR" 6 "CA" 8 "CO" 9 "CT" 10 "DE" 11 "DC" 12 "FL" 13 "GA" 15 "HI" 16 "ID" 17 "IL" 18 "IN" 19 "IA" 20 "KS" 21 "KY" 22 "LA" 23 "ME" 24 "MD" 25 "MA" 26 "MI" 27 "MN" 28 "MS" 29 "MO" 30 "MT" 31 "NE" 32 "NV" 33 "NH" 34 "NJ" 35 "NM" 36 "NY" 37 "NC" 38 "ND" 39 "OH" 40 "OK" 41 "OR" 42 "PA" 44 "RI" 45 "SC" 46 "SD" 47 "TN" 48 "TX" 49 "UT" 50 "VT" 51 "VA" 53 "WA" 54 "WV" 55 "WI" 56 "WY" 72 "PR"
 	
 	encode state_abbrev_test, gen(state_abbrev_test_n) label(state_abbrev_test)
 
@@ -302,10 +302,10 @@ gen state_abbrev_test = StateAbbrev
 ***********************************************************
 ** StateFips 
 
-** • Is the correct FIPS code applied? (updated 1/9/25)
+** • Is the correct FIPS code applied? (updated 1/9/25), 3/6/25 with PR
 {
 gen fips_test = State
-label def fips_test 1 "Alabama" 2 "Alaska" 4 "Arizona" 5 "Arkansas" 6 "California" 8 "Colorado" 9 "Connecticut" 10 "Delaware" 11 "District of Columbia" 12 "Florida" 13 "Georgia" 15 "Hawaii" 16 "Idaho" 17 "Illinois" 18 "Indiana" 19 "Iowa" 20 "Kansas" 21 "Kentucky" 22 "Louisiana" 23 "Maine" 24 "Maryland" 25 "Massachusetts" 26 "Michigan" 27 "Minnesota" 28 "Mississippi" 29 "Missouri" 30 "Montana" 31 "Nebraska" 32 "Nevada" 33 "New Hampshire" 34 "New Jersey" 35 "New Mexico" 36 "New York" 37 "North Carolina" 38 "North Dakota" 39 "Ohio" 40 "Oklahoma" 41 "Oregon" 42 "Pennsylvania" 44 "Rhode Island" 45 "South Carolina" 46 "South Dakota" 47 "Tennessee" 48 "Texas" 49 "Utah" 50 "Vermont" 51 "Virginia" 53 "Washington" 54 "West Virginia" 55 "Wisconsin" 56 "Wyoming"
+label def fips_test 1 "Alabama" 2 "Alaska" 4 "Arizona" 5 "Arkansas" 6 "California" 8 "Colorado" 9 "Connecticut" 10 "Delaware" 11 "District of Columbia" 12 "Florida" 13 "Georgia" 15 "Hawaii" 16 "Idaho" 17 "Illinois" 18 "Indiana" 19 "Iowa" 20 "Kansas" 21 "Kentucky" 22 "Louisiana" 23 "Maine" 24 "Maryland" 25 "Massachusetts" 26 "Michigan" 27 "Minnesota" 28 "Mississippi" 29 "Missouri" 30 "Montana" 31 "Nebraska" 32 "Nevada" 33 "New Hampshire" 34 "New Jersey" 35 "New Mexico" 36 "New York" 37 "North Carolina" 38 "North Dakota" 39 "Ohio" 40 "Oklahoma" 41 "Oregon" 42 "Pennsylvania" 44 "Rhode Island" 45 "South Carolina" 46 "South Dakota" 47 "Tennessee" 48 "Texas" 49 "Utah" 50 "Vermont" 51 "Virginia" 53 "Washington" 54 "West Virginia" 55 "Wisconsin" 56 "Wyoming" 72 "Puerto Rico"
 	encode fips_test, gen(fips_test_n) label(fips_test)
 
 ** Check correctness
@@ -511,7 +511,7 @@ foreach var of local nomissing {
 	if r(N) !=0 {
 		di as error "Check 1: `var' has missing values in the files below."
 		tab FILE DataLevel if DistName ==""
-		errorAllLevels 1
+		local errorAllLevels = 1
 	}
 
 	//State
@@ -519,7 +519,7 @@ foreach var of local nomissing {
 	if r(N)>0 {
 		di as error "Check 2: The following years need DistName='All Districts'"
 		tab FILE if DistName != "All Districts" & DataLevel=="State"
-		errorStateLev 1
+		local errorStateLev = 1
 	}
 }
 
@@ -1817,12 +1817,12 @@ else {
 ***********************************************************
 *Subject 
 	
-** • Are subjects listed as ela, math, sci, eng, read, wri, stem, soc? (eg not "science" etc) (updated 1/26/25)
+** • Are subjects listed as ela, math, sci, eng, read, wri, stem, soc? (eg not "science" etc) (updated 1/26/25), updated (3/6/25)
 {
-count if !inlist(Subject, "ela", "math", "sci", "eng", "wri", "stem", "soc", "read")
+count if !inlist(Subject, "ela", "math", "sci", "eng", "wri", "stem", "soc", "read", "esp")
 	if r(N)>0 {
 		di as error "Subject values are not labelled appropriately."
-		tab Subject FILE if !inlist(Subject, "ela", "math", "sci", "eng", "wri", "stem", "soc", "read")
+		tab Subject FILE if !inlist(Subject, "ela", "math", "sci", "eng", "wri", "stem", "soc", "read", "esp")
 	}
 	
 	else {
@@ -2142,14 +2142,14 @@ count if StudentGroup=="All Students" & !inlist(StudentSubGroup, "All Students")
 		di as error "Correct."
 		}
 		
-* Checking subgroup values for StudentGroup == "RaceEth" - Updated 2/12/25 to include MENA
+* Checking subgroup values for StudentGroup == "RaceEth" - Updated 2/12/25 to include MENA, 3/6/25 to include Puerto Rican
 gen raceeth_chk = .
-replace raceeth_chk = 1 if StudentSubGroup == "American Indian or Alaska Native" | StudentSubGroup == "Asian" | StudentSubGroup == "Black or African American" | StudentSubGroup == "Middle Eastern or North African" | StudentSubGroup == "Native Hawaiian or Pacific Islander"| StudentSubGroup == "Two or More" | StudentSubGroup =="White"| StudentSubGroup == "Hispanic or Latino" | StudentSubGroup =="Unknown" | StudentSubGroup =="Not Hispanic or Latino" | StudentSubGroup =="Filipino"
+replace raceeth_chk = 1 if StudentSubGroup == "American Indian or Alaska Native" | StudentSubGroup == "Asian" | StudentSubGroup == "Black or African American" | StudentSubGroup == "Middle Eastern or North African" | StudentSubGroup == "Native Hawaiian or Pacific Islander"| StudentSubGroup == "Two or More" | StudentSubGroup =="White"| StudentSubGroup == "Hispanic or Latino" | StudentSubGroup =="Unknown" | StudentSubGroup =="Not Hispanic or Latino" | StudentSubGroup =="Filipino" | StudentSubGroup == "Puerto Rican"
 
 
 count if StudentGroup=="RaceEth" & !inlist(raceeth_chk, 1)
 	if r(N)>0 {
-		di as error "Check StudentSubGroup values. StudentSubGroup should only contain 'American Indian or Alaska Native', 'Asian', 'Black or African American', 'Native Hawaiian or Pacific Islander', 'Two or More', 'White', 'Hispanic or Latino', 'Unknown' 'Not Hispanic', 'Filipino' if StudentGroup=='RaceEth'"
+		di as error "Check StudentSubGroup values. StudentSubGroup should only contain 'American Indian or Alaska Native', 'Asian', 'Black or African American', 'Native Hawaiian or Pacific Islander', 'Two or More', 'White', 'Hispanic or Latino', 'Unknown' 'Not Hispanic', 'Filipino', 'Puerto Rican' if StudentGroup=='RaceEth'"
 		tab StudentSubGroup FILE if StudentGroup=="RaceEth" & !inlist(raceeth_chk, 1)
 	}
 
@@ -4976,7 +4976,7 @@ tab DataLevel SchYear if Subject =="soc"
 
 ***********************************************************
 ** • Do values align with the crosswalk? (AssmtType, Flags)
-do "V2.1_FlagChecks_2025.02.28.do"
+do "V2.1_FlagChecks_2025.03.06.do"
 
 // Name change flag, for reference
 tab  FILE Flag_AssmtNameChange if Subject == "ela"

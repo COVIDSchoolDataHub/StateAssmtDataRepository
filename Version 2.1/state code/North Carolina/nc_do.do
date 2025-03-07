@@ -2,7 +2,7 @@
 * NORTH CAROLINA 
 
 * File name: nc_do
-* Last update: 03/04/2025
+* Last update: 03/06/2025
 
 *******************************************************
 * Notes
@@ -20,12 +20,14 @@ log using north_carolina_cleaning.log, replace
 // COUNTY NAME CHECK IN EARLIER YEARS
 
 // imports all years and converts to dta files 
-local years  "13-14 14-15 15-16 16-17 17-18 18-19 20-21 21-22 22-23"
+// local years  "13-14 14-15 15-16 16-17 17-18 18-19 20-21 21-22 22-23"
+//
+// foreach a in `years' {
+// import delimited "$Original/Disag_20`a'_Data.txt", clear
+// save "$Original_DTA/NC_OriginalData_`a'", replace	
+// }
+//
 
-foreach a in `years' {
-import delimited "$Original/Disag_20`a'_Data.txt", clear
-save "$Original_DTA/NC_OriginalData_`a'", replace	
-}
 
 local years1  "13-14 14-15 15-16 16-17 17-18 18-19 20-21 21-22 22-23"
 foreach a in `years1' {
@@ -301,10 +303,8 @@ replace Flag_CutScoreChange_math = "Y"
 }
 
 if "`a'" == "20-21" {
-replace Flag_AssmtNameChange = "Y" if Subject == "ela" & GradeLevel == "G04" | GradeLevel == "G05" | GradeLevel == "G06" | GradeLevel == "G07" | GradeLevel == "G08" | GradeLevel == "G38" 
-replace Flag_AssmtNameChange = "Y" if Subject == "sci" 
-replace Flag_CutScoreChange_ELA = "Y" if Subject == "ela" & GradeLevel == "G04" | GradeLevel == "G05" | GradeLevel == "G06" | GradeLevel == "G07" | GradeLevel == "G08" | GradeLevel == "G38" 
-replace Flag_CutScoreChange_sci = "Y" 
+replace Flag_AssmtNameChange = "Y" if Subject == "ela" & (GradeLevel == "G04" | GradeLevel == "G05" | GradeLevel == "G06" | GradeLevel == "G07" | GradeLevel == "G08" | GradeLevel == "G38")
+replace Flag_CutScoreChange_ELA = "Y" if (Subject == "ela" & GradeLevel == "G04" | GradeLevel == "G05" | GradeLevel == "G06" | GradeLevel == "G07" | GradeLevel == "G08" | GradeLevel == "G38")
 }
 
 if "`a'" == "21-22" {
@@ -374,22 +374,25 @@ rename SchVirtual1 SchVirtual
 // UPDATED 4/30/24
 if "`a'" == "17-18" | "`a'" == "16-17" | "`a'" == "15-16" | "`a'" == "14-15" | "`a'" == "13-14"  {
 gen AssmtName = "End-of-Grade Tests - Edition 4" // r3 changed
+replace AssmtName = "End-of-Grade Tests - Edition 2" if Subject == "sci"
 } 
 
 if "`a'" == "18-19" { 
 gen AssmtName = "End-of-Grade Tests - Edition 4" // r3 changed
 replace AssmtName = "End-of-Grade Tests - Edition 5" if Subject == "math" // r3 changed
+replace AssmtName = "End-of-Grade Tests - Edition 2" if Subject == "sci"
 }
 
 if "`a'" == "20-21" { 
 gen AssmtName = "End-of-Grade Tests - Edition 4" // r3 changed
 replace AssmtName = "End-of-Grade Tests - Edition 5" if Subject == "math" // r3 changed
 replace AssmtName = "End-of-Grade Tests - Edition 5" if Subject == "ela" & GradeLevel == "G04" | GradeLevel == "G05" | GradeLevel == "G06" | GradeLevel == "G07" | GradeLevel == "G08" | GradeLevel == "G38" 
-replace AssmtName = "End-of-Grade Tests - Edition 5" if Subject == "sci" 
+replace AssmtName = "End-of-Grade Tests - Edition 2" if Subject == "sci"
 }
 
 if "`a'" == "21-22" | "`a'" == "22-23" { 
 gen AssmtName = "End-of-Grade Tests - Edition 5" 
+replace AssmtName = "End-of-Grade Tests - Edition 2" if Subject == "sci"
 }
 // EDIT 
 gen seasch = StateAssignedSchID // CHANGED //r3 changed
@@ -616,6 +619,8 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName ///
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 save "$Temp/NC_AssmtData_`current'_Stata", replace
 }
+
+
 
 *************************************************************************
 // Destringing/ Generating counts/ Manual Fixes to NCES IDs 
@@ -984,6 +989,20 @@ replace Lev5_percent  = "" if  AssmtName == "End-of-Grade Tests - Edition 5"
 save "${Temp}/NC_AssmtData_`year'_Stata", replace
 }
 
+// above changes just for sci 
+forvalues year = 2021/2021 { 
+use "${Temp}/NC_AssmtData_`year'_Stata", replace	
+forvalues b = 2/5 { 
+local prevyear = `b' - 1
+replace ProficiencyCriteria = "Levels 2-4" if AssmtName == "End-of-Grade Tests - Edition 2"
+replace Lev`prevyear'_count = Lev`b'_count if  AssmtName == "End-of-Grade Tests - Edition 2"
+replace Lev`prevyear'_percent = Lev`b'_percent if  AssmtName == "End-of-Grade Tests - Edition 2"
+}
+replace Lev5_count = ""  if AssmtName == "End-of-Grade Tests - Edition 2"
+replace Lev5_percent  = "" if  AssmtName == "End-of-Grade Tests - Edition 2"
+save "${Temp}/NC_AssmtData_`year'_Stata", replace
+}
+
 ******************************
 // Additional Calculations for 2014 through 2023
 ******************************
@@ -1129,6 +1148,7 @@ if `year' == 2014 {
 if `year' == 2021 {
 use "$Temp/NC_AssmtData_`year'"
 replace Flag_AssmtNameChange = "N" if Subject == "math"	
+replace Flag_AssmtNameChange = "N" if Subject == "sci"	
 save "$Temp/NC_AssmtData_`year'", replace
 }
 }
