@@ -11,7 +11,7 @@
     
 * Running NH_Main_File.do will execute all the do files in order.
 
-* Non-derivation output is created for 2015-2024. [EDIT]
+* Non-derivation output is created for 2009-2024.
 *******************************************************
 
 *To use labmask, uncomment the below code to install.*
@@ -28,7 +28,7 @@ global Temp "C:/Zelma/New Hampshire/Temp" //This will start empty.
 
 *EDFacts Folders*
 global EDFacts "C:/Zelma/EDFacts/Datasets" //EDFacts Datasets (wide version) downloaded from Google Drive.
-global ED_Express  "C:/Zelma/New Hampshire/Original Data Files/ED Data Express" //2022 onwards files downloaded from ED Data Exprss
+//global ED_Express  "C:/Zelma/New Hampshire/Original Data Files/ED Data Express" //2022 onwards files downloaded from ED Data Express
 global EDFacts_NH "C:/Zelma/New Hampshire/EDFacts_NH" //This will start empty and will hold the NH-specific EDFacts files. 
 
 *NHES Folders*
