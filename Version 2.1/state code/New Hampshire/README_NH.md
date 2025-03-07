@@ -1,43 +1,55 @@
 
 # New Hampshire Data Cleaning
 
-This is a ReadMe for New Hampshire's data cleaning process, from 2015 to 2024.
+This is a ReadMe for New Hampshire's data cleaning process, from 2009 to 2024.
 
-## Setup
+## NCES Setup
 
-There are three main folders you need to create (along with subfolders): 
-
-1. NH State Testing Data
-    - Subfolder: "NH State Testing Data Folder: Original Data Files". Download the original csv files and place them into this folder.  Move the file in the data request subfolder out of the subfolder and into this general folder.
-    - Subfolder: "Output"
-      
-2. NCES District and School Demographics
-    - Subfolder: "NCES District Files, Fall 1997-Fall 2022"
-    - Subfolder: "NCES School Files, Fall 1997-Fall 2022"
-      
-3. EDFacts
-    - There should be a subfolder for each year in the EDFacts folder.  Use the wide versions, not the long datasets.
-
-There are 2 .do files.  First run NH_Cleaning.do, and then run NH_EDFactsParticipationRate_2014_2018.do to merge participation rates in.
+NCES_Full: Download the folder from Google Drive-->_Data Cleaning Materials --> NCES District and School Demographics.
     
-## File Path
+       a. NCES District Files [subfolder] 
 
-The file path setup should be as follows: 
+       b. NCES School Files [subfolder]
 
-- global Original: Folder with all original data files.
-- global Output: Folder transformed files.
-- global NCES: Folder containing NCES files (in district and school subfolders).
-- global EDFacts: Folder containing EDFacts files (in separate folders for each year).
+As of 03/07/2025, the most recent files are from NCES 2022. 
 
-```bash
-global Original "/Users/miramehta/Documents/NH State Testing Data/Original Data Files"
-global Output "/Users/miramehta/Documents/NH State Testing Data/Output"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics"
+## EDFacts Setup
+EDFacts: Download the Datasets subfolder containing *.csv files. There will be individual folders for each year. 
 
-global EDFacts "/Users/miramehta/Documents/EDFacts"
+This is located in Google Drive-->_Data Cleaning Materials --> _EDFacts--> Datasets.
 
-```
+## New Hampshire Setup
+  Create a folder for NH. Inside that folder, create the following subfolders:
+  
+    1. Original Data Files: Download from **all** files Google Drive --> New Hampshire --> NH Original Data Files.
+    
+       i)  NH_OriginalData_G38_Dist.xlsx [Download this file from NH Original Data Files --> Received Gr3-8 aggregated district data via data request subfolder.]
+       
+      You should have one subfolder in the Original Data Files folder on your drive.
+       
+         a) DTA [subfolder]
+                      
+    2. Temp:  
+             
+    3. NCES_NH [Not in use] 
+          
+    4. EDFacts_NH 
+          
+    5. Output_Files
+          
+    6. Output_Files_ND: This is a folder for the non-derivation output.
+
+# Process
+    Place all do files in the NH folder.
+        
+    Set the appropriate file paths in NH_Main_File.do
+        
+    Running NH_Main_File.do will execute all the do files in order.
+
 ## Updates
 
 11/05/2024: Updated to include 2024 data, derive additional values, and match v2.0 StudentGroup_TotalTested convention.
+
 12/06/2024: Updated to derive more specific values for ranges (per Stanford feedback).
+
+03/07/2025: Updated code to standardize it and create non-derivation output.
