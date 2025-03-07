@@ -229,17 +229,22 @@ replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == ""
 gen Prof_pct = ProficientOrAbove_percent
 destring ProficientOrAbove_percent, replace force
 replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
-gen ProficientOrAbove_count = ProficientOrAbove_percent * Count
-replace ProficientOrAbove_count = round(ProficientOrAbove_count)
+gen ProficientOrAbove_count = string(real(Lev3_count) + real(Lev4_count))  if !missing(real(Lev3_count)) & !missing(real(Lev4_count))
+replace ProficientOrAbove_count = string(round(ProficientOrAbove_percent*Count)) if ProficientOrAbove_count == ""
+replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == ""
 tostring ProficientOrAbove_percent, replace format("%6.0g") force
 replace ProficientOrAbove_percent = "*" if Prof_pct == "**"
 replace ProficientOrAbove_percent = "--" if Prof_pct == "--"
-tostring ProficientOrAbove_count, replace
 replace ProficientOrAbove_count = "*" if Prof_pct == "**"
 replace ProficientOrAbove_count = "--" if Prof_pct == "--"
 replace ProficientOrAbove_count = "--" if Prof_pct == "."
 replace ProficientOrAbove_count = "--" if StudentSubGroup_TotalTested == "--" & ProficientOrAbove_count != "*"
 replace ProficientOrAbove_count = "0-" + ProficientOrAbove_count if strpos(StudentSubGroup_TotalTested, "0-") != 0 & ProficientOrAbove_count != "*"
+gen flag = 1 if !inlist(StudentSubGroup_TotalTested, "*", "--") & ProficientOrAbove_percent == "1" & StudentSubGroup_TotalTested != ProficientOrAbove_count //this is one specific obs. where rounding is causing ProficientOrAbove_count to be > SSGTT if derived as the sum of level counts
+replace Lev3_count = "*" if flag == 1
+replace Lev4_count = "*" if flag == 1
+replace ProficientOrAbove_count = StudentSubGroup_TotalTested if flag == 1
+drop flag
 
 //Proficiency Levels
 forvalues n = 1/4 {

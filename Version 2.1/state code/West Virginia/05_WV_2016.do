@@ -220,12 +220,12 @@ replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == ""
 gen Prof_pct = ProficientOrAbove_percent
 destring ProficientOrAbove_percent, replace force
 replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
-gen ProficientOrAbove_count = ProficientOrAbove_percent * Count
-replace ProficientOrAbove_count = round(ProficientOrAbove_count)
+gen ProficientOrAbove_count = string(real(Lev3_count) + real(Lev4_count))  if !missing(real(Lev3_count)) & !missing(real(Lev4_count))
+replace ProficientOrAbove_count = string(round(ProficientOrAbove_percent*Count)) if ProficientOrAbove_count == ""
+replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == ""
 tostring ProficientOrAbove_percent, replace format("%6.0g") force
 replace ProficientOrAbove_percent = "*" if Prof_pct == "**"
 replace ProficientOrAbove_percent = "--" if Prof_pct == "--"
-tostring ProficientOrAbove_count, replace
 replace ProficientOrAbove_count = "*" if Prof_pct == "**"
 replace ProficientOrAbove_count = "--" if Prof_pct == "--"
 replace ProficientOrAbove_count = "--" if StudentSubGroup_TotalTested == "--" & ProficientOrAbove_count != "*"

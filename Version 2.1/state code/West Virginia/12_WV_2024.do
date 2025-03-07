@@ -293,8 +293,9 @@ forvalues n = 1/4 {
 
 gen Prof_pct = ProficientOrAbove_percent
 destring Prof_pct, replace force
-gen ProficientOrAbove_count = Prof_pct * Count
-replace ProficientOrAbove_count = round(ProficientOrAbove_count)
+gen ProficientOrAbove_count = string(real(Lev3_count) + real(Lev4_count))  if !missing(real(Lev3_count)) & !missing(real(Lev4_count))
+replace ProficientOrAbove_count = string(round(Prof_pct*Count)) if ProficientOrAbove_count == ""
+replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == ""
 replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "***"
 replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == ""
 tostring ProficientOrAbove_count, replace
