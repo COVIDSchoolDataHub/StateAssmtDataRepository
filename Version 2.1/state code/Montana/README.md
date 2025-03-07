@@ -9,8 +9,9 @@ You can set macros in MT_Main_File.do and run this file to compelte the entire c
 Alternatively, after setting macros, you can run the do files individually in the following order:
 
 1. MT_NCES.do
-2. MT_State_Cleaning.do
+2. MT_School_Cleaning.do
 3. MT_District_Cleaning.do
+4. MT_State_Cleaning.do
 
 ## Data to download
 
@@ -46,4 +47,4 @@ Rehide this code after installing.
 
 ## Updates
 12/16/24: Applied numerous derivations as noted in CW and brought MT up to V2.0.
-03/05/25: Cleaned newly downloaded data (newly includes 2024 data, as well as state-level subgroup sci data and district level sci data).
+03/05/25: Cleaned newly downloaded data (newly includes 2024 data, state-level subgroup sci data, + district level sci data) and school level G38 data received via DR 01/06/24.

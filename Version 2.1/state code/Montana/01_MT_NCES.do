@@ -52,13 +52,18 @@ foreach a in $years {
 	rename ncesschoolid NCESSchoolID
 	rename school_name SchName
 	if `a' == 2022 rename school_type SchType
+	foreach var of varlist SchType SchLevel SchVirtual{
+		decode `var', gen(temp)
+		drop `var'
+		rename temp `var'
+	}
+	
 	if `a' == 2022 {
-		foreach var of varlist SchType SchLevel SchVirtual DistType {
-			decode `var', gen(temp)
-			drop `var'
-			rename temp `var'
-		}
-	} 
+		decode DistType, gen(temp)
+		drop DistType
+		rename temp DistType
+	}
+	
 	keep State StateAbbrev StateFips NCESDistrictID NCESSchoolID State_leaid DistType CountyName CountyCode DistLocale DistCharter SchName SchType SchVirtual SchLevel seasch DistName sch_lowest_grade_offered
 	drop if seasch == ""
 

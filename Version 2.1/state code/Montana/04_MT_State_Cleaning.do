@@ -1,8 +1,8 @@
 *******************************************************
 * MONTANA
 
-* File name: 02_MT_State_Cleaning
-* Last update: 03/05/2025
+* File name: 04_MT_State_Cleaning
+* Last update: 03/06/2025
 
 *******************************************************
 * Notes
@@ -21,7 +21,7 @@ save "`temp1'", replace emptyok
 foreach Subject in "ELA" "Math" "Sci" {
 	foreach Grade in "3" "4" "5" "6" "7" "8" "38" {
 		if "`Subject'" == "Sci" & !inlist("`Grade'", "5", "8", "38") continue
-		foreach sg in All_Students American_Indian_Or_Alaskan_Native Asian Black_or_African_American Economically_Disadvantaged EL EL_Monit_or_Recently_Ex Female Hispanic Male Multi-Racial Native_Hawaiian_or_Other_Pacific_Islander Non-SWD NonEL Not_Economically_Disadvantaged SWD White {
+		foreach sg in All_Students American_Indian_Or_Alaskan_Native Asian Black_or_African_American Economically_Disadvantaged EL EL_Monit_or_Recently_Ex Female Hispanic Homeless Male Migrant Multi-Racial Native_Hawaiian_or_Other_Pacific_Islander Non-Homeless Non-Migrant Non-SWD NonEL Not_Economically_Disadvantaged SWD White {
 		import excel "${Original}/State-level downloads/MT_State_`Subject'_G`Grade'_`sg'.xlsx", firstrow cellrange(A3) case(preserve) clear
 		cap rename NearingProficiencyStudents NearingProficientStudents
 		drop if SchoolYear == "2019-2020"
@@ -48,7 +48,7 @@ save "`temp2'", replace emptyok
 foreach Subject in "ELA" "Math" "Sci" {
 	foreach Grade in "3" "4" "5" "6" "7" "8" "38" {
 		if "`Subject'" == "Sci" & !inlist("`Grade'", "5", "8", "38") continue
-		foreach sg in All_Students American_Indian_Or_Alaskan_Native Asian Black_or_African_American Economically_Disadvantaged EL EL_Monit_or_Recently_Ex Female Hispanic Male Multi-Racial Native_Hawaiian_or_Other_Pacific_Islander Non-SWD NonEL Not_Economically_Disadvantaged SWD White {
+		foreach sg in All_Students American_Indian_Or_Alaskan_Native Asian Black_or_African_American Economically_Disadvantaged EL EL_Monit_or_Recently_Ex Female Hispanic Homeless Male Migrant Multi-Racial Native_Hawaiian_or_Other_Pacific_Islander Non-Homeless Non-Migrant Non-SWD NonEL Not_Economically_Disadvantaged SWD White {
 		import excel "${Original}/State-level downloads/MT_State_`Subject'_G`Grade'_`sg'_Participation.xlsx", firstrow cellrange(A3) case(preserve) clear
 		drop if SchoolYear == "2019-2020"
 		if "`Subject'" != "Sci" tostring StudentsNotTested, replace
@@ -102,6 +102,8 @@ replace StudentGroup = "Gender" if inlist(StudentSubGroup, "Male", "Female")
 replace StudentGroup = "Disability Status" if strpos(StudentSubGroup, "SWD") != 0
 replace StudentGroup = "Economic Status" if strpos(StudentSubGroup, "Economically") != 0
 replace StudentGroup = "EL Status" if strpos(StudentSubGroup, "English") != 0 | strpos(StudentSubGroup, "EL") != 0
+replace StudentGroup = "Homeless Enrolled Status" if strpos(StudentSubGroup, "Homeless") != 0
+replace StudentGroup = "Migrant Status" if strpos(StudentSubGroup, "Migrant") != 0
 
 //Correcting Importing Error
 foreach var of varlist Lev*_count Lev*_percent StudentSubGroup_TotalTested ParticipationRate {
@@ -136,9 +138,10 @@ replace ProficientOrAbove_percent = 1 - Lev1_percent - Lev2_percent if Proficien
 
 foreach lev in Lev1 Lev2 Lev3 Lev4 ProficientOrAbove {
 	tostring `lev'_count, replace
-	tostring `lev'_percent, replace format("%9.4f") force
+	tostring `lev'_percent, replace format("%9.4g") force
 	replace `lev'_count = "*" if `lev'_count == "."
 	replace `lev'_percent = "*" if `lev'_percent == "."
+	replace `lev'_percent = "0" if `lev'_percent == "0.0000"
 }
 
 gen Lev5_percent = ""
@@ -146,7 +149,7 @@ gen Lev5_count = ""
 gen AvgScaleScore = "--"
 
 //ParticipationRate
-tostring ParticipationRate, replace format("%9.4f") force
+tostring ParticipationRate, replace format("%9.4g") force
 replace ParticipationRate = "1" if ParticipationRate == "1.0000"
 
 //SchYear
@@ -177,10 +180,8 @@ gen DistType = ""
 gen SchType = ""
 gen NCESDistrictID = ""
 gen StateAssignedDistID = ""
-gen State_leaid = ""
 gen NCESSchoolID = ""
 gen StateAssignedSchID = ""
-gen seasch = ""
 gen DistCharter = ""
 gen SchLevel = ""
 gen SchVirtual = ""
@@ -205,18 +206,22 @@ gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup ==
 order Subject GradeLevel StudentGroup_TotalTested StudentGroup StudentSubGroup_TotalTested StudentSubGroup
 replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested) & StudentSubGroup != "All Students"
 
-//Variable Clean-up
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
- 
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
 //Separating by Year & Saving
 forvalues year = 2016/2024 {
 	if `year' == 2020 continue
-	preserve	
+	preserve
 	keep if "`year'" == substr(SchYear,1,2) + substr(SchYear, -2,2)
 	sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-	save "${Output}/MT_AssmtData_`year'_State", replace
+	append using "${Output}/MT_AssmtData_`year'_District"
+	if !inlist(`year', 2021, 2024) append using "${Output}/MT_AssmtData_`year'_School"
+	
+	//Variable Clean-up
+	order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+ 
+	keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+	
+	save "${Output}/MT_AssmtData_`year'.dta", replace
+	export delimited "${Output}/MT_AssmtData_`year'.csv", replace
 	restore
 }
 

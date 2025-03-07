@@ -2,7 +2,7 @@
 * MONTANA
 
 * File name: MT_Main_File
-* Last update: 03/05/2025
+* Last update: 03/06/2025
 
 *******************************************************
 * Notes
@@ -39,8 +39,9 @@ global Output "/Users/miramehta/Documents/Montana/Output" //Usual output exporte
 /////////////////////////////////////////
 *Add newer years in order.*
 do "${DoFiles}/01_MT_NCES.do"
-do "${DoFiles}/02_MT_State_Cleaning.do"
+do "${DoFiles}/02_MT_School_Cleaning.do"
 do "${DoFiles}/03_MT_District_Cleaning.do" //contains notes for code to be hidden after first run
+do "${DoFiles}/04_MT_State_Cleaning.do" //contains notes for code to be hidden after first run.
 
 * END of MT_Main_File.do 
 ****************************************************

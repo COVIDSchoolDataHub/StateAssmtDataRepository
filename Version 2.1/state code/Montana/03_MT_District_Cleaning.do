@@ -2,7 +2,7 @@
 * MONTANA
 
 * File name: 03_MT_District_Cleaning
-* Last update: 03/05/2025
+* Last update: 03/06/2025
 
 *******************************************************
 * Notes
@@ -15,7 +15,7 @@
 clear all
 set more off
 
-// RUN BELOW CODE AFTER FIRST RUN -- COMBINES FILES
+// HIDE BELOW CODE AFTER FIRST RUN -- COMBINES FILES
 
 
 //Get Dataset of all filenames
@@ -135,12 +135,12 @@ replace SchYear = substr(SchYear, 1,5) + substr(SchYear, 8,2)
 
 //Cleaning Percents & Counts
 foreach var of varlist Lev* {
-	replace `var' = "--" if `var' == "0"
+	replace `var' = "*" if `var' == "0" //treating all zeroes as suppressed due to importing error (these appear blank or suppressed when opened in Drive/Excel)
 	replace `var' = "--" if missing(`var')
 }
 
 foreach percent of varlist Lev*_percent {
-	replace `percent' = string(real(`percent')) if !missing(real(`percent'))
+	replace `percent' = string(real(`percent'), "%9.4f") if !missing(real(`percent'))
 }
 
 //StudentSubGroup_TotalTested
@@ -171,6 +171,7 @@ replace ProficientOrAbove_percent = "--" if missing(ProficientOrAbove_percent)
 
 foreach var of varlist Lev*_percent ProficientOrAbove_percent {
 	replace `var' = "0" if strpos(`var', "e") != 0
+	replace `var' = "0" if `var' == "-.0001"
 }
 
 gen ProficientOrAbove_count = string(real(Lev3_count) + real(Lev4_count)) if !missing(real(Lev3_count)) & !missing(real(Lev4_count))
@@ -214,6 +215,7 @@ gen ProficiencyCriteria = "Levels 3-4"
 
 *replace CountyName = proper(CountyName)
 
+//DataLevel
 gen StateAssignedDistID = subinstr(State_leaid, "MT-","",.)
 drop State_leaid
 
@@ -248,7 +250,6 @@ gen Lev5_percent = ""
 
 //Include all Appropriate Observations
 duplicates drop
-append using "${Output}/MT_AssmtData_`year'_State"
 
 //Final Cleaning
 order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
@@ -257,8 +258,8 @@ keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrict
 
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${Output}/MT_AssmtData_`year'", replace
-export delimited "${Output}/MT_AssmtData_`year'", replace	
+save "${Output}/MT_AssmtData_`year'_District", replace
+export delimited "${Output}/MT_AssmtData_`year'_District", replace	
 clear	
 }
 
