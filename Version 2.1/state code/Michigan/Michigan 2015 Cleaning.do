@@ -1,12 +1,21 @@
+* MICHIGAN
+
+* File name: Michigan 2015 Cleaning
+* Last update: 03/06/2025
+
+*******************************************************
+* Notes
+
+	* This do file uses 2015 MI *.dta files
+	* These files are renamed, cleaned and reshaped.
+	* NCES 2014 and 2017 (schools only) are merged.
+	* A breakpoint is created before derivations are done.  
+	* The non-derivation output and a temporary output with derivations are created. 
+
+*******************************************************
 clear
-set more off
 
-global output "/Volumes/T7/State Test Project/Michigan/Original Data"
-global NCES "/Volumes/T7/State Test Project/Michigan/NCES"
-
-cd "/Volumes/T7/State Test Project/Michigan"
-
-use "${output}/MI_AssmtData_2015_all.dta", clear
+use "${Original_DTA}/MI_AssmtData_2015_all.dta", clear
 
 ** Rename existing variables
 
@@ -159,7 +168,7 @@ replace State_leaid = "61210" if SchName == "LAKESHORE LEARNING CENTER"
 replace State_leaid = "82734" if SchName == "New Paradigm Glazer Academy"
 replace State_leaid = "" if DataLevel == 1
 
-merge m:1 State_leaid using "${NCES}/NCES_2014_District.dta"
+merge m:1 State_leaid using "${NCES_MI}/NCES_2014_District_MI.dta"
 
 drop if _merge == 2
 drop _merge
@@ -176,7 +185,7 @@ replace seasch = "0000" + seasch if leadingzero == 4
 drop leadingzero
 replace seasch = "" if DataLevel != 3
 
-merge m:1 seasch using "${NCES}/NCES_2014_School.dta"
+merge m:1 seasch using "${NCES_MI}/NCES_2014_School_MI.dta"
 
 drop if _merge == 2
 drop _merge
@@ -185,7 +194,7 @@ replace NCESSchoolID = "262472008659" if seasch == "02565"
 replace NCESSchoolID = "261995007949" if seasch == "09936"
 replace NCESSchoolID = "262115008185" if seasch == "00579"
 
-merge m:1 NCESSchoolID using "${NCES}/NCES_2017_School.dta", update
+merge m:1 NCESSchoolID using "${NCES_MI}/NCES_2017_School_MI.dta", update
 
 drop if _merge == 2
 drop _merge
@@ -206,7 +215,6 @@ replace StateAssignedSchID = "" if DataLevel != 3
 gen Flag_AssmtNameChange = "Y"
 gen Flag_CutScoreChange_ELA = "Y"
 gen Flag_CutScoreChange_math = "Y"
-/// gen Flag_CutScoreChange_read = ""
 gen Flag_CutScoreChange_soc = "Y"
 gen Flag_CutScoreChange_sci = "Y"
 
@@ -227,7 +235,6 @@ bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen All = max
 * drop if StudentGroup=="All Students" & All ==.
 destring StudentSubGroup_TotalTested, gen(Count_n) ignore("<10")
 replace Count_n=0 if StudentSubGroup_TotalTested == "<10"
-* drop All total_count
 
 bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen Econ = sum(Count_n) if StudentGroup == "Economic Status"
 bysort StateAssignedDistID StateAssignedSchID GradeLevel Subject: egen Disability = sum(Count_n) if StudentGroup == "Disability Status"
@@ -285,6 +292,14 @@ foreach var of varlist StateAssigned* {
 	replace `var' = string(real(`var'), "%05.0f") if !missing(real(`var'))
 }
 
+*******************************************************
+// Creating a Breakpoint - to restore for non-derivation data processing
+*******************************************************
+save "$Temp/MI_2015_Breakpoint",replace
+
+******************************
+//Derivations//
+******************************
 //Derive Exact count/percent where we have range and corresponding exact count/percent and StudentSubGroup_TotalTested
 foreach percent of varlist Lev*_percent ProficientOrAbove_percent {
 	local count = subinstr("`percent'", "percent", "count",.)
@@ -293,9 +308,7 @@ foreach percent of varlist Lev*_percent ProficientOrAbove_percent {
 }
 
 //Derivations
-
 **Deriving Counts (and corresponding percents) if we have ProficientOrAbove_count & other count OR TotalDidNotMeet & other count
-
 replace Lev4_count = string(real(ProficientOrAbove_count)-real(Lev3_count)) if !missing(real(ProficientOrAbove_count)) & !missing(real(Lev3_count)) & missing(real(Lev4_count))
 replace Lev3_count = string(real(ProficientOrAbove_count)-real(Lev4_count)) if !missing(real(ProficientOrAbove_count)) & !missing(real(Lev4_count)) & missing(real(Lev3_count))
 replace Lev2_count = string(real(TotalDidNotMeet)-real(Lev1_count)) if !missing(real(TotalDidNotMeet)) & !missing(real(Lev1_count)) & missing(real(Lev2_count))
@@ -359,7 +372,110 @@ replace NCESSchoolID = "262297003950" if SchName == "Harrington Elementary Schoo
 //StateAssignedSchID format updates: response to R2 V2.0
 replace StateAssignedSchID = string(real(StateAssignedSchID), "%4.0f") if DataLevel == 3
 
+//Final Cleaning
+replace CountyName = proper(CountyName)
+foreach var of varlist DistName SchName {
+	replace `var' = stritrim(`var')
+	replace `var' = strtrim(`var')
+}
 
+//Cleaning and dropping extra variables
+local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
+    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
+    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
+    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
+    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
+    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
+    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
+    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
+    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
+    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
+    Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+	keep `vars'
+	order `vars'
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
+******************************
+*Exporting Temp Output. This will be combined with EDFacts data in MI_EDFactsParticipation_2015_2021.
+******************************
+save "${Temp}/MI_AssmtData_2015", replace
+
+******************************
+// Creating the non-derivation output
+******************************
+*Restoring the breakpoint
+use "$Temp/MI_2015_Breakpoint", clear
+
+******************************
+//Derivations - Deleting code that replaces counts calculated using a percentage * SSGT
+******************************
+//Derive Exact percent where we have range and corresponding exact count and StudentSubGroup_TotalTested
+foreach percent of varlist Lev*_percent ProficientOrAbove_percent {
+	local count = subinstr("`percent'", "percent", "count",.)
+	replace `percent' = string(real(`count')/real(StudentSubGroup_TotalTested), "%9.3g") if !missing(real(`count')) & !missing(real(StudentSubGroup_TotalTested)) & missing(real(`percent'))
+}
+
+//Derivations
+**Deriving Counts (and corresponding percents) if we have ProficientOrAbove_count & other count OR TotalDidNotMeet & other count
+replace Lev4_count = string(real(ProficientOrAbove_count)-real(Lev3_count)) if !missing(real(ProficientOrAbove_count)) & !missing(real(Lev3_count)) & missing(real(Lev4_count))
+replace Lev3_count = string(real(ProficientOrAbove_count)-real(Lev4_count)) if !missing(real(ProficientOrAbove_count)) & !missing(real(Lev4_count)) & missing(real(Lev3_count))
+replace Lev2_count = string(real(TotalDidNotMeet)-real(Lev1_count)) if !missing(real(TotalDidNotMeet)) & !missing(real(Lev1_count)) & missing(real(Lev2_count))
+replace Lev1_count = string(real(TotalDidNotMeet)-real(Lev2_count)) if !missing(real(TotalDidNotMeet)) & !missing(real(Lev2_count)) & missing(real(Lev1_count))
+
+foreach count of varlist Lev*_count {
+	local percent = subinstr("`count'", "count", "percent",.)
+	replace `percent' = string(real(`count')/real(StudentSubGroup_TotalTested), "%9.3g") if !missing(real(`count')) & !missing(real(StudentSubGroup_TotalTested)) & missing(real(`percent'))
+}
+drop TotalDidNotMeet
+
+**Deriving Count if we have all other counts
+
+replace Lev1_count = string(real(StudentSubGroup_TotalTested)-real(Lev4_count)-real(Lev3_count)-real(Lev2_count)) if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Lev4_count)) & !missing(real(Lev3_count)) & !missing(real(Lev2_count)) & missing(real(Lev1_count)) & (real(StudentSubGroup_TotalTested)-real(Lev4_count)-real(Lev3_count)-real(Lev2_count)) > 0
+
+replace Lev2_count = string(real(StudentSubGroup_TotalTested)-real(Lev4_count)-real(Lev3_count)-real(Lev1_count)) if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Lev4_count)) & !missing(real(Lev3_count)) & !missing(real(Lev1_count)) & missing(real(Lev2_count)) & (real(StudentSubGroup_TotalTested)-real(Lev4_count)-real(Lev3_count)-real(Lev1_count)) > 0
+
+replace Lev3_count = string(real(StudentSubGroup_TotalTested)-real(Lev4_count)-real(Lev1_count)-real(Lev2_count)) if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Lev4_count)) & !missing(real(Lev1_count)) & !missing(real(Lev2_count)) & missing(real(Lev3_count)) & (real(StudentSubGroup_TotalTested)-real(Lev4_count)-real(Lev1_count)-real(Lev2_count)) > 0
+
+replace Lev4_count = string(real(StudentSubGroup_TotalTested)-real(Lev1_count)-real(Lev3_count)-real(Lev2_count)) if !missing(real(StudentSubGroup_TotalTested)) & !missing(real(Lev5_count)) & !missing(real(Lev1_count)) & !missing(real(Lev3_count)) & !missing(real(Lev2_count)) & missing(real(Lev4_count)) & (real(StudentSubGroup_TotalTested)-real(Lev1_count)-real(Lev3_count)-real(Lev2_count)) > 0
+
+
+** Deriving Percents if we have all other percents
+replace Lev1_percent = string(1-real(Lev4_percent)-real(Lev3_percent)-real(Lev2_percent), "%9.3g") if !missing(1) & !missing(real(Lev4_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev2_percent)) & missing(real(Lev1_percent)) & (1-real(Lev4_percent)-real(Lev3_percent)-real(Lev2_percent) > 0.005)
+
+replace Lev2_percent = string(1-real(Lev4_percent)-real(Lev3_percent)-real(Lev1_percent), "%9.3g") if !missing(1) & !missing(real(Lev4_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev1_percent)) & missing(real(Lev2_percent)) & (1-real(Lev4_percent)-real(Lev3_percent)-real(Lev1_percent) > 0.005)
+
+replace Lev3_percent = string(1-real(Lev4_percent)-real(Lev1_percent)-real(Lev2_percent), "%9.3g") if !missing(1) & !missing(real(Lev4_percent)) & !missing(real(Lev1_percent)) & !missing(real(Lev2_percent)) & missing(real(Lev3_percent))  & (1-real(Lev4_percent)-real(Lev1_percent)-real(Lev2_percent) > 0.005)
+
+replace Lev4_percent = string(1-real(Lev1_percent)-real(Lev3_percent)-real(Lev2_percent), "%9.3g") if !missing(1) & !missing(real(Lev1_percent)) & !missing(real(Lev3_percent)) & !missing(real(Lev2_percent)) & missing(real(Lev4_percent))  & (1-real(Lev1_percent)-real(Lev3_percent)-real(Lev2_percent) > 0.005)
+
+//Deleting code that replaces ProficientOrAbove_count ranges to reflect ProficientOrAbove_percent ranges
+
+//Edits to IDs in response to V2.0 R2
+replace NCESDistrictID = "2680850" if SchName == "LAKESHORE LEARNING CENTER"
+replace StateAssignedDistID = "61000" if SchName == "LAKESHORE LEARNING CENTER"
+replace NCESSchoolID = "268085007799" if SchName == "LAKESHORE LEARNING CENTER"
+
+replace NCESSchoolID = "261560001772" if SchName == "Consolidated Community School Services" & StateAssignedSchID == "9417"
+replace NCESDistrictID = "2615600" if SchName == "Consolidated Community School Services" & StateAssignedSchID == "9417"
+replace DistType = "Regular local school district" if SchName == "Consolidated Community School Services" & StateAssignedSchID == "9417"
+replace CountyName = "Mackinac County" if SchName == "Consolidated Community School Services" & StateAssignedSchID == "9417"
+replace DistCharter = "No" if SchName == "Consolidated Community School Services" & StateAssignedSchID == "9417"
+replace DistLocale = "Rural, remote" if SchName == "Consolidated Community School Services" & StateAssignedSchID == "9417"
+replace CountyCode = "26097" if SchName == "Consolidated Community School Services" & StateAssignedSchID == "9417"
+
+replace NCESDistrictID = "2680620" if DistName == "Kent ISD - District created from ISD" & SchName == "Kent Education Center--Oakleigh"
+replace NCESSchoolID = "268062005335" if DistName == "Kent ISD - District created from ISD" & SchName == "Kent Education Center--Oakleigh"
+replace DistType = "Specialized public school district" if DistName == "Kent ISD - District created from ISD" & SchName == "Kent Education Center--Oakleigh"
+replace DistCharter = "No" if DistName == "Kent ISD - District created from ISD" & SchName == "Kent Education Center--Oakleigh"
+replace CountyName = "Kent County" if DistName == "Kent ISD - District created from ISD" & SchName == "Kent Education Center--Oakleigh"
+replace CountyCode = "26081" if DistName == "Kent ISD - District created from ISD" & SchName == "Kent Education Center--Oakleigh"
+
+
+replace DistName = "Hamilton Academy" if NCESDistrictID == "2600987" & DataLevel == 3
+replace NCESSchoolID = "262297003950" if SchName == "Harrington Elementary School" & NCESDistrictID == "2622970"
+
+//StateAssignedSchID format updates: response to R2 V2.0
+replace StateAssignedSchID = string(real(StateAssignedSchID), "%4.0f") if DataLevel == 3
 
 //Final Cleaning
 replace CountyName = proper(CountyName)
@@ -367,12 +483,13 @@ foreach var of varlist DistName SchName {
 	replace `var' = stritrim(`var')
 	replace `var' = strtrim(`var')
 }
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-	
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-	
+
+keep `vars'
+order `vars'
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${output}/MI_AssmtData_2015.dta", replace
-
-export delimited using "${output}/csv/MI_AssmtData_2015.csv", replace
+*Exporting Non-Derivation Output.
+save "${Output_ND}/MI_AssmtData_2015_ND", replace
+export delimited "${Output_ND}/MI_AssmtData_2015_ND", replace
+*End of Michigan 2015 Cleaning.do
+****************************************************
