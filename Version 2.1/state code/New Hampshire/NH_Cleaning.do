@@ -82,12 +82,11 @@ if `year' == 2019 {
 	rename Participate ParticipationRate
 	rename TotalFAYStudents StudentSubGroup_TotalTested
 	drop MeanSGP oftotaltestedDLMstate oftotaltestedELFirstYr ReportDate
-	
-	
 }
-if `year' == 2023 {
-rename ïDenominatorType DenominatorType
-}
+//If STATA imports the 2023 file with ïDenominatorType, uncomment the code below. 
+//if `year' == 2023 {
+//rename ïDenominatorType DenominatorType
+//}
 if `year' > 2019 {
 	drop DenominatorType yearid ReportDate
 	rename LevelofData DataLevel
