@@ -80,6 +80,7 @@ forvalues year = 2019/2023{
 			rename O Lev3_percent
 			rename P Lev4_percent
 			rename Q Lev5_percent
+			gen State_leaid = A + StateAssignedDistID
 
 			save "${Original_DTA}/NJ_OriginalData_`year'_ela_G0`n'", replace
 			
@@ -108,6 +109,8 @@ forvalues year = 2019/2023{
 			rename O Lev3_percent
 			rename P Lev4_percent
 			rename Q Lev5_percent
+			gen State_leaid = A + StateAssignedDistID
+			
 			save "${Original_DTA}/NJ_OriginalData_`year'_mat_G0`n'", replace
 			
 			if inlist(`n', 5, 8){
@@ -130,6 +133,8 @@ forvalues year = 2019/2023{
 				rename O Lev3_percent
 				rename P Lev4_percent
 				gen Lev5_percent = ""
+				gen State_leaid = A + StateAssignedDistID
+				
 				save "${Original_DTA}/NJ_OriginalData_`year'_sci_G0`n'", replace
 			}
 		}
@@ -412,8 +417,8 @@ local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
     ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
     Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
     Flag_CutScoreChange_sci Flag_CutScoreChange_soc
-	keep `vars'
-	order `vars'
+	keep `vars' State_leaid
+	order `vars' State_leaid
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 *Exporting Temp output for 2019-2022
@@ -424,6 +429,25 @@ clear
 
 // *Exporting Final Output for 2023
 if `year' == 2023 {
+replace State_leaid = "" if DataLevel == 1
+save "${Output_HMH}/NJ_AssmtData_`year'_HMH", replace
+export delimited "${Output_HMH}/NJ_AssmtData_`year'_HMH", replace
+forvalues n = 1/3 {
+		preserve
+		keep if DataLevel == `n'
+		if `n' == 1{
+			export excel "${Output_HMH}/NJ_AssmtData_`year'_HMH.xlsx", sheet("State") sheetreplace firstrow(variables)
+		}
+		if `n' == 2{
+			export excel "${Output_HMH}/NJ_AssmtData_`year'_HMH.xlsx", sheet("District") sheetreplace firstrow(variables)
+		}
+		if `n' == 3{
+			export excel "${Output_HMH}/NJ_AssmtData_`year'_HMH.xlsx", sheet("School") sheetreplace firstrow(variables)
+		}
+		restore
+	}
+drop State_leaid //remove alternate ID for non-HMH output
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 save "${Output}/NJ_AssmtData_`year'", replace
 export delimited "${Output}/NJ_AssmtData_`year'", replace
 clear

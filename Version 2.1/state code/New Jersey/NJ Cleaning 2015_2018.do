@@ -37,7 +37,7 @@ forvalues year = 2015/2018{
 
 			drop if A == "DFG"
 
-			drop A B G J K
+			drop B G J K
 			rename C StateAssignedDistID
 			rename D DistName
 			rename E StateAssignedSchID
@@ -50,6 +50,8 @@ forvalues year = 2015/2018{
 			rename P Lev3_percent
 			rename Q Lev4_percent
 			rename R Lev5_percent
+			gen State_leaid = A + StateAssignedDistID
+			drop A
 			save "${Original_DTA}/NJ_OriginalData_`year'_`s'_G0`n'", replace
 		}
 	}
@@ -299,9 +301,9 @@ local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
     Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
     ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
     Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
-    Flag_CutScoreChange_sci Flag_CutScoreChange_soc
-	keep `vars'
-	order `vars'
+    Flag_CutScoreChange_sci Flag_CutScoreChange_soc State_leaid
+	keep `vars' State_leaid
+	order `vars' State_leaid
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 *Exporting Temp output for 2015-2018

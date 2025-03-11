@@ -324,11 +324,30 @@ local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
     ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
     Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
     Flag_CutScoreChange_sci Flag_CutScoreChange_soc
-	keep `vars'
-	order `vars'
+	keep `vars' State_leaid
+	order `vars' State_leaid
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-*Exporting Output for 2014-2021
+*Exporting Output for 2015-2019
+replace State_leaid = "" if DataLevel == 1
+save "${Output_HMH}/NJ_AssmtData_`year'_HMH", replace
+export delimited "${Output_HMH}/NJ_AssmtData_`year'_HMH", replace
+forvalues n = 1/3 {
+		preserve
+		keep if DataLevel == `n'
+		if `n' == 1{
+			export excel "${Output_HMH}/NJ_AssmtData_`year'_HMH.xlsx", sheet("State") sheetreplace firstrow(variables)
+		}
+		if `n' == 2{
+			export excel "${Output_HMH}/NJ_AssmtData_`year'_HMH.xlsx", sheet("District") sheetreplace firstrow(variables)
+		}
+		if `n' == 3{
+			export excel "${Output_HMH}/NJ_AssmtData_`year'_HMH.xlsx", sheet("School") sheetreplace firstrow(variables)
+		}
+		restore
+	}
+drop State_leaid //remove alternate ID for non-HMH output
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 save "$Output/NJ_AssmtData_`year'", replace
 export delimited "$Output/NJ_AssmtData_`year'", replace
 clear

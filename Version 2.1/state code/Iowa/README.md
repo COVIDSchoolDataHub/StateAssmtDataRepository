@@ -34,7 +34,7 @@ Create a folder for IA. Inside that folder, create the following subfolders:
          
       3. NCES_IA [will start empty]
            
-      4. Output_Files
+      4. Output_Files: This should have a subfolder called HMH, where output with alternate IDs for HMH will be saved.
       
       5. Output_Files_ND: This is a folder for the non-derivation output. [Not in use.]
 
@@ -55,3 +55,5 @@ Create a folder for IA. Inside that folder, create the following subfolders:
 02/10/25: Updated file 2 to clean Disability Status observations in newly received 2024 data request.
 
 02/28/25: Modified code to export non-derivation output. Added headers, footers, and notes in each do file.
+
+03/11/2025: Updated the code to create an alternate output for HMH with State_leaid included with the full 6 digits reported in NCES.

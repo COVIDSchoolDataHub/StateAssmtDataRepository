@@ -40,6 +40,7 @@ global Original_DTA "C:/Zelma/Iowa/Original Data Files/DTA"
 
 *Output folders*
 global Output "C:/Zelma/Iowa/Output_Files" // Version 2.1 Output directory here.
+global Output_HMH "C:/Zelma/Iowa/Output_Files/HMH" // Output with Alternate IDs for HMH.
 
 *Non Derivation Output Folders*
 global Output_ND "C:/Zelma/Iowa/Output_Files_ND" //Non Derivation Output. [Not in use.]

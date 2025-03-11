@@ -157,8 +157,8 @@ foreach year in 2004 2005 2006 2007 2008 2009 2010 2011 2012 2013 2014 2015 2016
 	rename DataLevel_n DataLevel
 	
 	// Cleaning up DistNames & SchNames
-	replace DistName = "All Districts" if DataLevel == "State"
-	replace SchName = "All Schools" if DataLevel != "School"
+	replace DistName = "All Districts" if DataLevel == 1
+	replace SchName = "All Schools" if DataLevel != 3
 	
 	replace DistName =strtrim(DistName) 
 	replace DistName =stritrim(DistName) 
@@ -167,9 +167,9 @@ foreach year in 2004 2005 2006 2007 2008 2009 2010 2011 2012 2013 2014 2015 2016
 
 	// Generating student group total counts
 	gen StateAssignedDistID1 = StateAssignedDistID
-	replace StateAssignedDistID1 = "000000" if DataLevel == "State" 
+	replace StateAssignedDistID1 = "000000" if DataLevel == 1
 	gen StateAssignedSchID1 = StateAssignedSchID
-	replace StateAssignedSchID1 = "000000" if DataLevel !="School" 
+	replace StateAssignedSchID1 = "000000" if DataLevel != 3 
 	
 	egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
 	sort group_id StudentGroup StudentSubGroup
@@ -185,16 +185,8 @@ foreach year in 2004 2005 2006 2007 2008 2009 2010 2011 2012 2013 2014 2015 2016
 	replace Lev5_count=""
 	replace Lev5_percent=""
 	if `year' == 2023 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested==""
-		
-	//DataLevel
-// 	gen DataLev_n = .
-// 	replace DataLev_n = 1 if DataLevel == "State"
-// 	replace DataLev_n = 2 if DataLevel == "District"
-// 	replace DataLev_n = 3 if DataLevel == "School"
-		
+	
 	duplicates drop 
-
-	drop if DataLevel==""
 
 // Reordering variables and sorting data
 local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
@@ -213,8 +205,8 @@ local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 *Exporting HMH Output - Version with Full State_leaid*
-save "${Output}/IA_AssmtData_`year'_HMH.dta", replace
-export delimited using "${Output}/IA_AssmtData_`year'_HMH.csv", replace
+save "${Output_HMH}/IA_AssmtData_`year'_HMH.dta", replace
+export delimited using "${Output_HMH}/IA_AssmtData_`year'_HMH.csv", replace
 
 *Exporting Standard Output*
 drop State_leaid

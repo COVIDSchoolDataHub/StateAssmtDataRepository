@@ -40,7 +40,7 @@ This is located in Google Drive-->_Data Cleaning Materials --> _EDFacts--> Datas
           
     4. EDFacts_NJ 
           
-    5. Output_Files
+    5. Output_Files: This should have a subfolder called HMH, where output with alternate IDs for HMH will be saved.
           
     6. Output_Files_ND: This is a folder for the non-derivation output.
 
@@ -57,3 +57,5 @@ This is located in Google Drive-->_Data Cleaning Materials --> _EDFacts--> Datas
 12/14/2024: Updated to add in new StudentGroup_TotalTested derivation and 2024 data.
 
 03/10/2025: Updated code to standardize it and create non-derivation output.
+
+03/11/2025: Updated the code to create an alternate output for HMH with State_leaid included with the full 6 digits reported in NCES.
