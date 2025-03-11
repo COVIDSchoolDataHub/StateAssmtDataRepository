@@ -1,9 +1,37 @@
+* NEW HAMPSHIRE
+
+* File name: NH_EDFactsParticipationRate_2014_2018
+* Last update: 03/07/2025
+
+*******************************************************
+* Notes 
+
+	* This do file imports *.csv EDFacts Datasets (wide version) for 2014-2018.
+	* It keeps NH only observations, reshapes it and saves it as *.dta.
+	* The NH specific EDFacts participation rate files are merged with the
+	* Temp output with derivations created in NH_Cleaning.do for 2014-2018.
+	* The final files are exported to the Output_Files folder. 
+	
+*******************************************************
+clear
+
+** Converting EDFacts files to .dta Format
+forvalues year = 2014/2018 {
+	if `year' == 2020 continue
+	foreach datatype in part {
+		foreach sub in math ela {
+			foreach lvl in school district {
+				clear
+				import delimited "${EDFacts}/`year'/edfacts`datatype'`year'`sub'`lvl'", case(lower)
+				save "${EDFacts}/`year'/edfacts`datatype'`year'`sub'`lvl'", replace
+			}
+		}
+	}
+}
+
+
 clear
 set more off
-
-global EDFacts "/Users/miramehta/Documents/EDFacts"
-global Output "/Users/miramehta/Documents/NH State Testing Data/Output"
-
 ** Preparing EDFacts files
 local edyears1 14 15 16 17 18
 local subject math ela
@@ -50,7 +78,7 @@ foreach year of local edyears1 {
                     gen DataLevel = 2
                 }               
                 gen Subject = "`sub'"
-                save "${EDFacts}/20`year'/edfacts`type'20`year'`sub'`lvl'newhampshire.dta", replace
+                save "${EDFacts_NH}/edfacts`type'20`year'`sub'`lvl'NH.dta", replace
             }
         }
     }
@@ -59,8 +87,8 @@ foreach year of local edyears1 {
 foreach year of local edyears1 {
     foreach type of local datatype {
         foreach lvl of local datalevel {
-            use "${EDFacts}/20`year'/edfacts`type'20`year'math`lvl'newhampshire.dta", clear
-            append using "${EDFacts}/20`year'/edfacts`type'20`year'ela`lvl'newhampshire.dta"
+            use "${EDFacts_NH}/edfacts`type'20`year'math`lvl'NH.dta", clear
+            append using "${EDFacts_NH}/edfacts`type'20`year'ela`lvl'NH.dta"
             if ("`lvl'" == "school"){
                 rename ncessch NCESSchoolID
             }
@@ -115,14 +143,14 @@ foreach year of local edyears1 {
             replace StudentGroup = "Disability Status" if StudentSubGroup == "SWD"
             replace StudentGroup = "Homeless Enrolled Status" if StudentSubGroup == "Homeless"
             replace StudentGroup = "Migrant Status" if StudentSubGroup == "Migrant Status"
-            save "${EDFacts}/20`year'/edfacts`type'20`year'`lvl'newhampshire.dta", replace
+            save "${EDFacts_NH}/edfacts`type'20`year'`lvl'NH.dta", replace
         }
     }
 }
 
 //Merging Example
 forvalues year = 2014/2018 {
-use "${Output}/NH_AssmtData_`year'.dta", clear
+use "${Temp}/NH_AssmtData_`year'.dta", clear
 
 //Merging
 
@@ -145,7 +173,7 @@ duplicates report NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject
 duplicates drop NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject, force
 destring NCESDistrictID, replace
 destring NCESSchoolID, replace
-merge 1:1 NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject using "${EDFacts}/`year'/edfactspart`year'schoolnewhampshire.dta", gen(SchMerge)
+merge 1:1 NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject using "${EDFacts_NH}/edfactspart`year'schoolNH.dta", gen(SchMerge)
 drop if SchMerge == 2
 tostring NCESDistrictID, replace
 tostring NCESSchoolID, replace format("%18.0f")
@@ -163,12 +191,24 @@ append using "`tempdist'" "`tempsch'"
 replace ParticipationRate = Participation if !missing(Participation)
 
 //Final Cleaning
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
- 
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
+local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
+    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
+    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
+    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
+    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
+    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
+    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
+    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
+    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
+    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
+    Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+	keep `vars'
+	order `vars'
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
+*Exporting Output for 2014-2018
 save "${Output}/NH_AssmtData_`year'", replace
 export delimited "${Output}/NH_AssmtData_`year'", replace
 }
+*End of NH_EDFactsParticipationRate_2014_2018.do
+****************************************************

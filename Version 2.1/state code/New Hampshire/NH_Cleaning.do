@@ -1,17 +1,32 @@
+* NEW HAMPSHIRE
+
+* File name: NH_Cleaning
+* Last update: 03/07/2025
+
+*******************************************************
+* Notes
+
+	* This do file imports *.csv files for NH for 2009-2024. 
+	* These files are saved as *.dta.
+	* Variables are renamed and the files are saved. 
+	* This file is merged with NH_OriginalData_`year'_IDs where year > 2019. 
+	* NCES of the previous year is merged for all years.
+	* Except for NCES 2022 which is used for both 2023 and 2024.
+	* This do file will need to be updated when NCES_2023 is available.
+	* Two breakpoints are created before derivations are done in each loop.
+	* The outputs that are created are:
+	* i) Temporary for 2014-2018 (which will be used in NH_EDFactsParticipationRate_2014_2018)
+	* ii) Final for 2009-2013, and 2019-2024 (excluding 2020).
+*******************************************************
+
 clear
-set more off
-set trace off
-cap log close
-global Original "/Users/miramehta/Documents/NH State Testing Data/Original Data Files"
-global Output "/Users/miramehta/Documents/NH State Testing Data/Output"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics"
 
 //Converting to dta format
 forvalues year = 2009/2024 {
 	if `year' == 2020 continue
 	local prevyear =`=`year'-1'
 	import delimited "${Original}/NH_OriginalData_`year'_all", case(preserve) clear
-	save "${Original}/NH_OriginalData_`year'_all", replace
+	save "${Original_DTA}/NH_OriginalData_`year'_all", replace
 
 
 //2019 Varnames
@@ -29,7 +44,7 @@ foreach var of varlist _all {
 drop in 1
 
 
-save "${Original}/NH_OriginalData_`year'_all", replace
+save "${Original_DTA}/NH_OriginalData_`year'_all", replace
 }
 
 //All Varnames
@@ -67,9 +82,11 @@ if `year' == 2019 {
 	rename Participate ParticipationRate
 	rename TotalFAYStudents StudentSubGroup_TotalTested
 	drop MeanSGP oftotaltestedDLMstate oftotaltestedELFirstYr ReportDate
-	
-	
 }
+//If STATA imports the 2023 file with ïDenominatorType, uncomment the code below. 
+//if `year' == 2023 {
+//rename ïDenominatorType DenominatorType
+//}
 if `year' > 2019 {
 	drop DenominatorType yearid ReportDate
 	rename LevelofData DataLevel
@@ -265,10 +282,10 @@ tempfile tempdist
 save "`tempdist'", replace
 clear
 if `year' < 2024{
-	use "${NCES}/NCES District Files, Fall 1997-Fall 2022/NCES_`prevyear'_District", clear
+	use "${NCES_District}/NCES_`prevyear'_District", clear
 }
 if `year' == 2024{
-	use "${NCES}/NCES District Files, Fall 1997-Fall 2022/NCES_2022_District", clear
+	use "${NCES_District}/NCES_2022_District", clear
 }
 keep if state_name == "New Hampshire" | state_location == "NH"
 rename state_name State
@@ -301,10 +318,10 @@ tempfile tempsch
 save "`tempsch'", replace
 clear
 if `year' < 2024{
-	use "${NCES}/NCES School Files, Fall 1997-Fall 2022/NCES_`prevyear'_School"
+	use "${NCES_School}/NCES_`prevyear'_School"
 }
 if `year' == 2024{
-	use "${NCES}/NCES School Files, Fall 1997-Fall 2022/NCES_2022_School"	
+	use "${NCES_School}/NCES_2022_School"	
 }
 rename state_name State
 rename state_location StateAbbrev
@@ -432,6 +449,11 @@ if `year' == 2024{
 	replace SchVirtual = "No" if NCESSchoolID == "339997610041"
 }
 
+*******************************************************
+// Creating a Breakpoint - to restore for non-derivation data processing
+*******************************************************
+save "$Temp/NH_`year'_Breakpoint",replace
+
 //Deriving Count Ranges Where Possible
 split StudentSubGroup_TotalTested, parse("-")
 destring StudentSubGroup_TotalTested1, replace
@@ -519,17 +541,38 @@ if `year' == 2018 {
 replace DistName = strtrim(DistName)
 replace SchName = strtrim(SchName)
 
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
- 
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
+//Cleaning and dropping extra variables
+local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
+    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
+    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
+    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
+    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
+    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
+    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
+    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
+    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
+    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
+    Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+	keep `vars'
+	order `vars'
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 duplicates drop
+
+*Exporting Temp output for 2013-2022 (excluding 2020)
+*The Temp output for 2017-2022 will be merged with Aggregated District Level Data in the next loop. 
+*The Temp output for 2014-2018 will be merged with EDFacts Participation Rate in the next do file. 
+if `year' > 2013 & `year' < 2023 {
+save "${Temp}/NH_AssmtData_`year'", replace
+}
+
+// *Exporting Final Output for 2009-2013 and 2023-2024
+if `year' < 2014 | `year' > 2022 {
 save "${Output}/NH_AssmtData_`year'", replace
 export delimited "${Output}/NH_AssmtData_`year'", replace
+	}
 
-*clear	
+
 }
 
 //Adding Aggregated District-Level Data
@@ -610,22 +653,25 @@ replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
 tempfile temp1
 save "`temp1'", replace
 clear
-use "${Output}/NH_AssmtData_`year'"
+use "${Temp}/NH_AssmtData_`year'"
 keep State StateAbbrev StateFips SchYear DistName StateAssignedDistID NCESDistrictID DistType DistCharter DistLocale CountyName CountyCode ProficiencyCriteria AssmtType
 duplicates drop
 merge 1:m DistName using "`temp1'"
 
 drop if _merge == 2
 
+*******************************************************
+// Creating a Breakpoint - to restore for non-derivation data processing
+*******************************************************
+save "$Temp/NH_`year'_BreakpointG38",replace
+
 //Appending Data
-append using "${Output}/NH_AssmtData_`year'"
+append using "${Temp}/NH_AssmtData_`year'"
 
 //Response to R1
 replace NCESDistrictID = "3301710" if NCESDistrictID == "3399939"
 drop if SchName == "MicroSociety Academy Charter School of Southern NH" & `year' == 2017 & missing(StateAssignedSchID) //Not sure whats happening here, but it's not merging and its a duplicate observation, so dropping
 drop if SchName == ""
-
-
 //Deriving Count Ranges Where Possible
 split StudentSubGroup_TotalTested, parse("-")
 destring StudentSubGroup_TotalTested1, replace
@@ -726,21 +772,25 @@ if !inlist(`year', 2015, 2018) {
 	replace Flag_CutScoreChange_soc = "Not applicable"
 }
 
-//Final Cleaning
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
- 
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
+*Exporting Temp Output.
+keep `vars'
+order `vars'
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-
 duplicates drop 
+
+
+*Exporting Temp Output for 2017-2018. These will be merged with EDFacts Participation Rate in the next do file.
+if `year' == 2017 | `year' == 2018 {
+save "${Temp}/NH_AssmtData_`year'", replace
+}
+
+*Exporting Final Output for 2019-2022. 
+if `year' > 2018 & `year' < 2023 {
 save "${Output}/NH_AssmtData_`year'", replace
 export delimited "${Output}/NH_AssmtData_`year'", replace
+	}
 
 clear
 }
-
-
-
-
-
+*End of NH_Cleaning.do
+****************************************************

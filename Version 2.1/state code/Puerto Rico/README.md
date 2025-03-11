@@ -6,7 +6,7 @@ This is a ReadMe for Puerto Rico's data cleaning process, from 2019 to 2024.
 ## Setup
 
 There are three main folders you need to create:
-1. New Mexico, with the following subfolders:
+1. Puerto Rico, with the following subfolders:
     - Original Data (download original files from drive)
     - Output
 

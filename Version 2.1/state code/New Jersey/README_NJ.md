@@ -4,41 +4,56 @@
 This is a ReadMe for New Jersey's data cleaning process, from 2015 to 2024.
 * Note that 2020 and 2021 are excluded, as NJ did not administer spring tests during those years due to COVID.
 
-## Setup
+## NCES Setup
 
-There are four main folders you need to create: NCES, Original, Output, and Temp.
-1. Download the original excel files from the Google Drive by downloading the folders (2015-2024), as well as:
-      - NJ_EFParticipation_2022_ela.xlsx
-      - NJ_EFParticipation_2022_sci.xlsx
-      - NJ_EFParticipation_2022_math.xlsx
-  and place them in the Original folder.
-2. Download the NCES District Files, Fall 1997-Fall 2022 and NCES School Files, Fall 1997-Fall 2022, and place them in the NCES folder.
-3. Download the NJ Cleaning 2015_2018 (when PARCC was administered), NJ Cleaning 2019_2023 (when NJSLA is administered), NJ_2024, NJ_EDFactsParticipation_2015_2021, and NJ_EDFactsParticipation_2022 do-files.
+NCES_Full: Download the folder from Google Drive-->_Data Cleaning Materials --> NCES District and School Demographics.
+    
+       a. NCES District Files [subfolder] 
 
-## File Path
+       b. NCES School Files [subfolder]
 
-The file path setup should be as follows: 
+As of 03/10/2025, the most recent files are from NCES 2022. 
 
-- global data: Folder containing original data files
-- global NCES: Folders containing NCES school & district files
-- global Output: Folder containing cleaned data files
-- global Temp: Folder containing .dta format versions of the original data
+## EDFacts Setup
+EDFacts: Download the Datasets subfolder containing *.csv files. There will be individual folders for each year. 
 
-```bash
-global data "/Users/name/Desktop/New Jersey/Original"
-global NCES "/Users/name/Desktop/New Jersey/NCES"
-global Output "/Users/name/Desktop/New Jersey/Output"
-global Temp "/Users/name/Desktop/New Jersey/Temp"
-```
-## Re-creating cleaning process
+This is located in Google Drive-->_Data Cleaning Materials --> _EDFacts--> Datasets.
 
-There are five do-files to re-create the output files: 
-1. Run "NJ Cleaning 2015_2018.do" to clean the data for 2015-2018.
-2. Run "NJ Cleaning 2019_2023.do" to clean the data for 2019-2023.
-3. Run the NJ_EDFactsParticipation_2015_2021 do file to add in particpation data for 2015-2021.
-4. Run the NJ_EDFactsParticipation_2022 do file to add in particaption data for 2022.
-7. Run "NJ_2024.do" to clean the data for 2024.
+## New Jersey Setup
+  Create a folder for NJ. Inside that folder, create the following subfolders:
+  
+    1. Original Data Files: Download the **entire** folder from Google Drive --> New Jersey --> NJ Original Data Files.
+
+      Retain the folder structure and do **NOT** extract the files from their folders.
+
+      You should have on your local drive, the following folders:
+          
+         a) DTA [subfolder]
+
+         b) ED Data Express [subfolder]
+
+         c) Individual year subfolders (2015-2024, excluding 2020 and 2022).
+                      
+    2. Temp  
+             
+    3. NCES_NJ 
+          
+    4. EDFacts_NJ 
+          
+    5. Output_Files
+          
+    6. Output_Files_ND: This is a folder for the non-derivation output.
+
+# Process
+    Place all do files in the NJ folder.
+        
+    Set the appropriate file paths in NJ_Main_File.do
+        
+    Running NJ_Main_File.do will execute all the do files in order.
 
 ## Updates
 04/23/2024: Updated to add in unmerged NCES information and match new StudentGroup_TotalTested convention.
+
 12/14/2024: Updated to add in new StudentGroup_TotalTested derivation and 2024 data.
+
+03/10/2025: Updated code to standardize it and create non-derivation output.
