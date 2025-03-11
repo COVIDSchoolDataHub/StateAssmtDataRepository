@@ -37,10 +37,12 @@ foreach year in 2004 2005 2006 2007 2008 2009 2010 2011 2012 2013 2014  {
 	
 			drop if DistMerge==2
 			drop DistMerge
+			drop State_leaid
+			rename State_leaid1 State_leaid
 			
-	keep State_leaid State StateAbbrev StateFips SchYear DataLevel DistName SchName StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc SchLevel SchType SchVirtual year NCESDistrictID DistType district_agency_type_num DistCharter DistLocale CountyCode CountyName
+	keep State_leaid State StateAbbrev StateFips SchYear DataLevel DistName SchName StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc SchLevel SchType SchVirtual year NCESDistrictID DistType district_agency_type_num DistCharter DistLocale CountyCode CountyName State_leaid
 	
-	order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+	order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode State_leaid
 	
 	save "${Temp}/IA_AssmtData_`year'.dta", replace
 }
@@ -64,6 +66,8 @@ foreach year in 2015 2016 2017 2018 2019 2021 2022 2023  {
 	
 	 	drop if SchMerge==2
 		drop SchMerge
+		drop State_leaid
+		rename State_leaid1 State_leaid
 		
 	save "${Temp}/IA_AssmtData_`year'.dta", replace
 }
@@ -95,6 +99,8 @@ foreach year in 2024 {
 			drop DistMerge
 		
 	merge m:1 State_leaid StateAssignedSchID using "${NCES_IA}/NCES_`prevyear'_School_IA.dta", gen(SchMerge)
+	drop State_leaid
+	rename State_leaid1 State_leaid
 	
 	
 		// to identify new schools in 2024 - resolved these cases below and do not need to unhide code
@@ -114,24 +120,28 @@ foreach year in 2024 {
 		replace SchVirtual = 0 if SchName == "Southeast Valley Elementary" & StateAssignedSchID == "6096-0436" // No 
 		replace SchLevel = 1 if SchName == "Southeast Valley Elementary" & StateAssignedSchID == "6096-0436" // Primary
 		replace SchType = 1 if SchName == "Southeast Valley Elementary" & StateAssignedSchID == "6096-0436" //Regular school
+		replace State_leaid = "946096" if SchName == "Southeast Valley Elementary" & StateAssignedSchID == "6096-0436"
 		
 		*Valerius Elementary School
 		replace NCESSchoolID = "192868002325" if SchName == "Valerius Elementary School" & StateAssignedSchID == "6579-0451"
 		replace SchVirtual = 0 if SchName == "Valerius Elementary School" & StateAssignedSchID == "6579-0451" // No
 		replace SchLevel = 1 if SchName == "Valerius Elementary School" & StateAssignedSchID == "6579-0451" // Primary
 		replace SchType = 1 if SchName == "Valerius Elementary School" & StateAssignedSchID == "6579-0451" //Regular school
+		replace State_leaid = "776579" if SchName == "Valerius Elementary School" & StateAssignedSchID == "6579-0451"
 		
 		*Trailridge School
 		replace NCESSchoolID = "193051002326" if SchName == "Trailridge School" & StateAssignedSchID == "6822-0232"
 		replace SchVirtual = 0 if SchName == "Trailridge School" & StateAssignedSchID == "6822-0232" // No
 		replace SchLevel = 2 if SchName == "Trailridge School" & StateAssignedSchID == "6822-0232" // Middle
 		replace SchType = 1 if SchName == "Trailridge School" & StateAssignedSchID == "6822-0232" //Regular school
+		replace State_leaid = "256822" if SchName == "Trailridge School" & StateAssignedSchID == "6822-0232"
 		
 		*Horizon Science Academy Des Moines
 		replace NCESSchoolID = "199902002316" if SchName == "Horizon Science Academy Des Moines" & StateAssignedSchID == "8200-0101"
 		replace SchVirtual = 0 if SchName == "Horizon Science Academy Des Moines" & StateAssignedSchID == "8200-0101" // No
 		replace SchLevel = 1 if SchName == "Horizon Science Academy Des Moines" & StateAssignedSchID == "8200-0101" // Primary
 		replace SchType = 1 if SchName == "Horizon Science Academy Des Moines" & StateAssignedSchID == "8200-0101" //Regular school
+		replace State_leaid = "778200" if SchName == "Horizon Science Academy Des Moines" & StateAssignedSchID == "8200-0101"
 	
 	 	drop if SchMerge==2
 		drop SchMerge

@@ -67,8 +67,8 @@ foreach a in $years {
 	// Formatting State_leaid for merging with raw data
 		split State_leaid, p(" ")
 		drop State_leaid State_leaid2
-		rename State_leaid1 State_leaid
-		replace State_leaid=substr(State_leaid,-4,.)
+		gen State_leaid=substr(State_leaid1,-4,.)
+		replace State_leaid1 = subinstr(State_leaid1, "IA-", "", 1)
 		
 	// Combining seasch for merging with raw school data
 		split seasch, p(" ")
@@ -124,8 +124,8 @@ foreach a in $years {
 	// Formatting State_leaid for merging with raw district data
 		split State_leaid, p(" ")
 		drop State_leaid State_leaid2
-		rename State_leaid1 State_leaid
-		replace State_leaid=substr(State_leaid,-4,.)
+		gen State_leaid=substr(State_leaid1,-4,.)
+		replace State_leaid1 = subinstr(State_leaid1, "IA-", "", 1)
 		
 	// Proper case county name
 	replace CountyName = strproper(CountyName) if `a' <= 2015

@@ -149,6 +149,13 @@ foreach year in 2004 2005 2006 2007 2008 2009 2010 2011 2012 2013 2014 2015 2016
 
 	use "${Temp}/IA_AssmtData_`year'_temp.dta", clear
 	
+	// DataLevels
+	label def DataLevel 1 "State" 2 "District" 3 "School"
+	encode DataLevel, gen(DataLevel_n) label(DataLevel)
+	sort DataLevel_n 
+	drop DataLevel 
+	rename DataLevel_n DataLevel
+	
 	// Cleaning up DistNames & SchNames
 	replace DistName = "All Districts" if DataLevel == "State"
 	replace SchName = "All Schools" if DataLevel != "School"
@@ -177,6 +184,7 @@ foreach year in 2004 2005 2006 2007 2008 2009 2010 2011 2012 2013 2014 2015 2016
 	replace Lev4_percent=""
 	replace Lev5_count=""
 	replace Lev5_percent=""
+	if `year' == 2023 replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested==""
 		
 	//DataLevel
 // 	gen DataLev_n = .
@@ -200,20 +208,20 @@ local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
     ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
     Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
     Flag_CutScoreChange_sci Flag_CutScoreChange_soc
-	keep `vars'
-	order `vars'
+	keep `vars' State_leaid
+	order `vars' State_leaid
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-*Exporting Output*
+*Exporting HMH Output - Version with Full State_leaid*
+save "${Output}/IA_AssmtData_`year'_HMH.dta", replace
+export delimited using "${Output}/IA_AssmtData_`year'_HMH.csv", replace
+
+*Exporting Standard Output*
+drop State_leaid
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 save "${Output}/IA_AssmtData_`year'.dta", replace
 export delimited using "${Output}/IA_AssmtData_`year'.csv", replace
 }
-
-// 2023 update for Ruby Van Meter 
-use "${Output}/IA_AssmtData_2023.dta", clear
-replace StudentGroup_TotalTested = "*" if StudentGroup_TotalTested==""
-save "${Output}/IA_AssmtData_2023.dta", replace
-export delimited "${Output}/IA_AssmtData_2023.csv", replace
 
 *End of 04_IA_Final Cleaning
 ********************************************************
