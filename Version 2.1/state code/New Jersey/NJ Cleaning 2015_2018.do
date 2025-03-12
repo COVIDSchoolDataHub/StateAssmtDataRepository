@@ -26,7 +26,8 @@ log using 2015_2018_NJ, replace
 forvalues year = 2015/2018{
 	local prevyear = `year' - 1
 	
-	//Import Excel Files and Convert to .dta Files - Unhide on first run
+	//Import Excel Files and Convert to .dta Files - Hide after first run
+	
 	local subject "ela mat"
 	foreach s of local subject{
 		forvalues n = 3/8{
@@ -160,20 +161,20 @@ save "$Temp/NJ_`year'_Breakpoint",replace
 	forvalues x = 1/5{
 		destring Lev`x'_percent, gen(Level`x') force
 		replace Level`x' = Level`x'/100
-		gen Lev`x'_count = L * Level`x'
+		gen Lev`x'_count = round(L * Level`x')
 		replace Lev`x'_count = . if Lev`x'_count < 0
 		replace Lev`x'_count = . if Lev`x'_percent == "*"
 	}
 
 	gen ProficientOrAbove_percent = Level4 + Level5
-	gen ProficientOrAbove_count = L * ProficientOrAbove_percent
+	gen ProficientOrAbove_count = Lev4_count + Lev5_count
+	replace ProficientOrAbove_count = round(L * ProficientOrAbove_percent) if ProficientOrAbove_count == .
 	replace ProficientOrAbove_count = . if ProficientOrAbove_count < 0
 	replace ProficientOrAbove_count = . if ProficientOrAbove_percent == .
 
 	forvalues x = 1/5{
 		tostring Level`x', replace format("%10.0g") force
 		replace Lev`x'_percent = Level`x' if Lev`x'_percent != "*"
-		replace Lev`x'_count = round(Lev`x'_count)
 		tostring Lev`x'_count, replace
 		replace Lev`x'_count = "*" if Lev`x'_count == "."
 		drop Level`x'
@@ -290,20 +291,21 @@ foreach var of varlist DistName SchName {
 	drop DataLevel 
 	rename DataLevel_n DataLevel
 	
+	replace StateAssignedSchID = StateAssignedDistID + "-" + StateAssignedSchID if DataLevel == 3
+	
 //Cleaning and dropping extra variables
-local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
-    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
-    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
-    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
-    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
-    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
-    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
-    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
-    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
-    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
-    Flag_CutScoreChange_sci Flag_CutScoreChange_soc State_leaid
-	keep `vars' State_leaid
-	order `vars' State_leaid
+local vars State StateAbbrev StateFips SchYear DataLevel DistName SchName 	///
+    NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID		///
+    AssmtName AssmtType Subject GradeLevel	StudentGroup 					///
+    StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested    ///
+    Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent	///
+    Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore			///
+    ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent	///
+    ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA 			///
+    Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc ///
+    DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+	keep `vars' State_leaid seasch
+	order `vars' State_leaid seasch
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 *Exporting Temp output for 2015-2018
@@ -417,6 +419,8 @@ encode DataLevel, gen(DataLevel_n) label(DataLevel)
 sort DataLevel_n 
 drop DataLevel 
 rename DataLevel_n DataLevel
+
+replace StateAssignedSchID = StateAssignedDistID + "-" + StateAssignedSchID if DataLevel == 3
 
 keep `vars'
 order `vars'

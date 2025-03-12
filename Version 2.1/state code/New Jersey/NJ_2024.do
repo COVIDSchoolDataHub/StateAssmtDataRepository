@@ -19,7 +19,6 @@
 clear all 
 
 global Abbrev "NJ"
-global year 2024
 
 capture log close
 log using 2024_NJ, replace
@@ -221,7 +220,7 @@ use "${Original_DTA}/NJ_OriginalData_`year'_ela_G03", clear
 *******************************************************
 // Creating a Breakpoint - to restore for non-derivation data processing
 *******************************************************
-save "$Temp/NJ_`year'_Breakpoint",replace
+save "$Temp/NJ_2024_Breakpoint",replace
 
 ******************************
 //Derivations
@@ -230,21 +229,21 @@ save "$Temp/NJ_`year'_Breakpoint",replace
 	forvalues x = 1/5{
 		destring Lev`x'_percent, gen(Level`x') force
 		replace Level`x' = Level`x'/100
-		gen Lev`x'_count = K * Level`x'
+		gen Lev`x'_count = round(K * Level`x')
 		replace Lev`x'_count = . if Lev`x'_count < 0
 		replace Lev`x'_count = . if Lev`x'_percent == "*"
 	}
-
-	gen ProficientOrAbove_percent = Level4 + Level5
+	
+	gen ProficientOrAbove_percent = Level4 + Level5 if Subject != "sci"
 	replace ProficientOrAbove_percent = Level3 + Level4 if Subject == "sci"
-	gen ProficientOrAbove_count = K * ProficientOrAbove_percent
-	replace ProficientOrAbove_count = . if ProficientOrAbove_count < 0
+	gen ProficientOrAbove_count = Lev4_count + Lev5_count if Subject != "sci"
+	replace ProficientOrAbove_count = Lev3_count + Lev4_count if Subject == "sci"
+	replace ProficientOrAbove_count = round(K * ProficientOrAbove_percent) if ProficientOrAbove_count == .
 	replace ProficientOrAbove_count = . if ProficientOrAbove_percent == .
 
 	forvalues x = 1/5{
 		tostring Level`x', replace format("%10.0g") force
 		replace Lev`x'_percent = Level`x' if Lev`x'_percent != "*"
-		replace Lev`x'_count = round(Lev`x'_count)
 		tostring Lev`x'_count, replace
 		replace Lev`x'_count = "*" if Lev`x'_count == "."
 		drop Level`x'
@@ -253,7 +252,6 @@ save "$Temp/NJ_`year'_Breakpoint",replace
 	replace Lev5_count = "" if Subject == "sci"
 
 	tostring ProficientOrAbove_percent, replace format("%10.3g") force
-	replace ProficientOrAbove_count = round(ProficientOrAbove_count)
 	tostring ProficientOrAbove_count, replace
 	replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
 	replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "."
@@ -265,10 +263,6 @@ save "$Temp/NJ_`year'_Breakpoint",replace
 		drop if state_location != "NJ"
 		gen str StateAssignedDistID = substr(state_leaid, 6, 8)
 		gen str StateAssignedSchID = substr(seasch, 8, 10)
-		destring StateAssignedDistID, replace force
-		drop if StateAssignedDistID==.
-		destring StateAssignedSchID, replace force
-		drop if StateAssignedSchID==.
 		rename school_type SchType
 		rename school_name SchName
 		decode district_agency_type, gen (district_agency_type_s)
@@ -285,8 +279,6 @@ save "$Temp/NJ_`year'_Breakpoint",replace
 		gen str StateAssignedDistID = substr(state_leaid, 6, 8)
 		drop if state_location != "NJ"
 		rename lea_name DistName
-		destring StateAssignedDistID, replace force
-		drop if StateAssignedDistID==.
 		drop year
 		merge 1:1 ncesdistrictid using "${NCES_NJ}/NCES_2021_District_NJ.dta", keepusing (DistLocale county_code county_name DistCharter)
 		drop if _merge == 2
@@ -295,8 +287,6 @@ save "$Temp/NJ_`year'_Breakpoint",replace
 
 	//Merge Data
 	use "${Temp}/NJ_OriginalData_2024.dta", clear
-		destring StateAssignedDistID, replace force
-		destring StateAssignedSchID, replace force
 	merge m:1 StateAssignedDistID using "${NCES_NJ}/NCES_2024_District_NJ.dta"
 	drop if _merge == 2
 
@@ -384,7 +374,7 @@ save "$Temp/NJ_`year'_Breakpoint",replace
 	replace SchVirtual = "No" if SchName == "Prospect Park School Number Two/ Middle School" & SchVirtual == ""
 	replace NCESSchoolID =  "341347006159" if SchName == "Prospect Park School Number Two/ Middle School" & NCESSchoolID == ""
 	
-	//Removing extra 
+	//Removing extra spaces
 	foreach var of varlist DistName SchName {
 		replace `var' = stritrim(`var') // collapses all consecutive, internal blanks to one blank.
 		replace `var' = strtrim(`var') // removes leading and trailing blanks
@@ -410,53 +400,55 @@ save "$Temp/NJ_`year'_Breakpoint",replace
 	drop DataLevel 
 	rename DataLevel_n DataLevel
 	
+	replace StateAssignedSchID = StateAssignedDistID + "-" + StateAssignedSchID if DataLevel == 3
+	gen seasch = State_leaid + "-" + StateAssignedSchID if DataLevel == 3
+	
 //Organize Variables
 
 //Cleaning and dropping extra variables
-local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
-    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
-    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
-    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
-    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
-    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
-    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
-    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
-    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
-    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
-    Flag_CutScoreChange_sci Flag_CutScoreChange_soc
-	keep `vars' State_leaid
-	order `vars' State_leaid
+local vars State StateAbbrev StateFips SchYear DataLevel DistName SchName 	///
+    NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID		///
+    AssmtName AssmtType Subject GradeLevel	StudentGroup 					///
+    StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested    ///
+    Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent	///
+    Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore			///
+    ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent	///
+    ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA 			///
+    Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc ///
+    DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+	keep `vars' State_leaid seasch
+	order `vars' State_leaid seasch
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 *Exporting output for 2024
 replace State_leaid = "" if DataLevel == 1
-save "${Output_HMH}/NJ_AssmtData_`year'_HMH", replace
-export delimited "${Output_HMH}/NJ_AssmtData_`year'_HMH", replace
+save "${Output_HMH}/NJ_AssmtData_2024_HMH", replace
+export delimited "${Output_HMH}/NJ_AssmtData_2024_HMH", replace
 forvalues n = 1/3 {
 		preserve
 		keep if DataLevel == `n'
 		if `n' == 1{
-			export excel "${Output_HMH}/NJ_AssmtData_`year'_HMH.xlsx", sheet("State") sheetreplace firstrow(variables)
+			export excel "${Output_HMH}/NJ_AssmtData_2024_HMH.xlsx", sheet("State") sheetreplace firstrow(variables)
 		}
 		if `n' == 2{
-			export excel "${Output_HMH}/NJ_AssmtData_`year'_HMH.xlsx", sheet("District") sheetreplace firstrow(variables)
+			export excel "${Output_HMH}/NJ_AssmtData_2024_HMH.xlsx", sheet("District") sheetreplace firstrow(variables)
 		}
 		if `n' == 3{
-			export excel "${Output_HMH}/NJ_AssmtData_`year'_HMH.xlsx", sheet("School") sheetreplace firstrow(variables)
+			export excel "${Output_HMH}/NJ_AssmtData_2024_HMH.xlsx", sheet("School") sheetreplace firstrow(variables)
 		}
 		restore
 	}
 drop State_leaid //remove alternate ID for non-HMH output
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-save "${Output}/NJ_AssmtData_`year'", replace
-export delimited "${Output}/NJ_AssmtData_`year'", replace
+save "${Output}/NJ_AssmtData_2024", replace
+export delimited "${Output}/NJ_AssmtData_2024", replace
 clear
 
 ******************************
 // Creating the non-derivation output
 ******************************
 *Restoring the breakpoint
-use "$Temp/NJ_`year'_Breakpoint", clear
+use "$Temp/NJ_2024_Breakpoint", clear
 
 ******************************
 //Derivations - Deleting code that replaces counts calculated using a percentage * SSGT
@@ -488,8 +480,6 @@ use "$Temp/NJ_`year'_Breakpoint", clear
 
 	//Merge Data
 	use "${Temp}/NJ_OriginalData_`year'_ND.dta", clear
-		destring StateAssignedDistID, replace force
-		destring StateAssignedSchID, replace force
 	merge m:1 StateAssignedDistID using "${NCES_NJ}/NCES_2024_District_NJ.dta"
 	drop if _merge == 2
 
@@ -509,7 +499,7 @@ use "$Temp/NJ_`year'_Breakpoint", clear
 	replace State = "New Jersey"
 	replace StateAbbrev = "NJ"
 	replace StateFips = 34
-
+	
 	*Variable Types
 		decode SchVirtual, gen(SchVirtual_s)
 		drop SchVirtual
@@ -603,13 +593,15 @@ use "$Temp/NJ_`year'_Breakpoint", clear
 	drop DataLevel 
 	rename DataLevel_n DataLevel
 	
+	replace StateAssignedSchID = StateAssignedDistID + "-" + StateAssignedSchID if DataLevel == 3
+	
 	keep `vars'
 	order `vars'
 	sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
 	*Exporting Non-Derivation Output.
-	save "${Output_ND}/NJ_AssmtData_`year'_ND", replace
-	export delimited "${Output_ND}/NJ_AssmtData_`year'_ND", replace
+	save "${Output_ND}/NJ_AssmtData_2024_ND", replace
+	export delimited "${Output_ND}/NJ_AssmtData_2024_ND", replace
 
 *End of NJ_2024.do
 ****************************************************

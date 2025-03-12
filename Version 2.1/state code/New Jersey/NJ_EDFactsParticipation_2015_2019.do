@@ -291,8 +291,6 @@ foreach year of local edyears2 {
 
 //Errors in code
 forvalues year = 2015/2019 {
-foreach subject in ela math {
-foreach dl in district school {
 
 use "$EDFacts_NJ/edfactspart`year'districtNJ.dta", clear
 append using "$EDFacts_NJ/edfactspart`year'schoolNJ.dta"
@@ -311,19 +309,19 @@ if SchYear == "2017-18" {
 }
 merge 1:1 NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject using "$EDFacts_NJ/edfactspart_`year'NJ", nogen keep(match master) 
 replace ParticipationRate = ParticipationRate1 if !missing(ParticipationRate1)
+replace ParticipationRate = "--" if ParticipationRate == "."
 
 //Final Cleaning
-local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
-    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
-    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
-    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
-    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
-    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
-    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
-    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
-    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
-    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
-    Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+local vars State StateAbbrev StateFips SchYear DataLevel DistName SchName 	///
+    NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID		///
+    AssmtName AssmtType Subject GradeLevel	StudentGroup 					///
+    StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested    ///
+    Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent	///
+    Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore			///
+    ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent	///
+    ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA 			///
+    Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc ///
+    DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 	keep `vars' State_leaid
 	order `vars' State_leaid
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
@@ -351,8 +349,6 @@ sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 save "$Output/NJ_AssmtData_`year'", replace
 export delimited "$Output/NJ_AssmtData_`year'", replace
 clear
-		}
-	}
 }
-*End of NJ_EDFactsParticipation_2015_2021.do
+*End of NJ_EDFactsParticipation_2015_2019.do
 ****************************************************

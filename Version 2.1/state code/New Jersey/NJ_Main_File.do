@@ -48,8 +48,8 @@ global Output_HMH "C:/Zelma/New Jersey/Output_Files/HMH" // Output with Alternat
 global Output_ND "C:/Zelma/New Jersey/Output_Files_ND" //Non Derivation Output. 
 
 // Run in this order. 
-do "${DoFiles}/NJ Cleaning 2015_2018.do"
-do "${DoFiles}/NJ Cleaning 2019_2023.do"
+do "${DoFiles}/NJ Cleaning 2015_2018.do" //contains instructions to hide code after first run
+do "${DoFiles}/NJ Cleaning 2019_2023.do" //contains instructions to hide code after first run
 do "${DoFiles}/NJ_2024.do"
 do "${DoFiles}/NJ_EDFactsParticipation_2015_2019.do"
 do "${DoFiles}/NJ_EDFactsParticipation_2022.do"
