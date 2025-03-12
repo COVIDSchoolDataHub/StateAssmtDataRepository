@@ -14,27 +14,27 @@ set more off
 set trace off
 cap log close
 
-global DoFiles "C:/Zelma/California/" 
-global Temp "C:/Zelma/California/Temp" //This will start empty and store 2019-2024 (excluding 2020) ELA + Math and Science output until appended. 
+global DoFiles "/Users/joshuasilverman/Documents/GitHub/StateAssmtDataRepository/Version 2.1/state code/California" 
+global Temp "/Volumes/T7/State Test Project/California/Temp" //This will start empty and store 2019-2024 (excluding 2020) ELA + Math and Science output until appended. 
 
 *NCES Folders*
-global NCES_District "C:/Zelma/NCES_Full/NCES District Files"
-global NCES_School "C:/Zelma/NCES_Full/NCES School Files"
-global NCES_CA "C:/Zelma/California/NCES_CA" //This will start empty and will hold the CA-specific NCES files. 
+global NCES_District "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global NCES_School "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
+global NCES_CA "/Volumes/T7/State Test Project/California/NCES" //This will start empty and will hold the CA-specific NCES files. 
 
 *Input folders*
-global Original "C:/Zelma/California/Original Data Files" //Original Data Files downloaded from Google Drive.
-global Original_Cleaned "C:/Zelma/California/Original Data Files/Cleaned DTA" //This will start empty. 
+global Original "/Volumes/T7/State Test Project/California/Original Data Files" //Original Data Files downloaded from Google Drive.
+global Original_Cleaned "/Volumes/T7/State Test Project/California/Cleaned DTA" //This will start empty. 
 
 *Output folders*
-global Output "C:/Zelma/California/Output_Files" // Version 2.1 Output directory here.
+global Output "/Volumes/T7/State Test Project/California/Output" // Version 2.1 Output directory here.
 
 *Non Derivation Output Folders*
-global Output_ND "C:/Zelma/California/Output_Files_ND" //Non Derivation Output. 
+global Output_ND "/Volumes/T7/State Test Project/California/Output ND" //Non Derivation Output. 
 
 // Run in this order.*
-do "${DoFiles}/01_california_dta_conversion.do" 
-do "${DoFiles}/02_CA_NCES_New.do" 
+*do "${DoFiles}/01_california_dta_conversion.do" 
+*do "${DoFiles}/02_CA_NCES_New.do" 
 do "${DoFiles}/california_2010_clean.do"
 do "${DoFiles}/california_2011_clean.do"
 do "${DoFiles}/california_2012_clean.do"

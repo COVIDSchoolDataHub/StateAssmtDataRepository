@@ -1,0 +1,921 @@
+---------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  /Users/joshuasilverman/Documents/GitHub/StateAssmtDataRepository/Version 2.1/state code/California/california_cleaning.log
+  log type:  text
+ opened on:  11 Mar 2025, 21:24:34
+
+. 
+. // IMPORTANT NOTE!
+. // before running the code, make sure a copy of 
+. // "California_Student_Group_Names.dta" exists in the Cleaned DTA folder
+. 
+. // 2016-17 School Year 
+. 
+. use "$Original_Cleaned/California_Original_2017", clear
+
+. 
+. drop if StudentsTested == "0"
+(0 observations deleted)
+
+. drop if Grade > 8
+(1,027,696 observations deleted)
+
+. 
+. merge m:1 CountyCode DistrictCode SchoolCode TestYear using "$Original_Cleaned/CA_DistSchInfo_2010_2024"
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                       167,632
+        from master                    30,902  (_merge==1)
+        from using                    136,730  (_merge==2)
+
+    Matched                         2,206,375  (_merge==3)
+    -----------------------------------------
+
+. drop if _merge == 2
+(136,730 observations deleted)
+
+. drop _merge
+
+. 
+. replace DataLevel = "State" if CountyCode == 0 & DistrictCode == 0 & SchoolCode == 0
+(564 real changes made)
+
+. 
+. replace Drop = "DROP" if DistrictName == "California Education Authority"
+(0 real changes made)
+
+. drop if Drop == "DROP"
+(31,856 observations deleted)
+
+. drop Drop CountyCode
+
+. rename SubgroupID StudentGroupID
+
+. 
+. merge m:1 StudentGroupID using "$Original_Cleaned/California_Student_Group_Names"
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            11
+        from master                         0  (_merge==1)
+        from using                         11  (_merge==2)
+
+    Matched                         2,205,421  (_merge==3)
+    -----------------------------------------
+
+. drop if _merge == 2
+(11 observations deleted)
+
+. drop _merge
+
+. 
+. // New Demographic/StudentGroup DROP criteria (2024 update)
+. drop if StudentGroup == "Ethnicity for Economically Disadvantaged"
+(285,556 observations deleted)
+
+. drop if StudentGroup == "Ethnicity for Not Economically Disadvantaged"
+(262,374 observations deleted)
+
+. drop if StudentGroup == "Parent Education"
+(366,475 observations deleted)
+
+. 
+. drop if DemographicName == "ADEL (Adult English learner)"  
+(0 observations deleted)
+
+. drop if DemographicName == "College graduate"
+(0 observations deleted)
+
+. drop if DemographicName == "Declined to state"
+(0 observations deleted)
+
+. drop if DemographicName == "ELs enrolled 12 months or more"
+(60,377 observations deleted)
+
+. drop if DemographicName == "ELs enrolled less than 12 months"
+(26,265 observations deleted)
+
+. 
+. drop if DemographicName == "Graduate school/Post graduate"
+(0 observations deleted)
+
+. drop if DemographicName == "High school graduate"
+(0 observations deleted)
+
+. drop if DemographicName == "Not a high school graduate"
+(0 observations deleted)
+
+. drop if DemographicName == "Some college (includes AA degree)"
+(0 observations deleted)
+
+. drop if DemographicName == "IFEP (Initial fluent English proficient)"
+(44,899 observations deleted)
+
+. drop if DemographicName == "TBD (To be determined)"
+(5,116 observations deleted)
+
+. 
+. //Rename Vars
+. rename DistrictName DistName 
+
+. rename TestId Subject 
+
+. rename Grade GradeLevel
+
+. rename DemographicName StudentSubGroup
+
+. rename StudentsTested StudentSubGroup_TotalTested
+
+. rename SchoolName SchName
+
+. rename PercentageStandardExceeded Lev4_percent
+
+. rename PercentageStandardMet Lev3_percent
+
+. rename PercentageStandardNearlyMet Lev2_percent
+
+. rename PercentageStandardNotMet Lev1_percent 
+
+. rename MeanScaleScore AvgScaleScore
+
+. rename PercentageStandardMetandAbove ProficientOrAbove_percent
+
+. 
+. drop StudentGroupID
+
+. drop if missing(StudentSubGroup)
+(0 observations deleted)
+
+. 
+. //NCES Merging
+. replace NCESDistrictID = string(real(NCESDistrictID), "%07.0f")
+(14,233 real changes made)
+
+. replace NCESDistrictID = "" if DataLevel == "State"
+(252 real changes made)
+
+. replace NCESSchoolID = string(real(NCESSchoolID), "%012.0f")
+(197,388 real changes made)
+
+. replace NCESSchoolID = "" if DataLevel != "School"
+(197,388 real changes made)
+
+. merge m:1 NCESDistrictID using "$NCES_CA/NCES_2016_District_CA.dta", gen(DistMerge1)
+(variable DistName was str40, now str60 to accommodate using data's values)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                        14,440
+        from master                    14,233  (DistMerge1==1)
+        from using                        207  (DistMerge1==2)
+
+    Matched                         1,140,126  (DistMerge1==3)
+    -----------------------------------------
+
+. merge m:1 NCESDistrictID using "$NCES_CA/NCES_2017_District_CA.dta", update gen(DistMerge2)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                        14,248
+        from master                    14,243  (DistMerge2==1)
+        from using                          5  (DistMerge2==2)
+
+    Matched                         1,140,323
+        not updated                 1,004,319  (DistMerge2==3)
+        missing updated                     0  (DistMerge2==4)
+        nonmissing conflict           136,004  (DistMerge2==5)
+    -----------------------------------------
+
+. merge m:1 NCESDistrictID using "$NCES_CA/NCES_2022_District_CA.dta", update gen(DistMerge3)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                        21,046
+        from master                    20,023  (DistMerge3==1)
+        from using                      1,023  (DistMerge3==2)
+
+    Matched                         1,134,548
+        not updated                   940,792  (DistMerge3==3)
+        missing updated                     0  (DistMerge3==4)
+        nonmissing conflict           193,756  (DistMerge3==5)
+    -----------------------------------------
+
+. 
+. merge m:1 NCESSchoolID using "${NCES_CA}/NCES_2016_School_CA.dta", gen(SchMerge1)
+(variable StateFips was byte, now float to accommodate using data's values)
+(variable SchName was str51, now str60 to accommodate using data's values)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                       201,022
+        from master                   198,659  (SchMerge1==1)
+        from using                      2,363  (SchMerge1==2)
+
+    Matched                           956,935  (SchMerge1==3)
+    -----------------------------------------
+
+. merge m:1 NCESSchoolID using "${NCES_CA}/NCES_2017_School_CA.dta", update gen(SchMerge2)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                       199,890
+        from master                   199,742  (SchMerge2==1)
+        from using                        148  (SchMerge2==2)
+
+    Matched                           958,215
+        not updated                   782,307  (SchMerge2==3)
+        missing updated                    36  (SchMerge2==4)
+        nonmissing conflict           175,872  (SchMerge2==5)
+    -----------------------------------------
+
+. merge m:1 NCESSchoolID using "${NCES_CA}/NCES_2022_School_CA.dta", update gen(SchMerge3)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                       314,280
+        from master                   313,019  (SchMerge3==1)
+        from using                      1,261  (SchMerge3==2)
+
+    Matched                           845,086
+        not updated                   688,626  (SchMerge3==3)
+        missing updated                     0  (SchMerge3==4)
+        nonmissing conflict           156,460  (SchMerge3==5)
+    -----------------------------------------
+
+. 
+. foreach var of varlist *Merge* {
+  2.         drop if `var' == 2
+  3. }
+(207 observations deleted)
+(5 observations deleted)
+(1,023 observations deleted)
+(2,363 observations deleted)
+(148 observations deleted)
+(1,261 observations deleted)
+
+. 
+. drop *Merge*
+
+. 
+. //DataLevel
+. label def DataLevel 1 "State" 2 "District" 3 "School"
+
+. encode DataLevel, gen(DataLevel_n) label(DataLevel)
+
+. sort DataLevel_n 
+
+. drop DataLevel 
+
+. rename DataLevel_n DataLevel 
+
+. 
+. replace DistName = "All Districts" if DataLevel == 1
+(252 real changes made)
+
+. replace SchName = "All Schools" if DataLevel == 1
+(252 real changes made)
+
+. replace SchName = "All Schools" if DataLevel == 2
+(183,155 real changes made)
+
+. 
+. //Indicator Vars
+. replace State = "California"
+(14,233 real changes made)
+
+. replace StateAbbrev = "CA"
+(14,233 real changes made)
+
+. replace StateFips = 6
+(14,233 real changes made)
+
+. 
+. gen Flag_AssmtNameChange = "N"
+
+. gen Flag_CutScoreChange_ELA = "N"
+
+. gen Flag_CutScoreChange_math = "N"
+
+. gen Flag_CutScoreChange_sci = "Not applicable"
+
+. gen Flag_CutScoreChange_soc = "Not applicable"
+
+. 
+. gen SchYear = "2016-17"
+
+. 
+. gen AssmtName = "Smarter Balanced"
+
+. gen AssmtType = "Regular"
+
+. 
+. // Changing Subject to Correct Format
+. gen Subject2 = "" 
+(1,154,359 missing values generated)
+
+. replace Subject2 = "math" if Subject == 2 
+variable Subject2 was str1 now str4
+(577,207 real changes made)
+
+. replace Subject2 = "ela" if Subject == 1
+(577,152 real changes made)
+
+. drop Subject
+
+. rename Subject2 Subject
+
+. drop if missing(Subject)
+(0 observations deleted)
+
+. 
+. 
+. // Changing GradeLevel to correct format
+. tostring GradeLevel, replace
+GradeLevel was byte now str1
+
+. replace GradeLevel = "G0" + GradeLevel
+variable GradeLevel was str1 now str3
+(1,154,359 real changes made)
+
+. 
+. // New Demographic/StudentGroup LABEL criteria (2024 update)
+. replace StudentGroup = "All Students" if StudentGroup == "All Students"
+(0 real changes made)
+
+. replace StudentGroup = "RaceEth" if StudentGroup == "Race and Ethnicity"
+(341,240 real changes made)
+
+. replace StudentGroup = "EL Status" if StudentGroup == "English-Language Fluency"
+(321,572 real changes made)
+
+. replace StudentGroup = "Economic Status" if StudentGroup == "Economic Status"
+(0 real changes made)
+
+. replace StudentGroup = "Gender" if StudentGroup == "Gender"
+(0 real changes made)
+
+. replace StudentGroup = "Homeless Enrolled Status" if StudentGroup == "Homeless Status"
+(0 real changes made)
+
+. replace StudentGroup = "Military Connected Status" if StudentGroup == "Military Status"
+(0 real changes made)
+
+. replace StudentGroup = "Migrant Status" if StudentGroup == "Migrant"
+(14,266 real changes made)
+
+. replace StudentGroup = "Foster Care Status" if StudentGroup == "Foster Status"
+(0 real changes made)
+
+. 
+. // StudentSubGroup Correct Labels 
+. 
+. // All Students Group
+. replace StudentSubGroup = "All Students" if StudentSubGroup == "All Students"
+(0 real changes made)
+
+. 
+. // RaceEth Group 
+. replace StudentSubGroup = "American Indian or Alaska Native" if StudentSubGroup == "American Indian or Alaska Native"
+(0 real changes made)
+
+. replace StudentSubGroup = "Asian" if StudentSubGroup == "Asian"
+(0 real changes made)
+
+. replace StudentSubGroup = "Black or African American" if StudentSubGroup == "Black or African American"
+(0 real changes made)
+
+. replace StudentSubGroup = "Native Hawaiian or Pacific Islander" if StudentSubGroup == "Native Hawaiian or Pacific Islander"
+(0 real changes made)
+
+. replace StudentSubGroup = "White" if StudentSubGroup == "White"
+(0 real changes made)
+
+. replace StudentSubGroup = "Hispanic or Latino" if StudentSubGroup == "Hispanic or Latino"
+(0 real changes made)
+
+. replace StudentSubGroup = "Two or More" if StudentSubGroup == "Two or more races"
+(46,092 real changes made)
+
+. 
+. // Economic Status
+. replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Economically disadvantaged" | StudentSubGroup == "Socioeconomically
+>  disadvantaged"
+(68,720 real changes made)
+
+. replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "Not economically disadvantaged" | StudentSubGroup == "Not socio
+> economically disadvantaged"
+(66,982 real changes made)
+
+. 
+. // Gender Group 
+. replace StudentSubGroup = "Male" if StudentSubGroup == "Male"
+(0 real changes made)
+
+. replace StudentSubGroup = "Female" if StudentSubGroup == "Female"
+(0 real changes made)
+
+. 
+. // El Status Group 
+. replace StudentSubGroup = "English Learner" if StudentSubGroup == "EL (English learner)"
+(60,935 real changes made)
+
+. replace StudentSubGroup = "Never EL" if StudentSubGroup == "EO (English only)"
+(69,498 real changes made)
+
+. replace StudentSubGroup = "Ever EL" if StudentSubGroup == "Ever–EL"
+(63,728 real changes made)
+
+. replace StudentSubGroup = "EL Exited" if StudentSubGroup == "RFEP (Reclassified fluent English proficient)"
+(57,742 real changes made)
+
+. replace StudentSubGroup = "English Proficient" if StudentSubGroup == "IFEP, RFEP, and EO (Fluent English proficient and English only)"
+(69,669 real changes made)
+
+. 
+. // Disability Status 
+. replace StudentSubGroup = "SWD" if StudentSubGroup == "Reported disabilities"
+(65,192 real changes made)
+
+. replace StudentSubGroup = "Non-SWD" if StudentSubGroup == "No reported disabilities"
+(68,909 real changes made)
+
+. 
+. // Migrant Status
+. replace StudentSubGroup = "Migrant" if StudentSubGroup == "Migrant education"
+(14,266 real changes made)
+
+. replace StudentSubGroup = "Non-Migrant" if StudentSubGroup == "Not migrant education"
+(0 real changes made)
+
+. 
+. // Homeless Status
+. replace StudentSubGroup = "Non-Homeless" if StudentSubGroup == "Not homeless"
+(0 real changes made)
+
+. 
+. // Foster Care 
+. replace StudentSubGroup = "Foster Care" if StudentSubGroup == "Foster youth"
+(0 real changes made)
+
+. replace StudentSubGroup = "Non-Foster Care" if StudentSubGroup == "Not foster youth"
+(0 real changes made)
+
+. 
+. // Military
+. replace StudentSubGroup = "Military" if StudentSubGroup == "Armed forces family member"
+(0 real changes made)
+
+. replace StudentSubGroup = "Non-Military" if StudentSubGroup == "Not armed forces family member"
+(0 real changes made)
+
+. 
+. // El Status Group 
+. replace StudentSubGroup = "English Learner" if StudentSubGroup == "EL (English learner)"
+(0 real changes made)
+
+. 
+. // Economic Status
+. replace StudentSubGroup = "Economically Disadvantaged" if StudentSubGroup == "Economically disadvantaged"
+(0 real changes made)
+
+. replace StudentSubGroup = "Not Economically Disadvantaged" if StudentSubGroup == "Not economically disadvantaged"
+(0 real changes made)
+
+. 
+. // Gender Group 
+. replace StudentSubGroup = "Male" if StudentSubGroup == "Male"
+(0 real changes made)
+
+. replace StudentSubGroup = "Female" if StudentSubGroup == "Female"
+(0 real changes made)
+
+. 
+. drop if missing(StudentSubGroup)
+(0 observations deleted)
+
+. 
+. // Generate Missing Variables 
+. gen Lev1_count = "--"
+
+. gen Lev2_count = "--"
+
+. gen Lev3_count = "--"
+
+. gen Lev4_count = "--"
+
+. gen Lev5_count = ""
+(1,154,359 missing values generated)
+
+. gen Lev5_percent = ""
+(1,154,359 missing values generated)
+
+. gen ProficientOrAbove_count = "--" 
+
+. 
+. gen ProficiencyCriteria = "Levels 3-4"
+
+. 
+. //ParticipationRate
+. gen ParticipationRate = string(real(StudentSubGroup_TotalTested)/real(CAASPPReportedEnrollment), "%9.4g")
+
+. replace ParticipationRate = "--" if ParticipationRate == "." | missing(ParticipationRate)
+(411,856 real changes made)
+
+. drop CAASPPReportedEnrollment
+
+. 
+. 
+. //Converting Percents to Decimal
+. foreach var of varlist *_percent {
+  2.         replace `var' = string(real(`var')/100, "%9.4g") if !missing(real(`var'))
+  3. }
+(742,503 real changes made)
+(742,503 real changes made)
+(742,503 real changes made)
+(742,503 real changes made)
+(742,503 real changes made)
+(0 real changes made)
+
+. 
+. //StateAssignedDistID and StateAssignedSchID
+. gen StateAssignedDistID = subinstr(State_leaid, "CA-","",.)
+(14,233 missing values generated)
+
+. gen StateAssignedSchID = substr(seasch, strpos(seasch, "-") +1,.)
+(197,388 missing values generated)
+
+. 
+. replace StateAssignedDistID = "" if DataLevel == 1
+(0 real changes made)
+
+. replace StateAssignedSchID = "" if DataLevel == 1
+(0 real changes made)
+
+. replace StateAssignedSchID = "" if DataLevel == 2
+(0 real changes made)
+
+. 
+. replace CountyName = "" if DataLevel == 1
+(0 real changes made)
+
+. replace CountyCode = ""  if DataLevel == 1
+(0 real changes made)
+
+. 
+. 
+. //Misc Fixes
+. replace AvgScaleScore="*" if AvgScaleScore==""
+(0 real changes made)
+
+. 
+. foreach v of varlist DistType DistLocale CountyName DistCharter {
+  2.         replace `v'="Missing/not reported" if DataLevel==2 & missing(`v')
+  3. }
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+
+. 
+. foreach v of varlist SchType SchLevel SchVirtual DistType DistLocale CountyName DistCharter {
+  2.         replace `v'="Missing/not reported" if DataLevel==3 & missing(`v')
+  3. }
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+
+. 
+. drop if DataLevel==.
+(13,981 observations deleted)
+
+. drop if StudentSubGroup=="Never EL"
+(68,802 observations deleted)
+
+. 
+. replace SchVirtual = "Missing/not reported" if missing(SchVirtual) & DataLevel == 3
+(0 real changes made)
+
+. 
+. replace NCESDistrictID="" if DataLevel==1
+(0 real changes made)
+
+. replace NCESDistrictID="Missing/not reported" if DataLevel!=1 & NCESDistrictID=="00"
+(0 real changes made)
+
+. 
+. 
+. local nomissing Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent Proficien
+> tOrAbove_percent
+
+. 
+. foreach var of local nomissing {
+  2.         replace `var'="*" if `var'=="."
+  3. }
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+
+. 
+. //Converting to string and replacing if missing
+. tostring StudentSubGroup_TotalTested, replace
+StudentSubGroup_TotalTested already string; no replace
+
+. replace StudentSubGroup_TotalTested = "--" if missing(StudentSubGroup_TotalTested)
+(0 real changes made)
+
+. replace ProficientOrAbove_count = "--" if missing(ProficientOrAbove_count)
+(0 real changes made)
+
+. 
+. //StudentGroup_TotalTested
+. cap drop StudentGroup_TotalTested
+
+. gen StateAssignedDistID1 = StateAssignedDistID
+(240 missing values generated)
+
+. replace StateAssignedDistID1 = "000000" if DataLevel == 1
+(240 real changes made)
+
+. gen StateAssignedSchID1 = StateAssignedSchID
+(172,511 missing values generated)
+
+. replace StateAssignedSchID1 = "000000" if DataLevel !=3
+(172,511 real changes made)
+
+. egen group_id = group(DataLevel StateAssignedDistID1 StateAssignedSchID1 Subject GradeLevel)
+
+. sort group_id StudentGroup StudentSubGroup
+
+. by group_id: gen StudentGroup_TotalTested = StudentSubGroup_TotalTested if StudentSubGroup == "All Students"
+(1,002,365 missing values generated)
+
+. by group_id: replace StudentGroup_TotalTested = StudentGroup_TotalTested[_n-1] if missing(StudentGroup_TotalTested)
+(1,002,365 real changes made)
+
+. drop group_id StateAssignedDistID1 StateAssignedSchID1
+
+. 
+. //Misc Fixes
+. drop if strpos(SchName, "District Level Program")
+(0 observations deleted)
+
+. 
+. replace AvgScaleScore="*" if AvgScaleScore==""
+(0 real changes made)
+
+. 
+. replace ParticipationRate = "1" if !missing(real(ParticipationRate)) & real(ParticipationRate) > 1
+(0 real changes made)
+
+. 
+. foreach v of varlist DistType DistLocale CountyName DistCharter {
+  2.         replace `v'="Missing/not reported" if DataLevel==2 & missing(`v')
+  3. }
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+
+. 
+. foreach v of varlist SchType SchLevel SchVirtual DistType DistLocale CountyName DistCharter {
+  2.         replace `v'="Missing/not reported" if DataLevel==3 & missing(`v')
+  3. }
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+
+. 
+. tostring StudentSubGroup_TotalTested, replace
+StudentSubGroup_TotalTested already string; no replace
+
+. drop if StudentGroup_TotalTested=="0"
+(0 observations deleted)
+
+. drop if DataLevel==.
+(0 observations deleted)
+
+. drop if StudentSubGroup=="Never EL"
+(0 observations deleted)
+
+. 
+. replace NCESDistrictID="" if DataLevel==1
+(0 real changes made)
+
+. 
+. local nomissing Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent Proficien
+> tOrAbove_percent
+
+. 
+. foreach var of local nomissing {
+  2.         replace `var'="*" if `var'=="."
+  3. }
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+
+. 
+. foreach var of varlist Lev*_percent {
+  2.         if "`var'" == "Lev5_percent" continue
+  3.         replace `var' = "--" if missing(`var')
+  4. }
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+
+. 
+. //Other Updates
+. replace CountyName = proper(CountyName) if CountyName != "Missing/not reported"
+(0 real changes made)
+
+. 
+. //DistName Cleaning
+. replace DistName =stritrim(DistName) 
+(0 real changes made)
+
+. 
+. //SchName Cleaning
+. replace SchName = strtrim(SchName)
+(766 real changes made)
+
+. replace SchName = stritrim(SchName)
+(100 real changes made)
+
+. 
+. //Level Count Updates
+. foreach var of varlist Lev*_count {
+  2.         replace `var' = "--" if real(`var') < 0 & !missing(real(`var'))
+  3. }
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+
+. 
+. //ProficientOrAbove_count updates based on V2.0 R1 (Universal code if we have two levels proficient)
+. local lowproflev = substr(ProficiencyCriteria, strpos(ProficiencyCriteria, "-")-1,1)
+
+. local highproflev = substr(ProficiencyCriteria, strpos(ProficiencyCriteria, "-")+1,1)
+
+. di `highproflev' - `lowproflev'
+1
+
+. replace ProficientOrAbove_count = string(real(Lev`lowproflev'_count) + real(Lev`highproflev'_count)) if !missing(real(Lev`lowproflev'_count)) & !
+> missing(real(Lev`highproflev'_count))
+(0 real changes made)
+
+. replace ProficientOrAbove_count = string(real(StudentSubGroup_TotalTested)) if real(ProficientOrAbove_count) > real(StudentSubGroup_TotalTested) 
+> & !missing(real(StudentSubGroup_TotalTested)) & !missing(real(ProficientOrAbove_count))
+(0 real changes made)
+
+. 
+. // Reordering variables and sorting data
+. local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType      ///
+>     SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID             ///
+>     StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual                       ///
+>     CountyName CountyCode AssmtName AssmtType Subject GradeLevel                        ///
+>     StudentGroup StudentGroup_TotalTested StudentSubGroup                                       ///
+>     StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count                      ///
+>     Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent                        ///
+>     Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria                           ///
+>     ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate         ///
+>     Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math       ///
+>     Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+
+.         keep `vars'
+
+.         order `vars'
+
+. sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
+. 
+. *Exporting into a separate folder Output for Stanford - without derivations*
+. save "${Output_ND}/CA_AssmtData2017_NoDev", replace //If .dta format needed.
+file /Volumes/T7/State Test Project/California/Output ND/CA_AssmtData2017_NoDev.dta saved
+
+. export delimited "${Output_ND}/CA_AssmtData2017_NoDev", replace 
+file /Volumes/T7/State Test Project/California/Output ND/CA_AssmtData2017_NoDev.csv saved
+
+. 
+. *Derivations*
+. //Deriving Counts where possible
+. foreach count of varlist *_count {
+  2. local percent = subinstr("`count'","count", "percent",.)
+  3. replace `count' = string(round(real(`percent') * real(StudentSubGroup_TotalTested))) if !missing(real(`percent')) & !missing(real(StudentSubGr
+> oup_TotalTested)) & missing(real(`count'))
+  4. }
+variable Lev1_count was str2 now str6
+(671,835 real changes made)
+variable Lev2_count was str2 now str6
+(671,835 real changes made)
+variable Lev3_count was str2 now str6
+(671,835 real changes made)
+variable Lev4_count was str2 now str6
+(671,835 real changes made)
+(0 real changes made)
+variable ProficientOrAbove_count was str2 now str6
+(671,835 real changes made)
+
+. 
+. //Level Count Updates
+. foreach var of varlist Lev*_count {
+  2.         replace `var' = "--" if real(`var') < 0 & !missing(real(`var'))
+  3. }
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+
+. 
+. //Replacing ProficientOrAbove_count updates based on V2.0 R1 (Universal code if we have two levels proficient)
+. replace ProficientOrAbove_count = string(real(Lev`lowproflev'_count) + real(Lev`highproflev'_count)) if !missing(real(Lev`lowproflev'_count)) & !
+> missing(real(Lev`highproflev'_count))
+(5,990 real changes made)
+
+. replace ProficientOrAbove_count = string(real(StudentSubGroup_TotalTested)) if real(ProficientOrAbove_count) > real(StudentSubGroup_TotalTested) 
+> & !missing(real(StudentSubGroup_TotalTested)) & !missing(real(ProficientOrAbove_count))
+(0 real changes made)
+
+. 
+. //Keeping, ordering and sorting variables
+. keep `vars'
+
+. order `vars'
+
+. sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
+. 
+. *Exporting Output with derivations*
+. save "${Output}/CA_AssmtData_2017", replace
+file /Volumes/T7/State Test Project/California/Output/CA_AssmtData_2017.dta saved
+
+. export delimited "${Output}/CA_AssmtData_2017.csv", replace 
+file /Volumes/T7/State Test Project/California/Output/CA_AssmtData_2017.csv saved
+
+. 
+. * END of california_2017_clean.do
+. ****************************************************
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+end of do-file
+
+. do "${DoFiles}/california_2018_clean.do"
+
+. *******************************************************
+. * CALIFORNIA
+. 
+. * File name: california_2018_clean
+. * Last update: 2/18/2025
+. 
+. *******************************************************
+. * Notes
+. 
+.         * This do file cleans CA's 2018 data and merges with NCES 2009, 2010 and 2022. 
+.         * As of 2/18/25, the most recent NCES file available is NCES_2022. 
+.         * This file will need to be updated when NCES_2023 becomes available
+. 
+. *******************************************************
+. 
+. /////////////////////////////////////////
+> *** Setup ***
+. /////////////////////////////////////////
+> clear
+
+. set more off
+
+. 
+. cap log close
