@@ -33,8 +33,8 @@ global Output "/Volumes/T7/State Test Project/California/Output" // Version 2.1 
 global Output_ND "/Volumes/T7/State Test Project/California/Output ND" //Non Derivation Output. 
 
 // Run in this order.*
-do "${DoFiles}/01_california_dta_conversion.do" 
-do "${DoFiles}/02_CA_NCES_New.do" 
+*do "${DoFiles}/01_california_dta_conversion.do" 
+*do "${DoFiles}/02_CA_NCES_New.do" 
 do "${DoFiles}/california_2010_clean.do"
 do "${DoFiles}/california_2011_clean.do"
 do "${DoFiles}/california_2012_clean.do"
