@@ -1227,7 +1227,7 @@ bysort StateAssignedSchID (NCESSchoolID) : gen s_MultipleNCESIDsPer_StateID = NC
 	if `s_MultipleStateID' | `s_MultipleNCESID' {
 		
 		preserve
-		keep if `s_MultipleStateID' == 1 | `s_MultipleNCESID' == 1
+		keep if s_MultipleStateID == 1 | s_MultipleNCESID == 1
 		keep FILE State SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID s_MultipleStateIDsPer_NCESid  s_MultipleNCESIDsPer_StateID
 		cap duplicates drop 
 		cap export excel using "${Review}/${StateAbbrev}_mismatched sch IDs_${date}.xlsx", firstrow(variables) replace

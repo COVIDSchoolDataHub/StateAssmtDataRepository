@@ -159,6 +159,8 @@ foreach year in 2004 2005 2006 2007 2008 2009 2010 2011 2012 2013 2014 2015 2016
 	// Cleaning up DistNames & SchNames
 	replace DistName = "All Districts" if DataLevel == 1
 	replace SchName = "All Schools" if DataLevel != 3
+	replace StateAssignedDistID = "" if DataLevel == 1
+	replace StateAssignedSchID = "" if DataLevel != 3
 	
 	replace DistName =strtrim(DistName) 
 	replace DistName =stritrim(DistName) 

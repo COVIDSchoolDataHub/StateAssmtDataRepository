@@ -1434,6 +1434,9 @@ foreach year in 2004 2005 2006 2007 2008 2009 2010 2011 2012 2013 2014  {
 	gen SchType =.
 	gen SchVirtual =.
 	
+	//ProficientOrAbove_percent
+	replace ProficientOrAbove_percent = "0" if ProficientOrAbove_percent == "0.000" //for consistency across years
+	
 	// ParticipationRate
 	replace ParticipationRate = "1" if ParticipationRate == "1.000"
 	
