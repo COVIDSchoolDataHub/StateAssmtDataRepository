@@ -52,3 +52,4 @@ Create a folder for CA. Inside that folder, create the following subfolders:
 - 6/27/24 Incorporated science data for 2019-2023.
 - 11/10/24: Incorporated 2024, streamlined all do-files, redid nces merging by using crosswalk/dealt with mismatched dist and sch ids, brought state up to V2.0 conventions
 - 02/18/25: Modified code to export non-derivation output. Added headers, footers, and notes in each do file. 
+- 03/11/25: Changed ordering/keeping code to align with correct variable order.
