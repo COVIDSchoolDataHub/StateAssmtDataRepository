@@ -19,7 +19,8 @@ clear
 
 ************************************************************************************
 * Importing data and renaming variables
-************************************************************************************clear
+************************************************************************************
+clear
 ** 2019 ELA and Math
 //SCHOOLS
 import excel "${AzMERIT}/AZ_OriginalData_2019_ela_math.xlsx", sheet("School") firstrow clear
