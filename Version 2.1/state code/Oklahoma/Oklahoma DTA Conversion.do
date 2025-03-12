@@ -1,9 +1,20 @@
-clear
-set more off
+* OKLAHOMA
 
-global raw "/Users/miramehta/Documents/Oklahoma/Original Data Files"
-global output "/Users/miramehta/Documents/Oklahoma/Output"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+* File name: Oklahoma DTA Conversion
+* Last update: 03/11/2025
+
+*******************************************************
+* Notes
+
+	* This do file imports *.xlsx 2016-2024 OK data.
+	* The files are saved as *.dta.
+	* The files are appended and saved as a combined file.
+	* The files are used in.
+	* a) Oklahoma Cleaning 2017-2023.do
+	* b) Oklahoma Cleaning 2024.do
+*******************************************************
+
+clear
 
 local subject Math Reading Science
 local datatype Participation Performance
@@ -12,13 +23,14 @@ local datatype Participation Performance
 
 foreach a of local subject {
 	foreach b of local datatype {
-		import excel "${raw}/OK ELA, Math Sci Assmt Data (2017-2023) Received via Data Request - 4-25-24/`a'_`b'_Redacted.xlsx", sheet("`a'_`b'") firstrow clear
-		save "${raw}/`a' `b'.dta", replace
+		import excel "${Org_17_23}/`a'_`b'_Redacted.xlsx", sheet("`a'_`b'") firstrow clear
+		save "${Original_DTA}/`a' `b'.dta", replace
 	}
 }
 
+//2017 data
 foreach a of numlist 3/8 {
-	import excel "${raw}/Publicly Available Data Files/OK_OriginalData_2017_G0`a'.xlsx", sheet("Grade `a' Data") firstrow clear
+	import excel "${Org_PubAvail}/OK_OriginalData_2017_G0`a'.xlsx", sheet("Grade `a' Data") firstrow clear
 	keep OrganizationID *MeanOPI Group
 	rename *MeanOPI AvgScaleScore*
 	gen GradeLevel = "G0" + "`a'"
@@ -44,11 +56,12 @@ foreach a of numlist 3/8 {
 	replace Subject = "ela" if Subject == "ELA"
 	replace Subject = "math" if Subject == "Mathematics"
 	replace Subject = "sci" if Subject == "Science"
-	save "${raw}/OK_AssmtData_2017_G0`a'.dta", replace
+	save "${Original_DTA}/OK_AssmtData_2017_G0`a'.dta", replace
 }
 
+//2018 data
 foreach a of numlist 3/8 {
-	import excel "${raw}/Publicly Available Data Files/OK_OriginalData_2018_G0`a'.xlsx", sheet("Grade `a' Data") firstrow clear
+	import excel "${Org_PubAvail}/OK_OriginalData_2018_G0`a'.xlsx", sheet("Grade `a' Data") firstrow clear
 	keep OrganizationId *MeanOPI Group
 	rename *MeanOPI AvgScaleScore*
 	gen GradeLevel = "G0" + "`a'"
@@ -72,18 +85,20 @@ foreach a of numlist 3/8 {
 	replace Subject = "ela" if Subject == "ELA"
 	replace Subject = "math" if Subject == "Mathematics"
 	replace Subject = "sci" if Subject == "Science"
-	save "${raw}/OK_AssmtData_2018_G0`a'.dta", replace
+	save "${Original_DTA}/OK_AssmtData_2018_G0`a'.dta", replace
 }
 
+//Combining grade-level data for 2017 and 2018.
 foreach b of numlist 2017/2018 {
-	use "${raw}/OK_AssmtData_`b'_G03.dta", clear
+	use "${Original_DTA}/OK_AssmtData_`b'_G03.dta", clear
 	foreach a of numlist 4/8 {
-		append using "${raw}/OK_AssmtData_`b'_G0`a'.dta"
-		save "${raw}/OK_AssmtData_`b'.dta", replace
+		append using "${Original_DTA}/OK_AssmtData_`b'_G0`a'.dta"
+		save "${Original_DTA}/OK_AssmtData_`b'.dta", replace
 	}
 }
 
-import excel "${raw}/Publicly Available Data Files/OK_OriginalData_2019_all.xlsx", sheet("Sheet1") firstrow clear
+//2019 data
+import excel "${Org_PubAvail}/OK_OriginalData_2019_all.xlsx", sheet("Sheet1") firstrow clear
 keep grade OrganizationId *MeanOPI
 rename *MeanOPI AvgScaleScore*
 rename grade GradeLevel
@@ -96,9 +111,10 @@ reshape long AvgScaleScore, i(State_leaid seasch GradeLevel) j(Subject) string
 replace Subject = "ela" if Subject == "ELA"
 replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "sci" if Subject == "Science"
-save "${raw}/OK_AssmtData_2019.dta", replace
+save "${Original_DTA}/OK_AssmtData_2019.dta", replace
 
-import excel "${raw}/Publicly Available Data Files/OK_OriginalData_2022_all.xlsx", sheet("OK2122MediaRedacted") firstrow clear
+//2022 data
+import excel "${Org_PubAvail}/OK_OriginalData_2022_all.xlsx", sheet("OK2122MediaRedacted") firstrow clear
 keep Grade OrganizationId *MeanOPI
 rename *MeanOPI AvgScaleScore*
 rename Grade GradeLevel
@@ -113,9 +129,10 @@ reshape long AvgScaleScore, i(State_leaid seasch GradeLevel) j(Subject) string
 replace Subject = "ela" if Subject == "ELA"
 replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "sci" if Subject == "Science"
-save "${raw}/OK_AssmtData_2022.dta", replace
+save "${Original_DTA}/OK_AssmtData_2022.dta", replace
 
-import excel "${raw}/Publicly Available Data Files/OK_OriginalData_2023_all.xlsx", sheet("OKOSTP2223MediaRedacted") firstrow clear
+//2023 data
+import excel "${Org_PubAvail}/OK_OriginalData_2023_all.xlsx", sheet("OKOSTP2223MediaRedacted") firstrow clear
 keep Grade OrganizationId *MeanOPI
 rename *MeanOPI AvgScaleScore*
 rename Grade GradeLevel
@@ -140,9 +157,10 @@ reshape long AvgScaleScore, i(State_leaid seasch GradeLevel) j(Subject) string
 replace Subject = "ela" if Subject == "ELA"
 replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "sci" if Subject == "Science"
-save "${raw}/OK_AssmtData_2023.dta", replace
+save "${Original_DTA}/OK_AssmtData_2023.dta", replace
 
-import excel "${raw}/Publicly Available Data Files/OK_OriginalData_2024_all.xlsx", sheet("OKOSTP2324MediaRedacted") firstrow clear
+//2024 data
+import excel "${Org_PubAvail}/OK_OriginalData_2024_all.xlsx", sheet("OKOSTP2324MediaRedacted") firstrow clear
 keep Grade OrganizationId *MeanOPI
 rename *MeanOPI AvgScaleScore*
 rename Grade GradeLevel
@@ -171,14 +189,16 @@ reshape long AvgScaleScore, i(State_leaid seasch GradeLevel) j(Subject) string
 replace Subject = "ela" if Subject == "ELA"
 replace Subject = "math" if Subject == "Mathematics"
 replace Subject = "sci" if Subject == "Science"
-save "${raw}/OK_AssmtData_2024.dta", replace
+save "${Original_DTA}/OK_AssmtData_2024.dta", replace
 
 foreach b of numlist 2017/2024 {
 	if `b' == 2020 | `b' == 2021 {
 		continue
 	}
-	use "${raw}/OK_AssmtData_`b'.dta", clear
+	use "${Original_DTA}/OK_AssmtData_`b'.dta", clear
 	drop if AvgScaleScore == "N/A"
 	replace AvgScaleScore = "*" if AvgScaleScore == "***"
-	save "${raw}/OK_AssmtData_`b'.dta", replace
+	save "${Original_DTA}/OK_AssmtData_`b'.dta", replace
 }
+*End of Oklahoma DTA Conversion.do
+****************************************************

@@ -1,18 +1,26 @@
+* OKLAHOMA
+
+* File name: Oklahoma Cleaning 2024
+* Last update: 03/12/2025
+
+*******************************************************
+* Notes
+
+	* This do file uses OK 2024 *.xslx files.
+	* It cleans and renames variables. 
+	* NCES 2022 is merged. 
+	* As of the last update, NCES 2022 is the latest version.
+	* This file will need to be updated when NCES_2023 is available. 
+	* Only the usual output is created.
+
+*******************************************************
 clear
-set more off
 
-global raw "/Users/miramehta/Documents/Oklahoma/Original Data Files"
-global output "/Users/miramehta/Documents/Oklahoma/Output"
-global NCES "/Users/miramehta/Documents/NCES District and School Demographics/Cleaned NCES Data"
+//Import Data
+import excel "${Org_24}/OK_OriginalData_2024.xlsx", sheet("Oklahoma_Halloran") firstrow case(preserve) clear
+save "${Original_DTA}/OK_OriginalData_2024.dta", replace
 
-//Import Data - Unhide on First Run
-/*
-import excel "${raw}/OK ELA, Math, Sci Assmt Data (2024) Received via Data Request - 11-10-24/OK_OriginalData_2024.xlsx", sheet("Oklahoma_Halloran") firstrow case(preserve) clear
-save "${raw}/OK_OriginalData_2024.dta", replace
-*/
-
-use "${raw}/OK_OriginalData_2024.dta", clear
-
+use "${Original_DTA}/OK_OriginalData_2024.dta", clear
 //Rename Variables
 rename EducationAgencyType DataLevel
 rename NumberofStudentsTested StudentSubGroup_TotalTested
@@ -206,11 +214,11 @@ gen Flag_CutScoreChange_soc = "Not applicable"
 gen State_leaid = "OK-" + StateAssignedDistID if DataLevel != 1
 gen seasch = StateAssignedSchID
 
-merge m:1 State_leaid using "${NCES}/NCES_2022_District_OK.dta"
+merge m:1 State_leaid using "${NCES_OK}/NCES_2022_District_OK.dta"
 drop if _merge == 2
 drop _merge
 
-merge m:1 seasch using "${NCES}/NCES_2022_School_OK.dta"
+merge m:1 seasch using "${NCES_OK}/NCES_2022_School_OK.dta"
 drop if _merge == 2
 drop _merge
 
@@ -286,18 +294,27 @@ replace SchLevel = 1 if NCESSchoolID == "400079129878"
 replace SchVirtual = 0 if NCESSchoolID == "400079129878"
 
 //AvgScaleScore
-merge 1:1 State_leaid seasch Subject GradeLevel StudentSubGroup using "${raw}/OK_AssmtData_2024.dta"
+merge 1:1 State_leaid seasch Subject GradeLevel StudentSubGroup using "${Original_DTA}/OK_AssmtData_2024.dta"
 drop if _merge == 2
 drop _merge
 replace AvgScaleScore = "--" if AvgScaleScore == ""
 
 //Final Cleaning
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+local vars State StateAbbrev StateFips SchYear DataLevel DistName SchName ///
+	NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID ///
+	AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested ///
+	StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent ///
+	Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent ///
+	Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ///
+	ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA ///
+	Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType ///
+	DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+	keep `vars'
+	order `vars'
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup	
 
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
-sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-	
-save "${output}/OK_AssmtData_2024.dta", replace
-
-export delimited using "${output}/csv/OK_AssmtData_2024.csv", replace
+*Exporting Output for 2024
+save "${Output}/OK_AssmtData_2024.dta", replace
+export delimited using "${Output}/OK_AssmtData_2024.csv", replace
+*End of Oklahoma Cleaning 2024.do
+****************************************************

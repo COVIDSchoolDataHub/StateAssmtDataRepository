@@ -2,49 +2,56 @@
 # Oklahoma Data Cleaning
 This is a ReadMe for Oklahoma's data cleaning process, from 2017 to 2024.
 
-## Setup
+## NCES Setup
 
-There are main folders and subfolders you need include: 
-- Oklahoma 
-    - Original Data Files
-    - Output
-        - csv
-- NCES
-    - NCES District Files, Fall 1997-Fall 2022
-    - NCES School Files, Fall 1997-Fall 2022
-    - Cleaned NCES Data [will start empty]
-
-Download the original raw data .xlsx and .csv files on Google Drive, and keep them within the subfolders they are in on Drive.
-
-- Data from Version 1.0 (in the Publicly Available Data Files folder on Drive) will be used for AvgScaleScore.
-- Data from the Data Requests will be used for everything else.
-
-There are 4 .do files. Run them in the following order:
-
-    Oklahoma DTA Conversion.do; 
-
-    Oklahoma NCES Cleaning.do; 
-
-    Oklahoma Cleaning 2017-2023.do;
-
-    Oklahoma Cleaning 2024.do.
+NCES_Full: Download the folder from Google Drive-->_Data Cleaning Materials --> NCES District and School Demographics.
     
-## File Path
+       a. NCES District Files [subfolder] 
 
-The file path setup should be as follows: 
+       b. NCES School Files [subfolder]
 
-```bash
-global NCESSchool "/Users/maggie/Desktop/Oklahoma/NCES/School"
-global NCESDistrict "/Users/maggie/Desktop/Oklahoma/NCES/District"
-global NCES "/Users/maggie/Desktop/Oklahoma/NCES/Cleaned"
+As of 3/12/2025, the most recent files are from NCES 2022. 
 
-global raw "/Users/maggie/Desktop/Oklahoma/Original Data Files"
-global output "/Users/maggie/Desktop/Oklahoma/Output"
-```
+## Oklahoma Setup
+Create a folder for OK. Inside that folder, create the following subfolders:
 
+ 1. Original Data Files: Download the **entire** folder called OK Original Data Files. This is located in Google Drive --> Oklahoma.
+   
+        The folder and files are structured exactly the way you need it on your local drive.
+
+        You should have the following folders in the Original Data Files folder your local drive.
+    
+        a. DTA [subfolder]
+
+        b. OK ELA, Math Sci Assmt Data (2017-2023) Received via Data Request - 4-25-24 [subfolder]
+
+        c. OK ELA, Math, Sci Assmt Data (2024) Received via Data Request - 11-10-24 [subfolder]
+
+        d. Publicly Available Data Files [subfolder]
+      
+3. Temp 
+         
+4. NCES_OK [will start empty]
+           
+6. Output_Files
+      
+7. Output_Files_ND: This is a folder for the non-derivation output.
+
+
+## Process
+    Place all do files in the OK folder.
+        
+    Set the appropriate file paths in OK_Main_File.do
+        
+    Running OK_Main_File.do will execute all the do files in order.
+    
 ## Updates
 
-- 04/11/2024: Updated output files to incorporate new NCES variables.
-- 05/25/2024: Updated output files to use new data request files in place of old original data files.
-- 12/02/2024: Updated to include 2024 data, derive additional information, and match StudentGroup_TotalTested
-  convention for V2.0
+04/11/2024: Updated output files to incorporate new NCES variables.
+  
+05/25/2024: Updated output files to use new data request files in place of old original data files.
+  
+12/02/2024: Updated to include 2024 data, derive additional information, and match StudentGroup_TotalTested
+convention for V2.0
+
+03/12/2025: Standardized code and added code for non-derivation output. 
