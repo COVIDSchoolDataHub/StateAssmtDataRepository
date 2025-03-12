@@ -351,21 +351,12 @@ di `highproflev' - `lowproflev'
 replace ProficientOrAbove_count = string(real(Lev`lowproflev'_count) + real(Lev`highproflev'_count)) if !missing(real(Lev`lowproflev'_count)) & !missing(real(Lev`highproflev'_count))
 replace ProficientOrAbove_count = string(real(StudentSubGroup_TotalTested)) if real(ProficientOrAbove_count) > real(StudentSubGroup_TotalTested) & !missing(real(StudentSubGroup_TotalTested)) & !missing(real(ProficientOrAbove_count))
 
-// Reordering variables and sorting data
-local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
-    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
-    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
-    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
-    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
-    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
-    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
-    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
-    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
-    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
-    Flag_CutScoreChange_sci Flag_CutScoreChange_soc
-	keep `vars'
-	order `vars'
-sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+//Order, keep, sort
+order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+ 
+keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+
+sort DataLevel DistName SchName AssmtType Subject GradeLevel StudentGroup StudentSubGroup
 
 *Exporting into a separate folder Output for Stanford - without derivations*
 save "${Output_ND}/CA_AssmtData2012_NoDev", replace //If .dta format needed.
