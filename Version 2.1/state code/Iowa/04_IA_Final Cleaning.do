@@ -189,17 +189,16 @@ foreach year in 2004 2005 2006 2007 2008 2009 2010 2011 2012 2013 2014 2015 2016
 	duplicates drop 
 
 // Reordering variables and sorting data
-local vars State StateAbbrev StateFips SchYear DataLevel DistName DistType 	///
-    SchName SchType NCESDistrictID StateAssignedDistID NCESSchoolID 		///
-    StateAssignedSchID DistCharter DistLocale SchLevel SchVirtual 			///
-    CountyName CountyCode AssmtName AssmtType Subject GradeLevel 			///
-    StudentGroup StudentGroup_TotalTested StudentSubGroup 					///
-    StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count 			///
-    Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent 			///
-    Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria 				///
-    ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate 	///
-    Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math 	///
-    Flag_CutScoreChange_sci Flag_CutScoreChange_soc
+local vars State StateAbbrev StateFips SchYear DataLevel DistName SchName 	///
+    NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID		///
+    AssmtName AssmtType Subject GradeLevel	StudentGroup 					///
+    StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested    ///
+    Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent	///
+    Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore			///
+    ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent	///
+    ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA 			///
+    Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc ///
+    DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
 	keep `vars' State_leaid
 	order `vars' State_leaid
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
