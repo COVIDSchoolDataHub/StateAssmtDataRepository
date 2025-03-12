@@ -1566,6 +1566,11 @@ foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 2024 {
             replace `var' = "--" if `var' == "."
 			}
 			
+		local levels Lev1 Lev2 Lev3 ProficientOrAbove
+		foreach lev of local levels{
+			replace `lev'_percent = "0" if `lev'_count == "0"
+		}
+		
 	// Counts
 		foreach var of varlist StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev2_count Lev3_count ProficientOrAbove_count {
 			replace `var'="*" if `var'=="small N"
@@ -1662,8 +1667,7 @@ foreach year in 2015 2016 2017 2018 2019 2021 2022 2023 2024 {
 	sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup	
 
 	// Saving to intermediate1 to add to 2004-2014
-	save "${Original_DTA}/IA_AssmtData_`year'.dta", replace
-	//export delimited "${Original_DTA}/IA_AssmtData_`year'.csv", replace	
+	save "${Original_DTA}/IA_AssmtData_`year'.dta", replace	
 }
 
 /////////////////////////////////////////
