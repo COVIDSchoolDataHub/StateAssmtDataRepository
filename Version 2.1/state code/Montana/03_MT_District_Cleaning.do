@@ -169,14 +169,17 @@ gen ProficientOrAbove_percent = string(real(Lev3_percent) + real(Lev4_percent)) 
 replace ProficientOrAbove_percent = string(1 - real(Lev1_percent) - real(Lev2_percent)) if !missing(real(Lev1_percent)) & !missing(real(Lev2_percent)) & missing(real(ProficientOrAbove_percent))
 replace ProficientOrAbove_percent = "--" if missing(ProficientOrAbove_percent)
 
-foreach var of varlist Lev*_percent ProficientOrAbove_percent {
-	replace `var' = "0" if strpos(`var', "e") != 0
-	replace `var' = "0" if `var' == "-.0001"
-}
-
 gen ProficientOrAbove_count = string(real(Lev3_count) + real(Lev4_count)) if !missing(real(Lev3_count)) & !missing(real(Lev4_count))
 replace ProficientOrAbove_count = string(real(StudentSubGroup_TotalTested) - real(Lev1_count) - real(Lev2_count)) if !missing(real(Lev1_count)) & !missing(real(Lev2_count)) & !missing(real(StudentSubGroup_TotalTested)) & missing(real(ProficientOrAbove_count))
 replace ProficientOrAbove_count = "--" if missing(ProficientOrAbove_count)
+
+local levels Lev1 Lev2 Lev3 Lev4 ProficientOrAbove
+foreach lev of local levels {
+	replace `lev'_percent = "0" if strpos(`lev'_percent, "e") != 0
+	replace `lev'_percent = "0" if `lev'_percent == "-.0001"
+	replace `lev'_percent = "0" if `lev'_percent == "0.000"
+	replace `lev'_percent = "0" if `lev'_count == "0"
+}
 
 //GradeLevel
 replace GradeLevel = subinstr(GradeLevel, "G", "G0",.) if GradeLevel != "G38"

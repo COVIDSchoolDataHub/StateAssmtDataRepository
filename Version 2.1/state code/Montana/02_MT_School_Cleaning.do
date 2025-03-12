@@ -123,6 +123,7 @@ foreach lev of local levels {
 	replace `lev'_percent = "0" if `lev'_percent == "0.0000"
 	replace `lev'_percent = "1" if `lev'_percent == "1.0000"
 	replace `lev'_percent = "--" if `lev'_percent == "."
+	replace `lev'_percent = "0" if `lev'_count == "0"
 }
 
 //ParticipationRate

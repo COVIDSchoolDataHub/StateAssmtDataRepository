@@ -142,6 +142,7 @@ foreach lev in Lev1 Lev2 Lev3 Lev4 ProficientOrAbove {
 	replace `lev'_count = "*" if `lev'_count == "."
 	replace `lev'_percent = "*" if `lev'_percent == "."
 	replace `lev'_percent = "0" if `lev'_percent == "0.0000"
+	replace `lev'_percent = "0" if `lev'_count == "0"
 }
 
 gen Lev5_percent = ""
