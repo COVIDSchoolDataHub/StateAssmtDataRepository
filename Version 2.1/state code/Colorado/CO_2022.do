@@ -336,29 +336,6 @@ replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "." & Pr
 
 drop Lev4_c Lev4_p Lev5_c Lev5_p Prof_c Prof_p Prof_count Prof_percent
 
-/*
-replace ProficientOrAbove_count = subinstr(ProficientOrAbove_count, ",", "", 1)
-replace ProficientOrAbove_count = strtrim(ProficientOrAbove_count)
-destring ProficientOrAbove_percent, replace force
-replace ProficientOrAbove_percent = ProficientOrAbove_percent/100
-tostring ProficientOrAbove_percent, replace format("%9.3g") force
-replace ProficientOrAbove_percent = "*" if ProficientOrAbove_percent == "."
-replace ProficientOrAbove_count="*" if ProficientOrAbove_count=="- -"
-replace ProficientOrAbove_count = "--" if ProficientOrAbove_count == ""
-
-destring Lev4_count, gen(Lev4) force
-destring Lev5_count, gen(Lev5) force
-destring StudentSubGroup_TotalTested, gen(studcount) force
-destring ProficientOrAbove_percent, gen(prof_p) force
-gen Prof = Lev4 + Lev5
-replace ProficientOrAbove_count = string(Prof) if inlist(ProficientOrAbove_count, "*", "") & Prof !=.
-drop Lev4 Lev5 Prof
-gen Prof = round(studcount * prof_p)
-replace ProficientOrAbove_count = string(Prof) if inlist(ProficientOrAbove_count, "*", "--") & !inlist(ProficientOrAbove_percent, "*", "--") & !inlist(StudentSubGroup_TotalTested, "*", "--") & Prof != .
-drop studcount prof_p Prof
-*/
-
-
 //Removing "Empty" Observations for Subgroups
 drop if StudentSubGroup_TotalTested == "0" & StudentSubGroup != "All Students"
 gen AllPart = ParticipationRate if StudentSubGroup == "All Students"
@@ -434,6 +411,7 @@ export delimited "${Output_ND}/CO_AssmtData_2022_ND", replace
 *******************************************************
 use "${Temp}/CO_OriginalData_2022.dta", clear
 
+replace StudentSubGroup_TotalTested = subinstr(StudentSubGroup_TotalTested, ",", "", 1)
 replace ProficientOrAbove_count = round(ProficientOrAbove_percent * real(StudentSubGroup_TotalTested)) if !missing(real(StudentSubGroup_TotalTested)) & !missing(ProficientOrAbove_percent) & missing(ProficientOrAbove_count)
 
 tostring ProficientOrAbove_count, replace
