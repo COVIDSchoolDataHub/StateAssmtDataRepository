@@ -232,7 +232,7 @@ replace Subject="math" if Subject=="Mathematics"
 replace Subject="math" if Subject=="Math"
 replace Subject="ela" if Subject=="English Language Arts"
 replace Subject="ela" if Subject=="ELA"
-drop if Subject == "Spanish Language Arts"
+replace Subject="esp" if Subject == "Spanish Language Arts"
 
 tab StudentSubGroup
 replace StudentSubGroup="Black or African American" if StudentSubGroup=="Black"

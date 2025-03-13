@@ -91,7 +91,7 @@ drop IEPStatus
 
 replace Subject = "ela" if Subject == "English Language Arts" | Subject == "ELA"
 replace Subject = "math" if Subject == "Mathematics" | Subject == "Math"
-drop if Subject == "Spanish Language Arts"
+replace Subject = "esp" if Subject == "Spanish Language Arts"
 
 rename NumberDidNotYetMeetExpectat Lev1_count
 rename PercentDidNotYetMeetExpecta Lev1_percent

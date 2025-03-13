@@ -46,3 +46,5 @@ Create a folder for CO. Inside that folder, create the following subfolders:
 09/13/2024: Updated to include 2024 data, derive some additional proficiency information, and match V2.0 conventions.
 
 02/25/25: Modified code to export non-derivation output. Added headers, footers, and notes in each do file. Deleted CO_MostRecentNames.do since the names have been incorporated in the other do files. 
+
+03/12/2025: Updated to retain Spanish Language Arts data from 2021-2024 all students files.
