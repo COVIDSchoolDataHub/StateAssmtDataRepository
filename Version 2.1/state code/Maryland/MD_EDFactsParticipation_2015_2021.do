@@ -1,9 +1,37 @@
-clear
-set more off
+*******************************************************
+* MARYLAND
 
-global EDFacts "/Users/benjaminm/Documents/State_Repository_Research/EdFacts"
-global Output "/Users/benjaminm/Documents/State_Repository_Research/Maryland/Output" // Version 1.1 Output directory here
-global New_Output "/Users/benjaminm/Documents/State_Repository_Research/Maryland/New_Output" // Version 2.0 Output directory here
+* File name: MD_EDFactsParticipation_2015_2021
+* Last update: 3/14/2025
+
+*******************************************************
+* Notes
+
+	* This do file uses 2015-2021 (excl. 2018, 2020) EDFacts wide format *.csv files.
+	* It saves it as a *.dta.
+	* It keeps only MD observations. 
+	* The temp output *.dta created in MD_`year'.do (where year = 2015/2021, excluding 2018 and 2020) are used.
+	* EDFacts Participation Rates for the same year are merged. 
+	* Finally, the usual output is exported for 2015-2021 excluding 2018 and 2020. 
+	
+*******************************************************
+
+local year1 2015 2016 2017 2019 2021
+local subject ela math
+local datatype part
+local datalevel district school
+
+** Converting to dta **
+foreach yr of local year1 {
+	foreach sub of local subject {
+		foreach type of local datatype {
+			foreach lvl of local datalevel {
+				import delimited "${EDFacts}/`yr'/edfacts`type'`yr'`sub'`lvl'.csv", case(lower) clear
+				save "${EDFacts}/`yr'/edfacts`type'`yr'`sub'`lvl'.dta", replace
+			}
+		}
+	}
+}
 
 ** Preparing EDFacts files
 local edyears1 15 16 17
@@ -11,7 +39,6 @@ local edyears2 2019 2021
 local subject math ela
 local datatype part
 local datalevel school district
-
 
 foreach year of local edyears1 {
     foreach sub of local subject {
@@ -54,7 +81,7 @@ foreach year of local edyears1 {
                     gen DataLevel = 2
                 }               
                 gen Subject = "`sub'"
-                save "${EDFacts}/20`year'/edfacts`type'20`year'`sub'`lvl'maryland.dta", replace
+                save "${EDFacts_MD}/edfacts`type'20`year'`sub'`lvl'MD.dta", replace
             }
         }
     }
@@ -63,8 +90,8 @@ foreach year of local edyears1 {
 foreach year of local edyears1 {
     foreach type of local datatype {
         foreach lvl of local datalevel {
-            use "${EDFacts}/20`year'/edfacts`type'20`year'math`lvl'maryland.dta", clear
-            append using "${EDFacts}/20`year'/edfacts`type'20`year'ela`lvl'maryland.dta"
+            use "${EDFacts_MD}/edfacts`type'20`year'math`lvl'MD.dta", clear
+            append using "${EDFacts_MD}/edfacts`type'20`year'ela`lvl'MD.dta"
             if ("`lvl'" == "school"){
                 rename ncessch NCESSchoolID
             }
@@ -130,7 +157,7 @@ foreach year of local edyears1 {
 			replace Subject = "read" if mod(row,2) !=0
 			drop exp row
 			append using "`temp1'"
-			save "${EDFacts}/20`year'/edfacts`type'20`year'`lvl'maryland.dta", replace
+			save "${EDFacts_MD}/edfacts`type'20`year'`lvl'MD.dta", replace
         }
     }
 }
@@ -160,7 +187,7 @@ foreach year of local edyears2 {
 				if ("`lvl'" == "district") {
 					gen DataLevel = 2
 				}
-				save "${EDFacts}/`year'/edfacts`type'`year'`sub'`lvl'maryland.dta", replace
+				save "${EDFacts_MD}/edfacts`type'`year'`sub'`lvl'MD.dta", replace
 			}
 		}
 	}
@@ -169,8 +196,8 @@ foreach year of local edyears2 {
 foreach year of local edyears2 {
 	foreach type of local datatype {
 		foreach lvl of local datalevel {
-			use "${EDFacts}/`year'/edfacts`type'`year'math`lvl'maryland.dta", clear
-			append using "${EDFacts}/`year'/edfacts`type'`year'ela`lvl'maryland.dta"
+			use "${EDFacts_MD}/edfacts`type'`year'math`lvl'MD.dta", clear
+			append using "${EDFacts_MD}/edfacts`type'`year'ela`lvl'MD.dta"
 			if ("`lvl'" == "school"){
 				rename ncessch NCESSchoolID
 			}
@@ -266,42 +293,18 @@ foreach year of local edyears2 {
 			replace Subject = "read" if mod(row,2) !=0
 			drop exp row
 			append using "`temp1'"
-			save "${EDFacts}/`year'/edfacts`type'`year'`lvl'maryland.dta", replace
+			save "${EDFacts_MD}/edfacts`type'`year'`lvl'MD.dta", replace
 		}
 	}
 }
 
-
-
-
-//Conversion to DTA
-forvalues year = 2015/2017 {
-if `year' == 2020 continue
-import delimited "${Output}/MD_AssmtData_`year'", case(preserve) clear
-save "${Output}/MD_AssmtData_`year'", replace
-}
-
-
-//Conversion to DTA
-forvalues year = 2019/2023 {
-if `year' == 2020 continue
-import delimited "${Output}/MD_AssmtData_`year'", case(preserve) clear
-save "${Output}/MD_AssmtData_`year'", replace
-}
-
 //Merging Example
-forvalues year = 2015/2017 {
+forvalues year = 2015/2021 {
+if `year' == 2018 continue
 if `year' == 2020 continue
-import delimited "${Output}/MD_AssmtData_`year'.csv", case(preserve) clear
-
+use "${Temp}/MD_AssmtData_`year'", clear
+destring NCESDistrictID NCESSchoolID, replace
 	
-//DataLevel
-label def DataLevel 1 "State" 2 "District" 3 "School"
-encode DataLevel, gen(DataLevel_n) label(DataLevel)
-sort DataLevel_n 
-drop DataLevel 
-rename DataLevel_n DataLevel
-
 //Merging
 tempfile tempall
 save "`tempall'", replace
@@ -317,18 +320,20 @@ clear
 
 //District Merge
 use "`tempdist'"
+// destring NCESDistrictID NCESSchoolID, replace
 duplicates report NCESDistrictID StudentSubGroup GradeLevel Subject
 duplicates drop NCESDistrictID StudentSubGroup GradeLevel Subject, force
-merge 1:1 NCESDistrictID StudentSubGroup GradeLevel Subject using "${EDFacts}/`year'/edfactspart`year'districtmaryland.dta", gen(DistMerge)
+merge 1:1 NCESDistrictID StudentSubGroup GradeLevel Subject using "${EDFacts_MD}/edfactspart`year'districtMD.dta", gen(DistMerge)
 drop if DistMerge == 2
 save "`tempdist'", replace
 clear
 
 //School Merge
 use "`tempsch'"
+// destring NCESDistrictID NCESSchoolID, replace
 duplicates report NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject
 duplicates drop NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject, force
-merge 1:1 NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject using "${EDFacts}/`year'/edfactspart`year'schoolmaryland.dta", gen(SchMerge)
+merge 1:1 NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject using "${EDFacts_MD}/edfactspart`year'schoolMD.dta", gen(SchMerge)
 drop if SchMerge == 2
 save "`tempsch'", replace
 clear
@@ -341,95 +346,23 @@ append using "`tempdist'" "`tempsch'"
 //New Participation Data
 replace ParticipationRate = Participation if !missing(Participation)
 
-//Final Cleaning
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
- 
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
+//Final Cleaning and dropping extra variables
+local vars State StateAbbrev StateFips SchYear DataLevel DistName SchName ///
+	NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID ///
+	AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested ///
+	StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent ///
+	Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent ///
+	Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ///
+	ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA ///
+	Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType ///
+	DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+	keep `vars'
+	order `vars'
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${New_Output}/MD_AssmtData_`year'", replace
-export delimited "${New_Output}/MD_AssmtData_`year'", replace
+*Exporting Output.
+save "${Output}/MD_AssmtData_`year'", replace
+export delimited "${Output}/MD_AssmtData_`year'", replace
 }
-
-
-
-
-clear
-set more off
-
-global EDFacts "/Users/benjaminm/Documents/State_Repository_Research/EdFacts"
-global Output "/Users/benjaminm/Documents/State_Repository_Research/Maryland/Output" // Version 1.1 Output directory here
-global New_Output "/Users/benjaminm/Documents/State_Repository_Research/Maryland/New_Output" // Version 2.0 Output directory here
-
-** Preparing EDFacts files
-local edyears1 15 16 17
-local edyears2 2019 2021
-local subject math ela
-local datatype part
-local datalevel school district
-
-
-//Merging Example
-forvalues year = 2019/2021 {
-if `year' == 2020 continue
-import delimited "${Output}/MD_AssmtData_`year'.csv", case(preserve) clear
-
-	
-//DataLevel
-label def DataLevel 1 "State" 2 "District" 3 "School"
-encode DataLevel, gen(DataLevel_n) label(DataLevel)
-sort DataLevel_n 
-drop DataLevel 
-rename DataLevel_n DataLevel
-
-//Merging
-tempfile tempall
-save "`tempall'", replace
-keep if DataLevel == 2
-tempfile tempdist
-save "`tempdist'", replace
-clear
-use "`tempall'"
-keep if DataLevel == 3
-tempfile tempsch
-save "`tempsch'", replace
-clear
-
-//District Merge
-use "`tempdist'"
-duplicates report NCESDistrictID StudentSubGroup GradeLevel Subject
-duplicates drop NCESDistrictID StudentSubGroup GradeLevel Subject, force
-merge 1:1 NCESDistrictID StudentSubGroup GradeLevel Subject using "${EDFacts}/`year'/edfactspart`year'districtmaryland.dta", gen(DistMerge)
-drop if DistMerge == 2
-save "`tempdist'", replace
-clear
-
-//School Merge
-use "`tempsch'"
-duplicates report NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject
-duplicates drop NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject, force
-merge 1:1 NCESDistrictID NCESSchoolID StudentSubGroup GradeLevel Subject using "${EDFacts}/`year'/edfactspart`year'schoolmaryland.dta", gen(SchMerge)
-drop if SchMerge == 2
-save "`tempsch'", replace
-clear
-
-//Combining DataLevels
-use "`tempall'"
-keep if DataLevel == 1
-append using "`tempdist'" "`tempsch'"
-
-//New Participation Data
-replace ParticipationRate = Participation if !missing(Participation)
-
-//Final Cleaning
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
- 
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
-sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
-
-save "${New_Output}/MD_AssmtData_`year'", replace
-export delimited "${New_Output}/MD_AssmtData_`year'", replace
-}
-
+* END of MD_EDFactsParticipation_2015_2021.do
+****************************************************

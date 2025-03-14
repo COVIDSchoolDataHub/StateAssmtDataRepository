@@ -1,8 +1,22 @@
+*******************************************************
+* MARYLAND
+
+* File name: MD_2015
+* Last update: 3/14/2025
+
+*******************************************************
+* Notes
+
+	* This do file imports 2015 *.csv MD data and saves it as a *.dta.
+	* The files are cleaned and variables are renamed.
+	* NCES 2014 is merged. 
+	* A breakpoint is created before derivations. 
+	* This breakpoint is restored for the non-derivation output. 
+	* Tempory (with derivations) and non-derivation outputs are created for 2015.
+	
+*******************************************************
+
 clear
-set more off
-global Original "/Users/benjaminm/Documents/State_Repository_Research/Maryland/Original"
-global Output "/Users/benjaminm/Documents/State_Repository_Research/Maryland/Output"
-global NCES_MD "/Users/benjaminm/Documents/State_Repository_Research/Maryland/NCES_MD"
 
 //Importing & Combining Files
 tempfile temp1
@@ -20,9 +34,11 @@ rename Level5ExceededexpectationsCount Lev5_count
 rename Level5ExceededexpectationsPercen Lev5_percent
 append using "`temp1'"
 save "`temp1'", replace
+
 import delimited "${Original}/MD_OriginalData_2015_ela_mat_par.csv", case(preserve) clear
 merge 1:1 LEANumber SchoolNumber Assessment using "`temp1'", nogen
 save "`temp1'", replace
+
 import delimited "${Original}/MD_OriginalData_2015_sci", case(preserve) clear
 rename AdvancedCount Lev3_count
 rename AdvancedPercent Lev3_percent
@@ -31,6 +47,8 @@ rename ProficientPercent Lev2_percent
 rename BasicCount Lev1_count
 rename BasicPercent Lev1_percent
 append using "`temp1'"
+
+save "${Original_DTA}/MD_OriginalData_2015", replace
 
 //Renaming
 rename AcademicYear SchYear
@@ -105,8 +123,8 @@ drop StudentCount
 //NCES Merging
 gen State_leaid = StateAssignedDistID
 gen seasch = StateAssignedDistID + StateAssignedSchID
-merge m:1 State_leaid using "${NCES_MD}/NCES_2014_District", keep(match master) nogen
-merge m:1 seasch using "${NCES_MD}/NCES_2014_School", keep(match master) nogen
+merge m:1 State_leaid using "${NCES_MD}/NCES_2014_District_MD", keep(match master) nogen
+merge m:1 seasch using "${NCES_MD}/NCES_2014_School_MD", keep(match master) nogen
 replace CountyName = proper(CountyName)
 
 //State level data
@@ -133,15 +151,19 @@ replace ProficientOrAbove_percent = string(real(lowLev4_percent) + real(lowLev5_
 replace ProficientOrAbove_percent = string(real(lowLev2_percent) + real(lowLev3_percent)) + "-" + string(real(highLev2_percent) + real(highLev3_percent)) if strpos(Lev2_percent, "-") !=0 & regexm(Lev2_percent, "[0-9]") !=0 & Subject == "sci" | (strpos(Lev3_percent, "-") !=0 & regexm(Lev3_percent, "[0-9]") !=0) & Subject == "sci"
 drop low* high*
 
+*******************************************************
+// Creating a Breakpoint - to restore for non-derivation data processing
+*******************************************************
+save "$Temp/MD_2015_Breakpoint",replace
 
-
+*********************************************************
+//Derivations
+*********************************************************
 //Deriving Counts with Ranges
 foreach count of varlist *_count {
 local percent = subinstr("`count'", "count","percent",.)	
 replace `count' = string(round(real(substr(`percent', 1, strpos(`percent', "-")-1))*real(StudentSubGroup_TotalTested))) + "-" + string(round(real(substr(`percent',strpos(`percent', "-")+1,5))*real(StudentSubGroup_TotalTested))) if missing(real(`count')) & strpos(`percent', "-") !=0 & regexm(`percent', "[0-9]") !=0 & regexm(StudentSubGroup_TotalTested, "[0-9]") !=0
 }
-
-
 
 //Indicator and Missing Variables
 gen StudentSubGroup = "All Students"
@@ -180,14 +202,19 @@ replace DistName = "SEED School Of Maryland" if NCESDistrictID == "2400027"
 
 replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "" 
 
-
+*********************************************************
+//Derivations [0 real changes.]
+*********************************************************
 //Derive Exact count/percent where we have range and corresponding exact count/percent and StudentSubGroup_TotalTested
 foreach percent of varlist Lev*_percent ProficientOrAbove_percent {
 	local count = subinstr("`percent'", "percent", "count",.)
 	replace `percent' = string(real(`count')/real(StudentSubGroup_TotalTested), "%9.3g") if !missing(real(`count')) & !missing(real(StudentSubGroup_TotalTested)) & missing(real(`percent'))
-	replace `count' = string(round(real(`percent')* real(StudentSubGroup_TotalTested))) if !missing(real(`percent')) & !missing(real(StudentSubGroup_TotalTested)) & missing(real(`count'))
+ 	replace `count' = string(round(real(`percent')* real(StudentSubGroup_TotalTested))) if !missing(real(`percent')) & !missing(real(StudentSubGroup_TotalTested)) & missing(real(`count'))
 }
 
+*********************************************************
+// Calculations
+*********************************************************
 ** Deriving Additional Information
 replace ProficientOrAbove_percent = string(real(Lev2_percent) + real(Lev3_percent)) if strpos(ProficientOrAbove_percent, "-") > 0 & strpos(Lev2_percent, "-") == 0 & strpos(Lev3_percent, "-") == 0 & Lev2_percent != "*" & Lev3_percent != "*" & ProficiencyCriteria == "Levels 2-3"
 replace ProficientOrAbove_count = string(real(Lev2_count) + real(Lev3_count)) if strpos(ProficientOrAbove_count, "-") > 0 & strpos(Lev2_count, "-") == 0 & strpos(Lev3_count, "-") == 0 & Lev2_count != "*" & Lev3_count != "*" & ProficiencyCriteria == "Levels 2-3"
@@ -265,14 +292,153 @@ replace Lev1_count = "0" if strpos(Lev1_count, "-") > 0 & strpos(Lev3_count, "-"
 replace Lev1_percent = "0" if Lev1_count == "0"
 replace Lev1_count = "0" if Lev1_percent == "0"
 
-//Final Cleaning
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
- 
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode 
-
+//Final Cleaning and dropping extra variables
+local vars State StateAbbrev StateFips SchYear DataLevel DistName SchName ///
+	NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID ///
+	AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested ///
+	StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent ///
+	Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent ///
+	Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ///
+	ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA ///
+	Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType ///
+	DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+	keep `vars'
+	order `vars'
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-save "${Output}/MD_AssmtData_2015", replace
-export delimited "${Output}/MD_AssmtData_2015", replace
+*Exporting Temp Output.
+save "$Temp/MD_AssmtData_2015.dta" , replace
 
+*********************************************************
+// Creating the non-derivation output
+*********************************************************
+*******************************************************
+// Restoring breakpoint for non-derivation data processing
+*******************************************************
+use "$Temp/MD_2015_Breakpoint",clear
 
+//Indicator and Missing Variables
+gen StudentSubGroup = "All Students"
+gen StudentGroup = "All Students"
+
+gen StudentGroup_TotalTested = StudentSubGroup_TotalTested
+
+gen AssmtName = "PARCC" if Subject != "sci"
+replace AssmtName = "MSA" if Subject == "sci"
+
+gen AssmtType = "Regular"
+
+gen Flag_AssmtNameChange = "Y"
+replace Flag_AssmtNameChange = "N" if Subject == "sci"
+gen Flag_CutScoreChange_ELA = "Y"
+gen Flag_CutScoreChange_math = "Y"
+gen Flag_CutScoreChange_sci = "N"
+gen Flag_CutScoreChange_soc = "Not applicable"
+
+gen AvgScaleScore = "--"
+
+gen ProficiencyCriteria = "Levels 4-5" if Subject != "sci"
+replace ProficiencyCriteria = "Levels 2-3" if Subject == "sci"
+
+//Fixing CountyNames
+replace CountyName = subinstr(CountyName, "'S", "'s",.)
+
+//Post Launch Review
+replace SchName=stritrim(SchName)
+
+replace ProficientOrAbove_percent = "--" if ProficientOrAbove_percent == ""
+
+replace DistName = "SEED School Of Maryland" if NCESDistrictID == "2400027"
+
+replace ProficientOrAbove_count = "*" if ProficientOrAbove_count == "" 
+
+*********************************************************
+// Calculations
+*********************************************************
+** Deriving Additional Information
+replace ProficientOrAbove_percent = string(real(Lev2_percent) + real(Lev3_percent)) if strpos(ProficientOrAbove_percent, "-") > 0 & strpos(Lev2_percent, "-") == 0 & strpos(Lev3_percent, "-") == 0 & Lev2_percent != "*" & Lev3_percent != "*" & ProficiencyCriteria == "Levels 2-3"
+replace ProficientOrAbove_count = string(real(Lev2_count) + real(Lev3_count)) if strpos(ProficientOrAbove_count, "-") > 0 & strpos(Lev2_count, "-") == 0 & strpos(Lev3_count, "-") == 0 & Lev2_count != "*" & Lev3_count != "*" & ProficiencyCriteria == "Levels 2-3"
+replace ProficientOrAbove_percent = string(real(Lev4_percent) + real(Lev5_percent)) if strpos(ProficientOrAbove_percent, "-") > 0 & strpos(Lev5_percent, "-") == 0 & strpos(Lev4_percent, "-") == 0 & Lev4_percent != "*" & Lev5_percent == "*" & ProficiencyCriteria == "Levels 4-5"
+replace ProficientOrAbove_count = string(real(Lev4_count) + real(Lev5_count)) if strpos(ProficientOrAbove_count, "-") > 0 & strpos(Lev4_count, "-") == 0 & strpos(Lev5_count, "-") == 0 & Lev4_count != "*" & Lev5_count == "*" & ProficiencyCriteria == "Levels 4-5"
+
+replace ProficientOrAbove_percent = string(1 - real(Lev1_percent)) if strpos(ProficientOrAbove_percent, "-") > 0 & strpos(Lev1_percent, "-") == 0 & Lev1_percent != "*" & 1 - real(Lev1_percent) >= 0 & ProficiencyCriteria == "Levels 2-3"
+replace ProficientOrAbove_count = string(real(StudentSubGroup_TotalTested) - real(Lev1_count)) if strpos(ProficientOrAbove_count, "-") > 0 & strpos(StudentSubGroup_TotalTested, "-") == 0 & strpos(Lev1_count, "-") == 0 & StudentSubGroup_TotalTested != "*" & Lev1_count != "*" & real(StudentSubGroup_TotalTested) - real(Lev1_count) >= 0 & ProficiencyCriteria == "Levels 2-3"
+replace ProficientOrAbove_percent = string(1 - real(Lev1_percent) - real(Lev2_percent) - real(Lev3_percent)) if strpos(ProficientOrAbove_percent, "-") > 0 & strpos(Lev1_percent, "-") == 0 & strpos(Lev2_percent, "-") == 0 & strpos(Lev3_percent, "-") ==0 & Lev1_percent != "*" & Lev2_percent != "*" & Lev3_percent != "*" & ProficiencyCriteria == "Levels 4-5"
+replace ProficientOrAbove_count = string(real(StudentSubGroup_TotalTested) - real(Lev1_count) - real(Lev2_count) - real(Lev3_count)) if strpos(ProficientOrAbove_count, "-") > 0 & strpos(StudentSubGroup_TotalTested, "-") == 0 & strpos(Lev1_count, "-") == 0 & strpos(Lev2_count, "-") == 0 & strpos(Lev3_count, "-") == 0 & StudentSubGroup_TotalTested != "*" & Lev1_count != "*" & Lev2_count != "*" & Lev3_count != "*" & ProficiencyCriteria == "Levels 4-5"
+replace ProficientOrAbove_percent = "0" if strpos(ProficientOrAbove_percent, "e") > 0
+replace ProficientOrAbove_percent = "0" if ProficientOrAbove_count == "0"
+replace ProficientOrAbove_count = "0" if ProficientOrAbove_percent == "0"
+
+replace Lev5_percent = string(real(ProficientOrAbove_percent) - real(Lev4_percent)) if strpos(Lev5_percent, "-") > 0 & strpos(Lev4_percent, "-") == 0 & strpos(ProficientOrAbove_percent, "-") == 0 & Lev4_percent != "*" & ProficientOrAbove_percent != "*" & real(ProficientOrAbove_percent) - real(Lev4_percent) >= 0 & ProficiencyCriteria == "Levels 4-5"
+replace Lev5_percent = "0" if strpos(Lev5_percent, "-") > 0 & strpos(Lev4_percent, "-") == 0 & strpos(ProficientOrAbove_percent, "-") == 0 & Lev4_percent != "*" & ProficientOrAbove_percent != "*" & real(ProficientOrAbove_percent) - real(Lev4_percent) < 0 & ProficiencyCriteria == "Levels 4-5"
+replace Lev5_percent = "0" if strpos(Lev5_percent, "e") > 0
+replace Lev5_percent = "0" if Lev5_percent == "--" & ProficientOrAbove_percent == "0"
+
+replace Lev5_count = string(real(ProficientOrAbove_count) - real(Lev4_count)) if strpos(Lev5_count, "-") > 0 & strpos(Lev4_count, "-") == 0 & strpos(ProficientOrAbove_count, "-") == 0 & Lev4_count != "*" & ProficientOrAbove_count != "*" & real(ProficientOrAbove_count) - real(Lev4_count) >= 0 & ProficiencyCriteria == "Levels 4-5"
+replace Lev5_count = "0" if strpos(Lev5_count, "-") > 0 & strpos(Lev4_count, "-") == 0 & strpos(ProficientOrAbove_count, "-") == 0 & Lev4_count != "*" & ProficientOrAbove_count != "*" & real(ProficientOrAbove_count) - real(Lev4_count) < 0 & ProficiencyCriteria == "Levels 4-5"
+replace Lev5_percent = "0" if Lev5_count == "0"
+replace Lev5_count = "0" if Lev5_percent == "0"
+replace Lev5_count = "0" if Lev5_count == "--" & ProficientOrAbove_count == "0"
+
+replace Lev4_percent = string(real(ProficientOrAbove_percent) - real(Lev5_percent)) if strpos(Lev4_percent, "-") > 0 & strpos(Lev5_percent, "-") == 0 & strpos(ProficientOrAbove_percent, "-") == 0 & Lev5_percent != "*" & ProficientOrAbove_percent != "*" & real(ProficientOrAbove_percent) - real(Lev5_percent) >= 0 & ProficiencyCriteria == "Levels 4-5"
+replace Lev4_percent = "0" if strpos(Lev4_percent, "-") > 0 & strpos(Lev5_percent, "-") == 0 & strpos(ProficientOrAbove_percent, "-") == 0 & Lev5_percent != "*" & ProficientOrAbove_percent != "*" & real(ProficientOrAbove_percent) - real(Lev5_percent) < 0 & ProficiencyCriteria == "Levels 4-5"
+replace Lev4_percent = "0" if strpos(Lev4_percent, "e") > 0
+replace Lev4_percent = "0" if Lev4_percent == "--" & ProficientOrAbove_percent == "0"
+
+replace Lev4_count = string(real(ProficientOrAbove_count) - real(Lev5_count)) if strpos(Lev4_count, "-") > 0 & strpos(Lev5_count, "-") == 0 & strpos(ProficientOrAbove_count, "-") == 0 & Lev5_count != "*" & ProficientOrAbove_count != "*" & real(ProficientOrAbove_count) - real(Lev5_count) >= 0 & ProficiencyCriteria == "Levels 4-5"
+replace Lev4_count = "0" if strpos(Lev4_count, "-") > 0 & strpos(Lev5_count, "-") == 0 & strpos(ProficientOrAbove_count, "-") == 0 & Lev5_count != "*" & ProficientOrAbove_count != "*" & real(ProficientOrAbove_count) - real(Lev5_count) < 0 & ProficiencyCriteria == "Levels 4-5"
+replace Lev4_percent = "0" if Lev4_count == "0"
+replace Lev4_count = "0" if Lev4_percent == "0"
+replace Lev4_count = "0" if Lev4_count == "--" & ProficientOrAbove_count == "0"
+
+replace Lev3_percent = string(real(ProficientOrAbove_percent) - real(Lev2_percent)) if (strpos(Lev3_percent, "-") > 0 | Lev3_percent == "*") & strpos(Lev2_percent, "-") == 0 & strpos(ProficientOrAbove_percent, "-") == 0 & Lev2_percent != "*" & ProficientOrAbove_percent != "*" & real(ProficientOrAbove_percent) - real(Lev2_percent) >= 0 & ProficiencyCriteria == "Levels 2-3"
+replace Lev3_percent = "0" if (strpos(Lev3_percent, "-") > 0 | Lev3_percent == "*") & strpos(Lev2_percent, "-") == 0 & strpos(ProficientOrAbove_percent, "-") == 0 & Lev2_percent != "*" & ProficientOrAbove_percent != "*" & real(ProficientOrAbove_percent) - real(Lev2_percent) < 0 & ProficiencyCriteria == "Levels 2-3"
+replace Lev3_percent = string(1 - real(ProficientOrAbove_percent) - real(Lev1_percent) - real(Lev2_percent)) if strpos(Lev3_percent, "-") > 0 & strpos(Lev2_percent, "-") == 0 & strpos(Lev1_percent, "-") == 0 & strpos(ProficientOrAbove_percent, "-") == 0 & Lev2_percent != "*" & Lev1_percent != "*" & ProficientOrAbove_percent != "*" & 1 - real(ProficientOrAbove_percent) - real(Lev2_percent) - real(Lev1_percent) >= 0 & ProficiencyCriteria == "Levels 4-5"
+replace Lev3_percent = "0" if strpos(Lev3_percent, "-") > 0 & strpos(Lev2_percent, "-") == 0 & strpos(Lev1_percent, "-") == 0 & strpos(ProficientOrAbove_percent, "-") == 0 & Lev2_percent != "*" & Lev1_percent != "*" & ProficientOrAbove_percent != "*" & 1 - real(ProficientOrAbove_percent) - real(Lev2_percent) - real(Lev1_percent) < 0 & ProficiencyCriteria == "Levels 4-5"
+replace Lev3_percent = "0" if strpos(Lev3_percent, "e") > 0
+replace Lev3_percent = "0" if Lev3_percent == "--" & ProficientOrAbove_percent == "0"
+
+replace Lev3_count = string(real(ProficientOrAbove_count) - real(Lev2_count)) if (strpos(Lev3_count, "-") > 0 | Lev3_count == "*") & strpos(Lev2_count, "-") == 0 & strpos(ProficientOrAbove_count, "-") == 0 & Lev2_count != "*" & ProficientOrAbove_count != "*" & real(ProficientOrAbove_count) - real(Lev2_count) >= 0 & ProficiencyCriteria == "Levels 2-3"
+replace Lev3_count = "0" if (strpos(Lev3_count, "-") > 0 | Lev3_count == "*") & strpos(Lev2_count, "-") == 0 & strpos(ProficientOrAbove_count, "-") == 0 & Lev2_count != "*" & ProficientOrAbove_count != "*" & real(ProficientOrAbove_count) - real(Lev2_count) < 0 & ProficiencyCriteria == "Levels 2-3"
+replace Lev3_count = string(real(StudentSubGroup_TotalTested) - real(ProficientOrAbove_count) - real(Lev2_count) - real(Lev1_count)) if strpos(Lev3_count, "-") > 0 & strpos(Lev2_count, "-") == 0 & strpos(Lev1_count, "-") == 0 & strpos(ProficientOrAbove_count, "-") == 0 & strpos(StudentSubGroup_TotalTested, "-") == 0 & Lev2_count != "*" & Lev1_count != "*" & ProficientOrAbove_count != "*" & StudentSubGroup_TotalTested != "*" & real(ProficientOrAbove_count) - real(Lev2_count) - real(Lev1_count) >= 0 & ProficiencyCriteria == "Levels 4-5"
+replace Lev3_count = "0" if strpos(Lev3_count, "-") > 0 & strpos(Lev2_count, "-") == 0 & strpos(Lev1_count, "-") == 0 & strpos(ProficientOrAbove_count, "-") == 0 & strpos(StudentSubGroup_TotalTested, "-") == 0 & Lev2_count != "*" & Lev1_count != "*" & ProficientOrAbove_count != "*" & StudentSubGroup_TotalTested != "*" & real(ProficientOrAbove_count) - real(Lev2_count) - real(Lev1_count) < 0 & ProficiencyCriteria == "Levels 4-5"
+replace Lev3_percent = "0" if Lev3_count == "0"
+replace Lev3_count = "0" if Lev3_percent == "0"
+replace Lev3_count = "0" if Lev3_count == "--" & ProficientOrAbove_percent == "0"
+
+replace Lev2_percent = string(real(ProficientOrAbove_percent) - real(Lev3_percent)) if (strpos(Lev2_percent, "-") > 0 | Lev2_percent == "*") & strpos(Lev3_percent, "-") == 0 & strpos(ProficientOrAbove_percent, "-") == 0 & Lev3_percent != "*" & ProficientOrAbove_percent != "*" & real(ProficientOrAbove_percent) - real(Lev3_percent) >= 0 & ProficiencyCriteria == "Levels 2-3"
+replace Lev2_percent = "0" if (strpos(Lev2_percent, "-") > 0 | Lev2_percent == "*") & strpos(Lev3_percent, "-") == 0 & strpos(ProficientOrAbove_percent, "-") == 0 & Lev3_percent != "*" & ProficientOrAbove_percent != "*" & real(ProficientOrAbove_percent) - real(Lev3_percent) < 0 & ProficiencyCriteria == "Levels 2-3"
+replace Lev2_percent = string(1 - real(ProficientOrAbove_percent) - real(Lev1_percent) - real(Lev3_percent)) if strpos(Lev2_percent, "-") > 0 & strpos(Lev3_percent, "-") == 0 & strpos(Lev1_percent, "-") == 0 & strpos(ProficientOrAbove_percent, "-") == 0 & Lev3_percent != "*" & Lev1_percent != "*" & ProficientOrAbove_percent != "*" & 1 - real(ProficientOrAbove_percent) - real(Lev1_percent) - real(Lev3_percent) >= 0 & ProficiencyCriteria == "Levels 4-5"
+replace Lev2_percent = "0" if strpos(Lev2_percent, "-") > 0 & strpos(Lev3_percent, "-") == 0 & strpos(Lev1_percent, "-") == 0 & strpos(ProficientOrAbove_percent, "-") == 0 & Lev3_percent != "*" & Lev1_percent != "*" & ProficientOrAbove_percent != "*" & 1 - real(ProficientOrAbove_percent) - real(Lev3_percent) - real(Lev1_percent) < 0 & ProficiencyCriteria == "Levels 4-5"
+replace Lev2_percent = "0" if strpos(Lev2_percent, "e") > 0
+
+replace Lev2_count = string(real(ProficientOrAbove_count) - real(Lev3_count)) if (strpos(Lev2_count, "-") > 0 | Lev2_count == "*") & strpos(Lev3_count, "-") == 0 & strpos(ProficientOrAbove_count, "-") == 0 & Lev3_count != "*" & ProficientOrAbove_count != "*" & real(ProficientOrAbove_count) - real(Lev3_count) >= 0 & ProficiencyCriteria == "Levels 2-3"
+replace Lev2_count = "0" if (strpos(Lev2_count, "-") > 0 | Lev2_count == "*") & strpos(Lev3_count, "-") == 0 & strpos(StudentSubGroup_TotalTested, "-") == 0 & strpos(ProficientOrAbove_count, "-") == 0 & Lev3_count != "*" & StudentSubGroup_TotalTested != "*" & ProficientOrAbove_count != "*" & real(ProficientOrAbove_count) - real(Lev3_count) < 0 & ProficiencyCriteria == "Levels 2-3"
+replace Lev2_count = string(real(StudentSubGroup_TotalTested) - real(ProficientOrAbove_count) - real(Lev3_count) - real(Lev1_count)) if strpos(Lev2_count, "-") > 0 & strpos(Lev3_count, "-") == 0 & strpos(Lev1_count, "-") == 0 & strpos(ProficientOrAbove_count, "-") == 0 & strpos(StudentSubGroup_TotalTested, "-") == 0 & Lev3_count != "*" & Lev1_count != "*" & ProficientOrAbove_count != "*" & StudentSubGroup_TotalTested != "*" & real(ProficientOrAbove_count) - real(Lev3_count) - real(Lev1_count) >= 0 & ProficiencyCriteria == "Levels 4-5"
+replace Lev2_count = "0" if strpos(Lev2_count, "-") > 0 & strpos(Lev3_count, "-") == 0 & strpos(Lev1_count, "-") == 0 & strpos(ProficientOrAbove_count, "-") == 0 & strpos(StudentSubGroup_TotalTested, "-") == 0 & Lev3_count != "*" & Lev1_count != "*" & ProficientOrAbove_count != "*" & StudentSubGroup_TotalTested != "*" & real(ProficientOrAbove_count) - real(Lev3_count) - real(Lev1_count) < 0 & ProficiencyCriteria == "Levels 4-5"
+replace Lev2_percent = "0" if Lev2_count == "0"
+replace Lev2_count = "0" if Lev2_percent == "0"
+
+replace Lev1_percent = string(1 - real(ProficientOrAbove_percent)) if (strpos(Lev1_percent, "-") > 0 | Lev1_percent == "*") & strpos(ProficientOrAbove_percent, "-") == 0 & ProficientOrAbove_percent != "*" & 1 - real(ProficientOrAbove_percent) >= 0 & ProficiencyCriteria == "Levels 2-3"
+replace Lev1_percent = "0" if (strpos(Lev1_percent, "-") > 0 | Lev1_percent == "*") & strpos(ProficientOrAbove_percent, "-") == 0 & ProficientOrAbove_percent != "*" & 1 - real(ProficientOrAbove_percent) < 0 & ProficiencyCriteria == "Levels 2-3"
+replace Lev1_percent = string(1 - real(ProficientOrAbove_percent) - real(Lev2_percent) - real(Lev3_percent)) if strpos(Lev1_percent, "-") > 0 & strpos(Lev3_percent, "-") == 0 & strpos(Lev2_percent, "-") == 0 & strpos(ProficientOrAbove_percent, "-") == 0 & Lev3_percent != "*" & Lev2_percent != "*" & ProficientOrAbove_percent != "*" & 1 - real(ProficientOrAbove_percent) - real(Lev2_percent) - real(Lev3_percent) >= 0 & ProficiencyCriteria == "Levels 4-5"
+replace Lev1_percent = "0" if strpos(Lev1_percent, "-") > 0 & strpos(Lev3_percent, "-") == 0 & strpos(Lev2_percent, "-") == 0 & strpos(ProficientOrAbove_percent, "-") == 0 & Lev3_percent != "*" & Lev2_percent != "*" & ProficientOrAbove_percent != "*" & 1 - real(ProficientOrAbove_percent) - real(Lev3_percent) - real(Lev2_percent) < 0 & ProficiencyCriteria == "Levels 4-5"
+replace Lev1_percent = "0" if strpos(Lev1_percent, "e") > 0
+
+replace Lev1_count = string(real(StudentSubGroup_TotalTested) - real(ProficientOrAbove_count)) if (strpos(Lev1_count, "-") > 0 | Lev1_count == "*") & strpos(StudentSubGroup_TotalTested, "-") == 0 & strpos(ProficientOrAbove_count, "-") == 0 & StudentSubGroup_TotalTested != "*" & ProficientOrAbove_count != "*" & real(StudentSubGroup_TotalTested) - real(ProficientOrAbove_count) >= 0 & ProficiencyCriteria == "Levels 2-3"
+replace Lev1_count = "0" if (strpos(Lev1_count, "-") > 0 | Lev1_count == "*") & strpos(StudentSubGroup_TotalTested, "-") == 0 & strpos(ProficientOrAbove_count, "-") == 0 & StudentSubGroup_TotalTested != "*" & ProficientOrAbove_count != "*" & real(StudentSubGroup_TotalTested) - real(ProficientOrAbove_count) < 0 & ProficiencyCriteria == "Levels 2-3"
+replace Lev1_count = string(real(StudentSubGroup_TotalTested) - real(ProficientOrAbove_count) - real(Lev3_count) - real(Lev2_count)) if strpos(Lev1_count, "-") > 0 & strpos(Lev3_count, "-") == 0 & strpos(Lev2_count, "-") == 0 & strpos(ProficientOrAbove_count, "-") == 0 & strpos(StudentSubGroup_TotalTested, "-") == 0 & Lev3_count != "*" & Lev2_count != "*" & ProficientOrAbove_count != "*" & StudentSubGroup_TotalTested != "*" & real(ProficientOrAbove_count) - real(Lev3_count) - real(Lev2_count) >= 0 & ProficiencyCriteria == "Levels 4-5"
+replace Lev1_count = "0" if strpos(Lev1_count, "-") > 0 & strpos(Lev3_count, "-") == 0 & strpos(Lev2_count, "-") == 0 & strpos(ProficientOrAbove_count, "-") == 0 & strpos(StudentSubGroup_TotalTested, "-") == 0 & Lev3_count != "*" & Lev2_count != "*" & ProficientOrAbove_count != "*" & StudentSubGroup_TotalTested != "*" & real(ProficientOrAbove_count) - real(Lev3_count) - real(Lev2_count) < 0 & ProficiencyCriteria == "Levels 4-5"
+replace Lev1_percent = "0" if Lev1_count == "0"
+replace Lev1_count = "0" if Lev1_percent == "0"
+
+//Final Cleaning and dropping extra variables
+keep `vars'
+order `vars'
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
+
+*Exporting Non-Derivation Output.
+save "$Output_ND/MD_AssmtData_2015_ND.dta" , replace
+export delimited "$Output_ND/MD_AssmtData_2015_ND", replace	
+* END of MD_2015.do
+****************************************************

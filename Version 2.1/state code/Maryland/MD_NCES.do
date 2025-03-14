@@ -1,12 +1,19 @@
+*******************************************************
+* MARYLAND
+
+* File name: MD_NCES
+* Last update: 3/14/2025
+
+*******************************************************
+* Notes
+
+	* This do file uses NCES from 2014-2022 and keeps MD observations.
+	* These select observations are saved as a *.dta in NCES_MD.
+	* As of the latest update, the latest file is NCES_2022. 
+	* This do file will need to be updated as newer data is available. 
+		
+*******************************************************
 clear
-set more off
-
-
-
-global NCES_District "/Users/benjaminm/Documents/State_Repository_Research/NCES/District"
-global NCES_School "/Users/benjaminm/Documents/State_Repository_Research/NCES/School"
-global NCES_MD "/Users/benjaminm/Documents/State_Repository_Research/Maryland/NCES_MD"
-
 
 ** Preparing NCES files
 
@@ -14,7 +21,7 @@ global years 2014 2015 2016 2017 2018 2020 2021 2022
 
 foreach a in $years {
 	
-	use "${NCES_District}/NCES_`a'_District.dta", clear 
+	use "${NCES_District}/NCES_`a'_District", clear 
 	keep if state_location == "MD"
 	
 	rename state_name State
@@ -28,10 +35,9 @@ foreach a in $years {
 	rename lea_name DistName
 	keep State StateAbbrev StateFips NCESDistrictID State_leaid DistType CountyName CountyCode DistLocale DistCharter DistName
 	
+	save "${NCES_MD}/NCES_`a'_District_MD", replace
 	
-	save "${NCES_MD}/NCES_`a'_District.dta", replace
-	
-	use "${NCES_School}/NCES_`a'_School.dta", clear
+	use "${NCES_School}/NCES_`a'_School", clear
 	keep if state_location == "MD"
 	
 	rename state_name State
@@ -55,8 +61,8 @@ foreach a in $years {
 	} 
 	keep State StateAbbrev StateFips NCESDistrictID NCESSchoolID State_leaid DistType CountyName CountyCode DistLocale DistCharter SchName SchType SchVirtual SchLevel seasch DistName sch_lowest_grade_offered
 	drop if seasch == ""
-
 	
-	save "${NCES_MD}/NCES_`a'_School.dta", replace
-	
+	save "${NCES_MD}/NCES_`a'_School_MD", replace	
 }
+* END of MD_NCES.do
+****************************************************
