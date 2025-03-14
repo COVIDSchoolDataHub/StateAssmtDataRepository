@@ -264,7 +264,7 @@ gen DataLevel="School"
 save "${Temp}/AZ_AssmtData_school_2017.dta", replace
 
 //DISTRICTS - ELA and Math, Sci
-use "${AzMERIT}/AZ_AssmtData_2017_district_sci.dta", clear
+use "${AzMERIT}/AZ_AssmtData_district_2017.dta", clear
 
 append using "${AzMERIT}/AZ_AssmtData_2017_district_sci.dta"
 
