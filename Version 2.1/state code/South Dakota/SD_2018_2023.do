@@ -1,16 +1,29 @@
+*******************************************************
+* SOUTH DAKOTA
+
+* File name: SD_2018_2023
+* Last update: 3/14/2025
+
+*******************************************************
+* Notes
+
+	* This do file imports 2018-2023 *.xlsx SD data and saves it as a *.dta.
+	* The files are cleaned and variables are renamed.
+	* NCES of the previous year is merged. 
+	* A breakpoint is created before derivations. 
+	* This breakpoint is restored for the non-derivation output. 
+	* The following outputs are created:
+	* a) Non-derivation output for 2018-2023.
+	* b) Final output with derivations for 2019-2023.
+	* c) Temporary output with derivations for 2018.
+	* The temporary output will be used in SD_EDFacts_2015_2018.do.
+	
+*******************************************************
 clear
-set more off
-set trace off
 
-global Original "/Volumes/T7/State Test Project/South Dakota/Original Data"
-global Output "/Volumes/T7/State Test Project/South Dakota/Output"
-global NCES_District "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
-global NCES_School "/Volumes/T7/State Test Project/NCES/NCES_Feb_2024"
-global Stata_versions "/Volumes/T7/State Test Project/South Dakota/Stata .dta versions"
+** Importing 2018-2023 (excluding 2020) data
 
-
-** Importing
-
+//Add code to import 2018 and 2019 files. 
 forvalues year = 2018/2023 {
 di "~~~~~~~~~~~~"
 di "`year'"
@@ -20,32 +33,35 @@ if `year' == 2020 continue
 local prevyear =`=`year'-1'
 	
 //Unhide below code on first run
-
-//
-// clear 
-// tempfile temp1
-// save "`temp1'", emptyok
-// 	if `year' == 2020 continue
-//	
-//
-// 	foreach dl in State District School {
-// 		import excel "$Original/SD_OriginalData_`year'", firstrow sheet ("`dl'") allstring 
-// 		append using "`temp1'"
-// 		save "`temp1'", replace
-// 		clear
-//		
-// 	}
-// 	use "`temp1'"
-// 	drop if missing(Academic_Year)
-// 	save "$Original/`year'", replace
-// 	clear
-//	
-//
+clear 
+tempfile temp1
+save "`temp1'", emptyok
+	if `year' == 2020 continue
+	
+	foreach dl in State District School {
+		if `year' == 2018 {
+		import excel "$Original/SD_OriginalData_`year'", firstrow sheet ("`dl' 17-18") allstring 
+		}
+		if `year' == 2019 {
+		import excel "$Original/SD_OriginalData_`year'", firstrow sheet ("`dl' 18-19") allstring 
+		}
+		if `year' > 2020 {
+		import excel "$Original/SD_OriginalData_`year'", firstrow sheet ("`dl'") allstring 
+		}
+		append using "`temp1'"
+		save "`temp1'", replace
+		clear
+		
+	}
+	use "`temp1'"
+	drop if missing(Academic_Year)
+	save "$Original_DTA/`year'", replace
+	clear
 
 //Unhide Above code on first run
 	
 clear
-use "$Original/`year'", clear
+use "$Original_DTA/`year'", clear
 
 // Renaming
 rename Entity_Level DataLevel
@@ -70,8 +86,6 @@ rename Nbr_AllStudents_AdvancedLevel Lev4_count
 *rename Pct_AllStudents_AdvancedLevel Lev4_percent
 
 ** Percent variables have a denominator of enrollment, rather than tested, so the percents add to ParticipationRate rather than 100%. Deriving percents based on counts instead.
-
-
 // Correcting DataLevel
 gen DistName = Entity_Name if DataLevel == "District"
 gen SchName = Entity_Name if DataLevel == "School"
@@ -85,7 +99,6 @@ drop DataLevel
 rename DataLevel_n DataLevel
 replace DistName = "All Districts" if DataLevel ==1
 replace SchName = "All Schools" if DataLevel !=3
-
 
 // Dropping Extra Variables
 keep DataLevel GradeLevel Subject StudentSubGroup AssmtType StudentSubGroup_TotalTested ParticipationRate ProficientOrAbove_count Lev1_count Lev2_count Lev3_count Lev4_count DistName SchName StateAssignedDistID StateAssignedSchID
@@ -139,12 +152,9 @@ foreach count of varlist *count {
 }
 
 // Merging
-
 tempfile temp1
 save "`temp1'", replace
 clear
-
-
 
 // District
 use "`temp1'"
@@ -190,14 +200,10 @@ drop fips
 
 save "`tempsch'", replace
 
-
-
-
 //Appending
 use "`temp1'"
 keep if DataLevel==1
 append using "`tempdist'" "`tempsch'"
-
 
 // keep if DataLevel==1
 //Fixing NCES Variables
@@ -244,7 +250,6 @@ replace Flag_CutScoreChange_sci = "Y"
 
 gen Flag_CutScoreChange_soc = "Not applicable"
 
-
 gen ProficiencyCriteria = "Levels 3-4" // Updated 6/2/24
 replace AssmtType = "Regular"
 gen SchYear = "`prevyear'" + "-" + substr("`year'",-2,2)
@@ -267,17 +272,14 @@ gen AvgScaleScore = "--"
 
 replace CountyName = proper(CountyName) // added 6/3/24
 
- 
 replace StateAssignedSchID = substr(StateAssignedSchID, -2, 2)
  
 replace StateAssignedSchID = StateAssignedDistID + "-" + StateAssignedSchID if DataLevel ==3 
-
 
 drop State_leaid seasch
 
 replace CountyName = "McCook County" if CountyName == "Mccook County"
 replace CountyName = "McPherson County" if CountyName == "Mcpherson County"
-
  
 //StudentGroup_TotalTested
 cap drop StudentGroup_TotalTested
@@ -321,6 +323,14 @@ foreach percent of varlist Lev*_percent {
 replace ProficientOrAbove_percent = string(real(Lev3_percent) + real(Lev4_percent)) if !missing(real(Lev3_percent)) & !missing(real(Lev4_percent))
 replace ProficientOrAbove_percent = "*" if missing(ProficientOrAbove_percent)
 
+*******************************************************
+// Creating a Breakpoint - to restore for non-derivation data processing
+*******************************************************
+save "$Temp/SD_`year'_Breakpoint",replace
+
+*********************************************************
+//Derivations
+*********************************************************
 foreach count of varlist Lev*_count {
 	local percent = subinstr("`count'", "count", "percent",.)
 	replace `count' = string(round(real(`percent') * real(StudentSubGroup_TotalTested))) if !missing(real(`percent')) & !missing(real(StudentSubGroup_TotalTested)) & missing(real(`count'))
@@ -332,24 +342,81 @@ replace ProficientOrAbove_percent = "1" if real(ProficientOrAbove_percent) > 1 &
 replace ParticipationRate = "1" if real(ParticipationRate) > 1 & !missing(real(ParticipationRate))
 replace ProficientOrAbove_count = string(real(Lev3_count) + real(Lev4_count)) if !missing(real(Lev3_count)) & !missing(real(Lev4_count))
 
+//Final Cleaning
+foreach var of varlist DistName SchName {
+	replace `var' = stritrim(`var')
+	replace `var' = strtrim(`var')
+}
+//Final Cleaning and dropping extra variables
+local vars State StateAbbrev StateFips SchYear DataLevel DistName SchName ///
+	NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID ///
+	AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested ///
+	StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent ///
+	Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent ///
+	Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ///
+	ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA ///
+	Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType ///
+	DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+	keep `vars'
+	order `vars'
+sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
+*Exporting Temp Output for 2018.
+if `year' == 2018 {
+save "$Temp/SD_AssmtData_`year'", replace
+}
 
+*Exporting Final Output for 2019-2023.
+if `year' > 2018 {
+save "$Output/SD_AssmtData_`year'", replace
+export delimited "$Output/SD_AssmtData_`year'", replace
+}
+}
+
+*********************************************************
+// Creating the non-derivation output
+*********************************************************
+forvalues year = 2018/2023 {
+di "~~~~~~~~~~~~"
+di "`year'"
+di "~~~~~~~~~~~~"	
+
+if `year' == 2020 continue
+local prevyear =`=`year'-1'
+	
+*******************************************************
+// Restoring breakpoint for non-derivation data processing
+*******************************************************
+use "$Temp/SD_`year'_Breakpoint", clear
+
+//Misc Fixes
+replace DistName = subinstr(DistName, "School District ", "",.)
+replace ProficientOrAbove_percent = "1" if real(ProficientOrAbove_percent) > 1 & !missing(real(ProficientOrAbove_percent))
+replace ParticipationRate = "1" if real(ParticipationRate) > 1 & !missing(real(ParticipationRate))
+replace ProficientOrAbove_count = string(real(Lev3_count) + real(Lev4_count)) if !missing(real(Lev3_count)) & !missing(real(Lev4_count))
 
 //Final Cleaning
 foreach var of varlist DistName SchName {
 	replace `var' = stritrim(`var')
 	replace `var' = strtrim(`var')
 }
-order State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
-keep State StateAbbrev StateFips SchYear DataLevel DistName SchName NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
-
+//Final Cleaning and dropping extra variables
+local vars State StateAbbrev StateFips SchYear DataLevel DistName SchName ///
+	NCESDistrictID StateAssignedDistID NCESSchoolID StateAssignedSchID ///
+	AssmtName AssmtType Subject GradeLevel StudentGroup StudentGroup_TotalTested ///
+	StudentSubGroup StudentSubGroup_TotalTested Lev1_count Lev1_percent ///
+	Lev2_count Lev2_percent Lev3_count Lev3_percent Lev4_count Lev4_percent ///
+	Lev5_count Lev5_percent AvgScaleScore ProficiencyCriteria ProficientOrAbove_count ///
+	ProficientOrAbove_percent ParticipationRate Flag_AssmtNameChange Flag_CutScoreChange_ELA ///
+	Flag_CutScoreChange_math Flag_CutScoreChange_sci Flag_CutScoreChange_soc DistType ///
+	DistCharter DistLocale SchType SchLevel SchVirtual CountyName CountyCode
+	keep `vars'
+	order `vars'
 sort DataLevel DistName SchName Subject GradeLevel StudentGroup StudentSubGroup
 
-
-//Saving
-save "$Output/SD_AssmtData_`year'", replace
-export delimited "$Output/SD_AssmtData_`year'", replace
-
+*Exporting Non-Derivation Output.
+save "$Output_ND/SD_AssmtData_`year'_ND", replace
+export delimited "$Output_ND/SD_AssmtData_`year'_ND", replace
 }
-
+* END of SD_2018_2023.do
+****************************************************
