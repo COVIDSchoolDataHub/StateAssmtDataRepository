@@ -1,10 +1,54 @@
-README 
+# Maryland Data Cleaning
 
-Maryland. Cleaned for V2.0 by Benjamin Moshes on 9/20/24. You can reach him at benjaminm3030@gmail.com with any questions!
+This is a ReadMe for Maryland's data cleaning process, from 2015 to 2024.
 
-To run files for Maryland, simply run files in the following order: 
-1. MD_NCES 
-2. MD_Master (this files runs all MD_YEAR files and participation files
+## NCES Setup
 
-Updates:
+NCES_Full: Download the folder from Google Drive-->_Data Cleaning Materials --> NCES District and School Demographics.
+    
+       a. NCES District Files [subfolder] 
+
+       b. NCES School Files [subfolder]
+
+As of 03/14/2025, the most recent files are from NCES 2022. 
+
+## EDFacts Setup
+EDFacts: Download the Datasets subfolder containing *.csv files. There will be individual folders for each year. 
+
+This is located in Google Drive-->_Data Cleaning Materials --> _EDFacts--> Datasets.
+
+## Maryland Setup
+Create a folder for MD. Inside that folder, create the following subfolders:
+
+1. Original Data Files: Download the **entire** folder and subfolders from Google Drive --> Maryland --> MD Original Data Files.
+
+   Place these files and subfolders in the Original Data Files folder.
+
+   Retain the same subfolder structure. 
+ 
+   a) DTA [subfolder]
+
+   b) ED Data Express [subfolder]: This is downloaded from the Original Data Files folder.
+             
+2. Temp:  
+         
+3. NCES_MD 
+      
+4. EDFacts_MD 
+      
+5. Output_Files
+      
+6. Output_Files_ND: This is a folder for the non-derivation output.
+
+# Process
+    Place all do files in the MD folder.
+        
+    Set the appropriate file paths in MD_Main_File.do
+        
+    Running MD_Main_File.do will execute all the do files in order.
+
+## Updates
+
 12/06/2024: Updated to derive more specific information where we previously had ranges, per Stanford feedback.
+
+03/14/2025: Updated code to standardize it and create non-derivation output.
